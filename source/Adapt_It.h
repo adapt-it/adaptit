@@ -1390,8 +1390,8 @@ enum USFMAnalysisField
 /// keepTogether or keepWithNext.
 struct USFMAnalysis
 {
-	wxString marker;
-	wxString endMarker;
+	wxString marker; // this is the marker, without the initial gSFescapechar
+	wxString endMarker; // likewise, lacks initial gSFescapechar
 	wxString description;
 	bool usfm;
 	bool png;

@@ -13543,7 +13543,19 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 	if (bFound)
 	{
 		// iter->second points to the USFMAnalysis struct
-		return iter->second;
+		
+		// BEW 30Sep19 alter some of \fig's attributes, so in USFM3 we can show it's
+		// unfiltered caption string with navtext and m_bSpecialText colouring
+		USFMAnalysis* pUsfmAnalyis = iter->second;
+		wxString bareMkr = pUsfmAnalyis->marker;
+		if (bareMkr == _T("fig"))
+		{
+			pUsfmAnalyis->special = TRUE;
+			pUsfmAnalyis->bdryOnLast = TRUE;
+			pUsfmAnalyis->inform = TRUE;
+			pUsfmAnalyis->navigationText = _T("illustration");
+		}
+		return pUsfmAnalyis;
 	}
 	else
 	{
@@ -13642,7 +13654,19 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar, wxString& tagOnly,
 	if (bFound)
 	{
 		// iter->second points to the USFMAnalysis struct
-		return iter->second;
+
+		// BEW 30Sep19 alter some of \fig's attributes, so in USFM3 we can show it's
+		// unfiltered caption string with navtext and m_bSpecialText colouring
+		USFMAnalysis* pUsfmAnalyis = iter->second;
+		wxString bareMkr = pUsfmAnalyis->marker;
+		if (bareMkr == _T("fig"))
+		{
+			pUsfmAnalyis->special = TRUE;
+			pUsfmAnalyis->bdryOnLast = TRUE;
+			pUsfmAnalyis->inform = TRUE;
+			pUsfmAnalyis->navigationText = _T("illustration");
+		}
+		return pUsfmAnalyis;
 	}
 	else
 	{
@@ -13736,19 +13760,23 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 	}
 	if (bFound)
 	{
-#ifdef _Trace_RebuildDoc
-		TRACE2("LookupSFM: bareMkr = %s   gCurrentSfmSet = %d  USFMAnalysis FOUND\n",bareMkr,gpApp->gCurrentSfmSet);
-		TRACE1("LookupSFM:         filtered?  %s\n", iter->second->filter == TRUE ? "YES" : "NO");
-#endif
 		// iter->second points to the USFMAnalysis struct
-		return iter->second;
+
+		// BEW 30Sep19 alter some of \fig's attributes, so in USFM3 we can show it's
+		// unfiltered caption string with navtext and m_bSpecialText colouring
+		USFMAnalysis* pUsfmAnalyis = iter->second;
+		wxString bareMkr = pUsfmAnalyis->marker;
+		if (bareMkr == _T("fig"))
+		{
+			pUsfmAnalyis->special = TRUE;
+			pUsfmAnalyis->bdryOnLast = TRUE;
+			pUsfmAnalyis->inform = TRUE;
+			pUsfmAnalyis->navigationText = _T("illustration");
+		}
+		return pUsfmAnalyis;
 	}
 	else
 	{
-#ifdef _Trace_RebuildDoc
-		TRACE2("\n LookupSFM: bareMkr = %s   gCurrentSfmSet = %d  USFMAnalysis NOT FOUND  ...   Unknown Marker\n",
-				bareMkr,gpApp->gCurrentSfmSet);
-#endif
 		return (USFMAnalysis*)NULL;
 	}
 }
@@ -15093,70 +15121,99 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	{
 		return len;
 	}
-	// The first possibility to deal with is that we may be pointing at an inline
-	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
-	// have provided a boolean telling us we are pointing at one
-	// BEW 24Oct14, the caller knows about nested markers too, and \+wj etc are in the
-	// appropriate rapid access strings, so can be looked up directly
 	if (bIsInlineNonbindingMkr)
 	{
-		// we are pointing at one of these five markers, handle this situation...
-		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
-		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
-										 // In the release version, force a document creation error, and hence a halt with a warning
-		if (pUsfmAnalysis == NULL)
+		// BEW 30Sep19 bleed out the \fig special case
+		wxString aMkr = wxEmptyString;
+		bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
+		bool bIsFigure = (aMkr == _T("\\fig"));
+		if (bIsInlineBeginMkr && bIsFigure)
 		{
-			return -1;
-		}
-		bareMkr = emptyStr;
-		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
-		// is to be stored
-		if (baseOfEndMkr.IsEmpty())
-		{
-			// It's not an endmarker
-			if (bIsNestedMkr)
-				bareMkr = _T('+');
-			else
-				bareMkr.Empty();
-			bareMkr += pUsfmAnalysis->marker;
+			wxString wholeMkr = aMkr;
+			wxASSERT(!wholeMkr.IsEmpty());
+			wxString wholeMkrPlusSpace = wholeMkr + aSpace;
+			itemLen = wholeMkr.Len() + 1;
+			// store the whole marker, and a following space
+			pSrcPhrase->SetInlineNonbindingMarkers(wholeMkrPlusSpace);
+			ptr += itemLen;
+			len += itemLen;
+			wxASSERT(pSrcPhrase->m_bSpecialText == TRUE);
+			wxASSERT(pSrcPhrase->m_bFirstOfType == TRUE);
+			wxASSERT(pSrcPhrase->m_curTextType == noType);
+			itemLen = 0; // it's the len variable that is returned, not itemLen
 		}
 		else
 		{
-			// It's an endmarker
-			if (bIsNestedMkr)
-				bareMkr = _T('+');
+			// legacy code
+
+			// The first possibility to deal with is that we may be pointing at an inline
+			// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
+			// have provided a boolean telling us we are pointing at one.
+
+			// BEW 30Sep19 The case where marker is \fig has been excluded here because of the 
+			// addition of the TRUE block above.
+			//
+			// BEW 24Oct14, the caller knows about nested markers too, and \+wj etc are in the
+			// appropriate rapid access strings, so can be looked up directly
+			// we are pointing at one of these first four markers, handle this situation...
+			pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
+			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+											 // In the release version, force a document creation error, and hence a halt with a warning
+			if (pUsfmAnalysis == NULL)
+			{
+				return -1;
+			}
+			bareMkr = emptyStr;
+			// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
+			// is to be stored
+			if (baseOfEndMkr.IsEmpty())
+			{
+				// It's not an endmarker
+				if (bIsNestedMkr)
+					bareMkr = _T('+');
+				else
+					bareMkr.Empty();
+				bareMkr += pUsfmAnalysis->marker;
+			}
 			else
-				bareMkr.Empty();
-			bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
-		}
-		wholeMkr = gSFescapechar + bareMkr;
-		wholeMkrPlusSpace = wholeMkr + aSpace;
-		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
-		// In the release version, force a document creation error, and hence a halt with a warning
-		if (inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
-		{
-			return -1;
-		}
+			{
+				// It's an endmarker
+				if (bIsNestedMkr)
+					bareMkr = _T('+');
+				else
+					bareMkr.Empty();
+				bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
+			}
+			wholeMkr = gSFescapechar + bareMkr;
+			wholeMkrPlusSpace = wholeMkr + aSpace;
+			wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
+			// In the release version, force a document creation error, and hence a halt with a warning
+			if (inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
+			{
+				return -1;
+			}
 
-		wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
-		itemLen = wholeMkr.Len();
+			wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
+			itemLen = wholeMkr.Len();
 
-		// store the whole marker, and a following space
-		pSrcPhrase->SetInlineNonbindingMarkers(wholeMkrPlusSpace);
+			// store the whole marker, and a following space
+			pSrcPhrase->SetInlineNonbindingMarkers(wholeMkrPlusSpace);
 
-		// point past the inline non-binding marker, and then parse
-		// over the white space following it, and point past that too
-		ptr += itemLen;
-		len += itemLen;
-		itemLen = ParseWhiteSpace(ptr);
-		ptr += itemLen;
-		len += itemLen;
-		wxASSERT(ptr < pEnd);
-		// In the release version, force a document creation error, and hence a halt with a warning
-		if (ptr > pEnd)
-		{
-			return -1;
-		}
+			// point past the inline non-binding marker, and then parse
+			// over the white space following it, and point past that too
+			ptr += itemLen;
+			len += itemLen;
+			itemLen = ParseWhiteSpace(ptr);
+			ptr += itemLen;
+			len += itemLen;
+			wxASSERT(ptr < pEnd);
+			// In the release version, force a document creation error, and hence a halt with a warning
+			if (ptr > pEnd)
+			{
+				return -1;
+			}
+
+		} // end of else block for test: if (bIsInlineNonbindingMkr)
 	}
 	else
 	{
@@ -15236,6 +15293,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	}
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
+	itemLen = 0;
 
 	// What might ptr be pointing at now? If the above block actually stored a marker,
 	// then we'd expect to be pointing at the word proper's first character. But...
@@ -15395,7 +15453,7 @@ tryagain:	if (IsMarker(ptr))
 		pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a new verse
 		ptr += itemLen; // point past verse number
 
-						// set pSrcPhrase attributes
+		// set pSrcPhrase attributes
 		pSrcPhrase->m_bVerse = TRUE;
 
 		itemLen = ParseWhiteSpace(ptr); // past white space after the marker
@@ -15804,7 +15862,6 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 	return augmentedWholeMkr == xref;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
 /// \param		nStartingSequNum	-> the initial sequence number
@@ -15838,9 +15895,8 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 /// CSourcePhrase instance.
 ///
 /// TODO - currently, order information about what precedes a word and what follows it is
-/// lost. A useful change for more accurate exports, and reducing the use of Placement
-/// dialogs, would be to add order information (eg. enums in actual order in a couple of
-/// new CSourcePhrase string attributes) to the CSourcePhrase model. Do this someday!
+/// lost. A useful change is add metadata to the filtered info which would make the position
+/// determinate - do this asap
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
 							   int nTextLength, bool bTokenizingTargetText)
@@ -15851,7 +15907,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bIsNestedMkr = FALSE;
 	wxString tagOnly;
 	wxString baseOfEndMkr;
-	wxString strCaption = _T("caption");
+	m_bIsInFigSpan = FALSE; // initialize, used in propagating textType and m_bSpecialText
 	m_bTokenizingTargetText = bTokenizingTargetText; // set the member boolean, so
 				// that IsInWordProper()  can get hold of the current value of the flag
 
@@ -16482,6 +16538,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// the lookup and used, likewise, if its an endmarker, * will be removed
 				// as well. However, we should only be encountering legacy content
 				// begin-markers here in TokenizeText()
+				// BEW 30Sep19 the lookup now returns a pUsfmAnalysis modified for
+				// the ptr being at a \fig marker: modifications are:
+				// 'special' set to TRUE, 'bdryOnLast' set TRUE, 'inform' set TRUE,
+				// and navigationText set to _T("illustration")
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
@@ -16673,20 +16733,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// BEW 30Sep19 unfortunately, with USFM 3.0 the \fig marker still
 				// has its inform and special values in the struct set to false ( 0 )
 				// and it is much better to show \fig in the GUI, and as special text
-				// so check and if these booleans are FALSE, and force them to TRUE
-				// with this hack. If Bill changes AI_USFM.xml at some future time,
-				// the tests will keep things robust for \fig
-				if (gSFescapechar + tagOnly == _T("\\fig"))
-				{
-					if (pUsfmAnalysis->inform == FALSE)
-					{
-						pUsfmAnalysis->inform = TRUE;
-					}
-					if (pUsfmAnalysis->special == FALSE)
-					{
-						pUsfmAnalysis->special = TRUE;
-					}
-				}
+				// so I've added update code in LookupSFM()'s three variants to fix this
 
 				// Do the lookup - these rapid access strings never contain nested markers
 				// BEW 30Sep19 the one-line test with three subtest below, I'll turn into
@@ -17094,6 +17141,40 @@ isnull:	            int xxx = 0; wxUnusedVar(xxx);
 								bIsInlineBindingMkr = FALSE;
 								bIsInlineNonbindingMkr = TRUE; // can't be both at same time
 								bFoundOne = TRUE;
+
+								// The only inlineNonbindingMkr (i. the begin-marker) we need consider
+								// here is \fig  There are a few reasons:
+								// (1) these markers do not change the TextType, except for \fig which
+								// needs to cause a type change at the pSrcPhrase which commences the caption's
+								// span of CSourcePhrases (to 'noType' enum value), and therefore the
+								// member m_bSpecialText needs to be set TRUE, if \fig was the marker
+								// found. The current pSrcPhrase needs its m_bSpecialText set TRUE if
+								// the felicity conditions are satisfied, because it is the first of
+								// the caption's span in USFM 3.0 (but not in earlier versions of USFM)
+								// (2) The end of the span of caption CSourcePhrase instances needs to
+								// be reset to verse (default) when \fig* is later encountered.
+								// IsTextTypeChangingEndMarker(pSrcPhrase) does that job below in the
+								// 'propagation' code, after ParseWord() has done its job.
+								// (3) Other markups that involve inline span involve m_marker and
+								// m_endMarker members; these are \f and \x and \fe, and they are
+								// handled adequately from TokenizeText's legacy code.
+								wxString aMkr = wxEmptyString; 
+								bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
+								bool bIsFigure = (aMkr == _T("\\fig"));
+								if (bIsInlineBeginMkr && bIsFigure)
+								{
+									// Set m_inform and m_bSpecialText, because this marker
+									// is \fig at the beginning of a figure's caption text
+									pSrcPhrase->m_inform = pUsfmAnalysis->navigationText; // set it to "illustration"
+									pSrcPhrase->m_bSpecialText = TRUE;
+									pSrcPhrase->m_bFirstOfType = TRUE;
+									pSrcPhrase->m_curTextType = noType;
+									// ParsePreWord() will need a tweak to handle \fig as
+									// a special (bleed out) case; ParseWord() will need
+									// no change, and then the propagation code following
+									// ParseWord() will need tweaking also to handle \fig
+									// as a (bleeding) special case
+								}
 							}
 						}
 					}
@@ -17406,8 +17487,77 @@ wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), _
 			// ParseWord() call takes place.
 			pSrcPhrase->m_markers = tokBuffer;
 wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+
+
+
 			// ************ New Propagation Code Starts Here ******************
+
+
 			bool bTextTypeChanges = FALSE;
+
+			// BEW 30Sep19 Handle the \fig marker and it's span and endmarker, as a
+			// special case - we want an unfiltered \fig ... \fig* span to appear in
+			// the GUI with the illustration caption text showing, but as m_bSpecialText
+			// set TRUE (to get the default red color, or whatever user has changed it to)
+			// and the navigation text to show "illustration". In USFM 3, any attributes-
+			// having metadata will have been automatically hidden already (i.e. bar (|)
+			// to the start of the endmarker, and m_bUnused set TRUE to indicate there is
+			// metadata hidden in pSrcPhrase->m_punctsPattern, prior to the +$+ delimiter
+			wxString aBeginMarker = pSrcPhrase->GetInlineNonbindingMarkers();
+			wxString augmentedFigStr = _T("\\fig ");
+			int nFirstSequNumOfSpan = 0; // initialize
+			if (aBeginMarker == augmentedFigStr)
+			{
+				if (pSrcPhrase->m_bFirstOfType &&
+					pSrcPhrase->m_bSpecialText &&
+					(pSrcPhrase->m_curTextType == noType))
+				{
+					pSrcPhrase->m_bBoundary = TRUE;
+					bTextTypeChanges = TRUE;
+					m_bIsInFigSpan = TRUE;
+					nFirstSequNumOfSpan = pSrcPhrase->m_nSequNumber;
+				}
+			} // at start of span, so we need to propagate the m_bSpecialText value
+
+			// SubsequentCSourcePhrases need to check here, until endmarker is reached
+			
+			if (m_bIsInFigSpan && pSrcPhrase->m_nSequNumber > nFirstSequNumOfSpan)
+			{
+				wxString figEndMkr = _T("\\fig*");
+				// Since this is a span, pLastSrcPhrase will exist
+				wxString strInlineNonBindingEndMkr = pLastSrcPhrase->GetInlineNonbindingEndMarkers();
+				if (strInlineNonBindingEndMkr.IsEmpty())
+				{
+					// Keep propagating, not yet at end marker
+					pLastSrcPhrase->m_bSpecialText = TRUE;
+					pLastSrcPhrase->m_curTextType = noType;
+				}
+				else
+				{
+					int offset = wxNOT_FOUND;
+					offset = strInlineNonBindingEndMkr.Find(figEndMkr);
+					if (offset != wxNOT_FOUND)
+					{
+						// This previous instance is the CSourcePhrase which ends 
+						// the  \fig .... \fig* span; so for the current one
+						// revert to 'verse' and m_bSpecialText FALSE
+						pSrcPhrase->m_bSpecialText = FALSE;
+						pSrcPhrase->m_curTextType = verse;
+						pSrcPhrase->m_bFirstOfType = TRUE; // TextType has changed
+
+						// And make the last a boundary, and turn off first
+						// of type to make sure it's off there
+						pLastSrcPhrase->m_bBoundary = TRUE;
+						pLastSrcPhrase->m_bFirstOfType = FALSE;
+
+						// And clear the boolean which declares we are parsing
+						// within a \fig ... \fig* span
+						m_bIsInFigSpan = FALSE;
+						nFirstSequNumOfSpan = 0; // re-initialize
+					}
+				}
+			}
+
 			bool bEndedffexspanUsedToChangedTextType = FALSE;
 			// if not done before ParseWord() was called, do the update here, if needed
 			if (bEnded_f_fe_x_span)
@@ -17478,6 +17628,12 @@ wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), _
 						// UFSM nested markers, because the above LookupSFM() works for them
 						// too, and returns the pUsfmAnalysis for the associated non-nested
 						// marker, and that is what is passed in here
+						// BEW 30Sep19 refactoring for USFM3.0, I want \fig unfiltered to be
+						// shown in red (m_bSpecialText TRUE), so a couple of the old \\fig 
+						// config values need updating - 'special' & 'inform' reset as TRUE
+						// etc, so I've added update code in LookupSFM()'s three variants to
+						// fix this
+
 						pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
 															pBufStart, length, pUsfmAnalysis);
 						// if there was a preceding poetry marker for a verse marker,
@@ -17525,6 +17681,7 @@ wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), _
 			}
 			tokBuffer.Empty();
 			wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+
 			// implement the decisions regarding propagation made above...
 			bool bTextTypeChangeBlockEntered = FALSE;
 			if (pLastSrcPhrase != NULL)
@@ -17606,7 +17763,9 @@ wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), _
 					}
 				} // end of else block for test: if (pLastSrcPhrase != NULL)
 			}
+
 			wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+
 			// ************ New Propagation Code Ends Here ******************
 
 			// BEW added 30May05, to remove any initial space that may be in m_markers
@@ -19302,7 +19461,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 		gPreviousTextType = pLast->m_curTextType;
 		pThis->m_bFirstOfType = TRUE;
 		pThis->m_curTextType = noType;
-		pThis->m_inform = _T("\\fig");
+		pThis->m_inform = _T("caption");
 		pLast->m_bBoundary = TRUE;
 		pThis->m_bSpecialText = TRUE;
 		return TRUE;
@@ -19311,7 +19470,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 	strMkr = str.Mid(1); // we want everything after the sfm escape character
 	bool bEndMarker = IsEndMarker(pChar,pChar+len);
 
-	// BEW added 23Mayo5; the following test only can return TRUE when the passed in marker
+	// BEW added 23May05; the following test only can return TRUE when the passed in marker
 	// at pChar is a beginning marker for an inline section (these have the potential to
 	// temporarily interrupt the propagation of the TextType value, while another value
 	// takes effect), or is the beginning marker for a footnote

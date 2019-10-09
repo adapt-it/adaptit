@@ -481,6 +481,7 @@ public:
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
+	bool m_bIsInFigSpan;
 
 	// BEW 30Sep19 created this (valid for ParseWord() or ParseWord2()) to pull out
 	// pre-word-proper processing into TokenizeText() - because things like \fig were
@@ -499,40 +500,40 @@ public:
 		bool bTokenizingTargetText);
 
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
-	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
-	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
-							wxChar* pEnd, // pointer to the null at the end of the string buffer
-							CSourcePhrase* pSrcPhrase, // where we store what we parse
-							wxString& spacelessPuncts, // punctuationset used, with spaces removed
-							wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
-							wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
-							bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
-							// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
-							bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
-							bool bTokenizingTargetText);
-							// from the remaining inline marker set (but excluding \f* and
-							// \x* and any others beginning with \f or \x)
+	//int ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
+	int	ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
+		wxChar* pEnd, // pointer to the null at the end of the string buffer
+		CSourcePhrase* pSrcPhrase, // where we store what we parse
+		wxString& spacelessPuncts, // punctuationset used, with spaces removed
+		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+		wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
+		bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
+		// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
+		bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
+		bool bTokenizingTargetText);
+		// from the remaining inline marker set (but excluding \f* and
+		// \x* and any others beginning with \f or \x)
 	int ParseWord2(
-			wxChar *pChar,
-			wxChar* pEnd,
-			CSourcePhrase* pSrcPhrase,
-			wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
-			wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
-			wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
-			bool& bIsInlineNonbindingMkr,
-			bool& bIsInlineBindingMkr,
-			bool bTokenizingTargetText,
-			wxChar* pBufStart);
+		wxChar *pChar,
+		wxChar* pEnd,
+		CSourcePhrase* pSrcPhrase,
+		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
+		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
+		bool& bIsInlineNonbindingMkr,
+		bool& bIsInlineBindingMkr,
+		bool bTokenizingTargetText,
+		wxChar* pBufStart);
 
 	int	ParseWordProper(
-			wxChar*		pChar,
-			wxChar*		pEnd,
-			CSourcePhrase* pSrcPhrase,
-			wxString&	spacelessPuncts,
-			wxString&	spacelessPuncts_NoTilde,
-			bool&		bWordJoiningFixedSpaceEncountered,
-			WordParseEndsAt& endCondition,
-			bool        bTokenizingTargetText);
+		wxChar*		pChar,
+		wxChar*		pEnd,
+		CSourcePhrase* pSrcPhrase,
+		wxString&	spacelessPuncts,
+		wxString&	spacelessPuncts_NoTilde,
+		bool&		bWordJoiningFixedSpaceEncountered,
+		WordParseEndsAt& endCondition,
+		bool        bTokenizingTargetText);
 	wxArrayInt		m_arrParsedWords_StartAndEnd; // store the start and end offsets for each word parsed
 
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
