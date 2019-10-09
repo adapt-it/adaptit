@@ -132,8 +132,9 @@ extern wxCriticalSection g_jsonCritSect;
 wxMutex s_AutoSaveMutex;
 
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
-#define _DOSERVDISC
-#define ERR_DUPLICATE
+//#define _DOSERVDISC
+//#define ERR_DUPLICATE
+//#define FREETRMODE
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -25847,6 +25848,9 @@ int CAdapt_ItApp::OnExit(void)
     }
     delete m_pSavedDocForClipboardAdapt;
 
+	// BEW 30Sep19  Ensure the cache in doc, m_pCachedSourcePhrase is NULL, not xCDCDCDCD
+	//GetDocument()->m_pCachedSourcePhrase = NULL;
+
     // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
     // this point, and so the call to PopEventHandler() can't be made here. Bill found out
     // that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
@@ -28435,35 +28439,35 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // added for Bruce 1Apr05
     gpApp->m_FilterStatusMap.clear(); // start with empty map
 
-                                      // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
-                                      // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
-                                      // following variables are properly initialized in the Usfm Filter page's
-                                      // constructors, we can unconditionally copy those local copies back to their
-                                      // corresponding variables on the App and Doc when the user clicks on OK in the
-                                      // Preferences, and/or clicks FINISH in the wizard. These variables are:
-                                      // 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of
-                                      //     the active document]
-                                      // 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers
-                                      //     of the active document]
-                                      // 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for
-                                      //     storing in proj config]
-                                      // 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value
-                                      //     for storing in proj config]
-                                      // 5. gpApp->m_sfmSetAfterEdit (enum SfmSet)
-                                      // 6. gpApp->m_filterMarkersAfterEdit (wxString)
-                                      // 7. gpApp->m_unknownMarkers (CStringArray)
-                                      // 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
-                                      // 9. gpApp->m_currentUnknownMarkersStr (wxString)
-                                      // When checking code integrity, the above should be used to initialize the
-                                      // corresponding temporary local variables used in the Usfm Filter page.
-                                      // Only the temporary local variables should be modified while the Preferences and/or
-                                      // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
-                                      // wizard, should the temporary local variables be used to update the above global
-                                      // variables on the App.
+    // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
+    // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
+    // following variables are properly initialized in the Usfm Filter page's
+    // constructors, we can unconditionally copy those local copies back to their
+    // corresponding variables on the App and Doc when the user clicks on OK in the
+    // Preferences, and/or clicks FINISH in the wizard. These variables are:
+    // 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of
+    //     the active document]
+    // 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers
+    //     of the active document]
+    // 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for
+    //     storing in proj config]
+    // 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value
+    //     for storing in proj config]
+    // 5. gpApp->m_sfmSetAfterEdit (enum SfmSet)
+    // 6. gpApp->m_filterMarkersAfterEdit (wxString)
+    // 7. gpApp->m_unknownMarkers (CStringArray)
+    // 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
+    // 9. gpApp->m_currentUnknownMarkersStr (wxString)
+    // When checking code integrity, the above should be used to initialize the
+    // corresponding temporary local variables used in the Usfm Filter page.
+    // Only the temporary local variables should be modified while the Preferences and/or
+    // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
+    // wizard, should the temporary local variables be used to update the above global
+    // variables on the App.
 
-                                      // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
-                                      // reflects the state of the current Doc) with the USFM and Filtering page's
-                                      // tempSfmSetAfterEditDoc
+    // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
+    // reflects the state of the current Doc) with the USFM and Filtering page's
+    // tempSfmSetAfterEditDoc
     if (pUsfmFilterPageCommon != NULL)
         gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
 
@@ -40907,14 +40911,17 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
             }
         }
     }
-
     // check that < and > have not been omitted, if they have, warn user that they are being
     // automatically added (they are required so that the algorithm for parsing nested quotes
     // with space between them does not get defeated - the nested quotes belong on the same
     // CSourcePhrase instance, not on consecutive ones)
-    int offset;
     if (srcPunctuation.IsEmpty())
         goto n; // don't bother with the checks if there is no content anyway
+/* 
+	// BEW 20Sep19 removed this prohibition, its unhelpful as markup sometimes uses
+	// < (e.g AIATSIS does) as a wordbuilding char for a umlaut
+	int offset;
+
     offset = srcPunctuation.Find(_T("<"));
     if (offset == -1)
     {
@@ -40943,10 +40950,11 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
         srcPunctuation += _T(" >"); // add it after a delimiting space
         AddWedgePunctPair(_T('>'));
     }
-
+*/
     // do the target ones now
     if (tgtPunctuation.IsEmpty())
         goto n; // don't bother with the checks if there is no content anyway
+/*
     offset = tgtPunctuation.Find(_T("<"));
     if (offset == -1)
     {
@@ -40959,7 +40967,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
         // we'll do the fix silently for the target language
         tgtPunctuation += _T(" >"); // add it after a delimiting space
     }
-
+*/
     // finally, add a delimiting space to the end, provided there is some content already
     if (!srcPunctuation.IsEmpty())
         srcPunctuation += _T(' ');
@@ -40980,6 +40988,8 @@ n:;
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 {
+	wxUnusedVar(wedge);
+	/* BEW 20Sep19 deprecated
     // BEW added 27Apr05 to support adding of a left or right wedge PUNCTPAIR (or
     // TWOPUNCTPAIR if all PUNCTPAIR possibilities are already taken, or no effect if both
     // sets of possibilities are already taken) when the GetPunctuationSets() function
@@ -41060,6 +41070,7 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
             }
         }
     }
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -48273,10 +48284,10 @@ void CAdapt_ItApp::DoPrintCleanup()
     // preview operation. It could not go in OnEndPrinting because that gets called earlier
     // and more often in the wx version (especially when doing print preview).
     CAdapt_ItView* pView = GetView();
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
     {
         // so do the stuff in this block only when we enter this function the first time
@@ -48321,15 +48332,14 @@ void CAdapt_ItApp::DoPrintCleanup()
             gbSuppressPrecedingHeadingInRange = FALSE;
             gbIncludeFollowingHeadingInRange = FALSE;
         }
-
         // clean up
         //pView->RestoreIndices();
         pView->ClearPagesList();
         // wx version: I think the All Pages button gets enabled
-
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
         // BEW 18Nov13, moved this line back to be preceding the RecalcLayout() call,
         // because otherwise the layout width stays as for A4 printing. But a new boolean,
         // m_bSuppressFreeTransRestoreAfterPrint - a member of the app class, is used to
@@ -48366,7 +48376,6 @@ void CAdapt_ItApp::DoPrintCleanup()
       // time entered, otherwise, the scroll position gets lost for the second entrance,
       // and a manual scroll is then required to make the active strip visible; but having
       // the call done each time solves this problem
-
       // recalculate the active pile & update location for phraseBox creation
     m_pActivePile = pView->GetPile(m_nActiveSequNum);
     if (m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when
@@ -48378,13 +48387,12 @@ void CAdapt_ItApp::DoPrintCleanup()
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
         m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
         m_nEndChar = -1; // ensure initially all is selected
-
         m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
     // if cleaning up when free translation mode is active, override the focus being in
     // the canvas's phrasebox, and put it instead in the compose bar's editbox
     if (m_bFreeTranslationMode && gbCheckInclFreeTransText)
@@ -48411,17 +48419,16 @@ void CAdapt_ItApp::DoPrintCleanup()
             }
         }
     }
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 	pView->Invalidate();
-
 	m_pLayout->PlaceBox();
     //wxWindow* pWnd; // unused
     //pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
     // by the above code, so unfortunately the cursor will have to be manually put
     // back in the box
-
     // Code to thaw the canvas needs to go here in OnCloseWindow, because OnEndPrinting
     // gets called prematurely by the framework as each preview page is about to be shown.
     // (Also, now that BEW has added the m_nAIPrintout_Destructor_ReentrancyCount kluge,
@@ -48429,14 +48436,14 @@ void CAdapt_ItApp::DoPrintCleanup()
     // in the block above to be done only once)
     if (GetMainFrame()->canvas->IsFrozen())
         GetMainFrame()->canvas->Thaw();
-
     m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this
-                                                // function is entered, we do nothing in this block if it is is entered more
-                                                // than once
+            // function is entered, we do nothing in this block if it is is entered more
+            // than once
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all was well, FALSE if the width and length were not successfully
 ///             calculated

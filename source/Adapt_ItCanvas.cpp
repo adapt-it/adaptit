@@ -2248,7 +2248,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 // do the selection of the current pile, if not already selected; release mouse, and set
 // direction
 {
-    wxLogDebug(_T("CAdapt_ItCanvas::OnLButtonUp() triggered"));
+//    wxLogDebug(_T("CAdapt_ItCanvas::OnLButtonUp() triggered"));
 
 	gbReplaceAllIsCurrent = FALSE; // need this, otherwise after a Find and Replace (and even
     // though no replaces are done), if user cancels the find and replace dlg, then clicks
@@ -3045,14 +3045,14 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			}
 		}
 	}
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
-
+#endif
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
 	}
 //#endif
-// end of the free translation supporting else block
+	// end of the free translation supporting else block
 
 	// END of code for scrolling regime "keep phrase box midscreen"
 	}
@@ -3179,13 +3179,13 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
 		// sanity check first and make it equal to virtDocSize.y
 		//scrollTriggerLocation += nStripHeight;
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		// sanity check on the above value
 		if (scrollTriggerLocation > virtDocSize.y)
 			scrollTriggerLocation = virtDocSize.y;
-
 	    /* legacy calc, where scrollTriggerLocation was called desiredViewBottom
 		wxSize virtDocSize;
 		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
@@ -3234,7 +3234,6 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			Scroll(0, desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
 			return;
 		}
-
 		// Third test must ensure that the phrase box isn't left above the top of the
 		// client area...
 		// handle the situation where the desiredViewTop is < (i.e., above)
@@ -3244,10 +3243,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
 			return;
 		}
-
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		/* legacy scroll code, which unfortunately worked to keep the box near window bottom
 		// handle the situation where the desiredViewTop is < (i.e., above)
 		// the current logical view top

@@ -86,7 +86,7 @@ extern wxString embeddedWholeMkrs;
 
 extern wxString embeddedWholeEndMkrs;
 
-extern wxString charFormatMkrs;
+//extern wxString charFormatMkrs;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
