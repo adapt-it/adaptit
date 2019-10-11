@@ -4978,6 +4978,9 @@ private:
 	bool	SetupCustomWorkFolderLocation();
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
+#if defined(_DEBUG)
+//	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
+#endif
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
 	// dialog, at the one location, from being shown twice or more
 	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and at end of CLayout::Draw()

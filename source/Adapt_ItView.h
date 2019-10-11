@@ -517,6 +517,11 @@ public:
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));
 	void ShowGlosses();
+#if defined(_DEBUG)
+	// BEW 10Oct10 created - in non _DEBUG mode,
+	void OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateHiddenMenuItem(wxUpdateUIEvent& event);
+#endif
 
 private:
 	wxFrame* pCanvasFrame;
