@@ -63,6 +63,8 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 //#define _Trace_DrawFreeTrans
 //#define CHECK_GEDITSTEP
 
+// define a resouorce ID integer for the hidden developer menu item
+int ID_MENU_ITEM_HIDDEN = 9999;
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -922,6 +924,13 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	// Layout Menu
 	EVT_MENU(ID_ALIGNMENT, CAdapt_ItView::OnAlignment)
 	EVT_UPDATE_UI(ID_ALIGNMENT, CAdapt_ItView::OnUpdateAlignment)
+#if defined(_DEBUG)
+	// BEW 10Oct19, want a menu item in Administrator menu
+	// in whose handler I can drop code for things I want to develop without
+	// affecting the rest of the app. Only in _Debug mode
+	EVT_MENU(ID_MENU_ITEM_HIDDEN, CAdapt_ItView::OnHiddenMenuItem)
+	EVT_UPDATE_UI(ID_MENU_ITEM_HIDDEN, CAdapt_ItView::OnUpdateHiddenMenuItem)
+#endif
 //#endif
 
 	// Help menu
@@ -32293,4 +32302,20 @@ void CAdapt_ItView::ShowGlosses()
     Invalidate();
 	GetLayout()->PlaceBox();
 }
+#if defined(_DEBUG)
+void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxUnusedVar(pApp); // have pApp on hand, might need it
+	wxMessageBox(_T("G'day. Call your new code in this handler: View's OnHiddenMenuItem."), _T("Develop & Test Code"));
 
+// TODO -- whatever
+
+
+}
+
+void CAdapt_ItView::OnUpdateHiddenMenuItem(wxUpdateUIEvent& event)
+{
+	event.Enable(TRUE); // always enabled
+}
+#endif

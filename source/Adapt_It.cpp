@@ -10720,7 +10720,27 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
     }
     return bItemIsVisible;
 }
-
+/*  This way ran into asserts tripping, try adding dynamically instead
+void CAdapt_ItApp::RemoveDeveloperMenuItem()
+{
+	wxBell(); 
+	wxMessageBox(_T(" RemoveDeveloperMenuItem() called"), _T(" Called it"));
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	// Get the Administrator Menu
+	wxMenu* pAdminMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
+	if (pAdminMenu != NULL)
+	{
+		wxMenuItem* pDevMenuItem = pAdminMenu->FindChildItem(ID_MENU_ITEM_HIDDEN);
+		if (pDevMenuItem != NULL)
+		{
+			bool bDestroyed = pAdminMenu->Destroy(pDevMenuItem);
+			wxUnusedVar(bDestroyed);
+			pMenuBar->Refresh();
+		}
+	}
+}
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -10928,6 +10948,29 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
             // whm Note: Bruce designed the Administrator menu item to be
             // deleted in the CMainFrame's destructor rather than when it
             // is "Removed" here.
+
+			// BEW 11Oct19, control goes here when the Administrator menu
+			// is being shut down - so here, before anything else happens,
+			// I need to get the Administrator menu while still open, test
+			// for my added developer menu item being present, and if so,
+			// delete it
+			{ // isolate this bit of code
+				int ID_MENU_ITEM_HIDDEN = 9999;
+				//CMainFrame* pMainFrame = GetMainFrame();
+				//wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+				// Get the Administrator Menu
+				wxMenu* pAdminMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
+				if (pAdminMenu != NULL)
+				{
+					wxMenuItem* pDevMenuItem = pAdminMenu->FindChildItem(ID_MENU_ITEM_HIDDEN);
+					if (pDevMenuItem != NULL)
+					{
+						bool bDestroyed = pAdminMenu->Destroy(pDevMenuItem);
+						wxUnusedVar(bDestroyed);
+					}
+				}
+			}
+
             int menuCount = pMenuBar->GetMenuCount();
             m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
             m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
@@ -11176,7 +11219,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     if (pView != NULL)
     {
         pView->AdjustAlignmentMenu(gbRTLLayout, gbLTRLayout); // fix the menu, if necessary
-                                                              // Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
+        // Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
     }
 
 #endif
@@ -11233,10 +11276,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU, m_bShowAdministratorMenu);
     if (pMenuBar->FindItem(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE) != NULL)
         pMenuBar->Check(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, m_bTemporarilyRestoreProfilesToDefaults); // whm added 14Feb12
-                                                                                                         //if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
-                                                                                                         //	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
-                                                                                                         // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
-                                                                                                         // according to the current value of m_bUseToolTips
+            //if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
+            //	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
+            // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
+            // according to the current value of m_bUseToolTips
     if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
         pMenuBar->Check(ID_HELP_USE_TOOLTIPS, m_bUseToolTips);
 }
@@ -49629,11 +49672,11 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
                                             // Toggle the check state of the menu item to unticked.
         m_bTemporarilyRestoreProfilesToDefaults = FALSE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change was temporary.
-                                                         // Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
-                                                         // block of the OnEditUserMenuSettingsProfiles() handler - the code for the profile change
-                                                         // should be the same.
+		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+		// change was temporary.
+		// Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
+		// block of the OnEditUserMenuSettingsProfiles() handler - the code for the profile change
+		// should be the same.
     }
     else
     {
@@ -49646,8 +49689,8 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
                                              // Toggle the check state of the menu item to ticked.
         m_bTemporarilyRestoreProfilesToDefaults = TRUE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change is goin to be temporary.
+        // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+        // change is goin to be temporary.
     }
 }
 
@@ -49719,8 +49762,8 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
                                             // Toggle the check state of the menu item to unticked.
         m_bTemporarilyRestoreProfilesToDefaults = FALSE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change was temporary.
+        // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+        // change was temporary.
     }
 
     CAdminEditMenuProfile editMenuDlg(GetMainFrame());

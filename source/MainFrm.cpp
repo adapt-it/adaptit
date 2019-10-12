@@ -3504,6 +3504,28 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 #endif
+#if defined(_DEBUG)
+	// BEW 11Oct19, Try dynamically adding the developer's debug-mode only wxMenuItem here,
+	// after MakeMenuInitializationsAndPlatformAdjustments() has been called without it
+	// being present. Might get away with that, if I avoid doing anything except using the
+	// added menu item, and find a way to remove it when shutting down the menu (that may
+	// involve a tweak in MakeMenuInitializationsAndPlatformAdjustments() - remove it before 
+	// its internal code gets to do anything that detects the added menu item.
+	int ID_MENU_ITEM_HIDDEN = 9999;
+	wxMenuBar* pMenuBar = this->GetMenuBar();
+	// Get the Administrator Menu
+	int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
+	if (nAdminMenu != wxNOT_FOUND)
+	{
+		int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
+		wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
+		if (pAdminMenu)
+		{
+			pAdminMenu->Append(ID_MENU_ITEM_HIDDEN, _T("&Developer Test Code"), _T("Run new in-development code"));
+			pMenuBar->Refresh();
+		}
+	}
+#endif
 }
 
 
