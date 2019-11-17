@@ -2054,7 +2054,32 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		return;
 	}
 
-    // need to clobber the selection here, so the selection globals will be set to -1,
+	// Check for any hidden attributes metadata (from USFM3 markup) in the selection, 
+	// and abort the retranslation operation if there is any stored on one or more of
+	// the CSourcePhrase instances of the selection. In the call, signature's bIsMerger
+	// is default FALSE - which is appropriate for a retranslation
+	if (m_pView->IsSelectionAcrossHiddenAttributesMetadata(pList))
+	{
+		wxMessageBox(_(
+			"Sorry, but this operation is not permitted when the selection contains hidden (stored) USFM3 attributes metadata. Try making retranslations either side of place where it is stored."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		pList->Clear();
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
+		pList = (SPList*)NULL;
+		m_pView->RemoveSelection();
+		// whm 13Aug2018 Note: The SetFocus() correctly precedes the
+		// SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+		// whm 3Aug2018 Note: The following SetSelection() call restores a previous selection,
+		// so no adjustment made here for 'Select Copied Source' protocol.
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar);
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+		return;
+	}
+
+    // Need to clobber the selection here, so the selection globals will be set to -1,
     // otherwise RecalcLayout will fail at its RestoreSelection() call; and any unmergers
     // or other layout changes done immediately below will invalidate layout pointers which
     // RemoveSelection() relies on, and produce a crash.

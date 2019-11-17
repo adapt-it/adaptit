@@ -16082,7 +16082,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		// BEW 3Sep19 added next line, for support of USFM3
-		m_pCreatingSrcPhrase = pSrcPhrase;  //(LHS is in USFM3Support.h)
+		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 
 #if defined (_DEBUG) && defined (FIXORDER)
 		wxLogDebug(_T("TokenizeText line %d  sequNum = %d  Starting new iteration"), __LINE__, pSrcPhrase->m_nSequNumber);
@@ -17502,7 +17502,7 @@ wxLogDebug(_T("TokenizeText: line %d  ,                    itemLen = %d  %s"), _
 			// and the navigation text to show "illustration". In USFM 3, any attributes-
 			// having metadata will have been automatically hidden already (i.e. bar (|)
 			// to the start of the endmarker, and m_bUnused set TRUE to indicate there is
-			// metadata hidden in pSrcPhrase->m_punctsPattern, prior to the +$+ delimiter
+			// metadata hidden in pSrcPhrase->m_punctsPattern
 			wxString aBeginMarker = pSrcPhrase->GetInlineNonbindingMarkers();
 			wxString augmentedFigStr = _T("\\fig ");
 			int nFirstSequNumOfSpan = 0; // initialize
@@ -29530,7 +29530,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			int nLocationOfBar    = FindBarWithinSpan(pAuxPtr, m_strAttrEndMkr, 
 												m_nEndMarkerLen);
 			int nLocationOfEndMkr = FindEndMarkerWithinSpan(pAuxPtr, m_strAttrEndMkr,
-												m_nEndMarkerLen, m_pCreatingSrcPhrase);
+												m_nEndMarkerLen, m_pSrcPhraseBeingCreated);
 #if defined (_DEBUG) && defined (FIXORDER)
 			{
 				size_t aLength = (size_t)(pEnd - ptr);
@@ -29562,11 +29562,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// but is available for restoration in the appropriate place 
 					// when preparing a collaboration export for transfer of the
 					// target text to Paratext or Bibledit
-					// NOTE: m_punctsPattern can still be used for additional
-					// storage - such as info for removing most of the need for
-					// Placement... dialogs when rebuilding target text for export
-					// (just need a unique dividing string, +$+  to search for, 
-					// or end at  -- now done, on 30Sep19)
 				pSrcPhrase->m_bUnused = TRUE; // flag the CSourcePhrase to be one with
 					// metadata squirreled away in m_punctsPattern. Building an
 					// export text for transfer to Paratext 8 (or Bibledit) will use this; 
@@ -30358,7 +30353,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			itemLen = len;
 		}
 		int offset = FindEndMarkerWithinSpan(ptr, m_strAttrEndMkr,
-			m_nEndMarkerLen, m_pCreatingSrcPhrase);
+			m_nEndMarkerLen, m_pSrcPhraseBeingCreated);
 		wxASSERT(offset != wxNOT_FOUND);
 		if (itemLen > offset)
 		{
@@ -34090,13 +34085,13 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			// Use doc's pDoc->pCreatingSrcPhrase, which gets set in TokenizeText() at
 			// every time new CSourcePhrase is called.
 			m_offsetToMatchingEndMkr = FindEndMarkerWithinSpan(m_auxPtr, m_strAttrEndMkr,
-				m_nEndMarkerLen, m_pCreatingSrcPhrase);
+				m_nEndMarkerLen, m_pSrcPhraseBeingCreated);
 			if (m_offsetToFirstBar == wxNOT_FOUND)
 			{
 				// While the begin-marker is one that potentially can take attributes,
 				// this one has none. So there is nothing to hide. Return FALSE.
-				m_pCreatingSrcPhrase->m_bUnused = FALSE;
-				m_pCreatingSrcPhrase->m_punctsPattern.Empty(); //clear it
+				m_pSrcPhraseBeingCreated->m_bUnused = FALSE;
+				m_pSrcPhraseBeingCreated->m_punctsPattern.Empty(); //clear it
 				ClearAttributeMkrStorage();
 				return FALSE;
 			}
@@ -34131,7 +34126,7 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 #if defined (_DEBUG) && defined (LOG_USFM3)  // line 51 is where the #define is
 				wxLogDebug(_T("%s::%s Line: %d: Metadata to be hidden: %s  SequNum = %d  SrcText = %s , At begin-marker"),
 					__FILE__, __FUNCTION__, __LINE__, m_cachedAttributeData.c_str(),
-					m_pCreatingSrcPhrase->m_nSequNumber, m_pCreatingSrcPhrase->m_srcPhrase.c_str());
+					m_pSrcPhraseBeingCreated->m_nSequNumber, m_pSrcPhraseBeingCreated->m_srcPhrase.c_str());
 				//LogSequNumbers_LimitTo(5, gpApp->m_pSourcePhrases);
 #endif
 				// On the heap create a CSourcePhrase and assign to m_pCachedWordBeforeBar 
@@ -34151,10 +34146,10 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 
 				// Save sequNum across next call, and put it also in the cached instance
 				// (This might prevent a error where sequNum goes to 0)
-				int saveSequNum = m_pCreatingSrcPhrase->m_nSequNumber;
+				int saveSequNum = m_pSrcPhraseBeingCreated->m_nSequNumber;
 
 				ParseWordBeforeBar2SourcePhrase(m_cachedWordBeforeBar, *m_pCachedSourcePhrase);
-				m_pCreatingSrcPhrase->m_nSequNumber = saveSequNum; // restore the current one's value
+				m_pSrcPhraseBeingCreated->m_nSequNumber = saveSequNum; // restore the current one's value
 
 				// We are done here. The rest is done in ParseWord() (or ParseWord2()) now
 				// or later in the tokenizing, when tokenizing gets to the right location

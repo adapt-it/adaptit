@@ -67,8 +67,6 @@ extern wxChar gSFescapechar;
 /// complete the definition of a new safe pointer list class called SPList.
 WX_DEFINE_LIST(SPList);
 
-const wxString strPatternDelim = _T("+$+");
-
 IMPLEMENT_DYNAMIC_CLASS(CSourcePhrase, wxObject)
 // MFC uses IMPLEMENT_SERIAL(CSourcePhrase, CObject, VERSIONABLE_SCHEMA | VERSION_NUMBER)
 // Design Note:
@@ -170,8 +168,7 @@ CSourcePhrase::CSourcePhrase()
 	// for docVersion 9
 	m_srcWordBreak = _T("");
 	m_tgtWordBreak = _T("");
-	m_punctsPattern = strPatternDelim; // as of 30Sep19 _T("+$+") must be in this member 
-									   // for every instance; it divides the storage into before and after subspaces
+	m_punctsPattern = _T("");
 
 //#ifdef _DEBUG
 // whm 18Mar2019 removed the (unsigned int) cast and changed the %x to %p. %p is the format specifier for a pointer address.
@@ -325,10 +322,6 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_tgtWordBreak = sp.m_tgtWordBreak;
 	// BEW 30Sep19 moved here from docVersion6 aboc=ve
 	m_punctsPattern = sp.m_punctsPattern;
-	if (m_punctsPattern.IsEmpty())
-	{
-		m_punctsPattern = strPatternDelim;
-	}
 }
 
 // BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
@@ -470,10 +463,6 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_tgtWordBreak = sp.m_tgtWordBreak;
 	// BEW 30Sep19 moved here from docVersion6 group above
 	m_punctsPattern = sp.m_punctsPattern;
-	if (m_punctsPattern.IsEmpty())
-	{
-		m_punctsPattern = strPatternDelim;
-	}
 
 	return *this;
 }
@@ -842,31 +831,13 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// user will get the chance to make the relevant placements once only (3rd is unused
 	// at present) for docVersion6
 
-	// BEW 30Sep19 we now use m_punctsPattern for storing two types of data, end-of-word
-	// attribute-metadata (preceding a delimiter "+$++) and after the delimiter, any
-	// mix of after-the-word puncts and endmarkers. The second subspace is so I can
-	// refactor the "Reconstitute...() code for unfiltering or filtering, and for exports
-	// so as to have a template for avoiding the use of "Place...()" dialogs.
+	// BEW 30Sep19 we now use m_punctsPattern for storing end-of-word attribute-metadata
 	m_lastAdaptionsPattern = _T("");
 	m_tgtMkrPattern = _T("");
 	m_glossMkrPattern = _T("");
-
-	if (!pSrcPhrase->m_punctsPattern.IsEmpty())
-	{
-		// Assume the merger CSourcePhrase does not yet have
-		// anything in its m_punctsPattern member except the
-		// _T("+$+") strPatternDelim string
-		wxString strPattern = this->m_punctsPattern;
-		wxASSERT(strPattern == strPatternDelim);
-		// OK, the merger instance must take on what pSrcPhrase has 
-		// in its m_punctsPattern member -- that will be at least
-		// the delimiter substring, but could be more - either
-		// before or after the delimiter, or content in both places.
-		// We are gamboling that a simple assignment will always
-		// suffice - it ought not to be the case that content in
-		// the merger instance is gunna be overwritten. Here's hoping...
-		this->m_punctsPattern = pSrcPhrase->m_punctsPattern;
-	}
+	// BEW 30Sep19, non-initial pSrcPhrase instances must be empty in a merger, 
+	// but initial one can store metadata legally
+	m_punctsPattern = _T("");
 
     // we never merge phrases, only minimal phrases (ie. single source word objects), so it
     // will never be the case that we need to copy from m_pSaveWords in the Merge function
@@ -3182,14 +3153,10 @@ wxString CSourcePhrase::GetTgtWordBreak()
 
 void CSourcePhrase::ClearCachedAttributesMetadata()
 {
-	wxString delim = _T("+$+");
-	int offset = wxNOT_FOUND;
-	wxString punctsPatStr = this->m_punctsPattern;
-	offset = punctsPatStr.Find(delim); // it has to be there
-	wxASSERT(offset != wxNOT_FOUND);
-	wxString strRemainder = punctsPatStr.Mid(offset);
-	this->m_punctsPattern = strRemainder;
-
+	if (!this->m_punctsPattern.IsEmpty())
+	{
+		this->m_punctsPattern.Empty();
+	}
 	m_bUnused = FALSE;
 }
 
@@ -3201,32 +3168,18 @@ void CSourcePhrase::InsertCachedAttributesMetadata(wxString metadata)
 		m_bUnused = FALSE;
 		return;
 	}
-	wxString delim = _T("+$+");
-	int offset = wxNOT_FOUND;
-	wxString punctsPatStr = this->m_punctsPattern;
-	offset = punctsPatStr.Find(delim); // it has to be there
-	wxASSERT(offset != wxNOT_FOUND);
-	wxString strRemainder = punctsPatStr.Mid(offset);
-	this->m_punctsPattern = metadata + strRemainder;
-
+	this->m_punctsPattern = metadata;
 	m_bUnused = TRUE;
 }
+
+// Return the metadata, but if there is none, return empty string
 wxString CSourcePhrase::ExtractCachedAttributesMetadata()
 {
 	wxString metadata = wxEmptyString;
-	wxString delim = _T("+$+");
-	int offset = wxNOT_FOUND;
-	wxString punctsPatStr = this->m_punctsPattern;
-	offset = punctsPatStr.Find(delim); // it has to be there
-	wxASSERT(offset != wxNOT_FOUND);
-	if (offset == 0)
+	if (!this->m_punctsPattern.IsEmpty())
 	{
-		// There's no metadata stored before the +$+
-		m_bUnused = FALSE;
-		return metadata;
+		metadata = this->m_punctsPattern;
 	}
-	// Leave m_bUnused set TRUE, just return the metadata
-	metadata = punctsPatStr.Left(offset);
 	return metadata;
 }
 

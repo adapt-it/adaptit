@@ -592,17 +592,6 @@ const char xml_tmpat[] = "tmpat"; // m_tgtMkrPattern
 const char xml_gmpat[] = "gmpat"; // m_glossMkrPattern
 /// Attribute name used in Adapt It XML documents
 const char xml_pupat[] = "pupat"; // m_punctsPattern
-/// BEW 30Sep19, for the pattern delimiter to be used in m_punctsPattern,
-/// which now can store two kinds of data, with a 3-byte string "+$+"
-/// between each kind of data - preceding is any attributes-metadata which
-/// commences with a bar ( | ) and finishing with an endmarker used for
-/// matching purposes (not strictly within the metadata, but just there so
-/// we can extra it and used it to match to the location where the metadata
-/// is to be restored to; and after the "+$+" will be stored end-of-word
-/// possible mix of punctuation and endmarker(s). Both data types may be
-/// absent, but as of 30Sep19, the +$+ will be present in m_punctsPattern
-/// for every CSourcePhrase in the document.
-//const char xml_patternDelim[] = "+$+";  // for within m_punctsPattern; <<-- in the XML.cpp I'll use a wxString instead
 
 // new ones, July 9 2014, for support of doc version = 9, for SEAsian languages using ZWSP etc
 /// Attribute name used in Adapt It XML documents

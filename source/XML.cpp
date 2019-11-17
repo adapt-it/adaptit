@@ -298,9 +298,6 @@ const char followingStr[] = "following";
 const char centerStr[] = "center";
 const char justifiedStr[] = "justified"; // added for version 3
 
-// BEW 30Sep19 added
-const wxString strPatternDelim = _T("+$+");
-
 #ifdef Output_Default_Style_Strings
 
 // static CString is used to accumulate a Unix-style data string for output
@@ -4213,47 +4210,40 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					// BEW 30Sep19 these tests added to support the +$+ delimiter for m_punctsPattern
+					// BEW 30Sep19 these tests added to support hiding of
+					// USFM 3 attributes metadata within m_punctsPattern
+					// and setting the CSourcePhrase instances m_bUnused to
+					// TRUE when the instance being created has metadata to 
+					// be stored. m_punctsPattern either stores some, or is
+					// empty; nothing else is ever stored in this member
 					wxString strAttrValue = gpApp->Convert8to16(attrValue);
 					if (strAttrValue.IsEmpty())
 					{
-						gpEmbeddedSrcPhrase->m_punctsPattern = strPatternDelim; // add +$+
+						gpEmbeddedSrcPhrase->m_punctsPattern = wxEmptyString;
+						gpEmbeddedSrcPhrase->m_bUnused = FALSE; // default is FALSE
 					}
 					else
 					{
-						// strAttrValue has some content, deal with it
+						// strAttrValue has some content, deal with it - which means
+						// to internally call the "Clear....() function to ensure the
+						// member is empty, and then insert strAttrValue - thereby
+						// restoring the preload value for this member
+						gpEmbeddedSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+						gpEmbeddedSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+#if defined (_DEBUG)
+						wxString aBar = _T("|");
 						int offset = wxNOT_FOUND;
-						offset = strAttrValue.Find(strPatternDelim);
-						if (offset != wxNOT_FOUND)
+						offset = strAttrValue.Find(aBar);
+						if ((offset == wxNOT_FOUND) || (offset > 0))
 						{
-							// The delimiter string, _T("+$++") is present somewhere,
-							// so the division into two spaces is well-formed; so
-							// accept whatever content strAttrValue has 'as is'
-							gpEmbeddedSrcPhrase->m_punctsPattern = strAttrValue;
+							// We want to catch two error possibilities; (1) stored metadata which
+							// does not commence with a bar ( | ) character; and (2) data which
+							// does contain a bar, but its location is not string-initial. These
+							// tests are not done in the Unicode Release version.
+							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
+								__FILE__, __FUNCTION__, __LINE__, gpEmbeddedSrcPhrase->m_nSequNumber, gpEmbeddedSrcPhrase->m_key.c_str());
 						}
-						else
-						{
-							// The delimiter string, _T("+$++") is not present somewhere,
-							// so check out if hidden attributes metadata is present or
-							// not - if present, bar ( | ) will be somewhere in the string
-							wxString bar = _T("|");
-							offset = strAttrValue.Find(bar);
-							if (offset == wxNOT_FOUND)
-							{
-								// There is no hidden attributes metadata, so we've no
-								// reason for appending the strPatternDelim string,
-								// so instead we'll insert it before whatever is in
-								// the strAttrValue string
-								gpEmbeddedSrcPhrase->m_punctsPattern = strPatternDelim + strAttrValue;
-							}
-							else
-							{
-								// There *is* hidden attributes metadata, so it must come
-								// first and be followed by strPatternDelim, so append the latter
-								wxASSERT(offset == 0);
-								gpEmbeddedSrcPhrase->m_punctsPattern = strAttrValue + strPatternDelim;
-							}
-						} // end of else block for test: if (offset != wxNOT_FOUND)
+#endif
 					} // end of else block for test: if (strAttrValue.IsEmpty())
 				}
 				else
@@ -4410,47 +4400,40 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					// BEW 30Sep19 these tests added to support the +$+ delimiter for m_punctsPattern
+					// BEW 30Sep19 these tests added to support hiding of
+					// USFM 3 attributes metadata within m_punctsPattern
+					// and setting the CSourcePhrase instances m_bUnused to
+					// TRUE when the instance being created has metadata to 
+					// be stored. m_punctsPattern either stores some, or is
+					// empty; nothing else is ever stored in this member
 					wxString strAttrValue = gpApp->Convert8to16(attrValue);
 					if (strAttrValue.IsEmpty())
 					{
-						gpSrcPhrase->m_punctsPattern = strPatternDelim; // add +$+
+						gpSrcPhrase->m_punctsPattern = wxEmptyString;
+						gpSrcPhrase->m_bUnused = FALSE; // default is FALSE
 					}
 					else
 					{
-						// strAttrValue has some content, deal with it
+						// strAttrValue has some content, deal with it - which means
+						// to internally call the "Clear....() function to ensure the
+						// member is empty, and then insert strAttrValue - thereby
+						// restoring the preload value for this member
+						gpSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+						gpSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+#if defined (_DEBUG)
+						wxString aBar = _T("|");
 						int offset = wxNOT_FOUND;
-						offset = strAttrValue.Find(strPatternDelim);
-						if (offset != wxNOT_FOUND)
+						offset = strAttrValue.Find(aBar);
+						if ((offset == wxNOT_FOUND) || (offset > 0))
 						{
-							// The delimiter string, _T("+$++") is present somewhere,
-							// so the division into two spaces is well-formed; so
-							// accept whatever content strAttrValue has 'as is'
-							gpSrcPhrase->m_punctsPattern = strAttrValue;
+							// We want to catch two error possibilities; (1) stored metadata which
+							// does not commence with a bar ( | ) character; and (2) data which
+							// does contain a bar, but its location is not string-initial. These
+							// tests are not done in the Unicode Release version.
+							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
+								__FILE__,__FUNCTION__,__LINE__, gpSrcPhrase->m_nSequNumber, gpSrcPhrase->m_key.c_str());
 						}
-						else
-						{
-							// The delimiter string, _T("+$++") is not present somewhere,
-							// so check out if hidden attributes metadata is present or
-							// not - if present, bar ( | ) will be somewhere in the string
-							wxString bar = _T("|");
-							offset = strAttrValue.Find(bar);
-							if (offset == wxNOT_FOUND)
-							{
-								// There is no hidden attributes metadata, so we've no
-								// reason for appending the strPatternDelim string,
-								// so instead we'll insert it before whatever is in
-								// the strAttrValue string
-								gpSrcPhrase->m_punctsPattern = strPatternDelim + strAttrValue;
-							}
-							else
-							{
-								// There *is* hidden attributes metadata, so it must come
-								// first and be followed by strPatternDelim, so append the latter
-								wxASSERT(offset == 0);
-								gpSrcPhrase->m_punctsPattern = strAttrValue + strPatternDelim;
-							}
-						} // end of else block for test: if (offset != wxNOT_FOUND)
+#endif
 					} // end of else block for test: if (strAttrValue.IsEmpty())
 					
 				} // end of TRUE block for test: if (gnDocVersion >= 6 && attrName == xml_pupat)
