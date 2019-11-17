@@ -10962,6 +10962,61 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 	return bExtendsBeyondFreeTranslation;
 }
 
+// IsSelectionAcrossHiddenAttributesMetdata() -- BEW added 30Sep19, to be used in
+// OnButtonMerge(), and Retranslation.cpp's OnButtonRetranslation, in order to abort the 
+// merge attempt, or the retranslation attempt, if there are CSourcePhrase instances of
+// the selection where, (1) in the case of a merger attempt, there is hidden stored 
+// on one or more of the non-first CSourcePhrase instances; or (2) in the case of a
+// retranslation attempt, such stored data is on *any* of the instances of the selection;
+// the reason being that for mergers or retranslations, the link to the stored metadata
+// becomes broken, and restoration of such metadata in an export to Paratext would 
+// generate a data error
+bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, bool bIsMerger)
+{
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* pos = pList->GetFirst();
+	if (pos == NULL)
+		return FALSE; // there isn't any content in the list
+	bool bIllegalInternalHiddenMetadata = FALSE;
+	int counter = 0; // initialize. Stored metadata is okay if in the intial
+					 // CSourcePhrase instance of the merger, but not if its
+					 // found in any of the non-initial ones.
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		counter++;
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bUnused == TRUE)
+		{
+			if (bIsMerger)
+			{
+				if (counter == 1)
+				{
+					continue; // this first one is allowed to have hidden metadata
+				}
+				else if (counter > 1)
+				{
+
+					bIllegalInternalHiddenMetadata = TRUE;
+					break;
+				}
+			}
+			else
+			{
+				// For retranslations, or anything else besides a merger attempt
+				bIllegalInternalHiddenMetadata = TRUE;
+				break;
+			}
+		}
+		else
+		{
+			bIllegalInternalHiddenMetadata = FALSE;
+		}
+	}
+	return bIllegalInternalHiddenMetadata;
+}
+
+
 // BEW updated OnButtonMerge() 16Feb10, for support of doc version 5
 // BEW refactored 21Jul14 for support of ZWSP
 void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
@@ -11444,6 +11499,44 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
+		Invalidate();
+		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
+		return;
+	}
+
+	// Check user is not trying to do a merger across hidden USFM3 attributes metadata.
+	// Such data can occur on the initial CSourcePhrase of the selection, but not 
+	// on the second or later instances of the selection. (BEW added 30Sep19)
+	// Similar constraint is appropriate for retranslations, except for them, hidden
+	// stored metadata is not allowed on any CSourcePhrase instance of the selection,
+	// because the user may do anything he/she likes for the retranslation and so the
+	// integrity of the stored metadata would not be determinate
+	bool bIllegalInternalHiddenMetadata = FALSE; // If stays FALSE, the merger can go ahead.
+	// The signature param bIsMerger is default FALSE - see comment in Adapt_ItView.h for
+	// more information; since this is a merger attempt, TRUE must be overtly supplied
+	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, TRUE); 
+	if (bIllegalInternalHiddenMetadata)
+	{
+		wxMessageBox(_(
+			"Merging across stored (hidden) USFM3 attributes metadata is not permitted. Such data can be stored only at the first word of the merger selection.)"),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		pList->Clear();
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
+		pList = (SPList*)NULL;
+		RemoveSelection();
+		if (pApp->m_pTargetBox->GetHandle() != NULL)
+		{
+			// whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+			// it should work OK on Linux/Mac.
+			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+			// whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+			// the SetSelection call below.
+			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
+		}
+		pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -16377,14 +16470,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							pSrcPhrase->m_tgtMkrPattern = _T("");
 							pSrcPhrase->m_glossMkrPattern = _T("");
 
-							// BEW 30Sep19 m_punctsPattern is now used for:
-							// (a) hiding bar-to-endmarker attributes-having metadata, before
-							// a delimiter string  +$+   and after the delimiter, there may
-							// be (b) a mix of end-of-word puncts and/or endmarkers taken
-							// from the source text to provide a template for rebuilding
-							// in the context of filtering, unfiltering, and/or exporting.
-							// So, as far as I can see, I can no longer initialize it to
-							// empty - so probably the wise thing to do here is comment it out
+							// BEW 30Sep19 m_punctsPattern is now used for hiding 
+							// bar-to-endmarker attributes-having metadata.
+							// So,I can no longer initialize it unconditionally to
+							// empty - instead, just comment it out
 							//pSrcPhrase->m_punctsPattern = _T("");
 						}
 					}
@@ -22685,7 +22774,7 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& event)
 		}
 	}
 }
-
+/* BEW 15Nov19 discovered this is declared, and defined, but called nowhere. So it's now deprecated
 void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 							  CSourcePhrase* pFirstSrcPhrase, int nCount)
 {
@@ -22741,6 +22830,7 @@ void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNex
 		}
 	}
 }
+*/
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 {

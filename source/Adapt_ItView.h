@@ -206,8 +206,10 @@ public:
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum);
+	/* BEW 15Nov19 discovered this is declared, and defined, but called nowhere. So it's now deprecated
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
+	*/
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	void		RemoveSelection();
@@ -334,7 +336,7 @@ protected:
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
 protected:
-	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
+	//void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
 	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int&   nCount);
 public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
@@ -350,6 +352,14 @@ protected:
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
+public:
+	// BEW added 30Sept19 - function below: disallow Merge() or Retranslation if the returned bool  
+	// is TRUE. (Tests for non-initial instance having m_bUnused set TRUE when bIsMerger is also TRUE, but
+	// for all other calls, such as for a Retranslation's selection, bIsMerger is FALSE, and this
+	// does not allow hidden attribute metadata to be in *ANY* of the CSourcePhrase instances of
+	// the selection)
+	bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, bool bIsMerger = FALSE);
+protected:
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec,
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,

@@ -676,17 +676,14 @@ private:
 	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
 	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
 	bool	m_bReopeningAfterClosing;	  // default FALSE - set true when we're going to reopen the doc
-	public:
-	// Next line, BEW 3Sep19 in support of USFM3, and hiding attributes metadata
-	CSourcePhrase* m_pCreatingSrcPhrase; // set this to whatever TokenizeText is currently populating
-	protected:
-
+public:
+		// Next line, BEW 3Sep19 in support of USFM3, and hiding attributes metadata
+		CSourcePhrase* m_pSrcPhraseBeingCreated; // set this to the instance that TokenizeText 
+											 // is currently populating
 		// Prototypes for helpers in support of USFM3 markup, regarding metadata
 		// which follows bar ( | ) immediately prior to certain endmarkers
-public:
 		bool m_bWithinMkrAttributeSpan;
 		bool m_bHiddenMetadataDone;
-
 		bool bSaveWithinAttributesSpanValue; // If editing source text, m_bWithinMkrAttributeSpan
 			// has to be FALSE until the source text edit is done with; so here cache the 
 			// boolean's value across the handler for editing source text

@@ -347,9 +347,7 @@ public:
 	void SetMarkers(wxString markers);
 */
 	// BEW 30Sep19, three functions in support of caching attributes-having
-	// metadata in the m_punctsPattern wxString member; it houses this kind
-	// of data first, and a delimiter string +$+ follows, and any end of word
-	// mix of puncts and/or endmarkers or both, after the +$+
+	// metadata in the m_punctsPattern wxString member
 	void     ClearCachedAttributesMetadata();
 	void     InsertCachedAttributesMetadata(wxString metadata);
 	wxString ExtractCachedAttributesMetadata();
@@ -360,7 +358,6 @@ private:
 	// declare that the objects of this class should be dynamically 
 	// creatable from run-time type information. 
 	// MFC uses DECLARE_SERIAL(CSourcePhrase). wxWidgets does not
-	// implement Serialization of objects. Therefore, we will handle
-	// serialization manually.
+	// implement Serialization of objects.
 };
 #endif /* SourcePhrase_h */
