@@ -10970,8 +10970,11 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 // retranslation attempt, such stored data is on *any* of the instances of the selection;
 // the reason being that for mergers or retranslations, the link to the stored metadata
 // becomes broken, and restoration of such metadata in an export to Paratext would 
-// generate a data error
-bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, bool bIsMerger)
+// generate a data error. strAt returns the m_srcPhrase string from the first CSourcePhrase
+// instance which contains stored hidden attributes metadata - so the user can be shown
+// where the offending storage location is.
+// 
+bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt, bool bIsMerger)
 {
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* pos = pList->GetFirst();
@@ -10998,6 +11001,7 @@ bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, boo
 				{
 
 					bIllegalInternalHiddenMetadata = TRUE;
+					strAt = pSrcPhrase->m_srcPhrase;
 					break;
 				}
 			}
@@ -11005,6 +11009,7 @@ bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, boo
 			{
 				// For retranslations, or anything else besides a merger attempt
 				bIllegalInternalHiddenMetadata = TRUE;
+				strAt = pSrcPhrase->m_srcPhrase;
 				break;
 			}
 		}
@@ -11516,12 +11521,13 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	bool bIllegalInternalHiddenMetadata = FALSE; // If stays FALSE, the merger can go ahead.
 	// The signature param bIsMerger is default FALSE - see comment in Adapt_ItView.h for
 	// more information; since this is a merger attempt, TRUE must be overtly supplied
-	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, TRUE); 
+	wxString strAt = wxEmptyString;
+	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, strAt, TRUE);
 	if (bIllegalInternalHiddenMetadata)
 	{
-		wxMessageBox(_(
-			"Merging across stored (hidden) USFM3 attributes metadata is not permitted. Such data can be stored only at the first word of the merger selection.)"),
-			_T(""), wxICON_EXCLAMATION | wxOK);
+		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. But you can merge if your selection starts at the word: %s");
+		msg = msg.Format(strAt.c_str());
+		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;

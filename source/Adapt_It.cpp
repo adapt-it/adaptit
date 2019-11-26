@@ -26292,7 +26292,7 @@ int CAdapt_ItApp::OnExit(void)
         // asking if I want to save the document because it is changed, so I moved
         // this to the end, and we do it only if not auto exporting
         if (m_pDocManager != NULL) // whm 11Jun12 added NULL test
-            delete m_pDocManager; // deleting this
+             delete m_pDocManager; // deleting this
         m_pDocManager = (wxDocManager*)NULL;
     }
 
@@ -41461,7 +41461,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
         {
             msg = _T("WriteConfigurationFile() entered. Config type is 'project'");
         }
-        this->LogUserAction(msg);
+ //       this->LogUserAction(msg);
     }
 
     if (m_bReadOnlyAccess || (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0))

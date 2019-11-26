@@ -358,7 +358,7 @@ public:
 	// for all other calls, such as for a Retranslation's selection, bIsMerger is FALSE, and this
 	// does not allow hidden attribute metadata to be in *ANY* of the CSourcePhrase instances of
 	// the selection)
-	bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, bool bIsMerger = FALSE);
+	bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt, bool bIsMerger = FALSE);
 protected:
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec,
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,

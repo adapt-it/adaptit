@@ -2058,11 +2058,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// and abort the retranslation operation if there is any stored on one or more of
 	// the CSourcePhrase instances of the selection. In the call, signature's bIsMerger
 	// is default FALSE - which is appropriate for a retranslation
-	if (m_pView->IsSelectionAcrossHiddenAttributesMetadata(pList))
+	wxString strAt = wxEmptyString;
+	if (m_pView->IsSelectionAcrossHiddenAttributesMetadata(pList, strAt))
 	{
-		wxMessageBox(_(
-			"Sorry, but this operation is not permitted when the selection contains hidden (stored) USFM3 attributes metadata. Try making retranslations either side of place where it is stored."),
-			_T(""), wxICON_EXCLAMATION | wxOK);
+		wxString msg = _("Sorry, this operation is not allowed when the selection contains hidden(stored) USFM3 metadata. Instead, try making retranslations either side of the word at %s.");
+		msg = msg.Format(strAt.c_str());
+		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;

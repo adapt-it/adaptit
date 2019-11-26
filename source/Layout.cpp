@@ -267,6 +267,12 @@ bool CLayout::GetScrollingFlag()
 }
 #endif
 
+void CLayout::ClearPostWordDataPointers()
+{
+	m_pPostWordDataStart = NULL;
+	m_pPostWordDataEnd = NULL;
+}
+
 // BEW 21May15 added freeze/thaw support
 void CLayout::Draw(wxDC* pDC)
 {

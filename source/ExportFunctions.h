@@ -104,6 +104,10 @@ bool		IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsNoteInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxString wholeMkr); // BEW added 5Sep14
 void		RemoveContentFromFootnotes(wxString* pText, bool bAlsoRemoveTheMarkers = FALSE); // BEW added 5Sep14, added 2nd argument on 20May15
+// The next BEW added 30Sep19 for unhiding stored USFM3 attributes metadata, and restoring to
+// its correct location in the inspired text. The text is typically target text but it can
+// equally well be source text - it just depends on what str contains
+wxString	RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str);
 
 // BEW added next 13Dec10 to support export from documents which, in the original input
 // file, did not have any SFMs. (AI puts \p where each newline is, and these need to be
