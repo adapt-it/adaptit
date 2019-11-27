@@ -15193,6 +15193,12 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	bool& bIsInlineBindingMkr,
 	bool bTokenizingTargetText)
 {
+	// BEW 30Sep19 With the separation of ParsePreWord() from legacy ParseWord, each
+	// of these has some unreferenced variables. To avoid compiler variables, use 
+	// wxUnusedVar() for those which are not now referenced
+	wxUnusedVar(inlineNonbindingEndMrks);
+	
+
 	int len = 0;
 	wxChar* ptr = pChar;
 	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
@@ -15221,6 +15227,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	wxString wholeEndMkr;
 	wxString wholeMkrPlusSpace;
 	bool bExitParseWordOnReturn = FALSE;
+	wxUnusedVar(bExitParseWordOnReturn);
 	int nFound = wxNOT_FOUND;
 	bool bHasPrecPunct = FALSE;
 	//bool bHasOpeningQuote = FALSE; // set but not used
@@ -15230,10 +15237,14 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	finalPunctBeforeFixedSpaceSymbol.Empty();
 	precedingPunctAfterFixedSpaceSymbol.Empty();
 	CSourcePhrase* pSrcPhrWord1 = NULL;
+	wxUnusedVar(pSrcPhrWord1);
 	CSourcePhrase* pSrcPhrWord2 = NULL;
+	wxUnusedVar(pSrcPhrWord2);
 	int nHowManyWhites = 0;
+	wxUnusedVar(nHowManyWhites);
 	//wxChar* pMaybeWhitesStart = NULL; // set but not used
 	wxChar* pMaybeWhitesEnd = NULL;
+	wxUnusedVar(pMaybeWhitesEnd);
 	wxString wordBuildersForPreWordLoc;
 	wxString wordBuildersForPostWordLoc; wordBuildersForPostWordLoc.Empty();
 	// next pair for use with the second word in a conjoined pair, when a punct is being
@@ -15505,10 +15516,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		if (IsMarker(ptr))
 		{
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 5)
-			{
-				int break_here = 1;
-			}
+			//if (pSrcPhrase->m_nSequNumber >= 5)
+			//{
+			//	int break_here = 1;
+			//}
 #endif
 			wxString aWholeMkr = GetWholeMarker(ptr);
 			wxString augmentedMkr = aWholeMkr + _T(' ');
@@ -15969,10 +15980,10 @@ tryagain:	if (IsMarker(ptr))
 		}
 	}
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 0)
-	{
-		int break_here = 1;
-	}
+	//if (pSrcPhrase->m_nSequNumber >= 0)
+	//{
+	//	int break_here = 1;
+	//}
 #endif
 	return len;
 }
@@ -15989,7 +16000,6 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 		// not enough space for a xref 
 		return FALSE;
 	}
-	bool bAnswerIs = FALSE;
 	if (*ptr != gSFescapechar)
 	{
 		return FALSE;
@@ -16211,11 +16221,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 #if defined(_DEBUG)
-		if (sequNumber >= 0)
-		{
+		//if (sequNumber >= 2)
+		//{
 			//LogSequNumbers_LimitTo(5, pApp->m_pSourcePhrases);
-			int halt_here = 1;
-		}
+		//	int halt_here = 1;
+		//}
 #endif
 //		wxLogDebug(_T("TokenizeText: line %d  ,  itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
 
@@ -16991,9 +17001,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				bool bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
 				     //wxUnusedVar(bCanFilterThisOne);
 				bool bFilteringIsWanted = bIsToBeFiltered;
-				     //wxUnusedVar(bFilteringIsWanted);
+				wxUnusedVar(bFilteringIsWanted);
 				bool bInUnfilteredInlineSpan = m_bIsWithinUnfilteredInlineSpan;
-				     //wxUnusedVar(bInUnfilteredInlineSpan);
+				wxUnusedVar(bInUnfilteredInlineSpan);
 #if defined (_DEBUG) //&& defined (FIXORDER)
 //				{
 //					wxLogDebug(_T("TokenizeText line %d: bCanFilterIt= %d, bFilteringIsWanted= %d, bInUnfilteredInlineSpan= %d"),
@@ -17623,10 +17633,10 @@ parsing:
 			// Adapt_It.h and line 43 of AdaptItConstants.h
 #if defined (USE_LEGACY_PARSER)
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 5)
-			{
-				int break_here = 1;
-			}
+			//if (pSrcPhrase->m_nSequNumber >= 2)
+			//{
+			//	int break_here = 1;
+			//}
 #endif
 
 #if defined (_DEBUG) && defined (FIXORDER)
@@ -29616,11 +29626,18 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bTokenizingTargetText)
 {
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 0)
-	{
-		int break_here = 1;
-	}
+	//if (pSrcPhrase->m_nSequNumber >= 0)
+	//{
+	//	int break_here = 1;
+	//}
 #endif
+	// BEW 30Sep19 Because I've split off ParsePreWord()'s code from the legacy ParseWord()
+	// function, some variable are now unused. I'll use wxUnusedVar() for them so as to
+	// avoid compiler warnings
+	wxUnusedVar(bIsInlineBindingMkr);
+	wxUnusedVar(bIsInlineNonbindingMkr);
+	wxUnusedVar(inlineNonbindingMrks);
+
 	int len = 0;
 	wxChar* ptr = pChar;
 	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
@@ -29643,6 +29660,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	wxString aSpace = _T(" ");
 	wxString usfmFixedSpace = _T("~"); // USFM fixedspace symbol
 	USFMAnalysis* pUsfmAnalysis = NULL;
+	wxUnusedVar(pUsfmAnalysis);
+
 	wxString bareMkr;
 	wxString bareEndMkr;
 	wxString wholeMkr;
@@ -29653,6 +29672,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bHasPrecPunct = FALSE;
 	//bool bHasOpeningQuote = FALSE; // set but not used
 	bool bParsedInlineBindingMkr = FALSE;
+	wxUnusedVar(bParsedInlineBindingMkr);
+
 	wxString finalPunctBeforeFixedSpaceSymbol;
 	wxString precedingPunctAfterFixedSpaceSymbol;
 	finalPunctBeforeFixedSpaceSymbol.Empty();
@@ -29675,6 +29696,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// BEW 24Oct14 added next two lines for USFM nested marker support when parsing
 	wxString tagOnly;
 	bool bIsNestedMkr = FALSE;
+	wxUnusedVar(bIsNestedMkr);
+
 	wxString baseOfEndMkr;
 
 	// BEW added test 21Mar17
@@ -29683,7 +29706,102 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		return len;
 	}
 
-	// we are now at the first character of the word
+	// BEW 30Sep19  Gerald's test data had the following src text string (2 words omitted
+	// before last one):  \v 1 Jant ko: «\w Aji Sax|Aji Sax j-:\w* jóg!»
+	// The ParsePreWord() function gets to the « punctuation, and correctly parses over it
+	// and stores the « at the beginning of pSrcPhrase->m_srcPhrase. Then ptr, when ParseWord()
+	// is entered, is at the substring:  \w Aji Sax|Aji....   This first part (\w Aji...) 
+	// has never been catered for in previous versions of this parser - with the result that
+	// the « is assigned to the present pSrcPhrase, and then TokenizeText creates the next
+	// pSrcPhrase to handle the rest:  Aji Sax|Aji Sax j-:\w* jóg!»
+	// There are two issues:
+	// 1. Instead of ptr being at the start of "word proper", it's at the start of an 
+	//    inline binding begin-marker; which is something new to the parser.
+	// 2. The inline binding begin marker may be, but is not guaranteed to be, an
+	//    attributes hiding one which has attributes following a bar ( | ) which
+	//    therefore requires that the 'hiding' code further below gets called. The
+	//    hiding code won't be accessed unless the flag   m_bWithinMkrAttributeSpan
+	//    is reset to TRUE here. We also want the marker parsed over and stored on 
+	//    the current CSourcePhrase instance ( in the m_inlineBindingMarkers member,
+	//    but allow for Non-binding begin mkr as well, some of these can be attributes
+	//    type), and ptr advanced to point at Aji. That should be enough.
+	if (IsMarker(ptr))
+	{
+		if (!IsEndMarker(ptr, pEnd))
+		{
+			wxString wholeMkr = GetWholeMarker(ptr);
+
+			// Test if it is one of the  charAttributeMkrs fast-access string
+			wxString augmentedMkr = wholeMkr + _T(' '); // add space
+			int offset = wxNOT_FOUND;
+			offset = charAttributeMkrs.Find(augmentedMkr);
+			if (offset != wxNOT_FOUND)
+			{
+				// It's one of \w \xt \fig \jmp \+jmp \rb \qt-s or \qt-e
+				int mkrLen = augmentedMkr.Len(); // include the space
+
+				// TokenizeText() calls IsAttributeMarker() - which not only
+				// checks its an attribute-having type, but sets up the
+				// hidden data; but in this context if will not yet have
+				// been called. So we must do so here if we want the search 
+				// span for finding which pSrcPhrase will be the one on
+				// which the metadata will be stored - in the case of a 
+				// phrase, the last pSrcPhrase parsed before the bar - and
+				// we are not there yet. IsAttributeMarker does all the
+				// needed work and, importantly, sets m_bWithinMkrAttributeSpan to TRUE;
+				bool bHidingNeeded = FALSE;
+				bHidingNeeded = IsAttributeMarker(ptr);
+				if (bHidingNeeded)
+				{
+					m_bWithinMkrAttributeSpan = TRUE;
+				}
+
+				// Now, get the marker stored on the current pSrcPhrase
+				// (it could be an inline binding type, like \w, or inline non-binding) 
+				// Reuse offset...
+				bool bIsBindingMkr = FALSE;
+				bool bIsNonbindingMkr = FALSE;
+				offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
+				if (offset != wxNOT_FOUND)
+				{
+					bIsBindingMkr = TRUE;
+				}
+				else if (!bIsBindingMkr)
+				{
+					offset = gpApp->m_inlineNonbindingMarkers.Find(augmentedMkr);
+					if (offset != wxNOT_FOUND)
+					{
+						bIsNonbindingMkr = TRUE;
+					}
+				}
+				// Store it, while it's unlikely to have a stored begin-marker already,
+				// append, rather than assign, to play safe
+				if (bIsBindingMkr)
+				{
+					pSrcPhrase->AppendToInlineBindingMarkers(augmentedMkr);
+				}
+				else if (bIsNonbindingMkr)
+				{
+					wxString nbMkr = pSrcPhrase->GetInlineNonbindingMarkers();
+					nbMkr += augmentedMkr;
+					pSrcPhrase->SetInlineNonbindingMarkers(nbMkr);
+				}
+				else
+				{
+					// It's neither, but it has to be one to put somewhere
+					// so shove it aftere whatever is already in m_markers
+					// and hope for the best
+					pSrcPhrase->m_markers += augmentedMkr;
+				}
+				// Update ptr to point at the word proper
+				// and update len value as well
+				ptr = ptr + (size_t)mkrLen;
+				len = len + mkrLen;
+			}
+		}
+	}
+
+	// we are now at the first character of the word (or phrase)
 	wxChar* pWordProper = ptr;
 	// the next four variables are for support of words separated by ~ fixed space symbol
 	wxChar* pEndWordProper = NULL;
@@ -29734,7 +29852,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			pSrcPhrase->m_precPunct = m_pCachedSourcePhrase->m_precPunct;
 			pSrcPhrase->m_follPunct = m_pCachedSourcePhrase->m_follPunct;
 			pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct + pSrcPhrase->m_key + pSrcPhrase->m_follPunct;
-			// There won't have been any nested marker, so m_follOuterPuncts will be empty
+			// There won't have any nested marker, so m_follOuterPuncts will be empty
 
 			wxChar* pAuxPtr = ptr; // iterator
 			// Remember not to store any of these calculations on variables 
@@ -34757,7 +34875,7 @@ bool CAdapt_ItDoc::IsTheCSourcePhraseForHidingMetadataNext(wxChar* pChar, wxChar
 	size_t safeDistance = 128;
 	if (distance < safeDistance)
 	{
-		pGoNoFurther = pChar + (size_t)(pEnd - pChar); // only up to pEnd														 
+		pGoNoFurther = pEnd; // only up to pEnd														 
 	}
 	else
 	{

@@ -41461,7 +41461,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
         {
             msg = _T("WriteConfigurationFile() entered. Config type is 'project'");
         }
- //       this->LogUserAction(msg);
+        this->LogUserAction(msg);
     }
 
     if (m_bReadOnlyAccess || (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0))
