@@ -9020,6 +9020,12 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
     ::wxSetWorkingDirectory(initialPath);
     wxDir dir(initialPath);
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("%s::%() line $d; ::wxGetCwd()= %s  initialPath= %s   Restores cwd when enumerations done")
+		__FILE__, __FUNCTION__, __LINE__, saveDir.c_str(), initialPath.c_str());
+#endif
+
+
     //wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
     //wxASSERT(dir.IsOpened());
     bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories

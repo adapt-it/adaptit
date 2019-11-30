@@ -18742,6 +18742,10 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
 	target = FwdSlashtoZWSP(target);
 //#endif
+
+	wxLogDebug(_T("\n%s::%s() line= %d , (tgt)textLen= %d  (tgt)text= %s\n"),
+		__FILE__, __FUNCTION__, __LINE__, textLen, target.c_str());
+
 	return textLen;
 }// end of RebuildTargetText
 
@@ -18767,7 +18771,10 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 // determines whether str is source or target text. Typically the latter.
 wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str)
 {
-	wxString text = str;
+	// On entry, str should end with the target text word (and final puncts if any)
+	// and the endmarker; but for \jmp, there may be no word. Take care, it's  tricky.
+	// Also, if the user has not provided a translation for the pSrcPhrase, it's not
+	// appropriate to restore the metadata when expected preceding word is absent.
 	wxString metadata = wxEmptyString;
 	if (pSrcPhrase->m_punctsPattern.IsEmpty())
 	{
@@ -18775,8 +18782,6 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	}
 	metadata = pSrcPhrase->m_punctsPattern; // this contains the end mkr at the end
 	wxString contents = wxEmptyString;
-	int offset = wxNOT_FOUND; // -1
-	int length = metadata.Len();
 	wxString reversed = MakeReverse(metadata);
 	wxASSERT(reversed.GetChar(0) == _T('*'));
 	wxChar slashChr = _T('\\');
@@ -18793,24 +18798,106 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	int mkrSpan = offset2 + 1; // point past the backslash location
 	wxString theMkr = reversed.Left(mkrSpan);
 	contents = reversed.Mid(mkrSpan);
-	// The marker and the metadata contents are separated, but each is still reversed
-	// so reverse them
+	// The marker and the metadata contents are separated, but each 
+	// is still reversed so reverse them
 	theMkr = MakeReverse(theMkr);
 	contents = MakeReverse(contents);
 	wxASSERT(contents.GetChar(0) == _T('|'));
 
-	// Now get the insertion point for the metadata as now copied 
-	// to the "contents" wxString
-	offset = length - mkrSpan;
-	size_t contentsLen = (size_t)(contents.Len());
+	wxLogDebug(_T("%s::%s(), line %d BEFORE;  str= %s  theMkr= %s  contents= %s"),
+		__FILE__, __FUNCTION__, __LINE__, str.c_str(), theMkr.c_str(), contents.c_str());
 
-	// Insert the metadata in the correct location
-	text = text.insert((size_t)offset, contents, 0, contentsLen);
+	// Handle \jmp |<content>/jmp* because this will be metadata hidden on a CSourcePhrase
+	// in which m_key and m_targetStr are both empty. If these are not empty, then the bar
+	// is preceded by a word, or word with final punctuation, and content will follow that,
+	// but in the situation where \jmp is followed by bar, there will be no word preceding.
+	// So, except in this special case of \jmp |<content>/jmp*, if there is no translated
+	// word preceding the bar, then we infer that the user has not yet translated the source
+	// text at that pSrcPhrase's location, and so it would be inappropriate to restore the
+	// metadata in that instance. (Earlier, I used .insert(), but that was problematical.
+	// A better approach is to use Find() to get an offset to the endmarker, divide up the
+	// string bits, append the metadata where appropriate, and then restore the bits
+	if (pSrcPhrase->m_key.IsEmpty() || pSrcPhrase->m_srcPhrase.IsEmpty())
+	{
+		// In this situation, skip restoration of the metadata, except when the marker
+		// is \jmp* or \+jmp*
+		if ((theMkr == _T("\\jmp*")) || (theMkr == _T("\\+jmp*")))
+		{
+			int strLen = str.Len();
+			// The matching endmarker may not be last in str, so search back to it
+			int distance = SearchBackToMatchingMarker(str, theMkr);
+			wxASSERT(strLen >= distance);
+			wxString firstBit = str.Left(strLen - distance);
+			if (firstBit.IsEmpty())
+			{
+				firstBit = contents;
+			}
+			else
+			{
+				firstBit += contents; // add the contents of the metadata
+			}
+			str = firstBit + theMkr;
+		}
+	}
+	else
+	{
+		// m_key and/or m_targetStr have content, so check now that the user
+		// has actually provided target text content for this pSrcPhrase. If
+		// there is none yet, then skip restoration for this instance. Check
+		// only m_targetStr for empty; we will allow m_adaption to be empty
+		// provided there is final punctuation
+		if (!pSrcPhrase->m_targetStr.IsEmpty())
+		{
+			int strLen = str.Len();
+			// The matching endmarker may not be last in str, so search back to it
+			int distance = SearchBackToMatchingMarker(str, theMkr);
+			wxASSERT(strLen >= distance);
+			wxString firstBit = str.Left(strLen - distance);
+			if (firstBit.IsEmpty())
+			{
+				firstBit = contents;
+			}
+			else
+			{
+				firstBit += contents; // add the contents of the metadata
+			}
+			str = firstBit + theMkr;
+		}
+	}
 
-	wxLogDebug(_T("%s::%s(), line %d;  str = %s   text = %s"),
-		__FILE__, __FUNCTION__, __LINE__, str.c_str(), text.c_str());
+	wxLogDebug(_T("%s::%s(), line %d AFTER;  str = %s"),
+		__FILE__, __FUNCTION__, __LINE__, str.c_str());
 
-	return str = text;
+	return str;
+}
+
+// CSourcePhrase instances may store more than one endMarker in some
+// of its members, so it can't be assumed that the matching marker in
+// the str string will be the last marker in str; so we search back
+// character by character until we come to the location where the
+// matchup succeeds. Return the distance backed over.
+// If no matchup happens, return -1 (wxNOT_FOUND)
+int SearchBackToMatchingMarker(wxString str, wxString mkr)
+{
+	int distance = 0;
+	int size = str.Len();
+	int locn = size; // locn decreases as we iterate
+	int returnValue = wxNOT_FOUND;
+	int offset = wxNOT_FOUND;
+	do {
+		distance++;
+		locn = size - distance;
+		wxString rightStr = str.Mid(locn);
+		offset = rightStr.Find(mkr);
+		if (offset == wxNOT_FOUND)
+		{
+			continue; // iterate
+		}
+		// If control gets here, a match was made
+		returnValue = distance;
+		break;
+	} while (distance < size);
+	return returnValue;
 }
 
 
