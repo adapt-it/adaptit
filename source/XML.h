@@ -17,10 +17,15 @@
 //#define Output_Default_Style_Strings	// uncomment to output default Unix-style usfm strings
 										// to books.txt, AI_USFM_full.txt, and AI_UserProfiiles.txt.
 										// For this to work properly, the up-to-date AI_USFM_full.xml 
-										// file should be located in the Adapt It Work folder. The 
+										// file should be located in the Adapt It Unicode Work folder. The 
 										// normally used AI_USFM.xml file need not be renamed, since 
 										// at the time this symbol is defined, AI_USFM_full.xml only 
-										// will be used.
+										// will be used. AI is then run until the start working wizard
+                                        // appears, then can Cancel. By that time the AI_USFM_full.txt
+                                        // file's strings will have been updated (in the Adapt It Unicode Work
+                                        // folder). The Unix-style strings in AI_USFM_full.txt should then
+                                        // be copied and pasted into the const wxString defaultSFM[] array
+                                        // in the first part of Adapt_It.cpp.
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
