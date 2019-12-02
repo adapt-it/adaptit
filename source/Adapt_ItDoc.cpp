@@ -29626,10 +29626,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bTokenizingTargetText)
 {
 #if defined (_DEBUG)
-	//if (pSrcPhrase->m_nSequNumber >= 0)
-	//{
-	//	int break_here = 1;
-	//}
+//	if (pSrcPhrase->m_nSequNumber >= 7)
+//	{
+//		int break_here = 1;
+//	}
 #endif
 	// BEW 30Sep19 Because I've split off ParsePreWord()'s code from the legacy ParseWord()
 	// function, some variable are now unused. I'll use wxUnusedVar() for them so as to
@@ -30812,19 +30812,19 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
 
-								 // Once we have got past the one or more endmarkers, there could be following
-								 // punctuation which we try parse over in the code below. However, if a punctuation
-								 // character has reverted to being word-building, and it got moved to
-								 // post-endmarker position, it will have been restored (and counted in the len
-								 // value update done earlier) to its post word location. But the ParseWord()
-								 // parsing pointer ptr will now be pointing at however many such there are - it or
-								 // they, as the case may be, are still stored in the wordBuildersForPostWordLoc
-								 // string, which because we haven't returned, is still not emptied. So here we must
-								 // get the length of what we put into the wordBuildersForPostWordLoc string from
-								 // the character sequence and advance ptr by that much, and if it is we advance
-								 // over it WITHOUT INCREMENTING the len value - as that is already done above;
-								 // after this block is done, ptr must be left pointing at any genuine punctuation,
-								 // or space or whatever
+		// Once we have got past the one or more endmarkers, there could be following
+		// punctuation which we try parse over in the code below. However, if a punctuation
+		// character has reverted to being word-building, and it got moved to
+		// post-endmarker position, it will have been restored (and counted in the len
+		// value update done earlier) to its post word location. But the ParseWord()
+		// parsing pointer ptr will now be pointing at however many such there are - it or
+		// they, as the case may be, are still stored in the wordBuildersForPostWordLoc
+		// string, which because we haven't returned, is still not emptied. So here we must
+		// get the length of what we put into the wordBuildersForPostWordLoc string from
+		// the character sequence and advance ptr by that much, and if it is we advance
+		// over it WITHOUT INCREMENTING the len value - as that is already done above;
+		// after this block is done, ptr must be left pointing at any genuine punctuation,
+		// or space or whatever
 		if (!wordBuildersForPostWordLoc.IsEmpty())
 		{
 			ptr += wordBuildersForPostWordLoc.Len();
@@ -30923,8 +30923,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// oops, HALT! don't parse further, we've come to where the next word's stuff is
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-												  // BEW 14Jul14, decrement len until it points to start of any
-												  // preceding whitespace, and then return
+			// BEW 14Jul14, decrement len until it points to start of any
+			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr - 1L))
 			{
 				ptr = ptr - 1L;
@@ -30942,6 +30942,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			ptr++;
 			pMorePunctsEnd = ptr;
 		}
+
 		// if we got to the buffer end, accept the punctuation, store and return; likewise
 		// if we got to a ] bracket
 		if (ptr == pEnd || *ptr == _T(']'))
@@ -30956,20 +30957,51 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
 			}
 			len += nMorePunctsSpan;
-			// remove next two lines, I've done this increment at the end of the last
-			// whitespace parse block
-			//if (nWhiteSpaceSpan > 0)
-			//	len += nWhiteSpaceSpan;
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-												  // BEW 14Jul14, decrement len until it points to start of any
-												  // preceding whitespace, and then return
+			// BEW 14Jul14, decrement len until it points to start of any
+			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr - 1L))
 			{
 				ptr = ptr - 1L;
 				len--;
 			}
 			return len;
+		}
+		else
+		{
+			// BEW 2Dec19 added else block, because for ptr pointing at .\f*<sp) the
+			// advancement of ptr over the period was not added into the len value,
+			// causing part of the next marker to appear as an isolate string on the
+			// next pSrcPhrase
+			if (nMorePunctsSpan > 0)
+			{
+#if defined (_DEBUG)
+				/*
+				if (pSrcPhrase->m_nSequNumber >= 7)
+				{
+					int break_here = 1;
+				}
+				*/
+#endif
+				wxString moreFinalPuncts(pMorePunctsStart, nMorePunctsSpan);
+				pSrcPhrase->m_follPunct += moreFinalPuncts;
+				pSrcPhrase->m_srcPhrase += moreFinalPuncts;
+				// also do it for the secondWord's CSourcePhrase when ~ is conjoining
+				if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+				{
+					pSrcPhrWord2->m_follPunct += moreFinalPuncts;
+					pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
+				}
+				len += nMorePunctsSpan;
+				m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
+
+				// those have been dealt with, so reinitialize in case there are still more
+				bMorePunctsHaveBeenAccepted = FALSE;
+				pMorePunctsStart = ptr;
+				pMorePunctsEnd = ptr;
+				nMorePunctsSpan = 0;
+			}
 		}
 		// we could now be pointing at white space, and there may be detached endquotes we
 		// need to collect as final punctuation too - but if that is the case, there should
@@ -30995,10 +31027,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
 			}
 			bMorePunctsHaveBeenAccepted = TRUE; // this block can leave ptr at a
-												// different location, but that shouldn't matter. We need this
-												// boolean so we can later prevent storing the extra punctuation twice
+				// different location, but that shouldn't matter. We need this
+				// boolean so we can later prevent storing the extra punctuation twice
 
-												// now attempt any detached ones - we'll have to reset ptr for this parse
+			// now attempt any detached ones - we'll have to reset ptr for this parse
 			bExitParseWordOnReturn = FALSE;
 			int nOldLen = len;
 			wxString additions; additions.Empty();
@@ -31016,14 +31048,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			{
 				m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-													  // since we must now return, the tentative former decisions have to become
-													  // concrete, so do the arithmetic to get len value correct (if not
-													  // returning here, the arithmetic is done further down in ParseWord() when
-													  // more is known about endmarkers etc)
-													  //if (nWhiteSpaceSpan > 0) <<-- done earlier as of 14Jul14
-													  //{
-													  //	len += nWhiteSpaceSpan;
-													  //}
+				// since we must now return, the tentative former decisions have to become
+				// concrete, so do the arithmetic to get len value correct (if not
+				// returning here, the arithmetic is done further down in ParseWord() when
+				// more is known about endmarkers etc)
 				if (bMorePunctsHaveBeenAccepted && nMorePunctsSpan > 0)
 				{
 					len += nMorePunctsSpan;
@@ -31044,9 +31072,9 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 	} // end of TRUE block for test: if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 
-	  // we might now be pointing at inline non-binding endmarker, or the endmarker for a
-	  // footnote, endnote or crossReference. There might be a small possibility that we get
-	  // here with ptr pointing at whitespace - deal with the possibility
+	// we might now be pointing at inline non-binding endmarker, or the endmarker for a
+	// footnote, endnote or crossReference. There might be a small possibility that we get
+	// here with ptr pointing at whitespace - deal with the possibility
 	bool bNotEither = FALSE; // default value (yes, it should be false for the default)
 	int olderLen = len;
 	pMaybeWhitesEnd = ptr; // this will be null only if control bypasses here
@@ -31068,11 +31096,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// anything). Before we do that, our delayed decisions above are to be delayed no
 		// longer - we must accept any 'more puncts' that we found, and throw away any
 		// whitespace we parsed over preceding them
-		//if (nWhiteSpaceSpan > 0) <<-- I augmented using this earlier, as of 14Jul14
-		//{
-		// ignore it, but add the count of its whitespace characters to len
-		//	len += nWhiteSpaceSpan;
-		//}
 		if (nHowManyWhites > 0)
 		{
 			len += nHowManyWhites;
@@ -31132,8 +31155,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// we must return
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-												  // BEW 14Jul14, decrement len until it points to start of any
-												  // preceding whitespace, and then return
+			// BEW 14Jul14, decrement len until it points to start of any
+			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr - 1L))
 			{
 				ptr = ptr - 1L;
@@ -31172,8 +31195,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// the above call, so just return len to the caller; ptr is updated too
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-												  // BEW 14Jul14, decrement len until it points to start of any
-												  // preceding whitespace, and then return
+			// BEW 14Jul14, decrement len until it points to start of any
+			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr - 1L))
 			{
 				ptr = ptr - 1L;
@@ -31376,8 +31399,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 
-				  // BEW 14Jul14, decrement len until it points to start of any
-				  // preceding whitespace, and then return
+				// BEW 14Jul14, decrement len until it points to start of any
+				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr - 1L))
 				{
 					ptr = ptr - 1L;
