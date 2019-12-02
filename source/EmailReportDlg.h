@@ -105,7 +105,7 @@ protected:
 	void OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event));
     void OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event));
     void OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event));
-    void OnHyperLinkMailToClicked(wxHyperlinkEvent& event);
+    void OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event));
 	void OnYourEmailAddressEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSubjectSummaryEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnDescriptionBodyEditBoxChanged(wxCommandEvent& WXUNUSED(event));
@@ -114,7 +114,8 @@ protected:
 	//bool SendFileToServer(CURL *curl, CURLcode& res, const wxString localPathAndName);
 	bool BuildEmailReportXMLFile(wxString filePathAndName,bool bReplaceExistingReport);
 	bool bMinimumFieldsHaveData();
-	wxString FormatSysInfoIntoString();
+    wxString FormatSysInfoIntoString();
+    wxString FormatEditBoxStringInfoIntoURLSafeString(wxString str);
 
 private:
 	// class attributes
