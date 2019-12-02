@@ -1423,7 +1423,7 @@ const wxString defaultSFM[] =
     _T("erq::Study Bible reflective questions:1:::1::1::1:study Bible questions:6::erq - Study - Reflective Questions:0:12:::::::0::::::::::"),
     _T("erqe::Study Bible reflective questions ending:1:::1::1:1:1:study Bible questions end:6::erqe - Study - Reflective Questions Ending:0:12:::::::0::::::::::"),
     _T("efm:efm*:ID or Caller for an extended (study) note. Used within a source project duplicte (target) text when autoring study material.:1::1::1:1:1:::0::efm - Study Note - ID/Caller:1:10:255::1::::0::::::::::"),
-    _T("cat:cat*:Study note category:1:::1:1::1:1:study note cat:0::cat - Study - Note Category:1:14:8388736::::::0::::::_notes_base:cat:::"),
+    _T("cat:cat*:Study note category:1:::1:1:1:1:1:study note cat:0::cat - Study - Note Category:1:14:8388736::::::0::::::_notes_base:cat:::"),
     _T("bt::Back-translation (and all \bt... initial forms):1:1:1:::1::1:back-trans:0::bt - Back-translation:1:11:16711680::::::0::::::::::"),
     _T("free:free*:Free translation:1:1:1:::1::1:free-trans:0::free - Free translation:1:11:4194500::::::0::::::::::"),
     _T("note:note*:Adapt It note:1:1:1:::1::1:note:0::note - Adapt It note:1:10:16711680::::::0::::::::::"),

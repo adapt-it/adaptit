@@ -4499,7 +4499,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Study note category"
 	usfm="1"
 	userCanSetFilter="1"
-	inLine="1" bdryOnLast="1"
+	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="study note cat"
 	textType="noType"
 	styleName="cat - Study - Note Category"
