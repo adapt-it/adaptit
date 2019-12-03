@@ -16221,11 +16221,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 #if defined(_DEBUG)
-		//if (sequNumber >= 2)
-		//{
+		if (sequNumber >= 95)
+		{
 			//LogSequNumbers_LimitTo(5, pApp->m_pSourcePhrases);
-		//	int halt_here = 1;
-		//}
+			int halt_here = 1;
+		}
 #endif
 //		wxLogDebug(_T("TokenizeText: line %d  ,  itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
 
