@@ -19,7 +19,7 @@ fi
 #
 APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah serena sonya sylvia tara precise trusty utopic vivid wily xenial yakkety zesty artful bionic"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
@@ -66,6 +66,15 @@ case $distCodename in
   ;;
   "serena")
   distCodename="xenial"
+  ;;
+  "sonya")
+  distCodename="xenial"
+  ;;
+  "sylvia")
+  distCodename="xenial"
+  ;;
+  "tara")
+  distCodename="bionic"
   ;;
 esac
 echo "  The Modified Codename for Deveopment is: $distCodename"
@@ -149,7 +158,9 @@ fi
 echo -e "\nRefresh apt lists via apt-get update"
 sudo apt-get -q update
 
-# Install the CodeBlocks 16.04 package
+exit 0
+
+# Install the latest CodeBlocks (17.12) package
 echo -e "\nInstalling the CodeBlocks package..."
 sudo apt-get install codeblocks -y
 
