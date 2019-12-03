@@ -18971,7 +18971,33 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
+    // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
+    // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block below executes      !!!!!!!!!!!!
+    m_pChecker = (wxSingleInstanceChecker*)NULL;
+    m_pServer = (AI_Server*)NULL;
+    const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
+    // on my Windows machine name = "Adapt_ItApp-Bill Martin"
+    // on my Linux machine name = "Adapt_ItApp-wmartin"
+    // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
+    // is running by the same user on the same local machine.
+    m_pChecker = new wxSingleInstanceChecker(name);
+    if (m_pChecker->IsAnotherRunning())
+    {
+        wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
+        // LogUserAction(msg); // Unfortunately we don't know the path of the user log this early in OnInit() TODO: fix!
+        wxMessageBox(msg, _T(""), wxSTAY_ON_TOP | wxICON_EXCLAMATION | wxOK);
+        delete m_pChecker; // OnExit() won't be called if we return false
+        m_pChecker = NULL;
+        // Only a single instance is to be allowed, so return FALSE here
+        // from OnInit(). At this early point in OnInit() nothing has been
+        // allocated on the heap using the new command, so no need at this
+        // point to deallocate memory structures on the heap.
+        return false;
+    }
+    // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
+    // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
+    
+    m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
 								  // anything when the doc is being or has been clobbered
     m_nDropDownClickedItemIndex = -1;
 
@@ -20946,298 +20972,60 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // *** Initializations above were originally in the App's constructor in the MFC version ***
 
-    const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
-    // on my Windows machine name = "Adapt_ItApp-Bill Martin"
-    // on my Linux machine name = "Adapt_ItApp-wmartin"
+    // Is CoInitialize (initializes COM) available on Linux and Mac???
+    //#ifdef _UNICODE
+    // RichEdit stuff not needed in wxWidgets version
+    //  this should be done early on. The AfxInitRichEdit() call will load version 1
+    //	so we must do its work manually ourselves to get version 3 used
+    //   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit
+    //													  // controls, but this can stay
+    //#endif
 
-    m_pChecker = (wxSingleInstanceChecker*)NULL;
-    m_pServer = (AI_Server*)NULL;
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
-//		__LINE__, m_szView.x, m_szView.y);
+    // CoInitialize() won't compile on Linux
 
-    // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
-    // is running by the same user on the same local machine.
-    { // begin block for wxLogNull()
-        wxString cmdLine;
-        cmdLine = _T("[Raise]"); // Passing "[Raise]" as cmdLine to connection->Execute(cmdLine)
-                                 // will just cause the other running instance to raise its window.
+    // whm added 7Dec05
+    // Retrieve the path to the setup folder (i.e., the path the executable was launched
+    // from) We store the path in m_setupFolder
+    // WX NOTE: The MFC code will only work on some standard Window's configurations. It
+    // certainly will not work on Linux or other platforms, since only Windows uses
+    // C:\Program Files\somedir as a location for installation of user programs. Also,
+    // other platforms like Linux do not have drive letter designations such as C:, so
+    // hardcoding any path prefixed with C:\ will not work across platforms.
+    // For the wxWidgets version, we may be potentially running on any platform, hence, so
+    // certain installed files such as books.xml file will be placed in platform-specific
+    // directories. For non-Windows platforms is is not sufficient to simply know where the
+    // application that is currently running resides at run time.
+    // Different platforms expect certain kinds of files to be installed in certain
+    // expected locations.
+    //
+    // The function FindAppPath(const wxString& argv0, const wxString& cwd,
+    //                          const wxString& appVariableName)
+    // was suggested by Julian Smart as one means to do this.
+    // FindAppPath() makes the following checks in order:
+    // 1. Checks for existance of a path associated with an environment variable
+    //    name (passed in as the third parameter) [for situations in which the
+    //    installation program set up an environment variable]
+    // 2. Classic Mac just needs the current working directory when the
+    //    application starts, so the second parameter cwd is simply returned.
+    // 3. If above checks fail (or are inappropriate because of a null string
+    //    passed as third parameter), the function checks the commandline
+    //    argv[0] string passed as third parameter argv0. By default
+    //    this argv0 should contain the path and name of the executable on
+    //    most computer systems. FindAppPath() checks whether arfv0 represents
+    //    an absolute or relative path and insures that the executable actually
+    //    exists there.
+    // 4. If all above fails, FindAppPath() searches the computer's possible
+    //    PATH environment variable paths for the executable. If the executable
+    //    is found, its path string is returned, otherwise the FindAppPath()
+    //    just returns an empty string.
+    //
+    // NOTE: regardless of whether Unicode or ANSI version is being run, the
+    // string returned from FindAppPath() should be the location where we
+    // should be able to find the books.xml file.
 
-        wxLogNull logNo; // eliminates spurious "Deleted stale lock file
-                         // '/home/user/Adapt_ItApp-wmartin' on Linux
-        m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
-        wxASSERT(m_pChecker != NULL);
+    // !!!!!!!!!!!!! SET UP SOME STANDARD PATHS BELOW !!!!!!!!!!!!!!!!!!!!!!!!!
 
-        wxString serverName;
-        serverName = name.Lower();
-        wxString topic = _T("bring_to_front"); // an arbitrary topic name - can be anything as long as it is not an empty string
-               // Some of the code below is taken from the wxWidgets book pages 506-510.
-        if (!m_pChecker->IsAnotherRunning())
-        {
-            // There is no other instance running currently so create a new server
-            m_pServer = new AI_Server;
-            if (!m_pServer->Create(serverName))
-            {
-                wxLogDebug(_T("Failed to create an IPC service in OnInit()."));
-            }
-        }
-        else
-        {
-            // Another instance is currently running so make a connection to it
-            // and cause its window to raise
-            wxLogNull logNull;
-            AI_Client* pClient = new AI_Client;
-
-            // Ignored under DDE, host name in TCP/IP based classes
-            wxString hostName = _T("localhost");
-
-            // Create the connection
-            // Note: the MakeConnection() call below invokes AI_Server::OnAcceptConnection() method which returns
-            // a new AI_Connection. The topic can be anything as long as it is not an empty string.
-            wxConnectionBase* pConnection = pClient->MakeConnection(hostName, serverName, topic);
-            if (pConnection)
-            {
-                // Ask the other instance to raise itself
-                pConnection->Execute(cmdLine); // cmdLine is "[Raise]" in our case
-                pConnection->Disconnect();
-                if (pConnection != NULL) // whm 11Jun12 added NULL test
-                    delete pConnection;
-                pConnection = (wxConnectionBase*)NULL;
-            }
-            else
-            {
-                wxLogDebug(_T("The existing instance may be too busy to respond. Close any open dialogs and retry."));
-            }
-            wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
-            
-            // whm 5May2019 added some logging here to console, otherwise the console output simply stops even under 
-            // the gdb debugger if another instance of the process (even a hung one) is detected.
-            wxLogDebug(msg);
-
-            LogUserAction(msg);
-            // If only a single instance is to be allowed, we will return FALSE here
-            // from OnInit() after deallocating some memory items below.
-            // First deallocate the client
-            if (pClient != NULL) // whm 11Jun12 added NULL test
-                delete pClient;
-
-            if (pConnection != NULL)
-                delete pConnection;
-
-            // To avoid memory leaks at shutdown we should deallocate the things
-            // created in OnInit() up to this point - before returning FALSE from
-            // OnInit() below.
-            m_nTotalBooks = m_pBibleBooks->GetCount(); //m_nTotalBooks = m_pBibleBooks->GetSize();
-            if (m_nTotalBooks == 0L)
-            {
-                if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
-                    delete m_pBibleBooks;
-            }
-            else
-            {
-                for (int i = 0; i < m_nTotalBooks; i++)
-                {
-                    BookNamePair* pPair = (BookNamePair*)(*m_pBibleBooks)[i];
-                    if (pPair != NULL)
-                        delete pPair;
-                }
-                if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
-                    delete m_pBibleBooks;
-            }
-            int aTot;
-            aTot = m_pRemovedMenuItemArray->GetCount();
-            if (aTot == 0L)
-            {
-                if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
-                    delete m_pRemovedMenuItemArray;
-            }
-            else
-            {
-                int aIndex;
-                for (aIndex = 0; aIndex < aTot; aIndex++)
-                {
-                    wxMenuItem* mItem = (wxMenuItem*)(*m_pRemovedMenuItemArray)[aIndex];
-                    if (mItem != NULL) // whm 11Jun12 added NULL test
-                        delete mItem;
-                }
-                if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
-                    delete m_pRemovedMenuItemArray;
-            }
-//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
-//				__LINE__, m_szView.x, m_szView.y);
-
-            aTot = m_pArrayOfCollabProjects->GetCount();
-            if (aTot == 0L)
-            {
-                if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
-                    delete m_pArrayOfCollabProjects;
-            }
-            else
-            {
-                int aIndex;
-                for (aIndex = 0; aIndex < aTot; aIndex++)
-                {
-                    Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-                    if (pArrayItem != NULL) // whm 11Jun12 added NULL test
-                        delete pArrayItem;
-                }
-                m_pArrayOfCollabProjects->Clear();
-                if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
-                    delete m_pArrayOfCollabProjects;
-            }
-            if (m_pChecker != NULL)
-            {
-                delete m_pChecker;
-            }
-            if (m_pServer != NULL)
-            {
-                delete m_pServer;
-            }
-            if (m_pROP != NULL) // whm 11Jun12 added NULL test
-                delete m_pROP; // delete the ReadOnlyProtection class's only instance
-            if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
-                delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
-                // open read-only protection file of form
-                // ~AIRIOP-machinename-username.lock while the owning user
-                // has a project folder open (on this or a remote machine)
-            if (m_pLayout != NULL)
-            {
-                // add code here to ensure the CLayout's lists are cleared before deleting it, we
-                // don't want to leak memory
-                m_pLayout->DestroyStrips(); // destroys each strip and the memory involved with
-                                            // their m_arrPiles & m_arrPileOffsets arrays (these
-                                            // are both wxArrayInt arrays)
-                m_pLayout->DestroyPiles();	// destroys each pile in m_pLayout's m_pPiles lists,
-                                            // and the CCell instances that each pile owns
-                delete m_pLayout;
-            }
-            if (m_pUsfmStylesMap->size() > 0) //if (m_pUsfmStylesMap->GetCount() > 0)
-            {
-                // destroy all Usfm key/object associations
-                m_pUsfmStylesMap->clear(); //m_pUsfmStylesMap->Clear();
-            }
-            // destroy the Usfm map itself
-            if (m_pUsfmStylesMap != NULL) // whm 11Jun12 added NULL test
-                delete m_pUsfmStylesMap;
-            if (m_pPngStylesMap->size() > 0)
-            {
-                // destroy all Png key/object associations
-                m_pPngStylesMap->clear();
-            }
-            // destroy the Png map itself
-            if (m_pPngStylesMap != NULL) // whm 11Jun12 added NULL test
-                delete m_pPngStylesMap;
-            if (m_pUsfmAndPngStylesMap->size() > 0)
-            {
-                // destroy all UsfmAndPng key/object associations
-                m_pUsfmAndPngStylesMap->clear();
-            }
-            // destroy the UsfmAndPng map itself
-            if (m_pUsfmAndPngStylesMap != NULL) // whm 11Jun12 added NULL test
-                delete m_pUsfmAndPngStylesMap;
-
-            if (m_pSourceFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pSourceFont;
-            if (m_pTargetFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pTargetFont;
-            if (m_pNavTextFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pNavTextFont;
-            if (m_pDlgSrcFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pDlgSrcFont;
-            if (m_pDlgTgtFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pDlgTgtFont;
-            if (m_pComposeFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pComposeFont;
-            if (m_pDlgGlossFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pDlgGlossFont;
-            if (m_pRemovalsFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pRemovalsFont;
-            if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
-                delete m_pVertEditFont;
-            if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
-                delete m_pSrcFontData;
-            if (m_pTgtFontData != NULL) // whm 11Jun12 added NULL test
-                delete m_pTgtFontData;
-            if (m_pNavFontData != NULL) // whm 11Jun12 added NULL test
-                delete m_pNavFontData;
-            wxString key;
-            USFMAnalysis* pSfm;
-            // destroy all USFMAnalysis objects and the CPtrArray pointing to them
-            if (m_pMappedObjectPointers->GetCount() > 0)
-            {
-                // destroy the USFMAnalysis objects on the heap
-                for (int upos = 0; upos < (int)m_pMappedObjectPointers->GetCount(); upos++)
-                {
-                    pSfm = (USFMAnalysis*)m_pMappedObjectPointers->Item(upos);
-                    if (pSfm != NULL)
-                        delete pSfm;
-                }
-                // destroy all keys from CPtrArray
-                m_pMappedObjectPointers->Clear();
-                // destroy the CPtrArray itself
-            }
-            if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
-                delete m_pMappedObjectPointers;
-//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
-//				__LINE__, m_szView.x, m_szView.y);
-
-            return FALSE; // this terminates the current instance of the application
-        }
-    } // end of block for wxLogNull(), the ~wxLogNull destructor is called here
-
-      // Is CoInitialize (initializes COM) available on Linux and Mac???
-      //#ifdef _UNICODE
-      // RichEdit stuff not needed in wxWidgets version
-      //  this should be done early on. The AfxInitRichEdit() call will load version 1
-      //	so we must do its work manually ourselves to get version 3 used
-      //   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit
-      //													  // controls, but this can stay
-      //#endif
-
-      // CoInitialize() won't compile on Linux
-
-      // whm added 7Dec05
-      // Retrieve the path to the setup folder (i.e., the path the executable was launched
-      // from) We store the path in m_setupFolder
-      // WX NOTE: The MFC code will only work on some standard Window's configurations. It
-      // certainly will not work on Linux or other platforms, since only Windows uses
-      // C:\Program Files\somedir as a location for installation of user programs. Also,
-      // other platforms like Linux do not have drive letter designations such as C:, so
-      // hardcoding any path prefixed with C:\ will not work across platforms.
-      // For the wxWidgets version, we may be potentially running on any platform, hence, so
-      // certain installed files such as books.xml file will be placed in platform-specific
-      // directories. For non-Windows platforms is is not sufficient to simply know where the
-      // application that is currently running resides at run time.
-      // Different platforms expect certain kinds of files to be installed in certain
-      // expected locations.
-      //
-      // The function FindAppPath(const wxString& argv0, const wxString& cwd,
-      //                          const wxString& appVariableName)
-      // was suggested by Julian Smart as one means to do this.
-      // FindAppPath() makes the following checks in order:
-      // 1. Checks for existance of a path associated with an environment variable
-      //    name (passed in as the third parameter) [for situations in which the
-      //    installation program set up an environment variable]
-      // 2. Classic Mac just needs the current working directory when the
-      //    application starts, so the second parameter cwd is simply returned.
-      // 3. If above checks fail (or are inappropriate because of a null string
-      //    passed as third parameter), the function checks the commandline
-      //    argv[0] string passed as third parameter argv0. By default
-      //    this argv0 should contain the path and name of the executable on
-      //    most computer systems. FindAppPath() checks whether arfv0 represents
-      //    an absolute or relative path and insures that the executable actually
-      //    exists there.
-      // 4. If all above fails, FindAppPath() searches the computer's possible
-      //    PATH environment variable paths for the executable. If the executable
-      //    is found, its path string is returned, otherwise the FindAppPath()
-      //    just returns an empty string.
-      //
-      // NOTE: regardless of whether Unicode or ANSI version is being run, the
-      // string returned from FindAppPath() should be the location where we
-      // should be able to find the books.xml file.
-
-      // !!!!!!!!!!!!! SET UP SOME STANDARD PATHS BELOW !!!!!!!!!!!!!!!!!!!!!!!!!
-
-      // !!! testing only below
+    // !!! testing only below
 
 #if wxCHECK_VERSION(2, 7, 0)
     wxString resourcesDir; //,localizedResourcesDir;
