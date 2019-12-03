@@ -119,7 +119,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
-	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
+	Adapt_ItView.$(OBJEXT) Adapt_It_Resources.$(OBJEXT) \
 	AdminMoveOrCopy.$(OBJEXT) \
 	AssignLocationsForInputsAndOutputs.$(OBJEXT) \
 	AdminEditMenuProfile.$(OBJEXT) AutoSavingPage.$(OBJEXT) \
@@ -570,7 +570,7 @@ docFile_DATA = ../../docs/Localization_Readme.txt \
 adaptit_SOURCES = \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
-	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
+	../../source/Adapt_It_Resources.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
 	../../source/base64.cpp ../../source/BString.cpp ../../source/BookNameDlg.cpp \
@@ -739,7 +739,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItCanvas.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItDoc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItView.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It_wdr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It_Resources.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AdminEditMenuProfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AdminMoveOrCopy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AssignLocationsForInputsAndOutputs.Po@am__quote@
@@ -987,19 +987,19 @@ Adapt_ItView.obj: ../../source/Adapt_ItView.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_ItView.obj `if test -f '../../source/Adapt_ItView.cpp'; then $(CYGPATH_W) '../../source/Adapt_ItView.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_ItView.cpp'; fi`
 
-Adapt_It_wdr.o: ../../source/Adapt_It_wdr.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Adapt_It_wdr.o -MD -MP -MF $(DEPDIR)/Adapt_It_wdr.Tpo -c -o Adapt_It_wdr.o `test -f '../../source/Adapt_It_wdr.cpp' || echo '$(srcdir)/'`../../source/Adapt_It_wdr.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Adapt_It_wdr.Tpo $(DEPDIR)/Adapt_It_wdr.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Adapt_It_wdr.cpp' object='Adapt_It_wdr.o' libtool=no @AMDEPBACKSLASH@
+Adapt_It_Resources.o: ../../source/Adapt_It_Resources.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Adapt_It_Resources.o -MD -MP -MF $(DEPDIR)/Adapt_It_Resources.Tpo -c -o Adapt_It_Resources.o `test -f '../../source/Adapt_It_Resources.cpp' || echo '$(srcdir)/'`../../source/Adapt_It_Resources.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Adapt_It_Resources.Tpo $(DEPDIR)/Adapt_It_Resources.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Adapt_It_Resources.cpp' object='Adapt_It_Resources.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_It_wdr.o `test -f '../../source/Adapt_It_wdr.cpp' || echo '$(srcdir)/'`../../source/Adapt_It_wdr.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_It_Resources.o `test -f '../../source/Adapt_It_Resources.cpp' || echo '$(srcdir)/'`../../source/Adapt_It_Resources.cpp
 
-Adapt_It_wdr.obj: ../../source/Adapt_It_wdr.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Adapt_It_wdr.obj -MD -MP -MF $(DEPDIR)/Adapt_It_wdr.Tpo -c -o Adapt_It_wdr.obj `if test -f '../../source/Adapt_It_wdr.cpp'; then $(CYGPATH_W) '../../source/Adapt_It_wdr.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_It_wdr.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Adapt_It_wdr.Tpo $(DEPDIR)/Adapt_It_wdr.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Adapt_It_wdr.cpp' object='Adapt_It_wdr.obj' libtool=no @AMDEPBACKSLASH@
+Adapt_It_Resources.obj: ../../source/Adapt_It_Resources.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Adapt_It_Resources.obj -MD -MP -MF $(DEPDIR)/Adapt_It_Resources.Tpo -c -o Adapt_It_Resources.obj `if test -f '../../source/Adapt_It_Resources.cpp'; then $(CYGPATH_W) '../../source/Adapt_It_Resources.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_It_Resources.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Adapt_It_Resources.Tpo $(DEPDIR)/Adapt_It_Resources.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Adapt_It_Resources.cpp' object='Adapt_It_Resources.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_It_wdr.obj `if test -f '../../source/Adapt_It_wdr.cpp'; then $(CYGPATH_W) '../../source/Adapt_It_wdr.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_It_wdr.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_It_Resources.obj `if test -f '../../source/Adapt_It_Resources.cpp'; then $(CYGPATH_W) '../../source/Adapt_It_Resources.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_It_Resources.cpp'; fi`
 
 AdminMoveOrCopy.o: ../../source/AdminMoveOrCopy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AdminMoveOrCopy.o -MD -MP -MF $(DEPDIR)/AdminMoveOrCopy.Tpo -c -o AdminMoveOrCopy.o `test -f '../../source/AdminMoveOrCopy.cpp' || echo '$(srcdir)/'`../../source/AdminMoveOrCopy.cpp

@@ -10,6 +10,7 @@
 /// The AI_Server class is used for listening to connection requests. The AI_Client class allows Adapt It
 /// to connect to another instance of Adapt It. The AI_Connection class has the code allowing multiple
 /// instances of Adapt It to communicate with each other.
+/// Note: As of 2Dec2019, this class is no longer used in conjunction with the wxSingleInstanceChecker code in OnInit().
 /// \derivation		The AI_Server class is derived from wxServer; the AI_Client class is derived from wxClient
 /// and the AI_Connection class is derived from wxConnection.
 /////////////////////////////////////////////////////////////////////////////

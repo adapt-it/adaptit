@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	18 August 2019, by Bill Martin
-USFM version:	3.0.0 as published in usfm.sty by UBS April 2018
+Last Updated:	2 December 2019, by Bill Martin
+USFM version:	3.0.0 as published in usfm.sty and usfm_sb.sty by UBS April 2018
 				(bill_martin@sil.org, bruce_waters@sil.org, erik_brommers@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -2053,7 +2053,6 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Poetry text, Selah"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
-	textType="verse"
 	styleName="qs...qs* - Poetry Text - Selah"
 	styleType="character"
 	italic="1"
@@ -4320,19 +4319,6 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- similar to usfm special features parameter within a
 	figure \fig |Cap| \fig*; but simple enough to allow optional
 	filtering (but not so for USFM) -->
-<SFM marker="cat"
-	description="Picture catalog number"
-	png="1"
-	filter="1"
-	bdryOnLast="1"
-	textType="noType"
-	styleName="cat - Picture catalog number"
-	justification="leading"
-	basedOn="_body_text" nextStyle="cat"
-	>
-</SFM>
-	<!-- similar to usfm special features parameter within a
-	figure \fig |Cat| \fig* -->
 <SFM marker="des"
 	description="Picture description"
 	png="1"
@@ -4408,6 +4394,92 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Early versions of usfm had parentheses (addpn...addpn*) but removed later
 	to make it consistent with all other style names  -->
+	<!-- STYDY MATERIAL EXTENSIONS. The following markers ef through cat are Study 
+	material extensions to existing USFM markup, found in the usfm_sb.sty 
+	stylesheet. They are not found in the usfm.sty, but should be recognized
+	by Adapt It, so they should be included in the AI_USFM.xml control file. -->
+<SFM marker="ef" endMarker="ef*"
+	description="A Study Note text item"
+	usfm="1"
+	filter="1"
+	inLine="1" special="1" bdryOnLast="study note text item"
+	inform="1"
+	textType="note"
+	styleName="ef...ef* - Study Note"
+	styleType="character"
+	justification="leading"
+	basedOn="_notes_base" nextStyle="ef"
+	>
+</SFM>
+	<!-- Note: The \ef marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
+<SFM marker="ex" endMarker="ex*"
+	description="List of study Bible extended cross references"
+	usfm="1"
+	userCanSetFilter="1"
+	inLine="1" special="1" bdryOnLast="1"
+	inform="1" navigationText="ext xref list"
+	textType="note"
+	styleName="ex...ex* - Study - Extended Cross Reference"
+	styleType="character"
+	justification="leading"
+	basedOn="_notes_base" nextStyle="ex"
+	>
+</SFM>
+	<!-- Note: The \ef marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
+<SFM marker="esb"
+	description="Study Bible sidebar (mini article)"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1"
+	inform="1" navigationText="study Bible sidebar"
+	textType="none"
+	styleName="esb - Study - Sidebar (Mini Article)"
+	justification="leading"
+	>
+</SFM>
+	<!-- Note: The \esb marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
+<SFM marker="esbe"
+	description="Study Bible sidebar ending"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="study Bible sidebar end"
+	textType="none"
+	styleName="esbe - Study - Sidebar Ending"
+	justification="leading"
+	>
+</SFM>
+	<!-- Note: The \esbe marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
+<SFM marker="erq"
+	description="Study Bible reflective questions"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1"
+	inform="1" navigationText="study Bible questions"
+	textType="none"
+	styleName="erq - Study - Reflective Questions"
+	justification="leading"
+	>
+</SFM>
+	<!-- Note: The \erq marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
+<SFM marker="erqe"
+	description="Study Bible reflective questions ending"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="study Bible questions end"
+	textType="none"
+	styleName="erqe - Study - Reflective Questions Ending"
+	justification="leading"
+	>
+</SFM>
+	<!-- Note: The \erqe marker above appears in the study material stylesheet usfm_sb.sty 
+	version 3.0.0 but not in usfm.sty -->
 <SFM marker="efm" endMarker="efm*"
 	description="ID or Caller for an extended (study) note. Used within a source project duplicte (target) text when autoring study material."
 	usfm="1"
@@ -4420,23 +4492,30 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	justification="leading"
 	>
 </SFM>
-	<!-- The \efm marker does not appear in usfm.sty version 3.0.0 but
-	probably was in an earlier or special usfm.sty, so keep it for backwards 
+	<!-- Note: The \efm marker does not appear in usfm.sty/usfm_sb.sty version 3.0.0 
+	but probably was in an earlier or special usfm.sty, so keep it for backwards 
 	compatability -->
-<SFM marker="ef" endMarker="ef*"
-	description="A Study Note text item"
+<SFM marker="cat" endMarker="cat*"
+	description="Study note category"
 	usfm="1"
-	filter="1"
+	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
+	inform="1" navigationText="study note cat"
 	textType="noType"
-	styleName="ef...ef* - Study Note"
-	styleType="character"
+	styleName="cat - Study - Note Category"
+	styleType="character" fontSize="14" color="8388736"
 	justification="leading"
+	basedOn="_notes_base" nextStyle="cat"
 	>
 </SFM>
-	<!-- The \ef marker does not appear in usfm.sty version 3.0.0 but
-	probably was in an earlier or special usfm.sty, so keep it for backwards 
-	compatability -->
+	<!-- Note: old \cat marker was only a png set paragraph marker for picture 
+	catalog number, but in the USFM set, it is an inline character marker with 
+	cat* end marker and found in the extended usfm_sb.sty stylesheet. The USFM 
+	marker is incompatable with the old one in the png set, so changed png="0"
+	END OF STUDY MATERIAL EXTENSIONS. The above markers ef through cat are Study 
+	material extensions to existing USFM markup, found in the usfm_sb.sty 
+	stylesheet. They are not found in the usfm.sty, but should be recognized
+	by Adapt It, so they should be included in the AI_USFM.xml control file. -->
 <!-- ADDITIONAL (NON-STANDARD) ADAPT IT - SPECIFIC MARKERS
 	Note: All such markers are filtered by default, and the userCanFilter
 	attribute for each is 0 (ie. false); but Adapt It may provide some

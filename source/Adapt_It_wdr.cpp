@@ -6009,7 +6009,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
     STATIC_TEXT_DESCRIPTION = item10;
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,80), wxTE_MULTILINE );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,180), wxTE_MULTILINE );
     item12->SetToolTip( _("Enter the details of your report here - this becomes the main body of your email message") );
     item10->Add( item12, 1, wxGROW|wxALL, 5 );
 
@@ -6171,10 +6171,10 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item55 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item56 = new wxRadioButton( parent, ID_RADIOBUTTON_SEND_TO_MY_EMAIL, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item55->Add( item56, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item55->Add( item56, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
     wxHyperlinkCtrl *item57 = new wxHyperlinkCtrl( parent, ID_HYPERLINK_MAILTO, _("Send this to my email program (I'll send it from there)"), _("mailto:support@adapt-it.org"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxHL_ALIGN_CENTRE|wxHL_CONTEXTMENU );
-    item55->Add( item57, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item55->Add( item57, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
     item52->Add( item55, 0, 0, 5 );
 

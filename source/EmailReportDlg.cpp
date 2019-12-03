@@ -285,11 +285,14 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 		// set the Title of the wxStaticBoxSizer surrounding the edit box
 		pStaticBoxTextDescription->SetLabel(_("Please provide a description of the problem (for body of Email)"));
 		// Add template text guide to the multiline wxTextCtrl to guide the user
-		templateText1 = _("What steps will reproduce the problem?");
+		templateText1 = _("What steps will reproduce the problem? (Edit the steps below:)");
 		templateText1 += _T("\n1. \n2. \n3. \n");
-		templateText2 = _("Provide any other information you think would be helpful:");
+		templateText2 = _("Provide any other information you think would be helpful (such as attaching an Adapt It document, user log, etc.):");
 		templateText2 += _T("\n");
-		templateText1 += templateText2;
+        templateText2 += _T("-- Note: Adapt It documents are .xml files located in the Adaptations folder of your project folder.");
+        templateText2 += _T("\n");
+        templateText2 += _T("-- Note: Your Adapt It user log is a UsageLog_user.txt file located in the _LOGS_EMAIL_REPORTS folder of your Adapt It Unicode Work folder.");
+        templateText1 += templateText2;
 		templateTextForDescription = templateText1; // can use this to compare a loaded report and know if it differs from the template
 	}
 	else if (reportType == Give_feedback)
@@ -302,7 +305,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 		templateText1 += _T("\n1. \n2. \n3. \n");
 		templateText2 = _("What suggestions do you have that would make Adapt It more helpful?");
 		templateText2 += _T("\n1. \n2. \n");
-		templateText1 += templateText2;
+        templateText1 += templateText2;
 		templateTextForDescription = templateText1; // can use this to compare a loaded report and know if it differs from the template
 	}
 	// load template text into the Description edit box
@@ -316,10 +319,23 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	saveSendersName = pTextSendersName->GetValue(); // it will be empty
 	
     // whm 6Aug2019 implemented send to email program, so commented out line below
-	//pRadioSendItToMyEmailPgm->Disable(); // for 6.0.0 we probably won't get to implementing this option
+	//pRadioSendItToMyEmailPgm->Disable(); // for 6.0.0 we didn't implement this send to email program option
 
-    // Set background color of required fields to a light yellow
+    // TODO: Do work-around for Linux platform which doesn't set the controls background to the light
+    // yellow - only the multi-line wxTextCtrl on Linux gets the light yellow backgroun (see constructor above).
+    // Try setting the actual text background on Linux to a light yellow using wxTextAttribute class and/or the
+    // SetStyle... class.
 
+    // TODO: I've Disabled the "Send it directly from Adapt It..." radio button, the "Send Now" button
+    // and the "Attach this document (packed)" button below until the internal email functionality is working.
+    // Also, must eventually decide which radio button is to be the default once both email functions are working.
+    // TODO: Enable the "Send directly from Adapt It radio button, the "Send Now" button and the "Attach this
+    // document..." button in the dialog after Michael helps me get the php code working on the adapt-it.org server. 
+    pRadioSendItDirectlyFromAI->Disable();
+    pButtonSendNow->Disable();
+    pButtonAttachAPackedDoc->Disable();
+    pRadioSendItDirectlyFromAI->SetValue(FALSE); // this is not the default now
+    pRadioSendItToMyEmailPgm->SetValue(TRUE); // this is the default for now
 
 	// Fill in the System Information fields
 	pStaticAIVersion->SetLabel(pApp->GetAppVersionOfRunningAppAsString()); //ID_TEXT_AI_VERSION
@@ -1290,7 +1306,7 @@ void CEmailReportDlg::OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(even
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     pApp->LogUserAction(_T("Initiated OnBtnSendDirectlyFromAI()"));
-    this->pButtonSendNow->Disable(); // always enable "Send Now" button here
+    this->pButtonSendNow->Enable(); // always enable "Send Now" button here
     pRadioSendItDirectlyFromAI->SetValue(TRUE);
     pRadioSendItToMyEmailPgm->SetValue(FALSE);
 }
@@ -1303,7 +1319,7 @@ void CEmailReportDlg::OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event))
     pRadioSendItToMyEmailPgm->SetValue(TRUE);
 }
 
-void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& event)
+void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event))
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     pApp->LogUserAction(_T("Initiated OnHyperLinkMailToClicked()"));
@@ -1320,6 +1336,17 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& event)
     // Probably we should just keep the email report dialog open and let the user click
     // the dialog's "Close" button themselves after interacting with the hyperlink/email pgm.
     //
+    wxString emailSubject;
+    emailSubject = pTextEmailSubject->GetValue();
+    wxString emailBody;
+    emailBody = pTextDescriptionBody->GetValue();
+    wxString senderName;
+    senderName = pTextSendersName->GetValue();
+    wxString senderEmail;
+    senderEmail = pTextYourEmailAddr->GetValue();
+    wxString sysInfo;
+    sysInfo = FormatSysInfoIntoString();
+
     wxString launchURLStr;
     // Note: The launchURLStr should contain all the text for the TO:, Subject:, and Body: fields of the
     // user's email. It could be formatted as plain text or as HTML for a nicer appearance.
@@ -1327,7 +1354,46 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& event)
     // Flesh out the URL call string for launchURLStr, then explicitly call the wx function 
     // bool wxLaunchDefaultBrowser (const wxString & url, int flags = 0)
     // TODO:
-    launchURLStr = _T("mailto:bill_martin@sil.org"); // for testing only!!
+    // Build the launchURLStr with the following text components concatenated together:
+    // 1. "mailto:support@adapt-it.org"
+    // 2. "?subject=[Adapt%20It%20Problem%20report]%20" for Problem report, or "subject=[Adapt%20It%20Feedback]" for Feedback report
+    // 3. content of emailSubject field URL encoded where needed in user edits
+    // 4. "&body="
+    // 5. content of emailBody field URL encoded where needed in user edits
+    // 6. content of the sysInfo returned from the FormatSysInfoIntoString() function (preceeded and followed by 'do not remove' lines)
+    //  
+    launchURLStr = _T("mailto:support@adapt-it.org");
+    if (reportType == Report_a_problem)
+    {
+        launchURLStr += _T("?subject=[Adapt%20It%20Problem%20report]%20");
+    }
+    else
+    {
+        launchURLStr += _T("?subject=[Adapt%20It%20Feedback]%20");
+    }
+    launchURLStr += FormatEditBoxStringInfoIntoURLSafeString(emailSubject);
+    launchURLStr += _T("&body=");
+    launchURLStr += FormatEditBoxStringInfoIntoURLSafeString(emailBody);
+    if (reportType == Report_a_problem)
+    {
+        launchURLStr += _T("%0A%2A%2A%2A%20AFTER%20EDITING%20AND%20ATTACHING%20ANY%20FILES,%20CLICK%20ON%20YOUR%20EMAIL%20PROGRAM'S%20SEND%20BUTTON%20%2A%2A%2A%0A%0A");
+    }
+    else
+    {
+        launchURLStr += _T("%0A%2A%2A%2A%20Thank%20you%20for%20your%20comments!%20CLICK%20ON%20YOUR%20EMAIL%20PROGRAM'S%20SEND%20BUTTON%20%2A%2A%2A%0A%0A");
+    }
+    launchURLStr += _T("---%20Do%20not%20remove%20the%20following%20information%20---%0A");
+    launchURLStr += _T("Name%3A%20");
+    launchURLStr += FormatEditBoxStringInfoIntoURLSafeString(senderName);
+    launchURLStr += _T("%0AEmail%3A%20");
+    launchURLStr += FormatEditBoxStringInfoIntoURLSafeString(senderEmail);
+    launchURLStr += _T("%0A");
+    launchURLStr += FormatEditBoxStringInfoIntoURLSafeString(sysInfo);
+    launchURLStr += _T("---%20Do%20not%20remove%20the%20information%20above%20---");
+    // The following value for launchURLStr is a working example:
+    //launchURLStr = _T("mailto:support@adapt-it.org?subject=[Adapt%20It%20Problem%20report]&body=What%20steps%20will%20reproduce%20the%20problem%3F%20(Edit%20the%20steps%20below%3A)%0A1.%20%0A2.%20%0A3.%20%0AProvide%20any%20other%20information%20you%20think%20would%20be%20helpful%20(such%20as%20attaching%20an%20Adapt%20It%20document%2C%20user%20log%2C%20etc.)%3A%0A--%20Note%3A%20%20Adapt%20It%20documents%20are%20.xml%20files%20located%20in%20the%20Adaptations%20folder%20of%20your%20project%20folder.%0A--%20Note%3A%20%20Your%20Adapt%20It%20user%20log%20is%20a%20UsageLog_user.txt%20file%20located%20in%20the%20_LOGS_EMAIL_REPORTS%20folder%20of%20your%20Adapt%20It%20Unicode%20Work%20folder.%0A%0A--%20Do%20not%20remove%20the%20following%20information%20--%0AName%3A%20%20%20Bill%0AEmail:%20%20%20bill_martin%40sil.org%0AAI%20Version%3A%20%20%206.9.4%0ARelease%20Date%3A%20%20%202019-5-9%0AData%20type%3A%20%20%20UNICODE%0AFree%20Memory%20(MB)%3A%20%20%20301%0ASys%20Locale%3A%20%20%20English%20(U.S.)%20en_US%0AInterface%20Language%3A%20%20%20English%20(U.S.)%0ASys%20Encoding%3A%20%20%20UTF-8%0ASys%20Layout%20Dir%3A%20%20%20System%20Default%0AwxWidgets%20version%3A%20%20%203.0.2%0AOS%20version%3A%20%20%2064%20bit%20Linux%204.4%0A--%20Do%20not%20remove%20the%20information%20above%20--%0A"); // should also be able to use support@adapt-it.org - TEST!!
+   
+    // The following curl function might be used, but would need to be tested first.
     // Note: curl has a function called curl_easy_escape() that can be used to encode chars for this:
     // CURL *curl = curl_easy_init();
     //if (curl) {
@@ -1337,14 +1403,15 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& event)
     //        curl_free(output);
     //    }
     //}
-    //
+    
     // Call wxLaunchDefaultBrowser() function to manually send the text info for the user's default email program.
     bool bLaunchedOK = FALSE;
     bLaunchedOK = wxLaunchDefaultBrowser(launchURLStr);
+    bLaunchedOK = bLaunchedOK; // avoid warning
 
     // Note: the dialog stays open at end of this handler so the user can close it or
     // other action such as "Save report as text file (xml)", etc.
-    event.Skip(); // call Skip since we've handled the call of wxLaunchDefaultBrowser manually above
+    //event.Skip(); // don't call Skip since we've handled the call of wxLaunchDefaultBrowser manually above
 }
 
 // Builds the xml report as Problem or Feedback report
@@ -1777,4 +1844,69 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	sysInfoStr += osVersionStr; //ID_TEXT_OS_VERSION
 	sysInfoStr += _T('\n');
 	return sysInfoStr;
+}
+
+// whm 1Dec2019 added: This function makes the input string safe to use with the
+// mailto: URL character sequence when the string is sent to the user's default email
+// client using the launch commnad. 
+// Input strings to this function would primarily be from the subject and body fields
+// that compose the mailto: string.
+// This function can be used to process text data coming from within a single
+// or multiline wxTextCtrl such as the user-editable fields of the EmailReportDlg 
+// dialog (the "Description/body field is multi-line so it may have embedded \n characters).
+// The function replaces certain URL metacharacters (see below) with %nn hex equivalents,
+// for example, a space character becomes %20, a colon character : becomes %3F, an 
+// ampersand & character becomes % , a newline characer \n becomes %0A, etc.
+wxString CEmailReportDlg::FormatEditBoxStringInfoIntoURLSafeString(wxString str)
+{
+    wxString tempStr;
+    tempStr = str;
+    // The following illegal characters should be replaced by their %nn hex equivalents to make them safe
+    // for the subject and body elements of a mailto: sequence of chars:
+    // The forbidden printable ASCII characters are :
+    // Linux / Unix :
+    //    / (forward slash)
+    // Windows :
+    //    < (less than)
+    //    > (greater than)
+    //    : (colon - sometimes works, but is actually NTFS Alternate Data Streams)
+    //    " (double quote)
+    //    / (forward slash)
+    //    \ (backslash)
+    //    | (vertical bar or pipe)
+    //    ? (question mark)
+    //    * (asterisk)
+    // The Non - printable characters
+    // Linux / Unix:
+    //    0 (NULL byte)
+    // Windows :
+    //    0 - 31 (ASCII control characters)
+    // In addition to the "illegal" chars, the following characters should be replaced by 
+    // their %nn hex equivalents to make safe for the subject and body of a mailto: sequence
+    // of chars:
+    //    \n newline replaced by %0A
+    //    space replaced by %20
+    //    & replaced by 
+    //    @ replaced by 
+    //    colon : replaced by 
+    //    TODO:
+    //wxString charsToConvert = _T("\n\r &@:/\\?|*\"<>");
+    // Do a series of wxString::Replace() operations
+    bool replaceAll = TRUE; // the 3rd parameter of Replace() is TRUE by default, but we'll make it expolicit here
+    tempStr.Replace(_T("\n"), _T("%0A"), replaceAll);
+    tempStr.Replace(_T("\r"), _T(""), replaceAll); // normally a str coming from a wxTextCtrl should not have any \r, only \n chars, so remove any \r chars
+    tempStr.Replace(_T("\t"), _T(""), replaceAll); // remove any embedded tab chars
+    tempStr.Replace(_T(" "), _T("%20"), replaceAll);
+    tempStr.Replace(_T("&"), _T("%26"), replaceAll);
+    tempStr.Replace(_T("@"), _T("%40"), replaceAll);
+    tempStr.Replace(_T(":"), _T("%3A"), replaceAll);
+    tempStr.Replace(_T("/"), _T("%2F"), replaceAll);
+    tempStr.Replace(_T("\\"), _T("%5C"), replaceAll);
+    tempStr.Replace(_T("?"), _T("%3F"), replaceAll);
+    tempStr.Replace(_T("|"), _T("%7C"), replaceAll);
+    tempStr.Replace(_T("*"), _T("%2A"), replaceAll);
+    tempStr.Replace(_T("\""), _T("%22"), replaceAll);
+    tempStr.Replace(_T("<"), _T("%3C"), replaceAll);
+    tempStr.Replace(_T(">"), _T("%3E"), replaceAll);
+    return tempStr;
 }
