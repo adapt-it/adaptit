@@ -194,6 +194,18 @@ public:
 	bool		m_bInhibitDraw; // set TRUE when a process is midstream and the view's
 								// strips and piles are not in a consistent state, else
 								// it should be FALSE
+	// BEW 30Sep19 added next ones for supporting USFM3, and better post-word punctuation
+	// handling
+	wxChar* m_pPostWordDataStart;
+	wxChar* m_pPostWordDataEnd;
+	// and a couple of members for my attempt to heal the doc when an unexpected endmarker
+	// occurs because ParseWord() failed to parse it into the previous CSourcePhrase
+	wxString m_strUnparsedEndMkr_ForPlacement; // set from TokenizeText() when dealing
+			// with the next CSourcePhrase instance, and an unexpected endmkr is at ptr
+	int m_nSequNum_LastSrcPhrase; // so I can compute its pLastSrcPhrase pointer
+
+	void ClearPostWordDataPointers();
+
 private:
 	PileList			m_pileList;
 	PileList*			m_pSavePileList; // define on the heap, for saving the original list

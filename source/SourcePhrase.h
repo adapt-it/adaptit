@@ -66,7 +66,7 @@ enum TextType {
 		  // and the appropriate treatment of m_bFirstOfType & m_bBoundary (on pLast in 
 		  // AnalyzeMarker() ); and we will include footnotes in this behaviour even though we 
 		  // do not set them to have this TextType value - the doc functions AnalyzeMarker() and 
-		  // IsTextTypeNoneOrFootnote() implement this protocol)
+		  // ??? (what?) implement this protocol)
 	footnote = 9,
 	header,
 	identification,
@@ -346,6 +346,11 @@ public:
 	wxString GetMarkers();
 	void SetMarkers(wxString markers);
 */
+	// BEW 30Sep19, three functions in support of caching attributes-having
+	// metadata in the m_punctsPattern wxString member
+	void     ClearCachedAttributesMetadata();
+	void     InsertCachedAttributesMetadata(wxString metadata);
+	wxString ExtractCachedAttributesMetadata();
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)
@@ -353,7 +358,6 @@ private:
 	// declare that the objects of this class should be dynamically 
 	// creatable from run-time type information. 
 	// MFC uses DECLARE_SERIAL(CSourcePhrase). wxWidgets does not
-	// implement Serialization of objects. Therefore, we will handle
-	// serialization manually.
+	// implement Serialization of objects.
 };
 #endif /* SourcePhrase_h */

@@ -4210,7 +4210,41 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpEmbeddedSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+					// BEW 30Sep19 these tests added to support hiding of
+					// USFM 3 attributes metadata within m_punctsPattern
+					// and setting the CSourcePhrase instances m_bUnused to
+					// TRUE when the instance being created has metadata to 
+					// be stored. m_punctsPattern either stores some, or is
+					// empty; nothing else is ever stored in this member
+					wxString strAttrValue = gpApp->Convert8to16(attrValue);
+					if (strAttrValue.IsEmpty())
+					{
+						gpEmbeddedSrcPhrase->m_punctsPattern = wxEmptyString;
+						gpEmbeddedSrcPhrase->m_bUnused = FALSE; // default is FALSE
+					}
+					else
+					{
+						// strAttrValue has some content, deal with it - which means
+						// to internally call the "Clear....() function to ensure the
+						// member is empty, and then insert strAttrValue - thereby
+						// restoring the preload value for this member
+						gpEmbeddedSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+						gpEmbeddedSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+#if defined (_DEBUG)
+						wxString aBar = _T("|");
+						int offset = wxNOT_FOUND;
+						offset = strAttrValue.Find(aBar);
+						if ((offset == wxNOT_FOUND) || (offset > 0))
+						{
+							// We want to catch two error possibilities; (1) stored metadata which
+							// does not commence with a bar ( | ) character; and (2) data which
+							// does contain a bar, but its location is not string-initial. These
+							// tests are not done in the Unicode Release version.
+							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
+								__FILE__, __FUNCTION__, __LINE__, gpEmbeddedSrcPhrase->m_nSequNumber, gpEmbeddedSrcPhrase->m_key.c_str());
+						}
+#endif
+					} // end of else block for test: if (strAttrValue.IsEmpty())
 				}
 				else
 				{
@@ -4366,8 +4400,43 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
-				}
+					// BEW 30Sep19 these tests added to support hiding of
+					// USFM 3 attributes metadata within m_punctsPattern
+					// and setting the CSourcePhrase instances m_bUnused to
+					// TRUE when the instance being created has metadata to 
+					// be stored. m_punctsPattern either stores some, or is
+					// empty; nothing else is ever stored in this member
+					wxString strAttrValue = gpApp->Convert8to16(attrValue);
+					if (strAttrValue.IsEmpty())
+					{
+						gpSrcPhrase->m_punctsPattern = wxEmptyString;
+						gpSrcPhrase->m_bUnused = FALSE; // default is FALSE
+					}
+					else
+					{
+						// strAttrValue has some content, deal with it - which means
+						// to internally call the "Clear....() function to ensure the
+						// member is empty, and then insert strAttrValue - thereby
+						// restoring the preload value for this member
+						gpSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+						gpSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+#if defined (_DEBUG)
+						wxString aBar = _T("|");
+						int offset = wxNOT_FOUND;
+						offset = strAttrValue.Find(aBar);
+						if ((offset == wxNOT_FOUND) || (offset > 0))
+						{
+							// We want to catch two error possibilities; (1) stored metadata which
+							// does not commence with a bar ( | ) character; and (2) data which
+							// does contain a bar, but its location is not string-initial. These
+							// tests are not done in the Unicode Release version.
+							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
+								__FILE__,__FUNCTION__,__LINE__, gpSrcPhrase->m_nSequNumber, gpSrcPhrase->m_key.c_str());
+						}
+#endif
+					} // end of else block for test: if (strAttrValue.IsEmpty())
+					
+				} // end of TRUE block for test: if (gnDocVersion >= 6 && attrName == xml_pupat)
 				else
 				{
 					// unknown attribute
@@ -4736,7 +4805,8 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 				pSrcPhrase->m_lastAdaptionsPattern = _T("");
 				pSrcPhrase->m_tgtMkrPattern = _T("");
 				pSrcPhrase->m_glossMkrPattern = _T("");
-				pSrcPhrase->m_punctsPattern = _T("");
+				// BEW 30Sep19 can no longer clear this - it may contain data
+				//pSrcPhrase->m_punctsPattern = _T("");
 			}
 		} // end of else block for test: if (offset == wxNOT_FOUND) -- looking for \~FILTER
 	} // end of TRUE block for test: if (!strModifiers.IsEmpty())

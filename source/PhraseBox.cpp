@@ -28,6 +28,7 @@
 //#define _FIND_DELAY
 //#define _AUTO_INS_BUG
 //#define LOOKUP_FEEDBACK
+//#define DROPDOWN
 
 
 #ifndef WX_PRECOMP
@@ -3749,7 +3750,6 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 	return bUpdateNeeded;
 }
 */
-
 // FixBox() is the core function for supporting box expansion and contraction in various
 // situations, especially when typing into the box; this version detects when adjustment to
 // the layout is required, it calls CLayout::RecalcLayout() to tweak the strips at the
@@ -3764,9 +3764,10 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 	wxSize& textExtent, int nSelector)
 {
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	// destroys the phrase box and recreates it with a different size, depending on the
 	// nSelector value.
 	// nSelector == 0, increment the box width using a pre-calculated value
@@ -4018,14 +4019,14 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	dC.SetFont(SaveFont); // restore old font (ie "System")
 
 	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 #if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
-	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
-		__FUNCTION__, __LINE__);
+//	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
+//		__FUNCTION__, __LINE__);
 #endif
 }
 
@@ -7430,17 +7431,17 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             if (pApp->m_bFreeTranslationMode)
             {
                 this->SetButtonBitMapXDisabled();
-                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
             }
             else if (pApp->m_pTargetBox->GetDropDownList()->GetCount() <= 1)
             {
                 this->SetButtonBitMapXDisabled();
-                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
             }
             else
             {
                 this->SetButtonBitMapNormal();
-                 wxLogDebug(_T("Set button Normal - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//                 wxLogDebug(_T("Set button Normal - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
            }
 
             // Set the dropdown's list selection to the selectionIndex determined by 
@@ -7496,7 +7497,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 			// be > 1 if the insertion of deleted (saved) adaptation of refCount 1
 			// happened
 
-//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//#if defined(_DEBUG) && defined(DROPDOWN)
 //			pApp->LogDropdownState(_T("%s::SetupDropDownPhraseBoxForThisLocation() line %d : after SetSelection(selectionIndex))"), __FILE__, __LINE__);
 //#endif
             // Note: The target unit's ref strings may include a "<no adaptation>" ref 
@@ -7778,7 +7779,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
                 //We should be able to put it in the m_pTargetBox here.
                 this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
                 //this->GetTextCtrl()->SetFocus(); // handled below in SetFocusAndSetSelectionAtLanding()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);
@@ -7798,7 +7799,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     this->GetDropDownList()->Append(strSaveListEntry);
 					this->m_bAbandonable = FALSE;
 					this->GetDropDownList()->SetSelection(0);
-                    wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//                    wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
                 }
 			}
             // whm 3Aug2018 Note: The SetSelection call is made in the outer block near the
@@ -7950,7 +7951,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 				}
 				else
 				{
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 					wxLogDebug(_T("View::%s at line %d , m_translation from CRefString that was deleted =  %s"),
 						__FUNCTION__, __LINE__, strTheListEntry.c_str());
 #endif
@@ -7975,7 +7976,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 																				// Set the flag for PopulateDropDownList() to use for the re-insertion
 						this->bRemovedAdaptionReadyForInserting = TRUE;
 						this->nDeletedItem_refCount = 1; // has to be 1, no need for GetItemData() call
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 						wxLogDebug(_T("%s:%s: line %d: nSaveComboBoxListIndex= %d , strSaveListEntry= %s , bRemovedAdaptionReadyForInserting= %d , nDeletedItem_refCount= %d"),
 							__FILE__, __FUNCTION__, __LINE__, nSaveComboBoxListIndex, strSaveListEntry.c_str(),  
 							(int)bRemovedAdaptionReadyForInserting, nDeletedItem_refCount);
@@ -8030,13 +8031,14 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 // bRemovedAdaptionReadyForInserting has been set TRUE
 void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation)
 {
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("PopulateDropDownList: line %d, On Entry to PopulateDropDownList(), m_bLandingBox= %d"),
 		__LINE__, (int)gpApp->m_bLandingBox);
 #endif
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
+#endif
 
 
 	// BEW 30Mar19 added, so that the reinsertion of the deleted item, when the item
@@ -8073,9 +8075,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 			this->InitializeComboLandingParams();
 		}
 	}
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
+#endif
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->GetDropDownList()->Clear();
     wxString initialBoxContent;
@@ -8121,7 +8124,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
     while (pos != NULL)
     {
         pRefString = (CRefString*)pos->GetData();
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 		wxLogDebug(_T("PopulateDropDownList: %d, TopOfLoop, m_translation= %s , m_bDeleted= %d , m_refCount= %d"),
 			__LINE__, pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
 #endif
@@ -8155,13 +8158,13 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				__LINE__, (int)bReadyToInsert, strBWSavedReinsertEntry.c_str(), (int)nLocIndex);
 #endif
 */
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 			wxLogDebug(_T("PopulateDropDownList: %d  MID LOOP: gpApp->m_bLandingBox= %d bRemovedAdaptionReadyForInserting= %d"),
 				__LINE__, (int)gpApp->m_bLandingBox, (int)bRemovedAdaptionReadyForInserting);
 #endif
 			if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
 			{
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 				wxLogDebug(_T("PopulateDropDownList: %d  Indices equal?: nSaveComboBoxListIndex= %d count(as an index)= %d"),
 					__LINE__, (int)nSaveComboBoxListIndex, count);
 #endif
@@ -8177,14 +8180,15 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         } // end of TRUE block for test: if (!pRefString->GetDeletedFlag())
 
     } // end of while loop
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
-#if defined(_DEBUG)
+#endif
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("PopulateDropDownList: %d  AFTER LOOP, for restoring: strSaveListEntry= %s , m_bLandingBox= %d"),
 		__LINE__, strSaveListEntry.c_str(), (unsigned int)gpApp->m_bLandingBox);
 #endif
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("PopulateDropDownList: %d  AFTER LOOP, for restoring: bRemovedAdaptionReadyForInserting= %d"),
 		__LINE__, (unsigned int)bRemovedAdaptionReadyForInserting);
 #endif
@@ -8208,7 +8212,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
 			}
 			selectionIndex = anIndex;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 			wxLogDebug(_T("PopulateDropDownList: %d, DOING EMPTY insert: strSaveListEntry= %s , selectionIndex= %d , m_bLandingBox"),
 				__LINE__, strSaveListEntry.c_str(), (int)selectionIndex, (int)gpApp->m_bLandingBox);
 #endif
@@ -8232,7 +8236,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
 			}
 			selectionIndex = anIndex;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 			wxLogDebug(_T("PopulateDropDownList: %d, DOING INSERT: strSaveListEntry= %s , selectionIndex= %d , m_bLandingBox= %d"),
 				__LINE__, strSaveListEntry.c_str(), (int)selectionIndex, (int)gpApp->m_bLandingBox);
 #endif
@@ -8241,9 +8245,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 
 		} // end of else block for test: if (strSaveListEntry.IsEmpty())
 	}
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
+#endif
     if (count > 0)
     {
         if (!initialBoxContent.IsEmpty())
@@ -8256,7 +8261,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
                 // Select the list item - if it exists in the list - that matches what was in the 
                 // phrasebox when we landed there. 
 				selectionIndex = indx;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DROPDOWN)
 				wxLogDebug(_T("PopulateDropDownList: %d, MATCHED BOX STR, NO INSERT: initialBoxContent= %s , selectionIndex= %d"),
 					__LINE__, initialBoxContent.c_str(), (int)selectionIndex);
 #endif
@@ -8284,9 +8289,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
             }
         }
     }
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
+#endif
     // See notes in CChooseTranslation::OnOK().
     // If the ChooseTranslation dialog was just called up and a new translation string was entered
     // in that dialog and OK'ed, the m_Translation variable (defined in CPhraseBox) will contain
@@ -8310,9 +8316,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         }
         m_Translation.Empty(); // We've used it so clear it
     }
+#if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
-
+#endif
 }
 
 

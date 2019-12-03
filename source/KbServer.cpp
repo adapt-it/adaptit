@@ -3351,8 +3351,8 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 		KbServerEntry e = pKbSvr->GetEntryStruct();
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+		wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: id = %d , source = %s , translation = %s , username = %s , deleted = %d"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.username.c_str(), e.deleted);
 #endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
 		{
@@ -3433,6 +3433,11 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
 	writer.Write(jsonval, str);
+
+#if defined( SYNC_LOGS)
+	wxLogDebug(_T("%s"), str.c_str());
+	// for Leon's use
+#endif
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 

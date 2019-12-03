@@ -164,11 +164,11 @@ CSourcePhrase::CSourcePhrase()
 	m_lastAdaptionsPattern = _T("");
 	m_tgtMkrPattern = _T("");
 	m_glossMkrPattern = _T("");
-	m_punctsPattern = _T("");
 
 	// for docVersion 9
 	m_srcWordBreak = _T("");
 	m_tgtWordBreak = _T("");
+	m_punctsPattern = _T("");
 
 //#ifdef _DEBUG
 // whm 18Mar2019 removed the (unsigned int) cast and changed the %x to %p. %p is the format specifier for a pointer address.
@@ -316,11 +316,12 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_lastAdaptionsPattern = sp.m_lastAdaptionsPattern;
 	m_tgtMkrPattern = sp.m_tgtMkrPattern;
 	m_glossMkrPattern = sp.m_glossMkrPattern;
-	m_punctsPattern = sp.m_punctsPattern;
 
 	// for docVersion 9
 	m_srcWordBreak = sp.m_srcWordBreak;
 	m_tgtWordBreak = sp.m_tgtWordBreak;
+	// BEW 30Sep19 moved here from docVersion6 aboc=ve
+	m_punctsPattern = sp.m_punctsPattern;
 }
 
 // BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
@@ -456,11 +457,13 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_lastAdaptionsPattern = sp.m_lastAdaptionsPattern;
 	m_tgtMkrPattern = sp.m_tgtMkrPattern;
 	m_glossMkrPattern = sp.m_glossMkrPattern;
-	m_punctsPattern = sp.m_punctsPattern;
 
 	// for docVersion 9
 	m_srcWordBreak = sp.m_srcWordBreak;
 	m_tgtWordBreak = sp.m_tgtWordBreak;
+	// BEW 30Sep19 moved here from docVersion6 group above
+	m_punctsPattern = sp.m_punctsPattern;
+
 	return *this;
 }
 
@@ -541,7 +544,6 @@ void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
 	m_bSpecialText = sp.m_bSpecialText;
 	m_bRetranslation = sp.m_bRetranslation;
 }
-
 
 bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhrase)
 {
@@ -827,11 +829,14 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// are needed for tgt or gloss exports, and the 3rd for medial punctuation storage -
 	// clearing them means the relevant Placement dialog will open at least once so the
 	// user will get the chance to make the relevant placements once only (3rd is unused
-	// at present)
-	// for docVersion6
+	// at present) for docVersion6
+
+	// BEW 30Sep19 we now use m_punctsPattern for storing end-of-word attribute-metadata
 	m_lastAdaptionsPattern = _T("");
 	m_tgtMkrPattern = _T("");
 	m_glossMkrPattern = _T("");
+	// BEW 30Sep19, non-initial pSrcPhrase instances must be empty in a merger, 
+	// but initial one can store metadata legally
 	m_punctsPattern = _T("");
 
     // we never merge phrases, only minimal phrases (ie. single source word objects), so it
@@ -3145,6 +3150,39 @@ wxString CSourcePhrase::GetTgtWordBreak()
 	}
 	return m_tgtWordBreak;
 }
+
+void CSourcePhrase::ClearCachedAttributesMetadata()
+{
+	if (!this->m_punctsPattern.IsEmpty())
+	{
+		this->m_punctsPattern.Empty();
+	}
+	m_bUnused = FALSE;
+}
+
+void CSourcePhrase::InsertCachedAttributesMetadata(wxString metadata)
+{
+	ClearCachedAttributesMetadata();
+	if (metadata.IsEmpty())
+	{
+		m_bUnused = FALSE;
+		return;
+	}
+	this->m_punctsPattern = metadata;
+	m_bUnused = TRUE;
+}
+
+// Return the metadata, but if there is none, return empty string
+wxString CSourcePhrase::ExtractCachedAttributesMetadata()
+{
+	wxString metadata = wxEmptyString;
+	if (!this->m_punctsPattern.IsEmpty())
+	{
+		metadata = this->m_punctsPattern;
+	}
+	return metadata;
+}
+
 
 #if !defined(USE_LEGACY_PARSER)
 

@@ -63,6 +63,8 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 //#define _Trace_DrawFreeTrans
 //#define CHECK_GEDITSTEP
 
+// define a resouorce ID integer for the hidden developer menu item
+int ID_MENU_ITEM_HIDDEN = 9999;
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -922,6 +924,13 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	// Layout Menu
 	EVT_MENU(ID_ALIGNMENT, CAdapt_ItView::OnAlignment)
 	EVT_UPDATE_UI(ID_ALIGNMENT, CAdapt_ItView::OnUpdateAlignment)
+#if defined(_DEBUG)
+	// BEW 10Oct19, want a menu item in Administrator menu
+	// in whose handler I can drop code for things I want to develop without
+	// affecting the rest of the app. Only in _Debug mode
+	EVT_MENU(ID_MENU_ITEM_HIDDEN, CAdapt_ItView::OnHiddenMenuItem)
+	EVT_UPDATE_UI(ID_MENU_ITEM_HIDDEN, CAdapt_ItView::OnUpdateHiddenMenuItem)
+#endif
 //#endif
 
 	// Help menu
@@ -2989,15 +2998,15 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// refactored 2Apr09
 	CLayout* pLayout = GetLayout();
-#if defined (_DEBUG)
-	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
-#endif
-
+//#if defined (_DEBUG)
+//	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
+//#endif
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
-	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+#endif
+//	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+//		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 
 //#if defined(_DEBUG) && defined(_EXPAND)
@@ -3009,8 +3018,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #endif
 	pApp->m_bLandingBox = FALSE; // first half of this function is for "Leaving" the current location,
 								 // we set it TRUE later below when dealing with the "Landing" location								 
-	wxLogDebug(_T("PlacePhraseBox at start:  m_nCacheLeavingLocation = %d"),
-		pApp->m_nCacheLeavingLocation);
+//	wxLogDebug(_T("PlacePhraseBox at start:  m_nCacheLeavingLocation = %d"),
+//		pApp->m_nCacheLeavingLocation);
 								 
 	if (pCell == NULL)
 	{
@@ -3068,8 +3077,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #endif
 	wxASSERT(pCell);
 
-	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+//	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+//		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 	if (pCell->GetCellIndex() != 1) // index == 1 is the line of cells
 									// which has the phrase box
@@ -3128,8 +3137,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
         // Next> or Advance buttons, if they land the box in a retranslation, the phrase
         // box text that get's set up is the old location's adaptation, not to mention a
         // spurious save of <Not In KB> to the KB as well.
-		wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-			pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+//		wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+//			pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 
 		if (!gbIsGlossing && pApp->m_pActivePile &&
@@ -3169,8 +3178,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3114,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif			
-			wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-				pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+//			wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+//				pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 			if (selector == 0 || selector == 3)
 			{
@@ -3326,20 +3335,20 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3243,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
-					wxLogDebug(_T("PlacePhraseBox at line %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
-						pApp->m_pActivePile->GetSrcPhrase()->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
+//					wxLogDebug(_T("PlacePhraseBox at line %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
+//						pApp->m_pActivePile->GetSrcPhrase()->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
 
-					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-						pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+//					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+//						pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 					// it has to be saved to the relevant KB now
 					if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 
-						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
-							__FILE__, __FUNCTION__, __LINE__,
-							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
+//						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
+//							__FILE__, __FUNCTION__, __LINE__,
+//							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
 
 					}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -3348,13 +3357,13 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (pOldActivePile != NULL)
 					{
 #ifdef _DEBUG
-						wxLogDebug(_T("PlacePhraseBox at line %d ,  Active Sequ Num  %d"),
-							__LINE__, pApp->m_nActiveSequNum);
+//						wxLogDebug(_T("PlacePhraseBox at line %d ,  Active Sequ Num  %d"),
+//							__LINE__, pApp->m_nActiveSequNum);
 #endif
-						wxLogDebug(_T("PlacePhraseBox at line %d after DoStore...(), Leaving:  m_key = %s , m_bAbandonable = %d  sn = %d m_targetStr = %s"),
-							__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
-							pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_adaption.c_str(),
-							pOldActiveSrcPhrase->m_targetStr.c_str());
+//						wxLogDebug(_T("PlacePhraseBox at line %d after DoStore...(), Leaving:  m_key = %s , m_bAbandonable = %d  sn = %d m_targetStr = %s"),
+//							__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+//							pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_adaption.c_str(),
+//							pOldActiveSrcPhrase->m_targetStr.c_str());
 
 						// BEW 26Apr19, m_targetStr would sometimes inexplicably be empty
 						// at this point, even though m_adaption was non empty; so I'm
@@ -3376,9 +3385,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 								{
 									// The fix-it hack is needed
 
-wxLogDebug(_T("%s, %s() line %d  ** DETECTED TARGET TEXT WRONGLY EMPTIED ** at  sn = %d , m_key = %s , m_adaption = %s , m_targetStr = %s"),
-		__FILE__, __FUNCTION__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(),
-		 pSP->m_adaption.c_str(), pSP->m_targetStr.c_str());
+//wxLogDebug(_T("%s, %s() line %d  ** DETECTED TARGET TEXT WRONGLY EMPTIED ** at  sn = %d , m_key = %s , m_adaption = %s , m_targetStr = %s"),
+//		__FILE__, __FUNCTION__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(),
+//		 pSP->m_adaption.c_str(), pSP->m_targetStr.c_str());
 #if defined (_DEBUG)
 wxBell();
 #endif
@@ -3395,16 +3404,16 @@ wxBell();
 									MakeTargetStringIncludingPunctuation(pSP, strTargetStr);
 								}
 							}
-							wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), __LINE__, pSP->m_targetStr.c_str());
+//							wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), __LINE__, pSP->m_targetStr.c_str());
 						}
 					} // end of TRUE block for test: if (pOldActivePile != NULL)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3275,pApp->m_nActiveSequNum);
 //#endif
 
-					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
-						__FILE__, __FUNCTION__, __LINE__,
-						pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
+//					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
+//						__FILE__, __FUNCTION__, __LINE__,
+//						pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for non-empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3279);
@@ -3431,9 +3440,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                         pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
-#ifdef _DEBUG
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),__LINE__,pApp->m_nActiveSequNum);
-#endif
+//#ifdef _DEBUG
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),__LINE__,pApp->m_nActiveSequNum);
+//#endif
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3282);
 //#endif
@@ -3454,14 +3463,14 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 			} // end block for selector equals 0 or 3
 		} // end normal block where saving of the text in the KB, for the
 		  // old active loc'n, would be done
-		wxLogDebug(_T("PlacePhraseBox at end of Leaving:  m_nCacheLeavingLocation = %d"),
-			pApp->m_nCacheLeavingLocation);
-		if (pOldActivePile != NULL)
-		{
-			wxLogDebug(_T("PlacePhraseBox line %d, at end of Leaving:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
-				__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
-				pOldActiveSrcPhrase->m_adaption.c_str());
-		}
+//		wxLogDebug(_T("PlacePhraseBox at end of Leaving:  m_nCacheLeavingLocation = %d"),
+//			pApp->m_nCacheLeavingLocation);
+//		if (pOldActivePile != NULL)
+//		{
+//			wxLogDebug(_T("PlacePhraseBox line %d, at end of Leaving:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+//				__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+//				pOldActiveSrcPhrase->m_adaption.c_str());
+//		}
 
 	}
 
@@ -4073,7 +4082,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if defined (_DEBUG)
-	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
+//	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
 }
 
@@ -4091,11 +4100,11 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-
 	CAdapt_ItApp* pApp = &wxGetApp();
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 // TODO: Remove the following conditional block after fixing the printing issues 
 // on Linux Xenial using WX3.x.
 #if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
@@ -4123,16 +4132,15 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     pApp->m_userPageRangePrintEnd = 1;   // 1-based indexing
     pApp->m_userPageRangeStartPage = 1; // we use this to get a correct number into the printed footer
 #endif
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
 	pApp->m_bIsPrinting = TRUE; // new printing support code needs it set before poDlg InitDialog() is called
 	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum; // needed! So Cancel from PrintOptionsDlg
 														 // can restore document correctly
-
 	pApp->LogUserAction(_T("Initiated OnPrint()"));
     // In the wx version we implement a chapter and verse selection dialog to supplement the print
     // dialog, since it is not likely we will be able to use custom print dialogs for all platforms.
@@ -4146,10 +4154,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     // 6. A check box "[ ] Suppress printing of the footer".
 	CPrintOptionsDlg poDlg(pApp->GetMainFrame()); //,&printout);
 	poDlg.Centre();
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	// The CPrintOptionsDlg does all of its own initialization
 	if (poDlg.ShowModal() == wxID_OK)
 	{
@@ -4157,9 +4165,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
         // 1. Whether the user entered a "from" and a "to" page range so that this carries
         // over to the print dialog below.
 		// 2. Whether the user clicked on the "Selection" radio button (if enabled)
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		// get user settings for Pages
 		if (poDlg.pRadioPages->GetValue() == TRUE)
 		{
@@ -4179,21 +4188,26 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
             pApp->m_userPageRangePrintEnd = nTo; // 1-based indexing
             pApp->m_userPageRangeStartPage = nFrom; //1-based indexing -- this one for footer
 #endif
+#if defined (FREETRMODE)
 			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 		}
 		else if (poDlg.pRadioSelection->GetValue() == TRUE)
 		{
 			printDialogData.SetSelection(TRUE);
+#if defined (FREETRMODE)
 			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 		}
 	}
 	else
 	{
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		// User cancelled the print options, so we assume we should also cancel the print
         // dialog which happens if we simply return here. The MFC version did a lot of work
         // to get the document back into its original state, but the wx version doesn't
@@ -4204,10 +4218,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		//state back.
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
 		pApp->DoPrintCleanup();
-
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
 		pApp->m_bIsPrinting = FALSE;
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
@@ -4222,10 +4236,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 	wxPrinter printer(& printDialogData);
-
 	wxString printTitle;
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
-
 	// klb 9/2011 : If user has requested printing of Glosses in CPrintOptionsDlg and
 	//              Glosses are not currently visible, we need to turn glosses on so
 	//              that they are printed. Local variable bNeedToToggleGlossing will tell
@@ -4236,16 +4248,13 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		bNeedToToggleGlossing = TRUE;
 		ShowGlosses();
 	}
-
 	AIPrintout printout(printTitle); // this calls Freeze() on the canvas
-
 	// for debugging -- yes, user's range of pages, if set, which was input above at line
 	// 3380 does output the correct values when GetPrintDialogData() is called here, but
 	// somewhere after that the values are lost and so the GTK printing framework defaults
 	// to using page 1 as the fromPage and 0 as the toPage value, and the framework checks
 	// and sees the 0 value and substitutes 99999. Can't see a way to fix this. (BEW 12Nov11)
 	//wxPrintDialogData printDD = printer.GetPrintDialogData();
-
 	// #printer_Print
     if (!printer.Print(pApp->GetMainFrame(), &printout, true)) // true means 'prompt'
     {
@@ -4258,15 +4267,14 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     }
     // Do not clear m_bPrintingPageRange to FALSE here, it is needed until DoPrintCleanup()'s
     // internal test of it's value is done in the AIPrintout destructor
-
 	// klb 9/2011 : toggle main screen to hide glosses again if necessary
 	if (bNeedToToggleGlossing == TRUE)
 		ShowGlosses();
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 }
-
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   -> unused
@@ -10954,6 +10962,66 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 	return bExtendsBeyondFreeTranslation;
 }
 
+// IsSelectionAcrossHiddenAttributesMetdata() -- BEW added 30Sep19, to be used in
+// OnButtonMerge(), and Retranslation.cpp's OnButtonRetranslation, in order to abort the 
+// merge attempt, or the retranslation attempt, if there are CSourcePhrase instances of
+// the selection where, (1) in the case of a merger attempt, there is hidden stored 
+// on one or more of the non-first CSourcePhrase instances; or (2) in the case of a
+// retranslation attempt, such stored data is on *any* of the instances of the selection;
+// the reason being that for mergers or retranslations, the link to the stored metadata
+// becomes broken, and restoration of such metadata in an export to Paratext would 
+// generate a data error. strAt returns the m_srcPhrase string from the first CSourcePhrase
+// instance which contains stored hidden attributes metadata - so the user can be shown
+// where the offending storage location is.
+// 
+bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt, bool bIsMerger)
+{
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* pos = pList->GetFirst();
+	if (pos == NULL)
+		return FALSE; // there isn't any content in the list
+	bool bIllegalInternalHiddenMetadata = FALSE;
+	int counter = 0; // initialize. Stored metadata is okay if in the intial
+					 // CSourcePhrase instance of the merger, but not if its
+					 // found in any of the non-initial ones.
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		counter++;
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bUnused == TRUE)
+		{
+			if (bIsMerger)
+			{
+				if (counter == 1)
+				{
+					continue; // this first one is allowed to have hidden metadata
+				}
+				else if (counter > 1)
+				{
+
+					bIllegalInternalHiddenMetadata = TRUE;
+					strAt = pSrcPhrase->m_srcPhrase;
+					break;
+				}
+			}
+			else
+			{
+				// For retranslations, or anything else besides a merger attempt
+				bIllegalInternalHiddenMetadata = TRUE;
+				strAt = pSrcPhrase->m_srcPhrase;
+				break;
+			}
+		}
+		else
+		{
+			bIllegalInternalHiddenMetadata = FALSE;
+		}
+	}
+	return bIllegalInternalHiddenMetadata;
+}
+
+
 // BEW updated OnButtonMerge() 16Feb10, for support of doc version 5
 // BEW refactored 21Jul14 for support of ZWSP
 void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
@@ -11436,6 +11504,45 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
+		Invalidate();
+		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
+		return;
+	}
+
+	// Check user is not trying to do a merger across hidden USFM3 attributes metadata.
+	// Such data can occur on the initial CSourcePhrase of the selection, but not 
+	// on the second or later instances of the selection. (BEW added 30Sep19)
+	// Similar constraint is appropriate for retranslations, except for them, hidden
+	// stored metadata is not allowed on any CSourcePhrase instance of the selection,
+	// because the user may do anything he/she likes for the retranslation and so the
+	// integrity of the stored metadata would not be determinate
+	bool bIllegalInternalHiddenMetadata = FALSE; // If stays FALSE, the merger can go ahead.
+	// The signature param bIsMerger is default FALSE - see comment in Adapt_ItView.h for
+	// more information; since this is a merger attempt, TRUE must be overtly supplied
+	wxString strAt = wxEmptyString;
+	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, strAt, TRUE);
+	if (bIllegalInternalHiddenMetadata)
+	{
+		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. But you can merge if your selection starts at the word: %s");
+		msg = msg.Format(strAt.c_str());
+		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+		pList->Clear();
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
+		pList = (SPList*)NULL;
+		RemoveSelection();
+		if (pApp->m_pTargetBox->GetHandle() != NULL)
+		{
+			// whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+			// it should work OK on Linux/Mac.
+			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+			// whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+			// the SetSelection call below.
+			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
+		}
+		pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -16362,10 +16469,18 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// may need redoing as well. At worst this can only result in
 							// one further showing of a relevant placement dialog at a
 							// later export invocation.
+							// BEW 30Sep19 - I hope soon to have either removed the need
+							// for placement dialogs, or reduced their incidence severely.
+							// When doing that refactoring, these 3 may be repurposable.
 							pSrcPhrase->m_lastAdaptionsPattern = _T("");
 							pSrcPhrase->m_tgtMkrPattern = _T("");
 							pSrcPhrase->m_glossMkrPattern = _T("");
-							pSrcPhrase->m_punctsPattern = _T("");
+
+							// BEW 30Sep19 m_punctsPattern is now used for hiding 
+							// bar-to-endmarker attributes-having metadata.
+							// So,I can no longer initialize it unconditionally to
+							// empty - instead, just comment it out
+							//pSrcPhrase->m_punctsPattern = _T("");
 						}
 					}
 
@@ -16411,7 +16526,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// at some later time, by the user -- if so, we want the stored
 						// state to be used for setting m_targetStr, rather than showing
 						// the placement dialog again. Two strings need to be stored,
-						// m_adaptions (and we call RemovePunction() on it to ensure no
+						// m_adaptions (and we call RemovePunctuation() on it to ensure no
 						// punctuation slips through the net here), and the value of str
 						// as set from the dialog's m_tgtPhrase member above - the latter
 						// has, of course, the punctuation unambiguously placed (that, of
@@ -16430,7 +16545,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 														// text punctuation is to be used"
 						// now save state as described above
 						pSrcPhrase->m_lastAdaptionsPattern = nopunctsForSureStr;
-						pSrcPhrase->m_punctsPattern = str;
+// BEW 30Sep19 comment out - this function needs refactoring:  	pSrcPhrase->m_punctsPattern = str; <<-- I've repurposed this
 					} // end of TRUE block for test: if (pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 					else
 					{
@@ -16440,7 +16555,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// every reason to expect that the former saved state for
 						// punctuation placement, and word spellings, are unchanged and so
 						// can be restored here without recourse to the placement dialog
-						str = pSrcPhrase->m_punctsPattern;
+// BEW 30Sep19  -- refactoring needed:  	str = pSrcPhrase->m_punctsPattern;
 /* #if defined(_DEBUG)
 						wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at restoring m_punctsPattern: sn = %d , targetStr = %s , m_punctsPattern = %s  (assigned to str)"),
 							theSequNum, targetStr.c_str(), pSrcPhrase->m_punctsPattern.c_str());
@@ -21961,8 +22076,10 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		// the strips rebuilt to be in sync with whatever the restored partner piles happen to
 		// be - otherwise there could be a crash because a pile has m_pOwningStrip still
 		// set to default NULL value
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 		if (pLayout->GetStripArray()->IsEmpty() || gbVerticalEditInProgress)
 		{
 			// we've come here probably from an MRU document opening, strips need building;
@@ -21972,8 +22089,10 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
+#if defined (FREETRMODE)
 			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 		}
 		else
 		{
@@ -22661,7 +22780,7 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& event)
 		}
 	}
 }
-
+/* BEW 15Nov19 discovered this is declared, and defined, but called nowhere. So it's now deprecated
 void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 							  CSourcePhrase* pFirstSrcPhrase, int nCount)
 {
@@ -22717,6 +22836,7 @@ void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNex
 		}
 	}
 }
+*/
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 {
@@ -25299,10 +25419,10 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 {
-#if defined(_DEBUG) && defined(_VERTEDIT)
-		CAdapt_ItApp* pApp = &wxGetApp();
-		wxLogDebug(_T("InitializeEditRecord() at entry line, 21869: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added ->GetTextCtrl() part
-#endif
+//#if defined(_DEBUG) && defined(_VERTEDIT)
+//		CAdapt_ItApp* pApp = &wxGetApp();
+//		wxLogDebug(_T("InitializeEditRecord() at entry line, 25304: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added ->GetTextCtrl() part
+//#endif
 	// BEW added 17Apr08
 	// first clear the global boolean which tracks whether or not
 	// vertical editing is currently happening
@@ -27253,6 +27373,11 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 	CAdapt_ItDoc* pDoc = GetDocument();
+
+	// Cache this until done
+	pDoc->bSaveWithinAttributesSpanValue = pDoc->m_bWithinMkrAttributeSpan;
+	pDoc->m_bWithinMkrAttributeSpan = FALSE;
+
 	EditRecord* pRec = &gEditRecord; // local pointer to the global EditRecord
 
 	// BEW added next line 14Apr16, because the LHS value was not set when I
@@ -27436,6 +27561,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 			pApp->GetDocument()->OnFileSave(evt);
 		}
+
+		// Restore value of m_bWithinMkrAttributeSpan
+		pDoc->m_bWithinMkrAttributeSpan = pDoc->bSaveWithinAttributesSpanValue;
+
 		pApp->LogUserAction(_T("Error from ExtendEditSourceTextSelection() in OnEditSourceText()"));
 		return;
 	}
@@ -28284,12 +28413,20 @@ bailout:	pAdaptList->Clear();
 		// CSourcePhrase for the word following which they occur (as in the source text file)
 		wxString chvStr = pApp->m_curChapter;
 
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s, %s(), line=%d, BEFORE TokenizeText(); m_bWithinMrkAtributeSpan %d , m_bHiddenMataDataDone %d  gbVerticalEditInProgress %d"),
+			__FILE__, __FUNCTION__, __LINE__ , (int)pDoc->m_bWithinMkrAttributeSpan,
+			(int)pDoc->m_bHiddenMetadataDone, (int)gbVerticalEditInProgress);
+#endif
+
 		nNewCount = TokenizeTextString(&pRec->editableSpan_NewSrcPhraseList, strNewSrcText,
 										pRec->nStartingSequNum);
 		pRec->nNewSpanCount = nNewCount; // this value may decrease by one if a
                                 // CSourcePhrase carrier of final endmarkers, but with no
                                 // source text, is found to be present and therefore gets
                                 // removed in the code below
+
+
         // *** from this point on, *** the document itself will be changed, so we indicate
         //     this is the case by setting the following global boolean to FALSE; the
         //     BailOut() function uses this value to work out what needs to be done if
@@ -28940,6 +29077,9 @@ bailout:	pAdaptList->Clear();
 		gbEditingSourceAndDocNotYetChanged = TRUE;
 		GetLayout()->Redraw();
 	}
+
+	// Restore value of m_bWithinMkrAttributeSpan
+	pDoc->m_bWithinMkrAttributeSpan = pDoc->bSaveWithinAttributesSpanValue;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -32258,4 +32398,20 @@ void CAdapt_ItView::ShowGlosses()
     Invalidate();
 	GetLayout()->PlaceBox();
 }
+#if defined(_DEBUG)
+void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxUnusedVar(pApp); // have pApp on hand, might need it
+	wxMessageBox(_T("G'day. Call your new code in this handler: View's OnHiddenMenuItem."), _T("Develop & Test Code"));
 
+// TODO -- whatever
+
+
+}
+
+void CAdapt_ItView::OnUpdateHiddenMenuItem(wxUpdateUIEvent& event)
+{
+	event.Enable(TRUE); // always enabled
+}
+#endif

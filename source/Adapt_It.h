@@ -63,7 +63,7 @@
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 //#define _NEWDRAW
-#define _EXPAND
+//#define _EXPAND
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
@@ -1379,8 +1379,8 @@ enum USFMAnalysisField
 /// keepTogether or keepWithNext.
 struct USFMAnalysis
 {
-	wxString marker;
-	wxString endMarker;
+	wxString marker; // this is the marker, without the initial gSFescapechar
+	wxString endMarker; // likewise, lacks initial gSFescapechar
 	wxString description;
 	bool usfm;
 	bool png;
@@ -4967,6 +4967,9 @@ private:
 	bool	SetupCustomWorkFolderLocation();
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
+#if defined(_DEBUG)
+//	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
+#endif
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
 	// dialog, at the one location, from being shown twice or more
 	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and at end of CLayout::Draw()

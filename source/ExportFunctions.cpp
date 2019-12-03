@@ -86,7 +86,7 @@ extern wxString embeddedWholeMkrs;
 
 extern wxString embeddedWholeEndMkrs;
 
-extern wxString charFormatMkrs;
+//extern wxString charFormatMkrs;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -18595,6 +18595,12 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			// medial markers needing placement, and then set savePos to be the Node*
 			// immediately after the retranslation, or NULL if at end of doc
 			pos = DoPlacementOfMarkersInRetranslation(savePos, pList, str);
+
+			// BEW 30Sep19  storage of USFM3 attributes metadata on any of the CSourcePhrase
+			// instances comprising a retranslation is strictly prohibited. (There is no way
+			// to retain the link to the relevant metadata-storing source instance within
+			// the retranslated target text>) So no test for m_bUnused being TRUE is needed
+			// within the above function.
 		}
 		else
 		{
@@ -18616,6 +18622,22 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// in the free translation section, if any such section), and second TRUE
 				// is bCountInTargetText
 				str = FromMergerMakeTstr(pSrcPhrase, str, TRUE, TRUE);
+
+				// BEW 30Sep19 Mergers are forbidden to store USFM3 attributes metatdata,
+				// except on the initial CSourcePhrase instance of the merger. So pSrcPhrase
+				// needs to be checked for pSrcPhrase->m_bUnused being TRUE. Do the check
+				// and make the calls for metadata restoration only if collaborating.
+				if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+				{
+					if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
+					{
+						// There is hidden metadata to be restored to the target text output which
+						// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptatiomode
+						// mode is current (it uses RebuildTargetText() too, and the user of clipboard
+						// adaptation mode would not want to see or deal with attributes metadata
+						str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str);
+					}
+				}
 			}
 			else
 			{
@@ -18625,6 +18647,25 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
 				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE);
+
+				// BEW 30Sep19 Single CSourcePhrases of all kinds can have hidden USFM3
+				// attributes metadata stored on them (in the m_punctsPattern member).
+				// [ and ] are unlikely to have such metadata stored on their instance,
+				// but there is no harm in checking.
+				// So pSrcPhrase here needs to be checked for pSrcPhrase->m_bUnused being
+				// TRUE. Do the check and make the calls for metadata restoration only if 
+				// collaborating.
+				if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+				{
+					if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
+					{
+						// There is hidden metadata to be restored to the target text output which
+						// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptatiomode
+						// mode is current (it uses RebuildTargetText() too, and the user of clipboard
+						// adaptation mode would not want to see or deal with attributes metadata
+						str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str);
+					}
+				}
 			}
 		}
 
@@ -18701,8 +18742,164 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
 	target = FwdSlashtoZWSP(target);
 //#endif
+
+	wxLogDebug(_T("\n%s::%s() line= %d , (tgt)textLen= %d  (tgt)text= %s\n"),
+		__FILE__, __FUNCTION__, __LINE__, textLen, target.c_str());
+
 	return textLen;
 }// end of RebuildTargetText
+
+// The next BEW added 30Sep19 for unhiding stored USFM3 attributes metadata, and restoring to
+// its correct location in the inspired text. The text is typically target text but it can
+// equally well be source text - it just depends on what str contains
+// params:
+// pSrcPhrase		->	ptr to the instance storing the metadata in m_punctsPattern
+// str				<-> input the outputted string from the Restore...() function in caller,
+//						(it could be source or target text); and when the metadata is
+//						restored to its correct location, return it using via str to the caller
+// Comment:
+// The metadata always starts with a bar ( | ) character (see the USFM 3 documentation) and
+// includes all content from the bar up to, but not including, a certain endmarker (of form
+// \name*). name could be one of several, depending on the begin marker (the matching begin
+// marker, which precedes somewhere and is not part of the metadata). No space should follow
+// the * of the endmarker. Because the endmarker could be one of several, it is appended to the
+// metadata when the metadata is stored. That enables locating precisely where the metadata
+// was originally located, facilitating its restoration to the correct place in the text.
+// This function obtains a copy of the stored metadata, it leaves the pSrcPhrase contents
+// unchanged. The caller then includes it in the export going to the external editor of the
+// collaboration - either to Paratext 8 or to Bibledit, if target text. The caller
+// determines whether str is source or target text. Typically the latter.
+wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str)
+{
+	// On entry, str should end with the target text word (and final puncts if any)
+	// and the endmarker; but for \jmp, there may be no word. Take care, it's  tricky.
+	// Also, if the user has not provided a translation for the pSrcPhrase, it's not
+	// appropriate to restore the metadata when expected preceding word is absent.
+	wxString metadata = wxEmptyString;
+	if (pSrcPhrase->m_punctsPattern.IsEmpty())
+	{
+		return str; // str is unchanged - an error condition, since pSrcPhrase->m_bUnused was TRUE
+	}
+	metadata = pSrcPhrase->m_punctsPattern; // this contains the end mkr at the end
+	wxString contents = wxEmptyString;
+	wxString reversed = MakeReverse(metadata);
+	wxASSERT(reversed.GetChar(0) == _T('*'));
+	wxChar slashChr = _T('\\');
+	int offset2 = reversed.Find(slashChr);
+	wxASSERT(offset2 != wxNOT_FOUND);
+	if (offset2 == wxNOT_FOUND)
+	{
+		// Error - the marker's backslash was not found; we will
+		// handle this by just ignoring this CSourcePhrase's 
+		// m_punctsPattern data. The loss can be then manually
+		// restored within Paratext or Bibledit at prepublication time
+		return str; // str is unchanged
+	}
+	int mkrSpan = offset2 + 1; // point past the backslash location
+	wxString theMkr = reversed.Left(mkrSpan);
+	contents = reversed.Mid(mkrSpan);
+	// The marker and the metadata contents are separated, but each 
+	// is still reversed so reverse them
+	theMkr = MakeReverse(theMkr);
+	contents = MakeReverse(contents);
+	wxASSERT(contents.GetChar(0) == _T('|'));
+
+	wxLogDebug(_T("%s::%s(), line %d BEFORE;  str= %s  theMkr= %s  contents= %s"),
+		__FILE__, __FUNCTION__, __LINE__, str.c_str(), theMkr.c_str(), contents.c_str());
+
+	// Handle \jmp |<content>/jmp* because this will be metadata hidden on a CSourcePhrase
+	// in which m_key and m_targetStr are both empty. If these are not empty, then the bar
+	// is preceded by a word, or word with final punctuation, and content will follow that,
+	// but in the situation where \jmp is followed by bar, there will be no word preceding.
+	// So, except in this special case of \jmp |<content>/jmp*, if there is no translated
+	// word preceding the bar, then we infer that the user has not yet translated the source
+	// text at that pSrcPhrase's location, and so it would be inappropriate to restore the
+	// metadata in that instance. (Earlier, I used .insert(), but that was problematical.
+	// A better approach is to use Find() to get an offset to the endmarker, divide up the
+	// string bits, append the metadata where appropriate, and then restore the bits
+	if (pSrcPhrase->m_key.IsEmpty() || pSrcPhrase->m_srcPhrase.IsEmpty())
+	{
+		// In this situation, skip restoration of the metadata, except when the marker
+		// is \jmp* or \+jmp*
+		if ((theMkr == _T("\\jmp*")) || (theMkr == _T("\\+jmp*")))
+		{
+			int strLen = str.Len();
+			// The matching endmarker may not be last in str, so search back to it
+			int distance = SearchBackToMatchingMarker(str, theMkr);
+			wxASSERT(strLen >= distance);
+			wxString firstBit = str.Left(strLen - distance);
+			if (firstBit.IsEmpty())
+			{
+				firstBit = contents;
+			}
+			else
+			{
+				firstBit += contents; // add the contents of the metadata
+			}
+			str = firstBit + theMkr;
+		}
+	}
+	else
+	{
+		// m_key and/or m_targetStr have content, so check now that the user
+		// has actually provided target text content for this pSrcPhrase. If
+		// there is none yet, then skip restoration for this instance. Check
+		// only m_targetStr for empty; we will allow m_adaption to be empty
+		// provided there is final punctuation
+		if (!pSrcPhrase->m_targetStr.IsEmpty())
+		{
+			int strLen = str.Len();
+			// The matching endmarker may not be last in str, so search back to it
+			int distance = SearchBackToMatchingMarker(str, theMkr);
+			wxASSERT(strLen >= distance);
+			wxString firstBit = str.Left(strLen - distance);
+			if (firstBit.IsEmpty())
+			{
+				firstBit = contents;
+			}
+			else
+			{
+				firstBit += contents; // add the contents of the metadata
+			}
+			str = firstBit + theMkr;
+		}
+	}
+
+	wxLogDebug(_T("%s::%s(), line %d AFTER;  str = %s"),
+		__FILE__, __FUNCTION__, __LINE__, str.c_str());
+
+	return str;
+}
+
+// CSourcePhrase instances may store more than one endMarker in some
+// of its members, so it can't be assumed that the matching marker in
+// the str string will be the last marker in str; so we search back
+// character by character until we come to the location where the
+// matchup succeeds. Return the distance backed over.
+// If no matchup happens, return -1 (wxNOT_FOUND)
+int SearchBackToMatchingMarker(wxString str, wxString mkr)
+{
+	int distance = 0;
+	int size = str.Len();
+	int locn = size; // locn decreases as we iterate
+	int returnValue = wxNOT_FOUND;
+	int offset = wxNOT_FOUND;
+	do {
+		distance++;
+		locn = size - distance;
+		wxString rightStr = str.Mid(locn);
+		offset = rightStr.Find(mkr);
+		if (offset == wxNOT_FOUND)
+		{
+			continue; // iterate
+		}
+		// If control gets here, a match was made
+		returnValue = distance;
+		break;
+	} while (distance < size);
+	return returnValue;
+}
+
 
 /* BEW 13Dec10: remove these commented out functions later, if no use for them by the time 6.0.0 is ready to ship
 // support removal of \p markers temporarily inserted, when doc has no SFMs

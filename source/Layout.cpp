@@ -267,6 +267,12 @@ bool CLayout::GetScrollingFlag()
 }
 #endif
 
+void CLayout::ClearPostWordDataPointers()
+{
+	m_pPostWordDataStart = NULL;
+	m_pPostWordDataEnd = NULL;
+}
+
 // BEW 21May15 added freeze/thaw support
 void CLayout::Draw(wxDC* pDC)
 {
@@ -930,7 +936,6 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
 	// set the color - CPhraseBox has a color variable & uses reflected notification
 	if (bSetTextColor)
 	{
@@ -939,17 +944,17 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 		else
 			m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
 	}
-
 	// whm added 20Nov10 setting of target box background color for when the Guesser
 	// has provided a guess. Default m_GuessHighlightColor color is orange.
 	// BEW 13Oct11, added text for m_bFreeTranslationMode so as to get the pink
 	// background in the phrase box when it is at an anchor location
 	if (m_pApp->m_bIsGuess || m_pApp->m_bFreeTranslationMode)
 	{
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  ** Tests m_bFreeTranslationMode TRUE"),
 			__FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		if (m_pApp->m_bFreeTranslationMode && m_pApp->m_nActiveSequNum != -1)
 		{
 			m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(m_pApp->m_freeTransCurrentSectionBackgroundColor);// whm 12Jul2018 added GetTextCtrl()-> part
@@ -966,9 +971,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 			// I've reset it at the end of the OnePass() function.
 			//m_pApp->m_bIsGuess = FALSE;
 		}
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	}
 	else
 	{
@@ -991,14 +997,14 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
 	// put focus in compose bar's edit box if in free translation mode
 	if (m_pApp->m_bFreeTranslationMode)
 	{
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  ** 2nd test m_bFreeTranslationMode TRUE"),
 			__FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 		CMainFrame* pFrame = m_pApp->GetMainFrame();
 		wxASSERT(pFrame != NULL);
 		if (pFrame->m_pComposeBar != NULL)
@@ -1015,10 +1021,11 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 				pComposeBox->SetFocus();
 			}
 		}
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 	}
-
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// whm added 10Jan2018 the code in SetupDropDownPhraseBox() below to support quick selection of a 
 	// translation equivalent.
@@ -1827,8 +1834,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		selectorPassedIn = selector_3;
 	}
-	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), 
-		selectorPassedIn.c_str(), modePassedIn.c_str());
+//	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), 
+//		selectorPassedIn.c_str(), modePassedIn.c_str());
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
@@ -2324,10 +2331,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 									 //#if defined(_DEBUG) && defined(_EXPAND)
 									 //	gpApp->MyLogger();
 									 //#endif
-
+/*
 #if defined (_DEBUG)
 	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %d  <<--passed to m_lastLayoutSelector (in CLayout) for Draw() to use"), (int)selector);
 #endif
+*/
 	return TRUE;
 }
 

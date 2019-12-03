@@ -132,8 +132,9 @@ extern wxCriticalSection g_jsonCritSect;
 wxMutex s_AutoSaveMutex;
 
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
-#define _DOSERVDISC
-#define ERR_DUPLICATE
+//#define _DOSERVDISC
+//#define ERR_DUPLICATE
+//#define FREETRMODE
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -9356,6 +9357,12 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
     ::wxSetWorkingDirectory(initialPath);
     wxDir dir(initialPath);
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("%s::%() line $d; ::wxGetCwd()= %s  initialPath= %s   Restores cwd when enumerations done")
+		__FILE__, __FUNCTION__, __LINE__, saveDir.c_str(), initialPath.c_str());
+#endif
+
+
     //wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
     //wxASSERT(dir.IsOpened());
     bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
@@ -11056,7 +11063,27 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
     }
     return bItemIsVisible;
 }
-
+/*  This way ran into asserts tripping, try adding dynamically instead
+void CAdapt_ItApp::RemoveDeveloperMenuItem()
+{
+	wxBell(); 
+	wxMessageBox(_T(" RemoveDeveloperMenuItem() called"), _T(" Called it"));
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	// Get the Administrator Menu
+	wxMenu* pAdminMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
+	if (pAdminMenu != NULL)
+	{
+		wxMenuItem* pDevMenuItem = pAdminMenu->FindChildItem(ID_MENU_ITEM_HIDDEN);
+		if (pDevMenuItem != NULL)
+		{
+			bool bDestroyed = pAdminMenu->Destroy(pDevMenuItem);
+			wxUnusedVar(bDestroyed);
+			pMenuBar->Refresh();
+		}
+	}
+}
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -11264,6 +11291,29 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
             // whm Note: Bruce designed the Administrator menu item to be
             // deleted in the CMainFrame's destructor rather than when it
             // is "Removed" here.
+
+			// BEW 11Oct19, control goes here when the Administrator menu
+			// is being shut down - so here, before anything else happens,
+			// I need to get the Administrator menu while still open, test
+			// for my added developer menu item being present, and if so,
+			// delete it
+			{ // isolate this bit of code
+				int ID_MENU_ITEM_HIDDEN = 9999;
+				//CMainFrame* pMainFrame = GetMainFrame();
+				//wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+				// Get the Administrator Menu
+				wxMenu* pAdminMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
+				if (pAdminMenu != NULL)
+				{
+					wxMenuItem* pDevMenuItem = pAdminMenu->FindChildItem(ID_MENU_ITEM_HIDDEN);
+					if (pDevMenuItem != NULL)
+					{
+						bool bDestroyed = pAdminMenu->Destroy(pDevMenuItem);
+						wxUnusedVar(bDestroyed);
+					}
+				}
+			}
+
             int menuCount = pMenuBar->GetMenuCount();
             m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
             m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
@@ -11512,7 +11562,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     if (pView != NULL)
     {
         pView->AdjustAlignmentMenu(gbRTLLayout, gbLTRLayout); // fix the menu, if necessary
-                                                              // Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
+        // Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
     }
 
 #endif
@@ -11569,10 +11619,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU, m_bShowAdministratorMenu);
     if (pMenuBar->FindItem(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE) != NULL)
         pMenuBar->Check(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, m_bTemporarilyRestoreProfilesToDefaults); // whm added 14Feb12
-                                                                                                         //if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
-                                                                                                         //	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
-                                                                                                         // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
-                                                                                                         // according to the current value of m_bUseToolTips
+            //if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
+            //	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
+            // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
+            // according to the current value of m_bUseToolTips
     if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
         pMenuBar->Check(ID_HELP_USE_TOOLTIPS, m_bUseToolTips);
 }
@@ -19431,7 +19481,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11)
-    m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs ");
+    m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
@@ -25975,6 +26025,9 @@ int CAdapt_ItApp::OnExit(void)
     }
     delete m_pSavedDocForClipboardAdapt;
 
+	// BEW 30Sep19  Ensure the cache in doc, m_pCachedSourcePhrase is NULL, not xCDCDCDCD
+	//GetDocument()->m_pCachedSourcePhrase = NULL;
+
     // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
     // this point, and so the call to PopEventHandler() can't be made here. Bill found out
     // that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
@@ -26373,7 +26426,7 @@ int CAdapt_ItApp::OnExit(void)
         // asking if I want to save the document because it is changed, so I moved
         // this to the end, and we do it only if not auto exporting
         if (m_pDocManager != NULL) // whm 11Jun12 added NULL test
-            delete m_pDocManager; // deleting this
+             delete m_pDocManager; // deleting this
         m_pDocManager = (wxDocManager*)NULL;
     }
 
@@ -28563,35 +28616,35 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // added for Bruce 1Apr05
     gpApp->m_FilterStatusMap.clear(); // start with empty map
 
-                                      // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
-                                      // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
-                                      // following variables are properly initialized in the Usfm Filter page's
-                                      // constructors, we can unconditionally copy those local copies back to their
-                                      // corresponding variables on the App and Doc when the user clicks on OK in the
-                                      // Preferences, and/or clicks FINISH in the wizard. These variables are:
-                                      // 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of
-                                      //     the active document]
-                                      // 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers
-                                      //     of the active document]
-                                      // 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for
-                                      //     storing in proj config]
-                                      // 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value
-                                      //     for storing in proj config]
-                                      // 5. gpApp->m_sfmSetAfterEdit (enum SfmSet)
-                                      // 6. gpApp->m_filterMarkersAfterEdit (wxString)
-                                      // 7. gpApp->m_unknownMarkers (CStringArray)
-                                      // 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
-                                      // 9. gpApp->m_currentUnknownMarkersStr (wxString)
-                                      // When checking code integrity, the above should be used to initialize the
-                                      // corresponding temporary local variables used in the Usfm Filter page.
-                                      // Only the temporary local variables should be modified while the Preferences and/or
-                                      // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
-                                      // wizard, should the temporary local variables be used to update the above global
-                                      // variables on the App.
+    // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
+    // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
+    // following variables are properly initialized in the Usfm Filter page's
+    // constructors, we can unconditionally copy those local copies back to their
+    // corresponding variables on the App and Doc when the user clicks on OK in the
+    // Preferences, and/or clicks FINISH in the wizard. These variables are:
+    // 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of
+    //     the active document]
+    // 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers
+    //     of the active document]
+    // 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for
+    //     storing in proj config]
+    // 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value
+    //     for storing in proj config]
+    // 5. gpApp->m_sfmSetAfterEdit (enum SfmSet)
+    // 6. gpApp->m_filterMarkersAfterEdit (wxString)
+    // 7. gpApp->m_unknownMarkers (CStringArray)
+    // 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
+    // 9. gpApp->m_currentUnknownMarkersStr (wxString)
+    // When checking code integrity, the above should be used to initialize the
+    // corresponding temporary local variables used in the Usfm Filter page.
+    // Only the temporary local variables should be modified while the Preferences and/or
+    // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
+    // wizard, should the temporary local variables be used to update the above global
+    // variables on the App.
 
-                                      // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
-                                      // reflects the state of the current Doc) with the USFM and Filtering page's
-                                      // tempSfmSetAfterEditDoc
+    // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
+    // reflects the state of the current Doc) with the USFM and Filtering page's
+    // tempSfmSetAfterEditDoc
     if (pUsfmFilterPageCommon != NULL)
         gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
 
@@ -41035,14 +41088,17 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
             }
         }
     }
-
     // check that < and > have not been omitted, if they have, warn user that they are being
     // automatically added (they are required so that the algorithm for parsing nested quotes
     // with space between them does not get defeated - the nested quotes belong on the same
     // CSourcePhrase instance, not on consecutive ones)
-    int offset;
     if (srcPunctuation.IsEmpty())
         goto n; // don't bother with the checks if there is no content anyway
+/* 
+	// BEW 20Sep19 removed this prohibition, its unhelpful as markup sometimes uses
+	// < (e.g AIATSIS does) as a wordbuilding char for a umlaut
+	int offset;
+
     offset = srcPunctuation.Find(_T("<"));
     if (offset == -1)
     {
@@ -41071,10 +41127,11 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
         srcPunctuation += _T(" >"); // add it after a delimiting space
         AddWedgePunctPair(_T('>'));
     }
-
+*/
     // do the target ones now
     if (tgtPunctuation.IsEmpty())
         goto n; // don't bother with the checks if there is no content anyway
+/*
     offset = tgtPunctuation.Find(_T("<"));
     if (offset == -1)
     {
@@ -41087,7 +41144,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
         // we'll do the fix silently for the target language
         tgtPunctuation += _T(" >"); // add it after a delimiting space
     }
-
+*/
     // finally, add a delimiting space to the end, provided there is some content already
     if (!srcPunctuation.IsEmpty())
         srcPunctuation += _T(' ');
@@ -41108,6 +41165,8 @@ n:;
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 {
+	wxUnusedVar(wedge);
+	/* BEW 20Sep19 deprecated
     // BEW added 27Apr05 to support adding of a left or right wedge PUNCTPAIR (or
     // TWOPUNCTPAIR if all PUNCTPAIR possibilities are already taken, or no effect if both
     // sets of possibilities are already taken) when the GetPunctuationSets() function
@@ -41188,6 +41247,7 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
             }
         }
     }
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -48401,10 +48461,10 @@ void CAdapt_ItApp::DoPrintCleanup()
     // preview operation. It could not go in OnEndPrinting because that gets called earlier
     // and more often in the wx version (especially when doing print preview).
     CAdapt_ItView* pView = GetView();
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
 	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
     {
         // so do the stuff in this block only when we enter this function the first time
@@ -48449,15 +48509,14 @@ void CAdapt_ItApp::DoPrintCleanup()
             gbSuppressPrecedingHeadingInRange = FALSE;
             gbIncludeFollowingHeadingInRange = FALSE;
         }
-
         // clean up
         //pView->RestoreIndices();
         pView->ClearPagesList();
         // wx version: I think the All Pages button gets enabled
-
+#if defined (FREETRMODE)
 		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
         // BEW 18Nov13, moved this line back to be preceding the RecalcLayout() call,
         // because otherwise the layout width stays as for A4 printing. But a new boolean,
         // m_bSuppressFreeTransRestoreAfterPrint - a member of the app class, is used to
@@ -48494,7 +48553,6 @@ void CAdapt_ItApp::DoPrintCleanup()
       // time entered, otherwise, the scroll position gets lost for the second entrance,
       // and a manual scroll is then required to make the active strip visible; but having
       // the call done each time solves this problem
-
       // recalculate the active pile & update location for phraseBox creation
     m_pActivePile = pView->GetPile(m_nActiveSequNum);
     if (m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when
@@ -48506,13 +48564,12 @@ void CAdapt_ItApp::DoPrintCleanup()
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
         m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
         m_nEndChar = -1; // ensure initially all is selected
-
         m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
-
+#endif
     // if cleaning up when free translation mode is active, override the focus being in
     // the canvas's phrasebox, and put it instead in the compose bar's editbox
     if (m_bFreeTranslationMode && gbCheckInclFreeTransText)
@@ -48539,17 +48596,16 @@ void CAdapt_ItApp::DoPrintCleanup()
             }
         }
     }
-
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 	pView->Invalidate();
-
 	m_pLayout->PlaceBox();
     //wxWindow* pWnd; // unused
     //pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
     // by the above code, so unfortunately the cursor will have to be manually put
     // back in the box
-
     // Code to thaw the canvas needs to go here in OnCloseWindow, because OnEndPrinting
     // gets called prematurely by the framework as each preview page is about to be shown.
     // (Also, now that BEW has added the m_nAIPrintout_Destructor_ReentrancyCount kluge,
@@ -48557,14 +48613,14 @@ void CAdapt_ItApp::DoPrintCleanup()
     // in the block above to be done only once)
     if (GetMainFrame()->canvas->IsFrozen())
         GetMainFrame()->canvas->Thaw();
-
     m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this
-                                                // function is entered, we do nothing in this block if it is is entered more
-                                                // than once
+            // function is entered, we do nothing in this block if it is is entered more
+            // than once
+#if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#endif
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all was well, FALSE if the width and length were not successfully
 ///             calculated
@@ -49750,11 +49806,11 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
                                             // Toggle the check state of the menu item to unticked.
         m_bTemporarilyRestoreProfilesToDefaults = FALSE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change was temporary.
-                                                         // Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
-                                                         // block of the OnEditUserMenuSettingsProfiles() handler - the code for the profile change
-                                                         // should be the same.
+		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+		// change was temporary.
+		// Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
+		// block of the OnEditUserMenuSettingsProfiles() handler - the code for the profile change
+		// should be the same.
     }
     else
     {
@@ -49767,8 +49823,8 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
                                              // Toggle the check state of the menu item to ticked.
         m_bTemporarilyRestoreProfilesToDefaults = TRUE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change is goin to be temporary.
+        // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+        // change is goin to be temporary.
     }
 }
 
@@ -49840,8 +49896,8 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
                                             // Toggle the check state of the menu item to unticked.
         m_bTemporarilyRestoreProfilesToDefaults = FALSE;
         MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-                                                         // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
-                                                         // change was temporary.
+        // Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+        // change was temporary.
     }
 
     CAdminEditMenuProfile editMenuDlg(GetMainFrame());
