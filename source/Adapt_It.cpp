@@ -18981,19 +18981,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
     m_pChecker = new wxSingleInstanceChecker(name);
-    if (m_pChecker->IsAnotherRunning())
-    {
-        wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
-        // LogUserAction(msg); // Unfortunately we don't know the path of the user log this early in OnInit() TODO: fix!
-        wxMessageBox(msg, _T(""), wxSTAY_ON_TOP | wxICON_EXCLAMATION | wxOK);
-        delete m_pChecker; // OnExit() won't be called if we return false
-        m_pChecker = NULL;
-        // Only a single instance is to be allowed, so return FALSE here
-        // from OnInit(). At this early point in OnInit() nothing has been
-        // allocated on the heap using the new command, so no need at this
-        // point to deallocate memory structures on the heap.
-        return false;
-    }
+    { // special scope for wxLogNull
+        wxLogNull logNull;
+
+        if (m_pChecker->IsAnotherRunning())
+        {
+            wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
+            // LogUserAction(msg); // Unfortunately we don't know the path of the user log this early in OnInit() TODO: fix!
+            wxMessageBox(msg, _T(""), wxSTAY_ON_TOP | wxICON_EXCLAMATION | wxOK);
+            delete m_pChecker; // OnExit() won't be called if we return false
+            m_pChecker = NULL;
+            // Only a single instance is to be allowed, so return FALSE here
+            // from OnInit(). At this early point in OnInit() nothing has been
+            // allocated on the heap using the new command, so no need at this
+            // point to deallocate memory structures on the heap.
+            return false;
+        }
+    } // end of special scope for wxLogNull
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
     
