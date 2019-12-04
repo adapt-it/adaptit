@@ -19030,9 +19030,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // on my Linux machine name = "Adapt_ItApp-wmartin"
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
-    { // block for wxLogNull;
+    m_pChecker = new wxSingleInstanceChecker(name);
+    { // special scope for wxLogNull
         wxLogNull logNull;
-        m_pChecker = new wxSingleInstanceChecker(name);
+
         if (m_pChecker->IsAnotherRunning())
         {
             wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
@@ -19046,7 +19047,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // point to deallocate memory structures on the heap.
             return false;
         }
-    } // end of block for wxLogNull
+    } // end of special scope for wxLogNull
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
     
