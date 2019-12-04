@@ -3044,8 +3044,8 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 #if defined (_DEBUG)
 	if (pApp->m_pSourcePhrases != NULL)
 	{
-		wxLogDebug(_T("%s::%() line $d; pApp->m_pSourcePhrases size = %d")
-			__FILE__, __FUNCTION__, __LINE__, pApp->m_pSourcePhrases->GetCount());
+		wxLogDebug(_T("%s::%s() line %d; pApp->m_pSourcePhrases size = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pSourcePhrases->GetCount());
 	}
 #endif
 
