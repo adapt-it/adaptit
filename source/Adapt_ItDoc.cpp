@@ -7723,6 +7723,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	int curSequNum = -1;
 	if (bUnfilteringRequired)
 	{
+		// BEW added 6Dec19
+		m_currentUnfilterMkr = wxEmptyString; // Needed when unfiltering 
+			// a short span of filtered information; IsUnstructuredPlainText()
+			// makes use of it - to help with USFM3 attributes metadata hiding
+
 		pos = pList->GetFirst();
 		bool bDidSomeUnfiltering;
 #if !defined(USE_LEGACY_PARSER)
@@ -7806,6 +7811,17 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxString theFilteredInfo = pSrcPhrase->GetFilteredInfo();
 					mkr = GetNextFilteredMarker(theFilteredInfo,offset, start, end);
 
+					// BEW 6Dec19 mkr is not empty, so preserve a copy of it on the CAdapt_ItDoc
+					// instance, which the check unstructured data can use
+					if (!mkr.IsEmpty())
+					{
+						m_currentUnfilterMkr = mkr;
+#if defined (_DEBUG)
+						wxLogDebug(_T("%s::%s(), line= %d, doc's m_currentUnfilterMkr now stores: %s"),
+							__FILE__, __FUNCTION__, __LINE__, m_currentUnfilterMkr.c_str());
+#endif
+					}
+
 					if (mkr.IsEmpty())
 					{
 						// there was an error here... post a reference to its location
@@ -7818,9 +7834,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							fixesStr += _T("   ");
 						}
 						bSuccessful = FALSE; // make sure the caller will show the error box
+
+						m_currentUnfilterMkr.Empty(); // restore default empty state
 						break; // exit this inner loop & iterate to the next CSourcePhrase instance
 							   // or to what is in m_filteredInfo_After
 					}
+
 
 					// get initial material into preStr, if any (that is, in the old design when
 					// filtered info was at the end of m_markers, preStr was where we populated with
@@ -7895,6 +7914,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 												 // unfiltered (on this pass at least)
 						// tokenize the substring (using this we get its inline marker handling for free)
 						wxASSERT(extractedStr[0] == gSFescapechar);
+
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
 						bool bIsContentlessMarker = FALSE;
 
@@ -8470,7 +8490,10 @@ h:						bool bIsInitial = TRUE;
 						// iteration of inner loop
 						offset = offsetNextSection;
 					}
+
 				} // end of while loop with test: (offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1
+				m_currentUnfilterMkr.Empty(); // restore default empty state
+
 			} // end of TRUE block for test: if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 
 #ifndef USE_LEGACY_PARSER
@@ -8652,7 +8675,11 @@ h:						bool bIsInitial = TRUE;
 			if (bDidSomeUnfiltering)
 #else
 			wxASSERT(FALSE);  // tell developer this filtering block does not yet support the change 
-							  // to filtering to preceding CSourcePhrase
+							  // to filtering to preceding CSourcePhrase;   BEW 6Dec19 I may in fact
+							  // never finish this alternate word parser, and currently have no
+						      // intention to do so - the legacy one is now far superior and pretty
+							  // robust, and can do more things - such as support changing punctuation
+							  // to word-building char, or vise versa; and USFM3 support
 			if (bDidSomeUnfiltering || bDidSomeUnfiltering_After)
 #endif
 			{
@@ -14246,8 +14273,49 @@ bool CAdapt_ItDoc::IsUnstructuredPlainText(wxString& rText)
 	nFound = rText.Find(s);
 	if (nFound >= 0)
 		return FALSE; // has \x
-	// that should be enough, ensuring correct identification
+	// that should be enough, ensuring correct identification <<-- not so 6Dec19
 	// of even small test files with only a few SFM markers
+
+	// BEW 6Dec19 It turns out that the 10Apr16	addition is
+	// only adequate for parsing small test files - having
+	// one of those markers - such as \v marker. It fails to 
+	// return the correct result when this function is called in
+	// TokenizeTextString() which internally calls TokenizeText(),
+	// in the context of a short string with a filterable marker,
+	// such as when unfiltering \fig marker. So I have provided
+	// the unfilter marker in doc's new member string:
+	// m_currentUnfilterMkr. The latter, once the unfiltering
+	// loop has gotten the marker, gets the marker copied there
+	// so as to be available here when TokenizeTextString() is
+	// called. If the marker is a valid one, then we know
+	// the data is structured. m_currentUnfilterMkr is cleared
+	// to FALSE at the end of each iteration of the unfiltering
+	// loop (the user may have requested unfiltering of more
+	// than one filtered markers).
+	if (m_currentUnfilterMkr.IsEmpty())
+	{
+		// Either we are not unfiltering, or we are but the filtered
+		// data is bad by not having a begin-marker starting the
+		// filtered content. In either case, we have no way to avoid
+		// returning TRUE - and doing that will prevent USFM3 cache
+		// metadata from being mis-handed
+		;
+	}
+	else
+	{
+		// m_currentUnfilterMkr has a begin marker. That's all we
+		// need to know; as even an unknown marker such as \y is
+		// considered to be indicative of a USFM structured text.
+		// But unstructured text gets \p markers auto-inserted to
+		// preserve paragraphing structure, so play safe by excluding
+		// \p from consideration here.
+		wxString strParagraph(_T("\\p"));
+		if (m_currentUnfilterMkr != strParagraph)
+		{
+			return FALSE;
+		}
+		// But if they match, returning TRUE is appropriate, so fall thru
+	}
 	return TRUE; // assume unstructured plain text
 }
 

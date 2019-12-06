@@ -19023,6 +19023,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block below executes      !!!!!!!!!!!!
+
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
     const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
