@@ -18778,15 +18778,43 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	wxString metadata = wxEmptyString;
 	if (pSrcPhrase->m_punctsPattern.IsEmpty())
 	{
-		return str; // str is unchanged - an error condition, since pSrcPhrase->m_bUnused was TRUE
+		// Fix the document before returning, clear m_bUnused to FALSE
+		pSrcPhrase->m_bUnused = FALSE;
+		return str; // str is unchanged - an error condition, since pSrcPhrase->m_bUnused 
+					// was wrongly TRUE in the caller's test
 	}
-	metadata = pSrcPhrase->m_punctsPattern; // this contains the end mkr at the end
+	// Another error situation results from an old document in which m_punctsPattern
+	// had data. To have metadata, it must contain an end-marker of form \mkr* and
+	// so we can check for * and if * is not there, then clear the variable, and
+	// clear m_bUnused as well just in case it is wrongly still TRUE.
 	wxString contents = wxEmptyString;
-	wxString reversed = MakeReverse(metadata);
-	wxASSERT(reversed.GetChar(0) == _T('*'));
+	wxString reversed = wxEmptyString;
+	if (!pSrcPhrase->m_punctsPattern.IsEmpty())
+	{
+		// Make the above check...
+		metadata = pSrcPhrase->m_punctsPattern; // this should have an end mkr at string end
+		reversed = MakeReverse(metadata);
+		int offset = reversed.Find(_T('*'));
+		if (offset == wxNOT_FOUND)
+		{
+			// Error condition no correctly formed end-marker, 
+			// so it's legacy data that should be cleared out
+			pSrcPhrase->m_punctsPattern.Empty();
+			pSrcPhrase->m_bUnused = FALSE;
+			return str;
+		}
+		// There may be a * in the data, but not at the first character
+		// location. That too is an error - do same as block above
+		wxChar first = reversed.GetChar(0);
+		if (first != _T('*'))
+		{
+			pSrcPhrase->m_punctsPattern.Empty();
+			pSrcPhrase->m_bUnused = FALSE;
+			return str;
+		}
+	}
 	wxChar slashChr = _T('\\');
 	int offset2 = reversed.Find(slashChr);
-	wxASSERT(offset2 != wxNOT_FOUND);
 	if (offset2 == wxNOT_FOUND)
 	{
 		// Error - the marker's backslash was not found; we will

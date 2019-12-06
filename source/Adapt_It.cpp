@@ -28368,8 +28368,8 @@ enum Reparse reparseDoc)
     // added for Bruce 1Apr05
     gpApp->m_FilterStatusMap.empty(); // start with empty map
 
-                                      // since the CUIntArrays contain all the document's markers, and since the user cannot
-                                      // add markers in the GUI which calls this function, the sizes must be identical
+    // since the CUIntArrays contain all the document's markers, and since the user cannot
+    // add markers in the GUI which calls this function, the sizes must be identical
     int countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
     int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     wxASSERT(countBeforeEdit == countAfterEdit);
