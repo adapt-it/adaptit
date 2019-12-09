@@ -5253,7 +5253,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	usfm="1" png="0"
 	filter="1" userCanSetFilter="1"
 	inLine="1" special="0" bdryOnLast="1"
-	inform="0" navigationText=""
+	inform="1" navigationText="figure"
 	textType="noType" wrap="0"
 	styleName="fig...fig* - Auxiliary - Figure/Illustration/Map"
 	styleType="character" fontSize="12" color="0"
