@@ -1406,7 +1406,7 @@ const wxString defaultSFM[] =
     _T("pb::Page Break used for new reader portions and children's bibles where content is controlled by the page:1:::1:::1:1:new page:0:1:pb - Break - Page Break:0:12:::::::0::::::p:p:::"),
     _T("b::Poetry text stanza break (e.g. stanza break) (basic):1:::1:::1:1:stanza break:0::b - Poetry - Stanza Break (Blank Line):0:12:::::::0::::::_body_text:b:::"),
     _T("hr::Horizontal rule::1:1:::1:1:::0::hr - Horizontal rule:8:12:::::::0:4:4::::_body_text:hr:::"),
-    _T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:1::1:1:1::1:::0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
+    _T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:1::1:1:1::1:1:figure:0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
     _T("jmp:jmp*:For associating linking attributes to a span of text:1::1:1:1::1:::0::jmp...jmp* - Link text:1:12:16711680:::1:::0::::::::::"),
     _T("rb:rb*:Most often used to provide a reading / pronunciation guide in ideographic scripts:1::::1::1:::1:1:rb...rb* - Special Text - Ruby Glossing:1:12:::::::0::::::::::"),
     _T("loc::Picture location::1:1::::1:::0::loc - Picture location:0:12:::::::0::::::_body_text:loc:::"),
