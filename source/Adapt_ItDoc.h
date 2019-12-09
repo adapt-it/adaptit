@@ -482,7 +482,8 @@ public:
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
 	bool		m_bIsInFigSpan;
-	wxString	m_currentUnfilterMkr; // used when unfiltering filtered content
+	wxString	m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
+	bool		m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
 
 	// BEW 30Sep19 created this (valid for ParseWord() or ParseWord2()) to pull out
 	// pre-word-proper processing into TokenizeText() - because things like \fig were

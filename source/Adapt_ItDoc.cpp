@@ -7685,6 +7685,18 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	if (strMarkersToBeUnfiltered.IsEmpty())
 		bUnfilteringRequired = FALSE;
 
+	// BEW 30Sep19 If filtering, set the m_bCurrentlyFiltering boolean, in case
+	// what's to be filtered contains hidden USFM3 attributes metadata that
+	// needs to be un-hidden before the string for being filtered is finalized
+	if (bFilteringRequired)
+	{
+		m_bCurrentlyFiltering = TRUE;
+	}
+	else
+	{
+		m_bCurrentlyFiltering = FALSE;
+	}
+
 	// in the block below we determine which SFM set's map to use, and determine what the full list
 	// of filter markers is (the changed ones will be in m_FilterStatusMap); we need the map so we
 	// can look up USFMAnalysis struct instances
@@ -8722,9 +8734,9 @@ h:						bool bIsInitial = TRUE;
 	mkr.Empty();
 	nFound = -1;
 	//bool bBoxLocationDestroyed = FALSE; // set TRUE if the box was within a filtered
-                // section, since that will require resetting it an arbitrary location and
-                // the latter could be within a retranslation - so we'd have to do an
-                // adjustment
+        // section, since that will require resetting it an arbitrary location and
+        // the latter could be within a retranslation - so we'd have to do an
+        // adjustment
 	// do the filtering pass now
 	curSequNum = -1;
 	if (bFilteringRequired)

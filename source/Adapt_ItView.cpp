@@ -10965,57 +10965,34 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 // IsSelectionAcrossHiddenAttributesMetdata() -- BEW added 30Sep19, to be used in
 // OnButtonMerge(), and Retranslation.cpp's OnButtonRetranslation, in order to abort the 
 // merge attempt, or the retranslation attempt, if there are CSourcePhrase instances of
-// the selection where, (1) in the case of a merger attempt, there is hidden stored 
-// on one or more of the non-first CSourcePhrase instances; or (2) in the case of a
-// retranslation attempt, such stored data is on *any* of the instances of the selection;
-// the reason being that for mergers or retranslations, the link to the stored metadata
-// becomes broken, and restoration of such metadata in an export to Paratext would 
-// generate a data error. strAt returns the m_srcPhrase string from the first CSourcePhrase
+// the selection where there is hidden stored marker attributes metadata on *any* of the 
+// instances of the selection.
+// The reasons: for or retranslations, the link to the stored metadata becomes broken, 
+// and restoration of such metadata in an export to Paratext likely would generate a 
+// data error (bad location). For mergers, unhiding for a filtering span gives too many
+// difficulties to solve.
+// The parameter strAt returns the m_srcPhrase string from the first CSourcePhrase
 // instance which contains stored hidden attributes metadata - so the user can be shown
-// where the offending storage location is.
+// where the offending storage location is - so as to avoid it.
 // 
-bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt, bool bIsMerger)
+bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt)
 {
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* pos = pList->GetFirst();
+	strAt = wxEmptyString;
 	if (pos == NULL)
 		return FALSE; // there isn't any content in the list
 	bool bIllegalInternalHiddenMetadata = FALSE;
-	int counter = 0; // initialize. Stored metadata is okay if in the intial
-					 // CSourcePhrase instance of the merger, but not if its
-					 // found in any of the non-initial ones.
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		counter++;
+
 		pos = pos->GetNext();
 		if (pSrcPhrase->m_bUnused == TRUE)
 		{
-			if (bIsMerger)
-			{
-				if (counter == 1)
-				{
-					continue; // this first one is allowed to have hidden metadata
-				}
-				else if (counter > 1)
-				{
-
-					bIllegalInternalHiddenMetadata = TRUE;
-					strAt = pSrcPhrase->m_srcPhrase;
-					break;
-				}
-			}
-			else
-			{
-				// For retranslations, or anything else besides a merger attempt
-				bIllegalInternalHiddenMetadata = TRUE;
-				strAt = pSrcPhrase->m_srcPhrase;
-				break;
-			}
-		}
-		else
-		{
-			bIllegalInternalHiddenMetadata = FALSE;
+			bIllegalInternalHiddenMetadata = TRUE;
+			strAt = pSrcPhrase->m_srcPhrase;
+			break;
 		}
 	}
 	return bIllegalInternalHiddenMetadata;
@@ -11448,7 +11425,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	// check for filtered material in a non-initial sourcephrase instance,
+	// check for filtered material in any of the sourcephrase instances,
 	// and abort the merge operation if there is some (we could handle it, but
 	// we just don't want to - for instance, nav text might be too long to
 	// view properly, and the green wedge would disappear and editability of
@@ -11512,20 +11489,20 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// Check user is not trying to do a merger across hidden USFM3 attributes metadata.
-	// Such data can occur on the initial CSourcePhrase of the selection, but not 
-	// on the second or later instances of the selection. (BEW added 30Sep19)
-	// Similar constraint is appropriate for retranslations, except for them, hidden
-	// stored metadata is not allowed on any CSourcePhrase instance of the selection,
+	// To allow it would create too many problems if filtering of the merger was attempted.
+	// (BEW added 30Sep19)
+	// Similar constraint is appropriate for retranslations, stored metadata is not 
+	// allowed on any CSourcePhrase instance of the selection,
 	// because the user may do anything he/she likes for the retranslation and so the
 	// integrity of the stored metadata would not be determinate
 	bool bIllegalInternalHiddenMetadata = FALSE; // If stays FALSE, the merger can go ahead.
 	// The signature param bIsMerger is default FALSE - see comment in Adapt_ItView.h for
 	// more information; since this is a merger attempt, TRUE must be overtly supplied
 	wxString strAt = wxEmptyString;
-	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, strAt, TRUE);
+	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, strAt);
 	if (bIllegalInternalHiddenMetadata)
 	{
-		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. But you can merge if your selection starts at the word: %s");
+		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. The metadata is hidden at the word: %s");
 		msg = msg.Format(strAt.c_str());
 		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();

@@ -28356,6 +28356,7 @@ enum Reparse reparseDoc)
     // whm added 26Apr05
     CAdapt_ItDoc* pDoc = GetDocument();
     CAdapt_ItView* pView = gpApp->GetView();
+	pDoc->m_bCurrentlyFiltering = FALSE; // BEW added 30Sep19
 
     bool bFilterChangeInDoc = FALSE;
     bool bFilterChangeInProj = FALSE;

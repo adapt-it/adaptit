@@ -2528,45 +2528,6 @@ bool IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly,
 	return IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bWholeMkrPassedIn);
 }
 
-/* deprecated -- it's dangerous for parsing across a word, see comments for ParseWordInwardsFromEnd() above
-// overload version (slightly different behaviour if charSet is empty) and with the
-// additional property that encountering ~ (the USFM fixed space marker) unilaterally
-// halts the scan, as does encountering a backslash or a carriage return or linefeed
-wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
-{
-    // Extracts and returns all characters from the passed in ptr location, and preceding
-    // the first occurrence of a character from charSet, or when pEnd is reached, whichever
-    // is first. The character from charSet and all characters following it in the caller's
-    // buffer are not returned. This overload is useful in our USFM parsing functionality.
-    // Note: charSet may be an empty string. If this is the case, we parse until whitespace
-    // or pEnd is reached, whichever is first. (space is in charSet, if the latter is
-    // non-empty) ~ always halts the scan; so does backslash
-	wxString span = _T("");
-	if (charSet.Len() == 0)
-	{
-		while (ptr < pEnd)
-		{
-			if (!IsWhiteSpace(ptr) && *ptr != _T('~') && *ptr != gSFescapechar)
-				span += *ptr++;
-			else
-				return span;
-		}
-		return span;
-	}
-	else
-	{
-		while (ptr < pEnd)
-		{
-			if (charSet.Find(*ptr) == wxNOT_FOUND && *ptr != _T('~') && *ptr != gSFescapechar
-				&& *ptr != _T('\n') && *ptr != _T('\r'))
-				span += *ptr++;
-			else
-				return span;
-		}
-	}
-	return span;
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a string whose characters are in reverse order from those in inputStr.

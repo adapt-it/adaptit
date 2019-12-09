@@ -17127,10 +17127,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		pos = pos->GetNext();
 
 #ifdef _DEBUG
-//		if (pSrcPhrase->m_nSequNumber >= 1297)
-//		{
-//			wxString strSrcPhrase = pSrcPhrase->m_srcPhrase;
-//		}
+		if (pSrcPhrase->m_bUnused == TRUE)
+		{
+			wxString strSrcPhrase = pSrcPhrase->m_srcPhrase;
+			int theSequNum = pSrcPhrase->m_nSequNumber;
+		}
 #endif
 
 		wxASSERT(pSrcPhrase != 0);
@@ -17338,6 +17339,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
+
+			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
+			// there is no need to check for it here
 #if defined(_DEBUG)
 			//wxLogDebug(_T("Merger: FromMergerMakeSstr produced:   %s"), str.c_str());
 #endif
@@ -17411,6 +17415,26 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
+
+			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
+			// and not collaborating and clipboard adapt mode is not currently turned
+			// on, then check for hidden metadata - if present, pSrcPhrase->m_bUnused 
+			// would be TRUE, and pSrcPhrase->m_punctsPattern would be non-empty (and
+			// start with a bar (|) and end with an endmarker of form \mkr*). Do the 
+			// tests and unhide before the filtering is finished - it will lengthen
+			// the string which is to be filtered out.
+			if (gpApp->GetDocument()->m_bCurrentlyFiltering)
+			{
+				if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
+				{
+					// There is hidden metadata to be restored to the target text output which
+					// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptation mode
+					// mode is current (it uses RebuildTargetText() too, and the user of clipboard
+					// adaptation mode would not want to see or deal with attributes metadata
+					str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str);
+				}
+			}
+
 			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
 			// the caller, we should not risk clobbering a space after the verse of
 			// a verse marker, so comment next line out
@@ -18623,19 +18647,15 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// is bCountInTargetText
 				str = FromMergerMakeTstr(pSrcPhrase, str, TRUE, TRUE);
 
-				// BEW 30Sep19 Mergers are forbidden to store USFM3 attributes metatdata,
-				// except on the initial CSourcePhrase instance of the merger. So pSrcPhrase
-				// needs to be checked for pSrcPhrase->m_bUnused being TRUE. Do the check
-				// and make the calls for metadata restoration only if collaborating.
+				// BEW 30Sep19 Mergers are forbidden to store USFM3 attributes metadata,
+				// on any CSourcePhrase instance of the merger. If there is some, its bogus
+				// or a relic from AI legacy versions of long ago. Clear it out.
 				if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 				{
 					if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
 					{
-						// There is hidden metadata to be restored to the target text output which
-						// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptatiomode
-						// mode is current (it uses RebuildTargetText() too, and the user of clipboard
-						// adaptation mode would not want to see or deal with attributes metadata
-						str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str);
+						pSrcPhrase->m_bUnused = FALSE;
+						pSrcPhrase->m_punctsPattern.Empty();
 					}
 				}
 			}
