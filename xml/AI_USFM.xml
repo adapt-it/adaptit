@@ -4261,6 +4261,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
+	inform="1" navigationText="figure"
 	textType="noType"
 	styleName="fig...fig* - Auxiliary - Figure/Illustration/Map"
 	styleType="character"
