@@ -107,7 +107,7 @@ void		RemoveContentFromFootnotes(wxString* pText, bool bAlsoRemoveTheMarkers = F
 // The next BEW added 30Sep19 for unhiding stored USFM3 attributes metadata, and restoring to
 // its correct location in the inspired text. The text is typically target text but it can
 // equally well be source text - it just depends on what str contains
-wxString	RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str);
+wxString	RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str, bool bIsTargetText = TRUE);
 int         SearchBackToMatchingMarker(wxString str, wxString mkr);
 
 // BEW added next 13Dec10 to support export from documents which, in the original input

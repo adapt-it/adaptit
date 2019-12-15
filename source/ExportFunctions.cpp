@@ -17427,11 +17427,26 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			{
 				if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
 				{
-					// There is hidden metadata to be restored to the target text output which
-					// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptation mode
-					// mode is current (it uses RebuildTargetText() too, and the user of clipboard
-					// adaptation mode would not want to see or deal with attributes metadata
-					str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str);
+#if defined (_DEBUG)
+					// Check we are in the right (sub)list...
+					int nListSize = (int)pUseThisList->GetCount();
+					wxSPListNode* pNodeFirst = pUseThisList->GetFirst();
+					CSourcePhrase* pSPFirst = pNodeFirst->GetData();
+					wxSPListNode* pNodeLast = pUseThisList->GetLast();
+					CSourcePhrase* pSPLast = pNodeLast->GetData();
+					wxString pupatStr = pSPLast->m_punctsPattern;
+					wxString bUnusedStr = pSPLast->m_bUnused ? _T("TRUE") : _T("FALSE");
+					wxLogDebug(_T("%s::%s(), line=%d, source 1st= %s , source last= %s , listSize= %d , sequNums [%d,%d] pupat= %s , bUnused= %s"),
+						__FILE__,__FUNCTION__,__LINE__, pSPFirst->m_srcPhrase.c_str(), pSPLast->m_srcPhrase.c_str(), nListSize ,
+						pSPFirst->m_nSequNumber , pSPLast->m_nSequNumber , pSPLast->m_punctsPattern.c_str(), bUnusedStr.c_str() );
+
+#endif
+					// There is hidden metadata to be restored to the source text which
+					// is to be filtered out. Metadata, if present, has to be restored
+					// to the source text in correct location, before the CSourcePhrase
+					// it is stored on disappears. In the call, FALSE is bIsTargetText -
+					// it needs to be set explicitly as the default is TRUE
+					str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str, FALSE);
 				}
 			}
 
@@ -18679,6 +18694,18 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				{
 					if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
 					{
+#if defined (_DEBUG)
+						// Check we are in the right (sub)list...
+						int nListSize = (int)pUseThisList->GetCount();
+						wxSPListNode* pNodeFirst = pUseThisList->GetFirst();
+						CSourcePhrase* pSPFirst = pNodeFirst->GetData();
+						wxSPListNode* pNodeLast = pUseThisList->GetLast();
+						CSourcePhrase* pSPLast = pNodeLast->GetData();
+						wxLogDebug(_T("%s::%s(), line=%d, target 1st= %s , target last= %s , listSize= %d , sequNums [%d,%d]"),
+							__FILE__, __FUNCTION__, __LINE__, pSPFirst->m_targetStr.c_str(), pSPLast->m_targetStr.c_str(), nListSize,
+							pSPFirst->m_nSequNumber, pSPLast->m_nSequNumber);
+
+#endif
 						// There is hidden metadata to be restored to the target text output which
 						// is to be sent to Paratext or Bibledit. Disallow if clipboard adaptatiomode
 						// mode is current (it uses RebuildTargetText() too, and the user of clipboard
@@ -18771,12 +18798,13 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 // The next BEW added 30Sep19 for unhiding stored USFM3 attributes metadata, and restoring to
 // its correct location in the inspired text. The text is typically target text but it can
-// equally well be source text - it just depends on what str contains
+// equally well be source text - it just depends on the value of the boolean
 // params:
 // pSrcPhrase		->	ptr to the instance storing the metadata in m_punctsPattern
 // str				<-> input the outputted string from the Restore...() function in caller,
 //						(it could be source or target text); and when the metadata is
 //						restored to its correct location, return it using via str to the caller
+// bIsTargetText	->	Default TRUE, pass explicit FALSE for restoring to source text
 // Comment:
 // The metadata always starts with a bar ( | ) character (see the USFM 3 documentation) and
 // includes all content from the bar up to, but not including, a certain endmarker (of form
@@ -18789,7 +18817,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 // unchanged. The caller then includes it in the export going to the external editor of the
 // collaboration - either to Paratext 8 or to Bibledit, if target text. The caller
 // determines whether str is source or target text. Typically the latter.
-wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str)
+wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str, bool bIsTargetText)
 {
 	// On entry, str should end with the target text word (and final puncts if any)
 	// and the endmarker; but for \jmp, there may be no word. Take care, it's  tricky.
@@ -18868,7 +18896,8 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	if (pSrcPhrase->m_key.IsEmpty() || pSrcPhrase->m_srcPhrase.IsEmpty())
 	{
 		// In this situation, skip restoration of the metadata, except when the marker
-		// is \jmp* or \+jmp*
+		// is \jmp* or \+jmp*  This block works right whether bIsTargetText is TRUE or
+		// FALSE
 		if ((theMkr == _T("\\jmp*")) || (theMkr == _T("\\+jmp*")))
 		{
 			int strLen = str.Len();
@@ -18889,27 +18918,54 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	}
 	else
 	{
-		// m_key and/or m_targetStr have content, so check now that the user
-		// has actually provided target text content for this pSrcPhrase. If
-		// there is none yet, then skip restoration for this instance. Check
-		// only m_targetStr for empty; we will allow m_adaption to be empty
-		// provided there is final punctuation
-		if (!pSrcPhrase->m_targetStr.IsEmpty())
+		// This block needs to know what text type we are restoring to: source
+		// when filtering a sublist for a to-be-filtered marker, or target when
+		// exporting target text, or collaborating with PT or BE.
+		if (bIsTargetText)
 		{
-			int strLen = str.Len();
-			// The matching endmarker may not be last in str, so search back to it
-			int distance = SearchBackToMatchingMarker(str, theMkr);
-			wxASSERT(strLen >= distance);
-			wxString firstBit = str.Left(strLen - distance);
-			if (firstBit.IsEmpty())
+			// m_key and/or m_targetStr have content, so check now that the user
+			// has actually provided target text content for this pSrcPhrase. If
+			// there is none yet, then skip restoration for this instance. Check
+			// only m_targetStr for empty; we will allow m_adaption to be empty
+			// provided there is final punctuation
+			if (!pSrcPhrase->m_targetStr.IsEmpty())
 			{
-				firstBit = contents;
+				int strLen = str.Len();
+				// The matching endmarker may not be last in str, so search back to it
+				int distance = SearchBackToMatchingMarker(str, theMkr);
+				wxASSERT(strLen >= distance);
+				wxString firstBit = str.Left(strLen - distance);
+				if (firstBit.IsEmpty())
+				{
+					firstBit = contents;
+				}
+				else
+				{
+					firstBit += contents; // add the contents of the metadata
+				}
+				str = firstBit + theMkr;
 			}
-			else
+		}
+		else
+		{
+			// We are dealing with restoration to source text
+			if (!pSrcPhrase->m_srcPhrase.IsEmpty())
 			{
-				firstBit += contents; // add the contents of the metadata
+				int strLen = str.Len();
+				// The matching endmarker may not be last in str, so search back to it
+				int distance = SearchBackToMatchingMarker(str, theMkr);
+				wxASSERT(strLen >= distance);
+				wxString firstBit = str.Left(strLen - distance);
+				if (firstBit.IsEmpty())
+				{
+					firstBit = contents;
+				}
+				else
+				{
+					firstBit += contents; // add the contents of the metadata
+				}
+				str = firstBit + theMkr;
 			}
-			str = firstBit + theMkr;
 		}
 	}
 

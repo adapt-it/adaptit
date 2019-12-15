@@ -387,7 +387,8 @@ public:
 											wxString & unkMkrsStr,
 											enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
-	bool			HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase);
+	// BEW 30Sep19 next one has added bool, default FALSE; function is called only twice in the app
+	bool			HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
@@ -693,10 +694,10 @@ protected:
 		wxChar* m_ptr;
 		wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
 						  // m_ptr is not wanted
-		const wxString m_strBar = _T("|");
-		const wxString m_strSpace = _T(" ");
-		const wxUniChar m_asterisk = '*';
-		const wxUniChar m_barChar = '|';
+		wxString m_strBar = _T("|");
+		wxString m_strSpace = _T(" ");
+		wxChar   m_asterisk = '*';
+		wxChar   m_barChar = '|';
 		size_t   m_nBeginMkrLen; // includes the trailing whitespace character (typically latin space)
 		size_t   m_nEndMarkerLen; // includes the trailing asterisk
 		size_t   m_nSpanLength; // the length of the span of characters to be skipped
@@ -800,7 +801,7 @@ protected:
 		// end of new prototypes in support of USFM3 markup
 
 	private:
-		const wxUniChar uselessDegreeChar = '°';
+		wxChar uselessDegreeChar = '°';
 		bool IsAnUnwantedDegreeSymbolPriorToAMarker(wxChar* ptr);
 		wxChar* m_pPreservePreParseWordLocation;
 
