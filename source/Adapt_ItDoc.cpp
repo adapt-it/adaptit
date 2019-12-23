@@ -16475,6 +16475,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// Testing for bIsToBeFiltered will be the outermost test.
 				bool bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1;
 
+                // whm moved declarations and initializations (to FALSE) here before the goto isnull 
+                // block below - otherwise GCC errors on "jump to label..." 
+                bool bCanFilterIt = FALSE;
+                bool bFilteringIsWanted = FALSE;
+                wxUnusedVar(bFilteringIsWanted);
+                bool bInUnfilteredInlineSpan = FALSE;
+
 				// Might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
 				// test and jump to further down -- so that \yy ends up in m_markers, and
 				// not somewhere else
@@ -16529,10 +16536,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// I need to heavily refactor this part of the app.
 				// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
 				//if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
-				bool bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
-				bool bFilteringIsWanted = bIsToBeFiltered;
-				wxUnusedVar(bFilteringIsWanted);
-				bool bInUnfilteredInlineSpan = m_bIsWithinUnfilteredInlineSpan;
+				bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
+				bFilteringIsWanted = bIsToBeFiltered;
+				//wxUnusedVar(bFilteringIsWanted);
+				bInUnfilteredInlineSpan = m_bIsWithinUnfilteredInlineSpan;
 				wxUnusedVar(bInUnfilteredInlineSpan);
 #if defined (_DEBUG) //&& defined (FIXORDER)
 //				{

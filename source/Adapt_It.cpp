@@ -1122,7 +1122,7 @@ wxString dummyFinish = _T("< &Back"); // the wxstd.mo file doesn't seem to have
                                       /// AI_USFM.xml file on program startup.
 const wxString defaultSFM[] =
 {
-    // whm 2Dec2019 revised defaultSFM[] array again to reflect the extended usfm 3.0.0 additions and changes (now with 330 elements)
+    // whm 23Dec2019 revised defaultSFM[] array again to reflect the extended usfm 3.0.0 additions and changes (now with 330 elements)
     // which are defined in the Paratext usfm_sb.sty stylesheet. The extensions in usfm_sb.sty include study Bible marker extensions
     // that are not included in the standard usfm.sty that we've used in the past. All future revisions should be based on the
     // usfm_sb.sty file which includes all of the usfm.sty markers plus the bible study extensions added in this revision.
@@ -1417,7 +1417,7 @@ const wxString defaultSFM[] =
     _T("qx::Poetry extra 1::1::1:::1:1:poetry extra 1:2:1:qx - Poetry extra 1:0:12:::::::0::::::q:qx:::"),
     _T("qz::Poetry extra 2::1::1:::1:1:poetry extra 2:2:1:qz - Poetry extra 2:0:12:::::::0::::::q:qz:::"),
     _T("addpn:addpn*:For chinese words to be dot underline and underline:1::::1::1:::1::DEPRECATED addpn...addpn* - Special Text for Chinese:1:12:2263842:1:1:1:::0::::::::::"),
-    _T("ef:ef*:A Study Note text item:1::1::1:1:study note text item:1::34::ef...ef* - Study Note:1:12:::::::0::::::_notes_base:ef:::"),
+    _T("ef:ef*:A Study Note text item:1:::1:1:1:1:1:study note text item:34::ef...ef* - Study Note:1:12:::::::0::::::_notes_base:ef:::"),
     _T("ex:ex*:List of study Bible extended cross references:1:::1:1:1:1:1:ext xref list:34::ex...ex* - Study - Extended Cross Reference:1:12:::::::0::::::_notes_base:ex:::"),
     _T("esb::Study Bible sidebar (mini article):1:::1::1::1:study Bible sidebar:6::esb - Study - Sidebar (Mini Article):0:12:::::::0::::::::::"),
     _T("esbe::Study Bible sidebar ending:1:::1::1:1:1:study Bible sidebar end:6::esbe - Study - Sidebar Ending:0:12:::::::0::::::::::"),
@@ -1457,6 +1457,7 @@ const wxString defaultSFM[] =
     _T("_unknown_char_style::Unknown Character Style Marker:1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::0::::::::::"),
     _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::0:2::::.3:p:_hidden_note:::")
 
+    /*
     // Below are the 17Aug2019 strings - created before incorporating the extended markers in Paratext's usfm_sb.sty stylesheet
     // whm 17Aug2019 updated defaultSFM[] array to reflect usfm 3.0.0 additions and changes (now with 317 elements).
     // Note: The previous version had 283 elements and is commented out at end of the block
@@ -1785,6 +1786,7 @@ const wxString defaultSFM[] =
     _T("_unknown_para_style::Unknown Paragraph Style Marker:1:1:1:::::::0::Unknown Para Style Marker:0:12:255::::::0::::::_body_text:_unknown_para_style:::"),
     _T("_unknown_char_style::Unknown Character Style Marker:1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::0::::::::::"),
     _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::0:2::::.3:p:_hidden_note:::")
+    */
 
     // Below are the old USFM 2 strings
     //_T("id::File identification (BOOKID, FILENAME, EDITOR, MODIFICATION DATE):1:1::::1::1:id:11::id - File - Identification:0:1:65535::::::3::::::__normal:id::1:"),
