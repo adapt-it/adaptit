@@ -388,7 +388,7 @@ public:
 											enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
 	// BEW 30Sep19 next one has added bool, default FALSE; function is called only twice in the app
-	bool			HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
+	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
@@ -615,6 +615,8 @@ public:
     void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
     void DoAcceptVersion (void);
+	bool FoundEsbeEndMkr(wxChar* pChar, int& whitespaceLen); // BEW 30Sep19 added, for USFM3 support
+	int  StoreEsbeEndMarker(wxChar* pChar, CSourcePhrase* pSrcPhrase, int whitespaceLen); // BEW 30Sep19, ditto
     bool IsLatestVersionChanged (void);
     bool RecoverLatestVersion (void);
     void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
@@ -670,6 +672,15 @@ private:
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord* rpRec);
 			// this next one is a variant used for matching AutoFixRecordG for glosses
 	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG* rpRec);
+	wxString MarkersFromM_markersInParsePreWord; // BEW 30Sep19 added because Bill long time ago
+			// changed tokBuffer from being global to local in TokenizeText, and since after
+			// ParseWord() finishes the now-local tokBuffer will be empty if ParsePreWord
+			// has added content to the being-parsed pSrcPhrase's m_markers, it won't transfer
+			// that m_markers content to the local tokBuffer, with the consequence that the
+			// m_marker content from within ParsePreWord gets lost. This variable therefore
+			// is added so that such non-empty m_markers content can be stored here temporarily
+			// and picked up after ParseWord() finishes, but before the local to TokenizeText()
+			// tokBuffer contents are dealt with.
 
 	bool	IsUpperCaseCharInFirstWord(wxString &str, int& offset, wxChar& theChar, bool bIsSrcText = TRUE); // BEW 24May16
 	wxChar	GetFirstChar(wxString& strText);
@@ -696,7 +707,7 @@ protected:
 						  // m_ptr is not wanted
 		wxString m_strBar = _T("|");
 		wxString m_strSpace = _T(" ");
-		wxChar   m_asterisk = '*';
+		wxChar   m_asterisk = _T('*');
 		wxChar   m_barChar = '|';
 		size_t   m_nBeginMkrLen; // includes the trailing whitespace character (typically latin space)
 		size_t   m_nEndMarkerLen; // includes the trailing asterisk
@@ -801,7 +812,7 @@ protected:
 		// end of new prototypes in support of USFM3 markup
 
 	private:
-		wxChar uselessDegreeChar = '°';
+		wxChar uselessDegreeChar = _T('°');
 		bool IsAnUnwantedDegreeSymbolPriorToAMarker(wxChar* ptr);
 		wxChar* m_pPreservePreParseWordLocation;
 

@@ -867,6 +867,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	bool bRTLLayout;
 	bRTLLayout = FALSE;
 	wxRect rectBounding;
+
 	//if (this == NULL) // whm 3Oct2018 removed - it generates gcc warning "nonnull argument 'this' compared to NULL
 	//	return;
 	GetPileRect(rectBounding); // get the bounding rectangle for this CCell instance
@@ -904,6 +905,13 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 		pDC->SetTextBackground(backcolor);
 	}
+
+#ifdef _DEBUG
+	if (m_pSrcPhrase->m_nSequNumber == 129)
+	{
+		int halt_here = 1;
+	}
+#endif
 
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
@@ -943,6 +951,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetTextForeground(navColor);
 
 			rectBounding.Offset(0,-diff);
+
+
 			// wx version can only set layout direction directly on the whole pDC.
 			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
 			// right-to-left reading of the text, but we need to manually control
@@ -973,7 +983,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
         // rather than using the nav text's directionality
 		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
-			|| bHasFilterMarker)
+			|| bHasFilterMarker || !m_pSrcPhrase->m_inform.IsEmpty())
 		{
 			wxPoint pt;
 			TopLeft(pt); //pt = m_ptTopLeft;
@@ -1124,7 +1134,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pDC->SetPen(wxNullPen); // wxNullPen causes the current pen to be
                         // selected out of the device context, and the original pen
                         // restored.
-			}
+			} // end of TRUE block for test: if (bHasFilterMarker && !gbShowTargetOnly)
 
 			// make (for version 3) the chapter&verse information come first
 			if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
@@ -1207,7 +1217,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// which gets m_bFootnoteEnd set to TRUE in TokenizeText() -- see Adapt_ItDoc
 			// at approx  line 16896. When that is done, the kludge below is not needed.
 			// Kludge: old documents that do not have m_inform with "end fn" at the 
-			// last CSourcPhrase of a footnote, will not show any nav text unless we
+			// last CSourcePhrase of a footnote, will not show any nav text unless we
 			// make a test here and if it is not present, then add it to m_inform
 			// so it will be present thereafter, and also add it to str so it is
 			// displayed at this draw call
@@ -1231,7 +1241,34 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 					}
 				}
 			}
+/* a block further above now does this
+			// BEW 30Sep19 for \esbe endmarker, the nav text "study Bible sidebar end" is
+			// not getting shown, even though it's in the m_inform member. So perhaps
+			// a block to do the kludge above, when \esbe is stored in m_endMarkers,
+			// will do the trick.
 
+			if (!m_pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				wxString strEndMarkers = m_pSrcPhrase->GetEndMarkers();
+				wxString esbeMkr = _T("\\esbe");
+				int offset = strEndMarkers.Find(esbeMkr);
+				if (offset != wxNOT_FOUND)
+				{
+					// found \esbe  in m_endMarkers member
+					wxString endNavText = _("study Bible sidebar end"); // localizable
+					m_pSrcPhrase->m_inform = endNavText;
+					m_pLayout->m_pApp->GetDocument()->Modify(TRUE);
+					// And append to str to have it drawn
+					if (str.IsEmpty())
+						str = endNavText;
+					else
+					{
+						str += _T(' ');
+						str += endNavText;
+					}
+				}
+			}
+*/
 			wxFont aSavedFont;
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			aSavedFont = pDC->GetFont();

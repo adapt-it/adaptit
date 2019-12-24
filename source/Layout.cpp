@@ -1689,7 +1689,7 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
 	{
 		wxMessageBox(_T(
-			"SPList* passed in was either NULL or devoid of pilesl in CreatePiles()"),
+			"SPList* passed in was either NULL or devoid of piles in CreatePiles()"),
 			_T(""), wxICON_STOP);
 		wxASSERT(FALSE);
 		wxExit(); // something seriously wrong in design, so don't try to go on
