@@ -391,6 +391,14 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 							// \f awaiting ptr coming to \f* where the above bool
 							// needs to be made FALSE if it was TRUE
 	m_bWithinMkrAttributeSpan = FALSE; // FOR USFM3 support, should start off FALSE
+	
+	// whm 24Dec2019 moved the following initialization here from Adapt_ItDoc.h
+	uselessDegreeChar = _T('Â°');
+	m_strBar = _T("|");
+	m_strSpace = _T(" ");
+	m_asterisk = _T('*');
+	m_barChar = _T('|');
+	
 	// WX Note: Nearly all Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
 	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD     *****
@@ -29633,13 +29641,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 
 	// BEW 30Sep19  Gerald's test data had the following src text string (2 words omitted
-	// before last one):  \v 1 Jant ko: «\w Aji Sax|Aji Sax j-:\w* jóg!»
-	// The ParsePreWord() function gets to the « punctuation, and correctly parses over it
-	// and stores the « at the beginning of pSrcPhrase->m_srcPhrase. Then ptr, when ParseWord()
+	// before last one):  \v 1 Jant ko: Â«\w Aji Sax|Aji Sax j-:\w* jÃ³g!Â»
+	// The ParsePreWord() function gets to the Â« punctuation, and correctly parses over it
+	// and stores the Â« at the beginning of pSrcPhrase->m_srcPhrase. Then ptr, when ParseWord()
 	// is entered, is at the substring:  \w Aji Sax|Aji....   This first part (\w Aji...) 
 	// has never been catered for in previous versions of this parser - with the result that
-	// the « is assigned to the present pSrcPhrase, and then TokenizeText creates the next
-	// pSrcPhrase to handle the rest:  Aji Sax|Aji Sax j-:\w* jóg!»
+	// the Â« is assigned to the present pSrcPhrase, and then TokenizeText creates the next
+	// pSrcPhrase to handle the rest:  Aji Sax|Aji Sax j-:\w* jÃ³g!Â»
 	// There are two issues:
 	// 1. Instead of ptr being at the start of "word proper", it's at the start of an 
 	//    inline binding begin-marker; which is something new to the parser.
