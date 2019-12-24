@@ -4,7 +4,7 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	2 December 2019, by Bill Martin
+Last Updated:	23 December 2019, by Bill Martin
 USFM version:	3.0.0 as published in usfm.sty and usfm_sb.sty by UBS April 2018
 				(bill_martin@sil.org, bruce_waters@sil.org, erik_brommers@sil.org)
 Description:	This file contains the style definitions and
@@ -5444,9 +5444,9 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <SFM marker="ef" endMarker="ef*"
 	description="A Study Note text item"
 	usfm="1" png="0"
-	filter="1" userCanSetFilter="0"
-	inLine="1" special="1" bdryOnLast="study note text item"
-	inform="1" navigationText=""
+	filter="0" userCanSetFilter="1"
+	inLine="1" special="1" bdryOnLast="1"
+	inform="1" navigationText="study note text item"
 	textType="note" wrap="0"
 	styleName="ef...ef* - Study Note"
 	styleType="character" fontSize="12" color="0"
