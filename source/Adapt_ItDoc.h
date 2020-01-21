@@ -696,10 +696,6 @@ protected:
 		wxChar* m_ptr;
 		wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
 						  // m_ptr is not wanted
-		wxString m_strBar = _T("|");
-		wxString m_strSpace = _T(" ");
-		wxChar   m_asterisk = _T('*');
-		wxChar   m_barChar = '|';
 		size_t   m_nBeginMkrLen; // includes the trailing whitespace character (typically latin space)
 		size_t   m_nEndMarkerLen; // includes the trailing asterisk
 		size_t   m_nSpanLength; // the length of the span of characters to be skipped
@@ -803,7 +799,12 @@ protected:
 		// end of new prototypes in support of USFM3 markup
 
 	private:
-		wxChar uselessDegreeChar = _T('°');
+		wxChar uselessDegreeChar; // whm 24Dec2019 moved initialization to doc's constructor
+		wxString m_strBar;
+		wxString m_strSpace;
+		wxChar   m_asterisk;
+		wxChar   m_barChar;
+		
 		bool IsAnUnwantedDegreeSymbolPriorToAMarker(wxChar* ptr);
 		wxChar* m_pPreservePreParseWordLocation;
 
