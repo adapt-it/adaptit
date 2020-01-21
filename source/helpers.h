@@ -329,6 +329,7 @@ int       ParseMarker(const wxChar *pChar); // returns a length (num chars in th
 bool      AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray,
 							bool bExcludeDuplicates = FALSE);
 bool      HasFilteredInfo(CSourcePhrase* pSrcPhrase);
+wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll = FALSE); //BEW 30Sep19
 bool      IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool      IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 

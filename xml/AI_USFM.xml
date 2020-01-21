@@ -4402,7 +4402,6 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <SFM marker="ef" endMarker="ef*"
 	description="A Study Note text item"
 	usfm="1"
-	filter="1"
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="study note text item"

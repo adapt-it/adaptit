@@ -461,7 +461,8 @@ public:
 								bool bPutInOuterStorage);
 	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
 								wxString& inlineNonBindingEndMkrs, int len, 
-								bool& bInlineBindingEndMkrFound, wxString& endMkr);
+								bool& bInlineBindingEndMkrFound, bool& bInlineNonbindingEndMkrFound,
+								bool& bInlineNormalEndMkrFound, wxString& endMkr);
 	int				ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int len);
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar *pChar);
@@ -672,16 +673,6 @@ private:
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord* rpRec);
 			// this next one is a variant used for matching AutoFixRecordG for glosses
 	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG* rpRec);
-	wxString MarkersFromM_markersInParsePreWord; // BEW 30Sep19 added because Bill long time ago
-			// changed tokBuffer from being global to local in TokenizeText, and since after
-			// ParseWord() finishes the now-local tokBuffer will be empty if ParsePreWord
-			// has added content to the being-parsed pSrcPhrase's m_markers, it won't transfer
-			// that m_markers content to the local tokBuffer, with the consequence that the
-			// m_marker content from within ParsePreWord gets lost. This variable therefore
-			// is added so that such non-empty m_markers content can be stored here temporarily
-			// and picked up after ParseWord() finishes, but before the local to TokenizeText()
-			// tokBuffer contents are dealt with.
-
 	bool	IsUpperCaseCharInFirstWord(wxString &str, int& offset, wxChar& theChar, bool bIsSrcText = TRUE); // BEW 24May16
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);

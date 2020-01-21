@@ -12315,3 +12315,66 @@ void ShortWaitSharingOff()
 	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
 #endif // _KBSERVER
+
+// Remove the subStr from inputStr and return the resulting string. Remove once
+// only (default, bRemoveAll is FALSE) - the first one found. If bRemoveAll is
+// explicitly TRUE, then every occurrence of subStr is removed, and the result
+// returned. If there is no occurrence of subStr, then return the inputStr 
+// 'as is'. Likewise, if subStr is empty, the passed in inputStr is returned
+// unchanged.
+// BEW 30Sep19 created
+wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll)
+{
+	wxString strEmpty(_T(""));
+	wxString str = inputStr;
+	if (str == strEmpty)
+	{
+		return str;
+	}
+	int offset = wxNOT_FOUND; // initialise
+	int length = subStr.Len();
+	if (length == 0)
+	{
+		// Nothing to search for
+		return str;
+	}
+	wxString strLeft;
+	wxString strRight;
+	if (!bRemoveAll)
+	{
+		// Remove the first occurrence only, if such exists; if not exists,
+		// then just send the string back unchanged
+		offset = str.Find(subStr);
+		if (offset == wxNOT_FOUND)
+		{
+			return str;
+		}
+		else
+		{
+			strLeft = str.Left(offset);
+			offset += length; // point past the subStr
+			strRight = str.Mid(offset);
+			str = strLeft + strRight; // no first subStr is within it now
+		}
+	}
+	else
+	{
+		// Remove All is wanted. We'll need a do loop. Exit the loop when
+		// a pass thru the loop changes nothing, and return what is in str
+		do {
+			offset = str.Find(subStr);
+			if (offset == wxNOT_FOUND)
+			{
+				break;
+			}
+			else
+			{
+				strLeft = str.Left(offset);
+				offset += length; // point past the subStr
+				strRight = str.Mid(offset);
+				str = strLeft + strRight;
+			}
+		} while (offset != wxNOT_FOUND);
+	}
+	return str;
+}
