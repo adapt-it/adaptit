@@ -20,9 +20,11 @@
 // comment out next line to turn of the wxLogDebug calls in this file
 #define LOG_USFM3
 #define maxLen 60
-//#define _AT_PTR
+#define _AT_PTR
 //#define FIXORDER
 #define LOGMKRS
+const int logStart = 28;
+const int logEnd = 30;
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -16466,7 +16468,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber == 6)
+		if (pSrcPhrase->m_nSequNumber >= 28)
 		{
 			int halt_here = 1;
 		}
@@ -17784,14 +17786,15 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 		// Back in the outer loop now. We have one of the following three situations:
 		// (1) ptr is not pointing at an inline marker that we need to handle within
 		// ParseWord(), so it may be pointing at punctuation or a word of text to be
-		// parsed; or
+		// parsed. BEWARE, if ptr-> punct, the punct may be followed by a mkr to be filtered
+		// e.g.  \f*:\x  <<-- the : needs to go in m_follOuterPuncts of current CSourcePhrase
 		// (2) ptr is pointing at an inline marker we need to handle within ParseWord()
 		// because these can have non-predictable interactions with punctuation,
 		// especially punctuation which follows the wordform, and ParseWord() has the
-		// smarts for dealing with all the possibilities that may occur. (It NEVER happens
-		// that an ordinary marker will occur between the inline one and the word proper,
-		// so we can safely hand off to ParseWord() knowing the inner loop above is
-		// finished for this particular pSrcPhrase.)
+		// smarts for dealing with nearly all the possibilities that may occur. (Usually
+		// no ordinary marker will occur between the inline one and the word proper, but
+		// \f*:\x - \xo ... violates this; so TokenizeText() must handle this, not
+		// ParseWord() - and if the : gets to ParsePreWord() then the game is over! Error!!
 		// (3) ptr is pointing at a [ opening bracket which needs to be stored on the
 		// current pSrcPhrase (in its m_precPunct member, along with any following space
 		// if one is present in the input file after the [ bracket) along with any
@@ -29666,7 +29669,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bTokenizingTargetText)
 {
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 6)
+	if (pSrcPhrase->m_nSequNumber >= logStart)
 	{
 		int break_here = 1;
 	}
@@ -29977,7 +29980,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s  ParseWord() START"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -30080,7 +30083,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			int nChangeInLenValue = ptr - savePtr;
 			len += nChangeInLenValue;
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30098,7 +30101,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (*ptr == _T(']') || *ptr == _T('[') || FoundEsbeEndMkr(ptr, whitespaceLen))
 			{
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30170,7 +30173,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 				}
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30188,7 +30191,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// punctuation characters a second time to get to the ] character which determines
 			// our return point - so that's why we keep looking for presence of ] below
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30322,7 +30325,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			} // end of loop: while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30369,7 +30372,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// and more explanatory comments are there too to help complete the picture
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30409,7 +30412,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bMatchedFixedSpaceSymbol)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30580,7 +30583,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		else // bMatchedFixedSpaceSymbol is FALSE
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30619,7 +30622,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// add any final punctuation further below
 		} // end of else block for test: if (bMatchedFixedSpaceSymbol)
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30631,7 +30634,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bStartedPunctParse)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30669,7 +30672,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			wxString additions; additions.Empty();
 			// in next call, FALSE is bPutInOuterStorage
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30687,7 +30690,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (bExitParseWordOnReturn)
 			{
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30718,7 +30721,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30765,7 +30768,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30805,7 +30808,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30816,7 +30819,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bThrewAwayWhiteSpaceAfterWord)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30850,7 +30853,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// following puncts for the current pSrcPhrase, but any other option -
 					// we'll just return without advancing over the puncts.
 #if defined (_DEBUG) && defined (LOGMKRS)
-					if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 					{
 						wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30897,7 +30900,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 								return len;
 							}
 #if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 							{
 								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30934,7 +30937,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 								len--;
 							}
 #if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 							{
 								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30963,7 +30966,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						wxString theEndMarker;
 						theEndMarker.Empty();
 #if defined (_DEBUG) && defined (LOGMKRS)
-						if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 						{
 							wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30993,7 +30996,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 
 	} // end of TRUE block for test: if (!bSkipLegacyParsingBlock) **********************************************************************
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31008,7 +31011,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// The USFM 3 supporting code for this CSourcePhrase is now done with.
 		// Clear it out and set the boolean FALSE
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31067,7 +31070,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bInlineNormalEndMkrFound = FALSE;
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31081,7 +31084,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		int saveLen;
 		wxString endMarker; // initialized to empty string at start of ParseInlineEndMarkers()
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31175,7 +31178,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31231,7 +31234,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31270,7 +31273,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 	}
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31324,7 +31327,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				len--;
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31358,7 +31361,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 	bool bGotSomeMorePuncts = FALSE; // set TRUE if we find some more in the next bit
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31382,7 +31385,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// member, and to the same member in pSrcPhrWord2 - otherwise the ParseWord() function
 	// will end without doing these assignments
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31562,7 +31565,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31588,7 +31591,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 	}
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31661,7 +31664,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31724,7 +31727,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			pSrcPhrWord2->m_srcPhrase += additions;
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31748,7 +31751,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			return len;
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31787,7 +31790,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	else if (IsMarker(ptr))
 	{
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31925,7 +31928,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					return len;
 				}
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31998,7 +32001,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32032,7 +32035,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (bNotEither)
 	{
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32078,7 +32081,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				len--;
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32097,7 +32100,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		len--;
 	}
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 6 && pSrcPhrase->m_nSequNumber <= 7)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s  ParseWord() EXITS"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
