@@ -791,7 +791,26 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                 pApp->LogUserAction(_T("Calling Collab Project Migration dialog"));
                 if (collabProjMigrDlg.ShowModal() == wxID_OK)
                 {
-                    if (collabProjMigrDlg.m_bPT8BtnSelected)
+                    // whm 4Feb2020 added test below for PT9.
+                    if (collabProjMigrDlg.m_bPT9BtnSelected)
+                    {
+                        // Paratext 9 selected
+                        msg = _T("Collab Project Migration dialog : PT9 selection confirmed. Configuring the %s project's collaboration settings to use PT9");
+                        msg = msg.Format(msg, pApp->m_CollabAIProjectName.c_str());
+                        pApp->LogUserAction(msg);
+                        // Adjust the project configuration collab settings to point to projects in PT9 instead of PT7. The only
+                        // project configuration setting that needs to change is the CollabParatextVersionForProject whose value
+                        // is stored in the App's m_ParatextVersionForProject
+                        if (pApp->m_ParatextVersionForProject == _T("PTVersion7"))
+                            pApp->m_ParatextVersionForProject = _T("PTVersion9");
+                        else if (pApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+                            pApp->m_ParatextVersionForProject = _T("PTLinuxVersion9");
+                        // We programatically set value of App's m_bCollabDoNotShowMigrationDialogForPT7toPT8 to TRUE (although the dialog 
+                        // won't show again regardless of the value of m_bCollabDoNotShowMigrationDialogForPT7toPT8 as long as PT9 is selected)
+                        pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+                        bConfigFileChangesMade = TRUE; // forces a write of changes to the project configuration file in the block below
+                    }
+                    else if (collabProjMigrDlg.m_bPT8BtnSelected)
                     {
                         // Paratext 8 selected
                         msg = _T("Collab Project Migration dialog : PT8 selection confirmed. Configuring the %s project's collaboration settings to use PT8");
@@ -1126,6 +1145,11 @@ Reminder: You cannot open this project until your administrator installs Paratex
                         {
                             projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
                         }
+                        // whm 4Feb2020 added test below for PT9 
+                        else if (gpApp->m_ParatextVersionForProject == _T("PTVersion9"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
                         else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
                         {
                             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -1133,6 +1157,11 @@ Reminder: You cannot open this project until your administrator installs Paratex
                         else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
                         {
                             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
+                        // whm 4Feb2020 added test below for PT9 for Linux
+                        else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
                         }
                     }
                     else if (gpApp->m_collaborationEditor == _T("Bibledit"))
