@@ -139,6 +139,7 @@ public:
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void			RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr); // BEW 15Nov10 moved from view
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase);
+	void			RemoveManuallyEnteredPlaceholdersFromKB(); // BEW 12Feb20 removes any placeholders stored in KB
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
