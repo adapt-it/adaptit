@@ -3976,10 +3976,53 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
 	}
+	wxString strNot = m_pApp->m_strNotInKB;
 /*
-	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition
+	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition,
+	// but support setting of m_adaption and m_targetStr
 	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
 	{
+		if (tgtPhrase != strNot)
+		{
+			// BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
+			// same way that MakeTargetStringIncludingPunctuation() will do the
+			// capitalization for m_targetStr, formerly m_adaption was just set to
+			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+			// because the view only shows m_targetStr)
+			wxString s = tgtPhrase;
+			if (gbAutoCaps)
+			{
+				bool bNoError = TRUE;
+				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bNoError = m_pApp->GetDocument()->SetCaseParameters(s, FALSE); // FALSE is bIsSrcText
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to upper case
+						s.SetChar(0, gcharNonSrcUC);
+					}
+				}
+				pSrcPhrase->m_adaption = s;
+			}
+			else
+			{
+				pSrcPhrase->m_adaption = tgtPhrase;
+			}
+			//#if defined(FWD_SLASH_DELIM)
+			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+			}
+			//#endif
+			if (!m_pApp->m_bInhibitMakeTargetStringCall)
+			{
+				// sets m_targetStr member too, also does auto-capitalization adjustments
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
+			}
+		}
+
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
@@ -3987,7 +4030,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 */
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
-	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
 
     // do not permit storage if the source phrase has an empty key
@@ -4175,6 +4217,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	if (!tgtPhrase.IsEmpty())
 	{
 		tgtPhrase.Trim();
+		// also trim off an initial spaces. Yolngu people tend to leave them there in the box
+		tgtPhrase.Trim(FALSE); // BEW added, 14Feb20
 	}
 
     // always place a copy in the source phrase's m_adaption member, unless it is
@@ -6727,6 +6771,7 @@ void CKB::GuesserUpdate()
 
 void CKB::RemoveManuallyEnteredPlaceholdersFromKB()
 {
+/*
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	MapKeyStringToTgtUnit* pMap = this->m_pMap[0]; // pTU for manual placeholders is only in first map
 	wxASSERT(pMap != NULL);
@@ -6785,6 +6830,8 @@ void CKB::RemoveManuallyEnteredPlaceholdersFromKB()
 			pKB = gpApp->m_pKB;
 		if (pKB != NULL)
 			pKB->m_bCallerIsRemoveButton = TRUE;
+		m_pApp->GetDocument()->Modify(TRUE); // making the doc dirty allows a Save which 
+											 // will get the KB change saved too
 
 		// TODO  whatever else -- I may need to clone some code from editor's OnButtonRemove()
 	}
@@ -6793,4 +6840,5 @@ void CKB::RemoveManuallyEnteredPlaceholdersFromKB()
 		// No pTU with a list of CRefStrings of manually entered placeholder src/tgt entries exists
 		return;
 	}
+*/
 }
