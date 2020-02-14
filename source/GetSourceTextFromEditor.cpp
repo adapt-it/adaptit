@@ -191,12 +191,22 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
     wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
     wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxString PTvers = _T("");
-    if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8") || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+    // whm 4Feb2020 modified below for PT 9
+    if (m_pApp->m_ParatextVersionForProject == _T("PTVersion9")
+        || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
+    {
+        PTvers = _T("9");
+    }
+    else if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8")
+        || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
     {
         PTvers = _T("8");
     }
-    else
+    else if (m_pApp->m_ParatextVersionForProject == _T("PTVersion7")
+        || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+    {
         PTvers = _T("7");
+    }
     if (!PTvers.IsEmpty() && m_pApp->m_collaborationEditor == _T("Paratext"))
         PTvers = m_pApp->m_collaborationEditor + _T(" ") + PTvers;
     else
@@ -232,10 +242,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (m_pApp->m_bCollaboratingWithParatext) // if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
         // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the
-        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
-        // to indicate the specific version of PT we want the path for.
-		//m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
-		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
+        // Paratext command line utility rdwrtp7.exe/rdwrtp8.exe/rdwrtp9.exe file which is different for 
+        // PT7 and PT8, and potentially different for PT9 in the future, so I'm adding a parameter to 
+        // GetPathToRdwrtPT() to indicate the specific version of PT we want the path for.
+		m_rdwrtPTPathAndFileName = GetPathToRdwrtPT(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
 	}
 
     if (m_pApp->m_bCollaboratingWithBibledit)
@@ -542,7 +552,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	nSel = pListBoxBookNames->GetSelection();
 	fullBookName = pListBoxBookNames->GetString(nSel);
 	// When the user selects a book, this handler does the following:
-	// 1. Call rdwrtp7 to get copies of the book in a temporary file at a specified location.
+	// 1. Call rdwrtp7/8/9 to get copies of the book in a temporary file at a specified location.
 	//    One copy is made of the source PT/BE project's book, and the other copy is made of the
 	//    destination/target PT/BE project's book
 	// 2. Open each of the temporary book files and read them into wxString buffers.
@@ -634,11 +644,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// Bridged verses might look like the following:
 	// \v 23-25:nnnn:MD5
 
-	// We also need to call rdwrtp7 to get a copy of the target text book (if it exists). We do the
+	// We also need to call rdwrtp7/8/9 to get a copy of the target text book (if it exists). We do the
 	// same scan on it collecting an wxArrayString of values that tell us what chapters exist and have
 	// been translated.
 	//
-	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
+	// Usage: rdwrtp8 -r|-w project book chapter|0 fileName
 	wxString bookCode;
 	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
 
@@ -676,7 +686,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	freeTransTempFileName = tempFolder + m_pApp->PathSeparator;
 	freeTransTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, freeTransProjShortName, wxEmptyString, _T(".tmp"));
 
-	// Build the command lines for reading the PT projects using rdwrtp7.exe
+	// Build the command lines for reading the PT projects using rdwrtp7.exe for PT7 or rdwrtp8.exe for PT8 or PT9.
 	// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
 
 	// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
@@ -695,21 +705,21 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString commandLineSrc,commandLineTgt,commandLineFT;
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
-	    if (m_rdwrtp7PathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
+	    if (m_rdwrtPTPathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
 	    {
 	        // PT on linux -- need to add --rdwrtp7 as the first param to the command line
-            commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-            commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+            commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+            commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
             if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
-                commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+                commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 	    }
 	    else
 	    {
 	        // PT on Windows
-            commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-            commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+            commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+            commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
             if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
-                commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+                commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 	    }
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
@@ -790,6 +800,15 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		outputStr.Empty();
 		errorsStr.Empty();
 		int ct;
+        wxString editor;
+        if (m_pApp->m_bCollaboratingWithParatext)
+        {
+            editor = _T("Paratext");
+        }
+        else if (m_pApp->m_bCollaboratingWithBibledit)
+        {
+            editor = _T("Bibledit");
+        }
 		if (resultSrc != 0)
 		{
 			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
@@ -798,12 +817,28 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 					outputStr += _T(' ');
 				outputStr += outputSrc.Item(ct);
 			}
-			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!outputStr.IsEmpty())
+            {
+                outputStr += _T(" ");
+                outputStr += _("Source language project");
+                outputStr += _T(" ");
+                outputStr += editor;
+            }
+            for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
 					errorsStr += _T(' ');
 				errorsStr += errorsSrc.Item(ct);
 			}
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!errorsStr.IsEmpty())
+            {
+                errorsStr += _T(" ");
+                errorsStr += _("Source language project");
+                errorsStr += _T(" ");
+                errorsStr += editor;
+            }
 		}
 		if (resultTgt != 0)
 		{
@@ -813,13 +848,29 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 					outputStr += _T(' ');
 				outputStr += outputTgt.Item(ct);
 			}
-			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!outputStr.IsEmpty())
+            {
+                outputStr += _T(" ");
+                outputStr += _("Target language project");
+                outputStr += _T(" ");
+                outputStr += editor;
+            }
+            for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
 					errorsStr += _T(' ');
 				errorsStr += errorsTgt.Item(ct);
 			}
-		}
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!errorsStr.IsEmpty())
+            {
+                errorsStr += _T(" ");
+                errorsStr += _("Target language project");
+                errorsStr += _T(" ");
+                errorsStr += editor;
+            }
+        }
 
 		if (m_bTempCollaborationExpectsFreeTrans && resultFT != 0)
 		{
@@ -829,13 +880,29 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 					outputStr += _T(' ');
 				outputStr += outputFT.Item(ct);
 			}
-			for (ct = 0; ct < (int)errorsFT.GetCount(); ct++)
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!outputStr.IsEmpty())
+            {
+                outputStr += _T(" ");
+                outputStr += _("Free Translation language project");
+                outputStr += _T(" ");
+                outputStr += editor;
+            }
+            for (ct = 0; ct < (int)errorsFT.GetCount(); ct++)
 			{
 				if (!errorsStr.IsEmpty())
 					errorsStr += _T(' ');
 				errorsStr += errorsFT.Item(ct);
 			}
-		}
+            // whm 4Feb2020 added to better clarify the type of project
+            if (!errorsStr.IsEmpty())
+            {
+                errorsStr += _T(" ");
+                errorsStr += _("Free Translation language project");
+                errorsStr += _T(" ");
+                errorsStr += editor;
+            }
+        }
 
 		wxString msg;
 		wxString concatMsgs;

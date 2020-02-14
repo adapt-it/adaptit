@@ -332,7 +332,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // TODO: Enable the "Send directly from Adapt It radio button, the "Send Now" button and the "Attach this
     // document..." button in the dialog after Michael helps me get the php code working on the adapt-it.org server. 
     pRadioSendItDirectlyFromAI->Disable();
-    pButtonSendNow->Disable();
+    pButtonSendNow->Enable(); // whm 7Feb2020 changed initially to Enable since it is the only option
     pButtonAttachAPackedDoc->Disable();
     pRadioSendItDirectlyFromAI->SetValue(FALSE); // this is not the default now
     pRadioSendItToMyEmailPgm->SetValue(TRUE); // this is the default for now
@@ -458,6 +458,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 	if (!bMinimumFieldsHaveData())
 		return;
 
+    bool bSendToUsersEmail = FALSE;
 	wxString output;
 	wxString errorStr;
 	wxString senderName;
@@ -855,6 +856,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
         // as system info, etc, and send that via the hyperlink
         wxHyperlinkEvent hevent;
         OnHyperLinkMailToClicked(hevent);
+        bSendToUsersEmail = TRUE;
+        bEmailSendSuccessful = TRUE; // to avoid error message below
     }
 
 	// If the email cannot be sent, automatically invoke the OnBtnSaveReportAsXmlFile() 
@@ -900,7 +903,10 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			wxString msg1;
-			msg1 = msg1.Format(_("Your email was sent to the Adapt It developers at support@adapt-it.org.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
+            if (bSendToUsersEmail)
+                msg1 = msg1.Format(_("Your email was sent to your default email program, which should have opened automatically. You may need to activate the email program's window in the task bar to bring it into view. You can finish editing your report there and send it from your email program to the Adapt It developers at developers@adapt-it.org from you email program. \nThank you for your report.\nAdapt It put a copy of the report in your work folder at:\n   %s"), nameUsed.c_str());
+            else
+			    msg1 = msg1.Format(_("Your email was sent to the Adapt It developers at developers@adapt-it.org.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
 			wxMessageBox(msg1,_T(""),wxICON_INFORMATION | wxOK);
 		}
 	}
@@ -1353,16 +1359,15 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event)
     //
     // Flesh out the URL call string for launchURLStr, then explicitly call the wx function 
     // bool wxLaunchDefaultBrowser (const wxString & url, int flags = 0)
-    // TODO:
     // Build the launchURLStr with the following text components concatenated together:
-    // 1. "mailto:support@adapt-it.org"
+    // 1. "mailto:developers@adapt-it.org"
     // 2. "?subject=[Adapt%20It%20Problem%20report]%20" for Problem report, or "subject=[Adapt%20It%20Feedback]" for Feedback report
     // 3. content of emailSubject field URL encoded where needed in user edits
     // 4. "&body="
     // 5. content of emailBody field URL encoded where needed in user edits
     // 6. content of the sysInfo returned from the FormatSysInfoIntoString() function (preceeded and followed by 'do not remove' lines)
     //  
-    launchURLStr = _T("mailto:support@adapt-it.org");
+    launchURLStr = _T("mailto:developers@adapt-it.org");
     if (reportType == Report_a_problem)
     {
         launchURLStr += _T("?subject=[Adapt%20It%20Problem%20report]%20");

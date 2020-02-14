@@ -146,22 +146,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	projList.Clear();
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-        if (m_pApp->m_ParatextVersionForProject == _T("PTVersion7"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-        }
-        else if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-        }
-        else if (m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-        }
-        else if (m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-        }
+        projList = m_pApp->GetListOfPTProjects(m_pApp->m_ParatextVersionForProject); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
 	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{

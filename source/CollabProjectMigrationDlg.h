@@ -26,6 +26,7 @@ class CCollabProjectMigrationDlg : public AIModalDialog
 public:
     CCollabProjectMigrationDlg(wxWindow* parent, wxString aiProj, wxString srcProject, wxString tgtProject, wxString freeTransProject); // constructor
     virtual ~CCollabProjectMigrationDlg(void); // destructor
+    wxRadioButton* pRadioBtnPT9;
     wxRadioButton* pRadioBtnPT8;
     wxRadioButton* pRadioBtnPT7;
     wxStaticText* pStaticTextSrcProj;
@@ -35,11 +36,13 @@ public:
     wxCheckBox* pCheckBoxDoNotShowAgain;
     bool m_bDoNotShowAgain;
     bool m_bPT8BtnSelected;
+    bool m_bPT9BtnSelected;
 
 protected:
     void InitDialog(wxInitDialogEvent& WXUNUSED(event));
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
+    void OnRadioBtnPT9(wxCommandEvent& WXUNUSED(event));
     void OnRadioBtnPT8(wxCommandEvent& WXUNUSED(event));
     void OnRadioBtnPT7(wxCommandEvent& WXUNUSED(event));
     void OnCheckDontShowAgain(wxCommandEvent& WXUNUSED(event));

@@ -1202,16 +1202,19 @@ enum AiProjectCollabStatus
 	collabProjNotConfigured,
 };
 
-enum PTVersionsInstalled
-{
-    PTNotInstalled,
-    PTVer7,
-    PTVer8,
-    PTVer7and8,
-    PTLinuxVer7,
-    PTLinuxVer8,
-    PTLinuxVer7and8 // whm 27Nov2016 note: This enum existed but was not utilized in AI version 6.8.0, but is utilized as of AI 6.8.1
-};
+// whm 4Feb2020 the following enum is now deprecated
+//enum PTVersionsInstalled
+//{
+//    PTNotInstalled,
+//    PTVer7,
+//    PTVer8,
+//    PTVer7and8,
+//    PTVer9, // whm 4Feb2020 added for Paratext 9
+//    PTLinuxVer7,
+//    PTLinuxVer8,
+//    PTLinuxVer7and8, // whm 27Nov2016 note: This enum existed but was not utilized in AI version 6.8.0, but is utilized as of AI 6.8.1
+//    PTLinuxVer9 // whm 4Feb2020 added for Paratext9 when it is available for Linux
+//};
 
 /// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
 struct EthnologueCodePair {
@@ -1456,12 +1459,14 @@ struct UserProfileItem
 	wxArrayString usedFactoryValues;
 };
 
+// whm 4Feb2020 checked - no revisions needed for PT 9
 struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration support
 {
 	// Note: Paratext .ssf files also have some tag fields that provide file naming
 	// structure, i.e., <FileNameForm>, <FileNamePostPart>, <FileNamePrePart>. Since
-	// by using rdwrtp7.exe, we don't have to know the actual Paratext file names,
-	// or do any file name parsing, those fields are not really significant to Adapt It.
+	// by using rdwrtp7.exe/rdwrtp8.exe/rdwrtp9.exe, we don't have to know the actual 
+    // Paratext file names, or do any file name parsing, those fields are not really 
+    // significant to Adapt It.
 	bool bProjectIsNotResource; // default is TRUE
 	bool bProjectIsEditable; // default is TRUE
 	wxString versification; // default is _T("");
@@ -2591,7 +2596,6 @@ public:
 
 	bool m_bECConnected; // whm added for wx version
 	bool bECDriverDLLLoaded; // set TRUE or FALSE in OnInit()
-	bool bParatextSharedDLLLoaded;
 	CFindDlg* m_pFindDlg; // whm added to partly replace original
 						  // m_pFindReplaceDlg (non-modal)
 	CReplaceDlg* m_pReplaceDlg; // whm added to partly replace original
@@ -4524,12 +4528,11 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// substitutions.
 	wxString m_collaborationEditor;
 
-    // whm 20June2016 Note:
+    // whm 4Feb2020 updated Note:
     // If Paratext is installed, we need to know which major version of Paratext is
-    // associated with a given AI project. If PT7 is the version associated with the
-    // project this string value will be "PT7". If PT8 is the version associated with
-    // the project this string value will be "PT8". If neither PT7 nor PT8 are installed
-    // the string value will be null _T("").
+    // associated with a given AI project. String values for this member can be:
+    // "PTVersion7", "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
+    // If no Paratext versions are installed the string value will be null _T("").
     wxString m_ParatextVersionForProject;
 
 	// BEW 21May14, the following boolean is to support when only punctuation changes are made in PT or
@@ -4585,15 +4588,18 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
-    PTVersionsInstalled ParatextVersionInstalled(); // whm modified 20Apr2016
+    void InventoryCollabEditorInstalls();
+    bool IsThisParatextVersionInstalled(wxString PTVersion); // whm added 4Feb2020
+    wxString ValidateCollabEditorAndVersionStrAgainstInstallationData(wxString &collabEditor, wxString collabEditorVerStr);
+    //PTVersionsInstalled ParatextVersionInstalled(); // whm modified 20Apr2016 - Deprecated as of 4Feb2020. See IsThisParatextVersionInstalled()
     wxString GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath);
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
 
-#if defined(__WXGTK__)
+//#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12
-#endif
+//#endif
 	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
 	wxString GetBibleditProjectsDirPath();
 	wxString GetParatextInstallDirPath(wxString PTVersion); // whm modified 25June2016

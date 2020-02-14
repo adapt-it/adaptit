@@ -1154,6 +1154,9 @@ wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
 // Paratext or Bible edit is being supported, and whether or not free translation is
 // expected, the bookCode required, and the shortName to be used for the project which
 // pertains to the textKind passed in
+// TODO: Check below where --rdwrtp7 is used, and see whether PT8 and PT9 for Linux should 
+// use a --rdwrtp8 command-line option, and if so, change the cmdLine below to use --rdwrtp8 
+// instead of --rdwrtp7.
 wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 {
 	wxString cmdLine; cmdLine.Empty();
@@ -1177,9 +1180,9 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
         // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the
-        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
-        // to indicate the specific version of PT we want the path for.
-        cmdLineAppPath = GetPathToRdwrtp7(gpApp->m_ParatextVersionForProject);
+        // rdwrtp7.exe or rdwrtp8.exe (being different for PT7 and PT8), so I'm adding a parameter to 
+        // GetPathToRdwrtPT() to indicate the specific version of PT we want the path for.
+        cmdLineAppPath = GetPathToRdwrtPT(gpApp->m_ParatextVersionForProject);
 	}
 	else
 	{
@@ -4214,8 +4217,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 ///                     is non-empty and has at least one book defined in it
 /// \param projCompositeName     ->  the PT/BE project's composite string
 /// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
-/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8",
-///                                 "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
+/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8", "PTVerson9",
+///                                 "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9", or wxEmptyString
 /// \remarks
 /// Called from: CollabUtilities' CollabProjectsAreValid(),
 /// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(),
@@ -4230,6 +4233,7 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags
 /// member for the existence of at least one book in that project.
 /// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
+/// whm 4Feb2020 Revised for PT 9.
 bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor, wxString ptEditorVersion)
 {
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
@@ -4257,6 +4261,11 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
         {
             projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
         }
+        // whm 4Feb2020 added test for PTVersion9 below
+        else if (ptEditorVersion == _T("PTVersion9"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
         else if (ptEditorVersion == _T("PTLinuxVersion7"))
         {
             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -4265,7 +4274,12 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
         {
             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
         }
-	}
+        // whm 4Feb2020 added test for PTLinuxVersion9 below
+        else if (ptEditorVersion == _T("PTLinuxVersion9"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (collabEditor == _T("Bibledit"))
 	{
 		projList = gpApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -4303,8 +4317,8 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
 /// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
-/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8",
-///                                   "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
+/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8", "PTVerson9",
+///                                   "PTLinuxVersion7", "PTLinuxVersion8", "PTLinuxVersion9", or wxEmptyString
 /// \param errorStr               <-  a wxString (multi-line) representing any error information
 ///                                     for when a FALSE value is returned from the function
 /// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
@@ -4322,6 +4336,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// errorProjects string will also return to the caller a string indicating which type of project
 /// the errors apply to, i.e., "source" or "source:freetrans", etc.
 /// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
+/// whm 4Feb2020 Checked for PT 9 compatibility - no changes other than in \param ptEditorVersion description above
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
 							wxString freeTransCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects)
@@ -4402,6 +4417,8 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 }
 
 // This function should mainly be called for collab projects that are known to exist and be valid (have at least one book) in both PT7 and PT8
+// whm 4Feb2020 Migration really only happens between PT 7 and PT 8 so no changes needed in this function
+// The 5th parameter passed in will always be "PTVersion7" or "PTLinuxVersion7" and the 6 parameter passed in will always be "PTVersion8" or "PTLinuxVersion8"
 bool CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr, wxString CollabEditor, wxString PT7Version, wxString PT8Version)
 {
     bool bProjectsMigrated = FALSE; // Assume FALSE unless found to be TRUE below
@@ -4466,6 +4483,9 @@ bool CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr
 /// member for the project's GUID and returns it.
 /// whm added 5April2017 to help determine if a PT project has been migrated by comparing
 /// the PT7 project's GUID with the PT8 project's GUID
+/// whm 4Feb2020 this GetCollabProjectGUID() function is only called by the CollabProjectMigrated() function
+/// and as since the later function only check between PT 7 and PT8, the last parameter will only refer to
+/// Windows or Linux versions of PT7 or PT8. Hence, no revisions needed here for PT 9.
 wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion)
 {
     wxString collabProjShortName;
@@ -4488,6 +4508,11 @@ wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor,
         {
             projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
         }
+        // whm 4Feb2020 added test for PTVersion9 below
+        else if (ptEditorVersion == _T("PTVersion9"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
         else if (ptEditorVersion == _T("PTLinuxVersion7"))
         {
             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -4495,6 +4520,11 @@ wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor,
         else if (ptEditorVersion == _T("PTLinuxVersion8"))
         {
             projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        // whm 4Feb2020 added test for PTLinuxVersion9 below
+        else if (ptEditorVersion == _T("PTLinuxVersion9"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
         }
     }
     else if (collabEditor == _T("Bibledit"))
@@ -4518,15 +4548,18 @@ wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor,
     return collabProjectGUID;
 }
 
-// Gets the whole path including filename of the location of the rdwrtp7.exe utility program
-// for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
-// the utility depends on are also present in the same folder with rdwrtp7.exe.
+// Gets the whole path including filename of the location of the utility program
+// for collabotation with Paratext - named rdwrtp7.exe, rdwrtp8.exe, or rdwrtp9.exe. 
 // whm added 17March2017 a wxString ptVersion parameter to the function to accurately specify
-// the version of Paratext for which we are finding the path to the rdwrtp7.exe utility.
-wxString GetPathToRdwrtp7(wxString ptVersion)
+// the version of Paratext for which we are finding the path to the utility.
+// whm 4Feb2020 revised for Paratext 9 to remove specific reference to version 7 from the
+// function name and other variables in the function; changing the function header from
+// GetPathToRdwrtPT(wxString ptVersion) to GetPathToRdwrtPT(wxString ptVersion) for
+// better readability.
+wxString GetPathToRdwrtPT(wxString ptVersion)
 {
-	// determine the path and name to rdwrtp7.exe
-	wxString rdwrtp7PathAndFileName;
+	// determine the path and name to Paratext utility rdwrtp7.exe, rdwrtp8.exe, etc
+	wxString rdwrtPTPathAndFileName;
 	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
 	// ensure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
 	// is likely to get released before that happens, and in case some Paratext users haven't
@@ -4545,6 +4578,8 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
 	// modified the code below to not bother with checking for rdwrtp7.exe and its dlls
 	// in the Paratext installation, but only check to make sure they are available in the
 	// Adapt It installation.
+    // whm 4Feb2020 update to above. Since the PT team continues to supply the utility in
+    // the Paratext installations, the checks for dlls is no longer needed and removed.
     //
     // whm modified 4 April 2017 Tom H says that in the future the PT team will rename the
     // rdwrtp7.exe utility to rdwrtp8.exe to bring its naming scheme up to date. This
@@ -4560,6 +4595,8 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
     // rdwrtp7.exe, so I am removing them from our repository, as well as from our install
     // staging batch file _CopyXML2InstallFolders.bat, and from the Inno Setup Windows
     // installers.
+    // whm 4Feb2020 Note: This function should be code ready and AI user ready if/when
+    // the PT team changes the utility name to rdwrtp9.exe.
 
 #ifdef __WXMSW__
     wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
@@ -4568,7 +4605,7 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
         if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
         {
             // rdwrtp7.exe exists in the Paratext installation so use it
-            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+            rdwrtPTPathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
         }
     }
     else if (ptVersion == _T("PTVersion8"))
@@ -4578,14 +4615,31 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
         if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe")))
         {
             // rdwrtp8.exe exists in the Paratext installation so use it
-            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe");
+            rdwrtPTPathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe");
         }
         else if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
         {
             // rdwrtp7.exe exists in the Paratext installation so use it
-            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+            rdwrtPTPathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
         }
 	}
+    // whm 4Feb2020 added following test for "PTVersion9". 
+    else if (ptVersion == _T("PTVersion9"))
+    {
+        // PT 9 appears to use the same rdwrtp8.exe utility that PT 8 used, but in case the
+        // PT team later decides to use a rdwrtp9.exe utility for PT 9 we will test for it
+        // and use it here if it ever exists, otherwise we simply use rdwrtp8.exe.
+        if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp9.exe")))
+        {
+            // rdwrtp8.exe exists in the Paratext installation so use it
+            rdwrtPTPathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp9.exe");
+        }
+        else if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe")))
+        {
+            // rdwrtp8.exe exists in the Paratext installation so use it
+            rdwrtPTPathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe");
+        }
+    }
 #endif
 #ifdef __WXGTK__
     // whm revised 27Nov2016:
@@ -4594,18 +4648,20 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
     // and mono environment variables and then calls the "real" rdwrtp7.exe in the
     // Paratext installation directory. The script is needed to avoid a security exception
     // in ParatextShared.dll.
-    // By the time this GetPathToRdwrtp7 is called, the App's m_ParatextVersionForProject
+    // By the time this GetPathToRdwrtPT is called, the App's m_ParatextVersionForProject
     // variable will have been read/determined definitively for the PT Linux version being
     // used.
 
     if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
-	    rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+	    rdwrtPTPathAndFileName = _T("/usr/bin/paratext");
     else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
-        rdwrtp7PathAndFileName = _T("/usr/bin/paratext8");
-    wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+        rdwrtPTPathAndFileName = _T("/usr/bin/paratext8");
+    else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
+        rdwrtPTPathAndFileName = _T("/usr/bin/paratext9");
+    wxASSERT(::wxFileExists(rdwrtPTPathAndFileName));
 
 #endif
-	return rdwrtp7PathAndFileName;
+	return rdwrtPTPathAndFileName;
 }
 
 wxString GetPathToBeRdwrt()
@@ -5377,6 +5433,7 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 // characters resulted in the while loop overwriting the first 2 or 3 fields with the last 2 or 3
 // tokens garbling the composedProjStr.
 // The refactored version now puts the extra field tokens all in the EthnologueCode field.
+// whm 4Feb2020 no revision needed for compatibility with PT 9.
 bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList, wxString& composedProjStr)
 {
 	int nProjCount;

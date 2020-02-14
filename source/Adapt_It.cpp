@@ -569,6 +569,28 @@ extern bool gbIgnoreScriptureReference_Receive;
 /// This global is defined in MainFrm.cpp.
 extern SPList* gpDocList;
 
+/// whm 4Feb2020 added.
+/// The following bool values below represent what versions of Paratext are installed
+/// as determined by the App's IsThisParatextVersionInstalled() function.
+/// They are located here in the App's global space because both the App
+/// and the App class and the CSetupEditorCollaboration class set them and use
+/// their values.
+bool gbPTVer7Installed = FALSE;
+bool gbPTVer8Installed = FALSE;
+bool gbPTVer9Installed = FALSE;
+bool gbPTLinuxVer7Installed = FALSE;
+bool gbPTLinuxVer8Installed = FALSE;
+bool gbPTLinuxVer9Installed = FALSE;
+
+bool gbPTNotInstalled = FALSE;
+
+bool gbPTVer7OnlyInstalled = FALSE;
+bool gbPTVer8OnlyInstalled = FALSE;
+bool gbPTVer9OnlyInstalled = FALSE;
+bool gbPTLinuxVer7OnlyInstalled = FALSE;
+bool gbPTLinuxVer8OnlyInstalled = FALSE;
+bool gbPTLinuxVer9OnlyInstalled = FALSE;
+
 // The following declarations moved here from the View's global space
 
 ///BEW added 11Oct05 to support hiliting the cell under the clicked green wedge, or note
@@ -13860,9 +13882,726 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
     }
 }
 
+// This function determines which versions of Paratext are installed on this
+// computer. It sets a set of 13 boolean values which are stored in the App's
+// global space. These global bool variables are:
+//   gbPTVer7Installed
+//   gbPTVer8Installed
+//   gbPTVer9Installed
+//   gbPTLinuxVer7Installed
+//   gbPTLinuxVer8Installed
+//   gbPTLinuxVer9Installed
+//   gbPTVer7OnlyInstalled
+//   gbPTVer8OnlyInstalled
+//   gbPTVer9OnlyInstalled
+//   gbPTLinuxVer7OnlyInstalled
+//   gbPTLinuxVer8OnlyInstalled
+//   gbPTLinuxVer9OnlyInstalled
+//   gbPTNotInstalled
+//   
+// This function is called initially from the App's OnInit() function when the
+// program loads up. It is also called any time the Administrator accesses
+// the SetupEditorCollaboration dialog from the Administrator menu - ensuring
+// that when the Administrator accesses the SetupEditorCollaboration the above
+// PT installation-related bools are up to date.
+void CAdapt_ItApp::InventoryCollabEditorInstalls()
+{
+    // These bool values below represent what versions of Paratext are installed.
+    // This function is called initially from the App's OnInit() function when the
+    // program loads up. It is also called again any time the Administrator accesses
+    // the SetupEditorCollaboration dialog from the Administrator menu.
+    // Within the CSetupEditorCollaboration class it is called early in the InitDialog()
+    // method.
+    // These global bool values were all initialized to FALSE in the App's global space, 
+    // and then changed to TRUE below if that particular PT version is found to be installed 
+    // at the time this function is called (either in App's OnInit() or the 
+    // CSetupEditorCollaboration dialog).
+    gbPTVer7Installed = IsThisParatextVersionInstalled(_T("PTVersion7"));
+    gbPTVer8Installed = IsThisParatextVersionInstalled(_T("PTVersion8"));;
+    gbPTVer9Installed = IsThisParatextVersionInstalled(_T("PTVersion9"));;
+    gbPTLinuxVer7Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion7"));;
+    gbPTLinuxVer8Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));;
+    gbPTLinuxVer9Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));;
+
+    // Set up some convenience boolean variables for other possible PT installations, and a boolean 
+    // for whan no PT installations are found.
+
+    // First, set some convenience bools that indicate when ONLY a certain version is installed on this machine
+    if (gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+        gbPTVer7OnlyInstalled = TRUE;
+    if (gbPTVer8Installed && !gbPTVer7Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+        gbPTVer8OnlyInstalled = TRUE;
+    if (gbPTVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+        gbPTVer9OnlyInstalled = TRUE;
+    if (gbPTLinuxVer7Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+        gbPTLinuxVer7OnlyInstalled = TRUE;
+    if (gbPTLinuxVer8Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer9Installed)
+        gbPTLinuxVer8OnlyInstalled = TRUE;
+    if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
+        gbPTLinuxVer9OnlyInstalled = TRUE;
+    
+    // Also set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
+    // on this machine.
+    if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
+        gbPTNotInstalled = TRUE;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     One of enum type: PTVersionsInstalled: PTNotInstalled, PTVer7, PTVer8, PTVer7and8
-///             or (for Linux): PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8
+/// \return     TRUE if the PT version represented by the PTVersion string is installed on the computer,
+///             having a Paratext.exe file within the installation location and a data store in the
+///             appropriate location for the specified PT version.
+///             FALSE if the installation's Paratext.exe cannot be found, or the appropriate data store
+///             folder cannot be found for the specified PT version.
+/// \param   -> PTVersion  A wxString which must be one of: "PTVersion7", "PTVersion8", "PTVersion9", 
+///             "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
+/// \remarks    This function is a convenience function that uses much of the same code as the 
+/// ParatextVersionInstalled() function. This function just verifies whether a particular PT version is
+/// actually installed on the computer - where "installed" means having the requisite Paratext.exe 
+/// executable within installation location/folder as determined by the registry, and has a Paratext 
+/// data store folder at the location as determined by the registry or failing that, the default location. 
+/// This function does not attempt to determine whether the PT version has any appropriate projects for 
+/// collaboration or not, nor whether those projects are valid projects for adaptation purposes.
+/// whm 4Feb2020 added mainly to be able to enable/disable the "Paratext 7", "Paratext 8" and "Paratext 9"
+/// radio buttons appropriately in the CSetupEditorCollaboration class, but it could be used elsewhere
+/// when one wants to know if a single version of Paratext is installed on the computer.
+/// Called from: CSetupEditorCollaboration::DoInit(),
+bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
+{
+#ifdef __WXMSW__ // Windows host -- use registry
+
+    wxLogNull logNo; // eliminate any spurious messages from the system
+
+    wxString dirStrValue;
+    dirStrValue.Empty();
+    // In this function we'll get the installation folder info from the registry only as required by the
+    // specific version specified in the PTVersion input string.
+    // There are two registry views where the PT 8 key might be depending on the host OS architecture
+    // NOTE: With its initial relaease PT9 uses the same registry key that is used below for PT8, 
+    // that is ...\Paratext\8 so we'll declare the wxRegKey for PT8 here before the if blocks below 
+    // since the following two wxRegKey instances may be used in both the PTVersion9 block and the 
+    // "PTVersion8" block farther below.
+    wxRegKey keyOS64PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+    wxRegKey keyOS32PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    if (PTVersion == _T("PTVersion9"))
+    {
+        // CAUTION: What if the PT developers decide to change the RegKey of a PT9 installation to make
+        // it conform to the actual version number? i.e., ...\\Paratext\\9 ??? If they ever decide to do
+        // so, this function will fail to detect that PT version. So, as a way to forestall that possibility,
+        // we can do a little pre-emptive programming and test here for a ...\\Paratext\\9 key, and if it 
+        // exists use it, otherwise we go ahead and use the current ...\\Paratext\\8 key above for the 
+        // "PTVersion9" test.
+        wxRegKey keyOS64PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\9"));
+        wxRegKey keyOS32PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\9"));
+        if (keyOS64PT9InstallDir.Exists() && keyOS64PT9InstallDir.HasValues())
+        {
+            if (keyOS64PT9InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext9\)
+                keyOS64PT9InstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: PT9 installations don't have a ParatextShared.dll
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        else if (keyOS32PT9InstallDir.Exists() && keyOS32PT9InstallDir.HasValues())
+        {
+            if (keyOS32PT9InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // whm 4Feb2020 added following query for "Program_Files_Directory_Ptw9"
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext9\)
+                keyOS32PT9InstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: PT9 installations don't have a ParatextShared.dll
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        // Now check for the PT reg key that is \\Paratext\\8
+        else if (keyOS64PT8InstallDir.Exists() && keyOS64PT8InstallDir.HasValues())
+        {
+            if (keyOS64PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext9\)
+                keyOS64PT8InstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: PT9 installations don't have a ParatextShared.dll
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        else if (keyOS32PT8InstallDir.Exists() && keyOS32PT8InstallDir.HasValues())
+        {
+            if (keyOS32PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // whm 4Feb2020 added following query for "Program_Files_Directory_Ptw9"
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext9\)
+                keyOS32PT8InstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: PT9 installations don't have a ParatextShared.dll
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        // whm 4Feb2020 added additional checks for Paratext.exe located at their default PT9
+        // folder locations - this is a fallback in case wxRegKey fails above even though
+        // the Paratext 9 executables exist at their normal default paths for Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT9 installation location for 32-bit/64-bit PT
+            wxString exePathPT9_on_32bitOS = _T("C:\\Program Files\\Paratext 9\\Paratext.exe");
+            wxString exePathPT9_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 9\\Paratext.exe");
+            // whm Note: There is no ParatextShared.dll in PT 9
+            if (::wxFileExists(exePathPT9_on_32bitOS))
+            {
+                return TRUE;
+            }
+            else if (::wxFileExists(exePathPT9_on_64bitOS))
+            {
+                return TRUE;
+            }
+        }
+    }
+    else if (PTVersion == _T("PTVersion8"))
+    {
+        // There are two registry views where the PT 8 key might be depending on the host OS architecture
+        // NOTE: PT9 uses the same registry key that is used below for PT8 ...\Paratext\8
+        // The wxRegKey's are constructed up near the beginning of this function.
+        if (keyOS64PT8InstallDir.Exists() && keyOS64PT8InstallDir.HasValues())
+        {
+            if (keyOS64PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext9\)
+                keyOS64PT8InstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: Don't bother looking for the existence of ParatextShared.dll along with Paratext.exe
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        else if (keyOS32PT8InstallDir.Exists() && keyOS32PT8InstallDir.HasValues())
+        {
+            if (keyOS32PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext9\)
+                keyOS32PT8InstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: Don't bother looking for the existence of ParatextShared.dll along with Paratext.exe
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        // whm 22Jan2018 added additional checks for Paratext.exe and (possibly) ParatextShared.dll located at
+        // their default PT8 folder locations - fallback in case wxRegKey fails above even though
+        // the Paratext 8 executables exist at their normal default paths for Windows. See function header
+        // for the reason for this default check.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT8 installation location for 32-bit/64-bit PT
+            wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
+            wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
+            // whm 4Feb2020 decided to forego the detection of ParatextShared.dll since is was being 
+            // discontinued at some point before PT9 release.
+            //wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
+            //wxString dllPathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\ParatextShared.dll");
+            if (::wxFileExists(exePathPT8_on_32bitOS))
+            {
+                return TRUE;
+            }
+            else if (::wxFileExists(exePathPT8_on_64bitOS))
+            {
+                return TRUE;
+            }
+        }
+    }
+    else if (PTVersion == _T("PTVersion7"))
+    {
+        wxRegKey keyPT7InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+        if (keyPT7InstallDir.Exists() && keyPT7InstallDir.HasValues())
+        {
+            if (keyPT7InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+                // Note: the dirStrValue path ends with a backslash so we don't add one here.
+                dirStrValue = keyPT7InstallDir.QueryDefaultValue();
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                // Note: Don't bother looking for the existence of ParatextShared.dll along with Paratext.exe
+                if (::wxDirExists(dirStrValue) && ::wxFileExists(dirStrValue + _T("\\") + _T("Paratext.exe")))
+                {
+                    return TRUE;
+                }
+            }
+        }
+        // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+        // their default PT7 folder locations - fallback in case wxRegKey fails above even though
+        // the Paratext 7 executables exist at their normal default paths for Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT7 installation location for 32-bit PT
+            wxString exePathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\Paratext.exe");
+            wxString exePathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\Paratext.exe");
+            wxString dllPathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\ParatextShared.dll");
+            wxString dllPathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\ParatextShared.dll");
+            if ((::wxFileExists(exePathPT7_on_32bitOS)
+                && ::wxFileExists(dllPathPT7_on_32bitOS)))
+            {
+                return TRUE;
+            }
+            else if ((::wxFileExists(exePathPT7_on_64bitOS)
+                && ::wxFileExists(dllPathPT7_on_64bitOS)))
+            {
+                return TRUE;
+            }
+        }
+    }
+#endif
+
+#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
+
+    // The following don't need to be conditionally compiled since
+    // they would only be called on a Linux machine running the Linux version
+    // of Paratext.
+    if (PTVersion == _T("PTLinuxVersion9"))
+    {
+        wxString strDir = _T("/usr/lib/Paratext9");
+        if (::wxDirExists(strDir))
+        {
+            return TRUE;
+        }
+    }
+    else if (PTVersion == _T("PTLinuxVersion8"))
+    {
+        wxString strDir = _T("/usr/lib/Paratext8");
+        if (::wxDirExists(strDir))
+        {
+            return TRUE;
+        }
+        else
+        {
+            // there was no /usr/lib/Paratext8 directory, so check for an installation of the
+            // early PT8 beta that used the /usr/lib/Paratext directory - as verified by finding
+            // a major version number of 8 in its PTVersion file.
+            strDir = _T("/usr/lib/Paratext");
+            if (::wxDirExists(strDir))
+            {
+                // The normal PT7 install directory exists, check if it has a PT8 early beta installation in it
+                wxString PTLinuxMajorVersionNumStr;
+                PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strDir + PathSeparator + _T("PTVersion"));
+                //wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
+                if (PTLinuxMajorVersionNumStr == _T("8"))
+                    return TRUE;
+                // if the major version is indeed 7, then we found no "PTLinuxVersion8" installation.
+            }
+        }
+    }
+    else if (PTVersion == _T("PTLinuxVersion7"))
+    {
+        wxString strDir = _T("/usr/lib/Paratext");
+        if (::wxDirExists(strDir))
+        {
+            return TRUE;
+        }
+    }
+#endif
+
+
+    return FALSE; // when all tests above fail
+}
+
+// whm 4Feb2020 added the following function to consolidate same/similar code in 4 locations in SetupEditorCollaboration.
+// This function validates the Collab Editor (Paratext or Bibledit), and for Paratext validates the
+// Paratext version string (m_TempCollabEditorVersion). It returns the validated collab editor by
+// reference via the first parameter, and the function itself returns the validated PT version that
+// gets assigned to the App's m_ParatextVersionForProject, or to m_TempCollabEditorVersion string.
+// If a collabEditor cannot be determined the first parameter returns an empty string by reference
+// otherwise it returns either "Paratext" or "Bibledit".
+// If either the collabEditor, or a valid PT version cannot be determined the function itself returns
+// an empty string.
+// This function is called from:
+//   CAdapt_ItApp::SetCollabSettingsToNewProjDefaults() within CAdapt_ItApp::OnInit()'s, 
+//   CAdapt_ItApp::GetAIProjectCollabStatus(),
+//   CSetupEditorCollaboration::InitDialog(), and 
+//   CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() [3X].
+wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(wxString &collabEditor, wxString collabEditorVerStr)
+{
+    // whm 4Feb2020 Note: Either parateter of this function can be empty strings when this function is called.
+    // In fact, both parameters will be empty when it is first called in the SetCollabSettingsToNewProjectDefaults()
+    // function call within the App's OnInit(). Just before that first call, the App value for m_collaborationEditor 
+    // and m_ParatextVersionForProject will have been initialized to empty strings, and the result of this
+    // ValidateCollabEditorAndVersionStrAgainstInstallationData() function call there will be that m_collaborationEditor
+    // will remain an empty string, but if any version of PT is installed, the highest version of PT installed will
+    // be assigned to the m_ParatextVersionForProject App value. However, at that OnInit() call no project settings
+    // will be changed since no project has yet been opened when the OnInit() call is made.
+    // Only when this ValidateCollabEditorAndVersionStrAgainstInstallationData() function is called from
+    wxString tempCollabEditorVerStr;
+    tempCollabEditorVerStr = collabEditorVerStr;
+
+    // The boolean values used in the test below are determined in InitDialog()
+    if (gbPTVer7Installed || gbPTVer8Installed || gbPTVer9Installed || gbPTLinuxVer7Installed || gbPTLinuxVer8Installed || gbPTLinuxVer9Installed)
+    {
+        collabEditor = _T("Paratext");
+
+        // Ensure the PT version for tempCollabEditorVerStr is set appropriately.
+        if (gbPTVer7OnlyInstalled)
+        {
+            // Only PT version 7 is installed, so ensure that tempCollabEditorVerStr is set to "PTVersion7"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTVersion7");
+        }
+        else if (gbPTVer8OnlyInstalled)
+        {
+            // Only PT version 8 is installed, so ensure that tempCollabEditorVerStr is set to "PTVersion8"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTVersion8");
+        }
+        // whm 4Feb2020 added test for PTVer9
+        else if (gbPTVer9OnlyInstalled)
+        {
+            // Only PT version 9 is installed, so ensure that tempCollabEditorVerStr is set to "PTVersion9"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTVersion9");
+        }
+        // Now that the "Only" versions are bled off, check when two or more version are 
+        // installed, starting with all 3 versions are installed, and moving on to when
+        // just 2 of the 3 are installed.
+        else if (gbPTVer7Installed && gbPTVer8Installed && gbPTVer9Installed)
+        {
+            // All 3 PT versions are installed - a quite possible scenario for long-term PT users.
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8", or "PTVersion9" 
+            // it will NOT be changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTVersion9") && tempCollabEditorVerStr != _T("PTVersion8") && tempCollabEditorVerStr != _T("PTVersion7"))
+            {
+                // Neither PT 9 or PT 8 or PT 7 had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() PT9, PT8 and PT7 are all installed but none has valid projects dir or neither has at least 2 useable projects. Setting PT version to a default of PTVersion9.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9, PT 8 and PT 7 are installed, default here to the highest installed version PTVersion9.
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+        }
+        else if (gbPTVer8Installed && gbPTVer9Installed)
+        {
+            // PT8 and PT9 are installed - PT7 not installed - the common case for recent PT users who
+            // upgraded from PT8 to PT9.
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion9" or "PTVersion8" it will NOT be
+            // changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTVersion9") && tempCollabEditorVerStr != _T("PTVersion8"))
+            {
+                // Neither PT 9 or PT 8 had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT9 and PT8 are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to a default of PTVersion9.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9 and PT 8 are installed, default here to the highest installed version PTVersion9.
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+        }
+        else if (gbPTVer7Installed && gbPTVer9Installed)
+        {
+            // PT7 and PT9 are installed - PT8 not installed - this would be fairly uncommon unless a 
+            // user previously used PT7 and never migrated data to a PT8 installation before installing
+            // PT9. 
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion9" it will NOT be
+            // changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTVersion9") && tempCollabEditorVerStr != _T("PTVersion7"))
+            {
+                // Neither PT 9 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT7 and PT9 are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to PTVersion9 as default.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9 and PT 7 are installed,default here to highest installed version PTVersion9.
+                tempCollabEditorVerStr = _T("PTVersion9");
+            }
+        }
+        else if (gbPTVer7Installed && gbPTVer8Installed)
+        {
+            // Both PT versions 7 and 8 are installed on the machine.
+
+            // whm modified 4Feb2020. Set the PT version according to what is specified in the project 
+            // config file unless it is the case that tempCollabEditorVerStr is an empty string. 
+            // If it is an empty string then we will have to guess which PT version the user might want.
+            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7 
+            // to PT8, so I think that we can set PT8 as the suggested editor as long as there are at
+            // lease 2 valid PT projects available in PT8 (source and target projects). 
+            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration 
+            // can't actually be set up in this session, and we will leave the suggestion set to 
+            // "PTVersion7".
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8" it will NOT be
+            // changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty()
+                || (tempCollabEditorVerStr != _T("PTVersion8") && tempCollabEditorVerStr != _T("PTVersion7")))
+            {
+                // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7
+                wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
+                wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
+                wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
+                wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    tempCollabEditorVerStr = _T("PTVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    tempCollabEditorVerStr = _T("PTVersion7");
+                }
+                else
+                {
+                    // Neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT7 and PT8 are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to PTVersion8 as default.");
+                    LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here to highest installed version PTVersion8.
+                    tempCollabEditorVerStr = _T("PTVersion8");
+                }
+            }
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8" it will NOT be
+            // changed by the test below.
+        }
+        // ******************************** Now for the Linux Versions ********************************
+        // whm 4Feb2020 added test for PTLinuxVer9
+        else if (gbPTLinuxVer9OnlyInstalled)
+        {
+            // Only PT version 9 for Linux is installed, so ensure that tempCollabEditorVerStr is set to "PTLinuxVersion9"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTLinuxVersion9");
+        }
+        else if (gbPTLinuxVer8OnlyInstalled)
+        {
+            // Only PT version 8 for Linux is installed, so ensure that tempCollabEditorVerStr is set to "PTLinuxVersion8"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTLinuxVersion8");
+        }
+        else if (gbPTLinuxVer7OnlyInstalled)
+        {
+            // Only PT version 7 for Linux is installed, so ensure that tempCollabEditorVerStr is set to "PTLinuxVersion7"
+            // since it is the only version for possible collaboration.
+            tempCollabEditorVerStr = _T("PTLinuxVersion7");
+        }
+        // Now that the "Only" versions are bled off, check when two or more version are 
+        // installed, starting with all 3 versions are installed, and moving on to when
+        // just 2 of the 3 are installed.
+        else if (gbPTLinuxVer7Installed && gbPTLinuxVer8Installed && gbPTLinuxVer9Installed)
+        {
+            // All 3 PT Linux versions are installed - a quite possible scenario for long-term PT users.
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8", or "PTLinuxVersion9" 
+            // it will NOT be changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTLinuxVersion9") && tempCollabEditorVerStr != _T("PTLinuxVersion8") && tempCollabEditorVerStr != _T("PTLinuxVersion7"))
+            {
+                // Neither PT 9 or PT 8 or PT 7 had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() PT9, PT8 and PT7 for Linux are all installed but none has valid projects dir or neither has at least 2 useable projects. Setting PT version to a default of PTLinuxVersion9.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9, PT 8 and PT 7 are installed, default here to the highest installed version PTLinuxVersion9.
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+        }
+        else if (gbPTLinuxVer8Installed && gbPTLinuxVer9Installed)
+        {
+            // PT8 and PT9 Linux versions are installed - PT7 Linux is not installed - the common case for 
+            // recent PT users who upgraded from PT8 to PT9.
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion9" or "PTLinuxVersion8" it will NOT be
+            // changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTLinuxVersion9") && tempCollabEditorVerStr != _T("PTLinuxVersion8"))
+            {
+                // Neither PT 9 or PT 8 had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT9 and PT8 for Linux are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to a default of PTLinuxVersion9.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9 and PT 8 are installed, default here to the highest installed version PTLinuxVersion9.
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+        }
+        else if (gbPTLinuxVer7Installed && gbPTLinuxVer9Installed)
+        {
+            // PT7 and PT9 Linux versions are installed - PT8 Linux is not installed - this would be 
+            // fairly uncommon unless a user previously used PT7 and never migrated data to a PT8 
+            // installation before installing PT9. 
+            // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
+            // version of PT, then we accept what it points to even an older PT version and the Administrator
+            // can select a newer version if desired, but we should keep the older version config value
+            // so start with. 
+            // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
+            // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion9" it will NOT be
+            // changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty())
+            {
+                // A normal assignment when called from OnInit(), don't log
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+            else if (tempCollabEditorVerStr != _T("PTLinuxVersion9") && tempCollabEditorVerStr != _T("PTLinuxVersion7"))
+            {
+                // Neither PT 9 or PT 7 had valid projects dir path or at least 2 useable projects.
+                // Log the problem in user log since it has to be fixed by administrator.
+                wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT7 and PT9 are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to a default of PTLinuxVersion9.");
+                LogUserAction(msg);
+                // Assume the administrator will fix this situation. In the mean time, since both
+                // PT 9 and PT 7 are installed, default here to the highest installed version PTLinuxVersion9.
+                tempCollabEditorVerStr = _T("PTLinuxVersion9");
+            }
+        }
+        else if (gbPTLinuxVer7Installed && gbPTLinuxVer8Installed)
+        {
+            // Both PT Linux versions 7 and 8 are installed on the machine.
+
+            // whm modified 4Feb2020. Set the PT version according to what is specified in the project 
+            // config file unless it is the case that tempCollabEditorVerStr is an empty string. 
+            // If it is an empty string then we will have to guess which PT version the user might want.
+            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7 
+            // to PT8, so I think that we can set PT8 as the suggested editor as long as there are at
+            // lease 2 valid PT projects available in PT8 (source and target projects). 
+            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration 
+            // can't actually be set up in this session, and we will leave the suggestion set to 
+            // "PTLinuxVersion7".
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8" it 
+            // will NOT be changed by the test below.
+            if (tempCollabEditorVerStr.IsEmpty()
+                || (tempCollabEditorVerStr != _T("PTLinuxVersion8") && tempCollabEditorVerStr != _T("PTLinuxVersion7")))
+            {
+                // Assume that PT 8 for Linux will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7
+                wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
+                wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    tempCollabEditorVerStr = _T("PTLinuxVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    tempCollabEditorVerStr = _T("PTLinuxVersion7");
+                }
+                else
+                {
+                    // Neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In ValidateCollabEditorAndVersionStrAgainstInstallationData() both PT7 and PT8 for Linux are installed but neither has valid projects dir or neither has at least 2 useable projects. Setting PT version to PTLinuxVersion8 as default.");
+                    LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                    tempCollabEditorVerStr = _T("PTLinuxVersion8");
+                }
+            }
+        }
+    }
+    else if (gbPTNotInstalled && BibleditIsInstalled())
+    {
+        collabEditor = _T("Bibledit");
+        tempCollabEditorVerStr = wxEmptyString; // this should be empty when Bibledit is the editor
+    }
+    else
+    {
+        // Neither a valid editor nor a valid PT version could be determined so return empty strings for both.
+        collabEditor = wxEmptyString;
+        tempCollabEditorVerStr = wxEmptyString;
+    }
+
+    return tempCollabEditorVerStr;
+}
+
+
+/*
+// NOTE: As of 4Feb2020 this ParatextVersionInstalled() function is DEPRECATED and entirely
+// replaced by calls to the more flexible and more granular function IsThisParatextVersionInstalled().
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     One of enum type: PTVersionsInstalled: PTNotInstalled, PTVer7, PTVer8, PTVer7and8, PTVer9
+///             or (for Linux): PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8, PTLinuxVer9
 /// \remarks
 /// This function is important to Adapt It's collaboration functionality.
 /// Modified by whm 25Junel2016 and 27Nov2016 for detecting which Paratext version (7 or 8)
@@ -13870,7 +14609,8 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// The function works for Paratext installations on Windows or Linux (__WXGTK__).
 /// The revised function first checks for the existence of a Paratext 8 installation.
 /// It then checks for the existence of a Paratext 7 installation.
-/// If neither installation is found, the function returns PTNotInstalled.
+/// whm revised 4Feb2020 to cover release of Paratext 9 for Windows and Linux
+/// If no Paratexxt installation is found, the function returns PTNotInstalled.
 /// If only PT8 installation is found, the function returns PTVer8 on Windows or PTLinuxVer8 on Linux
 /// If only PT7 installation is found, the function returns PTVer7 on Windows or PTLinuxVer7 on Linux
 /// If both installations are found, the function returns PTVer7and8 on Windows or PTinuxVer7and8 for LInux.
@@ -13878,12 +14618,14 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// devs decided to allow both PT7 and PT8 to be installed on Linux simultaneously - just as in Wndows.
 /// Hence, for early Beta version of PT 8 the install was the same as for PT7, namely /usr/lib/Paratext
 /// but later PT 8 versions install at /usr/lib/Paratext8 and only PT installs at /usr/lib/Paratext.
+/// TODO: Check for Linux install of PT 9 - /usr/lib/Paratext9 ???
 /// Like on Windows, there are separate projects dir paths - to facilitate data migration from PT 7
 /// to PT 8 on Linux.
 /// The default PT projects dir on Linux will be ~/ParatextProjects for PTLinuxVer7 and
 /// ~/Paratext8Projects for PTLinuxVer8).
+/// TODO: Check for Linux default PT projects dir - does it follow Windows and remain ~/Paratext8Projects ???
 /// This function does not determine if an administrator has migrated a user's data from a
-/// PT 7 to a PT 8 install for specific projects.
+/// PT 7 to a PT 8 or PT 9 install for specific projects.
 /// The calling code will determine what to do with the PT installation information returned
 /// by this function, and the caller will have to determine the migration status of PT
 /// projects.
@@ -13891,16 +14633,21 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// is found, it can be assumed to be the currently active version and the user's data has
 /// been migrated to it. If PT 8 is not found but a PT 7 installation is found, PT 7
 /// is assumed to be the currently active version and has the current version of the user's
-/// PT data. However, the above assumptions/recommendations, while useful in a general way,
+/// PT data. No data migration required in upgrade of PT 8 to PT 9.
+/// However, the above assumptions/recommendations, while useful in a general way,
 /// are not so useful for AID collaboration. AID collaboration requires an exact
 /// determination of the Paratext version (and hence the installation and data store
-/// locations) in order to collaborate correctly, exchange data via the rdwrtp7.exe utility
-/// (retains same name in PT 8) and continue to collaborate correctly after an administrator
-/// has upgraded a user from PT 7 to PT 8.
+/// locations) in order to collaborate correctly, exchange data via the rdwrtp7.exe or rdwrtp8.exe 
+/// utility is required to collaborate correctly after an administrator has upgraded a user 
+/// from PT 7 to PT 8 and/or PT 9. The PT developers eventually added rdwrtp8.exe to the PT 8 
+/// Windows installation. 
 ///
 /// Called from: the App's OnInit(), GetAIProjectCollabStatus(), SetCollabSettingsToNewProjDefaults()
 ///    CSetupEditorCollaboration::InitDialog(), CSetupEditorCollaboration::DoInit(),
+///    CSetupEditorCollaboration::OnBtnSelectFromListSourceProj() ... FromListTarget...() FromListFreeTrans...()
 ///    CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData().
+///    CSetupEditorCollaboration::OnCreateNewAIProject()
+///    CSetupEditorCollaboration::DoSaveSetupForThisProject()
 /// Looks in the Windows registry/system to see if Paratext is installed.
 /// ON A WINDOWS SYSTEM:
 /// 1. Checks for the following key(s) in the Windows registry:
@@ -13912,39 +14659,49 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 ///    or
 ///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw8
 ///    when running on a 32-bit version of Windows
+///    For Paratext 9: // Note ...\Paratext\8\ reg path is still used in PT9, and only the value Program_Files_Directory_Ptw9 is added
+///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw9 
+///    when running on a 64-bit version of Windows
+///    or
+///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw9 // Note ...\Paratext\8\ reg path is still used in PT9
+///    when running on a 32-bit version of Windows
 /// 2. Checks if the string value associated with the above key represents a valid path
 ///    where Paratext is installed, default locations are "C:\Program Files\Paratext7\",
 ///    in the case of Paratext 7; "C:\Program Files\Paratext 8\", in the case of
 ///    Paratext 8 running on 32-bit Windows; or "C:\Program Files (x86)\Paratext 8\",
-///    in the case of Paratext 8 running on 64-bit Windows installations.
+///    in the case of Paratext 8 running on 64-bit Windows installations,
+///    "C:\Program Files\Paratext 9\", in the case of Paratext 9 running on 32-bit Windows;'
+///    or "C:\Program Files (x86)\Paratext 9\", in the case of Paratext 9 running on 64-bit 
+///    Windows installations.
 /// 3. Checks if the folder designated in 2 above contains the Paratext.exe executable file
-///    and the ParatextShared.dll file.
-/// whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+///    and (for PT7 and PT8 only) the ParatextShared.dll file - there is no ParatextShared.dll
+///    in PT 9.
+/// whm 22Jan2018 added additional checks for Paratext.exe (and ParatextShared.dll) located at
 ///    their default folder locations. At least one system that runs Windows 10 under
 ///    VMWare Fusion (Ron A), is not able to query the Windows registry for some unknown
 ///    reason. Therefore we will return PTVer7, PTVer8, or PTVer7and8 if the Paratext
 ///    executables are in their default installation folders even when the installation
 ///    paths cannot be determined from the normal Windows registry calls using wxRegKey.
-/// Note: We make every attemtp to get a definitive PT version on Windows for when both
-///    PT 7 and PT 8 are installed and the projects dir of both installations currently have
-///    valid/usable PT projects. If only PT 7 has valid/usable projects within its
+/// Note: We make every attemtp to get a definitive PT version on Windows for when each version
+///    PT 7, PT 8, and PT 9 are installed, and that the projects dir of both installations currently 
+///    have valid/usable PT projects. If only PT 7 has valid/usable projects within its
 ///    "My Paratext Projects" projects dir, we can assume that PTVer7 should be returned.
 ///    Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8 Projects"
-///    projects dir, we can assume that PTVer8 should be returned. However, if the projects
-///    dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
+///    projects dir, we can assume that PTVer8 or PTVer9 should be returned. However, if the 
+///    projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
 ///    return an ambiguous enum value of PTVer7and8. In that case the caller has to
 ///    determine whether to give priority to PT 8, or to query the user/administrator for
 ///    the appropriate version of PT for given collaboration project(s).
 /// ON A LINUX SYSTEM:
 /// 1. A "Paratext" directory exists at the following path: "/usr/lib/Paratext"
 /// 2. The /usr/lib/Paratext direcotry contains a Paratext.exe file
-/// 3. The /usr/lib/Paratext directory contains a ParatextShared.dll file
+/// 3. The /usr/lib/Paratext directory contains a ParatextShared.dll file (for PT7 or PT8)
 /// 4. The /usr/bin/paratext shell script sets an environment variable called
 ///    MONO_REGISTRY_PATH to a non-empty string - as determined by a call to the
 ///    GetParatextEnvVar() function.
 /// Note: To get a definitive PT version on Linux we call GetParatextProjectsDirPath() and
 ///    examine the dir returned to see if it has '8' in its name ("Paratext8Projects").
-///    If so it must be PTLinuxVer8, otherwise it is PTLinuxVer7.
+///    If so it must be PTLinuxVer8 (or PTLinuxVer9), otherwise it is PTLinuxVer7.
 /// This function only reads/queries the Windows registry/system; it does not make changes
 /// to it.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -13952,30 +14709,61 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
 {
     bool bPT7Installed = FALSE;
     bool bPT8Installed = FALSE;
+    bool bPT9Installed = FALSE; // whm 4Feb2020 added
+    bool bPT7LinuxInstalled = FALSE;
+    bool bPT8LinuxInstalled = FALSE;
+    bool bPT9LinuxInstalled = FALSE; // whm 4Feb2020 added
 
-#ifdef __WXMSW__ // Windows host -- use registry
+//#ifdef __WXMSW__ // Windows host -- use registry
 
     wxLogNull logNo; // eliminate any spurious messages from the system
-                     // determine if the Paratext Program_Files_Directory_Ptw8 key exists in the host Windows' registry;
-                     // Check first for Paratext 8 installed on a 64-bit Windows OS
-                     // if it points to a valid directory; and it that directory contains a Paratext.exe file
+
+    // whm 4Feb2020 added checks for PT9 registry entires.
+    // Notes: This function only checks for the installation of Paratext version(s); it does
+    // not indicate whether a given version is actually running. For that see ParatextIsRunning()
+    // and/or BibleditIsRunning().
+    // By examining the Windows registry after installation of Paratext 9, it is clear that
+    // Paratext 9 retains the Paratext\8 registry path, and simply adds the following reg Name-Data pair:
+    //   Name: Program_Files_Directory_Ptw9 with Data: C:\Program Files (x86)\Paratext 9\.
+    // So we examine the save reg key ...\Paratext\8, and query for both of these Name-Data values:
+    //   Program_Files_Directory_Ptw8, and Program_Files_Directory_Ptw9.
+    // Check first for Paratext 8 installed on a 64-bit Windows OS - to see if it
+    // points to a valid directory; and it that directory contains a Paratext.exe file
     wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
     wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
     wxString dirStrValue;
     dirStrValue.Empty();
     if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
     {
+        // The 64-bit key exists and has values
         if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
         {
+            // whm 4Feb2020 added query here for Program_Files_Directory_Ptw9
+            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext 8\)
+            keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+            // Note: the dirStrValue path ends with a backslash so we don't add one here.
+            if (::wxDirExists(dirStrValue)) // does dirStrValue path exist?
+            {
+                // Note: Main main Paratext component that we check for to determine
+                // if Paratext is installed is Paratext.exe. There is no ParatextShared.dll
+                // in PT9.
+                if (::wxFileExists(dirStrValue + _T("Paratext.exe")))
+                    //&& ::wxFileExists(dirStrValue + _T("ParatextShared.dll"))) // Note: PT9 doesn't have a ParatextShared.dll
+                {
+                    bPT9Installed = TRUE;
+                }
+            }
+
+            // Now query for Program_Files_Directory_Ptw8
             //wxString settingsDirStrValue;
             // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext 8\)
             keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
             //keyOS64PTInstallDir.QueryValue(_T("Settings_Directory"), settingsDirStrValue);
             // Note: the dirStrValue path ends with a backslash so we don't add one here.
             //dirStrValue = keyOS64PTInstallDir.QueryDefaultValue();
-            if (::wxDirExists(dirStrValue))
+            if (::wxDirExists(dirStrValue)) // does dirStrValue path exist?
             {
-                // Note: There are two main Paratext components that we check for to determine
+                // Note: There are two main Paratext components in PT8 that we check for to determine
                 // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
                 // the main program. The other is the shared dynamic library with which our
                 // collaboration with Paratext is achieved. We later interact with the
@@ -13988,9 +14776,10 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
             }
         }
     }
-    // If above test failed check next for Paratext 8 installed on a 32-bit Windows OS
+    // If above test failed, check next for Paratext 8 installed on a 32-bit Windows OS
     else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
     {
+        // The 32-bit key exists and has values
         if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
         {
             // get the folder path stored in the key, (i.e., C:\Program Files\Paratext 8\)
@@ -14016,7 +14805,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // the Paratext 8 executables exist at their normal default paths for Windows.
     if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
     {
-        // Check the default PT8 installation location for 32-bit PT
+        // Check the default PT8 installation location for 32-bit adn 64-bit PT
         wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
         wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
         wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
@@ -14028,11 +14817,17 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         {
             bPT8Installed = TRUE;
         }
-
+        // whm 4Feb2020 added for PT9
+        wxString exePathPT9_on_32bitOS = _T("C:\\Program Files\\Paratext 9\\Paratext.exe");
+        wxString exePathPT9_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 9\\Paratext.exe");
+        if (::wxFileExists(exePathPT9_on_32bitOS) || ::wxFileExists(exePathPT9_on_64bitOS))
+        {
+            bPT9Installed = TRUE;
+        }
     }
 
     // Check next for a PT7 installation
-    // The PT 8's Program_Files_Directory_Ptw8 don't exist, so determine if the PT 7's
+    // Neither the PT 8 nor the PT 9 installation reg keys exist, so determine if the PT 7's
     // Program_Files_Directory_Ptw7 key exists in the host Windows' registry; if so,
     // does it point to a valid directory; and does that directory contain a Paratext.exe file
     wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
@@ -14080,6 +14875,16 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
 
     }
 
+    // whm 4Feb2020 added. If Paratext 9 is installed it is an "upgrade" to Paratext 8, so we
+    // should be able to assume that it is being used even though earlier versions of Paratext
+    // may be installed alongside it. Even if a user fires up Paratext 8 instead of Paratext 9
+    // PT8 and PT9 use the same data store, and eventually this function would return PTVer8 
+    // during that running of PT8. It doesn't appear to make a difference whether rdwrtp8.exe
+    // is called from the PT8 or PT9 installation location for collaboration to succeed.
+    if (bPT9Installed)
+    {
+        return PTVer9;
+    }
     // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
     // collaboration by examining the projects dir for each installation, and determine if only one
     // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable
@@ -14088,7 +14893,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // Projects" projects dir, we can assume that PTVer8 should be returned. However, if the
     // projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
     // return an ambiguous enum value of PTVer7and8.
-    if (bPT8Installed && bPT7Installed)
+    else if (bPT8Installed && bPT7Installed)
     {
         wxArrayString pt7ProjList;
         wxArrayString pt8ProjList;
@@ -14122,9 +14927,9 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         return PTVer8;
     else if (bPT7Installed)
         return PTVer7;
-    return PTNotInstalled;
-#endif
-#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
+    //return PTNotInstalled;
+//#endif
+//#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
 
     // whm 21June2016 Note: Tom Hindle said that their then-current plans were that the
     // PT version 8 for Linux's installation files would go in the same location
@@ -14156,50 +14961,79 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // we then use the same method as the Windows code above uses - checking for valid
     // PT projects in the respective projects directory.
 
-    // Look for a PT8 installation
-    wxString strPTInstallDir = _T("/usr/lib/Paratext8");
-    if (::wxDirExists(strPTInstallDir))
+    // whm TODO: Check the following test to ensure it works properly once Paratext 9 for
+    // Linux is released.
+
+    // Look for a PT9 installation
+    wxString strPT9InstallDir = _T("/usr/lib/Paratext9");
+    if (::wxDirExists(strPT9InstallDir))
     {
         // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
-        if (::wxFileExists(strPTInstallDir + _T("/Paratext.exe"))
-            && ::wxFileExists(strPTInstallDir + _T("/ParatextShared.dll"))
+        if (::wxFileExists(strPT9InstallDir + _T("/Paratext.exe"))
+            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT9")).IsEmpty()))
+        {
+            // Note: The /usr/lib/Paratext9 directory exists, and the PT component executable file exists
+            // so we can assume that it is certainly a PT9 installation and we don't have to look into
+            // the PTVersion file in that location to be sure.
+            bPT9LinuxInstalled = TRUE;
+        }
+    }
+
+    // Look for a PT8 installation
+    wxString strPT8InstallDir = _T("/usr/lib/Paratext8");
+    if (::wxDirExists(strPT8InstallDir))
+    {
+        // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
+        if (::wxFileExists(strPT8InstallDir + _T("/Paratext.exe"))
+            && ::wxFileExists(strPT8InstallDir + _T("/ParatextShared.dll"))
             && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8")).IsEmpty()))
         {
             // Note: The /usr/lib/Paratext8 directory exists, and the PT component executable files exist
             // so we can assume that it is certainly a PT8 installation and we don't have to look into
             // the PTVersion file in that location to be sure. We have to make an extra check for the PT 7
             // situation - see the next if blocks below.
-            bPT8Installed = TRUE;
+            bPT8LinuxInstalled = TRUE;
         }
     }
 
     // Now, look for a PT 7 installation
-    strPTInstallDir = _T("/usr/lib/Paratext");
-    if (::wxDirExists(strPTInstallDir))
+    wxString strPT7InstallDir = _T("/usr/lib/Paratext");
+    if (::wxDirExists(strPT7InstallDir))
     {
         // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
-        if (::wxFileExists(strPTInstallDir + _T("/Paratext.exe"))
-            && ::wxFileExists(strPTInstallDir + _T("/ParatextShared.dll"))
+        if (::wxFileExists(strPT7InstallDir + _T("/Paratext.exe"))
+            && ::wxFileExists(strPT7InstallDir + _T("/ParatextShared.dll"))
             && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7")).IsEmpty()))
         {
             // Note: The /usr/lib/Paratext directory exists and the PT component executable files exist
             // but we don't know for sure whether that represents a PT7 or an early Beta of PT8, so we
             // need to look further by examining the contents of the PTVersion file in that same directory
             wxString PTLinuxMajorVersionNumStr;
-            PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strPTInstallDir + PathSeparator + _T("PTVersion"));
+            PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strPT7InstallDir + PathSeparator + _T("PTVersion"));
             //wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
             // If the major version number is 8, the user still has an early PT8 installation at /usr/lib/Paratext
             // and we know that PT7 is not installed.
             // Otherwise, if the major version number is indeed 7, then we know that PT 7 is installed
             if (PTLinuxMajorVersionNumStr == _T("7"))
-                bPT7Installed = TRUE;
+                bPT7LinuxInstalled = TRUE;
            // If the major version is not "7" we just leave the value of bPT7Installed as FALSE
         }
     }
 
-    // Now we deal with the situation in which both PT7 and PT8 are installed. Same as Windows code above,
-    // except we return enum values that are specific to the Linux versions:
-    //    PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8
+    // whm 4Feb2020 added test of bPT9Installed and if so, return PTLinuxVer9 below
+    if (bPT9LinuxInstalled)
+    {
+        wxArrayString pt9ProjList;
+        pt9ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion9"));
+        if (pt9ProjList.GetCount() > 0)
+        {
+            // PT 9 has project(s) - assume it is the active installed version
+            return PTLinuxVer9;
+        }
+    }
+    // Now we deal with the situation in which both PT7 and PT8 for Linux are installed. Same as
+    // Windows code above, except we return enum values that are specific to the Linux versions:
+    //    PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer9, PTLinuxVer7and8
     // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
     // collaboration by examining the projects dir for each installation, and determine if only one
     // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable
@@ -14208,7 +15042,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // Projects" projects dir, we can assume that PTVer8 should be returned. However, if the
     // projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
     // return an ambiguous enum value of PTVer7and8.
-    if (bPT8Installed && bPT7Installed)
+    else if (bPT8LinuxInstalled && bPT7LinuxInstalled)
     {
         wxArrayString pt7ProjList;
         wxArrayString pt8ProjList;
@@ -14238,29 +15072,33 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         else // not a logical possibility
             return PTLinuxVer7and8;
     }
-    else if (bPT8Installed)
+    else if (bPT8LinuxInstalled)
         return PTLinuxVer8;
-    else if (bPT7Installed)
+    else if (bPT7LinuxInstalled)
         return PTLinuxVer7;
+    // if we get here no known version of PT is installed
     return PTNotInstalled;
 
-#endif
+//#endif
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the Paratext for Linux's major version number
 /// \param      PTVersionFilePath a wxString path to the dir of the PTVersion file on Linux
 /// \remarks
-/// Called from ParatextVersionInstalled() - on Linux systems only
+/// Called from IsThisParatextVersionInstalled().
 /// This method opens up the "PTVersion" text file that is located at the PTVersionFilePath
-/// which will be either /usr/lib/Paratext/PTVersion or /usr/lib/Paratext8/PTVersion,
-/// and parses out the last line that has an embedded reference to the PT version within
-/// parentheses and double quote marks similar to this: ("7.5.100.312")
+/// which will be either /usr/lib/Paratext/PTVersion, or /usr/lib/Paratext8/PTVersion,
+/// or /usr/lib/Paratext9/PTVersion, and parses out the last line that has an embedded 
+/// reference to the PT version within parentheses and double quote marks similar to 
+/// this: ("7.5.100.312") or ("8.x.xxx...), etc.
 /// We parse out the string value that represents the first digit of that version number,
-/// which will normally be a "7" or an "8" and return that single digit string. If the PTVersion
-/// file is not found or doesn't have a recognizable major string number, an empty string is
-/// returned.
-/// Note that this method is not called under the Windows environment.
+/// which will normally be a "7" or an "8" or a "9" and return that single digit string. 
+/// If the PTVersion file is not found or doesn't have a recognizable major string number, 
+/// an empty string is returned.
+/// Note that, although this method is may be called under the Windows environment, it won't
+/// ordinarily find a PTVersion file at a /usr/lib/Paratext... path on a Windows computer.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath)
 {
@@ -14295,8 +15133,7 @@ wxString CAdapt_ItApp::GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersi
     // We can parse the first digit from inside the quotes to get the major version number
     // - in the above examples it would be "7" or "8".
     // Note: this PTVersion file is apparently only located in a Linux/Mono installation,
-    // and doesn't appear to be present in a Windows installation. Hence, we make use of
-    // it only here in the __WXGTK__ block of ParatextVersionInstalled().
+    // and doesn't appear to be present in a Windows installation. 
 
     if (PTVersionFilePath.IsEmpty())
         return verStr; // empty
@@ -14388,7 +15225,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 #endif // of #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
 }
 
-#if defined(__WXGTK__) // only used for mono / linux
+//#if defined(__WXGTK__) // only used for mono / linux
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the Paratext environment variable
 /// \remarks
@@ -14400,6 +15237,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 /// Note that this method is not called under the Windows environment.
 /// whm 27Nov2016 revised to add a wxString parameter to specify the version of
 /// Paratext is being queried.
+/// whm 4Feb2020 added test for PTverStr == _T("PT9")
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTverStr)
 {
@@ -14408,6 +15246,8 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
         strScriptFilename = _T("/usr/bin/paratext");
     else if (PTverStr == _T("PT8"))
         strScriptFilename = _T("/usr/bin/paratext8");
+    else if (PTverStr == _T("PT9"))
+        strScriptFilename = _T("/usr/bin/paratext9"); // whm 4Feb2020 TODO: Check this on Linux!!!
     else
         wxASSERT_MSG(FALSE, _T("Programmer Error in GetParatextEnvVar() function - Unknown parameter to function."));
     wxString value;
@@ -14437,12 +15277,12 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
     // return what we found
     return value;
 }
-#endif
+//#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the Paratext projects directory
 /// \param      wxString PTVersion - a wxString designating the PT version to use: "PTVersion7",
-///             "PTVersion8", "PTLinuxVersion7", or "PTLinuxVersion8".
+///             "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8" or "PTLinuxVersion9".
 ///             An empty input parameter _T("") does not currently happen
 /// \remarks
 /// Called from: the App's GetListOfPTProjects(), AiProjectCollabStatus(),
@@ -14458,15 +15298,21 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 /// Paratext specified in the function's wxString PTVersion parameter.
 /// Windows version generally returns C:\My Paratext Projects for PT7 or C:\My Paratext 8 Projects for PT 8.
 /// Linux version generally returns $HOME/ParatextProjects for PT7 or $HOME/Paratext8Projects for PT 8.
+/// whm 4Feb2020 Note: PT9 continues to use the same dir path/folder that PT8 used - but only if the
+/// computer already had a "My Paratext 8 Projects" directory. For a fresh installation of Paratext 9
+/// on a computer that did not have a previous PT8 installation, the Paratext Full (Offline) installer
+/// actually creates a "My Paratext 9 Projects" folder! Hence some users will have a "My Paratext 8 Projects"
+/// folder and some (usually newer) user will have a "My Paratext 9 Projects" folder after installing PT9!
 /// For Windows we first look for the specified PT installation and if found, returns its Projects Dir path
-/// by inspecting the Settings_Directory key value. If the incoming parameter is empty string we look first
-/// for PT 8. If no PT 8 installation is found, we look for a PT 7 installation and if found, return
-/// its Projects Dir path by inspecting its ...Settings_Directory key.
+/// by inspecting the Settings_Directory key value. 
+/// If the incoming parameter is empty string we look first for PT 8. If no PT 8 installation is found, 
+/// we look for a PT 7 installation and if found, return its Projects Dir path by inspecting its 
+/// ...Settings_Directory key.
 /// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8     for a 32-bit system
 ///    At the "8" registry node, in the above reg key, we query for its key value of
-///    "Settings_Directory" to get the PT 8 projects dir path.
+///    "Settings_Directory" to get the PT 8 projects dir path. The PT 9 uses same dir as PT 8 does.
 /// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Settings_Directory
 /// If the key is not found, or is found but the value string does not exist on
@@ -14475,10 +15321,11 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 22Jan2018 by whm to check for default paths if wxRegKey fails for some reason,
 /// as reported by Ron A who uses PT8 on a Mac host running Win10 under VMWare Fusion.
+/// Revised 4Feb2020 by whm to handle collaboration with PT 9.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 {
-    // The PTVersion parameter can be: "PTVersion7", "PTVersion8", "PTLinuxVersion7", or "PTLinuxVersion8"
+    // The PTVersion parameter can be: "PTVersion7", "PTVersion8", "PTVersion9", "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
 
     wxString path;
     path.Empty();
@@ -14487,41 +15334,85 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     wxLogNull logNo; // eliminate any spurious messages from the system
 
     wxString dirStrValue;
-    dirStrValue.Empty();
-    if (PTVersion == _T("PTVersion8")) //if (PTVersion == _T("PTVersion8") || PTVersion == _T(""))
+    dirStrValue.Empty(); // dirStrValue is returned as empty string if no keys or matching directories are found.
+    // whm 4Feb2020 Note: In the future it is possible that the PT developers may create a registry key
+    // that is unique to Paratext 9, so the first test below attempts to take advantage of that possibility
+    // if it should happen by checking for the existence of these keys: 
+    //    "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\9", and
+    //    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\9"
+    // If no such keys exist (as is the case in Feb2020), the test then tries to find the PT8 keys ...\\Paratext\\8 
+    // (which are currently used by PT 9), and extracts the Projects Dir Path from those keys.
+    // There are two registry views where the PT 8 key might be depending on the host OS architecture
+    // Note: Currently, as of Feb2020, PT 9 uses the same \Paratext\8 key, rather than ...\\Paratext\\9
+    // Get instances of the PT8 keys here so they can be use in both the PTVersion9 and PTVersion8 tests below.
+    wxRegKey keyOS64PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+    wxRegKey keyOS32PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    if (PTVersion == _T("PTVersion9"))
     {
-        // There are two registry views where the PT 8 key might be depending on the host OS architecture
-        wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
-        wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
-        if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
+        wxRegKey keyOS64PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\9"));
+        wxRegKey keyOS32PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\9"));
+        if (keyOS64PT9InstallDir.Exists() && keyOS64PT9InstallDir.HasValues())
         {
-            if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            if (keyOS64PT9InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
-                keyOS64PTInstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                keyOS64PT9InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
                 // remove the final backslash, since our path values generally don't have a
                 // trailing path separator.
                 if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
                     dirStrValue.RemoveLast(1);
                 if (::wxDirExists(dirStrValue))
                 {
-                    path = dirStrValue;
+                    return dirStrValue; // path = dirStrValue;
                 }
             }
         }
-        else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
+        else if (keyOS32PT9InstallDir.Exists() && keyOS32PT9InstallDir.HasValues())
         {
-            if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            if (keyOS32PT9InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
-                keyOS32PTInstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                keyOS32PT9InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
                 // remove the final backslash, since our path values generally don't have a
                 // trailing path separator.
                 if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
                     dirStrValue.RemoveLast(1);
                 if (::wxDirExists(dirStrValue))
                 {
-                    path = dirStrValue;
+                    return dirStrValue; //path = dirStrValue;
+                }
+            }
+        }
+        // else check for the PT reg key at ...\\Paratext\\8
+        else if (keyOS64PT8InstallDir.Exists() && keyOS64PT8InstallDir.HasValues())
+        {
+            if (keyOS64PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
+                keyOS64PT8InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    return dirStrValue; //path = dirStrValue;
+                }
+            }
+        }
+        else if (keyOS32PT8InstallDir.Exists() && keyOS32PT8InstallDir.HasValues())
+        {
+            if (keyOS32PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
+                keyOS32PT8InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    return dirStrValue; //path = dirStrValue;
                 }
             }
         }
@@ -14530,11 +15421,71 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
         // Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
-            // Check the default PT8 installation location for projects
-            wxString projPathPT8 = _T("C:\\My Paratext 8 Projects");
+            // Check the default PT9 installation location for projects, i.e., the "My Paratext 9 Projects" is
+            // the default installation location when the PT9 installer sees that no previous PT8 installation
+            // created a "My Paratext 8 Projects" folder.
+            // So, check first for the 9 folder
+            wxString projPathPT9 = _T("C:\\My Paratext 9 Projects"); // whm 4Feb2020 Note: This is same path for PT 9
+            if (::wxDirExists(projPathPT9))
+            {
+                return projPathPT9; //path = projPathPT9; // no final backslash on path
+            }
+            // Lastly check for an 8 folder
+            wxString projPathPT8 = _T("C:\\My Paratext 8 Projects"); // whm 4Feb2020 Note: This is same path for PT 9
             if (::wxDirExists(projPathPT8))
             {
-                path = projPathPT8; // no final backslash on path
+                return projPathPT9; //path = projPathPT8; // no final backslash on path
+            }
+        }
+    }
+    else if (PTVersion == _T("PTVersion8"))
+    {
+        // There are two registry views where the PT 8 key might be depending on the host OS architecture
+        // Note: PT 9 uses the same \Paratext\8 key.
+        //wxRegKey keyOS64PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+        //wxRegKey keyOS32PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+        if (keyOS64PT8InstallDir.Exists() && keyOS64PT8InstallDir.HasValues())
+        {
+            if (keyOS64PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
+                keyOS64PT8InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    return dirStrValue; //path = dirStrValue;
+                }
+            }
+        }
+        else if (keyOS32PT8InstallDir.Exists() && keyOS32PT8InstallDir.HasValues())
+        {
+            if (keyOS32PT8InstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
+                keyOS32PT8InstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    return dirStrValue; //path = dirStrValue;
+                }
+            }
+        }
+        // whm 22Jan2018 added additional checks for default PT8/PT9 projects folder location - fallback
+        // in case wxRegKey fails above, we check for projects folder at its normal default path for
+        // Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT8 installation location for projects
+            wxString projPathPT8 = _T("C:\\My Paratext 8 Projects"); // whm 4Feb2020 Note: This is same path for PT 9
+            if (::wxDirExists(projPathPT8))
+            {
+                return projPathPT8; //path = projPathPT8; // no final backslash on path
             }
         }
     }
@@ -14553,7 +15504,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                     dirStrValue.RemoveLast(1);
                 if (::wxDirExists(dirStrValue))
                 {
-                    path = dirStrValue;
+                    return dirStrValue; //path = dirStrValue;
                 }
             }
         }
@@ -14566,7 +15517,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
             wxString projPathPT7 = _T("C:\\My Paratext Projects");
             if (::wxDirExists(projPathPT7))
             {
-                path = projPathPT7; // no final backslash on path
+                return projPathPT7; //path = projPathPT7; // no final backslash on path
             }
         }
     }
@@ -14574,8 +15525,11 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 #endif
 #if defined(__WXGTK__) // linux -- check mono directory for values.xml file
 
+    // whm 4Feb2020 TODO: Check the following code after PT 9 for Linux is released in Ubuntu 18.04!!!
     wxString strRegPath;
-    if (PTVersion == _T("PTLinuxVersion8"))
+    if (PTVersion == _T("PTLinuxVersion9")) // whm 4Feb2020 added test for "PTLinuxVersion9"
+        strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT9"));
+    else if (PTVersion == _T("PTLinuxVersion8")) 
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8"));
     else if (PTVersion == _T("PTLinuxVersion7"))
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7"));
@@ -14594,13 +15548,13 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     }
     if (::wxDirExists(strRegPath))
     {
-        // MONO_REGISTRY_PATH exists -- see if we can get the projects dir our of the values.xml
+        // MONO_REGISTRY_PATH exists -- see if we can get the projects dir out of the values.xml
         // file located in strRegPath
         wxString pt8ValuesFilePathSuffix = _T("/LocalMachine/software/paratext/8/values.xml");
         wxString pt7ValuesFilePathSuffix = _T("/LocalMachine/software/scrchecks/1.0/settings_directory/values.xml");
 
         // Start by checking for a PT 8 Dir Path.
-        if (PTVersion == _T("PTLinuxVersion8")) // if (PTVersion == _T("PTLinuxVersion8") || PTVersion == _T(""))
+        if (PTVersion == _T("PTLinuxVersion8") || PTVersion == _T("PTLinuxVersion9")) // whm 4Feb2020 added test for "PTLinuxVersion8"
         {
             // First Look for a PT 8 values file path
             wxString strValuesFile = strRegPath + pt8ValuesFilePathSuffix;
@@ -14638,7 +15592,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                 path = strPath;
             }
         } // end of if (PTVersion == _T("PTLinuxVersion8"))
-        else if (PTVersion == _T("PTLinuxVersion7")) //if (PTVersion == _T("PTLinuxVersion7") || path.IsEmpty())
+        else if (PTVersion == _T("PTLinuxVersion7"))
         {
             wxString strValuesFile = strRegPath + pt7ValuesFilePathSuffix;
             wxString strBuf;
@@ -14710,19 +15664,20 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// \return     a wxString representing the path to the Paratext installation directory
 ///             for the specified version of PT passed as parameter
 /// \param      a wxString designating the PT version to use: "PTVersion7", "PTVersion8",
-///             "PTLinuxVersion7", or "PTLinuxVersion8"
+///             "PTVersion9","PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
 /// \remarks
 /// Called from: the App's SetCollabSettingsToNewProjDefaults() which in turn is called from OnInit()
 /// and the ProjectPage's OnWizardPageChanging() function to set defaults for a <New Project>.
 /// Looks in the Windows registry/system to get the path to the Paratext Install directory.
-/// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
+/// For PT 8 and PT 9 the following PT 8 registry key is queried for the return value (depending on architecture):
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8     for a 32-bit system
 ///    At the "8" registry node, in the above reg key, we query for its key value of
-///    "Program_Files_Directory_Ptw8" to get the PT 8 install dir path.
+///    "Program_Files_Directory_Ptw8" to get the PT 8 install dir path. At the same node
+///    we query for the key value of "Program_Files_Directory_Ptw9" to get the PT 9 install dir path.
 /// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
-/// Note: The Windows registry calls return the path with a final backslash, so we remove
+/// Note: In Windows, registry calls return the path with a final backslash, so we remove
 ///    any final backslash from the path before returning.
 /// Linux version returns /usr/lib/Paratext directory by default for PT 7
 /// Linux version returns /usr/lib/Paratext8 directory by default for PT 8, unless there is
@@ -14730,6 +15685,7 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// version of PT8 (as verified by its PTVersion file's major version number being 8), in which
 /// case the /usr/lib/Paratext directory is returned for use by that early beta version of PT8.
 /// If no PT installation is found for the specified version, return an empty string for the path.
+/// Linux version returns /usr/lib/Paratext9 directory by default for PT 9. TODO: Check this when Linux version 9 becomes available
 /// This function only reads/queries the Windows registry/system; it does not make changes to it.
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 that can co-exist with PT 7
@@ -14739,6 +15695,7 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// unknown reason. Therefore as a fall-back, we return their default installation
 /// folders, if the installation paths cannot be determined from the normal Windows
 /// registry calls using wxRegKey.
+/// whm 4Feb2020 revised for Paratext 9 for Windows and Linux.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 {
@@ -14750,7 +15707,68 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 
     wxString dirStrValue;
     dirStrValue.Empty();
-    if (PTVersion == _T("PTVersion8"))
+    // whm 4Feb2020 added test for PTVersion9 below
+    if (PTVersion == _T("PTVersion9"))
+    {
+        // There are two registry views where the PT 8 key might be depending on the host OS architecture
+        // NOTE: PT 9 uses the same registry key that is used below for ...\Paratext\8
+        wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+        wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+        if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
+        {
+            if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // whm 4Feb2020 added following query for "Program_Files_Directory_Ptw9"
+                // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext9\)
+                keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    path = dirStrValue;
+                }
+            }
+        }
+        else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
+        {
+            if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // whm 4Feb2020 added following query for "Program_Files_Directory_Ptw9"
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext9\)
+                keyOS32PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    path = dirStrValue;
+                }
+
+            }
+        }
+        // whm 4Feb2020 added additional checks for Paratext.exe located at their default PT9
+        // folder locations - this is a fallback in case wxRegKey fails above even though
+        // the Paratext 9 executables exist at their normal default paths for Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT9 installation location for 32-bit/64-bit PT
+            wxString exePathPT9_on_32bitOS = _T("C:\\Program Files\\Paratext 9\\Paratext.exe");
+            wxString exePathPT9_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 9\\Paratext.exe");
+            // whm Note: There is no ParatextShared.dll in PT 9
+            if (::wxFileExists(exePathPT9_on_32bitOS))
+            {
+                path = _T("C:\\Program Files\\Paratext 9"); // no final backslash on path
+            }
+            else if (::wxFileExists(exePathPT9_on_64bitOS))
+            {
+                path = _T("C:\\Program Files (x86)\\Paratext 9"); // no final backslash on path
+            }
+        }
+    }
+    else if (PTVersion == _T("PTVersion8"))
     {
         // There are two registry views where the PT 8 key might be depending on the host OS architecture
         wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
@@ -14787,7 +15805,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
                 }
             }
         }
-        // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+        // whm 22Jan2018 added additional checks for Paratext.exe and (possibly) ParatextShared.dll located at
         // their default PT8 folder locations - fallback in case wxRegKey fails above even though
         // the Paratext 8 executables exist at their normal default paths for Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
@@ -14893,6 +15911,15 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
                 // if the major version is indeed 7, then we found no "PTLinuxVersion8" installation,
                 // in which case do not assign path a value - just leave it an empty string
             }
+        }
+    }
+    // whm 4Feb2020 added test below for PTLinuxVersion9
+    else if (PTVersion == _T("PTLinuxVersion9"))
+    {
+        wxString strDir = _T("/usr/lib/Paratext9");
+        if (::wxDirExists(strDir))
+        {
+            path = strDir;
         }
     }
 
@@ -15417,7 +16444,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// \param      m_projectName  -> a wxString containing the project name to check (which
 ///                                 the user selected in the caller)
 /// \param      errorStr <- a wxString that contains an information when an error occurs
-/// \param      bChangeMadeToCollabSettings <- a bool the indicates if a change was made
+/// \param      bChangeMadeToCollabSettings <- a bool that indicates if a change was made
 ///                                             to the collab settings during validation
 /// \param      errorProjects <- a wxString representing the kinds of projects listed in
 ///                              the errorProjects string, i.e. "source [target] [freetrans]"
@@ -15426,7 +16453,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 ///                               projects, and the projects appear to have been migrated
 ///                               to PT 8.
 /// \remarks
-/// Called from CProjectPage::OnWizardPageChanging().
+/// Called only from CProjectPage::OnWizardPageChanging().
 /// Opens the AI-ProjectConfiguration.aic file associated with the m_projectName in a
 /// wxTextFile and scans through the project config file (in memory) and collects data about
 /// the "Collab..." settings. This function also performs a number of sanity checks and
@@ -15439,6 +16466,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// project config file, so as to not set the App's project settings prematurely by reading
 /// the project configuration file into the App's variables which might have undesirable side
 /// effects.
+/// whm 4Feb21020 modified for compatibility with PT 9.
 //////////////////////////////////////////////////////////////////////////////////////////
 enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
     bool& bChangeMadeToCollabSettings, wxString& errorProjects, bool& bBothPT7AndPT8InstalledPT8ProjectsWereMigrated)
@@ -15489,14 +16517,16 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // Scan file for the Collab... settings and use them to determine if a collaboration
         // setup has been established by an administrator, and for sanity checks.
         //
-        // Note: In the config file, there are six main collaboration settings that govern
-        // whether collaboration setup has been successfully established for the project:
+        // Note: In the config file, there are six main collaboration settings that minimally
+        // govern whether collaboration setup has been successfully established for the project:
         //   "CollabProjectForSourceInputs"
         //   "CollabProjectForTargetExports"
         //   "CollabAIProjectName"
         //   "CollaborationEditor"
         //   "CollabSourceLangName"
         //   "CollabTargetLangName"
+        // (the remaining Collab... settings in the project config file are not critical for
+        // determining the state of a collaboration of an AI project).
         // If all six of these config labels are followed by string values and the strings
         // are consistent/valid, we can safely assume that collaboration has been established
         // for this project.
@@ -15516,7 +16546,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         bool bFoundCollabExpectsFreeTrans = FALSE;
         bool bFoundCollabAiProj = FALSE;
         bool bFoundCollabEditor = FALSE;
-        bool bFoundCollabPTVersion = FALSE; // whm added 20June2016
+        bool bFoundCollabPTVersion = FALSE; bFoundCollabPTVersion = bFoundCollabPTVersion; // whm 4Feb2020 this bool, while set is no longer tested for below
         bool bFoundCollabSrcLangName = FALSE;
         bool bFoundCollabTgtLangName = FALSE;
         wxString CollabSrcProjStrFound = _T("");
@@ -15602,7 +16632,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     bFoundCollabEditor = TRUE;
                 continue;
             }
-            // whm added 20June2016
+            // whm added 20June2016. Note: the following if block looks like the following one but this one looks
+            // for the outdated szParatextVersionForProject config string rather than the szCollabParatextVersionForProject
+            // config string. This was needed to detect the config string before all collaboration config settings got a 
+            // Collab... prefix on the setting string. Hence, the next block below should never be entered, except for
+            // a really ancient AI version's project config file.
             chPos = lineStr.Find(szParatextVersionForProject);
             if (chPos == 0)
             {
@@ -15613,32 +16647,31 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 if (!collabPTVersionStrFound.IsEmpty())
                 {
                     // A hack to compensate for bad (case) spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
+                    // whm 4Feb2020 Note: no need to make adjustments below for PT9 since the spelling only involved PT7 and PT8
                     if (collabPTVersionStrFound == _T("PTversion8"))
                     {
                         collabPTVersionStrFound = _T("PTVersion8");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTversion7"))
                     {
                         collabPTVersionStrFound = _T("PTVersion7");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTLinuxversion8"))
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion8");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTLinuxversion7"))
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion7");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
+                    // whm 4Feb2020 moved line below from only within each if block above - always use whatever version is found in config
+                    m_ParatextVersionForProject = collabPTVersionStrFound; 
                     bFoundCollabPTVersion = TRUE;
                 }
                 continue;
             }
             // whm added 25June2016
-            chPos = lineStr.Find(szCollabParatextVersionForProject);
+            chPos = lineStr.Find(szCollabParatextVersionForProject); // note the use of szCollabParatextVersionForProject here, cf. block above
             if (chPos == 0)
             {
                 // Check for a following non-empty string, storing any string found for sanity checks (below)
@@ -15647,27 +16680,26 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 collabPTVersionStrFound.Trim(TRUE);
                 if (!collabPTVersionStrFound.IsEmpty())
                 {
-                    // A hack to compensate for bad spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
+                    // A hack to compensate for bad (case) spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
+                    // whm 4Feb2020 Note: no need to make adjustments below for PT9 since the spelling only involved PT7 and PT8
                     if (collabPTVersionStrFound == _T("PTversion8"))
                     {
                         collabPTVersionStrFound = _T("PTVersion8");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTversion7"))
                     {
                         collabPTVersionStrFound = _T("PTVersion7");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTLinuxversion8"))
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion8");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
                     if (collabPTVersionStrFound == _T("PTLinuxversion7"))
                     {
                         collabPTVersionStrFound = _T("PTLinuxVersion7");
-                        m_ParatextVersionForProject = collabPTVersionStrFound;
                     }
+                    // whm 4Feb2020 moved line below from only within each if block above - always use whatever version is found in config
+                    m_ParatextVersionForProject = collabPTVersionStrFound;
                     bFoundCollabPTVersion = TRUE;
                 }
                 continue;
@@ -15824,7 +16856,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // 17. If the project config file could not be opened successfully, return an error
         // message to that fact and return the collab status as projConfigFileUnableToOpen.
 
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // 1. Ensure that the CollaborationEditor field is set to either "Paratext" or "Bibledit".
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //
         // First do sanity test for the bFoundCollabEditor and ensure it is specified properly
         // whm 2May12 added this sanity test for a valid external editor for collaboration. It is
@@ -15859,8 +16893,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // machine. If not we must return collabProjExistsButEditorNotInstalled.
         // NOTE:
         // BEW 23Mar15, If a unix or linux upgrade of the operating system is done, and Paratext (or
-        // Bibledit if relevant) is blown away in the OS upgrade, then the ParatextVersionInstalled() call
-        // done here (or the one for BE) will return FALSE - this will drop control into the error
+        // Bibledit if relevant) is blown away in the OS upgrade, then the InventoryCollabEditorInstalls() call
+        // (or the one for BE) making gbPTNotInstalled will be FALSE - this will drop control into the error
         // block and so the StartWorking wizard is exited prematurely, with an error dialog. The
         // config settings are squirreled away in a wxConfigFile instance, and remain intact across the
         // OS upgrade - and even if I manually edit everything to remove all memory of collaboration,
@@ -15868,9 +16902,12 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // this scenario is to reinstall Paratext after the OS upgrade (or BE if relevant) so as to
         // be able to get the app running - and then the collaboration can be clobbered from within
         // the running Adapt It if that is what is wanted. So BEWARE!!!
+        // whm 4Feb2020 modified to use the more flexible bool value gbPTNotInstalled in test below.
+        //if (!CollabAiProjStrFound.IsEmpty() && !CollabSrcLangNameStrFound.IsEmpty() && !CollabTgtLangNameStrFound.IsEmpty()
+        //    && (ParatextVersionInstalled() == PTNotInstalled) && !BibleditIsInstalled())
         if (!CollabAiProjStrFound.IsEmpty() && !CollabSrcLangNameStrFound.IsEmpty() && !CollabTgtLangNameStrFound.IsEmpty()
-            && (ParatextVersionInstalled() == PTNotInstalled) && !BibleditIsInstalled())
-        {
+            && (gbPTNotInstalled) && !BibleditIsInstalled())
+            {
             // Although there are collaboration values in the project config file, there is currently
             // no installation of Paratext or Bibledit on the machine, so regardless of whether
             // the bFoundCollabEditor is TRUE or FALSE, the user's computer is not set up to
@@ -15884,319 +16921,24 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             return collabProjExistsButEditorNotInstalled;
         }
 
-        // If we get here either Paratext or Bibledit is installed on the user's machine.
-        // If there is an external editor designated in the project config file, ensure that
-        // the designated editor is actually the one that is installed. If not assign
-        // m_collaborationEditor to point to the one that is installed.
-        //
-        // whm 20June2016 Note: With the release of Paratext version 8, verification of an
-        // AI project's collaboration status has become more complicated. If this is the
-        // first running of AI after an administrator/user migrates their projects from PT7
-        // to PT8, then the bFoundCollabPTVersion would be FALSE. However, the OnInit() call of
-        // SetCollabSettingsToNewProjDefaults() will have stored a default value in the
-        // m_ParatextVersionForProject string variable based on its call of the ParatextVersionInstalled()
-        // function. We attempt to auto-determine which version of PT (7 or 8) this AI project should
-        // be associated with. If this session of AI is running after a project was successfully
-        // determined or overtly specified as a collaboration project with PT7 or PT8, then
-        // the bFoundCollabPTVersion flag would be true and there should be a specification of
-        // "PT7" or "PT8" string value in the m_ParatextVersionForProject string variable, and
-        // we can just verify that the data store for that version of PT has valid PT projects
-        // for the specified source and target language projects.
-        if (bFoundCollabEditor)
+        // whm 4Feb2020 Note: With the release of Paratext versions 8 & 9, verification of an
+        // AI project's collaboration status has become more complicated and the tests to validate
+        // the collab editor and any PT version have been put into a separate function.
+        // The ValidateCollabEditorAndVersionStrAgainstInstallationData() call below verifies
+        // that the data store for that version of PT has valid PT projects for the specified 
+        // source and target language projects.
+
+        // Verify that the collaboration editor specified in the config file is actually
+        // installed on the computer. If not, check to see if the other external editor
+        // is installed and if it is, use it instead.
+
+        m_ParatextVersionForProject = ValidateCollabEditorAndVersionStrAgainstInstallationData(m_collaborationEditor, collabPTVersionStrFound);
+
+        if (collabPTVersionStrFound != m_ParatextVersionForProject || CollabEditorStrFound != m_collaborationEditor)
         {
-            // There is a string in the CollabEditorStrFound field of the project config file.
-            // Verify that the collaboration editor that has been specified in the config file is
-            // actually installed on the computer. If not, check to see if the other external
-            // editor is installed and if it is, use it instead.
-            bool bDesignatedEditorIsInstalled = FALSE;
-            PTVersionsInstalled PTver = ParatextVersionInstalled();
-            if (m_collaborationEditor == _T("Paratext"))
-            {
-                if (bFoundCollabPTVersion)
-                {
-                    // Check for consistency between the collabPTVersionStrFound value and what
-                    // actual PT version is installed on the machine. If PTVer == PTVer7 and the
-                    // collabPTVersionStrFound is not "PTVersion7", but some other value such as
-                    // "PTVersion8", then this project may have been last edited on a machine that
-                    // had PT 8 installed, but now only PT 7 is installed.
-                    // We can at least correct the situation of a downgrade from PT 8 to PT 7 -
-                    // assuming that there is PT project data to work with.
-                    // Likewise if PTVer == PTVer8 and the collabPTVersionStrFound is not "PTVersion8",
-                    // then this project has probably been last edited on a machine that had PT 7
-                    // installed, but now the machine has been upgraded to PT 8 and PT 7 is no longer
-                    // installed. In this case we can correct the situation where there was an upgrade
-                    // from PT 7 to PT 8
-                    bool bChangedPTVer = FALSE;
-                    if (PTver == PTVer7 && collabPTVersionStrFound != _T("PTVersion7"))
-                    {
-                        m_ParatextVersionForProject = _T("PTVersion7");
-                        bChangedPTVer = TRUE;
-                    }
-                    else if (PTver == PTVer8 && collabPTVersionStrFound != _T("PTVersion8"))
-                    {
-                        m_ParatextVersionForProject = _T("PTVersion8");
-                        bChangedPTVer = TRUE;
-                    }
-                    else if (PTver == PTVer7and8 && (collabPTVersionStrFound != _T("PTVersion7") && collabPTVersionStrFound != _T("PTVersion8")))
-                    {
-                        // We detected that both PT 7 and PT 8 are installed, but the collabPTVersionStrFound
-                        // doesn't have either "PTVersion7" or "PTVersion8". Maybe the project was moved from a
-                        // Linux machine to this Windows machine where both PT7 and PT8 are both installed.
-                        // We should check to see that indicated version has a valid projects dir and that it
-                        // contains at least two useable/valid projects.
-                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
-                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
-                        int pt8Count = pt8ListOfProj.GetCount();
-                        int pt7Count = pt7ListOfProj.GetCount();
-                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-                        {
-                            // The PT 8 project dir is valid and has enough useable/valid projects.
-                            m_ParatextVersionForProject = _T("PTVersion8");
-                            bChangedPTVer = TRUE;
-                        }
-                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                        {
-                            // The PT 8 project dir wasn't valid or else the PT project didn't have enough
-                            // usable/valid projects, so opt for the PT 7 version since it has a valid projects
-                            // dir and enough useable/valid projects.
-                            m_ParatextVersionForProject = _T("PTVersion7");
-                            bChangedPTVer = TRUE;
-                        }
-                        else
-                        {
-                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects.
-                            // Assume the administrator will fix this situation. In the mean time, since both
-                            // PT 8 and PT 7 are installed, default here to PT 8. Problem will get logged below.
-                            m_ParatextVersionForProject = _T("PTVersion8");
-                            bChangedPTVer = TRUE;
-                        }
-                    }
-                    else if (PTver == PTLinuxVer7 && collabPTVersionStrFound != _T("PTLinuxVersion7"))
-                    {
-                        m_ParatextVersionForProject = _T("PTLinuxVersion7");
-                        bChangedPTVer = TRUE;
-                    }
-                    else if (PTver == PTLinuxVer8 && collabPTVersionStrFound != _T("PTLinuxVersion8"))
-                    {
-                        m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                        bChangedPTVer = TRUE;
-                    }
-                    // whm 27Nov2016 added the following "else if" block for dealing with Linux PT7 and PT8 being possibly installed simultaneously
-                    else if (PTver == PTLinuxVer7and8 && (collabPTVersionStrFound != _T("PTLinuxVersion7") && collabPTVersionStrFound != _T("PTLinuxVersion8")))
-                    {
-                        // We detected that both PT 7 and PT 8 for Linux are installed, but the collabPTVersionStrFound
-                        // doesn't have either "PTLinuxVersion7" or "PTLinuxVersion8". Maybe the project was moved from a
-                        // Windows machine to this Linux machine where PT7 and PT8 are both installed.
-                        // We should check to see that indicated version has a valid projects dir and that it
-                        // contains at least two useable/valid projects.
-                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
-                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
-                        int pt8Count = pt8ListOfProj.GetCount();
-                        int pt7Count = pt7ListOfProj.GetCount();
-                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-                        {
-                            // The PT 8 project dir is valid and has enough useable/valid projects.
-                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                            bChangedPTVer = TRUE;
-                        }
-                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                        {
-                            // The PT 8 project dir wasn't valid or else the PT project didn't have enough
-                            // usable/valid projects, so opt for the PT 7 version since it has a valid projects
-                            // dir and enough useable/valid projects.
-                            m_ParatextVersionForProject = _T("PTLinuxVersion7");
-                            bChangedPTVer = TRUE;
-                        }
-                        else
-                        {
-                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects.
-                            // Assume the administrator will fix this situation. In the mean time, since both
-                            // PT 8 and PT 7 are installed, default here to PT 8. Problem will get logged below.
-                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                            bChangedPTVer = TRUE;
-                        }
-                    }
-
-                    if (bChangedPTVer)
-                    {
-                        // Force save of project config file to record the value for CollabParatextVersionForProject
-                        // from the m_ParatextVersionForProject value.
-                        bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-                        wxString msg = _T("In GetAIProjectCollabStatus() the AI-ProjectConfigure.aic file had a CollabParatextVersionForProject value of %s, but that version of PT is not installed. Adapt It assigned it to be '%s' for this project.");
-                        msg = msg.Format(msg, collabPTVersionStrFound.c_str(), m_ParatextVersionForProject.c_str());
-                        this->LogUserAction(msg);
-                        // change collabPTVersionStrFound to its corrected version so the tests below will be able to succeed.
-                        collabPTVersionStrFound = m_ParatextVersionForProject;
-                    }
-
-                    // Handle the possible PT installed version situations:
-                    if (PTver == PTVer7 && collabPTVersionStrFound == _T("PTVersion7"))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                    else if (PTver == PTVer8 && collabPTVersionStrFound == _T("PTVersion8"))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                    else if (PTver == PTVer7and8 && (collabPTVersionStrFound == _T("PTVersion7") || collabPTVersionStrFound == _T("PTVersion8")))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                    else if (PTver == PTLinuxVer7 && collabPTVersionStrFound == _T("PTLinuxVersion7"))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                    else if (PTver == PTLinuxVer8 && collabPTVersionStrFound == _T("PTLinuxVersion8"))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                    else if (PTver == PTLinuxVer7and8 && (collabPTVersionStrFound == _T("PTLinuxVersion7") || collabPTVersionStrFound == _T("PTLinuxVersion8")))
-                    {
-                        bDesignatedEditorIsInstalled = TRUE;
-                    }
-                }
-                else // if (!bFoundCollabPTVersion)
-                {
-                    // The AI-ProjectConfiguration.aic file didn't have a CollabParatextVersionForProject
-                    // configuration entry, so this is probably the first time this project is being
-                    // opened after the installation of PT 8 (and hopefully migration of data to PT 8).
-                    // Determine the PT version info for m_ParatextVersionForProject for this project.
-                    if (PTver == PTVer7)
-                    {
-                        m_ParatextVersionForProject = _T("PTVersion7");
-                    }
-                    else if (PTver == PTVer8)
-                    {
-                        m_ParatextVersionForProject = _T("PTVersion8");
-                    }
-                    else if (PTver == PTVer7and8)
-                    {
-                        // Both PT versions 7 and 8 are installed on the machine.
-                        // Assume that PT 8 will be the desired editor if it has a valid projects dir
-                        // and at least 2 valid/useable projects, otherwise PT 7
-                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
-                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
-                        int pt8Count = pt8ListOfProj.GetCount();
-                        int pt7Count = pt7ListOfProj.GetCount();
-                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-                        {
-                            m_ParatextVersionForProject = _T("PTVersion8");
-                        }
-                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                        {
-                            m_ParatextVersionForProject = _T("PTVersion7");
-                        }
-                        else
-                        {
-                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                            wxString msg = _T("In GetAIProjectCollabStatus() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-                            LogUserAction(msg);
-                            // Assume the administrator will fix this situation. In the mean time, since both
-                            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-                            m_ParatextVersionForProject = _T("PTVersion8");
-                        }
-                    }
-                    else if (PTver == PTLinuxVer7)
-                    {
-                        m_ParatextVersionForProject = _T("PTLinuxVersion7");
-                    }
-                    else if (PTver == PTLinuxVer8)
-                    {
-                        m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                    }
-                    else if (PTver == PTLinuxVer7and8)
-                    {
-                        // Both PT versions 7 and 8 for Linux are installed on the machine.
-                        // Assume that PT 8 will be the desired editor if it has a valid projects dir
-                        // and at least 2 valid/useable projects, otherwise PT 7
-                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
-                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
-                        int pt8Count = pt8ListOfProj.GetCount();
-                        int pt7Count = pt7ListOfProj.GetCount();
-                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-                        {
-                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                        }
-                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                        {
-                            m_ParatextVersionForProject = _T("PTLinuxVersion7");
-                        }
-                        else
-                        {
-                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                            wxString msg = _T("In GetAIProjectCollabStatus() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-                            LogUserAction(msg);
-                            // Assume the administrator will fix this situation. In the mean time, since both
-                            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-                        }
-                    }
-
-                    bDesignatedEditorIsInstalled = TRUE;
-
-                    // Force save of project config file to record the value for CollabParatextVersionForProject
-                    // from the m_ParatextVersionForProject value.
-                    bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-                    wxString msg = _T("In GetAIProjectCollabStatus() the AI-ProjectConfigure.aic file had no CollabParatextVersionForProject value. Adapt It assigned it to be '%s' for this project.");
-                    msg = msg.Format(msg, m_ParatextVersionForProject.c_str());
-                    this->LogUserAction(msg);
-                }
-            }
-            else if (m_collaborationEditor == _T("Bibledit") && BibleditIsInstalled())
-            {
-                bDesignatedEditorIsInstalled = TRUE;
-            }
-
-            if (!bDesignatedEditorIsInstalled)
-            {
-                // The collaboration editor designated in the project config file is not installed
-                // on this machine. Check to see if the other editor choice is installed on this
-                // machine (might happen if config files are copied between Windows and Linux
-                // machines).
-                if (m_collaborationEditor == _T("Paratext") && m_bBibleditIsInstalled)
-                {
-                    m_collaborationEditor = _T("Bibledit");
-                    m_bCollaboratingWithBibledit = TRUE;
-                    m_bCollaboratingWithParatext = FALSE;
-                    bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-                    wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field designated non-installed editor (%s). Adapt It assigned it to be '%s' which is installed.");
-                    msg = msg.Format(msg, CollabEditorStrFound.c_str(), m_collaborationEditor.c_str());
-                    this->LogUserAction(msg);
-                }
-                else if (m_collaborationEditor == _T("Bibledit") && m_bParatextIsInstalled)
-                {
-                    m_collaborationEditor = _T("Paratext");
-                    m_bCollaboratingWithBibledit = FALSE;
-                    m_bCollaboratingWithParatext = TRUE;
-                    bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-                    wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field designated non-installed editor (%s). Adapt It assigned it to be '%s' which is installed.");
-                    msg = msg.Format(msg, CollabEditorStrFound.c_str(), m_collaborationEditor.c_str());
-                    this->LogUserAction(msg);
-                }
-            }
-        }
-        if (!bFoundCollabEditor || !(CollabEditorStrFound == _T("Paratext") || CollabEditorStrFound == _T("Bibledit")))
-        {
-            wxString editorStr;
-            PTVersionsInstalled PTver = ParatextVersionInstalled();
-
-            if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
-                editorStr = _T("Paratext");
-            else
-                editorStr = _T("Bibledit");
-            m_collaborationEditor = editorStr;
+            // The project config values need to be changed for this project since the collab
+            // editor was changed or the PT version was changed.
             bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-            wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field was empty or mis-named (%s). Adapt It assigned it to be '%s'.");
-            msg = msg.Format(msg, CollabEditorStrFound.c_str(), editorStr.c_str());
-            this->LogUserAction(msg);
         }
 
         // Next do sanity test for the AI Project settings (CollabAIProjectName field)
@@ -16205,8 +16947,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         GetSrcAndTgtLanguageNamesFromProjectName(m_projectName, srcNameStr, tgtNameStr);
         if (bFoundCollabAiProj)
         {
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // 2. Check that the string stored in the "CollabAIProjectName" is identcial to the
             // m_projectName incoming parameter.
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //
             // A CollabAIProjectName string is stored in the config file. Do some sanity tests.
             // Test if the found string differs from the currently selected project in
@@ -16231,8 +16975,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // Note: The ai project name now must necessarily exists as an AI project on the
             // user's machine (after all, the user just selected it from the project page's list).
             //
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // 3. Check for existence of the CollabSourceLangName field. If it is missing parse the source
             // lang name from the CollabAIProjectName and assign that name to CollabSourceLangName.
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             if (!bFoundCollabSrcLangName)
             {
                 // The CollabSourceLangName was empty in the config file. We can supply the
@@ -16253,8 +16999,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             }
             else
             {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // 4. If the CollabSourceLangName exists, check whether it agrees with the parsed source lang
                 // name from the CollabAIProjectName string. If not just log the fact that it differs.
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //
                 // At this point we know that a source lang name exists, now compare it with the
                 // source lang part of the ai project name, and put an entry in the user log if the
@@ -16269,8 +17017,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 }
 
             }
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // 5. Check for existence of the CollabTargetLangName field. If it is missing parse the target
             // lang name from the CollabAIProjectName and assign that name to CollabTargetLangName.
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             if (!bFoundCollabTgtLangName)
             {
                 // The CollabTargetLangName was empty in the config file. We can supply the
@@ -16291,8 +17041,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             }
             else
             {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // 6. If the CollabTargetLangName exists, check whether it agrees with the parsed target lang
                 // name from the CollabAIProjectName string. If not just log the fact that it differs.
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //
                 // At this point we know that a target lang name exists, now compare it with the
                 // target lang part of the ai project name, and put an entry in the user log if the
@@ -16319,10 +17071,12 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // a configured/valid collaboration project.
             if (bFoundCollabSrcProj && bFoundCollabTgtProj && bFoundCollabSrcLangName && bFoundCollabTgtLangName && bFoundCollabEditor)
             {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // 7. If the other 5 collab settings are present, construct a potential CollabAIProjectName
                 // field entry from the CollabSourceLangName and CollabTargetLangName fields. If the
                 // constructed name agrees with the currently selected AI project, go ahead and assign
                 // the name of the currently selected project to the CollabAIProjectName field.
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //
                 // All the critical collab fields except for the CollabAIProjectName field were present in
                 // the config file, so the CollabAIProjectName field must have been lost or corrupted from
@@ -16346,9 +17100,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 }
                 else
                 {
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // 8. If the constructed project name in 7 is not the same as the currently selected
                     // project name, force the CollabAIProjectName, the CollabSourceLangName and the
                     // CollabTargetLangName fields to agree with the currently selected AI project name.
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     //
                     // The constructed project name is not the same as the currenly selected project's
                     // name, so we cannot really proceed with a collaboration session unless we force the
@@ -16382,9 +17138,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 // We do not include the bFoundCollabEditor in the test because it should always be
                 // defined at this point (see above).
                 //
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // 9. If all of the other 4 collab settings (not counting CollaborationEditor) are also
                 // missing/empty, which is the normal situation for projects that have not been
                 // configured for collaboration by the administrator.
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //
                 if (!bFoundCollabSrcProj && !bFoundCollabTgtProj && !bFoundCollabSrcLangName && !bFoundCollabTgtLangName)
                 {
@@ -16394,9 +17152,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 }
                 else if (!bFoundCollabSrcLangName || !bFoundCollabTgtLangName)
                 {
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // 10. If the bFoundCollabSrcProj and bFoundCollabTgtProj were TRUE, but bFoundCollabAiProj was
                     // FALSE, and either bFoundCollabSrcLangName or bFoundCollabTgtLangName or both were FALSE we
                     // can construct the AI project names from the currently selected project (m_projectName).
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     wxString msg = _T("In GetAIProjectCollabStatus() the CollabAIProjectName is missing and one or both of the CollabSourceLangName or CollabTargetLangName are missing, so AI parsed %s and assigned the names to those 3 config file entries.");
                     msg = msg.Format(msg, m_projectName.c_str());
                     this->LogUserAction(msg);
@@ -16412,9 +17172,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 }
                 else
                 {
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // 11. If any of the collab settings (mentioned in 9 above) are present, it is a mixed
                     // bag. We just log information about the irregular settings, and consider the project
                     // status is collabProjNotConfigured.
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     //
                     // If any of the above four flags are TRUE (indicating the presence of a collab setting), just
                     // log that fact as an irregularity, but with the CollabAIProjectName empty and at least one of
@@ -16481,6 +17243,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             {
                 projList = GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
             }
+            // whm 4Feb2020 added test below for PTVersion9
+            else if (this->m_ParatextVersionForProject == _T("PTVersion9"))
+            {
+                projList = GetListOfPTProjects(_T("PTVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+            }
             else if (this->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
             {
                 projList = GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -16488,6 +17255,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             else if (this->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
             {
                 projList = GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+            }
+            // whm 4Feb2020 added test below for PTLinuxVersion9
+            else if (this->m_ParatextVersionForProject == _T("PTLinuxVersion9"))
+            {
+                projList = GetListOfPTProjects(_T("PTLinuxVersion9")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
             }
         }
         else if (m_collaborationEditor == _T("Bibledit"))
@@ -16498,6 +17270,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // If either the source or target PT/BE project name(s) are missing, we cannot proceed with
         // collaboration
         //
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // 12. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
         // missing/empty from the config file, pass an error message back to the caller
         // saying that the setting for the PT/BE project(s) is missing from the config
@@ -16505,6 +17278,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // caller (ProjectPage) will allow the user to select from available PT/BE projects
         // which, if the PT/BE projects prove valid will allow the user to continue collab
         // work.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (!bFoundCollabSrcProj || !bFoundCollabTgtProj)
         {
             wxString msg;
@@ -16528,6 +17302,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     projects += _T(':');
                 projects += _T("target");
             }
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // 13. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
             // missing/empty from the config file, BUT a free trans project was designated in
             // the CollabProjectForFreeTransExports string setting, AND that PT/BE project
@@ -16539,6 +17314,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // status as collabProjMissingFromEditorList. The caller (ProjectPage) will allow
             // the user to select from available PT/BE projects which, if the PT/BE projects
             // prove valid will allow the user to continue collab work.
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //
             // Note: It could be that the source or target project (or both) are missing from the
             // config file, and yet a free trans project string is present, but it might not be
@@ -16583,6 +17359,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         }
         else
         {
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // 14. If the CollabProjectForSourceInputs or CollabProjectForTargetExports fields
             // are present in the config file, check to ensure that they are also listed in the
             // PT/BE projList of current editor projects. If not pass an error message back to
@@ -16591,6 +17368,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // collabProjMissingFromEditorList. The caller (ProjectPage) will allow the user to
             // select from available PT/BE projects which, if the PT/BE projects prove valid,
             // will allow the user to continue collab work.
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //
             // both bFoundCollabSrcProj and bFoundBollabTgtProj are TRUE, so the project config file
             // contains strings for both. Now test that they exist in the inventory of current PT/BE
@@ -16759,6 +17537,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             bChangeMadeToCollabSettings = TRUE;
         }
 
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // 15. If both the CollabProjectForSourceInputs and CollabProjectForTargetExports fields
         // are present, and they exist in projList as Editor projects (see above checks), call the
         // CollabProjectsAreValid() function on them (and the CollabProjectForFreeTransExports value).
@@ -16766,6 +17545,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // errorStr message to the caller and return the collab status as collabProjExistsButIsInvalid.
         // The caller (ProjectPage) will allow the user to select from available PT/BE projects which,
         // if the PT/BE projects prove valid, will allow the user to continue collab work.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (bFoundCollabSrcProj && bFoundCollabTgtProj)
         {
             // Check the validity of the PT/BE projects. They are valid if they are not
@@ -16799,6 +17579,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 // would only happen if/when both PT7 and PT8 are installed.
 
                 // whm 31March2017 added a further check:
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // 15a. If bFoundCollabSrcProj and bFoundCollabTgtProj are both TRUE,
                 // and, if the current collaboration editor is specified to be PT7,
                 // and, if PT7 and PT8 are both installed,
@@ -16809,14 +17590,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 // bBothPT7AndPT8InstalledPT8ProjectsWereMigrated
                 // so the caller can make a one-time query to the user to determine if collaboration
                 // should now be continued with the same projects that are now in the PT8 data store.
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if (bFoundCollabSrcProj && bFoundCollabTgtProj)
                 {
                     // Check the PT Windows situation
                     if (collabPTVersionStrFound == _T("PTVersion7"))
                     {
-                        PTVersionsInstalled PTver;
-                        PTver = ParatextVersionInstalled();
-                        if (PTver == PTVer7and8)
+                        if (gbPTVer7Installed && gbPTVer8Installed) //if (PTver == PTVer7and8)
                         {
                             wxString errStr = _T("");
                             wxString errProj = _T("");
@@ -16841,9 +17621,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     else if (collabPTVersionStrFound == _T("PTLinuxVersion7"))
                     {
                         // Check the PT Linux situation
-                        PTVersionsInstalled PTver;
-                        PTver = ParatextVersionInstalled();
-                        if (PTver == PTLinuxVer7and8)
+                        if (gbPTVer7Installed && gbPTVer8Installed) //if (PTver == PTLinuxVer7and8)
                         {
                             wxString errStr = _T("");
                             wxString errProj = _T("");
@@ -16871,9 +17649,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // If we get here the projects are valid according to CollabProjectsAreValid() above.
             return collabProjExistsAndIsValid;
         }
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // 16. If the GetAIProjectCollabStatus() function has not returned a state value by
         // time control reaches this point, just return the collab status as
         // collabProjNotConfigured.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //
         // If we get here most if not all of the valid collab states have been bled off, so we can
         // return collabProjNotConfigured for safety sake.
@@ -16881,8 +17661,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
     } // end of if (bOpenedOK)
     else
     {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // 17. If the project config file could not be opened successfully, return an error
         // message to that fact and return the collab status as projConfigFileUnableToOpen.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //
         // The f.Open() call failed for some reason.
         // This is the exit point for an AI project whose config file is present in
@@ -16996,6 +17778,7 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 /// Win32 calls are made to obtain the list of running processes, which are then searched by name
 ///    for 'Paratext". This finds the Paratext 7 process, but not previous Paratext versions.
 /// If the process is not found, or an error occurs, the function returns FALSE
+/// whm 4Feb2020 reviewed for PT9 compatibility. No changes needed!
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ParatextIsRunning()
 {
@@ -17033,7 +17816,8 @@ bool CAdapt_ItApp::ParatextIsRunning()
         {
             wxString sProcess = pe32.szExeFile;
             //wxLogDebug(_T("PROCESS NAME = %s"),sProcess,c_str()); //
-
+            // whm 4Feb2020 Note: By only looking for the string "Paratext" the following will
+            // pick up any version of Paratext that is running.
             if (sProcess.Contains(_T("Paratext")))
             {
                 // Process found
@@ -19053,6 +19837,36 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     } // end of special scope for wxLogNull
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
+
+    // Call the InventoryCollabEditorInstalls() function to determine which versions of Paratext 
+    // are installed on this computer. The function sets a set of 13 boolean values which are 
+    // stored in the App's global space. These global bool variables are:
+    //   gbPTVer7Installed
+    //   gbPTVer8Installed
+    //   gbPTVer9Installed
+    //   gbPTLinuxVer7Installed
+    //   gbPTLinuxVer8Installed
+    //   gbPTLinuxVer9Installed
+    //   gbPTVer7OnlyInstalled
+    //   gbPTVer8OnlyInstalled
+    //   gbPTVer9OnlyInstalled
+    //   gbPTLinuxVer7OnlyInstalled
+    //   gbPTLinuxVer8OnlyInstalled
+    //   gbPTLinuxVer9OnlyInstalled
+    //   gbPTNotInstalled
+    // This function is called initially here from the App's OnInit() function when 
+    // the program loads up. It is also called any time the Administrator accesses
+    // the SetupEditorCollaboration dialog from the Administrator menu - ensuring
+    // that when the Administrator accesses the SetupEditorCollaboration the above
+    // PT installation-related bools are up to date.
+    // NOTE: This InventoryCollabEditorInstalls should be called relatively early 
+    // within OnInit() - at least it should be called before any code that changes
+    // or sets the defaults of collaboration settings, such as the function
+    // SetCollabSettingsToNewProjDefaults() <--- called in OnInit() line 21410
+    // much farther below - the SetCollabSettingsToNewProjDefaults() in turn also 
+    // calls the ValidateCollabEditorAndVersionStrAgainstInstallationData() function
+    // which also depends on the PT version install data collected by the call below.
+    InventoryCollabEditorInstalls();
     
     m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
 								  // anything when the doc is being or has been clobbered
@@ -19569,6 +20383,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
+    /* 
+    // Testing the IsThisParatextVersionInstalled(wxString PTVersion) function
+    bool bTestPT7 = IsThisParatextVersionInstalled(_T("PTVersion7"));
+    bool bTestPT8 = IsThisParatextVersionInstalled(_T("PTVersion8"));
+    bool bTestPT9 = IsThisParatextVersionInstalled(_T("PTVersion9"));
+    int debug7to9break = 1;
+    debug7to9break = debug7to9break; // to avoid warning
+    // Above tests were success
+    */
+
     /*
     // Testing the ability of wxExecute to execute a Windows batch file that in turn executed an .exe console program file.
     // The batch file is called CountSourceLines.bat and the console exe program is cloc-1.08.exe. Both the batch file
@@ -19668,7 +20492,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // testing the GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath) function
     //wxString testStr;
     //testStr = GetLinuxPTVersionNumberFromPTVersionFile(PathSeparator + _T("usr") + PathSeparator + _T("lib") + PathSeparator + _T("Paratext") + PathSeparator + _T("PTVersion"));
-    //testStr = testStr;
+    //testStr = testStr; // Note: this GetLinuxPTVersionNumberFromPTVersionFile() function even works on Windows with a c:\usr\lib\ParatextX\PTVersion path!!
 
     // testing the GetParatextProjectDirPath()
     //wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
@@ -19683,7 +20507,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // testing the ParatextVersionInstalled() function
     //PTVersionsInstalled PTver;
     //PTver = ParatextVersionInstalled();
-    //if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
+    //if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer9 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer9 || PTver == PTLinuxVer7and8)
     //{
     //    int i;
     //    i = 1; // do something, anything
@@ -20323,6 +21147,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm 26Jan13 added. A new project should start with all of the
     // App's collaboration variables reset to new project defaults.
+    // The following SetCollabSettingsToNewProjDefaults() function is
+    // called only once here in OnInit(). The only other place is within
+    // the ProjectPage's OnWizardPageChanging(), after user clicks on
+    // <New Project> and before any wizard page get presented to collect
+    // the settings for the new project.
+    // NOTE: This SetCollabSettingsToNewProjDefaults() function should only be
+    // called AFTER the InventoryCollabEditorInstalls() function - which is
+    // called earlier about line 20125 in OnInit(). 
+    // The reason: The SetCollabSettingsToNewProjDefaults() call below depends
+    // on the early detection of what collab editor(s) are installed and what
+    // version(s) of Paratext is installed - the SetCollabSettingsToNewProjDefaults()
+    // function below also calls the ValidateCollabEditorAndVersionStrAgainstInstallationData()
+    // function which needs the info that InventoryCollabEditorInstalls() collects.
     SetCollabSettingsToNewProjDefaults();
 
     // whm Note: Make sure these folder names match those used in the wxDesigner's
@@ -25092,41 +25929,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
-	// whm 28Mar11 TESTING BELOW !!!
+	// whm 28Mar11 TESTING whether we can load a .NEW dll or not:
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
 	// loaded by the wxDynamicLibrary::Load() method.
-	/*
-	if (m_bParatextIsInstalled)
-	{
-	// try loading the managed code ParatextShared.dll
-	if (wxGetWinVersion() >= wxWinVersion_5)
-	{
-	// Turn off system message "Failed to load shared library...(error 126: the specified
-	// module could not be found", which pops up in idle time if following .Load() call
-	// fails. We have our own message.
-	wxLogNull logNo;	// eliminates any spurious messages from the system while
-	// reading read-only folders/files
-	bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
-	if (!ptSharedDynamicLibrary.IsLoaded())
-	{
-	// the ParatextShared.dll file was not found or could not be loaded
-	bParatextSharedDLLLoaded = FALSE;
-	wxString msg;
-	// This error shouldn't happen with normal install, so it can remain in English
-	msg = msg.Format(_T(
-	"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
-	PT_LIB_NAME);
-	wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION | wxOK);
-	}
-	else
-	{
-	bParatextSharedDLLLoaded = TRUE;
-	}
-	}
-
-	}
-	// whm 28Mar11 TESTING ABOVE !!!
-	*/
 
 	// Next, initialise the help system. We do it here because our m_setupFolder was
 	// determined above and we now know the path to the setup folder where any help
@@ -38038,12 +38843,53 @@ void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit() and the ProjectPage's OnWizardPageChanging()
+/// Called from: the App's OnInit() and the ProjectPage's OnWizardPageChanging().
 /// Sets the App's collab settings to defaults in OnInit() before the AI-ProjectConfiguration.aic
 /// config file is loaded, and also sets the collab settings for a new projects in the
 /// ProjectPage's OnWizardPageChanging() function.
+/// The following settings are set here in this function for new projects via a call
+/// to the App's ValidateCollabEditorAndVersionStrAgainstInstallationData() function. They are:
+///   m_collaborationEditor // Stored in AI-ProjectConfiguration.aic file label: CollaborationEditor
+///   m_ParatextVersionForProject // Stored in AI-ProjectConfiguration.aic file label: CollabParatextVersionForProject
+///   m_ParatextProjectsDirPath
+///   m_ParatextInstallDirPath
+///   m_BibleditInstallDirPath
+///   m_BibleditProjectsDirPath
+
+/// Other collab settings made directly here in this function for new projects are:
+///   m_bParatextIsInstalled
+///   m_bBibleditIsInstalled
+
+///   m_bCollaboratingWithParatext // Stored in AI-ProjectConfiguration.aic file label: CollaboratingWithParatext
+///   m_bCollaboratingWithBibledit // Stored in AI-ProjectConfiguration.aic file label: CollaboratingWithBibledit
+///   m_bStartWorkUsingCollaboration
+///   m_bParatextIsRunning
+///   m_bPathwayIsInstalled
+///   m_PathwayInstallDirPath
+
+/// The following additional collab settings are initially set as follows:
+/// m_CollabProjectForSourceInputs = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabProjectForSourceInputs
+/// m_CollabProjectForTargetExports = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabProjectForTargetExports
+/// m_CollabProjectForFreeTransExports = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabProjectForFreeTransExports
+/// m_CollabAIProjectName = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabAIProjectName
+/// m_CollabBookSelected = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabBookSelected
+/// m_bCollabByChapterOnly = TRUE; // Stored in AI-ProjectConfiguration.aic file label: CollabByChapterOnly
+/// m_CollabChapterSelected = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabChapterSelected
+/// m_CollabSourceLangName = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabSourceLangName
+/// m_CollabTargetLangName = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabTargetLangName
+/// m_CollabBooksProtectedFromSavingToEditor = _T(""); // Stored in AI-ProjectConfiguration.aic file label: CollabBooksProtectedFromSavingToEditor
+/// m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017 // Stored in AI-ProjectConfiguration.aic file label: CollabDoNotShowMigrationDialogForPT7toPT8
+/// m_bCollaborationExpectsFreeTrans = FALSE; // Stored in AI-ProjectConfiguration.aic file label: CollabExpectsFreeTrans
+/// m_bCollaborationDocHasFreeTrans = FALSE; // This is not stored in AI-ProjectConfiguration.aic
+/// m_bSaveCopySourceFlag_For_Collaboration = FALSE; // This is not stored in AI-ProjectConfiguration.aic
+
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 for Linux that can co-exist with PT7
+/// Revised 4Feb2020 by whm to handle collaboration with PT 9 and to remove its dependency on the 
+/// deprecated ParatextVersionInstalled() function and its enum complexity. Instead, it now utilizes
+/// the App's globals gbPT8Installed, gbPT9Installed, gbPTLinux8Installed, etc - set within the
+/// App's InventoryCollabEditorInstalls() which should be called before SetCollabSettingsToNewProjDefaults()
+/// is called.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 {
@@ -38056,149 +38902,22 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     m_bPathwayIsInstalled = PathwayIsInstalled();
     m_PathwayInstallDirPath = GetPathwayInstallDirPath();
 
-    // The GetParatextInstallDirPath function assumes that a PT 8 Installation has priority over
-    // a PT 7 installation.
-    // For Windows we first look for a PT 8 installation and if found, returns its install path.
-    // A PT 8 install path would normally be either "c:\Program Files (x86)\Paratext 8" on a 64-bit
-    // machine, or "c:\Program Files\Paratext 8" on a 32-bit machine.
-    // If no PT 8 installation is found, we look for a PT 7 installation and if found, return
-    // its install path.
-    // A PT 7 install path would normally be either "c:\Program Files (x86)\Paratext 7" on a 64-bit
-    // machine, or ""c:\Program Files\Paratext 7" on a 32-bit machine.
-    // Note: the GetParatextInstallDirPath() function removes the Windows \ path separator
-    // from the end of the string, which is what we want.
-    //m_ParatextInstallDirPath = GetParatextInstallDirPath();
-
-
-    // whm 22June2016 revised for handling the possibility that PT 7 or PT 8 or both could be installed
-    // on Windows systems.
     m_bParatextIsInstalled = FALSE;
-    PTVersionsInstalled PTver;
-    PTver = ParatextVersionInstalled();
-    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
-    {
+    m_ParatextVersionForProject = _T(""); // AI-ProjectConfiguration.aic file label: CollabParatextVersionForProject
+    m_ParatextProjectsDirPath = _T("");
+    m_ParatextInstallDirPath = _T("");
+
+    wxString collabEditorStr = _T("");
+    // The ValidateCollabEditorAndVersionStrAgainstInstallationData() function call below returns a value by reference
+    // for the m_collaborationEditor string parameter, and returns directly a value for m_ParatextVersionForProject
+    // Here wxEmptyString is used for the second parameter since we are not comparing PT version info to those read
+    // from a project config file here.
+    m_ParatextVersionForProject = ValidateCollabEditorAndVersionStrAgainstInstallationData(collabEditorStr, wxEmptyString);
+    m_ParatextProjectsDirPath = GetParatextProjectsDirPath(m_ParatextVersionForProject);
+    m_ParatextInstallDirPath = GetParatextInstallDirPath(m_ParatextVersionForProject); // "c:\Program Files (x86)\Paratext 7" or "c:\Program Files (x86)\Paratext 7"
+    m_collaborationEditor = collabEditorStr; // AI-ProjectConfiguration.aic file label: CollaborationEditor
+    if (m_collaborationEditor == _T("Paratext"))
         m_bParatextIsInstalled = TRUE;
-        m_collaborationEditor = _T("Paratext"); // AI-ProjectConfiguration.aic file label: CollaborationEditor
-    }
-    switch (PTver)
-    {
-    case PTVer7:
-    {
-        m_ParatextVersionForProject = _T("PTVersion7");
-        // The GetParatextProjectsDirPath may return "C:\My Paratext Projects" for PT 7 on Windows
-        // Note: the GetParatextProjectsDirPath() function removes the Windows \ path separator
-        // from the end of the string, which is what we want.
-        // Set the initial default value for the App's m_ParatextVersionForProject variable.
-        m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-        m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTVersion7")); // "c:\Program Files (x86)\Paratext 7" or "c:\Program Files (x86)\Paratext 7"
-        break;
-    }
-    case PTVer8:
-    {
-        m_ParatextVersionForProject = _T("PTVersion8");
-        // The GetParatextProjectsDirPath may return "C:\My Paratext 8 Projects" for PT 8 on Windows
-        // Note: the GetParatextProjectsDirPath() function removes the Windows \ path separator
-        // from the end of the string, which is what we want.
-        // Set the initial default value for the App's m_ParatextVersionForProject variable.
-        m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-        m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTVersion8")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
-        break;
-    }
-    case PTVer7and8:
-    {
-        // Both PT versions 7 and 8 are installed on the machine.
-        // Assume that PT 8 will be the desired editor if it has a valid projects dir
-        // and at least 2 valid/useable projects, otherwise PT 7
-        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
-        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
-        int pt8Count = pt8ListOfProj.GetCount();
-        int pt7Count = pt7ListOfProj.GetCount();
-        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-        {
-            m_ParatextVersionForProject = _T("PTVersion8");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTVersion8")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
-        }
-        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-        {
-            m_ParatextVersionForProject = _T("PTVersion7");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTVersion7")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
-        }
-        else
-        {
-            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-            wxString msg = _T("In App's SetCollabSettingsToNewProjDefaults both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-            LogUserAction(msg);
-            // Assume the administrator will fix this situation. In the mean time, since both
-            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-            m_ParatextVersionForProject = _T("PTVersion8");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTVersion8")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
-        }
-        break;
-    }
-    case PTLinuxVer7:
-    {
-        m_ParatextVersionForProject = _T("PTLinuxVersion7");
-        m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-        m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion7")); // /usr/lib/Paratext by default
-        break;
-    }
-    case PTLinuxVer8:
-    {
-        m_ParatextVersionForProject = _T("PTLinuxVersion8");
-        m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-        m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // /usr/lib/Paratext by default
-        break;
-    }
-    case PTLinuxVer7and8:
-    {
-        // Both PT versions 7 and 8 for Linux are installed on the machine.
-        // Assume that PT 8 will be the desired editor if it has a valid projects dir
-        // and at least 2 valid/useable projects, otherwise PT 7
-        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
-        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
-        int pt8Count = pt8ListOfProj.GetCount();
-        int pt7Count = pt7ListOfProj.GetCount();
-        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-        {
-            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // "/usr/lib/Paratext8"
-        }
-        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-        {
-            m_ParatextVersionForProject = _T("PTLinuxVersion7");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion7")); // /usr/lib/Paratext"
-        }
-        else
-        {
-            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-            wxString msg = _T("In App's SetCollabSettingsToNewProjDefaults both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-            LogUserAction(msg);
-            // Assume the administrator will fix this situation. In the mean time, since both
-            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-            m_ParatextVersionForProject = _T("PTLinuxVersion8");
-            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
-        }
-        break;
-    }
-
-    default:
-    {
-        m_ParatextVersionForProject = _T("");
-        m_ParatextProjectsDirPath = _T("");
-        m_ParatextInstallDirPath = _T("");
-    }
-    }
-
     m_bBibleditIsInstalled = FALSE;
     m_bBibleditIsInstalled = BibleditIsInstalled();
     if (m_bBibleditIsInstalled)
@@ -38206,20 +38925,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
         m_BibleditInstallDirPath = GetBibleditInstallDirPath();
         m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
     }
-    if (PTver == PTNotInstalled)
-    {
-        if (m_bBibleditIsInstalled)
-        {
-            m_collaborationEditor = _T("Bibledit"); // AI-ProjectConfiguration.aic file label: CollaborationEditor
-                                                    // GetBibleditInstallDirPath gets the absolute path to the Bibledit projects directory
-                                                    // which on Linux systems is ~/.bibledit/projects.
-                                                    // m_BibleditInstallDirPath will be null if Bibledit is not installed or we are not on
-                                                    // a Linux host system.
-        }
-    }
-
-    bParatextSharedDLLLoaded = FALSE;
-
+    
     m_CollabProjectForSourceInputs = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForSourceInputs
     m_CollabProjectForTargetExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForTargetExports
     m_CollabProjectForFreeTransExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForFreeTransExports
@@ -53126,8 +53832,8 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// \return		a wxArrayString that contains usable Paratext projects on the
 ///             host computer, formatted in string format with fields separated
 ///             by ':' delimiters (see remarks)
-/// \param      wxString PTVersion which can be "PTVersion7", "PTVersion8", "PTLinuxVersion7"
-///             or "PTLinuxVersion8"
+/// \param      wxString PTVersion which can be "PTVersion7", "PTVersion8", "PTVersion9"
+///             "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
 /// \remarks
 /// Called from: the App's ParatextVersionInstalled(), GetAIProjectCollabStatus(),
 /// CChooseCollabOptionsDlg::InitDialog, CollabProjectHasAtLeastOneBook(),
@@ -53142,8 +53848,9 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// valid PT 7 projects; it won't list any PT 8 projects even if PT 8 is installed and
 /// contains valid projects. Similarly, if "PTVersion8" is passed in, this function will
 /// only return a list of valid PT 8 projects; it won't list any PT 7 projects even if
-/// PT 7 is installed and containes valid projects. The same with "PTLinuxVersion7" and
-/// "PTLinuxVersion8".
+/// PT 7 is installed and containes valid projects. PTVersion9 and PTLinuxVersion9 
+/// end up retrieving project data from the same data store.
+/// The same with "PTLinuxVersion7" and "PTLinuxVersion8".
 /// This function gathers a list of "usable" Paratext (PT) projects from the user's PT
 /// installation (for the PT version specified in the parameter). A "usable" PT project
 /// is one which is not a PT "resource" project.
@@ -53151,10 +53858,11 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// located in the PT projects directory ("My Paratext Projects" on Windows, or
 /// "ParatextProjects" on Linux), extracting from the xml the various properties
 /// described from each usable project.
-/// For "PTVersion8" and "PTLinuxVersion8", it parses the PT project's Settings.xml
-/// files located in the project dirs of the PT projects directory ("My Paratext 8 Projects"
-/// on Windows, or "Paratext8Projects" on Linux), extracting from the Settings.xml file
-/// the various properties described from each usable project.
+/// For "PTVersion8", "PTVersion9", "PTLinuxVersion8", and "PTLinuxVersion9", it parses  
+/// the PT project's Settings.xml files located in the project dirs of the PT projects 
+/// directory ("My Paratext 8 Projects" on Windows, or "Paratext8Projects" on Linux), 
+/// extracting from the Settings.xml file the various properties described from each
+/// usable project.
 /// WARNING: =======================================================================
 /// As a side effect, this function populates the App's m_pArrayOfCollabProjects
 /// array of pointers to Collab_Project_Info_Struct structs stored on the heap.
@@ -53176,6 +53884,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// whm 5April2017 modified to include the PT collabProjectGUID value of project. The
 /// GUID value helps to identify when a PT project had been migrated from PT7 to PT8
 /// in circumstances where both PT7 and PT8 are installed and both have valid projects.
+/// whm 4Feb2020 revised for compatibility with Paratext 9. 
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 {
@@ -53537,15 +54246,23 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 
         }
     }
-    else if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8"))
+    // whm 4Feb2020 modified the following test to include "PTVersion9" and "PTLinuxVersion9" since PT 9 
+    // uses the same data store location for projects that PT 8 used.
+    else if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8") || PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
     {
 
 
 #ifdef __WXMSW__ // Windows host system - look in registry
-        path = GetParatextProjectsDirPath(_T("PTVersion8"));
+        if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8"))
+            path = GetParatextProjectsDirPath(_T("PTVersion8"));
+        if (PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
+            path = GetParatextProjectsDirPath(_T("PTVersion9"));
 #endif
 #if defined(__WXGTK__) // linux -- check mono directory for values.xml file
-        path = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+        if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8"))
+            path = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+        if (PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
+            path = GetParatextProjectsDirPath(_T("PTLinuxVersion9"));
 #endif
         if (!path.IsEmpty())
         {
@@ -53887,7 +54604,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
     else
     {
         // This would be a programming error
-        wxASSERT_MSG(FALSE, _T("GetListOfPTProjects function called without a specified parameter of PTVersion7 or PTVersion8."));
+        wxASSERT_MSG(FALSE, _T("GetListOfPTProjects function called without a specified parameter of PTVersion7, PTVersion8, PTVersion9, PTLinuxVersion7, PTLinuxVersion8, or PTLinuxVersion9."));
     }
 
     return tempListOfPTProjects;

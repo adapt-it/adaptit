@@ -96,7 +96,7 @@ public:
 	wxArrayString TargetChapterUsfmStructureAndExtentArray;
 	wxArrayString FreeTransChapterUsfmStructureAndExtentArray;
 
-	wxString m_rdwrtp7PathAndFileName;
+	wxString m_rdwrtPTPathAndFileName;
 	wxString m_bibledit_rdwrtPathAndFileName;
 	
 	wxString m_collabEditorName;

@@ -31,7 +31,7 @@ public:
 	
 	// These are temporary values for holding settings until user clicks OK.
 	// If user clicks Cancel, these values are ignored and not copied to the
-	// corresponding settings on the App.
+	// corresponding m_Collab... member settings on the App.
 	bool m_bTempCollaboratingWithParatext;
 	bool m_bTempCollaboratingWithBibledit;
 	wxString m_TempCollabProjectForSourceInputs;
@@ -97,6 +97,8 @@ protected:
     void SetStateOfAcceptSetupButton();
     void SetPTorBEsubStringsInControls();
 	void OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event)); // whm added 4Apr12
+    // whm 4Feb2020 added functions below
+    void SetRadioBoxCollabEditorSelection();
 
 private:
 
@@ -126,6 +128,7 @@ private:
 	wxButton* pBtnSaveSetupForThisProjNow;
 	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
+    unsigned int m_nPreviousSel;
 	wxArrayString projList;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
