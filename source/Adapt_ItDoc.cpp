@@ -16498,7 +16498,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		precWordDelim.Empty(); // BEW added 10Jul14, it should be emptied before we break
 							   // out each 'next' parsed word
 #if defined (_AT_PTR)
-		wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+		wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+			__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 		if (IsWhiteSpace(ptr))
 		{
@@ -16510,7 +16511,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			itemLen = ParseWhiteSpace(ptr);
 
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 			// BEW 10Jul14 added next 3 lines
 			// BEW 23Apr15, signature *ptr,itemLen results in the wxChar at ptr being repeated
@@ -16606,7 +16608,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pLastSrcPhrase = pSrcPhrase;
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,  sequNum = %d    m_srcPhrase:  %s"),
+				wxLogDebug(_T("TokenizeText: line %d  ,  sequNum = %d    m_srcPhrase:  %s , setting pLastSrcPhrase"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 #endif
 
@@ -16842,7 +16844,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptr += itemLen; // point at verse number or verse string eg. "3b"
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				itemLen = ParseNumber(ptr);
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add number (or range eg. 3-5) to buffer
@@ -16850,7 +16853,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pSrcPhrase->m_chapterVerse += temp; // append the verse number
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,  itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				// Track the verse number if logging is wanted
 				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
@@ -16865,7 +16869,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptr += itemLen; // point past verse number
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				// set pSrcPhrase attributes
 				pSrcPhrase->m_bVerse = TRUE;
@@ -16892,8 +16897,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// m_markers member of the current pSrcPhrase, instead of going to the
 					// outer loop, saving it and creating a new one etc
 
-#if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+#if defined (_AT_PTR)		
+					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					break;
 				}
@@ -17161,7 +17167,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 #if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d   Go to ParsePreWord()"),
+						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					break; // break out of the inner loop, to get to ParsePreWord() etc
 
@@ -17232,7 +17239,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				augmentedWholeMkr += _T(' ');
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 				// BEW 30Sep19 Bill has changed the \fig properties to have m_inform
@@ -17260,7 +17268,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					goto isnull;
 				}
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				// BEW the next bit was added to handle the possibility of a thing like \x type
 				// of markers being within an unfiltered \f .... \f* span. It is possible for
@@ -17300,7 +17309,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 				}
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 
 				// BEW 30Sep19, Bill's change Or to be AND didn't fix it. My logic was wrong.
@@ -17313,12 +17323,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				//wxUnusedVar(bFilteringIsWanted);
 				bInUnfilteredInlineSpan = m_bIsWithinUnfilteredInlineSpan;
 				wxUnusedVar(bInUnfilteredInlineSpan);
-#if defined (_DEBUG) //&& defined (FIXORDER)
-//				{
-//					wxLogDebug(_T("TokenizeText line %d: bCanFilterIt= %d, bFilteringIsWanted= %d, bInUnfilteredInlineSpan= %d"),
-//						__LINE__, (int)bCanFilterIt, (int)bFilteringIsWanted, (int)bInUnfilteredInlineSpan);
-//				}
-#endif
+//#if defined (_DEBUG) //&& defined (FIXORDER)
+				{
+					wxLogDebug(_T("TokenizeText line %d: bCanFilterIt= %d, bFilteringIsWanted= %d, bInUnfilteredInlineSpan= %d"),
+						__LINE__, (int)bCanFilterIt, (int)bFilteringIsWanted, (int)bInUnfilteredInlineSpan);
+				}
+//#endif
 				// Outermost test...
 				if (bIsToBeFiltered && bCanFilterIt)
 				{
@@ -17347,7 +17357,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// So we'll code in bleeding order - get the special cases out of the way
 					// first, and the general stuff handled last.
 #if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					// bIsToBeFiltered is TRUE, so determine if the marker is one from
 					// the set of attributes-having markers, and that tokenizing source
@@ -17375,7 +17386,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString temp = wxEmptyString;
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  Text: %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						// Ready for the filtering code...
 						itemLen = 0; // initialize
@@ -17387,7 +17399,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  , Now itemLen = %d  for Text: %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						// get filtered text bracketed by \~FILTER and \~FILTER*
 						temp = GetFilteredItemBracketed(ptr, itemLen);
@@ -17411,7 +17424,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptr += itemLen;
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,  ptr advanced by itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,  ptr advanced by itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						// We don't know  what lay beyond the endmarker, could be a number
 						// things - but most likely whitespace, so parse over & exit the block
@@ -17422,7 +17436,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									 // 3 lines will not add anything to tokBuffer nor ptr
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  , re-initialized    itemLen = %d"), __LINE__, itemLen);
+						wxLogDebug(_T("TokenizeText: line %d  ,  reinitialized  itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						itemLen = ParseWhiteSpace(ptr); // parse any white space following it,
 														// return 0  if not pointing at whitespace
@@ -17430,7 +17445,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptr += itemLen; // advance ptr past its following whitespace
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d ,   itemLen = %d  Text: %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						continue; // iterate the inner loop
 					} // end of TRUE block for test: if (bItsSourceText && bItsABeginMarkerForAttributes)
@@ -17441,7 +17457,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString temp = wxEmptyString;
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  Text: %s"),__LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						// Ready for the filtering code...
 						itemLen = 0; // initialize
@@ -17455,7 +17472,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 						// BEW 30Sep19,  The legacy code follows...
 #if defined (_AT_PTR)	
-						wxLogDebug(_T("TokenizeText: line %d  , Now itemLen = %d  for Text: %s"),
+						wxLogDebug(_T("TokenizeText: line %d  , Now itemLen = %d  for Text: %s  Filtering..."),
 							__LINE__, itemLen, (wxString(ptr, 24)).c_str());
 #endif
 						// get filtered text bracketed by \~FILTER and \~FILTER*
@@ -17595,8 +17612,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptr += itemLen;
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  , End of legacy filter block;   itemLen = %d  %s"),
-							__LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  , itemLen = %d  %s  sn=%d  Filtering block ends"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						// legacy code ends
 
@@ -17621,8 +17638,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 					bool bFoundOne = FALSE;
 
 #if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,  Not filtering, after isnull label: itemLen = %d  %s"),
-						__LINE__, itemLen, (wxString(ptr, 24)).c_str());
+					wxLogDebug(_T("TokenizeText: line %d  ,  Not filtering, after isnull label: itemLen = %d  %s  sn=%d"),
+						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					// Is it one of the binding ones? If not, is it one of the
 					// non-binding ones, like \wj 'words of Jesus' etc
@@ -17694,7 +17711,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 					} // end of TRUE block for test: if (IsMarker(ptr))
 
 #if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					// For other marker types, see next comment. If we found one, ptr must
 					// still be pointing at it on entry to ParsePreWord() - in which case
@@ -17714,12 +17732,14 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 						// advance pointer past the marker
 						ptr += itemLen;
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 						itemLen = 0;
 
 #if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 					}
 					else
@@ -17731,12 +17751,14 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif				
 				itemLen = ParseWhiteSpace(ptr); // parse white space following it
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
@@ -17750,7 +17772,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 				itemLen = 0; // fixes the above bug
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,     itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
                 // BEW added 15Aug12: a \p after an empty verses marker, can cause control
                 // to come here without closing off the empty pSrcPhrase after accumulating
@@ -17771,7 +17794,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 					break;
 				}
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				continue; // iterate the inner loop to check if another marker follows
 
@@ -17781,7 +17805,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 		} // end of inner loop, while (IsMarker(ptr)), BEW 11Oct10
 
 #if defined (_AT_PTR)
-		wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+		wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Inner loop ended, in Outer"),
+			__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 		// Back in the outer loop now. We have one of the following three situations:
 		// (1) ptr is not pointing at an inline marker that we need to handle within
@@ -17854,7 +17879,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 				pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 
 #if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d   Continue command follows"),
+					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				continue;
 			}
@@ -17915,7 +17941,8 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 
 parsing:
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  , at ParsePreWord  itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Call ParsePreWord() next"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 
 			itemLen = ParsePreWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
@@ -17925,7 +17952,8 @@ parsing:
 				bTokenizingTargetText);
 
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  After ParsePreWord()"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 			if (itemLen > 0)
 			{
@@ -17934,11 +17962,12 @@ parsing:
 			}
 
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  , re-initialized    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Advanced ptr & reset itemLen"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 			// Below is the Legacy ParseWord(). The refactored (Oct 2016) one
 			// further below is ParseWord2() - signature unchanged. Keep the Legacy one
-			// for the time being. 
+			// for the time being.
 			// BEW 30Sep19 the legacy one is, I suspect, superior.
 			// If can handle punctuation changing to word-building char, or vise
 			// versa, and ~ fixed space, and does pretty well at post-word mixes of
@@ -17959,7 +17988,8 @@ parsing:
 #endif
 
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,  at ParsePreWord itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Entering ParseWord()"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 				pApp->m_inlineNonbindingMarkers,
@@ -17985,7 +18015,8 @@ parsing:
 
 			ptr += itemLen; // advance ptr over what we parsed
 #if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+			wxLogDebug(_T("TokenizeText: line %d ,   itemLen = %d  %s  sn=%d  Just advanced ptr by itemLen chars"),
+				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 #if defined (_DEBUG) && defined (FIXORDER)
 			{

@@ -3967,6 +3967,10 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // before returning, (but always after having used the TRUE value of course, if passed in
 // as TRUE)
 // BEW 23Apr15 additions to support / as a whitespace word-break char
+// BEW 10Feb20 prevent placeholder insertions' tgt text from being put in the KB, under
+// the ... src text. This led to huge long list of useless items. There's no point in
+// preserving such tgt text additions in the KB. Instead we want an empty list, and the
+// phrasebox to come up empty ready for the user's typing.
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// Unilaterally do the capitalization of the sentence initial word, if
@@ -3975,6 +3979,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		!gbVerticalEditInProgress && !m_pApp->m_bFreeTranslationMode)
 	{
 		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
+	}
+
+	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition
+	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
+	{
+		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+		return TRUE;
 	}
 
 	// determine the auto caps parameters, if the functionality is turned on
