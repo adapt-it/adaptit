@@ -14230,6 +14230,11 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			strFinal += PutSrcWordBreak(pSrcPhrase) + theWord;
 		}
 		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
+
+        // whm 15Feb2020 testing only add a break out for when itemLen is zero
+        if (itemLen == 0)
+            break;
+
 	} // end of while loop: while (ptr < pEnd)
 
 	*pStr = strFinal; // copy result to caller
