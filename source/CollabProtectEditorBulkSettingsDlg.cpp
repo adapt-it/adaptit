@@ -891,26 +891,8 @@ void CCollabProtectEditorBulkSettingsDlg::DoSetControlsFromConfigFileCollabData(
     projList.Clear();
     if (m_TempCollaborationEditor == _T("Paratext"))
     {
-        if (m_TempCollabEditorVersion == _T("PTVersion7"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-            editorProjectsPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
-        }
-        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-            editorProjectsPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
-        }
-        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-            editorProjectsPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-        }
-        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
-        {
-            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-            editorProjectsPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-        }
+        projList = m_pApp->GetListOfPTProjects(m_TempCollabEditorVersion); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        editorProjectsPath = m_pApp->GetParatextProjectsDirPath(m_TempCollabEditorVersion);
     }
     else if (m_TempCollaborationEditor == _T("Bibledit"))
     {
@@ -1041,10 +1023,16 @@ void CCollabProtectEditorBulkSettingsDlg::DoSetControlsFromConfigFileCollabData(
             PTversionNum = _T("7");
         else if (m_TempCollabEditorVersion == _T("PTVersion8"))
             PTversionNum = _T("8");
+        // whm 4Feb2020 added test below for PTVersion9
+        else if (m_TempCollabEditorVersion == _T("PTVersion9"))
+            PTversionNum = _T("9");
         else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
             PTversionNum = _T("7 (Linux)");
         else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
             PTversionNum = _T("8 (Linux)");
+        // whm 4Feb2020 added test below for PTLinuxVersion9
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion9"))
+            PTversionNum = _T("9 (Linux)");
 
         pStaticTextCollabEditor->SetLabel(m_TempCollaborationEditor + _T(" ") + PTversionNum);
     }

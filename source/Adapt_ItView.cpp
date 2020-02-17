@@ -14151,13 +14151,82 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// in the next call, because there are no inline markers to worry about,
 		// m_follOuterPunct will always be empty, and any following puncts will only
 		// be in m_follPunct
+		wxChar* pAux = ptr; // pAux is starting ptr for the parse
 		itemLen = pDoc->ParseWord(ptr, pEnd, pSrcPhrase, spacelessPunctsStr,
 					pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
 					bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
-		theWord = pSrcPhrase->m_key;
+		theWord = pSrcPhrase->m_key; // could be empty, and would be if itemLen returned is 0
 
 		// update ptr to point at next part of string to be parsed
 		ptr += itemLen;
+
+		// BEW 17Feb20 addition to handle Roland Fumey's data, such as you[sg]
+		// because ParseWord() when ptr gets to the [ will not have incremented
+		// ptr because itemLen was returned as zero. This leads to an infinite
+		// loop unless we provide loop break-out correcting code here so that
+		// ptr exits at the matching ] or at space if the user forgets to supply
+		// the matching ]   Thanks to Bill for his analysis of the situation!
+		bool bAfterLeftBracket = FALSE;
+		bool bScanToWhitespace = FALSE;
+		if (ptr == pAux || *ptr == _T('['))
+		{
+			if (*ptr == _T('['))
+			{
+				bAfterLeftBracket = TRUE;
+				theWord += _T('[');
+				ptr++; // advance past the [ punctuation character
+				pAux++; // advance this too
+			}
+			else
+			{
+				bScanToWhitespace = TRUE;
+			}
+		}
+
+		// Loop to find where to break from loop with ptr at an appropriate place
+		// ie. pointing at ] or at first encountered whitespace; and accumulating
+		// any additional characters parsed over in theWord
+		bool bExitingAtWhitespace = FALSE;
+		itemLen = 0;
+		if (bAfterLeftBracket)
+		{
+			// scan to halt spot
+			while (*ptr != _T(']'))
+			{
+				if (pDoc->IsWhiteSpace(ptr))
+				{
+					// Whitespace character is an exit-signalling character
+					bExitingAtWhitespace = TRUE;
+
+				}
+				else
+				{
+					// Not a whitespace character
+					ptr++; // Advance over the scanned non-] character
+					itemLen++;
+				}
+				if (bExitingAtWhitespace)
+				{
+					break;
+				}
+			}// end of while loop
+			// If control gets to here, ptr has halted at a ']' character,
+			// or at whitespace if that was encountered earlier than ']'
+			wxString endingStr(pAux, itemLen);
+			theWord += endingStr;
+		}
+		else  if (bScanToWhitespace)
+		{
+			while (!pDoc->IsWhiteSpace(ptr))
+			{
+				ptr++; // Advance over the scanned character
+				itemLen++;
+
+			}
+			wxString endingStr(pAux, itemLen);
+			theWord += endingStr;
+		}
+		
 
 //#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15, because when supporting / as a word-breaking 
@@ -14165,6 +14234,14 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// whitespace and we want to store that; if any other whitespace
 		// follows, we don't want that - but do want to parse over it. So
 		// I'll recode for this here.
+		// BEW 17Feb20 ParseWord() has been split into ParsePreWord() which
+		// handles preword stuff, and a following (smaller) ParseWord() - the
+		// latter now almost exclusively just handles post-word parsing.
+		// It may not be necessary to now handle forward slash delimitation
+		// in the following block, as it should have been handled earlier in
+		// ParsePreWord(); but it should be safe to still use the block unchanged
+		// because, after all, it's just dealing with white space and that
+		// should not upset the caller of RemovePunctuation()
 		if (pApp->m_bFwdSlashDelimiter)
 		{
 			bool bItsWhite = pDoc->IsWhiteSpace(ptr);
@@ -14230,6 +14307,11 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			strFinal += PutSrcWordBreak(pSrcPhrase) + theWord;
 		}
 		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
+
+		// BEW add Bill's safety escape test, so we won't ever get into an infinite loop
+		// if ptr does not advance
+		if (pBuffStart == ptr)
+			break;
 	} // end of while loop: while (ptr < pEnd)
 
 	*pStr = strFinal; // copy result to caller

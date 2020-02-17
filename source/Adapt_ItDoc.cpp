@@ -6593,6 +6593,17 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pStatusBar->FinishProgress(_("Opening the Document"));
 	}
 
+	// BEW 12Feb20 added call to check if the adaptation KB has any placeholder items stored
+	// within - if any are found then this function removes them. Observing workflow as
+	// Yolngu translators did their adapting at Milingimbi island, a placehold coming up with
+	// a huge long list of useless saved tgt text items is just a nuisance. It needs to come
+	// up with its phrasebox empty, ready for a meaning to be typed; and the meaning needs
+	// to be blocked from entering the adapting KB (there are no stored placeholders in the
+	// glossing KB) - so there's also a little block of code near top of StoreText() to cause
+	// control to exit if the CSourcePhrase is m_bNullSourcePhrase TRUE and m_bRetranslation
+	// is FALSE. The adaptation KB for this project is guaranteed to be read in and ready by now.
+//	pApp->m_pKB->RemoveManuallyEnteredPlaceholdersFromKB();
+
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
 
@@ -16228,6 +16239,7 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 	wxString xref = _T("\\x ");
 	return augmentedWholeMkr == xref;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)

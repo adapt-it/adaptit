@@ -6946,9 +6946,10 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
     {
         _("Paratext 7"), 
         _("Paratext 8"), 
+        _("Paratext 9"), 
         _("Bibledit")
     };
-    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 3, strs13, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item13 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 4, strs13, 1, wxRA_SPECIFY_COLS );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString *strs14 = (wxString*) NULL;
@@ -9256,7 +9257,7 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     item0->Add( item8, 0, wxALL, 0 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("but the above Paratext 7 projects have been migrated to Paratext 8."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("but the above Paratext 7 projects have been migrated to Paratext 8/9."), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item10, 0, wxALL, 5 );
 
     wxStaticLine *item11 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
@@ -9269,7 +9270,7 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIOBUTTON_PT8, _("Paratext 8 (Recommended)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIOBUTTON_PT9, _("Paratext 9 (Recommended)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item16->SetValue( TRUE );
     item16->SetFont( wxFont( 12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
     item15->Add( item16, 0, wxALL, 0 );
@@ -9278,7 +9279,7 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     item17->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Choose Paratext 8 to continue collaborating with the migrated Paratext 8 projects"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Choose Paratext 9 to continue collaborating with the migrated projects"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item15->Add( item17, 0, wxALL, 0 );
@@ -9287,7 +9288,7 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxRadioButton *item20 = new wxRadioButton( parent, ID_RADIOBUTTON_PT7, _("Paratext 7 (Not recommended)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item20 = new wxRadioButton( parent, ID_RADIOBUTTON_PT8, _("Paratext 8 (Recommended)"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->SetFont( wxFont( 12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
     item19->Add( item20, 0, wxALL, 0 );
 
@@ -9295,30 +9296,47 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     item21->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Choose Paratext 7 to keep collaborating with the Paratext 7 projects"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Choose Paratext 8 to continue collaborating with the migrated Paratext 8 projects"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item19->Add( item21, 0, wxALL, 0 );
 
     item14->Add( item19, 0, wxALL, 0 );
 
-    wxCheckBox *item23 = new wxCheckBox( parent, ID_CHECKBOX_DONT_SHOW_AGAIN, _("Do not show this message again"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item23, 0, wxALL, 5 );
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item24 = new wxRadioButton( parent, ID_RADIOBUTTON_PT7, _("Paratext 7 (Not recommended)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetFont( wxFont( 12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
+    item23->Add( item24, 0, wxALL, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    item25->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Choose Paratext 7 to keep collaborating with the Paratext 7 projects"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item23->Add( item25, 0, wxALL, 0 );
+
+    item14->Add( item23, 0, wxALL, 0 );
+
+    wxCheckBox *item27 = new wxCheckBox( parent, ID_CHECKBOX_DONT_SHOW_AGAIN, _("Do not show this message again"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item27, 0, wxALL, 5 );
 
     item12->Add( item14, 0, wxALL, 0 );
 
     item0->Add( item12, 0, wxALL, 5 );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Note: If collaboration with Paratext doesn't work as you expect, ask your administrator to set up collaboration with Paratext."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY );
-    item0->Add( item24, 0, wxGROW|wxALL, 5 );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Note: If collaboration with Paratext doesn't work as you expect, ask your administrator to set up collaboration with Paratext."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY );
+    item0->Add( item28, 0, wxGROW|wxALL, 5 );
 
-    wxStdDialogButtonSizer *item25 = new wxStdDialogButtonSizer;
+    wxStdDialogButtonSizer *item29 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item25->AddButton( button ); }
-    item25->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item25->Realize();
-    item0->Add( item25, 0, wxGROW|wxALL, 5 );
+      item29->AddButton( button ); }
+    item29->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item29->Realize();
+    item0->Add( item29, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

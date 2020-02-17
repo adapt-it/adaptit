@@ -3980,18 +3980,61 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
 	}
-
-	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition
+	wxString strNot = m_pApp->m_strNotInKB;
+/*
+	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition,
+	// but support setting of m_adaption and m_targetStr
 	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
 	{
+		if (tgtPhrase != strNot)
+		{
+			// BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
+			// same way that MakeTargetStringIncludingPunctuation() will do the
+			// capitalization for m_targetStr, formerly m_adaption was just set to
+			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+			// because the view only shows m_targetStr)
+			wxString s = tgtPhrase;
+			if (gbAutoCaps)
+			{
+				bool bNoError = TRUE;
+				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bNoError = m_pApp->GetDocument()->SetCaseParameters(s, FALSE); // FALSE is bIsSrcText
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to upper case
+						s.SetChar(0, gcharNonSrcUC);
+					}
+				}
+				pSrcPhrase->m_adaption = s;
+			}
+			else
+			{
+				pSrcPhrase->m_adaption = tgtPhrase;
+			}
+			//#if defined(FWD_SLASH_DELIM)
+			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+			}
+			//#endif
+			if (!m_pApp->m_bInhibitMakeTargetStringCall)
+			{
+				// sets m_targetStr member too, also does auto-capitalization adjustments
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
+			}
+		}
+
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
 
+*/
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
-	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
 
     // do not permit storage if the source phrase has an empty key
@@ -4179,6 +4222,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	if (!tgtPhrase.IsEmpty())
 	{
 		tgtPhrase.Trim();
+		// also trim off an initial spaces. Yolngu people tend to leave them there in the box
+		tgtPhrase.Trim(FALSE); // BEW added, 14Feb20
 	}
 
     // always place a copy in the source phrase's m_adaption member, unless it is
@@ -6727,4 +6772,78 @@ void CKB::GuesserUpdate()
 		pApp->LoadGuesser(pApp->m_pGlossingKB);
 		pApp->m_pGlossesGuesser->DoCalcCorrespondences();
 	}
+}
+
+void CKB::RemoveManuallyEnteredPlaceholdersFromKB()
+{
+	/*
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	MapKeyStringToTgtUnit* pMap = this->m_pMap[0]; // pTU for manual placeholders is only in first map
+	wxASSERT(pMap != NULL);
+	CTargetUnit* pTgtUnit = NULL;
+	wxString key = _T("..."); // source text's placeholder string (for a 'null source phrase')
+	bool bOK = AutoCapsLookup(pMap, pTgtUnit, key);
+	if (bOK)
+	{
+		// pTgtUnit contains the list of CRefString instances in its m_pTranslations list
+		wxASSERT(pTgtUnit != NULL);
+		TranslationsList* pList = pTgtUnit->m_pTranslations;
+		wxASSERT(pList);
+		CRefString* pRefStr = NULL;
+		TranslationsList::Node *pos = pList->GetFirst();
+		while (pos != NULL)
+		{
+			pRefStr = (CRefString*)pos->GetData();
+			pos = pos->GetNext();
+			wxASSERT(pRefStr != NULL);
+
+			// clear the pRefString's contents and remove it from heap
+
+			// First, get the metadata object from the heap, empty it 
+			CRefStringMetadata* pData = pRefStr->GetRefStringMetadata();
+			pData->m_pRefStringOwner = NULL;
+			pData->m_creationDateTime = _T("");
+			pData->m_modifiedDateTime = _T("");
+			pData->m_deletedDateTime = _T("");
+			pData->m_whoCreated = _T("");
+			//delete pData;
+			//pRefStr->m_pRefStringMetadata = NULL;
+
+			// Next, clear the translation string, and 
+			// zero the other pointers (the latter two are not necessary)
+			pRefStr->m_translation = _T(""); // needed, it's on heap still, 
+									// but has no contents - leave it that way
+			pRefStr->m_refCount = 0;
+			pRefStr->m_bDeleted = TRUE;
+
+			// Now clear out the CRefString object from the heap. Note, this
+			// will impinge on the Knowledge Base lists, so look at KBEditor.cpp, OnButtonRemove()
+			// in the region of comment line 1737. It says to keep the pTU in the map, but just
+			// show nothing in the KB Editor's source list for that pTU instance
+
+			// I'm trying empty strings and not deleting the objects as deleting ran into
+			// problems when DoKBSaveAsXML() got called, and the app crashed
+			//delete pRefStr;
+		}
+		// When the loop finishes, this particular pTU has empty CRefStrings in its list;
+		// and code KB Editor remove button suggests that pKB->m_bCallerIsRemoveButton 
+		// should be set TRUE, so I'll do so even though the Remove button was not used
+		CKB* pKB;
+		if (!gbIsGlossing)
+			pKB = gpApp->m_pKB;
+		else
+			pKB = gpApp->m_pKB;
+		if (pKB != NULL)
+			pKB->m_bCallerIsRemoveButton = TRUE;
+		m_pApp->GetDocument()->Modify(TRUE); // making the doc dirty allows a Save which 
+											 // will get the KB change saved too
+
+		// TODO  whatever else -- I may need to clone some code from editor's OnButtonRemove()
+	}
+	else
+	{
+		// No pTU with a list of CRefStrings of manually entered placeholder src/tgt entries exists
+		return;
+	}
+*/
 }

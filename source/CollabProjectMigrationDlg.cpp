@@ -39,6 +39,7 @@ BEGIN_EVENT_TABLE(CCollabProjectMigrationDlg, AIModalDialog)
 EVT_INIT_DIALOG(CCollabProjectMigrationDlg::InitDialog)
 EVT_BUTTON(wxID_OK, CCollabProjectMigrationDlg::OnOK)
 EVT_CHECKBOX(ID_CHECKBOX_DONT_SHOW_AGAIN, CCollabProjectMigrationDlg::OnCheckDontShowAgain)
+EVT_RADIOBUTTON(ID_RADIOBUTTON_PT9, CCollabProjectMigrationDlg::OnRadioBtnPT9)
 EVT_RADIOBUTTON(ID_RADIOBUTTON_PT8, CCollabProjectMigrationDlg::OnRadioBtnPT8)
 EVT_RADIOBUTTON(ID_RADIOBUTTON_PT7, CCollabProjectMigrationDlg::OnRadioBtnPT7)
 EVT_BUTTON(wxID_CANCEL, CCollabProjectMigrationDlg::OnCancel)
@@ -59,6 +60,8 @@ CCollabProjectMigrationDlg::CCollabProjectMigrationDlg(wxWindow* parent, wxStrin
     // wxStdDialogButtonSizer, and so there is no need to call the ReverseOkCancelButtonsForMac()
     // function in this case.
 
+    pRadioBtnPT9 = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PT9);
+    wxASSERT(pRadioBtnPT9 != NULL);
     pRadioBtnPT8 = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PT8);
     wxASSERT(pRadioBtnPT8 != NULL);
     pRadioBtnPT7 = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PT7);
@@ -90,18 +93,20 @@ void CCollabProjectMigrationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) 
 {
     //InitDialog() is not virtual, no call needed to a base class
 
-    // Start with the "Paratext 8" button selected (and "Paratext 7" button unselected)
-    pRadioBtnPT8->SetValue(TRUE);
+    // Start with the "Paratext 9" button selected (and "Paratext 7" and "Paratext 8" buttons unselected)
+    pRadioBtnPT9->SetValue(TRUE);
+    pRadioBtnPT8->SetValue(FALSE);
     pRadioBtnPT7->SetValue(FALSE);
     m_bPT8BtnSelected = pRadioBtnPT8->GetValue();
+    m_bPT9BtnSelected = pRadioBtnPT9->GetValue();
 
     // Start with the "Do not show this message again" checkbox selected
     pCheckBoxDoNotShowAgain->SetValue(TRUE);
     m_bDoNotShowAgain = pCheckBoxDoNotShowAgain->GetValue();
 
     // Enable the Do not show again checkbox only when Paratext 7 is selected
-    // Here in InitDialog Paratext 8 is selected, so the Do not show again checkbox starts ticked, but disabled
-    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected);
+    // Here in InitDialog Paratext 9 is selected, so the Do not show again checkbox starts ticked, but disabled
+    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected && !m_bPT9BtnSelected);
 
     wxString tempStr;
 
@@ -134,6 +139,7 @@ void CCollabProjectMigrationDlg::OnOK(wxCommandEvent& event)
     // The caller of CCollabProjectMigrationDlg (ProjectPage.cpp) will make any needed changes 
     // to the App's members when this dialog closes. The following dialog members are public
     // in order to allow the calling routine to determine the user's response if any.
+    m_bPT9BtnSelected = pRadioBtnPT9->GetValue();
     m_bPT8BtnSelected = pRadioBtnPT8->GetValue();
     m_bDoNotShowAgain = pCheckBoxDoNotShowAgain->GetValue();
     event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
@@ -146,27 +152,45 @@ void CCollabProjectMigrationDlg::OnCancel(wxCommandEvent& event)
 }
 
 
+void CCollabProjectMigrationDlg::OnRadioBtnPT9(wxCommandEvent & WXUNUSED(event))
+{
+    pRadioBtnPT9->SetValue(TRUE);
+    pRadioBtnPT8->SetValue(FALSE);
+    pRadioBtnPT7->SetValue(FALSE);
+    m_bPT9BtnSelected = pRadioBtnPT9->GetValue();
+    m_bPT8BtnSelected = pRadioBtnPT8->GetValue();
+    // Enable the Do not show again checkbox only when Paratext 7 is selected
+    // Here Paratext 9 is selected, so the Do not show again checkbox is ticked but disabled
+    pCheckBoxDoNotShowAgain->SetValue(m_bPT9BtnSelected);
+    m_bDoNotShowAgain = pCheckBoxDoNotShowAgain->GetValue();
+    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected && !m_bPT9BtnSelected);
+}
+
 void CCollabProjectMigrationDlg::OnRadioBtnPT8(wxCommandEvent & WXUNUSED(event))
 {
+    pRadioBtnPT9->SetValue(FALSE);
     pRadioBtnPT8->SetValue(TRUE);
     pRadioBtnPT7->SetValue(FALSE);
     m_bPT8BtnSelected = pRadioBtnPT8->GetValue();
+    m_bPT9BtnSelected = pRadioBtnPT9->GetValue();
     // Enable the Do not show again checkbox only when Paratext 7 is selected
     // Here Paratext 8 is selected, so the Do not show again checkbox is ticked but disabled
     pCheckBoxDoNotShowAgain->SetValue(m_bPT8BtnSelected);
     m_bDoNotShowAgain = pCheckBoxDoNotShowAgain->GetValue();
-    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected);
+    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected && !m_bPT9BtnSelected);
 }
 
 void CCollabProjectMigrationDlg::OnRadioBtnPT7(wxCommandEvent & WXUNUSED(event))
 {
+    pRadioBtnPT9->SetValue(FALSE);
     pRadioBtnPT8->SetValue(FALSE);
     pRadioBtnPT7->SetValue(TRUE);
     m_bPT8BtnSelected = pRadioBtnPT8->GetValue();
+    m_bPT9BtnSelected = pRadioBtnPT9->GetValue();
     // Enable the Do not show again checkbox only when Paratext 7 is selected
     // Here Paratext 7 is explicitly selected, so the Do not show again checkbox is unticked and enabled
     pCheckBoxDoNotShowAgain->SetValue(FALSE);
-    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected);
+    pCheckBoxDoNotShowAgain->Enable(!m_bPT8BtnSelected && !m_bPT9BtnSelected);
 }
 
 void CCollabProjectMigrationDlg::OnCheckDontShowAgain(wxCommandEvent & WXUNUSED(event))

@@ -329,7 +329,7 @@ class CSetupEditorCollaboration;
     bool            CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr,
                             wxString CollabEditor, wxString PT7Version, wxString PT8Version);
     wxString        GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion);
-	wxString		GetPathToRdwrtp7(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
+	wxString		GetPathToRdwrtPT(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID);
