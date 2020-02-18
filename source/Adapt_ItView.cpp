@@ -14167,9 +14167,11 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// ptr exits at the matching ] or at space if the user forgets to supply
 		// the matching ]   Thanks to Bill for his analysis of the situation!
 		bool bAfterLeftBracket = FALSE;
-		bool bScanToWhitespace = FALSE;
-		if (ptr == pAux || *ptr == _T('['))
+		if ((ptr == pBuffStart) && (ptr < pEnd))
 		{
+			// ParseWord() did not advance ptr - most likely [ was encountered
+			// and halted the parse before any additional data was parsed over.
+			// So check for the [ and advance over it
 			if (*ptr == _T('['))
 			{
 				bAfterLeftBracket = TRUE;
@@ -14177,51 +14179,43 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 				ptr++; // advance past the [ punctuation character
 				pAux++; // advance this too
 			}
-			else
-			{
-				bScanToWhitespace = TRUE;
-			}
 		}
 
+		// Deal with whatever comes next, allow spaces to be present.
 		// Loop to find where to break from loop with ptr at an appropriate place
-		// ie. pointing at ] or at first encountered whitespace; and accumulating
+		// ie. pointing at ] or at the end of the buffer; and accumulating
 		// any additional characters parsed over in theWord
-		bool bExitingAtWhitespace = FALSE;
 		itemLen = 0;
+		// Inner loops, one for when [ was encountered, the other for when it wasn't
 		if (bAfterLeftBracket)
 		{
 			// scan to halt spot
-			while (*ptr != _T(']'))
+			while (ptr < pEnd && *ptr != _T(']'))
 			{
-				if (pDoc->IsWhiteSpace(ptr))
-				{
-					// Whitespace character is an exit-signalling character
-					bExitingAtWhitespace = TRUE;
-
-				}
-				else
-				{
-					// Not a whitespace character
-					ptr++; // Advance over the scanned non-] character
-					itemLen++;
-				}
-				if (bExitingAtWhitespace)
-				{
-					break;
-				}
-			}// end of while loop
+				ptr++; // Advance over the scanned character
+				itemLen++;
+			}  // end of while loop
 			// If control gets to here, ptr has halted at a ']' character,
-			// or at whitespace if that was encountered earlier than ']'
+			// or at buffer end
 			wxString endingStr(pAux, itemLen);
 			theWord += endingStr;
 		}
-		else  if (bScanToWhitespace)
+		else
 		{
-			while (!pDoc->IsWhiteSpace(ptr))
+			// There was no [ so just accumulate to buffer end, but check
+			// for a closing parenthesis ')' immediately prior to pEnd, and if
+			// there, back up to point at it
+			while (ptr < pEnd)
 			{
 				ptr++; // Advance over the scanned character
 				itemLen++;
 
+			}
+			if (*(ptr - 1) == _T(')'))
+			{
+				// The buffer ends with ) so backup up ptr to point to it
+				ptr--;
+				itemLen--;
 			}
 			wxString endingStr(pAux, itemLen);
 			theWord += endingStr;
@@ -14258,12 +14252,6 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 				wxString wdbrkStr(firstWhiteSpace);
 				pSrcPhrase->SetSrcWordBreak(wdbrkStr);
 			}
-			else
-			{
-				// Control should not get here, but if it does, then don't set m_srcWordBreak
-				// and just let parsing continue
-				;
-			}
 		}
 		else
 		{
@@ -14271,32 +14259,16 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			// BEW 21Jul14 changed to use IsWhiteSpace() for the test
 			//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
 			lastWhiteSpaceChar.Empty(); // initialize to an empty string
-			while (pDoc->IsWhiteSpace(ptr)) 
-			{ 
+			while (pDoc->IsWhiteSpace(ptr))
+			{
 				lastWhiteSpaceChar = *ptr;
-				ptr++; 
+				ptr++;
 			} // skip initial whitespaces, store the last such (if any)
 			// Put the last whitespace into the m_srcWordBreak of pSrcPhrase, so that
 			// PutSrcWordBreak() can access it below
 			wxString wdbrkStr(lastWhiteSpaceChar);
 			pSrcPhrase->SetSrcWordBreak(wdbrkStr);
-	}
-//#else
-/*
-		// BEW 21Jul14 changed to use IsWhiteSpace() for the test
-		//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
-		lastWhiteSpaceChar.Empty(); // initialize to an empty string
-		while (pDoc->IsWhiteSpace(ptr)) 
-		{ 
-			lastWhiteSpaceChar = *ptr;
-			ptr++; 
-		} // skip initial whitespaces, store the last such (if any)
-		// Put the last whitespace into the m_srcWordBreak of pSrcPhrase, so that
-		// PutSrcWordBreak() can access it below
-		wxString wdbrkStr(lastWhiteSpaceChar);
-		pSrcPhrase->SetSrcWordBreak(wdbrkStr);
-#endif
-*/
+		}
 
 		if (strFinal.IsEmpty())
 		{
@@ -14309,7 +14281,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
 
 		// BEW add Bill's safety escape test, so we won't ever get into an infinite loop
-		// if ptr does not advance
+		// if ptr does not advance for some strange reason
 		if (pBuffStart == ptr)
 			break;
 	} // end of while loop: while (ptr < pEnd)
