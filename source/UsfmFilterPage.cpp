@@ -836,9 +836,9 @@ wxString CUsfmFilterPageCommon::GetSetNameStr(enum SfmSet set)
 	wxString UsfmOnlyStr;
 	wxString PngOnlyStr;
 	wxString UsfmAndPngStr;
-	UsfmOnlyStr = _("USFM version 2.0 Marker Set"); //IDS_USFM_SET_ABBR
+	UsfmOnlyStr = _("USFM version 2.0/3.0 Marker Set"); //IDS_USFM_SET_ABBR
 	PngOnlyStr = _("PNG 1998 Marker Set"); //IDS_PNG_SET_ABBR
-	UsfmAndPngStr = _("USFM 2.0 and PNG 1998 Marker Sets"); //IDS_BOTH_SETS_ABBR
+	UsfmAndPngStr = _("USFM 2.0/3.0 and PNG 1998 Marker Sets"); //IDS_BOTH_SETS_ABBR
 	switch (set)
 	{
 	case UsfmOnly: return UsfmOnlyStr;
