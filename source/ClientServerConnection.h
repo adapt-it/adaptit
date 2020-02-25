@@ -64,7 +64,8 @@ public:
 	// whm 9Jun12 removed OnRequest() below because it is not currently used and it has compile problems
 	// in wxWidgets 2.9.3.
 	//virtual wxChar* OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format);
-	virtual bool OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format);
+    virtual bool OnExecute(const wxString& topic, const void *data, size_t size, wxIPCFormat format);
+    //virtual bool OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format);
 	virtual bool Advise(const wxString& item, wxChar* data, int size = -1, wxIPCFormat format = wxIPC_TEXT);
 	//virtual bool OnExecute(const wxString& topic, const void* data, size_t size, wxIPCFormat format);
 	//virtual bool Advise(const wxString& item, const void* data, size_t size = -1, wxIPCFormat format = wxIPC_TEXT);

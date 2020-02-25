@@ -152,10 +152,22 @@ AI_Connection::~AI_Connection() // destructor
 {
 }
 
-bool AI_Connection::OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format)
+//bool
+//MyConnection::OnExecute(const wxString& topic, const void *data, size_t size, wxIPCFormat format)
+//{
+//    Log("OnExecute", topic, "", data, size, format);
+//    return true;
+//}
+
+// whm 25Feb2020 modified OnExecute() below to conform to wxWidgets sample, changing wxChar* data 
+// to const void *data, and int size to size_t size.
+// This is to avoid a wxWidgets Debug Alert reported by Gerald on 25Feb2020.
+//bool AI_Connection::OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format)
+bool AI_Connection::OnExecute(const wxString& topic, const void *data, size_t size, wxIPCFormat format)
 {
 	CMainFrame* m_pFrame = wxDynamicCast(wxGetApp().GetTopWindow(),CMainFrame);
-	wxString dataStr(data);
+    // whm 25Feb2020 modified wxString creation below from data to utilize (wxchar_t*) cast
+    wxString dataStr = wxString((wchar_t*)data, size);  //wxString dataStr(data);
 	if (dataStr.StartsWith(_T("[Raise]")))
     {
         if (m_pFrame)
