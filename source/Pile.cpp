@@ -910,6 +910,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	if (m_pSrcPhrase->m_nSequNumber == 129)
 	{
 		int halt_here = 1;
+        halt_here = halt_here; // avoid gcc warning
 	}
 #endif
 
