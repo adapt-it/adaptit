@@ -202,6 +202,10 @@ public:
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
+	wxString	GetManuallyAddedFinalPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 26Feb20 added
+	wxString	GetManuallyAddedFinalPuncts(wxString targetStr); // BEW added 27Feb20, override
+	bool		FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart, wxChar*& pEnd, size_t len,
+						int& matchedAt, wxChar matchThis);
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
@@ -212,6 +216,7 @@ public:
 	*/
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
+	wxString	ProvideMatchingEndBracketOrParenthesis(wxString keyTgtText);
 	void		RemoveSelection();
 
 	// Bruce put the following functions in helpers.h and .cpp, but it is only used in the View so I'm putting it

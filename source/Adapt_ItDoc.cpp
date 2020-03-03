@@ -26078,11 +26078,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// undeleted, so a StoreText() call is required here...
 							// this may actually rectify an inconsistency which, if this
 							// were not done, would be picked up in the code further below
+							pApp->m_bInhibitMakeTargetStringCall = TRUE;
 							pKBCopy->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
 							if (!bSuccess_OnOrig)
 							{
 								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
 							}
+							pApp->m_bInhibitMakeTargetStringCall = TRUE;
 #ifdef CONSCHK
 							int afterCount = arrRemoveNotInKB.GetCount();
 							if (afterCount >= beforeCount)
@@ -26671,7 +26673,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 //#endif
 									// just requires a simple store operation ( and no store
 									// in pKCopy should be done)
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -26711,7 +26715,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 //#endif
 									// make a normal entry of it in pKB (but not pKBCopy)
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 								break;
 							case make_it_Not_In_KB:
@@ -26784,7 +26790,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								}
 								else
 								{
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
+
 								}
 
 								// check if it has also a non-deleted <Not In KB>
@@ -26849,7 +26858,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								{
 //#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 //#endif
 									// make a normal entry of it in pKB (leave pKBCopy unchanged)
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
@@ -27082,7 +27093,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 //#endif
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -27166,7 +27179,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_nonempty_meaning:
 								{
 									// make a normal entry of it in KB (but not pKBCopy)
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
+
 #ifdef CONSCHK
 						wxLogDebug(_T("12 FIX. (2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
@@ -27306,7 +27322,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								}
 								else
 								{
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr);
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 
 								// check if it has also a non-deleted <Not In KB>
@@ -27429,8 +27447,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_nonempty_meaning:
 								{
 									// make the adaptation normal entry in KB (leave pKBCopy unchanged)
+									pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
-
+									pApp->m_bInhibitMakeTargetStringCall = FALSE;
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
 									// leave it undeleted

@@ -3174,6 +3174,8 @@ public:
 
 	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
 	wxString m_strSpacelessTargetPuncts; // ditto
+	wxString MakeTargetFinalPuncts(wxString tgtPuncts); // includes a space
+	wxString m_finalTgtPuncts; // stores what MakeTargetFinalPuncts() returns
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;
@@ -3181,6 +3183,7 @@ public:
 	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
 	bool	 SetupDocCreationLog(wxString& filename);
 	bool	 m_bMakeDocCreationLogfile;
+	bool	 m_bFinalTypedPunctsGrabbedAlready;
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
@@ -4806,8 +4809,10 @@ public:
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
-	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase); // BEW added 17May18 returns 
-					// the adaptation string with saved punctuation restored, for setting m_targetStr
+	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr); // BEW added 17May18
+				// makes the adaptation string with saved punctuation restored, for setting m_targetStr;
+				// and on 19Feb20 added the second param endingStr to handle user typed ] or ) as punctuation;
+				
 	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15
 	bool	CreateAndLoadKBs(); // whm 28Aug11 added

@@ -3981,7 +3981,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
 	}
 	wxString strNot = m_pApp->m_strNotInKB;
-/*
+//*
 	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition,
 	// but support setting of m_adaption and m_targetStr
 	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
@@ -4032,7 +4032,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		return TRUE;
 	}
 
-*/
+//*/
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	bool bStoringNotInKB = (strNot == tgtPhrase);

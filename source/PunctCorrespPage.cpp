@@ -1372,6 +1372,11 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	{
 		gpApp->m_pLayout->m_bPunctuationChanged = TRUE;
 		gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
+
+		// Update app's m_finalTgtPuncts (which excludes what IsOpeningQuote90 has, 
+		// but includes a single space and " and ' provided these are nominated
+		// as punctuation characters (which, these days, at Feb 2020, they are)
+		gpApp->m_finalTgtPuncts = gpApp->MakeTargetFinalPuncts(gpApp->m_strSpacelessTargetPuncts);
 	}
 }
 

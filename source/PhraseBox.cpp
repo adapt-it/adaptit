@@ -1041,6 +1041,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	{
 		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
+
 	}
 	if (gbIsGlossing)
 	{
@@ -1050,7 +1051,19 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	else
 	{
 		// BEW added next line 27Jan09
+		// BEW 29Feb20, the refactored MakeTargetStringIncludingPunctuation() can, with
+		// user typing in a string like you(sg) into the phrase box, result in the
+		// StoreText()'s call of MakeTargetStringIncludingPunctuation() getting the final
+		// ) added to passed in you(sg -- with the result that the KB takes the resulting
+		// you(sg) into the KB for storage, and adding to the dropdown list a bogus 
+		// 'having-final-punct' entry. To fix this, suppress the inside call of 
+		// MakeTargetStringIncludingPunctuation() - by setting the app member,
+		// m_bInhibitMakeTargetStringCall to TRUE
+		pApp->m_bInhibitMakeTargetStringCall = TRUE;
+
 		bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+
+		pApp->m_bInhibitMakeTargetStringCall = FALSE; // restore default
 	}
 
     // if in Transliteration Mode we want to cause m_bSuppressStoreForAltBackspaceKeypress
@@ -1958,7 +1971,11 @@ c:	bOK = TRUE;
 		}
 		else
 		{
+			pApp->m_bInhibitMakeTargetStringCall = TRUE; // MakeTargetStringIncludingPunctuation is
+					// called above, followed by RemovePunctuation, so we don't need a further 
+					// call of the former within StoreText(), so inhibit it
 			bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 	}
 	else

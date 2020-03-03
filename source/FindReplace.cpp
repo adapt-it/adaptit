@@ -505,8 +505,10 @@ void CFindDlg::DoFindNext()
 					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
+					gpApp->m_bInhibitMakeTargetStringCall = TRUE;
 					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 					bOK = bOK; // avoid warning
+					gpApp->m_bInhibitMakeTargetStringCall = TRUE;
 				}
 			}
 		}
@@ -1401,8 +1403,10 @@ void CReplaceDlg::DoFindNext()
 					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
+					gpApp->m_bInhibitMakeTargetStringCall = TRUE; // BEW 2Mar20 added the inhibit call, MakeTgtstr...() is above
 					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 					bOK = bOK; // avoid warning
+					gpApp->m_bInhibitMakeTargetStringCall = FALSE;
 				}
 			}
 		}

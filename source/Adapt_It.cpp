@@ -26715,6 +26715,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the user changes the punctuation inventory in the Punctuation tab
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
+	m_finalTgtPuncts = MakeTargetFinalPuncts(m_strSpacelessTargetPuncts); // BEW added 26Feb20
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
@@ -26725,6 +26726,42 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
+}
+
+wxString CAdapt_ItApp::MakeTargetFinalPuncts(wxString tgtPuncts)
+{
+	CAdapt_ItDoc* pDoc = GetDocument();
+	wxString tgtFinalPuncts = wxEmptyString; // initialise
+	int length = (int)tgtPuncts.Len();
+	// Set up the pointers we need for scanning tgtPuncts's data buffer
+	const wxChar* pBuffStart = tgtPuncts.GetData();
+	wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
+	//wxChar* pBeginBuff = ptr;
+	wxChar* pEnd = ptr + (size_t)length; // points to null
+	wxChar aChar = _T(' '); // include space, in case the user
+			// wants to type it as a delimiter between final quotes
+	//tgtFinalPuncts += aChar;
+	bool bIsOpenQuote = FALSE; // initialise
+	while (ptr < pEnd)
+	{
+		bIsOpenQuote = pDoc->IsOpeningQuote(ptr);
+		if (!bIsOpenQuote)
+		{
+			aChar = *ptr;
+			tgtFinalPuncts += aChar;
+		}
+		ptr++; // iterate to next
+	}
+	// check straight quote and doublequote
+	if (m_bDoubleQuoteAsPunct)
+	{
+		tgtFinalPuncts += _T('\"'); // append ordinary double quote
+	}
+	if (m_bSingleQuoteAsPunct)
+	{
+		tgtFinalPuncts += _T('\''); // append ordinary single quote
+	}
+	return tgtFinalPuncts;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -27797,7 +27834,7 @@ void CAdapt_ItApp::InitializePunctuation()
     //{
     // leave this block here, but we no longer set up the defaults here, but rather in
     // the code following this block
-    m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] \' "); // defaults for narrow or
+    m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] \' “ ” ‘ ’ ~ « » "); // defaults for narrow or
                                                                // wide characters
     m_punctWordBuilding[0] = _T(""); // leave this in the code, just don't use them --
                                      // since reading an old config file would require them
@@ -57009,7 +57046,7 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 
 // BEW added 17May18 returns the adaptation string with saved punctuation restored,
 // for setting m_targetStr
-wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
+wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr)
 {
 	wxString str = wxEmptyString;
 	if (pSrcPhrase == NULL)
@@ -57022,6 +57059,13 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
 		return str;
 	}
 	str = pSrcPhrase->m_adaption;
+	// BEW added 19Feb20, use of endingStr if non-empty, to add ] or ) when needed (as punctuation)
+	// - it has to be added before any other puncts originating from source text can get added
+	if (!endingStr.IsEmpty())
+	{
+		str += endingStr; // endingStr will, if it has anything, whatever is the appropriate
+						  // ending, whether ] or )
+	}
 	if (!pSrcPhrase->m_precPunct.IsEmpty())
 	{
 		str = pSrcPhrase->m_precPunct + str;
