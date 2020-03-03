@@ -396,7 +396,10 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_bWithinMkrAttributeSpan = FALSE; // FOR USFM3 support, should start off FALSE
 	
 	// whm 24Dec2019 moved the following initialization here from Adapt_ItDoc.h
-	uselessDegreeChar = _T('°');
+    // using _T('°') to represent the degree character \u00B0 causes a compiler warning 
+    // "warning C4066: characters beyond first in wide-character constant ignored", so
+    // I've changed the representation to _T('\u00B0').
+    uselessDegreeChar = _T('\u00B0'); //uselessDegreeChar = _T('°');
 	m_strBar = _T("|");
 	m_strSpace = _T(" ");
 	m_asterisk = _T('*');
@@ -8835,6 +8838,7 @@ h:						bool bIsInitial = TRUE;
 				if (pSrcPhrase->m_nSequNumber == 326)
 				{
 					int break_here = 1;
+                    break_here = break_here; // avoid gcc warning
 
 				}
 #endif
@@ -15451,6 +15455,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= 1)
 	{
 		int halt_here = 1;
+        halt_here = halt_here; // avoid gcc warning
 	}
 #endif
 
@@ -15500,7 +15505,8 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			if (pSrcPhrase->m_nSequNumber >= 1)
 			{
 				int halt_here = 1;
-			}
+                halt_here = halt_here; // avoid gcc warning
+            }
 #endif
 			bareMkr = emptyStr;
 			// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
@@ -16483,7 +16489,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		if (pSrcPhrase->m_nSequNumber >= 28)
 		{
 			int halt_here = 1;
-		}
+            halt_here = halt_here; // avoid gcc warning
+        }
 #endif
 
 		// strCacheDelayedFilteredContent = temp; set on previous iteration (approx lines at 17,200) 
@@ -16757,7 +16764,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		if (pSrcPhrase->m_nSequNumber == 6)
 		{
 			int halt_here = 1;
-		}
+            halt_here = halt_here; // avoid gcc warning
+        }
 #endif
 			if (!m_bWithinMkrAttributeSpan && !bIsUnstructured)
 			{
@@ -16980,7 +16988,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				if (sequNumber >= 6)
 				{
 					int halt_here = 1;
-				}
+                    halt_here = halt_here; // avoid gcc warning
+                }
 #endif
 				// Neither verse nor chapter, but some other marker
 				// BEW 24Oct14, LookupSFM() has been made USFM nested marker aware.
@@ -29734,7 +29743,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= logStart)
 	{
 		int break_here = 1;
-	}
+        break_here = break_here; // avoid gcc warning
+    }
 #endif
 	// BEW 30Sep19 Because I've split off ParsePreWord()'s code from the legacy ParseWord()
 	// function, some variable are now unused. I'll use wxUnusedVar() for them so as to

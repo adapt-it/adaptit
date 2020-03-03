@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.9. 4 
+Limitations and known issues in the version 6.9.4 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -21,7 +21,7 @@ box.
 
 Linux version:
 
-1. In Ubuntu Xenial and newer distributions, a newer version (3.0.2)
+1. In Ubuntu Xenial and newer distributions, a newer version (3.x.x)
 of the wxWidgets library is used. In that library Adapt It printing
 functions (the File -> Print and File -> Print Preview functions) 
 are not working as expected. We are working on a fix for these 

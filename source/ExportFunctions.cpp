@@ -17131,6 +17131,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		{
 			wxString strSrcPhrase = pSrcPhrase->m_srcPhrase;
 			int theSequNum = pSrcPhrase->m_nSequNumber;
+            theSequNum = theSequNum; // avoid gcc warning
+
 		}
 #endif
 

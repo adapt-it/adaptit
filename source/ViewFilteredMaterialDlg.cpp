@@ -228,10 +228,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	titleStr = this->GetTitle();
 	switch(pApp->gCurrentSfmSet)
 	{
-	case UsfmOnly: SfmSetStr = _("USFM version 2.0 Marker Set"); break; //IDS_USFM_SET_ABBR
+	case UsfmOnly: SfmSetStr = _("USFM version 2.0/3.0 Marker Set"); break; //IDS_USFM_SET_ABBR
 	case PngOnly: SfmSetStr = _("PNG 1998 Marker Set"); break; //IDS_PNG_SET_ABBR
-	case UsfmAndPng: SfmSetStr = _("USFM 2.0 and PNG 1998 Marker Sets"); break; //IDS_BOTH_SETS_ABBR
-	default: SfmSetStr = _("USFM version 2.0 Marker Set"); //IDS_USFM_SET_ABBR
+	case UsfmAndPng: SfmSetStr = _("USFM 2.0/3.0 and PNG 1998 Marker Sets"); break; //IDS_BOTH_SETS_ABBR
+	default: SfmSetStr = _("USFM version 2.0/3.0 Marker Set"); //IDS_USFM_SET_ABBR
 	}
 	titleStr += _T(" - ");
 	titleStr += SfmSetStr;

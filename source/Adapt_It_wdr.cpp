@@ -5761,7 +5761,7 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item8 = new wxStaticBox( parent, -1, _("This Document's Settings:") );
     wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    wxRadioButton *item9 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0/3.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item9->SetValue( TRUE );
     item9->SetToolTip( _("Select this button to use the USFM set of standard format markers for this document") );
     item7->Add( item9, 0, wxLEFT|wxRIGHT|wxTOP, 5 );
@@ -5779,7 +5779,7 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Project Defaults:") );
     wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
 
-    wxRadioButton *item14 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    wxRadioButton *item14 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0/3.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item14->SetValue( TRUE );
     item14->SetToolTip( _("Select this button to use the USFM set of standard format markers as default for the whole project") );
     item12->Add( item14, 0, wxLEFT|wxRIGHT|wxTOP, 5 );

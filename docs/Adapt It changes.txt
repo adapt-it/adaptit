@@ -1,38 +1,44 @@
-﻿Version 6.6.0 update ?? December 2019
+﻿Pre-release Version 6.9.5 for limited distribution 22 February 2020
 ----------------------------------------------
-Feature changes and new features in 6.6.0
---------------------------------------------------------------------------------------------
-* Removed the prohibition against removing < and > from the list of punctuation characters.
-  This gives Adapt It more flexibility for handling unusual custom markup. Such removal 
-  should not be done without good reason; but now it can be done. For example, if curly 
-  quotes are being used for speech markup, and the custom markup in the document uses
-  < and/or > as word-building characters, that would be a scenario where removing the 
-  wedges from the punctuation list makes good sense.
-* Made the app compliant with USFM 3.0's  new attribute marker features.
-* Made the app not show metadata with attributes in the GUI, but auto-restoring them
-  to the document when the document is being exported to Paratext or Bibledit in a
-  collaboration.
-  Note: when the restored metadata appears in the Paratext (or Bibledit) target text
-  project, any adaptable content within that metadata will not have been translated.
-  The onus is then on the user doing any necessary translating of that kind of 
-  metadata content, manually within the collaborating Paratext project that accepts
-  the target text.
-  * Optional sending of the document to the developers when an error happens
-  now works again.
-  ---------------------------------------------
-Bug fixes in 6.6.0 update
+Feature changes and new features in 6.9.5
+----------------------------------------------
+* One user reported that collaboration would not work after updating from 
+Paratext 8 to Paratext 9. Adapt It is now fully compatible with Paratext 9 when 
+set up for collaboration with Paratext. Also some dialogs were updated to 
+recognize/facilitate collaboration with Paratext 9. 
+* Removed the prohibition against removing < and > from the list of punctuation 
+characters. This gives Adapt It more flexibility for handling unusual custom 
+markup. Such removal should not be done without good reason; but now it can be 
+done. For example, if curly quotes are being used for speech markup, and the 
+custom markup in the document uses < and/or > as word-building characters, that 
+would be a scenario where removing the wedges from the punctuation list makes 
+good sense.
+* Made the app compliant with USFM 3.0's new attribute marker features.
+* Made the app not show metadata with attributes in the GUI, but auto-restoring 
+them to the document when the document is being exported to Paratext or Bibledit 
+in a collaboration.
+Note: when the restored metadata appears in the Paratext (or Bibledit) target text
+project, any adaptable content within that metadata will not have been translated.
+The onus is then on the user doing any necessary translating of that kind of 
+metadata content, manually within the collaborating Paratext project that accepts
+the target text.
+* Email reporting of problem reports or feedback using the Help menu options now
+defaults to sending the email data to the users default email program. The secure
+SSL sending of problem reports/feedback is disabled in this version due to issues 
+on the adapt-it.org server.
 ---------------------------------------------
-  * The source text parser within Adapt It had several changes made to remove 
-  misparsing errors in some complex USFM2 or USFM3 markup scenarios.
+Bug fixes in 6.9.5 update
+---------------------------------------------
+* The source text parser within Adapt It had several changes made to remove 
+misparsing errors in some complex USFM2 or USFM3 markup scenarios.
 * Fixed a rare coincidence where the document is being deleted at the instant
-  an automatic save is requested by an internal timer. When this  happened, the 
-  document was lost - unless a document backup was available. It problem now 
-  cannot happen.
----------------------------------------------
-Bug fixes in 6.9.4 update
----------------------------------------------
-* Fixed infinite loop hanging of the Import Edited Source Text
-feature, when the document is short - less than 80 words long
+an automatic save is requested by an internal timer. When this  happened, the 
+document was lost - unless a document backup was available. The problem now 
+cannot happen.
+* Fixed infinite loop hanging of the Import Edited Source Text feature, when 
+the document is short - less than 80 words long.
+* Fixed infinite loop hanging problem the could happen when certain punctuation 
+characters ']' and/or ')' were used at the end of the phrasebox contents.
 
 ----------------------------------------------
 Version 6.9.4 update 9 May 2019
