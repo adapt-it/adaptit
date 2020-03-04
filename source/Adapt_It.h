@@ -241,8 +241,8 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
-#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_DAY 4
+#define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2020
 const wxString appVerStr(_T("6.9.5"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
