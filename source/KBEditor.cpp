@@ -2684,14 +2684,15 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 					m_srcKeyStr = pKB->AutoCapsMakeStorageString(m_srcKeyStr); // might be returned as lower case initial
 				}
 			}
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, subString);
+			
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, exactString);
 			if (nNewSel == -1) // LB_ERR
 			{
 				nNewSel = 0; // if not found, default to the first in the list
 			}
 			m_pListBoxKeys->SetSelection(nNewSel);
 			wxString str = m_pListBoxKeys->GetString(nNewSel);
-			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,subString);
+			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 			// BEW 4May16, make 3 lines above selection visible, or less if close to the top
@@ -2737,7 +2738,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			}
 			m_pListBoxKeys->SetSelection(nNewSel);
 			wxString str = m_pListBoxKeys->GetString(nNewSel);
-			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,subString);
+			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}
@@ -2757,7 +2758,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				}
 			}
 			m_srcKeyStr = str;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString);
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, exactString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 			// BEW 4May16, make 3 lines above selection visible, or less if close to the top
