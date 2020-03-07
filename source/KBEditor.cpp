@@ -2343,6 +2343,10 @@ void CKBEditor::OnOK(wxCommandEvent& event)
         CRefString* pRefStr = NULL;
         KB_Entry rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
             pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+        //
+        // whm 6Mar2020 testing indicates that the following setting of the m_bBoxContent_present_but_deleted
+        // member to TRUE is not needed back in the OnToolsKbEditor() handler in the View, but I'll leave the 
+        // following block intact here in case it might be useful at a future time.
         if (pRefStr != NULL && rsEntry == present_but_deleted)
         {
             // Ensure that the m_originalPhraseBoxContent is put back into the phrasebox

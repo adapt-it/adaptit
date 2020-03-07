@@ -18177,11 +18177,23 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
         // in the box, the value will get retained - but only for this special situation where 
         // m_bBoxContent_present_but_deleted is TRUE. We also set the phrasebox's m_bAbandonable
         // member to FALSE. 
+        // whm 6Mar2020 testing shows that the following is no longer needed, and can be unhelpful
+        // when the phrasebox content had a KB entry that has been deleted in the KBEditor. More recent
+        // revisions tend to make the phrase box and its drop down list dynamically change to reflect 
+        // the KB contents at the GetLayout()->PlaceBox() call above. Currently, when the phrasebox
+        // content was deleted from the KB and there are more than two entries in the translations listbox, 
+        // the phrasebox will end up with the first item left in the listbox, even if a user highlights
+        // a different translation in the listbox (in the upper-right list) of the KBEditor before pressing
+        // the OK button in the dialog. We could detect a different selection and place that instead into
+        // the phrasebox, but that would take a fair amount of work, and I'm not sure it would be worth 
+        // the effort.
+        /*
         if (editorPage.m_bBoxContent_present_but_deleted)
         {
             pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(editorPage.m_originalPhraseBoxContent);
             pApp->m_pTargetBox->m_bAbandonable = FALSE;
         }
+        */
     }
 
 	if (pApp->m_bForceFullConsistencyCheck)
