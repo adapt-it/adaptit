@@ -5961,16 +5961,16 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         pView->MergeWords(); // simply calls OnButtonMerge
     }
     //
-    // whm 9Mar2020 removed block below since CMainFrame defines an accelerator key
-    // command CTRL+I which, if the phrasebox is in focus, the following block causes
-    // two successive placeholders to be inserted. The CMainFrame accelerator key works
-    // whether or not CTRL+I is called from within the phrasebox.
+    // whm 9Mar2020 Note: Since CTRL+I was implemented as an accelerator in the CMainFarme's
+    // constructor, it was causing two placeholders to be added when using the CTRL+I hot key.
+    // I commented out the accelerator code there, and am leaving the code block here since it
+    // is a more straight forward way to handle the hot keys here.
     // Handle the predefined accelerator key Ctrl+I to Insert A Placeholder
-    //if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
-    //{
-    //    wxCommandEvent dummyevent;
-    //    pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
-    //}
+    if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
+    }
     // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
     if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)
     {
