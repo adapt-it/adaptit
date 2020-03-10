@@ -83,10 +83,15 @@ CPlaceInternalPunct::CPlaceInternalPunct(wxWindow* parent) // dialog constructor
 
 	// use wxValidator for simple dialog data transfer
 	m_psrcPhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC);
+    m_psrcPhraseBox->SetBackgroundColour(gpApp->sysColorBtnFace); // whm 10Mar2020 added to help signal this as a read-only text box
 	//m_psrcPhraseBox->SetValidator(wxGenericValidator(&m_srcPhrase));
 
 	m_ptgtPhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT);
 	//m_ptgtPhraseBox->SetValidator(wxGenericValidator(&m_tgtPhrase));
+
+    pBtnOK = (wxButton*)FindWindowById(wxID_OK);
+    wxASSERT(pBtnOK != NULL);
+
 
 	m_pListPunctsBox = (wxListBox*)FindWindowById(IDC_LIST_PUNCTS);
 
@@ -157,6 +162,11 @@ void CPlaceInternalPunct::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 
 	m_psrcPhraseBox->SetValue(m_srcPhrase);
 	m_ptgtPhraseBox->SetValue(m_tgtPhrase);
+
+    // whm 10Mar2020 added at request of Roland Fumey to make the OK button have focus
+    // making it easier to just close the dialog for the many situations he encounters in 
+    // which no placement of cursor is needed within the target phrase box.
+    pBtnOK->SetFocus();
 }
 
 void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
