@@ -5254,29 +5254,35 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 // 3. Handles ALT+BACKSPACE to advance phrasebox without KB lookup if transliteration mode in ON
 //    and not glossing.
 // 4. Handles ALT+BACKSPACE if transliteration mode in OFF with error message to user.
-// 5. Handles ALT+RIGHT to extent selection right if not glossing.
-// 6. Handles ALT+LEFT to extent selection left if not glossing.
-// 7. Handles ALT+UP to summon the retranslation dialog via DoRetranslationByUpArrow().
-// 8. Note: ALT+DOWN no longer handled (to insert placeholder BEFORE) in our key handlers because 
-//    ALT+DOWN is the built in hot key to make the dropdown list open/close. See SHIFT+ALT+DOWN below.
-// 9. Handle ALT+DELETE to un-merge a current merger into separate words, when not glossing.
-// 10. Handle SHIFT+UP to scroll the screen up about 1 strip. A simple WXK_UP cannot be used anymore
+// 5. Handles SHIFT+ALT+RIGHT for inserting a placeholder AFTER a current source selection, 
+//    otherwise AFTER the active phrasebox location.
+// 6. Handles SHIFT+ALT+LEFT for inserting a placeholder BEFORE a current source selection, 
+//    otherwise BEFORE the active phrasebox location.
+// 7. Handles ALT+RIGHT to extent selection right if not glossing.
+// 8. Handles ALT+LEFT to extent selection left if not glossing.
+// 9. Handles ALT+UP to summon the retranslation dialog via DoRetranslationByUpArrow().
+// 10. Note: ALT+DOWN is no longer handled here (to insert placeholder BEFORE) in our key 
+//     handlers because ALT+DOWN is the built in hot key to make the dropdown list open/close. 
+//     See SHIFT+ALT+LEFT above.
+// 11. Handle ALT+DELETE to un-merge a current merger into separate words, when not glossing.
+// 12. Handle SHIFT+UP to scroll the screen up about 1 strip. A simple WXK_UP cannot be used anymore
 //     because it is reserved to move the highlight in the dropdown list.
-// 11. Handle SHIFT+DOWN to scroll the screen down about 1 strip. A simple WXK_DOWN cannot be used 
+// 13. Handle SHIFT+DOWN to scroll the screen down about 1 strip. A simple WXK_DOWN cannot be used 
 //     anymore because it is reserved to move the highlight in the dropdown list.
-// 12. Handle SHIFT+PAGEUP to scroll the screen up about a screen full. A simple WXK_PAGEUP cannot
+// 14. Handle SHIFT+PAGEUP to scroll the screen up about a screen full. A simple WXK_PAGEUP cannot
 //     be used anymore because it is reserved to move the highlight in the dropdown list.
-// 13. Handle SHIFT+PAGEDOWN to scroll the screen down about a screen full. A simple WXK_PAGEDOWN
+// 15. Handle SHIFT+PAGEDOWN to scroll the screen down about a screen full. A simple WXK_PAGEDOWN
 //     cannot be used anymore because it is reserved to move the highlight in the dropdown list.
-// 14. Handle SHIFT+ALT+DOWN or SHIFT+CTRL+DOWN to add a placeholder BEFORE the phrasebox location.
-//     Previously this was just ALT+DOWN, but ALT+DOWN is now reserved to toggle the dropdown list 
-//     open/closed.
-// 15. Handle SHIFT+CTRL+SPACE to enter a ZWSP (zero width space) into the composebar's editbox; 
+// 16. Handle SHIFT+CTRL+SPACE to enter a ZWSP (zero width space) into the composebar's editbox; 
 //     replacing a selection if there is one defined.
-// 16. Handle CTRL+DOWN to insert placeholder AFTER the phrasebox location (not on a Mac)
-//     TODO: Add CTRL+ALT+DOWN as alternate???
 // 17. Handle CTRL+ENTER to Jump Forward when transliteration, or warning message if not 
 //     transliteration is not turned ON.
+// 18. Conditionally compiled blocks to handle accelerator key combinations using CTRL+Alphanumeric
+//     key, for when the dropdown list is open/showing on the __WXGTK__ and __WXMAC__ platforms.
+//     Some previous testing indicated that on Linux and the Mac, the accelerator keys were not
+//     triggered when the dropdown list was open/showing, so they are conditionally compiled 
+//     here in OnSysKeyUp() for those two platforms, and executed here when the dropdown list is
+//     open/showing.
 //
 // Note: Put in this OnSysKeyUp() handler custom key handling that involve simultaneous use 
 // of ALT, SHIFT, or CTRL keys.
@@ -5366,184 +5372,264 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             return;
 		}
 
-		// ALT key is down, if an arrow key pressed, extend/retract sel'n left or right
-		// or insert a null source phrase, or open the retranslation dialog; but don't
-		// allow any of this (except Alt + Backspace) if glossing is ON - in those cases, just return
-		if (gbIsGlossing)
-			return;
-        GetSelection(&nStart, &nEnd); //GetTextCtrl()->GetSelection(&nStart, &nEnd);
-		if (event.GetKeyCode() == WXK_RIGHT) // ALT+RIGHT
-		{
-			if (gbRTL_Layout)
-				bTRUE = pView->ExtendSelectionLeft();
-			else
-				bTRUE = pView->ExtendSelectionRight();
-			if(!bTRUE)
-			{
-				if (gbVerticalEditInProgress)
-				{
-					::wxBell();
-				}
-				else
-				{
-					// did not succeed - do something eg. warn user he's collided with a boundary
-					// IDS_RIGHT_EXTEND_FAIL
-					wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."),_T(""), wxICON_INFORMATION | wxOK);
-				}
-			}
-            // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
-            // call below.
-            this->GetTextCtrl()->SetFocus();
-            // whm 3Aug2018 Note: Below the previous selection is being restored,
-            // so no adjustment made for 'Select Copied Source'
-            this->GetTextCtrl()->SetSelection(nStart,nEnd);
-			pApp->m_nStartChar = nStart;
-			pApp->m_nEndChar = nEnd;
-		}
-		else if (event.GetKeyCode() == WXK_LEFT) // ALT+LEFT
-		{
-			if (gbRTL_Layout)
-				bTRUE = pView->ExtendSelectionRight();
-			else
-				bTRUE = pView->ExtendSelectionLeft();
-			if(!bTRUE)
-			{
-				if (gbVerticalEditInProgress)
-				{
-					::wxBell();
-				}
-				else
-				{
-					// did not succeed, so warn user
-					// IDS_LEFT_EXTEND_FAIL
-					wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION | wxOK);
-				}
-			}
-            // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
-            // call below.
-            this->GetTextCtrl()->SetFocus();
-            // whm 3Aug2018 Note: Below the previous selection is being restored,
-            // so no adjustment made for 'Select Copied Source'
-            this->GetTextCtrl()->SetSelection(nStart,nEnd);
-			pApp->m_nStartChar = nStart;
-			pApp->m_nEndChar = nEnd;
-		}
-		else if (event.GetKeyCode() == WXK_UP) // ALT+UP (also available with CTRL+R or ToolBar Button on current selection)
-		{
-			// up arrow was pressed, so get the retranslation dialog open
-			if (pApp->m_pActivePile == NULL)
-			{
-				return;
-				//goto a;
-			}
-			if (pApp->m_selectionLine != -1)
-			{
-				// if there is at least one source phrase with a selection defined,
-				// then then use the selection and put up the dialog
-				pApp->GetRetranslation()->DoRetranslationByUpArrow();
-			}
-			else
-			{
-				// no selection, so make a selection at the phrase box and invoke the
-				// retranslation dialog on it
-				//CCell* pCell = pApp->m_pActivePile->m_pCell[2];
-				CCell* pCell = pApp->m_pActivePile->GetCell(1);
-				wxASSERT(pCell);
-				pApp->m_selection.Append(pCell);
-				//pApp->m_selectionLine = 1;
-				pApp->m_selectionLine = 0;// in refactored layout, src text line is always index 0
-				wxUpdateUIEvent evt;
-				//pView->OnUpdateButtonRetranslation(evt);
-				// whm Note: calling OnUpdateButtonRetranslation(evt) here doesn't work because there
-				// is not enough idle time for the Do A Retranslation toolbar button to be enabled
-				// before the DoRetranslationByUpArrow() call below executes - which has code in it
-				// to prevent the Retranslation dialog from poping up unless the toolbar button is
-				// actually enabled. So, we explicitly enable the toolbar button here instead of
-				// waiting for it to be done in idle time.
-				CMainFrame* pFrame = pApp->GetMainFrame();
-				wxASSERT(pFrame != NULL);
-				wxAuiToolBarItem *tbi;
-				tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RETRANSLATION);
-				// Return if the toolbar item is hidden
-				if (tbi == NULL)
-				{
-					return;
-				}
-				// enable the toolbar button
-				pFrame->m_auiToolbar->EnableTool(ID_BUTTON_RETRANSLATION, true);
-				pApp->GetRetranslation()->DoRetranslationByUpArrow();
-			}
-		}
-//#if defined(__WXGTK__)
-//        else if (event.GetKeyCode() == WXK_DOWN) // ALT+DOWN (normally reserved for opening/closing dropdown list)
-//        {
-//            // Unfortunately, the dropdown blocks all AltDown modified events while the dropdown is open
-//            // and that explains why the ALT+DOWN can open the dropdown when it is closed, but cannot close
-//            // it when it is open. I'll leave the code here in case we figure out a way to unblock all ALT
-//            // modified key events on Linux.
-//            // Hence, this block is never entered on Linux when the dropdown is open.
-//            // The ALT+DOWN on Windows both opens and closes the dropdown list.
-//            // On Linux/Mac? however, ALT+DOWN only opens the dropdown list if it's closed. It doesn't 
-//            // close it if it is in an open state. This block of code attempts to make the Linux behavior
-//            // similar to Windows, where ALT+DOWN acts like a toggle.
-//            if (this->IsPopupShown())
-//                CloseDropDown();
-//        }
+        // whm 11Mar2020 Note: We now handle cases of SHIFT+ALT+RIGHT and SHIFT+ALT+LEFT separately 
+        // from ALT+RIGHT and ALT+LEFT. The reason: We want to now use SHIFT+ALT+RIGHT and SHIFT+ALT+LEFT 
+        // for inserting a placeholder AFTER and inserting a placeholder BEFORE, respectively.
+        // In this block we've so far only detected (above) that the ALT key is down. The CTRL and/or
+        // SHIFT key may also be down! To limit the code below to just handle ALT+RIGHT and ALT+LEFT we need to
+        // test further to see if the CTRL and/or SHIFT keys are down. 
+
+        if (event.ShiftDown() && !event.ControlDown()) 
+        {
+            // SHIFT+ALT combinations are detected here, but not CTRL simultaneously with SHIFT and ALT.
+            // Here we detect SHIFT+ALT+RIGHT and SHIFT+ALT+LEFT for inserting placeholders AFTER and BEFORE
+            // the current selection (if a selection is made), otherwise AFTER and BEFORE the current phrasebox location.
+
+            // Don't allow insertion of placeholders if glossing is ON, or if read-only access is current - in 
+            // those cases, just return.
+            if (gbIsGlossing)
+                return;
+            if (pApp->m_bReadOnlyAccess)
+                return;
+
+            if (event.GetKeyCode() == WXK_RIGHT) // SHIFT+ALT+RightArrow - add placeholder AFTER
+            {
+                // Add Placeholder AFTER a selection (if a selection exists) or the PhraseBox position.
+                // whm Note 11Mar2020: Control passes through here when a simultaneous SHIFT+ALT+RightArrow 
+                // press is released. 
+
+                // TODO: Check if SHIFT+ALT+RightArrow conflicts with any of a Mac's system key assignments,
+                // and adjust code here if necessary to accommodate the Mac port.
+//#ifndef __WXMAC__
+                // first save old sequ number in case required for toolbar's Back button
+                // If glossing is ON, we don't allow the insertion, and just return instead
+                pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+                pApp->GetPlaceholder()->InsertNullSrcPhraseAfter();
 //#endif
-		// BEW added 26Sep05, to implement Roland Fumey's request that the shortcut for unmerging
-		// not be SHIFT+End as in the legacy app, but something else; so I'll make it ALT+Delete
-		// and then SHIFT+End can be used for extending the selection in the phrase box's CEdit
-		// to the end of the box contents (which is Windows standard behaviour, & what Roland wants)
-		if (event.GetKeyCode() == WXK_DELETE) // ALT+DELETE
-		{
-			// we have ALT + Delete keys held down, so unmerge the current merger - separating into
-			// individual words but only when adapting, if glossing we instead just return
-			CSourcePhrase* pSP;
-			if (pApp->m_pActivePile == NULL)
-			{
-				return;
-			}
-			if (pApp->m_selectionLine != -1 && pApp->m_selection.GetCount() == 1)
-			{
-				CCellList::Node* cpos = pApp->m_selection.GetFirst();
-				CCell* pCell = cpos->GetData();
-				pSP = pCell->GetPile()->GetSrcPhrase();
-				if (pSP->m_nSrcWords == 1)
-					return;
-			}
-			else if (pApp->m_selectionLine == -1 && pApp->m_pTargetBox->GetHandle() != NULL
-									&& pApp->m_pTargetBox->IsShown())
-			{
-				pSP = pApp->m_pActivePile->GetSrcPhrase();
-				if (pSP->m_nSrcWords == 1)
-					return;
-			}
-			else
-			{
-				return;
-			}
+                return;
+            }
+            else if (event.GetKeyCode() == WXK_LEFT) // SHIFT+ALT+LeftArrow - add placeholder BEFORE
+            {
+                // Add Placeholder BEFORE a selection (if a selection exists) or the PhraseBox position.
+                // whm Note 11Mar2020: Control passes through here when a simultaneous SHIFT+ALT+LeftArrow 
+                // press is released. 
 
-			// if we get to here, we can go ahead & remove the merger, if we are adapting
-			// but if glossing, the user should be explicitly warned the op is no available
-			if (gbIsGlossing)
-			{
-				// IDS_NOT_WHEN_GLOSSING
-				wxMessageBox(_("This particular operation is not available when you are glossing."),
-				_T(""),wxICON_INFORMATION | wxOK);
-				return;
-			}
-			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a lookup,
-				// so don't remake the phrase box with the global (wxString) m_SaveTargetPhrase,
-				// otherwise it will override a successful lookkup and make the ALT+Delete give
-				// a different result than the Unmerge button on the toolbar. So we in effect
-				// are ignoring m_SaveTargetPhrase (the former is used in PlacePhraseBox() only
-			GetLayout()->m_docEditOperationType = unmerge_op;
+                // TODO: Check if SHIFT+ALT+RightArrow conflicts with any of a Mac's system key assignments,
+                // and adjust code here if necessary to accommodate the Mac port.
 
-			// save old sequ number in case required for toolbar's Back button - the only safe
-			// value is the first pile of the unmerged phrase, which is where the phrase box
-			// now is
-            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
-		}
+                // Insert of null sourcephrase but first save old sequ number in case required for toolbar's
+                // Back button (this one is activated when CTRL key is not down, so it does the
+                // default "insert before" case; the "insert after" case is done in the
+                // OnKeyUp() handler)
+
+                // Bill wanted the behaviour modified, so that if the box's m_bAbandonable flag is TRUE
+                // (ie. a copy of source text was done and nothing typed yet) then the current pile
+                // would have the box contents abandoned, nothing put in the KB, and then the placeholder
+                // inserion - the advantage of this is that if the placeholder is inserted immediately
+                // before the phrasebox's location, then after the placeholder text is typed and the user
+                // hits ENTER to continue looking ahead, the former box location will get the box and the
+                // copy of the source redone, rather than the user usually having to edit out an unwanted
+                // copy from the KB, or remember to clear the box manually. A sufficient thing to do here
+                // is just to clear the box's contents.
+                if (pApp->m_pTargetBox->m_bAbandonable)
+                {
+                    pApp->m_targetPhrase.Empty();
+                    if (pApp->m_pTargetBox != NULL
+                        && (pApp->m_pTargetBox->IsShown()))
+                    {
+                        this->GetTextCtrl()->ChangeValue(_T(""));
+                    }
+                }
+
+                // now do the 'insert before'
+                pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+                pApp->GetPlaceholder()->InsertNullSrcPhraseBefore();
+                return;
+            }
+        }
+        else if (!event.ShiftDown() && !event.ControlDown())
+        {
+
+            // ALT key is down, and neither CTRL nor SHIFT is down simultaneously.
+            // If a right/left arrow key pressed, extend/retract sel'n left or right
+            // or insert a null source phrase, or open the retranslation dialog; but don't
+            // allow any of this (except Alt + Backspace) if glossing is ON - in those cases, just return
+            if (gbIsGlossing)
+                return;
+            GetSelection(&nStart, &nEnd); //GetTextCtrl()->GetSelection(&nStart, &nEnd);
+            if (event.GetKeyCode() == WXK_RIGHT) // ALT+RIGHT
+            {
+                if (gbRTL_Layout)
+                    bTRUE = pView->ExtendSelectionLeft();
+                else
+                    bTRUE = pView->ExtendSelectionRight();
+                if (!bTRUE)
+                {
+                    if (gbVerticalEditInProgress)
+                    {
+                        ::wxBell();
+                    }
+                    else
+                    {
+                        // did not succeed - do something eg. warn user he's collided with a boundary
+                        // IDS_RIGHT_EXTEND_FAIL
+                        wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."), _T(""), wxICON_INFORMATION | wxOK);
+                    }
+                }
+                // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
+                // call below.
+                this->GetTextCtrl()->SetFocus();
+                // whm 3Aug2018 Note: Below the previous selection is being restored,
+                // so no adjustment made for 'Select Copied Source'
+                this->GetTextCtrl()->SetSelection(nStart, nEnd);
+                pApp->m_nStartChar = nStart;
+                pApp->m_nEndChar = nEnd;
+            }
+            else if (event.GetKeyCode() == WXK_LEFT) // ALT+LEFT
+            {
+                if (gbRTL_Layout)
+                    bTRUE = pView->ExtendSelectionRight();
+                else
+                    bTRUE = pView->ExtendSelectionLeft();
+                if (!bTRUE)
+                {
+                    if (gbVerticalEditInProgress)
+                    {
+                        ::wxBell();
+                    }
+                    else
+                    {
+                        // did not succeed, so warn user
+                        // IDS_LEFT_EXTEND_FAIL
+                        wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION | wxOK);
+                    }
+                }
+                // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
+                // call below.
+                this->GetTextCtrl()->SetFocus();
+                // whm 3Aug2018 Note: Below the previous selection is being restored,
+                // so no adjustment made for 'Select Copied Source'
+                this->GetTextCtrl()->SetSelection(nStart, nEnd);
+                pApp->m_nStartChar = nStart;
+                pApp->m_nEndChar = nEnd;
+            }
+            else if (event.GetKeyCode() == WXK_UP) // ALT+UP (also available with CTRL+R or ToolBar Button on current selection)
+            {
+                // up arrow was pressed, so get the retranslation dialog open
+                if (pApp->m_pActivePile == NULL)
+                {
+                    return;
+                    //goto a;
+                }
+                if (pApp->m_selectionLine != -1)
+                {
+                    // if there is at least one source phrase with a selection defined,
+                    // then then use the selection and put up the dialog
+                    pApp->GetRetranslation()->DoRetranslationByUpArrow();
+                }
+                else
+                {
+                    // no selection, so make a selection at the phrase box and invoke the
+                    // retranslation dialog on it
+                    //CCell* pCell = pApp->m_pActivePile->m_pCell[2];
+                    CCell* pCell = pApp->m_pActivePile->GetCell(1);
+                    wxASSERT(pCell);
+                    pApp->m_selection.Append(pCell);
+                    //pApp->m_selectionLine = 1;
+                    pApp->m_selectionLine = 0;// in refactored layout, src text line is always index 0
+                    wxUpdateUIEvent evt;
+                    //pView->OnUpdateButtonRetranslation(evt);
+                    // whm Note: calling OnUpdateButtonRetranslation(evt) here doesn't work because there
+                    // is not enough idle time for the Do A Retranslation toolbar button to be enabled
+                    // before the DoRetranslationByUpArrow() call below executes - which has code in it
+                    // to prevent the Retranslation dialog from poping up unless the toolbar button is
+                    // actually enabled. So, we explicitly enable the toolbar button here instead of
+                    // waiting for it to be done in idle time.
+                    CMainFrame* pFrame = pApp->GetMainFrame();
+                    wxASSERT(pFrame != NULL);
+                    wxAuiToolBarItem *tbi;
+                    tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RETRANSLATION);
+                    // Return if the toolbar item is hidden
+                    if (tbi == NULL)
+                    {
+                        return;
+                    }
+                    // enable the toolbar button
+                    pFrame->m_auiToolbar->EnableTool(ID_BUTTON_RETRANSLATION, true);
+                    pApp->GetRetranslation()->DoRetranslationByUpArrow();
+                }
+            }
+            //#if defined(__WXGTK__)
+            //        else if (event.GetKeyCode() == WXK_DOWN) // ALT+DOWN (normally reserved for opening/closing dropdown list)
+            //        {
+            //            // Unfortunately, the dropdown blocks all AltDown modified events while the dropdown is open
+            //            // and that explains why the ALT+DOWN can open the dropdown when it is closed, but cannot close
+            //            // it when it is open. I'll leave the code here in case we figure out a way to unblock all ALT
+            //            // modified key events on Linux.
+            //            // Hence, this block is never entered on Linux when the dropdown is open.
+            //            // The ALT+DOWN on Windows both opens and closes the dropdown list.
+            //            // On Linux/Mac? however, ALT+DOWN only opens the dropdown list if it's closed. It doesn't 
+            //            // close it if it is in an open state. This block of code attempts to make the Linux behavior
+            //            // similar to Windows, where ALT+DOWN acts like a toggle.
+            //            if (this->IsPopupShown())
+            //                CloseDropDown();
+            //        }
+            //#endif
+                    // BEW added 26Sep05, to implement Roland Fumey's request that the shortcut for unmerging
+                    // not be SHIFT+End as in the legacy app, but something else; so I'll make it ALT+Delete
+                    // and then SHIFT+End can be used for extending the selection in the phrase box's CEdit
+                    // to the end of the box contents (which is Windows standard behaviour, & what Roland wants)
+            if (event.GetKeyCode() == WXK_DELETE) // ALT+DELETE
+            {
+                // we have ALT + Delete keys held down, so unmerge the current merger - separating into
+                // individual words but only when adapting, if glossing we instead just return
+                CSourcePhrase* pSP;
+                if (pApp->m_pActivePile == NULL)
+                {
+                    return;
+                }
+                if (pApp->m_selectionLine != -1 && pApp->m_selection.GetCount() == 1)
+                {
+                    CCellList::Node* cpos = pApp->m_selection.GetFirst();
+                    CCell* pCell = cpos->GetData();
+                    pSP = pCell->GetPile()->GetSrcPhrase();
+                    if (pSP->m_nSrcWords == 1)
+                        return;
+                }
+                else if (pApp->m_selectionLine == -1 && pApp->m_pTargetBox->GetHandle() != NULL
+                    && pApp->m_pTargetBox->IsShown())
+                {
+                    pSP = pApp->m_pActivePile->GetSrcPhrase();
+                    if (pSP->m_nSrcWords == 1)
+                        return;
+                }
+                else
+                {
+                    return;
+                }
+
+                // if we get to here, we can go ahead & remove the merger, if we are adapting
+                // but if glossing, the user should be explicitly warned the op is no available
+                if (gbIsGlossing)
+                {
+                    // IDS_NOT_WHEN_GLOSSING
+                    wxMessageBox(_("This particular operation is not available when you are glossing."),
+                        _T(""), wxICON_INFORMATION | wxOK);
+                    return;
+                }
+                pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a lookup,
+                    // so don't remake the phrase box with the global (wxString) m_SaveTargetPhrase,
+                    // otherwise it will override a successful lookkup and make the ALT+Delete give
+                    // a different result than the Unmerge button on the toolbar. So we in effect
+                    // are ignoring m_SaveTargetPhrase (the former is used in PlacePhraseBox() only
+                GetLayout()->m_docEditOperationType = unmerge_op;
+
+                // save old sequ number in case required for toolbar's Back button - the only safe
+                // value is the first pile of the unmerged phrase, which is where the phrase box
+                // now is
+                pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+            } // end of if (event.GetKeyCode() == WXK_DELETE)
+        } // end of else if (!event.ShiftDown() && !event.ControlDown())
 	} // end of if (event.AltDown())
 
     // whm 15Feb2018 added to process new SHIFT down scrolling behaviors (that previously were
@@ -5552,8 +5638,11 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
     // the dropdown control needs to use the normal/unmodified arrow and page keys for use within
     // the dropdown control. Hence, scrolling operations using the keyboard now require the 
     // simultaneous holding down of the SHIFT key.
-    else if (event.ShiftDown())
+    else if (event.ShiftDown() && !event.ControlDown()) // SHIFT + other key handled here, not with CTRL simultaneously down
     {
+        // whm 11Mar2020 Note: In this block we only handle SHIFT+UP, SHIFT+DOWN, SHIFT+PageUp, 
+        // and SHIFT+PageDown (and no simultaneous CTRL down)
+
         // does user want to unmerge a phrase?
 
         // user did not want to unmerge, so must want a scroll
@@ -5769,6 +5858,10 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         }
     }
 
+    // Inserting placeholders both BEFORE and AFTER is now handled above for SHFIT+ALT+LEFT and SHIFT+ALT+RIGHT
+    // instead of the block below which handled just the BEFORE case using a hard to remember down arrow combination.
+    // I've commented out the following block
+    /*
     if ((event.ShiftDown() && event.ControlDown() && event.GetKeyCode() == WXK_DOWN) || // SHIFT+CTRL+DOWN or 
         (event.ShiftDown() && event.AltDown() && event.GetKeyCode() == WXK_DOWN))       // SHIFT+ALT+DOWN - previously was just ALT + DOWN
     {
@@ -5807,6 +5900,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
         pApp->GetPlaceholder()->InsertNullSrcPhraseBefore();
     }
+    */
 
     if (event.ShiftDown() && event.ControlDown() && event.GetKeyCode() == WXK_SPACE) // SHIFT+CTRL+SPACE
     {
@@ -5818,6 +5912,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
                 // into the edit box
     }
 
+    // whm 11Mar2020 removed the block below, since now handling the insertion
+    // of a placeholder "AFTER" above within the SHIFT+ALT+LEFT handling block
+    /*
     if (event.ControlDown() && event.GetKeyCode() == WXK_DOWN) // CTRL+DOWN
     {
         // whm added 26Mar12
@@ -5841,6 +5938,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 #endif
         return;
     }
+    */
 
     if (event.ControlDown() && event.GetKeyCode() == WXK_RETURN) // CTRL+ENTER
     {
@@ -5938,110 +6036,124 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
     */
     // **** NOTICE The following blocks of code are only executed in the Linux/Mac versions **** 
     // **** when the phrasebox's dropdown list is open and blocking the accelerator keys.   ****
-    // Handle the predefined accelerator key Ctrl+L to summon the Choose Translation dialog
-    if (event.ControlDown() && event.GetKeyCode() == 76) // CTRL+L (Choose Translation dialog)
+
+    // TODO: whm 11Mar2020 test that the blocks below that are conditionally compiled for __WXGTK__
+    // and __WXMAC__ work on those platforms when the dropdown list is showing, and that the CTRL+I
+    // in particular doesn't result in double placeholders being inserted.
+
+    if (pApp->m_pTargetBox->GetDropDownList()->IsShown())
     {
-        if (pApp->m_bReadOnlyAccess)
+        int debugTest = 1;
+        debugTest = debugTest;
+
+#if defined (__WXGTK__) || defined (__WXMAC__)
+        // Handle the predefined accelerator key Ctrl+L to summon the Choose Translation dialog
+        if (event.ControlDown() && event.GetKeyCode() == 76) // CTRL+L (Choose Translation dialog)
         {
-            // Disable the F8 key invocation of the ChooseTranslation dialog
+            if (pApp->m_bReadOnlyAccess)
+            {
+                // Disable the F8 key invocation of the ChooseTranslation dialog
+                return;
+            }
+            pView->ChooseTranslation();
             return;
         }
-        pView->ChooseTranslation();
-        return;
+        // Handle the predefined accelerator key Ctrl+E to summon the Edit A Retranslation dialog
+        if (event.ControlDown() && event.GetKeyCode() == 69) // CTRL+E (Edit A Retranslation dialog)
+        {
+            wxCommandEvent dummyevent;
+            pApp->GetRetranslation()->OnButtonEditRetranslation(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+M to Make (Merge) A Phrase
+        if (event.ControlDown() && event.GetKeyCode() == 77) // CTRL+M (Make A Phrase)
+        {
+            pView->MergeWords(); // simply calls OnButtonMerge
+        }
+        //
+        // whm 9Mar2020 Note: CTRL+I is implemented as an accelerator in the CMainFarme's
+        // constructor. Before conditionally compiling these code blocks for __WXGTK__ and
+        // __WXMAC__, and adding the condition that they be executed on those platforms only
+        // when the dropdown list is shown, the CTRL+I block here was causing two placeholders 
+        // to be added - one by the accelerator key assignment, and another one for the execution
+        // of the block here below.
+        //
+        // Handle the predefined accelerator key Ctrl+I to Insert A Placeholder
+        if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
+        {
+            wxCommandEvent dummyevent;
+            pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
+        if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)
+        {
+            wxCommandEvent dummyevent;
+            pApp->GetPlaceholder()->OnButtonRemoveNullSrcPhrase(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+U to Unmake a Phrase
+        if (event.ControlDown() && event.GetKeyCode() == 85) // CTRL+U (Unmake a Phrase)
+        {
+            pView->UnmergePhrase();
+        }
+        // Handle the predefined accelerator key Ctrl+R to Do A Retranslation
+        if (event.ControlDown() && event.GetKeyCode() == 82) // CTRL+R (Do A Retranslation)
+        {
+            wxCommandEvent dummyevent;
+            pApp->GetRetranslation()->OnButtonRetranslation(dummyevent);
+        }
+        //// Handle the predefined accelerator key Ctrl+2 to Jump to Previous Note
+        //if (event.ControlDown() && event.GetKeyCode() == 50) // CTRL+2 (Jump to Previous Note)
+        //{
+        //    // TODO:
+        //}
+        //// Handle the predefined accelerator key Ctrl+3 to Jump to the Next Note
+        //if (event.ControlDown() && event.GetKeyCode() == 51) // CTRL+3 (Jump to the Next Note)
+        //{
+        //    // TODO:
+        //}
+        // Handle the predefined accelerator key Ctrl+Q to Edit Source Text...
+        if (event.ControlDown() && event.GetKeyCode() == 81) // CTRL+Q (Edit Source Text...)
+        {
+            wxCommandEvent dummyevent;
+            pView->EditSourceText(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+Z to Undo
+        if (event.ControlDown() && event.GetKeyCode() == 90) // CTRL+Z (Undo)
+        {
+            wxCommandEvent dummyevent;
+            this->OnEditUndo(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+S to Save
+        if (event.ControlDown() && event.GetKeyCode() == 83) // CTRL+S (Save)
+        {
+            wxCommandEvent dummyevent;
+            pApp->GetDocument()->OnFileSave(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+F to Find...
+        if (event.ControlDown() && event.GetKeyCode() == 70) // CTRL+F (Find...)
+        {
+            wxCommandEvent dummyevent;
+            pView->OnFind(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+G to Go To...
+        if (event.ControlDown() && event.GetKeyCode() == 71) // CTRL+G (Go To...)
+        {
+            wxCommandEvent dummyevent;
+            pView->OnGoTo(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+K to Knowledge Base Editor...
+        if (event.ControlDown() && event.GetKeyCode() == 75) // CTRL+K (Knowledge Base Editor...)
+        {
+            wxCommandEvent dummyevent;
+            pView->OnToolsKbEditor(dummyevent);
+        }
+        // Handle the predefined accelerator key Ctrl+7 to Adapt Clipboard Text
+        if (event.ControlDown() && event.GetKeyCode() == 55) // CTRL+7 (Adapt Clipboard Text)
+        {
+            wxCommandEvent dummyevent;
+            pApp->OnToolsClipboardAdapt(dummyevent);
+        }
+#endif
     }
-    // Handle the predefined accelerator key Ctrl+E to summon the Edit A Retranslation dialog
-    if (event.ControlDown() && event.GetKeyCode() == 69) // CTRL+E (Edit A Retranslation dialog)
-    {
-        wxCommandEvent dummyevent;
-        pApp->GetRetranslation()->OnButtonEditRetranslation(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+M to Make (Merge) A Phrase
-    if (event.ControlDown() && event.GetKeyCode() == 77) // CTRL+M (Make A Phrase)
-    {
-        pView->MergeWords(); // simply calls OnButtonMerge
-    }
-    //
-    // whm 9Mar2020 Note: Since CTRL+I was implemented as an accelerator in the CMainFarme's
-    // constructor, it was causing two placeholders to be added when using the CTRL+I hot key.
-    // I commented out the accelerator code there, and am leaving the code block here since it
-    // is a more straight forward way to handle the hot keys here.
-    // Handle the predefined accelerator key Ctrl+I to Insert A Placeholder
-    if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
-    {
-        wxCommandEvent dummyevent;
-        pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
-    if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)
-    {
-        wxCommandEvent dummyevent;
-        pApp->GetPlaceholder()->OnButtonRemoveNullSrcPhrase(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+U to Unmake a Phrase
-    if (event.ControlDown() && event.GetKeyCode() == 85) // CTRL+U (Unmake a Phrase)
-    {
-        pView->UnmergePhrase();
-    }
-    // Handle the predefined accelerator key Ctrl+R to Do A Retranslation
-    if (event.ControlDown() && event.GetKeyCode() == 82) // CTRL+R (Do A Retranslation)
-    {
-        wxCommandEvent dummyevent;
-        pApp->GetRetranslation()->OnButtonRetranslation(dummyevent);
-    }
-    //// Handle the predefined accelerator key Ctrl+2 to Jump to Previous Note
-    //if (event.ControlDown() && event.GetKeyCode() == 50) // CTRL+2 (Jump to Previous Note)
-    //{
-    //    // TODO:
-    //}
-    //// Handle the predefined accelerator key Ctrl+3 to Jump to the Next Note
-    //if (event.ControlDown() && event.GetKeyCode() == 51) // CTRL+3 (Jump to the Next Note)
-    //{
-    //    // TODO:
-    //}
-    // Handle the predefined accelerator key Ctrl+Q to Edit Source Text...
-    if (event.ControlDown() && event.GetKeyCode() == 81) // CTRL+Q (Edit Source Text...)
-    {
-        wxCommandEvent dummyevent;
-        pView->EditSourceText(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+Z to Undo
-    if (event.ControlDown() && event.GetKeyCode() == 90) // CTRL+Z (Undo)
-    {
-        wxCommandEvent dummyevent;
-        this->OnEditUndo(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+S to Save
-    if (event.ControlDown() && event.GetKeyCode() == 83) // CTRL+S (Save)
-    {
-        wxCommandEvent dummyevent;
-        pApp->GetDocument()->OnFileSave(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+F to Find...
-    if (event.ControlDown() && event.GetKeyCode() == 70) // CTRL+F (Find...)
-    {
-        wxCommandEvent dummyevent;
-        pView->OnFind(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+G to Go To...
-    if (event.ControlDown() && event.GetKeyCode() == 71) // CTRL+G (Go To...)
-    {
-        wxCommandEvent dummyevent;
-        pView->OnGoTo(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+K to Knowledge Base Editor...
-    if (event.ControlDown() && event.GetKeyCode() == 75) // CTRL+K (Knowledge Base Editor...)
-    {
-        wxCommandEvent dummyevent;
-        pView->OnToolsKbEditor(dummyevent);
-    }
-    // Handle the predefined accelerator key Ctrl+7 to Adapt Clipboard Text
-    if (event.ControlDown() && event.GetKeyCode() == 55) // CTRL+7 (Adapt Clipboard Text)
-    {
-        wxCommandEvent dummyevent;
-        pApp->OnToolsClipboardAdapt(dummyevent);
-    }
-
-
     // whm Note: no event.Skip() from OnSysKeyUP()
 }
 
