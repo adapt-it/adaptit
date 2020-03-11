@@ -8352,18 +8352,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
     wxLogDebug(_T("CPhraseBox::::OnLButtonDown() triggered"));
 
 	// This mouse event is only activated when user clicks mouse L button within
-	// the phrase box, not elsewhere on the screen [but see next comment]...
-    // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
-    // this OnLButtonDown() handler is not activated when the user clicks mouse L button 
-    // within the phrasebox. But, surprisingly, it is triggered/executed when the user 
-    // clicks on the dropdown control's down-arrow button.
-    // Hence, currently neither this handler nor the OnLButtonDown() handler in the 
-    // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
-    // to remove the selection. This behavior is different than the behavior that was
-    // expected for a phrasebox based on wxTextCtrl.
-    //
-    // whm 2Jun2018 update: This handler is now called from the CAdapt_ItApp::FilterEvent()
-    // function when a wxEVT_LEFT_DOWN event occurs on the edit box area of the phrasebox.
+	// the phrase box, not elsewhere on the screen.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
@@ -8376,12 +8365,15 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	}
 
 	// BEW 2May18 Inhibit dropping down (or up) if in Reviewing mode)
-	if (!pApp->m_bDrafting)
-	{
-		// return without calling Skip(). Beep for Review mode feedback
-		::wxBell();
-		return;
-	}
+    // whm 11Mar2020 removed the following block since we now allow user to open/close
+    // new phrasebox list. See also commented out block in Layout.cpp where the 
+    // SetupDropDownPhraseBoxForThisLocation() is now called even in Review mode.
+	//if (!pApp->m_bDrafting)
+	//{
+	//	// return without calling Skip(). Beep for Review mode feedback
+	//	::wxBell();
+	//	return;
+	//}
 
     // whm addition: don't allow cursor to be placed in phrasebox when in free trans mode
     // and when it is not editable. Allows us to have a pink background in the phrase box

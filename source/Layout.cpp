@@ -1033,8 +1033,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	// function does.
 	// BEW 26Apr18 removed the internal unilateral setting of m_bAbandonable to TRUE in this Setup....() function
 	// BEW 2May18 for Reviewing mode, suppressed call when m_bDrafting is FALSE
-	if (m_pApp->m_bDrafting)
-	{
+    // whm 11Mar2020 revised according to BEW after input from Roland Fumey, review mode should also populate
+    // the dropdown phrasebox list, so I'm here commenting out the m_bDrafting test.
+	//if (m_pApp->m_bDrafting)
+	//{
 		if (placeboxsetup == initializeDropDown)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
@@ -1044,7 +1046,7 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 		//wxWindow* fwin = wxWindow::FindFocus();
 		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
 		//    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
-	}
+	//}
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 

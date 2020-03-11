@@ -4724,8 +4724,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // unnecessary to have the list popped open and showing only that same single item.
             if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
             {
+                // whm 11Mar2020 Revied the following test to not call PopupDropDown() function in Reviewing mode
+                // The dropdown list is now populated in Reviewing mode, but the user needs to explicitly click on
+                // the dropdown's down arrow at the right end to popup the list, if any, for this location.
                 if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge
-                    && !pApp->m_bFreeTranslationMode) // whm 21Aug2018 added test && !m_bFreeTranslationMode. Dropdown list shouldn't open during free trans mode
+                    && !pApp->m_bFreeTranslationMode // whm 21Aug2018 added test && !m_bFreeTranslationMode. Dropdown list shouldn't open during free trans mode
+                    && pApp->m_bDrafting) // whm 11Mar2020 call PopupDropDownList() only when Drafting mode is current and not in Reviewing mode
                 {
                     // whm Note: The CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // ensures that the OnIdle() trigger flag m_bChooseTransInitializePopup is
