@@ -40,6 +40,7 @@ public:
 	wxTextCtrl*		m_psrcPhraseBox;
 	wxTextCtrl*		m_ptgtPhraseBox;
 	wxTextCtrl*		pTextCtrlAsStaticPlaceIntPunct;
+    wxButton*       pBtnOK;
 	wxListBox*		m_pListPunctsBox;
 	wxString		m_srcPhrase;
 	wxString		m_tgtPhrase;
