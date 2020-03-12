@@ -23,8 +23,8 @@
 #define _AT_PTR
 //#define FIXORDER
 #define LOGMKRS
-const int logStart = 28;
-const int logEnd = 30;
+const int logStart = 2;
+const int logEnd = 4;
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -12573,7 +12573,8 @@ bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxStr
 // ptr            <->  the scanning pointer for the parse
 // pEnd            ->  first character past the end of the data buffer we are parsing
 // pSrcPhrase     <->  where we are storing information parsed, here it is final
-//                     punctuation to be appended to its m_follPunct member
+//                     endmarker(s) and any immediately following punctuation for each;
+//					   the endmarkers to be appended to its m_follOuterPunct member
 // len             ->  the len value before ptr is advanced in this internal scan
 // bInlineBindingEndMkrFound <-> input FALSE, and returned as TRUE if an inline binding
 //                               endmarker was detected and parsed over & stored (we
@@ -12591,17 +12592,41 @@ bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxStr
 // in the case of footnotes start with \f and end with *, and for crossReferences, start
 // with \x and end with *, and each has other characters between the \f and *, or the \x
 // and *. These are \fdc* and \fm*, and we can include \fe* too (for endnotes); & for
-// crossReferences, \xot* \xnt* \xdc* -- these are to be stored in the m_endMarkers member
-// (as will \f* and \x* when we parse them further along in the caller).
+// crossReferences, \xot* \xnt* \xdc* -- , new USFM3 ones like \ef*, these are to be stored
+// in the m_endMarkers member (as will \f* and \x* when we parse them further along in the caller).
 // If this function finds neither kind of marker, ptr and len are returned unchanged to the
 // caller, and further possibilities are then tried. If it finds either kind of marker or
-// sequence of same, these are parsed over, stored, and ptr and len returned updated, with
-// ptr pointing at the first character following (typically a space, or final punctuation)
+// sequence of same, these are parsed over, stored, and for each one, there may be following
+// final punctuation characters - we we have a loop to check for those and accumulate them
+// to m_follOuterPunct member of the current pSrcPhrase, advancing ptr and len to point
+// past them. When a halting condition happens (eg. a space, ], or a begin-marker), control
+// returns with ptr and len returned updated, with ptr pointing at the first character following 
+// (typically a space, or word initial punct, or a begin-marker, or a non-punctuation 
+// character starting the next word or phrase).
+// BEW refactored 11Mar20. The function has no loop, and we want it to stay that way - so it
+// deals with just one endMarker if ptr points to one; stores same, and returns an updated
+// len value so caller's len can be updated to point to the same location. What I'm adding
+// now is a punctuation-collecting loop after the end marker has been dealt with, providing
+// one  endmarker was found - because USFM3 markup has things like footnote:xref specicications
+// where the : is word final punctuation that should get stored in pSrcPhrase's m_follOuterPunct,
+// otherwise it gets wrongly assigned to a following empty CSourcePhrase instance.
+// If this function is called in a loop in the ParseWord() caller, having the puncts collection
+// added here works well, because for each call there may be a further final punctuation 
+// character that needs to be dealt with.
 int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 		CSourcePhrase*& pSrcPhrase, wxString& inlineNonBindingEndMkrs, int len,
 		bool& bBindingEndMkrFound, bool& bNonbindingEndMkrFound,
 		bool& bNormalEndMkrFound, wxString& endMkr)
 {
+#if defined (_DEBUG)
+
+	if (pSrcPhrase->m_nSequNumber >= 2)
+	{
+		int halt_here = 1;
+	}
+#endif
+	int inputLen = len; // save the input len value - so that if a marker is found and
+						// stored, we can easily test for that fact
 	endMkr.Empty();
 	if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
 	{
@@ -12687,7 +12712,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 							// be the 'remainder' solution - a normal endmarker
 							// to be stored in m_endMarkers; but it could be
 							// one of the USFM3 character attribute end markers -
-							// these we store in the nnon-binding end marker
+							// these we store in the non-binding end marker
 							// storage. Check it out & store accordingly
 							offset = charAttributeEndMkrs.Find(wholeEndMkrPlusSpace);
 							if (offset == wxNOT_FOUND)
@@ -12735,6 +12760,54 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 
 		} // end of TRUE block for test: if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
 	} // end of else block for test: if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
+
+	// Did we parse and store an endmarker?
+	if (len > inputLen)
+	{
+		int offset = wxNOT_FOUND; // initialise
+		bool bUseTgtPuncts = m_bTokenizingTargetText; // from Doc.h to preserve bool value
+													  // passed in, in TokenizeText() call
+		// Yes we did; so parse over any following punctuation that belongs to the
+		// m_follOuterPunct member and store it, updating len and ptr before returning
+		while (
+			(ptr < pEnd) &&
+			!IsWhiteSpace(ptr) &&
+			(*ptr != _T(']')) &&
+			(!(IsMarker(ptr) && !IsEndMarker(ptr, pEnd)) ) )
+		{
+			if (bUseTgtPuncts)
+			{
+				// use the word-final set of target language punctuation characters
+				offset = gpApp->m_finalTgtPuncts.Find(*ptr);
+			}
+			else
+			{
+				// use the word-final set of source language punctuation characters
+				offset = gpApp->m_finalSrcPuncts.Find(*ptr);
+			}
+			if (offset == wxNOT_FOUND)
+			{
+				// The character at ptr is not a punctuation character
+				return len;
+
+			}
+			else
+			{
+				// A punctuation character is at ptr. Deal with it, and advance ptr and len,
+				// and iterate the loop until all consecutive final puncts are collected
+				// and appended to m_follOuterPunct
+				wxChar aPunct = *ptr;
+				pSrcPhrase->AddFollOuterPuncts(aPunct);
+				// Add it also to end of m_srcPhrase so it's seen in the GUI
+				pSrcPhrase->m_srcPhrase += aPunct;
+				len++;
+				ptr++;
+
+			} // end of else block for test: if (offset == wxNOT_FOUND)
+		}  // end of while loop
+
+	} // end of TRUE block for test: if (len > inputLen) i.e. a marker was found and stored, len & ptr updated
+
 	return len;
 }
 
@@ -12968,6 +13041,8 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
     // IsClosingCurlyQuote() was also used as it does not test for straight ones)
     if (bFoundClosingQuote) 
 	{
+		bExitOnReturn = FALSE; // initialize for this block (ie. all continued parsing on return)
+
 		int offset = wxNOT_FOUND;
 		if (IsMarker(ptr))
 		{
@@ -12976,18 +13051,15 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
 		}
 
-		if ((IsMarker(ptr) && offset ==wxNOT_FOUND) || IsEnd(ptr))
+		if ((IsEndMarker(ptr, pEnd) && offset ==wxNOT_FOUND) || IsEnd(ptr))
 		{
-            // an endmarker or a begin marker is what ptr points at now, or the buffer's end,
-			// so we'll accept everything as valid final punctuation for the current
-			// pSrcPhrase; and if not at buffer end then further parsing is needed in the
-			// caller because there may be more markers and punctuation to be handled for
-			// the end of the current word. The marker is NOT an inlinebinding one
- 			//if (IsEnd(ptr) || IsMarker(ptr))
-			//{
-				bExitOnReturn = TRUE; // BEW 3Aug17 do this unilaterally here now
-			//}
-
+            // An endmarker is what ptr points at now, but not at one which is inline
+			// binding type; or we are at the end of buffer. If not at buffer end then 
+			// it may be the case that further parsing is needed in the caller because 
+			// there may be more markers and punctuation to be handled for the end of 
+			// the current word. So far we only know that the marker is NOT an 
+			// inlinebinding one
+ 
 			// Back up over any preceding space & adjust ptr & counter
 			int aWhiteSpanLength = 0;
 			wxChar* pTemp = ptr;
@@ -13040,10 +13112,10 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			// one or more detached quotes)
 			len += counter;
 
-		} // end of TRUE block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
+		} // end of TRUE block for test: if ((IsEndMarker(ptr, pEnd) && offset ==wxNOT_FOUND) || IsEnd(ptr))
 		else
 		{
-            // ptr is not pointing at the start of a marker; the situation is somewhat
+            // ptr is not pointing at the start of an endmarker; the situation is somewhat
             // ambiguous - the difficulty here is that we may have some ending
             // punctuation parsed over which belongs to the final punctuation of the
             // current pSrcPhrase, followed by some initial punctuation (it can only be
@@ -13124,18 +13196,18 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 							return len;
 						}
 					}
-				}
+				} // end of TRUE block for test: if (shortCount < counter)
 				else
 				{
-					// shortCount and counter are the same value, so we accept it all
-					// and we must tell the caller to return because ptr is not pointing
-					// at a marker but something else which is not a quote symbol.
-					// Possibly it could be other punctuation ptr is pointing at, and if
-					// it is so without any spaces, then we should accept it as belonging
-					// to the end of the current final punctuation - so accumulate it
-					// until space or non-puncts are encountered. But check for ] first,
-					// if pointing at that, (it's defaulted as punctuation) don't
-					// accumulate it but return instead
+					// BEW new comment 10Mar20, shortCount and counter are the same value, so 
+					// no punctuation accumulation happened, and we are pointing now at we 
+					// don't know what.
+					// So update pSrcPhrase with what we have gotten so far, and then do
+					// further checks. It might be time to return to the caller, or
+					// perhaps an endmarker is next - in which case the parsing needs
+					// to continue in the caller to deal with the endmarker, and after that 
+					// could be even more final puncts which a later call of this function
+					// should pick up...
 					wxString finalPunct(pPunctStart,counter);
 					if (bPutInOuterStorage)
 					{
@@ -13157,10 +13229,12 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					}
 					// else, accumulate any more puncts until space or non-punct or a
 					// ] bracket is reached
+					int nNewCounter = 0;
 					while (ptr < pEnd && (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 						&& *ptr != _T(']'))
 					{
 						wxString aPunct = *ptr;
+						nNewCounter++;
 						if (bPutInOuterStorage)
 						{
 							pSrcPhrase->AddFollOuterPuncts(aPunct);
@@ -13174,9 +13248,34 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 						len++;
 						ptr++;
 					}
+
+					// BEW 10Mar20 need to refactor here, we may have parsed over some more
+					// final puncts, and accumulated them. Detect this, and don't assume
+					// that bExitOnReturn has to be set to TRUE and return be immediate.
+					// An endmarker for the current pSrcPhrase may now be pointed at, and
+					// we want to just exit this call to let the endmarker be dealt with in the
+					// caller later on in ParseWord(), because after the end marker there may
+					// be even more final puncts for the current pSrcPhrase to be picked up
+					// by a further call of this ParseAdditionalFinalPuncts() function
+					if (nNewCounter > 0)
+					{
+						// We found at least 1 more final punct character. So what is ptr
+						// pointing at now? Check for an endmarker - if it is so, then
+						// we want to enable this function to be called again after the
+						// caller has dealt with the endmarker
+						bool bEndMkrFollows = FALSE;
+						bEndMkrFollows = IsEndMarker(ptr, pEnd);
+						if (bEndMkrFollows)
+						{
+							bExitOnReturn = FALSE; // its FALSE already, this is to document
+												   // what's going on
+							return len;
+						}
+					}
 					bExitOnReturn = TRUE;
 					return len;
-				}
+				} // end of else block for test: if (shortCount < counter) ie, there was no advancement
+
 			} // end of TRUE block for test: if (pLocation_OK > pPunctStart)
 			else
 			{
@@ -13231,7 +13330,9 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					return len;
 				}
 			} // end of else block for test: if (pLocation_OK > pPunctStart)
+
 		} // end of else block for test: if marker and not an inline binding mkr or is at buffer end
+
 	} // end of TRUE block for test: if (bFoundClosingQuote)
 	else if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
 	{
@@ -13260,6 +13361,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
             // over potential endmarkers further on, and there could be outer following
             // punctuation too
 			len += counter;
+			bExitOnReturn = FALSE;
 		} // end of TRUE block for test: if (counter > 0)
 		else
 		{
@@ -30052,7 +30154,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s  ParseWord() START"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -30155,7 +30257,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			int nChangeInLenValue = ptr - savePtr;
 			len += nChangeInLenValue;
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30173,7 +30275,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (*ptr == _T(']') || *ptr == _T('[') || FoundEsbeEndMkr(ptr, whitespaceLen))
 			{
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30245,7 +30347,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 				}
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30263,7 +30365,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// punctuation characters a second time to get to the ] character which determines
 			// our return point - so that's why we keep looking for presence of ] below
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30397,7 +30499,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			} // end of loop: while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30412,7 +30514,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		  // punctuation, whitespace or a marker)
 		if (pEndWordProper == NULL && !bMatchedFixedSpaceSymbol)
 		{
-			pEndWordProper = ptr;
+				pEndWordProper = ptr;
 		}
 		if (bMatchedFixedSpaceSymbol && pSecondWordEnds == NULL)
 		{
@@ -30444,7 +30546,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// and more explanatory comments are there too to help complete the picture
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30484,7 +30586,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bMatchedFixedSpaceSymbol)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30655,7 +30757,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		else // bMatchedFixedSpaceSymbol is FALSE
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30694,7 +30796,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// add any final punctuation further below
 		} // end of else block for test: if (bMatchedFixedSpaceSymbol)
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30706,7 +30808,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bStartedPunctParse)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30744,11 +30846,18 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			wxString additions; additions.Empty();
 			// in next call, FALSE is bPutInOuterStorage
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+			}
+#endif
+#if defined (_DEBUG)
+
+			if (pSrcPhrase->m_nSequNumber >= 2)
+			{
+				int halt_here = 1;
 			}
 #endif
 			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
@@ -30759,10 +30868,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				pSrcPhrWord2->m_follPunct += additions;
 				pSrcPhrWord2->m_srcPhrase += additions;
 			}
+
 			if (bExitParseWordOnReturn)
 			{
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30793,7 +30903,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30809,7 +30919,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					len--;
 				}
 				return len;
-			}
+			} // end of TRUE block for test: if (bExitParseWordOnReturn)
+
 		} // end of TRUE block for test: if (bStartedPunctParse)
 		else
 		{
@@ -30838,9 +30949,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've
 													  // started into parsing of following puncts & endmarkers
 			}
-		}
+		} // end of else block for test: if (bStartedPunctParse)
+
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30880,7 +30992,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30891,7 +31003,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bThrewAwayWhiteSpaceAfterWord)
 		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30925,7 +31037,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// following puncts for the current pSrcPhrase, but any other option -
 					// we'll just return without advancing over the puncts.
 #if defined (_DEBUG) && defined (LOGMKRS)
-					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 					{
 						wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -30972,7 +31084,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 								return len;
 							}
 #if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 							{
 								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31009,7 +31121,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 								len--;
 							}
 #if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 							{
 								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31038,7 +31150,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						wxString theEndMarker;
 						theEndMarker.Empty();
 #if defined (_DEBUG) && defined (LOGMKRS)
-						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 						{
 							wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31068,7 +31180,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 
 	} // end of TRUE block for test: if (!bSkipLegacyParsingBlock) **********************************************************************
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31083,7 +31195,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// The USFM 3 supporting code for this CSourcePhrase is now done with.
 		// Clear it out and set the boolean FALSE
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31142,7 +31254,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bInlineNormalEndMkrFound = FALSE;
 
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31156,7 +31268,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		int saveLen;
 		wxString endMarker; // initialized to empty string at start of ParseInlineEndMarkers()
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31250,7 +31362,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31258,11 +31370,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 #endif
 
-			// if we found an endmarker, there might be a bogus space following it which is
+			// If we found an endmarker, there might be a bogus space following it which is
 			// entirely unneeded and should be omitted, because any whitespace after an
 			// inline binding endmarker is a nuisance - so check for it and remove it,
 			// because if another follows, the loop must start with ptr pointing at a
-			// backslash
+			// backslash.
+
 			// BEW 21Feb13, the above is correct, but the space(s) should only be omitted if
 			// another endmarker follows it/them - and the following test is therefore
 			// inadequate as it results in unilateral removal of space(s) - because if there
@@ -31270,6 +31383,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// halt the parse -- so I have to add code inside the TRUE block for the test
 			// to ensure that ParseOverAndIgnoreWhiteSpace() is only called after we've
 			// determined that it was an endmarker that followed....
+
+			// BEW 10Mar20 On the other hand, the endmarker may be followed by some additional
+			// final puctuation - if so, accumulate it, but store it in m_follOuterPunct.
+
+// TODO
+
 			if ((bInlineBindingEndMkrFound ||
 				bInlineNonbindingEndMkrFound ||
 				bInlineNormalEndMkrFound) && IsWhiteSpace(ptr))
@@ -31306,7 +31425,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31343,9 +31462,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				ptr += wordBuildersFor2ndPostWordLoc.Len();
 			}
 		}
-	}
+	} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd))
+
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31399,7 +31519,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				len--;
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), 
@@ -31430,10 +31550,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// delay, about the whitespace span, continues...
 			len += nWhiteSpaceSpan;
 		}
-	}
+	} // end of TRUE block for test: if (IsWhiteSpace(ptr))
+
 	bool bGotSomeMorePuncts = FALSE; // set TRUE if we find some more in the next bit
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31441,6 +31562,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 #endif
 
+#if defined (_DEBUG)
+
+	if (pSrcPhrase->m_nSequNumber >= 2)
+	{
+		int halt_here = 1;
+	}
+#endif
 	// If ptr points at punctuation, start collecting it
 	bool bMorePunctsHaveBeenAccepted = FALSE;
 	wxChar* pMorePunctsStart = ptr;
@@ -31457,9 +31585,9 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// member, and to the same member in pSrcPhrWord2 - otherwise the ParseWord() function
 	// will end without doing these assignments
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s  About to collect more puncts for Outer"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
 	}
@@ -31637,7 +31765,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31663,7 +31791,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 	}
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31736,7 +31864,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			}
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31799,7 +31927,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			pSrcPhrWord2->m_srcPhrase += additions;
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31823,7 +31951,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			return len;
 		}
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -31862,7 +31990,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	else if (IsMarker(ptr))
 	{
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32000,7 +32128,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					return len;
 				}
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32073,7 +32201,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 #if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
 					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32107,7 +32235,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (bNotEither)
 	{
 #if defined (_DEBUG) && defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
 			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32153,7 +32281,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				len--;
 			}
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
 				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
@@ -32172,7 +32300,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		len--;
 	}
 #if defined (_DEBUG) && defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber >= logEnd)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
 		wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s  ParseWord() EXITS"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),

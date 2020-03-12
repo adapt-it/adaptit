@@ -3176,6 +3176,8 @@ public:
 	wxString m_strSpacelessTargetPuncts; // ditto
 	wxString MakeTargetFinalPuncts(wxString tgtPuncts); // includes a space
 	wxString m_finalTgtPuncts; // stores what MakeTargetFinalPuncts() returns
+	wxString MakeSourceFinalPuncts(wxString srcPuncts); // does not include a space
+	wxString m_finalSrcPuncts; // stores what MakeSourceFinalPuncts() returns
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;

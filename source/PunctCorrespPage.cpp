@@ -1372,12 +1372,15 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	{
 		gpApp->m_pLayout->m_bPunctuationChanged = TRUE;
 		gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
-
-		// Update app's m_finalTgtPuncts (which excludes what IsOpeningQuote90 has, 
-		// but includes a single space and " and ' provided these are nominated
-		// as punctuation characters (which, these days, at Feb 2020, they are)
-		gpApp->m_finalTgtPuncts = gpApp->MakeTargetFinalPuncts(gpApp->m_strSpacelessTargetPuncts);
 	}
+
+	// Update app's m_finalTgtPuncts (which excludes what IsOpeningQuote() has, 
+	// but includes a single space and " and ' provided these are nominated
+	// as punctuation characters (which, these days, at Feb 2020, they are)
+	// Ditto for m_finalSrcPuncts, the latter is used in the Tokenizer's
+	// call of ParseInlineEndMarkers() -- see Doc.cpp
+	gpApp->m_finalTgtPuncts = gpApp->MakeTargetFinalPuncts(gpApp->m_strSpacelessTargetPuncts);
+	gpApp->m_finalSrcPuncts = gpApp->MakeSourceFinalPuncts(gpApp->m_strSpacelessSourcePuncts);
 }
 
 #ifdef _UNICODE

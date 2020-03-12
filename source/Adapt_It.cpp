@@ -26716,6 +26716,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
 	m_finalTgtPuncts = MakeTargetFinalPuncts(m_strSpacelessTargetPuncts); // BEW added 26Feb20
+	m_finalSrcPuncts = MakeSourceFinalPuncts(m_strSpacelessSourcePuncts); // BEW added 11Mar20 for ParseInlineEndMarkers()
+
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
@@ -26727,6 +26729,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }
+
+
+// BEW added 11Mar20 for making m_finalSrcPuncts string for use in ParseInlineEndMarker()
+wxString CAdapt_ItApp::MakeSourceFinalPuncts(wxString srcPuncts) // does not include a space
+{
+	CAdapt_ItDoc* pDoc = GetDocument();
+	wxString srcFinalPuncts = wxEmptyString; // initialise
+	int length = (int)srcPuncts.Len();
+	// Set up the pointers we need for scanning srcPuncts's data buffer
+	const wxChar* pBuffStart = srcPuncts.GetData();
+	wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
+    //wxChar* pBeginBuff = ptr;
+	wxChar* pEnd = ptr + (size_t)length; // points to null
+	wxChar aChar = _T(' '); // initialize aChar safely
+	bool bIsOpenQuote = FALSE; // initialise
+	while (ptr < pEnd)
+	{
+		bIsOpenQuote = pDoc->IsOpeningQuote(ptr);
+		if (!bIsOpenQuote)
+		{
+			aChar = *ptr;
+			srcFinalPuncts += aChar;
+		}
+		ptr++; // iterate to next
+	}
+	// check straight quote and doublequote
+	if (m_bDoubleQuoteAsPunct)
+	{
+		srcFinalPuncts += _T('\"'); // append ordinary double quote
+	}
+	if (m_bSingleQuoteAsPunct)
+	{
+		srcFinalPuncts += _T('\''); // append ordinary single quote
+	}
+	return srcFinalPuncts;
+}
+
 
 wxString CAdapt_ItApp::MakeTargetFinalPuncts(wxString tgtPuncts)
 {
