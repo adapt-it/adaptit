@@ -5101,7 +5101,9 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
         // whm 13Mar2020 addition. Comparing this part of MoveToImmediateNextPile() - in Reviewing
         // mode with the corresponding part of the View's PlacePhraseBox() - where transitioning
         // from code dealing with the old location and the new clicked location, there is the
-        // addition of the following line, which probably needs to be included here also:
+        // addition of the following line, which probably needs to be included here also.
+        // YES, the following line is all that was needed to get the phrasebox width to adjust
+        // wider and smaller in Reviewing mode.
         GetLayout()->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
 
         // whm 13Mar2020 Note: The following comment from PlacePhraseBox() seems appropriate
@@ -5267,7 +5269,8 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 		pView->Invalidate(); // I think this call is needed
 		GetLayout()->PlaceBox();
 
-        /*
+        /* // whm 13Mar2020 the following added block's if test seems to never be entered and testing shows
+        // it is not needed.
         // whm 12Mar2020 added code below between !!! lines, taken from View's PlacePhraseBox() to adjust width of phrasebox.
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // BEW 27Jul18 If the gap width (m_nWidth) is less than the max of m_curBoxWidth 
