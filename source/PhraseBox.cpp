@@ -5013,6 +5013,13 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 	}
 
 b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
+    // whm 13Mar2020 Note: The above ResetPartnerPileWidth() calls pPile's SetMinWidth() 
+    // which sets the m_nMinWidth value - which is the maximum extent of the src, adapt or 
+    // gloss text - here for the pOldActiveSrcPhrase's pile. It also calls MarkStripInvalid(pPile)
+    // to mark the strip invalid and puts the parent strip's index into CLayout::m_invalidStripArray
+    // if it is not in the array already. There is also provision for a second (bool) 
+    // parameter in the ResetPartnerPileWidth(), but it is currently unused internally 
+    // within the function.
 
 	// move to next pile's cell
 	CPile* pNewPile = pView->GetNextPile(pCurPile); // does not update the view's
@@ -5090,6 +5097,25 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 #endif
 			}
 		}
+
+        // whm 13Mar2020 addition. Comparing this part of MoveToImmediateNextPile() - in Reviewing
+        // mode with the corresponding part of the View's PlacePhraseBox() - where transitioning
+        // from code dealing with the old location and the new clicked location, there is the
+        // addition of the following line, which probably needs to be included here also:
+        GetLayout()->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
+
+        // whm 13Mar2020 Note: The following comment from PlacePhraseBox() seems appropriate
+        // here just to help document what is happening next.
+        //
+        // setup the layout and phrase box at the new location; in the refactored design this
+        // boils down to working out what the new active location's sequence number is, and
+        // then setting the active pile to be the correct one, getting an appropriate gap
+        // calculated for the "hole" the box is to occupy, tweaking the layout to conform to
+        // these changes (either by a RecalcLayout() call, or AdjustForUserEdits() call -
+        // either of which will make a new pile pointer, appropriately sized, for that
+        // location), updating the m_pActivePile pointer on the app class, and then calling the
+        // view class's Invalidate() function to get the tweaked layout drawn and the box made
+        // visible, appropriately sized, at the new active location
 
 		// update the active sequence number, and pile pointer
 		pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
@@ -5202,7 +5228,14 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 		if (pNewPile != NULL)
 		{
 			pDoc->ResetPartnerPileWidth(pNewPile->GetSrcPhrase());
-		}
+            // whm 13Mar2020 Note: The above ResetPartnerPileWidth() calls pPile's SetMinWidth() 
+            // which sets the m_nMinWidth value - which is the maximum extent of the src, adapt or 
+            // gloss text - here for the pNewPile. It also calls MarkStripInvalid(pPile) to mark 
+            // the strip invalid and puts the parent strip's index into CLayout::m_invalidStripArray
+            // if it is not in the array already. There is also provision for a second (bool) 
+            // parameter in the ResetPartnerPileWidth(), but it is currently unused internally 
+            // within the function.
+        }
 
 		// if the user has turned on the sending of synchronized scrolling messages
 		// send the relevant message, a sync scroll is appropriate now, provided
@@ -5234,7 +5267,27 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 		pView->Invalidate(); // I think this call is needed
 		GetLayout()->PlaceBox();
 
-		if (bNeedModify)
+        /*
+        // whm 12Mar2020 added code below between !!! lines, taken from View's PlacePhraseBox() to adjust width of phrasebox.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // BEW 27Jul18 If the gap width (m_nWidth) is less than the max of m_curBoxWidth 
+        // and m_curListWidth, then reset the value to that maximum; similarly 
+        // if there is too much gap
+        int a = pApp->GetLayout()->m_curBoxWidth;
+        int b = pApp->GetLayout()->m_curListWidth;
+        int max = ::wxMax(a, b);
+        int pileGap = pApp->GetLayout()->GetGapWidth();
+        if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+        {
+            // the gap for the phrase box needs widening/shortening in order to avoid encroachment on next pile
+            pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+            pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+            pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+        }
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        */
+
+        if (bNeedModify)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
 		else
 			SetModify(FALSE); // our own SetModify(); calls DiscardEdits()
