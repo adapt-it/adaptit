@@ -16588,7 +16588,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 28)
+		if (pSrcPhrase->m_nSequNumber >= 6)
 		{
 			int halt_here = 1;
             halt_here = halt_here; // avoid gcc warning
@@ -16859,7 +16859,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 #endif
 #if defined (_AT_PTR)
-		wxLogDebug(_T("TokenizeText: line %d  ,    itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+		wxLogDebug(_T("TokenizeText: line %d  ,  itemLen = %d  %s : m_bWithinMkrAttributeSpan = %d"), 
+			__LINE__, itemLen, (wxString(ptr, 24)).c_str(), (int)m_bWithinMkrAttributeSpan);
 #endif
 			// *** This is where to put the function for metadata hiding in support of USFM3 ***
 #if defined (_DEBUG)
