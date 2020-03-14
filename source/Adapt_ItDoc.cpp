@@ -15596,9 +15596,55 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			// BEW 24Oct14, the caller knows about nested markers too, and \+wj etc are in the
 			// appropriate rapid access strings, so can be looked up directly
 			// we are pointing at one of these first four markers, handle this situation...
+
+			// BEW 13Mar20 refactoring needed below, for the \jmp ... \jmp* markers, and \+jmp ... \+jmp*
+			// markers. These pairs need to be stored alike (in m_markers and m_endMarkers), not in
+			// m_inlineNonbindingMarkers and m_inlineNonbindingEndMarkers storage, because those markers
+			// are (correctly) NOT in the fast-access strings for binding or non-binding markers or
+			// endmarkers, so they qualify for storage in the same places the \f ... \f*, and \x ... \x*
+			// get stored.
+			// Furthermore, when the embedded pair occur, \+jmp ... \+jmp*, the parser must not treat
+			// them like it does the non-embedded pair, \jmp ... \jmp*. Embedding is a problem for the
+			// parser, for the \+jmp ... \+jmp*, and AI_USFM only has an entry for \jmp and endmkr \jmp*.
+			// So, differentiating behaviours is up TokenizeText() and its called functions to do with
+			// some internal code hacks.
+			// The behaviour wanted  for the embedded pair is that the filtered status is not obtained
+			// by a lookup of AI_USFM, after removal of the +, because that only makes \+jmp behave
+			// the same as \jmp, where \jmp is default filtered, and inform and navigationText are
+			// empty strings. Instead, presence of + will be used to set an app boolean: m_bIsEmbeddedJmpMkr
+			// to TRUE - and with that we can do tests that allow code hacks at various places so as to
+			// get behaviours different from those for \jmp ... \jmp*. 
+			// So, for the embedded marker pair, we want \+jmp and \+jmp* to take on the behaviours of their
+			// parent spans - whether filtered or not, and whether a footnote, or a cross reference span.
+			//
+			// Also, we alter the looked up struct (have to use \jmp, \+jmp is not in AI_USFM.xml) to add
+			// inform="1", and navigationText="jmp-link" - so that if the parent span is NOT filtered, 
+			// the navigation text whiteboard will write memaningful content for the user's benefit.
+			//
+			// charAttributeMkrs and charAttributeEndMkrs fast access strings are not changed, and these
+			// have both \jmp and \+jmp in the one, and their matching endmarkers in the other. This is
+			// necessary because these two fast access strings govern the caching, or non-caching, or
+			// of any attributes metadata - done near the beginning of TokenizeText() so that when hiding
+			// of cached metadata is required, the metadata is available in members of the doc class.
+			// This caching and subsequent hiding of bar-initial metadata operates independently of
+			// decisions about marker storage and behaviour differences - for embedded versus non-embedded.
+			//
+			// When there is no embedding, that is, \jmp and \jmp* are used, the behaviours for these
+			// are taken from the struct returned by a lookup of AI_USFM.xml - which returns whether
+			// or not the marker content is to be filtered out, and inform and navigationText are empty.
+			// The app's Preferences.. Filtering & USFM page shows the setting for \jmp
+			gpApp->m_bIsEmbeddedJmpMkr = FALSE; // initialize
+
+
+
+// TODO  -- get the looked up struct, if bIsNestedMkr, set the above boolean, 
+//          do code hacks to differentiate behaviours for \+jmp & \jmp
+
+
 			pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
-											 // In the release version, force a document creation error, and hence a halt with a warning
+
+			// In the release version, force a document creation error, and hence a halt with a warning
 			if (pUsfmAnalysis == NULL)
 			{
 				return -1; // unexpected error, all inLine markers are known to Adapt It

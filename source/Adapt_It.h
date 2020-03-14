@@ -4100,6 +4100,8 @@ public:
 				// inline, but which do not bind more closely than punctuation
 				// (these are \wj \qt \sls \tl \fig; and their endmarkers are a separate
 				// wxString member -- see next line)
+	bool	 m_bIsEmbeddedJmpMkr; // BEW 13Mar20 added - to differentiate \+jmp from \jmp behaviours
+				// (see extended comment regarding need for this, lines 15,600-15,635 of ParsePreWord())
 	wxString m_FootnoteMarkers;
 	wxString m_CrossReferenceMarkers;
 	wxString m_inlineNonbindingEndMarkers;

@@ -20304,6 +20304,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
     m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
+	m_bIsEmbeddedJmpMkr = FALSE; // BEW 13Mar20 added - to differentiate \+jmp from \jmp behaviours; initialise
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
