@@ -44,6 +44,10 @@
 /setup Unicode - No Html Help/
 /setup Unicode Documentation Only/
 /setup Unicode Localizations Only/
+/source/adaptit.cbp
+/source/adaptit.depend
+/source/adaptit.layout
+/source/wxsmith/
 /AIWX Installers/
 /hlp/Adapt_It.htb
 
