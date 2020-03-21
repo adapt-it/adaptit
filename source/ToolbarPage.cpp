@@ -80,8 +80,9 @@
 #include "../res/vectorized/retranslation_new_16.cpp"
 #include "../res/vectorized/retranslation_edit_16.cpp"
 #include "../res/vectorized/retranslation_delete_16.cpp"
-#include "../res/vectorized/placeholder_new_16.cpp"
-#include "../res/vectorized/placeholder_delete_16.cpp"
+#include "../res/vectorized/insplaceholder_left_16.cpp" // whm 20Mar2020 changed placeholder_new_16.cpp to insplaceholder_left_16.cpp
+#include "../res/vectorized/insplaceholder_right_16.cpp" // whm 20Mar2020 added insplaceholder_right_16.cpp for better directional control
+#include "../res/vectorized/placeholder-delete_16.cpp"
 #include "../res/vectorized/dialog_choose_translation_16.cpp"
 #include "../res/vectorized/show_target_16.cpp"
 #include "../res/vectorized/show_source_target_16.cpp"
@@ -213,8 +214,9 @@ void CToolbarPagePrefs::PopulateList()
 		{ID_BUTTON_EDIT_RETRANSLATION, _("Edit Retranslation"), _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), wxNullBitmap, wxNullBitmap},
 		{ID_REMOVE_RETRANSLATION, _("Delete Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxNullBitmap},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_NULL_SRC, _("New Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxNullBitmap},
+        {ID_BUTTON_NULL_SRC_LEFT, _("New Placeholder Left"), _("Insert A Placeholder at Left"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location"), gpApp->wxGetBitmapFromMemory(insplaceholder_left_png_16), wxNullBitmap, wxNullBitmap },
+        {ID_BUTTON_NULL_SRC_RIGHT, _("New Placeholder Right"), _("Insert A Placeholder at Right"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location"), gpApp->wxGetBitmapFromMemory(insplaceholder_right_png_16), wxNullBitmap, wxNullBitmap },
+        {ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxNullBitmap},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_CHOOSE_TRANSLATION, _("Choose Translation"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxNullBitmap},
 		{ID_SHOWING_ALL, _("Target Only"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxNullBitmap},

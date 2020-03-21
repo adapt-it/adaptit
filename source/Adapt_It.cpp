@@ -163,8 +163,9 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/retranslation_new_16.cpp"
 #include "../res/vectorized/retranslation_edit_16.cpp"
 #include "../res/vectorized/retranslation_delete_16.cpp"
-#include "../res/vectorized/placeholder_new_16.cpp"
-#include "../res/vectorized/placeholder_delete_16.cpp"
+#include "../res/vectorized/insplaceholder_left_16.cpp" // whm 20Mar2020 changed placeholder_new_16.cpp to insplaceholder_left_16.cpp
+#include "../res/vectorized/insplaceholder_right_16.cpp" // whm 20Mar2020 added insplaceholder_right_16.cpp for better directional control
+#include "../res/vectorized/placeholder-delete_16.cpp"
 #include "../res/vectorized/dialog_choose_translation_16.cpp"
 #include "../res/vectorized/show_target_16.cpp"
 #include "../res/vectorized/show_source_target_16.cpp"
@@ -198,7 +199,8 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/retranslation-new_22.cpp"
 #include "../res/vectorized/retranslation-edit_22.cpp"
 #include "../res/vectorized/retranslation-delete_22.cpp"
-#include "../res/vectorized/placeholder-new_22.cpp"
+#include "../res/vectorized/insplaceholder_left_22.cpp" // whm 20Mar2020 changed placeholder_new_22.cpp to insplaceholder_left_22.cpp
+#include "../res/vectorized/insplaceholder_right_22.cpp" // whm 20Mar2020 added insplaceholder_right_22.cpp for better directional control
 #include "../res/vectorized/placeholder-delete_22.cpp"
 #include "../res/vectorized/dialog-choose-translation_22.cpp"
 #include "../res/vectorized/show-target_22.cpp"
@@ -233,7 +235,8 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/retranslation-new_32.cpp"
 #include "../res/vectorized/retranslation-edit_32.cpp"
 #include "../res/vectorized/retranslation-delete_32.cpp"
-#include "../res/vectorized/placeholder-new_32.cpp"
+#include "../res/vectorized/insplaceholder_left_32.cpp" // whm 20Mar2020 changed placeholder_new_32.cpp to insplaceholder_left_32.cpp
+#include "../res/vectorized/insplaceholder_right_32.cpp" // whm 20Mar2020 added insplaceholder_right_32.cpp for better directional control
 #include "../res/vectorized/placeholder-delete_32.cpp"
 #include "../res/vectorized/dialog-choose-translation_32.cpp"
 #include "../res/vectorized/show-target_32.cpp"
@@ -10913,7 +10916,8 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
         { ID_BUTTON_EDIT_RETRANSLATION, _("Edit Retranslation"), _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_22), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_32) },
         { ID_REMOVE_RETRANSLATION, _("Delete Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_22), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_32) },
         { 0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap },
-        { ID_BUTTON_NULL_SRC, _("New Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), gpApp->wxGetBitmapFromMemory(placeholder_new_png_22), gpApp->wxGetBitmapFromMemory(placeholder_new_png_32) },
+        { ID_BUTTON_NULL_SRC_LEFT, _("New Placeholder Left"), _("Insert A Placeholder at Left"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location"), gpApp->wxGetBitmapFromMemory(insplaceholder_left_png_16), gpApp->wxGetBitmapFromMemory(insplaceholder_left_png_22), gpApp->wxGetBitmapFromMemory(insplaceholder_left_png_32) },
+        { ID_BUTTON_NULL_SRC_RIGHT, _("New Placeholder Right"), _("Insert A Placeholder at Right"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location"), gpApp->wxGetBitmapFromMemory(insplaceholder_right_png_16), gpApp->wxGetBitmapFromMemory(insplaceholder_right_png_22), gpApp->wxGetBitmapFromMemory(insplaceholder_right_png_32) },
         { ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove a Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32) },
         { 0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap },
         { ID_BUTTON_CHOOSE_TRANSLATION, _("Choose Translation"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32) },
@@ -20032,6 +20036,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // BEW added 17Jul14 in support of languages like Lao, Kmer, etc
     m_bUseSrcWordBreak = true; // default until the project config file is read
+
+    // whm 13Mar2020 added the following bool, used to suppress any spurios Enter
+    // key event from propagating to the CPhraseBox::OnKeyUp() from the CPlaceholder::
+    // InsertNullSourcePhrase()'s wxMessageBox/wxMessageDialog.
+    // whm 20Mar2020 implemented directional insertion of placeholders, so removed the following
+    // global from the App.
+    //b_Spurious_Enter_Tab_Propagated = FALSE;
 
     // Support ZWSP insertion if user turns it on, see View page in Preferences
     m_bEnableZWSPInsertion = FALSE; // initialize to FALSE

@@ -21,6 +21,37 @@
 #pragma interface "Placeholder.h"
 #endif
 
+/*
+// The following CPlaceholderInsertDlg class was not needed after making the
+// insertion of placeholders directional to left/right of selection/phrasebox
+// a helper class for CPlaceholder
+//////////////////////////////////////////////////////////////////////////////////
+/// The CPlaceholderInsertDlg class is a helper class for CPlaceholder. It defines
+/// a small dialog that may interact with the user to determine whether a placeholder
+/// should be inserted BEFORE text that follows, or AFTER text that precedes.
+/// \derivation		The CPlaceholderInsertDlg class is derived from AIModalDialog.
+/////////////////////////////////////////////////////////////////////////////
+class CPlaceholderInsertDlg : public AIModalDialog
+{
+public:
+    CPlaceholderInsertDlg(wxWindow* parent); // constructor
+    virtual ~CPlaceholderInsertDlg(void); // destructor
+
+    void OnButtonYes(wxCommandEvent& event);
+    void OnButtonNo(wxCommandEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+    wxButton* pYesBtn;
+    wxButton* pNoBtn;
+    CAdapt_ItApp* pApp;
+protected:
+    void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+    void OnOK(wxCommandEvent& event);
+
+private:
+    DECLARE_EVENT_TABLE()
+};
+*/
+
 //////////////////////////////////////////////////////////////////////////////////
 /// The CPlaceholder class contains methods for working with placeholder 
 /// elements within the translated text.
@@ -72,7 +103,7 @@ class CPlaceholder : public wxEvtHandler
 		void		UntransferTransferredMarkersAndPuncts(
 							SPList*				pSrcPhraseList,
 							CSourcePhrase*		pSrcPhrase);
-		void OnButtonNullSrc(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public
+		void OnButtonNullSrc(wxCommandEvent& event); // whm 1Jul2018 moved to public whm 20Mar2020 removed WXUNUSED
 		void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public
 	private:
 

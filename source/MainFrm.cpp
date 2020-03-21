@@ -149,8 +149,9 @@
 #include "../res/vectorized/retranslation_new_16.cpp"
 #include "../res/vectorized/retranslation_edit_16.cpp"
 #include "../res/vectorized/retranslation_delete_16.cpp"
-#include "../res/vectorized/placeholder_new_16.cpp"
-#include "../res/vectorized/placeholder_delete_16.cpp"
+#include "../res/vectorized/insplaceholder_left_16.cpp" // whm 20Mar2020 changed placeholder_new_16.cpp to insplaceholder_left_16.cpp
+#include "../res/vectorized/insplaceholder_right_16.cpp" // whm 20Mar2020 added insplaceholder_right_16.cpp for better directional control
+#include "../res/vectorized/placeholder-delete_16.cpp"
 #include "../res/vectorized/dialog_choose_translation_16.cpp"
 #include "../res/vectorized/show_target_16.cpp"
 #include "../res/vectorized/show_source_target_16.cpp"
@@ -184,7 +185,8 @@
 #include "../res/vectorized/retranslation-new_22.cpp"
 #include "../res/vectorized/retranslation-edit_22.cpp"
 #include "../res/vectorized/retranslation-delete_22.cpp"
-#include "../res/vectorized/placeholder-new_22.cpp"
+#include "../res/vectorized/insplaceholder_left_22.cpp" // whm 20Mar2020 changed placeholder_new_22.cpp to insplaceholder_left_22.cpp
+#include "../res/vectorized/insplaceholder_right_22.cpp" // whm 20Mar2020 added insplaceholder_right_22.cpp for better directional control
 #include "../res/vectorized/placeholder-delete_22.cpp"
 #include "../res/vectorized/dialog-choose-translation_22.cpp"
 #include "../res/vectorized/show-target_22.cpp"
@@ -219,7 +221,8 @@
 #include "../res/vectorized/retranslation-new_32.cpp"
 #include "../res/vectorized/retranslation-edit_32.cpp"
 #include "../res/vectorized/retranslation-delete_32.cpp"
-#include "../res/vectorized/placeholder-new_32.cpp"
+#include "../res/vectorized/insplaceholder_left_32.cpp" // whm 20Mar2020 changed placeholder_new_32.cpp to insplaceholder_left_32.cpp
+#include "../res/vectorized/insplaceholder_right_32.cpp" // whm 20Mar2020 added insplaceholder_right_32.cpp for better directional control
 #include "../res/vectorized/placeholder-delete_32.cpp"
 #include "../res/vectorized/dialog-choose-translation_32.cpp"
 #include "../res/vectorized/show-target_32.cpp"
@@ -1449,11 +1452,13 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[2].Set(wxACCEL_CTRL, (int) 'L', ID_BUTTON_CHOOSE_TRANSLATION); // whm checked OK
     entries[3].Set(wxACCEL_CTRL, (int) 'E', ID_BUTTON_EDIT_RETRANSLATION); // whm checked OK
     entries[4].Set(wxACCEL_CTRL, (int) 'M', ID_BUTTON_MERGE); // whm checked OK - OnButtonMerge() needed trap door added to avoid crash
-    // whm 9Mar2020 removed the CTRL+I accelerator key below from CMainFrame. We have code within
-    // the CPhraseBox:: OnSysKeyUp() handler that handles the insertion of a placeholder. Since the
-    // phrasebox is always in focus while normal work is in progress (even after selecting a source word
-    // or phrase) the code block to handle CTRL+I in OnSysKeyUp() handles the situation well.
-    entries[5].Set(wxACCEL_CTRL, (int) 'I', ID_BUTTON_NULL_SRC); // whm checked OK
+    // whm 20Mar2020 modification Note: The CTRL+I accelerator key below only inserts a placeholder
+    // to the LEFT of the selection/phrasebox location. This is equivalent to SHIFT+ALT_LeftArrow or clicking
+    // on the Insert A Placeholder at Left tool bar button.
+    // There is no CTRL accelerator key defined here for insert to RIGHT - but user has the
+    // SHIFT+ALT_RightArrow key combination available, or can click on the Insert A Placeholder at Right
+    // tool bar button.
+    entries[5].Set(wxACCEL_CTRL, (int) 'I', ID_BUTTON_NULL_SRC_LEFT); // whm 20Mar2020 changed to ID_BUTTON_NULL_SRC_LEFT 
     entries[6].Set(wxACCEL_CTRL, (int) 'D', ID_BUTTON_REMOVE_NULL_SRCPHRASE); // whm checked OK
     entries[7].Set(wxACCEL_CTRL, (int) 'U', ID_BUTTON_RESTORE); // whm checked OK
     entries[8].Set(wxACCEL_CTRL, (int) 'R', ID_BUTTON_RETRANSLATION); // whm checked OK
@@ -1660,8 +1665,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(ID_BUTTON_EDIT_RETRANSLATION, _("Edit A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), wxNullBitmap, wxITEM_NORMAL, _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), NULL);
 	m_auiToolbar->AddTool(ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation"), NULL);
 	m_auiToolbar->AddSeparator();
-	m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), NULL);
-	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
+    m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC_LEFT, _("Insert A Placeholder to Left"), gpApp->wxGetBitmapFromMemory(insplaceholder_left_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Left"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location"), NULL);
+    m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC_RIGHT, _("Insert A Placeholder to Right"), gpApp->wxGetBitmapFromMemory(insplaceholder_right_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Right"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location"), NULL);
+    m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), NULL);
 	m_auiToolbar->AddTool(ID_SHOWING_ALL, _("Show Target Text Only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show target text only"), _("Show target text only"), NULL);
@@ -1683,8 +1689,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->EnableTool(ID_BUTTON_RETRANSLATION, false);
 	m_auiToolbar->EnableTool(ID_BUTTON_EDIT_RETRANSLATION, false);
 	m_auiToolbar->EnableTool(ID_REMOVE_RETRANSLATION, false);
-	m_auiToolbar->EnableTool(ID_BUTTON_NULL_SRC, false);
-	m_auiToolbar->EnableTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, false);
+    m_auiToolbar->EnableTool(ID_BUTTON_NULL_SRC_LEFT, false); // whm modified 20Mar2020
+    m_auiToolbar->EnableTool(ID_BUTTON_NULL_SRC_RIGHT, false); // whm added 20Mar2020
+    m_auiToolbar->EnableTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, false);
 	// save the toolbar's height for UI redraws
 	wxSize auitbSize;
 	auitbSize = m_auiToolbar->GetSize();

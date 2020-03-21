@@ -2108,6 +2108,12 @@ class CAdapt_ItApp : public wxApp
 
     // whm 15Apr2019 enabled FilterEvent()
     virtual int FilterEvent(wxEvent& event);
+    
+    // whm 13Mar2020 added the following bool to prevent CPlaceholder::InsertNullSourcePhrase()
+    // from sending a spurious Enter key event to the CPhraseBox::OnKeyUp()
+    // whm 20Mar2020 implemented directional insertion of placeholders, so removed the following
+    // global from the App.
+    //bool b_Spurious_Enter_Tab_Propagated;
 
     // whm 15Apr2019 added the following m_nDropDownClickedItemIndex member in order to
     // correct index of a clicked on item if a sudden scroll at left-click would cause

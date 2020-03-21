@@ -1093,7 +1093,7 @@ m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->
 // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
 // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
 // is FALSE at each location of the phrasebox.
-m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
+m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE;
 
 }
 
