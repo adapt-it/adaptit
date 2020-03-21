@@ -556,6 +556,16 @@ void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
         if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
         {
             pApp->m_pTargetBox->GetDropDownList()->Show();
+            // whm 21Mar2020 added lines below to set the size of the dropdown list
+            // especially the height, when in Reivewing mode would not get properly
+            // set - often it would be way to long in height leaving a lot of empty
+            // white space below the last list entry.
+            int rectWidth = pApp->m_pTargetBox->GetTextCtrl()->GetRect().GetWidth();
+            // whm 24Jul2018 added. Extend the list horizontally so it spans the whole
+            // area under the edit box and the dropdown button.
+            int buttonWidth = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect().GetWidth();
+            rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
+            pApp->m_pTargetBox->SetSizeAndHeightOfDropDownList(rectWidth);
         }
         else
         {
