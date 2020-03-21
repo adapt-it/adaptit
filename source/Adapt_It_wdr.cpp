@@ -9983,9 +9983,9 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->AddTool( ID_REMOVE_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 20 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation") );
     parent->EnableTool( ID_REMOVE_RETRANSLATION, false );
     parent->AddSeparator();
-    parent->AddTool( ID_BUTTON_NULL_SRC_LEFT, wxT(""), AIToolBarBitmapsUnToggledFunc( 33 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Left"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location") );
+    parent->AddTool( ID_BUTTON_NULL_SRC_LEFT, wxT(""), AIToolBarBitmapsUnToggledFunc( 33 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder to Left of Selection/PhraseBox"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location") );
     parent->EnableTool( ID_BUTTON_NULL_SRC_LEFT, false );
-    parent->AddTool( ID_BUTTON_NULL_SRC_RIGHT, wxT(""), AIToolBarBitmapsUnToggledFunc( 34 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Right"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location") );
+    parent->AddTool( ID_BUTTON_NULL_SRC_RIGHT, wxT(""), AIToolBarBitmapsUnToggledFunc( 34 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder to Right of Selection/PhraseBox"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location") );
     parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
@@ -10039,9 +10039,9 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddTool( ID_REMOVE_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 20 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation") );
     parent->EnableTool( ID_REMOVE_RETRANSLATION, false );
     parent->AddSeparator();
-    parent->AddTool( ID_BUTTON_NULL_SRC_LEFT, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 33 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Left"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location") );
+    parent->AddTool( ID_BUTTON_NULL_SRC_LEFT, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 33 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder to Left of Selection/PhraseBox"), _("Insert a placeholder into the source language text to the left of any selection or the phrasebox location") );
     parent->EnableTool( ID_BUTTON_NULL_SRC_LEFT, false );
-    parent->AddTool( ID_BUTTON_NULL_SRC_RIGHT, wxT(""), AIToolBarBitmapsUnToggledFunc( 34 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder at Right"), _("Insert a placeholder into the source language text to the rightof any selection or the phrasebox location") );
+    parent->AddTool( ID_BUTTON_NULL_SRC_RIGHT, wxT(""), AIToolBarBitmapsUnToggledFunc( 34 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder to Right of Selection/PhraseBox"), _("Insert a placeholder into the source language text to the right of any selection or the phrasebox location") );
     parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
