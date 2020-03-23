@@ -241,7 +241,7 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 6
+#define VERSION_DATE_DAY 21
 #define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2020
 const wxString appVerStr(_T("6.9.5"));
@@ -2108,6 +2108,12 @@ class CAdapt_ItApp : public wxApp
 
     // whm 15Apr2019 enabled FilterEvent()
     virtual int FilterEvent(wxEvent& event);
+    
+    // whm 13Mar2020 added the following bool to prevent CPlaceholder::InsertNullSourcePhrase()
+    // from sending a spurious Enter key event to the CPhraseBox::OnKeyUp()
+    // whm 20Mar2020 implemented directional insertion of placeholders, so removed the following
+    // global from the App.
+    //bool b_Spurious_Enter_Tab_Propagated;
 
     // whm 15Apr2019 added the following m_nDropDownClickedItemIndex member in order to
     // correct index of a clicked on item if a sudden scroll at left-click would cause

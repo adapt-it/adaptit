@@ -68,6 +68,72 @@ extern bool gbShowTargetOnly;
 extern EditRecord gEditRecord;
 extern wxChar gSFescapechar;
 
+/*
+// The following CPlaceholderInsertDlg class was not needed after making the
+// insertion of placeholders directional to left/right of selection/phrasebox
+BEGIN_EVENT_TABLE(CPlaceholderInsertDlg, AIModalDialog)
+    EVT_INIT_DIALOG(CPlaceholderInsertDlg::InitDialog)
+    EVT_BUTTON(wxID_YES, CPlaceholderInsertDlg::OnButtonYes)
+    EVT_BUTTON(wxID_NO, CPlaceholderInsertDlg::OnButtonNo)
+    EVT_KEY_DOWN(CPlaceholderInsertDlg::OnKeyDown)
+END_EVENT_TABLE()
+
+
+// a helper class for CPlaceholder
+CPlaceholderInsertDlg::CPlaceholderInsertDlg(wxWindow* parent)
+    : AIModalDialog(parent, -1, _("Placeholder Question"),
+        wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    PlaceholderInsertDlgFunc(this, TRUE, TRUE); // wxDesigner dialog function
+
+    // whm 14Mar2020 Note: The PlaceholderInsertDlgFunc() dialog only has a "YES" (wxID_OK) button
+    // and a "NO" button . The "YES" button is the default button.
+    // aligned right at the bottom of the dialog. We need not use wxStdDialogButtonSizer, nor
+    // the ReverseOkCancelButtonsForMac() function in this case.
+
+    pYesBtn = (wxButton*)FindWindowById(wxID_YES);
+    wxASSERT(pYesBtn != NULL);
+    pNoBtn = (wxButton*)FindWindowById(wxID_NO);
+    wxASSERT(pNoBtn != NULL);
+    pApp = &wxGetApp();
+}
+
+CPlaceholderInsertDlg::~CPlaceholderInsertDlg() // destructor
+{
+}
+
+void CPlaceholderInsertDlg::InitDialog(wxInitDialogEvent & WXUNUSED(event))
+{
+    pYesBtn->SetFocus();
+}
+
+void CPlaceholderInsertDlg::OnButtonYes(wxCommandEvent& event)
+{
+    pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+    event.StopPropagation();
+    EndModal(wxID_YES); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+
+void CPlaceholderInsertDlg::OnButtonNo(wxCommandEvent& event)
+{
+
+    pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+    event.StopPropagation();
+    EndModal(wxID_NO); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+
+void CPlaceholderInsertDlg::OnKeyDown(wxKeyEvent & event)
+{
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_RETURN
+        || keycode == WXK_NUMPAD_ENTER)
+    {
+        event.StopPropagation();
+    }
+    event.Skip();
+}
+*/
+
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,8 +141,10 @@ extern wxChar gSFescapechar;
 BEGIN_EVENT_TABLE(CPlaceholder, wxEvtHandler)
 EVT_TOOL(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnButtonRemoveNullSrcPhrase)
 EVT_UPDATE_UI(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase)
-EVT_TOOL(ID_BUTTON_NULL_SRC, CPlaceholder::OnButtonNullSrc)
-EVT_UPDATE_UI(ID_BUTTON_NULL_SRC, CPlaceholder::OnUpdateButtonNullSrc)
+EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrc)
+EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnUpdateButtonNullSrc)
+EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrc) // call the same OnButtonNullSrc function used for ID_...LEFT above
+EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnUpdateButtonNullSrc) // update handler should work same as for ID_...LEFT above
 END_EVENT_TABLE()
 
 
@@ -118,7 +186,10 @@ CPlaceholder::~CPlaceholder()
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
 // BEW 21Jul14, no change needed for support of ZWSP etc (internally it calls
 // InsertNullSourcePhrase() which has the refactored code for support of ZWSP)
-void CPlaceholder::InsertNullSrcPhraseBefore() 
+// The InsertNullSrcPhraseBefore() function is only called from CPhraseBox::OnSysKeyUp()
+// to handle the SHIFT+ALT+LeftArrow combination key command to insert a placeholder
+// BEFORE a selection/phrasebox location.
+void CPlaceholder::InsertNullSrcPhraseBefore()
 {
 	// first save old sequ num for active location
     m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
@@ -212,6 +283,9 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
 // BEW 21Jul14, no change needed for support of ZWSP etc (internally it calls
 // InsertNullSourcePhrase() which has the refactored code for support of ZWSP)
+// The InsertNullSrcPhraseAfter() function is only called from CPhraseBox::OnSysKeyUp()
+// to handle the SHIFT+ALTRightArrow combination key command to insert a placeholder
+// AFTER a selection/phrasebox location.
 void CPlaceholder::InsertNullSrcPhraseAfter() 
 {
 	// this function is public (called in PhraseBox.cpp)
@@ -420,6 +494,11 @@ CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
 // associated to has a USFM fixed space marker ~ conjoining two words (our doc model does
 // not support moving markers or puncts to/from such an instance)
 // BEW 21Jul14, refactored for support of ZWSP etc
+// This InsertNullSourcePhrase() function is called from:
+//   CPlaceholder::OnButtonNullSrc() handler - two places
+//   CPlaceholder::InsertNullSrcPhraseBefore()
+//   CPlaceholder::InsertNullSourcePhraseAFter()
+//   CRetranslation::PadWithNullSourcePhrasesAtEnd() - two places
 void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 										   CPile* pInsertLocPile,const int nCount,
 										   bool bRestoreTargetBox,bool bForRetranslation,
@@ -830,15 +909,48 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			{
 				bAssociatingRightwards = FALSE;
 			}
-			else
-			{
-				// any other situation, we need to let the user make the choice
-				if (wxMessageBox(_(
-"Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
-				_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
-				{
-					bAssociatingRightwards = TRUE;
-				}
+            else
+            {
+                // whm 13Mar2020 PROBLEM identified: If the user clicks the default YES button with the
+                // mouse to associate rightwards, the phrasebox ends up being successfully placed
+                // at the location of the placeholder. However, if the user presses Enter/Tab to
+                // accept the default value of YES, the Enter/Tab key event gets propagated to the
+                // OnKeyUp() handler in CPhraseBox, causing the phrasebox to move forward to the 
+                // next location (in Review mode, or some further hole location in Drafting mode.
+                // Simply using wxMessageDialog() instead of wxMessageBox() doesn't always stop
+                // the spurious Enter/Tab key event from propagating to OnKeyUp().
+                // So, I'm using a bool value on the App that we can use to detect when a spurios
+                // Enter/Tab key might get propagated that, when TRUE can be immediately detected
+                // in OnKeyUp().
+                //
+                // any other situation, we need to let the user make the choice
+                // whm 20Mar2020 modified. Due to above mentioned problems the team decided to provide
+                // two tool bar buttons (along with the two hot key short-cuts) to allow the user to
+                // specify the left/right location of insertions in relation to the selection/phrasebox location.
+                // For now, since the query of user below seemed to always appear when the user wants the
+                // inserted placeholder to go to the left of the selection/phraseboxx - i.e., "rightwareds association",
+                // I will remove the query below and for this block just set the bAssociatingRightwards = TRUE.
+                // Note also that the use of the App's b_Spurious_Enter_Tab_Propagated global flag is no longer
+                // present.
+                // TODO: BEW should examine the blocks below that test for bAssociatingRightwards == TRUE and
+                // bAssociatingRightwards == FALSE, so make any mods necessary now that the placeholder insertion
+                // depends on user calling for insertion either left or right without the necessity for a query
+                // for the direction of association.
+                //CPlaceholderInsertDlg dlg(m_pApp->GetMainFrame());
+                //wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
+                //    _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                //if (dlg.ShowModal() == wxID_YES)
+                //{
+                bAssociatingRightwards = TRUE;
+                    //m_pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+                //}
+
+//				if (wxMessageBox(_(
+//"Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
+//				_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
+//				{
+//					bAssociatingRightwards = TRUE;
+//				}
 			}
 			if (bAssociatingRightwards)
 			{
@@ -2445,7 +2557,12 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 }
 
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
-void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
+// whm 20Mar2020 Note: This OnButtonNullSrc() handler is called by EVT_TOOL handler for 
+// the Insert A Placeholder LEFT, and the EVT_TOOL handler for the Insert A Placeholder RIGHT. 
+// It is also called by the CPhraseBox::OnSysKeyUp() handler for the CTRL+I hot key (on Linux and Mac).
+// OnButtonNullSrc() internally calls the InsertNullSourcePhrase() function which in turn calls
+// either InsertNullSrcPhraseBefore() or InsertNullSrcPhraseAfter().
+void CPlaceholder::OnButtonNullSrc(wxCommandEvent& event)
 {
     // Since the Add placeholder toolbar button has an accelerator table hot key (CTRL-I
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
@@ -2454,19 +2571,39 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
 
+    bool bInsertAfter = FALSE;
+    if (event.GetId() == ID_BUTTON_NULL_SRC_RIGHT)
+    {
+        bInsertAfter = TRUE;
+    }
+    else
+    {
+        // This else case covers when the event ID is either ID_BUTTON_NULL_SRC_LEFT
+        // or the event ID is something else - as when CTRL+I within the Phrasebox
+        // calls this OnButtonNullSrc() handler directly 
+        bInsertAfter = FALSE;
+    }
+
 	wxAuiToolBarItem *tbi;
-	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NULL_SRC);
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NULL_SRC_LEFT); // CTRL-I is only associated with ID_...LEFT
 	// Return if the toolbar item is hidden or disabled
 	if (tbi == NULL)
 	{
 		return;
 	}
-	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC))
-	{
-		::wxBell();
-		return;
-	}
-	
+    // whm 20Mar2020 modified test below to detect whether the insertt placeholder to left button is disabled, if so abort insertion
+    if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_LEFT))
+    {
+        ::wxBell();
+        return;
+    }
+    // whm 20Mar2020 modified test below to detect whether the insertt placeholder to right button is disabled, if so abort insertion
+    if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_RIGHT))
+    {
+        ::wxBell();
+        return;
+    }
+
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
@@ -2496,9 +2633,9 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-	if (wxGetKeyState(WXK_CONTROL))
+	if (bInsertAfter) //(wxGetKeyState(WXK_CONTROL))
 	{
-		// CTRL key is down, so an "insert after" is wanted
+		// An "insert after" is wanted
 		// first save old sequ num for active location
         m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 		

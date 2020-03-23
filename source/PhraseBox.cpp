@@ -6670,6 +6670,28 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     || keycode == WXK_NUMPAD_ENTER
     || keycode == WXK_NUMPAD_TAB) // whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
+        // whm 13Mar2020 PROBLEM identified: Within CSourcePhrase::InsertNullSourcePhrase()
+        // a YES/NO wxMessageBox/wxMessageDialog can present itself to ask the user where the 
+        // placeholder should be placed, asking if the placeholder should be placed BEFORE
+        // what follows. If the user clicks the default YES button with the
+        // mouse to associate rightwards, the phrasebox ends up being successfully placed
+        // at the location of the placeholder. However, if the user presses Enter/Tab to
+        // accept the default value of YES, the Enter/Tab key event gets propagated here to 
+        // this OnKeyUp() handler in CPhraseBox, causing the phrasebox to move forward to the 
+        // next location (in Review mode, or some further hole location in Drafting mode.
+
+        // The following b_Spurious_Enter_Tab_Propagated bool value (on the App), when TRUE
+        // signals when such a spurios Enter/Tab key might be getting propagated here to this 
+        // handler here in OnKeyUp().
+        // whm 20Mar2020 implemented directional insertion of placeholders, so removed the 
+        // test for the following global from the App (it wasn't preventing the propagation
+        // of the ENTER key stroke anyway in all cases).
+        //if (pApp->b_Spurious_Enter_Tab_Propagated)
+        //{
+        //    pApp->b_Spurious_Enter_Tab_Propagated = FALSE; // set immediatly back to FALSE
+        //    return; // don't process a spurios Enter/Tab event from InsertNullSourcePhrase()
+        //}
+        
         // whm 15Jul2018 added code here in the Enter/Return/Tab key handling to determine if
         // the Enter/Return/Tab key press was done AFTER the user highlighted a different
         // item in the dropdown list, i.e., different from the text that was originally in 

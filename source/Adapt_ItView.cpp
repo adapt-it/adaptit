@@ -11858,6 +11858,12 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// check all is well (Debug version only)
 	wxASSERT(pApp->m_nActiveSequNum == pFirstSrcPhrase->m_nSequNumber);
 
+    // whm 13Mar2020 added the following line to reset the Layout's m_curBoxWidth
+    // to see if this would help solve Roland's observation that pile widths were
+    // not keeping good separation and allowing piles to encroach on others after
+    // a merger.
+    //pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
+
 	// next line added for refactored layout support 25Mar09...
 	// puts the affected strip's index in CLayout::m_invalidStripArray and sets the
 	// strip's m_bValid boolean to FALSE
