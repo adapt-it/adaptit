@@ -15554,18 +15554,19 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		return len;
 	}
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 1)
+	if (pSrcPhrase->m_nSequNumber >= 6)
 	{
 		int halt_here = 1;
         halt_here = halt_here; // avoid gcc warning
 	}
 #endif
 
+	wxString aMkr = wxEmptyString;
+	bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
+
 	if (bIsInlineNonbindingMkr)
 	{
 		// BEW 30Sep19 bleed out the \fig special case
-		wxString aMkr = wxEmptyString;
-		bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
 		bool bIsFigure = (aMkr == _T("\\fig"));
 		if (bIsInlineBeginMkr && bIsFigure)
 		{
@@ -15635,15 +15636,8 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			// The app's Preferences.. Filtering & USFM page shows the setting for \jmp
 			gpApp->m_bIsEmbeddedJmpMkr = FALSE; // initialize
 
-
-
-// TODO  -- get the looked up struct, if bIsNestedMkr, set the above boolean, 
-//          do code hacks to differentiate behaviours for \+jmp & \jmp
-
-
 			pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
-
 			// In the release version, force a document creation error, and hence a halt with a warning
 			if (pUsfmAnalysis == NULL)
 			{
@@ -15656,7 +15650,6 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
                 halt_here = halt_here; // avoid gcc warning
             }
 #endif
-			bareMkr = emptyStr;
 			// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
 			// is to be stored
 			if (baseOfEndMkr.IsEmpty())
@@ -15671,30 +15664,71 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			wholeMkr = gSFescapechar + bareMkr;
 			wholeMkrPlusSpace = wholeMkr + aSpace; // begin markers are handled by ParsePreWord()
 
-			// BEW 30Sep19, we need to take USFM3 character attribute markers into
-			// consideration, such as \jmp or \+jmp ; because when storing these we
-			// treat them as belonging to the inline non-binding markers set
+			// BEW 14Mar20 add a hack here to deal with differentiating \+jmp from \jmp
+			// according to the protocols in the extended comment 30 lines above
+			if (!aMkr.IsEmpty() && bIsInlineBeginMkr && (pUsfmAnalysis->marker == _T("jmp")))
+			{
+				// If control enters here, the code just above will have produced either \jmp
+				// or the nested variant, \+jmp  Which is the case?  We will store \jmp
+				// in the CSourcePhrase member provided for "inline non-binding markers";
+				// but \+jmp in m_markers because it is almost certainly in a footnote span
+				// (or endnote span) or a cross-reference span - and these and their internal
+				// markers are stored in m_markers. Similarly, endmarkers will be stored
+				// differently, \jmp* in "inline non-binding end markers" member, but \+jmp
+				// in m_endMarkers
+				// We must bleed the \jmp & \+jmp cases here, because they belong in the
+				// charAttributeMkrs fast access string used below
+				if (bIsNestedMkr)
+				{
+					wxASSERT(aMkr == wxString(_T("\\+jmp")));
+					gpApp->m_bIsEmbeddedJmpMkr = TRUE;
 
+				}
+				else
+				{
+
+					wxASSERT(aMkr == wxString(_T("\\jmp")));
+					gpApp->m_bIsEmbeddedJmpMkr = FALSE;
+				}
+				// okay, use the gpApp->m_bIsEmbeddedJmpMkr value in the block below
+			}
+			bareMkr = emptyStr;
+
+
+			// BEW 30Sep19, we need to take USFM3 character attribute markers into
+			// consideration, such as \ef and \ef* and others, but handle\jmp or \+jmp 
+			// differently; because when storing these we treat them as belonging to the
+			// inline non-binding markers set - except for the \+jmp ... \+jmp pair,
+			// which take their cue from where their parent spans are stored
 			wxASSERT((inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
 				|| (charAttributeMkrs.Find(wholeMkrPlusSpace) != wxNOT_FOUND));
+
 			// In the release version, force a document creation error, and hence a halt with a warning
-			if ((inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
-				&& (charAttributeMkrs.Find(wholeMkrPlusSpace) == wxNOT_FOUND))
+			if ( !gpApp->m_bIsEmbeddedJmpMkr &&
+				((inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
+				&& (charAttributeMkrs.Find(wholeMkrPlusSpace) == wxNOT_FOUND)))
 			{
 				return -1; // unexpected error, the beginMkr is not in either fast access string
 			}
+			
 			itemLen = wholeMkr.Len();
 
 			// store the whole marker, and a following space
-			wxString currContents = pSrcPhrase->GetInlineNonbindingMarkers();
-			currContents += wholeMkrPlusSpace;
-			pSrcPhrase->SetInlineNonbindingMarkers(currContents);
-			
+			if (gpApp->m_bIsEmbeddedJmpMkr)
+			{
+				pSrcPhrase->m_markers += wholeMkrPlusSpace;;
+			}
+			else
+			{
+				wxString currContents = pSrcPhrase->GetInlineNonbindingMarkers();
+				currContents += wholeMkrPlusSpace;
+				pSrcPhrase->SetInlineNonbindingMarkers(currContents);
+			}
 			wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
 
 
-			// point past the inline non-binding marker, and then parse
-			// over the white space following it, and point past that too
+			// point past the inline non-binding marker, or \+jmp marker, and then
+			// parse over the white space following it, and point past that too
 			ptr += itemLen;
 			len += itemLen;
 			itemLen = ParseWhiteSpace(ptr);
@@ -15708,6 +15742,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			}
 
 		} // end of else block for test: if (bIsInlineBeginMkr && bIsFigure)
+
 	} // end of TRUE block for test: if (bIsInlineNonbindingMkr)
 	else
 	{
@@ -17322,6 +17357,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						charAttrOffset = charAttributeMkrs.Find(augmentedWholeMkr);
 						if ((anOffset != wxNOT_FOUND) || (charAttrOffset != wxNOT_FOUND))
 						{
+							// To TokenizeText() the embedded marker \+jmp will be lumped with
+							// other inline non-binding ones, so here we set bInInlineNonbindingMkr
+							// TRUE - (its in charAttributeMkrs fast access string), but when
+							// ParsePreWord() is called, there \+jmp will be handled differently
+							// in regards to where it is stored - it will go into m_markers, and
+							// its endmarker (as handled by ParseWord()) into m_endMarkers on the
+							// relevant CSourcePhrase instance for each
 							bIsInlineNonbindingMkr = TRUE;
 							bIsInlineBindingMkr = FALSE;
 						}
