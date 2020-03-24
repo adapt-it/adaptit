@@ -1458,7 +1458,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     // There is no CTRL accelerator key defined here for insert to RIGHT - but user has the
     // SHIFT+ALT_RightArrow key combination available, or can click on the Insert A Placeholder at Right
     // tool bar button.
-    entries[5].Set(wxACCEL_CTRL, (int) 'I', ID_BUTTON_NULL_SRC_LEFT); // whm 20Mar2020 changed to ID_BUTTON_NULL_SRC_LEFT 
+    entries[5].Set(wxACCEL_CTRL, (int) 'I', ID_BUTTON_NULL_SRC_RIGHT); // whm 24Mar2020 changed to ID_BUTTON_NULL_SRC_RIGHT to conform to legacy CTRL+I behavior
     entries[6].Set(wxACCEL_CTRL, (int) 'D', ID_BUTTON_REMOVE_NULL_SRCPHRASE); // whm checked OK
     entries[7].Set(wxACCEL_CTRL, (int) 'U', ID_BUTTON_RESTORE); // whm checked OK
     entries[8].Set(wxACCEL_CTRL, (int) 'R', ID_BUTTON_RETRANSLATION); // whm checked OK

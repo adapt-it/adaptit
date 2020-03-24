@@ -911,7 +911,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			}
             else
             {
-                // whm 13Mar2020 PROBLEM identified: If the user clicks the default YES button with the
+                // whm 24Mar2020 PROBLEM identified: If the user clicks the default YES button with the
                 // mouse to associate rightwards, the phrasebox ends up being successfully placed
                 // at the location of the placeholder. However, if the user presses Enter/Tab to
                 // accept the default value of YES, the Enter/Tab key event gets propagated to the
@@ -919,9 +919,17 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                 // next location (in Review mode, or some further hole location in Drafting mode.
                 // Simply using wxMessageDialog() instead of wxMessageBox() doesn't always stop
                 // the spurious Enter/Tab key event from propagating to OnKeyUp().
-                // So, I'm using a bool value on the App that we can use to detect when a spurios
-                // Enter/Tab key might get propagated that, when TRUE can be immediately detected
-                // in OnKeyUp().
+                // Also using a custom dialog class does not prevent the propagation of a spuriouus
+                // Enter key event. 
+                // I also tried using a bool value on the App to detect when a spurios Enter key 
+                // might get propagated that when the default Yes is made by Enter key press, so that
+                // the bool can be tested within the OnKeyUp() handler's Enter/Tab code block.
+                // This can be made to work for first instance, but then there is no place that I
+                // could find to reset the bool value back to FALSE, resulting in the necessity of
+                // pressing Enter twice for the next move of the phrasebox.
+                // Therefore, I've added back the wxMessageDialog with the likelyhood that the
+                // user who uses the keyboard to accept Yes via Enter key press will experience the
+                // nuisance moving along of the phrasebox after responding to the message prompt.
                 //
                 // any other situation, we need to let the user make the choice
                 // whm 20Mar2020 modified. Due to above mentioned problems the team decided to provide
@@ -932,19 +940,22 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                 // I will remove the query below and for this block just set the bAssociatingRightwards = TRUE.
                 // Note also that the use of the App's b_Spurious_Enter_Tab_Propagated global flag is no longer
                 // present.
-                // TODO: BEW should examine the blocks below that test for bAssociatingRightwards == TRUE and
-                // bAssociatingRightwards == FALSE, so make any mods necessary now that the placeholder insertion
-                // depends on user calling for insertion either left or right without the necessity for a query
-                // for the direction of association.
+                //
                 //CPlaceholderInsertDlg dlg(m_pApp->GetMainFrame());
-                //wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
-                //    _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-                //if (dlg.ShowModal() == wxID_YES)
-                //{
-                bAssociatingRightwards = TRUE;
+                wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
+                    _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                if (dlg.ShowModal() == wxID_YES)
+                {
+                    wxLogDebug(_T("User says bAssociatingRightwards is TRUE..."));
+                    bAssociatingRightwards = TRUE;
                     //m_pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
-                //}
+                }
+                else
+                {
+                    wxLogDebug(_T("User says bAssociatingRightwards is FALSE..."));
+                }
 
+                // whm Note: the wxMessageBox() prompt below was the original coding for prompting the user.
 //				if (wxMessageBox(_(
 //"Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
 //				_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
@@ -2572,15 +2583,18 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& event)
 	wxASSERT(pFrame != NULL);
 
     bool bInsertAfter = FALSE;
-    if (event.GetId() == ID_BUTTON_NULL_SRC_RIGHT)
+    if (event.GetId() == ID_BUTTON_NULL_SRC_RIGHT  || wxGetKeyState(WXK_CONTROL))
     {
+        // The accelerator CTRL+I is defined in the CMainFrame constructor to use the id ID_BUTTON_NULL_SRC_RIGHT
+        // so this test will detect a direct mouse click on the "Insert A Placeholder To Right..." as well as
+        // whenever the CTRL+I accelerator key combination is pressed. The wxGetKeyState(WXK_CONTROL) test
+        // will hopefully detect when CTRL+I is detected on Linux/Mac within CPhraseBox::OnSysKeyUp() where the
+        // CTRL+I handling code there calls OnButtonNullSrc() explicitly with a dummyevent.
         bInsertAfter = TRUE;
     }
-    else
+    else if (event.GetId() == ID_BUTTON_NULL_SRC_LEFT)
     {
-        // This else case covers when the event ID is either ID_BUTTON_NULL_SRC_LEFT
-        // or the event ID is something else - as when CTRL+I within the Phrasebox
-        // calls this OnButtonNullSrc() handler directly 
+        // The event ID is ID_BUTTON_NULL_SRC_LEFT
         bInsertAfter = FALSE;
     }
 
