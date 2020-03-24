@@ -23,8 +23,8 @@
 #define _AT_PTR
 //#define FIXORDER
 #define LOGMKRS
-const int logStart = 2;
-const int logEnd = 4;
+const int logStart = 6;
+const int logEnd = 7;
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -15564,6 +15564,15 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	wxString aMkr = wxEmptyString;
 	bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
 
+	if (bIsInlineBeginMkr)
+	{
+		m_bWithinMkrAttributeSpan = TRUE;
+	}
+	else
+	{
+		m_bWithinMkrAttributeSpan = FALSE;
+	}
+
 	if (bIsInlineNonbindingMkr)
 	{
 		// BEW 30Sep19 bleed out the \fig special case
@@ -16404,6 +16413,10 @@ tryagain:	if (IsMarker(ptr))
 	//	int break_here = 1;
 	//}
 #endif
+#if defined (_DEBUG)
+	wxLogDebug(_T("End of %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"), 
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 	return len;
 }
 
@@ -16567,7 +16580,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		rBuffer = rBuffer.Trim();
         // whm 30May2019 Bruce requested that paragraph markers \p not be added to the
         // text being tokenized when the App's m_bClipboardAdaptMode flag is TRUE.
-        // TODO: Bruce should verify that this change doesn't adversely affect the TokenizeText()
+        // Bruce should verify that this change doesn't adversely affect the TokenizeText()
         // fuction, and that it does what he wants when adapting unstructured text from the clipboard.
 		// BEW, yep, the change is harmless.
         if (!pApp->m_bClipboardAdaptMode)
@@ -17341,12 +17354,23 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							pLayout->m_nSequNum_LastSrcPhrase = 0; // safe, if the document exists
 						}
 
-// TODO cache the unparsed end marker in m_pLayout, Advance ptr over it,
-// apply code to append it to whatever string is appropriate
-// in the previous instance, i.e. in pLastSrcPhrase.  My  yet-to-be-done 
-//work on improving post word data support will use this info
-
-
+						// Cache the unparsed end marker in m_pLayout, Advance ptr over it,
+						// apply code to append it to whatever string is appropriate
+						// in the previous instance. We don't want a relic endmarker to crash
+						// the parse. The following hack may help find the place for removing the end-marker
+						int badMkrLength = wholeEndMkr.Len();
+						CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
+						CSourcePhrase* pLastSrcPhrase = pPile->GetSrcPhrase();
+						int badLocation = pSrcPhrase->m_nSequNumber;
+						pLastSrcPhrase->AddEndMarker(wholeEndMkr); // this kinda hides it away, but watchout in an export
+						ptr += (size_t)badMkrLength;
+						// Warn the user there is a bogus endmarker that probably should
+						// be removed from the input source text file, and the document reparsed
+						wxString msg = _T("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nLook in the document xml file for an sn attribute with the value: %d\nThere, or just before there, the end-marker %s  has been stored in the em attribute. Consider removing it from the source text input file, and re-loading to re-create the document.");
+						msg = msg.Format(msg, wholeEndMkr.c_str(), badLocation, wholeEndMkr.c_str());
+						wxString title = _T("Unexpected End Marker");
+						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+						pApp->LogUserAction(msg);
 					}
 					else
 					{
