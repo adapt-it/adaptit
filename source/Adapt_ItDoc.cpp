@@ -12647,7 +12647,9 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 		// footnote) and \ex .... \ex* (extended cross reference), and I've chosen to
 		// handle \ef* or \ex* here instead. So below I'll refactor the code - the 'normal'
 		// endmarker storage suggested by the name bInlineNormalMkrFound is to use
-		// m_endMarkers member of the CSourcePhrase instance
+		// m_endMarkers member of the CSourcePhrase instance; with the exception that
+		// if the endMarker is \+jmp then that will be included also in the 'normal' set and
+		// so be stored in m_endMarkers
 		if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
 		{
 			// it's not one of \f* \fe* or \x*; and we also in the function do not parse
@@ -12726,11 +12728,22 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 							{
 								// It's found within the set of USFM3 character attribute
 								// end markers; these we store in the non-binding end mkr
-								// storage
-								wxString strNonbinding = pSrcPhrase->GetInlineNonbindingEndMarkers();
-								strNonbinding += wholeEndMkr;
-								pSrcPhrase->SetInlineNonbindingEndMarkers(strNonbinding);
-								bNonbindingEndMkrFound = TRUE;
+								// storage - with the exception of \+jmp* which, because it's
+								// embedded within some other non-filtered span, we need to
+								// append it m_endMarkers member of pSrcPhrase
+								wxString plusJmpEndMkr(_T("\\+jmp*"));
+								if (wholeEndMkr == plusJmpEndMkr)
+								{
+									pSrcPhrase->AddEndMarker(plusJmpEndMkr);
+									bNormalEndMkrFound = TRUE;
+								}
+								else
+								{
+									wxString strNonbinding = pSrcPhrase->GetInlineNonbindingEndMarkers();
+									strNonbinding += wholeEndMkr;
+									pSrcPhrase->SetInlineNonbindingEndMarkers(strNonbinding);
+									bNonbindingEndMkrFound = TRUE;
+								}
 							}
 						}
 						else
@@ -30190,7 +30203,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			pSrcPhrase->m_precPunct = m_pCachedSourcePhrase->m_precPunct;
 			pSrcPhrase->m_follPunct = m_pCachedSourcePhrase->m_follPunct;
 			pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct + pSrcPhrase->m_key + pSrcPhrase->m_follPunct;
-			// There won't have any nested marker, so m_follOuterPuncts will be empty
+			if (!m_pCachedSourcePhrase->GetFollowingOuterPunct().IsEmpty())
+			{
+				// We don't expect m_follOuterPunct to have punct characters cached,
+				// but just in case, this will handle it if that is the case
+				pSrcPhrase->m_srcPhrase += m_pCachedSourcePhrase->GetFollowingOuterPunct();
+			}
 
 			wxChar* pAuxPtr = ptr; // iterator
 			// Remember not to store any of these calculations on variables 
@@ -31291,7 +31309,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			} // end of TRUE block for test: if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
 		} // end of TRUE block for test: if (bThrewAwayWhiteSpaceAfterWord)
 
-	} // end of TRUE block for test: if (!bSkipLegacyParsingBlock) **********************************************************************
+	} // end of TRUE block for test: if (!bSkipLegacyParsingBlock) ************************************
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
@@ -31499,8 +31517,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 
 			// BEW 10Mar20 On the other hand, the endmarker may be followed by some additional
 			// final puctuation - if so, accumulate it, but store it in m_follOuterPunct.
-
-// TODO
 
 			if ((bInlineBindingEndMkrFound ||
 				bInlineNonbindingEndMkrFound ||
