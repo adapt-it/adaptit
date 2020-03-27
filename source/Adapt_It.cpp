@@ -19915,12 +19915,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
 	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
 	// values are defined here. When used, content will be inserted between the ^^
+	// BEW 25Mar20, deprecated these five strings, as I will no longer support ParseWord2()
+	// because recent refactoring was done in ParseWord(), ParsePreWord() and TokenizeText()
+	// making the legacy ParseWord() and friends far superior to what ParseWord2() can do.
+	// (ParseWord2() still gets compiled, but its use is suppressed by a #define)
 	strAfterWord = _T("[[after_word^^]]");
 	strAfterEndMkr = _T("[[after_endMkr^^]]");
 	strAfterPunct = _T("[[after_punct^^]]");
 	strAfterSpace = _T("[[after_space^^]]"); // the 'space' may or may not be an ascii one
 	strSearchForAfter = _T("[[after_"); // the search string when checking for post-word
 										// placement when unfiltering
+	m_bUserDlgOrMessageRequested = FALSE; // added for suppressing, with a TRUE value, 
+				// OnePass() from doing anything when an unwanted (bogus) Enter or Tab
+				// event causes immediate jump of the phrasebox before the user can
+				// react to what is to be done at the current location - such as a placeholder
+				// having been inserted
+	m_bUserHitEnterOrTab = FALSE; // default, set TRUE if Enter or Tab keypress detected
+				// within CPhraseBox::OnKeyUp()
+
 
 #if defined(_KBSERVER)
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions

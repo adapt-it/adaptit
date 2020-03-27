@@ -497,7 +497,7 @@ CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
 // This InsertNullSourcePhrase() function is called from:
 //   CPlaceholder::OnButtonNullSrc() handler - two places
 //   CPlaceholder::InsertNullSrcPhraseBefore()
-//   CPlaceholder::InsertNullSourcePhraseAFter()
+//   CPlaceholder::InsertNullSourcePhraseAfter()
 //   CRetranslation::PadWithNullSourcePhrasesAtEnd() - two places
 void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 										   CPile* pInsertLocPile,const int nCount,
@@ -921,7 +921,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                 // the spurious Enter/Tab key event from propagating to OnKeyUp().
                 // Also using a custom dialog class does not prevent the propagation of a spuriouus
                 // Enter key event. 
-                // I also tried using a bool value on the App to detect when a spurios Enter key 
+                // I also tried using a bool value on the App to detect when a spurious Enter key 
                 // might get propagated that when the default Yes is made by Enter key press, so that
                 // the bool can be tested within the OnKeyUp() handler's Enter/Tab code block.
                 // This can be made to work for first instance, but then there is no place that I
@@ -936,12 +936,17 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                 // two tool bar buttons (along with the two hot key short-cuts) to allow the user to
                 // specify the left/right location of insertions in relation to the selection/phrasebox location.
                 // For now, since the query of user below seemed to always appear when the user wants the
-                // inserted placeholder to go to the left of the selection/phraseboxx - i.e., "rightwareds association",
+                // inserted placeholder to go to the left of the selection/phrasebox - i.e., "rightwards association",
                 // I will remove the query below and for this block just set the bAssociatingRightwards = TRUE.
                 // Note also that the use of the App's b_Spurious_Enter_Tab_Propagated global flag is no longer
                 // present.
                 //
                 //CPlaceholderInsertDlg dlg(m_pApp->GetMainFrame());
+
+
+// BEW 25Mar20 refactor && prevent spurious phrasebox jump ahead
+
+
                 wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
                     _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if (dlg.ShowModal() == wxID_YES)
@@ -949,6 +954,8 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                     wxLogDebug(_T("User says bAssociatingRightwards is TRUE..."));
                     bAssociatingRightwards = TRUE;
                     //m_pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+
+/* ** test ** */	m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                 }
                 else
                 {
@@ -1020,8 +1027,8 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 					pFirstOne->m_inform = pSrcPhraseInsLoc->m_inform;
 					pFirstOne->m_chapterVerse = pSrcPhraseInsLoc->m_chapterVerse;
 					pFirstOne->m_bVerse = pSrcPhraseInsLoc->m_bVerse;
-					// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
-					//pFirstOne->m_bParagraph = pSrcPhraseInsLoc->m_bParagraph;
+					// BEW 8Oct10, repurposed m_bParagraph as m_bUnused <-- BEW Mar20, it's now repurposed for TRUE saying m_punctsPattern
+					// having USFM3 squirreled away attributes metadata substring
 					pFirstOne->m_bChapter = pSrcPhraseInsLoc->m_bChapter;
 					pFirstOne->m_bSpecialText = pSrcPhraseInsLoc->m_bSpecialText;
 					pFirstOne->m_bFootnote = pSrcPhraseInsLoc->m_bFootnote;
@@ -2605,13 +2612,13 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& event)
 	{
 		return;
 	}
-    // whm 20Mar2020 modified test below to detect whether the insertt placeholder to left button is disabled, if so abort insertion
+    // whm 20Mar2020 modified test below to detect whether the insert placeholder to left button is disabled, if so abort insertion
     if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_LEFT))
     {
         ::wxBell();
         return;
     }
-    // whm 20Mar2020 modified test below to detect whether the insertt placeholder to right button is disabled, if so abort insertion
+    // whm 20Mar2020 modified test below to detect whether the insert placeholder to right button is disabled, if so abort insertion
     if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_RIGHT))
     {
         ::wxBell();

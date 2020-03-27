@@ -6126,7 +6126,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             pView->MergeWords(); // simply calls OnButtonMerge
         }
         //
-        // whm 9Mar2020 Note: CTRL+I is implemented as an accelerator in the CMainFarme's
+        // whm 9Mar2020 Note: CTRL+I is implemented as an accelerator in the CMainFrame's
         // constructor. Before conditionally compiling these code blocks for __WXGTK__ and
         // __WXMAC__, and adding the condition that they be executed on those platforms only
         // when the dropdown list is shown, the CTRL+I block here was causing two placeholders 
@@ -6347,6 +6347,10 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			// which means that a PostMessage(() has been done to initiate a step transition
 			m_bTunnellingOut = FALSE; // caller has no need of it, so clear to default value
 			pLayout->m_docEditOperationType = no_edit_op;
+
+			pApp->m_bUserDlgOrMessageRequested = FALSE;
+			pApp->m_bUserHitEnterOrTab = FALSE;
+
 			return FALSE; // caller is OnIdle(), OnePass is not used elsewhere
 		}
 
@@ -6463,6 +6467,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		pApp->m_bAutoInsert = FALSE; // ensure we halt for user to type translation
 		pView->Invalidate(); // added 1Apr09, since we return at next line
 		pLayout->PlaceBox();
+
 		return FALSE; // must have been a null string, or at EOF;
 	} // end of TRUE block for test: if (!bSuccessful)
 
@@ -6508,6 +6513,10 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("8. End of OnePass"));
 	#endif
+
+	pApp->m_bUserDlgOrMessageRequested = FALSE;
+	pApp->m_bUserHitEnterOrTab = FALSE;
+
 	return TRUE; // all was okay
 }
 
@@ -6904,11 +6913,36 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             // and expect the Lookup process to take place, etc - and then get quite disturbed
             // when it doesn't happen that way. So for version 3 and onwards, we will interpret
             // a TAB keypress as if it was an ENTER keypress
-            if (keycode == WXK_TAB)
-                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
-            else if (keycode == WXK_RETURN)
-                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
-            JumpForward(pView);
+			// BEW 26Mar20 added code to prevent immediate run-on by the phrasebox when the user
+			// selects the Enter or Tab key to get the default action - such as when inserting
+			// a placeholder, Choose Translation, Guesser dialog, and maybe others (but not all).
+			// Whether in Drafting or Reviewing mode, without the protection below, then an Enter
+			// or Tab key press would cause run-on the next hole, or next pile, respectively. 
+			pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
+			if (keycode == WXK_TAB)
+			{
+				pApp->m_bUserHitEnterOrTab = TRUE;
+				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+			}
+			else if (keycode == WXK_RETURN)
+			{
+				pApp->m_bUserHitEnterOrTab = TRUE;
+				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
+			}
+			if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
+			{
+				// Don't call JumpForward, because it is likely this is a bogus box run-on situation
+				;
+			}
+			else
+			{
+				// Normal jump is okay to do
+				JumpForward(pView);
+			}
+			// These a use-once-only booleans, after use they must be turned back off in case
+			// re-use is required at another active location in the doc
+			pApp->m_bUserDlgOrMessageRequested = FALSE;
+			pApp->m_bUserHitEnterOrTab = FALSE;
         }
         return;
     }

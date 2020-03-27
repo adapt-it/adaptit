@@ -256,6 +256,9 @@ inline int GetAISvnVersion()
 //#define Print_failure
 //#define _Trace_FilterMarkers
 
+// BEW 27Mar20 added the following #define to enable me to progressively refactor our PlaceHolder code as per Bill's suggestion
+#define _PHRefactor
+
 // whm added 30Jan12 to force all platforms to use TCP based IPC - even on the Windows
 // platform rather that its usual DDE.
 // BEW 21Nov18 Bill commented it out, which means that DDE (which is windows only for
@@ -4126,7 +4129,26 @@ public:
                 // used in the program (using main window - system font)
     wxSize	sizeSpace; // Used to determine the text extent of a space (using main window -
                 // system font)
+	// ***********************************
+	// BEW 25Mar20 additions to support the suppression of the phrasebox jumping ahead (to next
+	// hole in Drafting mode) or to next CSourcePhrase instance (in Reviewing mode). The nature
+	// of the additions are to detect when certain dialogs or wxMessageBox dialogs show, with
+	// a boolean. And to detect when the user used Enter or Tab to get the default button to
+	// do its job. And to use these two things to cause OnePass() to consume the event without
+	// moving the phrasebox forward, by a bleeding test at it start to cause control to exit
+	// OnePass() before doing anything within it.
+	bool m_bUserDlgOrMessageRequested; // default to FALSE, set TRUE in the InitDialog()
+			// function of dialogs which need this kind of protective hack; or preceding a
+			// wxMessageDialog() call which needs the same type of protection - such as
+			// the dialog for right- or left association when inserting a placeholder.
+			// Make sure the boolean is reset to FALSE after being so used.
+	bool m_bUserHitEnterOrTab; // default FALSE, but set TRUE in the appropriate block
+			// within CPhraseBox::OnKeyUp(); for user mouse clicks it remains FALSE
+			// because that does not generate the spurious extra Enter or Tab event
+			// which causes the phrasebox to move ahead before user can do anything
+			// at the old location
 
+	// **********************************
 	// BEW added 21Jun05 for support of free translation mode
 	bool	m_bFreeTranslationMode; // TRUE when free translation mode is in effect,
 				// FALSE otherwise
