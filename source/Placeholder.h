@@ -21,7 +21,6 @@
 #pragma interface "Placeholder.h"
 #endif
 
-/*
 // The following CPlaceholderInsertDlg class was not needed after making the
 // insertion of placeholders directional to left/right of selection/phrasebox
 // a helper class for CPlaceholder
@@ -40,17 +39,19 @@ public:
     void OnButtonYes(wxCommandEvent& event);
     void OnButtonNo(wxCommandEvent& event);
     void OnKeyDown(wxKeyEvent& event);
+    void OnKeyDownChar(wxKeyEvent& event);
     wxButton* pYesBtn;
     wxButton* pNoBtn;
     CAdapt_ItApp* pApp;
 protected:
     void InitDialog(wxInitDialogEvent& WXUNUSED(event));
     void OnOK(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
+    void OnButtonCancel(wxCommandEvent& WXUNUSED(event));
 
 private:
     DECLARE_EVENT_TABLE()
 };
-*/
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CPlaceholder class contains methods for working with placeholder 

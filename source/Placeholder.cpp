@@ -68,14 +68,16 @@ extern bool gbShowTargetOnly;
 extern EditRecord gEditRecord;
 extern wxChar gSFescapechar;
 
-/*
 // The following CPlaceholderInsertDlg class was not needed after making the
 // insertion of placeholders directional to left/right of selection/phrasebox
 BEGIN_EVENT_TABLE(CPlaceholderInsertDlg, AIModalDialog)
     EVT_INIT_DIALOG(CPlaceholderInsertDlg::InitDialog)
     EVT_BUTTON(wxID_YES, CPlaceholderInsertDlg::OnButtonYes)
     EVT_BUTTON(wxID_NO, CPlaceholderInsertDlg::OnButtonNo)
+    EVT_BUTTON(wxID_CANCEL, CPlaceholderInsertDlg::OnButtonCancel)
     EVT_KEY_DOWN(CPlaceholderInsertDlg::OnKeyDown)
+    EVT_CHAR(CPlaceholderInsertDlg::OnKeyDownChar)
+    EVT_CLOSE(CPlaceholderInsertDlg::OnClose)
 END_EVENT_TABLE()
 
 
@@ -107,23 +109,34 @@ void CPlaceholderInsertDlg::InitDialog(wxInitDialogEvent & WXUNUSED(event))
     pYesBtn->SetFocus();
 }
 
+void CPlaceholderInsertDlg::OnClose(wxCloseEvent& event)
+{
+    event.Skip();
+}
+
+void CPlaceholderInsertDlg::OnButtonCancel(wxCommandEvent & WXUNUSED(event))
+{
+    EndModal(wxID_CANCEL);
+}
+
 void CPlaceholderInsertDlg::OnButtonYes(wxCommandEvent& event)
 {
-    pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
-    event.StopPropagation();
+    //pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+    event.Skip();
     EndModal(wxID_YES); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CPlaceholderInsertDlg::OnButtonNo(wxCommandEvent& event)
 {
 
-    pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
-    event.StopPropagation();
+    //pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+    event.Skip();
     EndModal(wxID_NO); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CPlaceholderInsertDlg::OnKeyDown(wxKeyEvent & event)
 {
+    // Why does this handler never get triggered???
     int keycode = event.GetKeyCode();
     if (keycode == WXK_RETURN
         || keycode == WXK_NUMPAD_ENTER)
@@ -132,7 +145,18 @@ void CPlaceholderInsertDlg::OnKeyDown(wxKeyEvent & event)
     }
     event.Skip();
 }
-*/
+
+void CPlaceholderInsertDlg::OnKeyDownChar(wxKeyEvent & event)
+{
+    // Why does this handler never get triggered???
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_RETURN
+        || keycode == WXK_NUMPAD_ENTER)
+    {
+        event.StopPropagation();
+    }
+    event.Skip();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
@@ -940,9 +964,35 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                 // I will remove the query below and for this block just set the bAssociatingRightwards = TRUE.
                 // Note also that the use of the App's b_Spurious_Enter_Tab_Propagated global flag is no longer
                 // present.
-                //
-                //CPlaceholderInsertDlg dlg(m_pApp->GetMainFrame());
-
+                // Note: a different parent such as m_pApp->m_pTargetBox doesn't prevent propagation of the Enter key event
+                // Can't make the m_pTargetBox the parent with dlg.Center() call below places the dialog directly over the
+                // phraseBox!
+				/*
+                CPlaceholderInsertDlg dlg(m_pApp->GetMainFrame());
+                dlg.Center();
+                int result;
+                result = dlg.ShowModal();
+                if (result == wxID_YES)
+                {
+                    wxLogDebug(_T("User says bAssociatingRightwards is TRUE..."));
+                    bAssociatingRightwards = TRUE;
+                    //m_pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
+                }
+                else if (result == wxID_NO)
+                {
+                    wxLogDebug(_T("User says bAssociatingRightwards is FALSE..."));
+                    wxASSERT(bAssociatingRightwards == FALSE);
+                }
+                else // result == wxID_CANCEL
+                {
+                    wxASSERT(result == wxID_CANCEL);
+                    // User wants to abort the process of inserting the placeholder.
+                    // TODO: BEW needs to review this and undo anything that needs to roll back that
+                    // may have been done above such as the addition of a dummy source phrase, when
+                    // m_bDummyAddedTemporarily is TRUE
+                    return;
+                }
+				*/
 
 // BEW 25Mar20 refactor && prevent spurious phrasebox jump ahead
 
