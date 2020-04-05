@@ -56745,6 +56745,37 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     return TRUE; // tell caller we found one or more substrings
 }
 
+bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
+{
+	wxString colon = _T(":");
+	wxString zero = _T("0");
+	int offset = wxNOT_FOUND;
+
+	//  chapterVerse might be an empty string - if so, return "0" for each, and FALSE
+	if (chapterVerse.IsEmpty())
+	{
+		strChapter = zero;
+		strVerse = zero;
+		return FALSE;
+	}
+	// If there is no colon, return "0" for chapter, and the rest as strVerse, and TRUE
+	offset = chapterVerse.Find(colon);
+	if (offset == wxNOT_FOUND)
+	{
+		strChapter = zero;
+		strVerse = chapterVerse;
+		return TRUE;
+	}
+	else
+	{
+		// A colon was found, so separate into chapter and verse strings, return TRUE
+		strChapter = chapterVerse.Left(offset);
+		offset++;
+		strVerse = chapterVerse.Mid(offset);
+	}
+	return TRUE;
+}
+
 /*  Note the new values.....
 enum ServDiscInitialDetail
 {
@@ -56916,8 +56947,18 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 		{
 			if (f.Open())
 			{
-				// We have a new empty log file open, put the filename as index = 0 line, and close it
-				f.AddLine(filename);
+				// We have a new empty log file open, put the filename as index = 0 line, and at index
+				// == 2 put a 'starting' entry to indicate the input is not yet accessed 
+				f.AddLine(filename); // count of lines is now 1, so index is 0
+
+				
+				wxString myLine = wxEmptyString; // initialise
+				int negOne = -1;
+				wxString starting = _T("starting...");
+				wxString minusOne = _T("-1");
+				myLine = myLine.Format(_T("%s  %d  %s:%s"), starting.c_str(), negOne, minusOne.c_str(), minusOne.c_str());
+				f.AddLine(myLine); // adds count == 2 line; ie, index = 1
+				// Write & close off
 				if (f.Write())
 				{
 					f.Close();

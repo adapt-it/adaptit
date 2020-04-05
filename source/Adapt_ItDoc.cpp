@@ -1632,19 +1632,20 @@ bool CAdapt_ItDoc::OnNewDocument()
 void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse)
 {
 	wxString myLine;
-	myLine = myLine.Format(_T("%s  %d  %s:%s"),
-		pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, chapter.c_str(), verse.c_str());
-	size_t count = 0;
-	wxString  logsPath = gpApp->m_logsEmailReportsFolderPath;
+	size_t count;
+	wxString logsPath = gpApp->m_logsEmailReportsFolderPath;
 	wxString logFilename = gpApp->m_filename_for_ParsingSource; // OnInit() sets it to "Log_For_Document_Creation.txt"
+					// ReadDoc_XML() temporarily sets it to "Log_Doc_XML_Load_Attempt", and restores the above after the load
 	wxString path = logsPath + gpApp->PathSeparator + logFilename;
 	wxTextFile f(path);
+	myLine = myLine.Format(_T("%s  %d  %s:%s"),
+			pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, chapter.c_str(), verse.c_str());
 	if (!f.IsOpened())
 	{
 		if (f.Open())
 		{
 			count = f.GetLineCount();
-			wxASSERT(count >= 1);
+
 			if (count < 6)
 			{
 				f.AddLine(myLine);
@@ -14668,7 +14669,7 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 /// BEW 24Oct14, no changes needed for support of USFM nested markers. (Since
 /// this function is used for filtering, and because inline binding and inline
 /// nonbinding markers cannot be filtered, it's unlikely this function will
-/// be called for wholeMkr being a nested on (ie. of form \+tag ). However, it
+/// be called for wholeMkr being a nested one (ie. of form \+tag ). However, it
 /// would handle such correctly without any changes being needed.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd)
@@ -34954,6 +34955,170 @@ bool CAdapt_ItDoc::FindMatchingEndMarker(wxChar* pChar, wxChar* pEnd, int& offse
 	// We found the matched endmarker, so return TRUE and the num of chars to it etc
 	offsetToMatchedEndmarker = offset;
 	return TRUE;
+}
+
+// BEW 3Apr20 This function returns true if \f, \x, or \ef begin-marker is at ptr
+// when bCheckForEndMkr is FALSE; or when \f*, \x*, or \ef* end-marker is at ptr.
+// This function will be used in a scanning function called: bool
+// IsWithinSpanProhibitingPlaceholderInsertion(), in support of refactoring for
+// two placeholder buttons, and their Update...() handlers for determining when
+// to disable or enable the GUI buttons. We get the input mkr from the caller
+// by checking each pSrcPhrase->m_markers member, or pSrcPhrase->m_endMarkers
+// member (for the latter we need to use an access function), as the boolean
+// directs. The begin markers are stored with following space, and the end markers
+// with final * (we no longer support PNG SFM markup).
+// For begin markers, do not augment in the caller with a trailing space, that
+// will be done here where needed.
+bool CAdapt_ItDoc::IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr)
+{
+	
+	if (bCheckForEndMkr)
+	{
+		// All these end markers are stored in m_endMarkers private member
+		wxString footnoteEndMkr = _T("\\f*");
+		wxString extFootnoteEndMkr = _T("\\ef*");
+		wxString xRefEndMkr = _T("\\x*");
+		// Check for endMarker
+		int length = mkr.Len();
+		wxChar charLast = mkr.GetChar(length - 1); // should be an * character
+		if (charLast != _T('*'))
+		{
+			return FALSE; // not an inline USFM2 or USFM3 end marker
+		}
+		else
+		{
+			if (mkr == footnoteEndMkr)
+			{
+				return TRUE;
+			}
+			if (mkr == extFootnoteEndMkr)
+			{
+				return TRUE;
+			}
+			if (mkr == xRefEndMkr)
+			{
+				return TRUE;
+			}
+		}
+	}
+	else
+	{
+		// Check for begin marker
+
+		wxString footnoteMkr = _T("\\f ");
+		wxString extFootnoteMkr = _T("\\ef ");
+		wxString xRefMkr = _T("\\x ");
+
+		// Play safe, the developer may pass in a beginMkr augmented with a final
+		// space. So Trim() any final whitespace.
+		mkr = mkr.Trim();
+
+		// Check for beginMarker
+		int length = mkr.Len();
+		wxChar charLast = mkr.GetChar(length - 1); // should be an f or x character
+		if (charLast != _T('f') || charLast != _T('x'))
+		{
+			return FALSE; // not one of the three \f , \ef, or \x markers
+		}
+		else
+		{
+			// Append a space, since all three begin markers are stored in m_markers
+			// which stores with a trailing space; the last begin-mkr is what we
+			// need to test as there could be others, like \v for instance, preceding
+			mkr += _T(' ');
+			if (mkr == footnoteMkr)
+			{
+				return TRUE;
+			}
+			if (mkr == extFootnoteMkr)
+			{
+				return TRUE;
+			}
+			if (mkr == xRefMkr)
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE; // no match
+}
+
+// BEW created 3Apr20, to look within pSrcPhrase->m_markers for content, and return
+// in finalMkr the last of any begin markers stored there. Return TRUE if one was
+// found, FALSE if there was no content in pSrcPhrase->m_markers, or no marker
+// could be identified from what was in that member of pSrcPhase.
+// Usage: in refactoring for support of two placeholder insert buttons, we want to
+// know if the active location is within a footnote span, xref span, or an extended
+// footnote span (\ef ... \ef*). Retranslations and Free Transation spans have
+// begin and end booleans, and an additional one for every CSourcePhrase in either
+// span. But not so for footnotes, xrefs, and extended footnotes. So this is a helper
+// function used only in looking for whether or not the active pile lies within 
+// a span for those three types of inline spans - footnote, extended footnote, or
+// cross reference. The ultimate caller will be a function: bool
+// IsWithinSpanProhibitingPlaceholder(CPile* pCurrentPile) - that function allows
+// us to disable placeholder insertion within those span types.
+bool CAdapt_ItDoc::GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& finalMkr)
+{
+	finalMkr.Empty(); // initialise to an empty string
+	wxString beginMkrs = pSrcPhrase->m_markers;
+	if (beginMkrs.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		//  m_markers has content; is there at least one marker?
+		int offset = wxNOT_FOUND;
+		offset = beginMkrs.Find(gSFescapechar); // look for backslash
+		if (offset == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+		else
+		{
+			// There is at least one marker present
+			wxString strRev = MakeReverse(beginMkrs);
+			int length = beginMkrs.Len();
+			// Find the first backslash in the reversed string and
+			// step one character past it
+			offset = strRev.Find(gSFescapechar);
+			wxASSERT(offset > 1);
+			offset++; // step past it
+			offset = length - offset; // offset now points to last backslash in beginMkrs
+			beginMkrs = beginMkrs.Mid(offset); // now shortened so that the last mkr starts the string
+			finalMkr = GetWholeMarker(beginMkrs); // return it to the caller
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+// BEW 3Apr20 input pInitialSrcPhrase, it is at the start of the span we are interested in, and set
+// atBeginSequNum from it. Construct strEndMkr in the caller, it will be one of \f* or \ef* or \x*
+// (only these, as determined by called functions within this one). 
+// Then, in the m_pSourcePhrases list, search forward, looking for the strEndMkr at the start of
+// a pSrcPhrase's m_endMarkers member (all these markers are stored only there), and when found
+// return its sequence number in atMatchSequNum; and return TRUE to the caller.
+// Return FALSE if a match cannot be made. If a match cannot be made before a beginMarker in
+// a subsequent pSrcPhrase's m_markers member is found, that indicates the span is not terminated
+// correctly with the correct endmarker. If so, take that locatioin as ending the span, and return
+// TRUE, and its sequ num in atMatchSequNum - as that is the best we can do with a bad situation.
+bool CAdapt_ItDoc::GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, int& atBeginSequNum, int& atMatchSequNum)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	atMatchSequNum = wxNOT_FOUND; //initialise to -1
+	wxString star = _T('*');
+	wxASSERT(!strEndMkr.IsEmpty() && ((int)strEndMkr.Find(star) != wxNOT_FOUND));
+	SPList* pList = pApp->m_pSourcePhrases;
+	if (!pList->IsEmpty())
+	{
+		atBeginSequNum = pInitialSrcPhrase->m_nSequNumber;
+
+
+
+
+	}
+	return FALSE;
 }
 
 

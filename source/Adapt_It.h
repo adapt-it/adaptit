@@ -4618,6 +4618,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
+	bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12

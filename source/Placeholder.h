@@ -76,11 +76,6 @@ class CPlaceholder : public wxEvtHandler
 							bool				bRestoreTargetBox = TRUE,
 							bool				bForRetranslation = FALSE,
 							bool bInsertBefore = TRUE);
-		// BEW 11Oct10, next is no longer called anywhere, so commented out
-		//CSourcePhrase*	ReDoInsertNullSrcPhrase(
-		//					SPList*				pList,
-		//					SPList::Node*&		insertPos,
-		//					bool				bForRetranslation = FALSE);
 		void		RemoveNullSourcePhrase(
 							CPile*				pInsertLocPile, 
 							const				int nCount);
@@ -112,6 +107,37 @@ class CPlaceholder : public wxEvtHandler
 		// the starting location for something should be tranferred to a right-associated
 		// placeholder)
 		bool IsRightAssociationTransferPossible(CSourcePhrase* pSrcPhrase);
+
+	public:
+	// ****************** Refactoring for the two-button placeholder insertions, March2020
+#if defined (_PHRefactor)
+
+	void DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & there
+		CPile* pInsertLocPile,	// ptr to the pSrcPhrase which is the current active location, before
+								// or after which the placeholder is to be inserted
+		const int nCount,		// how many placeholders to sequentially insert
+		bool bRestoreTargetBox,	// TRUE if restoration wanted, FALSE if not; no default
+		bool bForRetranslation,	// TRUE if in a Retranslation, 1 or more may need appending, no default
+		bool bInsertBefore,		// TRUE to insert before pInsertLocPile, FALSE to insert after pInsertLocPile, no default
+		bool bAssociateLeftwards // TRUE to associate with left located text, FALSE to associate with right
+								// located text, no default. However, if bInsertBefore is TRUE we will
+								// hard code bAssocateLeftwards to FALSE. If bInsertBefore is FALSE we will
+								// hard code bAssociateLeftwards to TRUE. The parameter is included in
+								// the signature in case sometime we with to vary the behaviour.
+		);
+
+	void OnButtonNullSrcLeft(wxCommandEvent& event);  // handler when the left insert button 
+																// is clicked on the command bar
+	void OnButtonNullSrcRight(wxCommandEvent& event); // handler when the right insert button 
+																// is clicked on the command bar
+
+
+
+
+
+
+#endif
+	// ***************** End refactoring for the two-button placeholder insertions
 
 	protected:
 		// event handlers

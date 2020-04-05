@@ -4291,6 +4291,19 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			else if (attrName == xml_c)
 			{
 				gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
+
+				if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
+				{
+					wxString chNum = _T("0"); // initialise
+					wxString vsNum = _T("-1"); // initialise
+					bool bOK = gpApp->SeparateChapterAndVerse(gpSrcPhrase->m_chapterVerse,
+						chNum, vsNum);
+					if (bOK)
+					{
+						gpApp->m_chapterNumber_for_ParsingSource = chNum;
+						gpApp->m_verseNumber_for_ParsingSource = vsNum;
+					}
+				} // end of m_bMakeDocCreationLogfile block
 			}
 			else if (attrName == xml_em)
 			{
@@ -4572,7 +4585,18 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				// it can be made NULL if it was an orphan that got deleted,
 				// so we must check and only append ones that persist
 				gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
+
 			}
+			// If logging ws requested, update the log file with the new values
+			if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
+			{
+				if (gpApp->m_bParsingSource)
+				{
+					gpDoc->UpdateDocCreationLog(gpSrcPhrase, gpApp->m_chapterNumber_for_ParsingSource,
+						gpApp->m_verseNumber_for_ParsingSource);
+				}
+			}
+
 			gpSrcPhrase = NULL;
 		}
 
@@ -7751,8 +7775,31 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 	// set the static document pointer used only for parsing the XML document
 	gpDoc = pDoc;
 
+	// BEW added 4Apr20. A common app failure is for the app to mysteriously
+	// fail when getting somewhere in Step 5 of the 10 (where the m_pSourcePhrases
+	// list gets accessed). It would be very handy for debugging at which source
+	// word or phrase, it's sequence number, and chapter and verse the parsing got
+	// to before the failure happened. Since I have a Preferences checkbox for
+	// logging parsing success, I can insert turn the setting on at the start of
+	// ReadDoc_XML() - to make ready a new log file, and invoke the update information
+	// call for every gpSrcPhrase successfully constructed - putting into the file
+	// (overwriting previous values) the srcText word, its sequence number, and the
+	// chapter & verse strings).
+
+	// If logging is wanted, attempt to setup for it. Do the first update with 
+	// special values to indicate we've yet to create a gpSrcPhrase
+	wxString saveOnInitFilename = gpApp->m_filename_for_ParsingSource;
+	if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+	{
+		gpApp->m_bParsingSource = TRUE;
+		wxString myFilename(_T("Log_Doc_XML_Load_Attempt"));
+		gpApp->m_filename_for_ParsingSource = myFilename;
+
+		gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(gpApp->m_curOutputFilename);
+	}
+
 	// whm 24Aug11 modified to move the wxProgressDialog from this
-	// ReadDoc_XML() routine back to its callers. Now this functtion
+	// ReadDoc_XML() routine back to its callers. Now this function
 	// receives a pointer pProgDlg to that progress dialog so it can
 	// call Update where needed to give some feedback on the progress.
 
@@ -7772,6 +7819,9 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 		// a loop clobbering the m_pSourcePhrases list to try building a document
 		// by a call of DoAutoSaveDoc() before there is a new list ready for such
 		// a build to happen
+
+	// Restore the original log filename - "Log_For_Document_Creation"
+	gpApp->m_filename_for_ParsingSource = saveOnInitFilename;
 
 	return bXMLok;
 }	

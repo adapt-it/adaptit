@@ -185,7 +185,8 @@ public:
 	bool			m_bHasInternalPunct; // 78: if TRUE, user will be asked to manually locate target  punctuation
 	bool			m_bFootnoteEnd;	   // 79: TRUE for the last source phrase in a section of footnote text
 	bool			m_bFootnote;	   // 80: TRUE for the first source phrase in a section of footnote text
-	bool			m_bUnused;		   // 81:   
+	bool			m_bUnused;		   // 81: BEW repurposed USFM3 attributes metadata hiding, TRUE if bar material is
+									   //     hidden in the hither-to unused m_punctsPattern (pupat) member
 	TextType		m_curTextType;	   // 82: from the global enum. Used for setting the text type tag to 
 									   // be shown in grey above line 1 of each strip
 

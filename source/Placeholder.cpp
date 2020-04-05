@@ -57,8 +57,6 @@
 #include "ChooseTranslation.h"
 //////////
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // External globals
 ///////////////////////////////////////////////////////////////////////////////
@@ -133,7 +131,6 @@ void CPlaceholderInsertDlg::OnKeyDown(wxKeyEvent & event)
     event.Skip();
 }
 */
-
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
 ///////////////////////////////////////////////////////////////////////////////
@@ -141,12 +138,16 @@ void CPlaceholderInsertDlg::OnKeyDown(wxKeyEvent & event)
 BEGIN_EVENT_TABLE(CPlaceholder, wxEvtHandler)
 EVT_TOOL(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnButtonRemoveNullSrcPhrase)
 EVT_UPDATE_UI(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase)
-EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrc)
+EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnUpdateButtonNullSrc)
 EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnUpdateButtonNullSrc)
+#if defined(_PHRefactor)
+EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrcLeft)
+EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrcRight) 
+#else
+EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrc)
 EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrc) // call the same OnButtonNullSrc function used for ID_...LEFT above
-EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnUpdateButtonNullSrc) // update handler should work same as for ID_...LEFT above
+#endif
 END_EVENT_TABLE()
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors / destructors
@@ -650,7 +651,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	int	nSequNumInsLoc = pSrcPhraseInsLoc->m_nSequNumber;
 	wxASSERT(nSequNumInsLoc >= 0 && nSequNumInsLoc <= m_pApp->GetMaxIndex());
 	// BEW 21Jul14 get the pile after the insert loc, and its CSourcePhrase so we can do
-	// transfers to the m_srcWordBrak contents in a right-association context
+	// transfers to the m_srcWordBreak contents in a right-association context
 	CPile* pPostInsertLocPile = m_pView->GetNextPile(pInsertLocPile); // will return NULL if
 									// the pInsertLocPile is at document's end
 	CSourcePhrase* pPostInsertLocSrcPhrase = NULL;
@@ -1145,11 +1146,6 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 				pPrevSrcPhrase->m_bFootnoteEnd = FALSE;
 				pLastOne->m_bBoundary = pPrevSrcPhrase->m_bBoundary;
 				pPrevSrcPhrase->m_bBoundary = FALSE;
-
-				// BEW 8Oct10, added next 2 lines because m_bParagraph has been
-				// repurposed as m_bUnused
-				pLastOne->m_bUnused = pPrevSrcPhrase->m_bUnused;
-				pPrevSrcPhrase->m_bUnused = FALSE;
 
                 // BEW 21Jul14, for left association, the m_srcWordBreak on pPrevSrcPhrase
                 // has to be copied onwards to the placeholder (pLastOne)
@@ -3001,3 +2997,880 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 	}
 	event.Enable(bCanInsert);
 }
+
+#if defined (_PHRefactor)
+
+void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & there
+	CPile* pInsertLocPile,	// ptr to the pSrcPhrase which is the current active location, before
+							// or after which the placeholder is to be inserted
+	const int nCount,		// how many placeholders to sequentially insert
+	bool bRestoreTargetBox,	// TRUE if restoration wanted, FALSE if not; no default
+	bool bForRetranslation,	// TRUE if in a Retranslation, 1 or more may need appending, no default
+	bool bInsertBefore,		// TRUE to insert before pInsertLocPile, FALSE to insert after pInsertLocPile, no default
+	bool bAssociateLeftwards // TRUE to associate with left located text, FALSE to associate with right
+							 // located text, no default. However, if bInsertBefore is TRUE we will
+							 // hard code bAssocateLeftwards to FALSE. If bInsertBefore is FALSE we will
+							 // hard code bAssociateLeftwards to TRUE. The parameter is included in
+							 // the signature in case sometime we with to vary the behaviour.
+	)
+{
+	// Bill, in the legacy code wanted that if the pInsertLocPile's box's m_bAbandonable flag
+	// is TRUE (ie. a copy of source text was done and nothing typed yet) then the current pile
+	// would have the box contents abandoned, nothing put in the KB, and then the placeholder
+	// insertion - the advantage of this is that if the placeholder is inserted immediately
+	// before the phrasebox's location, then after the placeholder text is typed and the user
+	// hits ENTER to continue looking ahead, the former box location will get the box and the
+	// copy of the source redone, rather than the user usually having to edit out an unwanted
+	// copy from the KB, or remember to clear the box manually. A sufficient thing to do here
+	// is just to clear the box's contents. This applies to 'insert before' and to 'insert after'
+	// code blocks
+	if (pInsertLocPile == NULL)
+		return;
+	if (m_pApp->m_pTargetBox->m_bAbandonable)
+	{
+		m_pApp->m_targetPhrase.Empty(); // clear the string
+		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
+		{
+			// empty the box
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
+		}
+	}
+	CSourcePhrase* pCurrentSrcPhrase = NULL; // at the passed in pInsertLocPile location
+	pCurrentSrcPhrase = pInsertLocPile->GetSrcPhrase(); // in case we need it (we do need it)
+	
+	// The next two will be dynamically determined, as where they are previous or following
+	// to will depend on which button was pressed in the GUI, or where this function gets called
+	CSourcePhrase* pPrevSrcPhrase = NULL; // initialize
+	CSourcePhrase* pFollSrcPhrase = NULL; // initialize
+	SPList* pList = m_pApp->m_pSourcePhrases;
+
+	// Distinguish between the button choices - whether to insert before, or after
+	if (bInsertBefore)
+	{
+		wxASSERT(bForRetranslation == FALSE); // the 'insert before' option is never used 
+											  //for padding a retranslation end
+		wxASSERT(nCount == 1); // the button or shortcut can only insert one
+
+		// first save old sequ num for active location
+		m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
+
+		// find the pile preceding which to do the insertion - it will either be preceding
+		// the first selected pile, if there is a selection current, or preceding the
+		// active location if no selection is current
+		CPile* pInsertLocPile2 = NULL; // initialize, allow for selection location 
+									   // to be different from passed in pInsertLocPile
+		//nCount = 1; 
+		int nSequNum = -1;
+		if (m_pApp->m_selectionLine != -1)
+		{
+			// we have a selection, the pile we want is that of the selection 
+			// list's first element
+			CCellList* pCellList = &m_pApp->m_selection;
+			CCellList::Node* cpos = pCellList->GetFirst();
+			pInsertLocPile2 = cpos->GetData()->GetPile();
+			if (pInsertLocPile2 == NULL)
+			{
+				wxMessageBox(_T(
+					"A zero CPile pointer was returned from selection, the insertion cannot be done."),
+					_T(""), wxICON_EXCLAMATION | wxOK);
+				return;
+			}
+			nSequNum = pInsertLocPile2->GetSrcPhrase()->m_nSequNumber;
+			wxASSERT(pInsertLocPile2 != NULL);
+			m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		}
+		else
+		{
+			// no selection, so just insert preceding wherever the phraseBox 
+			// currently is located
+			pInsertLocPile2 = pInsertLocPile; // set from signature's value passed in
+			if (pInsertLocPile2 == NULL)
+			{
+				wxMessageBox(_T(
+					"A zero CPile pointer was set from signature, the insertion cannot be done."),
+					_T(""), wxICON_EXCLAMATION | wxOK);
+				return;
+			}
+			nSequNum = pInsertLocPile2->GetSrcPhrase()->m_nSequNumber;
+		}
+		wxASSERT(nSequNum >= 0);
+
+
+		// check we are not in a retranslation - we can't insert there!
+		// if it is still a retranslation, we must abort the operation)
+		if (pInsertLocPile2->GetSrcPhrase()->m_bRetranslation)
+		{
+			wxMessageBox(_(
+				"Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
+				_T(""), wxICON_EXCLAMATION | wxOK);
+			m_pView->RemoveSelection();
+			m_pView->Invalidate();
+			m_pLayout->PlaceBox();
+			return;
+		}
+
+		// ensure the contents of the phrase box are saved to the KB, because after insertion
+		// the placeholder will be the current location - Note: BEW 30March20, we no longer
+		// allow placeholders to be stored in the KB, but the insert location's pSrcPhrase will
+		// be moved there, and so the passed in pInsertLocPile needs it's translation to be
+		// stored before moving
+		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
+		{
+			m_pView->MakeTargetStringIncludingPunctuation(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+
+			// we are about to leave the current phrase box location, so we must try to
+			// store what is now in the box, if the relevant flags allow it
+			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
+			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			bool bOK;
+			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid warning
+			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
+		}
+
+		m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
+
+		// code wrapped by **** is from InsertNullSourcePhrase, for the "insert before" block of DoInsertPlaceholder()
+ /* ******************************************************************************************************* */
+		/* the legacy call  - pull it's code out and put here */
+		//InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
+
+		bool bAssociatingRightwards = bAssociateLeftwards ? FALSE : TRUE; // easier to work with bAssociatingRightwards TRUE
+		// from above pInsertLocPile2 is where the active pile is - either from passed  in pInsertLocPile, or the first
+		// pile in a user selection - which could be far away from the current phrasebox location
+		int nStartingSequNum = pInsertLocPile2->GetSrcPhrase()->m_nSequNumber; // starts off with same value as nSequNum above
+		// whm 2Aug06 added following test to prevent insertion of placeholder 
+		// in front of \id marker
+		if ((pInsertLocPile2->GetSrcPhrase()->m_markers.Find(_T("\\id")) != wxNOT_FOUND && !bForRetranslation) || (nSequNum == 0))
+		{
+			// user is attempting to insert placeholder before a \id marker which should not be
+			// allowed rather than a message, we'll just beep and return; similarly disallow
+			// insertion at doc start when there is no markup
+			::wxBell();
+			return;
+		}
+		SPList::Node* insertPos = pList->Item(nStartingSequNum); // the position before which
+				// we will make the insertion - insertions in wxList always precede the insertPos
+
+
+
+
+
+
+
+
+
+// TODO more - inserting before block, is above
+
+
+/* ******************************************************************************************************* */
+		m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+												  // BEW added 10Sep08 in support of Vertical Edit mode
+		if (gbVerticalEditInProgress)
+		{
+			// update the relevant parts of the gEditRecord (all spans are affected
+			// equally, except the source text edit section is unchanged)
+			gEditRecord.nAdaptationStep_ExtrasFromUserEdits += 1;
+			gEditRecord.nAdaptationStep_NewSpanCount += 1;
+			gEditRecord.nAdaptationStep_EndingSequNum += 1;
+		}
+
+		// jump to it (can't use old pile pointers, the recalcLayout call 
+		// will have clobbered them)
+		CPile* pPile = m_pView->GetPile(nSequNum);
+		m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
+		
+	} // End of TRUE block for test: if (bInsertBefore)
+
+/* AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA After block begins */
+
+	else // What is wanted is an "insert after" the pInsertLocPile location (and if at
+		 // doc end we do an append, rather than an insert)
+	{
+		// This is the only block which, besides inserting a single placeholder, can
+		// insert several to complete a long Retranslation, etc
+
+		// The following long block of code is taken from the "insert after" block
+		// of the OnInsertNullSrc() handler - and simplified because the "after" choice
+		// associates leftwards (for RTL lenguages, leftwards in the code, but rightwards
+		// in the GUI) - it's now hard coded
+
+		// first save old sequ num for active location
+		m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
+
+		// find the pile after which to do the insertion - it will either be after the
+		// last selected pile if there is a selection current, or after the active location
+		// if no selection is current - beware the case when active location is a doc end!
+		CPile* pInsertLocPile2 = NULL; // initialize
+		wxASSERT(nCount >= 1); // the button or shortcut can only insert one; but
+							   // padding the end of a retranslation, etc, can insert many
+		int nSequNum = -1;
+
+		if (m_pApp->m_selectionLine != -1)
+		{
+			// we have a selection, the pile we want is that of the selection 
+			// list's last element
+			CCellList* pCellList = &m_pApp->m_selection;
+			CCellList::Node* cpos = pCellList->GetLast();
+			pInsertLocPile = cpos->GetData()->GetPile();
+			if (pInsertLocPile2 == NULL)
+			{
+				wxMessageBox(_T(
+					"A zero CPile pointer was set from selection, the insertion cannot be done."),
+					_T(""), wxICON_EXCLAMATION | wxOK);
+				return;
+			}
+			nSequNum = pInsertLocPile2->GetSrcPhrase()->m_nSequNumber;
+			wxASSERT(pInsertLocPile2 != NULL);
+			m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		}
+		else
+		{
+			// no selection, so just insert after wherever the phraseBox currently is located
+			pInsertLocPile2 = pInsertLocPile; // using the signature's passed in location
+			if (pInsertLocPile2 == NULL)
+			{
+				wxMessageBox(_T(
+					"A zero CPile pointer was set from signature, the insertion cannot be done."),
+					_T(""), wxICON_EXCLAMATION | wxOK);
+				return;
+			}
+			nSequNum = pInsertLocPile2->GetSrcPhrase()->m_nSequNumber;
+		}
+		wxASSERT(nSequNum >= 0);
+
+		// check we are not in a retranslation - we can't insert there! If there is no selection
+		// then the passed in pInsertLocPile is used, and it that is in the retranslation (but
+		// we disallow that anyway) the we warn user and return
+		if (pInsertLocPile2->GetSrcPhrase()->m_bRetranslation)
+		{
+			// Disallow insertion
+			wxMessageBox(_(
+				"You cannot insert a placeholder within a retranslation. The command has been ignored.")
+				, _T(""), wxICON_EXCLAMATION | wxOK);
+			m_pView->RemoveSelection();
+			m_pView->Invalidate();
+			m_pLayout->PlaceBox();
+			return;
+		}
+
+		// ensure the contents of the phrase box are saved to the KB
+		// & make the punctuated target string - the active location will shift to
+		// the placeholder, so where it currently is (at passed in pInsertLocPile) has to 
+		// have it's contents saved to the KB before the move is done
+		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
+		{
+			m_pView->MakeTargetStringIncludingPunctuation(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+
+			// we are about to leave the current phrase box location, so we must try to
+			// store what is now in the box, if the relevant flags allow it
+			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
+			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			bool bOK;
+			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid warning
+			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
+		}
+		wxASSERT(bAssociateLeftwards == TRUE);
+
+		// In the legacy code, insertion at the doc end required a dummy CSourcePhrase
+		// be appended, before which left-insertion was done.
+		// Likewise, since we are inserting into a wxList, and list insertions are always to the left
+		// of the Node*, we need a pInsertLocAfter which is the next one after pInsertLoc2, and we
+		// will insert before it. But if at doc end (MaxIndex()) then there is no such pile 
+		// available - in which case we must simulate an Append() to the list instead by appending
+		// a dummy, inserting before it, then removing the dummy
+		bool bDoAppend = FALSE;
+		if (nSequNum == m_pApp->GetMaxIndex()) // note: nSequNum is based on pInsertLoc2 above
+		{
+			bDoAppend = TRUE;
+		}
+		int nStartingSequNum = nSequNum;
+		int nFollowingSequNum = nSequNum + 1;
+
+		// Get local strings in case we need to transfer markers to the end of
+		// the inserted or placeholder
+		wxString endmarkersToTransfer = _T("");
+		wxString inlineNonbindingEndmarkersToTransfer = _T("");
+		wxString inlineBindingEndmarkersToTransfer = _T("");
+		wxString emptyStr = _T("");
+
+		bool bTransferEndMarkers = FALSE; // true if any endmarkers transferred, of the 3 locations
+		bool bMoveEndOfFreeTrans = FALSE; // TRUE if endmarkers need to be transferred to the end
+										  // of a lengthened (by placeholder insertion) free translation span
+		CSourcePhrase* pDummySrcPhrase = NULL; // whm initialized to NULL
+		m_bDummyAddedTemporarily = FALSE; // initialise
+		if (bDoAppend)
+		{
+			// We have to appear to be appending the new instance of the placeholder or placeholders; 
+			// and it or they will associate leftwards. But at doc end we need a CSourcePhrase*
+			// which we can call pFollSrcPhrase before which we can do wxList insert, so instead
+			// of working out how to do the list append append and cover all the bases below, we
+			// will create a dummy CSourcePhrase at doc end, to be the needed pFollSrcPhrase, do
+			// the list insertion before it, and then remove the dummy later on. So here's where
+			// we do this stuff
+			if (nSequNum == m_pApp->GetMaxIndex())
+			{
+				// a dummy is temporarily required
+				m_bDummyAddedTemporarily = TRUE;
+
+				// do the append
+				pDummySrcPhrase = new CSourcePhrase;
+				pDummySrcPhrase->m_srcPhrase = _T("dummy"); // something needed, so a 
+															// pile width can be computed
+				pDummySrcPhrase->m_key = pDummySrcPhrase->m_srcPhrase;
+				pDummySrcPhrase->m_nSequNumber = m_pApp->GetMaxIndex() + 1;
+				wxASSERT(pDummySrcPhrase->m_nSequNumber == nFollowingSequNum);
+				SPList::Node* posTail;
+				posTail = pList->Append(pDummySrcPhrase);
+				wxUnusedVar(posTail); // avoid compiler warning
+
+				// now we need to add a partner pile for it in CLayout::m_pileList
+				pDoc->CreatePartnerPile(pDummySrcPhrase);
+
+				// we need a valid layout which includes the new dummy element on 
+				// its own pile; and the active location being the new max index value
+				m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
+#ifdef _NEW_LAYOUT
+				m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+				m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+				m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporary 
+						// active location, at the dummy one, now we can do the insertion
+
+				pInsertLocPile2 = m_pApp->m_pActivePile; // where our pFollSrcPhrase is located for the insert
+				nSequNum = m_pApp->GetMaxIndex(); // the augmented max index value
+			}
+		} // end of TRUE block for test: if (bDoAppend)
+		
+		// There now is a following instance before which we can insert, and it
+		// will associate leftwards
+		SPList::Node* insertPos = pList->Item(nFollowingSequNum); // the position before which
+			// we will make the insertion - insertion in wxList is always preceding insertPos
+		pFollSrcPhrase = insertPos->GetData(); // it will be the dummy one if we want insertion after doc end
+
+		// BEW added to, 17Feb10, to support doc version 5 -- if the final non-placeholder
+		// instance's m_endMarkers member has content, then that content has to be cleared out
+		// and transferred to the last of the inserted placeholders - this is true in
+		// retranslations, and also for non-retranslation placeholder insertion following a
+		// CSourcePhrase with m_endMarkers with content and the association is leftwards. 
+		// So in the next section of code, deal with the 'in retranslation' case; which is a
+		// left-association, and then any free translation mode case, which is also 
+		// left associating
+
+		// Since the list insertion will occur before nFollowingSequNum, the nStartingSequNum
+		// has become the "previous" sequence number - so we'll need to preserve that and
+		// get it's CSourcePhrase instance too - that's where we'll be looking for endmarkers etc
+		int nPrevSequNum = nStartingSequNum; // see line about 80 lines above
+		if (nPrevSequNum > 0)
+		{
+			SPList::Node* prevPos = pList->Item(nPrevSequNum); // the position we'll examine for
+																// endmarker or final puncts transfers
+			// Get its CSourcePhrase instance
+			pPrevSrcPhrase = prevPos->GetData(); // this is what we examine
+
+			// Test for the m_bEndFreeTrans boolean being TRUE, if it is, moving
+			// the boolean is required when dealing with a retranslation
+			if (pPrevSrcPhrase->m_bEndFreeTrans)
+			{
+				if (bForRetranslation)
+				{
+					pPrevSrcPhrase->m_bEndFreeTrans = FALSE; // we'll make it TRUE at placeholder
+					// only code in a "for retranslation" block will look at the
+					// bMoveEndOfFreeTrans boolean
+					bMoveEndOfFreeTrans = TRUE;
+				}
+			}
+			// Next, test for endmarker or endmarkers needing transfer - set
+			if (!pPrevSrcPhrase->GetEndMarkers().IsEmpty() ||
+				!pPrevSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty() ||
+				!pPrevSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				bTransferEndMarkers = TRUE;
+				if (!pPrevSrcPhrase->GetEndMarkers().IsEmpty())
+				{
+					endmarkersToTransfer = pPrevSrcPhrase->GetEndMarkers();
+					pPrevSrcPhrase->SetEndMarkers(emptyStr); // empty, we set them on the following srcPhrase
+				}
+				if (!pPrevSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				{
+					inlineNonbindingEndmarkersToTransfer = pPrevSrcPhrase->GetInlineNonbindingEndMarkers();
+					pPrevSrcPhrase->SetInlineNonbindingEndMarkers(emptyStr); // empty, we set them on the following srcPhrase
+				}
+				if (!pPrevSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					inlineBindingEndmarkersToTransfer = pPrevSrcPhrase->GetInlineBindingEndMarkers();
+					pPrevSrcPhrase->SetInlineBindingEndMarkers(emptyStr); // empty, we set them on the following srcPhrase
+				}
+			} // end of TRUE block for an endmarker or endmarkers to move to the placeholder
+
+		} // end of TRUE block for test: if (nPrevSequNum > 0)
+
+		// BEW 21Jul14, Set a default src text wordbreak string for the placeholder
+		// - get it from the previous instance
+//		bool bWordBreakDifference = FALSE; // initialised default <<-- usage deprecated by newer code below
+		wxString defaultWordBreak = _T(" "); // a space, in case there is no previous CSourcePhrase
+		if (pPrevSrcPhrase != NULL)
+		{
+			defaultWordBreak = pPrevSrcPhrase->GetSrcWordBreak();
+		}
+		// get the sequ num for the wxList's insertion location  -  
+		// (it could be quite diff from active sequ num)
+		int	nSequNumInsLoc = pFollSrcPhrase->m_nSequNumber;
+		wxASSERT(nSequNumInsLoc >= 0 && nSequNumInsLoc <= m_pApp->GetMaxIndex());
+		wxASSERT(insertPos != NULL); // the wxList's Node's position for inserting - see above
+
+		// save the old active sequ num location, so we can restore later on, 
+		// since the call to RecalcLayout() will clobber pointers
+		int nActiveSequNum = m_pApp->m_nOldSequNum; // RHS set above at beginning of the 'after' block
+
+		// we may be inserting in the context of a footnote, either within it, or next to it -
+		// so we will need to do some checks to determine whether or not we will have to set
+		// the TextType as 'footnote'. A sufficient condition for being 'within' a footnote is
+		// m_bFootnote = FALSE but m_curTextType == footnote; the insertion before the start of
+		// a footnote, or after the end of a footnote, will be dealt with further down in the
+		// current function.
+		if (!bForRetranslation)
+		{
+			// retranslation case is taken care of by handlers OnButtonRetranslation and
+			// OnButtonEditRetranslation, so only the normal null srcphrase insertion needs to
+			// be considered here
+			if (pFollSrcPhrase->m_curTextType == footnote &&
+				pFollSrcPhrase->m_bFootnote == FALSE)
+				m_pApp->GetRetranslation()->SetIsInsertingWithinFootnote(TRUE);
+		}
+
+		// create the needed null source phrases and insert them in the list; 
+		// preserve pointers to the first and last for use further below
+		CSourcePhrase* pFirstOne = NULL; // whm initialized to NULL
+		CSourcePhrase* pLastOne = NULL; // whm initialized to NULL
+
+		for (int i = 0; i<nCount; i++)
+		{
+			CSourcePhrase* pSrcPhrasePH = new CSourcePhrase; // PH means 'PlaceHolder'
+			if (i == 0)
+			{
+				pFirstOne = pSrcPhrasePH;
+				pFollSrcPhrase = pSrcPhrasePH; // BEW 1Apr20, LHS was pSrcPhrase (marked
+					// as unknown), I changed to pFollSrcPhrase, as that was  the
+					// insert location before which placeholder(s) get inserted, so will
+					// take its sequence number in the updating of the order  <<--  I think this is the correct thinking ****
+			}
+			if (i == nCount - 1)
+			{
+				pLastOne = pSrcPhrasePH;
+			}
+			pSrcPhrasePH->m_bNullSourcePhrase = TRUE;
+			pSrcPhrasePH->m_srcPhrase = _T("...");
+			pSrcPhrasePH->m_key = _T("...");
+			pSrcPhrasePH->m_nSequNumber = nStartingSequNum + i; // ensures the
+					// UpdateSequNumbers() call starts with correct value
+			// Handle retranslation end padding...
+			if (bForRetranslation)
+			{
+				// if we are calling the function as part of rendering a retranslation, then we
+				// will want to set the appropriate flags for each of the null source phrases
+				pSrcPhrasePH->m_bRetranslation = TRUE;
+				pSrcPhrasePH->m_bNotInKB = TRUE;
+
+				// BEW added 22Jul05 for support of free translations. We assume placeholders
+				// within a free translation section in a retranslation belong to the free
+				// translation section - provided that section exists at the last sourcephrase
+				// instance before the first placeholder, and if the last sourcephrase before
+				// the first placeholder was the end of the free translation section, then we
+				// move the end of the section to the last placeholder as well
+				if (pPrevSrcPhrase->m_bHasFreeTrans)
+					pSrcPhrasePH->m_bHasFreeTrans = TRUE; // handles the 'within' case
+				if ((i == nCount - 1) && bMoveEndOfFreeTrans)
+				{
+					// move the end of the free translation to this last one (flag on old
+					// location is already cleared above in anticipation of this)
+					wxASSERT(pLastOne);
+					pLastOne->m_bEndFreeTrans = TRUE;
+				}
+				// do the move of endmarkers to be transferred to the last placeholder in the
+				// retranslation
+				if ((i == nCount - 1) && bTransferEndMarkers)
+				{
+					// move the endMarkers to this last one (old m_endMarkers
+					// location is already cleared above in anticipation of this)
+					wxASSERT(pLastOne);
+					pLastOne->SetEndMarkers(endmarkersToTransfer);
+					pLastOne->SetInlineNonbindingEndMarkers(inlineNonbindingEndmarkersToTransfer);
+					pLastOne->SetInlineBindingEndMarkers(inlineBindingEndmarkersToTransfer);
+				}
+			} // end of TRUE block for test:  if (bForRetranslation)
+
+				// set the footnote TextType if the flag is TRUE; the flag can be set TRUE within
+				// the handlers for retranslation, edit of a retranslation, edit of source text,
+				// and in the this function itself. We have to get the type right, because
+				// the user might output interlinear RTF with footnote suppression wanted,
+				// so we have to ensure that these placeholders have the footnote TextType set 
+				// so that the suppression will work properly
+			if (m_pApp->GetRetranslation()->GetIsInsertingWithinFootnote())
+			{
+				pSrcPhrasePH->m_curTextType = footnote;
+				if (!pSrcPhrasePH->m_bRetranslation)
+				{
+					pSrcPhrasePH->m_bSpecialText = TRUE; // want it to have special text colour
+					// retranslations can be done within a footnote, but we don't have to
+					// here worry about text colour because the retranslation gets its own
+					// text colour
+				}
+			}
+
+			pList->Insert(insertPos, pSrcPhrasePH); // insertPos (line 3326) set above at pFollSrcPhrase
+
+			// BEW added 13Mar09 for refactored layout
+			pDoc->CreatePartnerPile(pSrcPhrasePH);
+
+		} // end of for loop for inserting one or more placeholders
+			// BEW 11Oct10, NOTE: transfer, for insertions in a retranslation span, of m_follPunct
+			// data and m_follOuterPunct data could have been done above; for no good reason though
+			// they are done below instead - in the else block of the next major test
+
+		// fix the sequ num for the insert location's source phrase (i.e. it was created
+		// from pFollSrcPhrase's m_nSequNumber value above, in this "insert after" block),
+		// and that was augmented by 1 to allow a wxList insert to be done from pFollSrecPhrase;
+		// so here we need to remove the + 1; and then add the nCount. Next line written that
+		// way to document why we don't just add nCount, nor nCount - 1.
+		nSequNumInsLoc = (nSequNumInsLoc - 1) + nCount;
+
+		// calculate the new active sequ number - it could be anywhere, but all we need to know
+		// is whether or not the insertion was done preceding the former active sequ number's
+		// location, or not
+		if (nStartingSequNum <= nActiveSequNum)
+		{
+			// This is where the new active location should be moved to, if possible
+			m_pApp->m_nActiveSequNum = nActiveSequNum + nCount;
+		}
+		// update the sequence numbers, starting from the first one inserted (although the
+		// layout of the view is no longer valid, the relationships between piles,
+		// CSourcePhrases and sequence numbers will be correct after the following call, and so
+		// we can, for example, get the correct pile pointer for a given sequence number and
+		// from the pointer, get the correct CSourcePhrase)
+		m_pView->UpdateSequNumbers(nStartingSequNum);  // starts the renumbering at nStartingSequNum
+
+		// Now tease apart the legacy association direction code. We here are in the block for
+		// "insert ... after active location" and so we want the associating leftwards code.
+		// In our refactored code, there is always an association direction in place... so
+		bool bAssociationRequired = TRUE;  // the legacy code initialized this to FALSE  <<--  Might not need this boolean
+		wxUnusedVar(bAssociationRequired);
+		// BEW 17Feb10 we have to consider association direction when there is a non-empty
+		// m_endMarkers member preceding the inserted placeholder; because association is
+		// to the left, then we must move the m_endMarkers content on to the inserted placeholder.
+		// In fact, our richer document model means we have to look for inline binding end markers,
+		// and inline non-binding endmarkers, and move them likewise.
+		// A a copy of the endMarkers on the preceding CSourcePhrase has already been obtained above, 
+		// it is in the local variable endmarkersToTransfer (as of docVersion = 5). Likewise, the local
+		// string variables: inlineNonbindingEndmarkersToTransfer and inlineBindingEndmarkersToTransfer
+
+		// The following 2 booleans are only looked at by code for "not-for-retranslation" blocks
+
+		bool bPreviousFollPunct = FALSE; // true if the leftwards-of-placeholder 
+				//  CSourcePhrase has one or both of m_follPunct and m_follOuterPunct having content
+		bool bEndMarkersPrecede = bTransferEndMarkers; // set true when the leftwards-of-placeholder
+				// srcPhrase has endmarkers from any or all of the 3 endmarker storage members -
+				// m_endMarkers, m_inlineBindingEndMarkers, m_inlineNonbindingEndMarkers
+		if (!pCurrentSrcPhrase->m_follPunct.IsEmpty())
+		{
+			bPreviousFollPunct = TRUE;
+		}
+		if (!pCurrentSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		{
+			bPreviousFollPunct = TRUE;
+		}
+
+		// This is a major block for when inserting manually (ie. not in a retranslation), and
+		// manual insertions are always only a single placeholder per insertion command by the
+		// user, and so nCount in here will only have the value 1. (Retranslations handled above)
+		if (!bForRetranslation)
+		{
+			// First, handle sourcetext word-break (swbk). The inserted placeholder will be given
+			// a default word-break of a single Latin space, or is just simply empty as yet. In 
+			// Asian languages, since we are left associating here, the text to the left might be 
+			// delimiting words with a zero-width space (ZWSP), or there may be a newline. If its
+			// a newline then a space will suffice before the placeholder, but otherwise we need 
+			// to make sure that the placeholder's CSourcePhrase stores a word delimitation value
+			// that is the same as what precedes the word (or phrase) at pInsertLocPile
+			wxString defaultWordBreak = _T(" ");
+			pLastOne->SetSrcWordBreak(defaultWordBreak); // give the placeholder a safe default
+			wxString previousWordBreak = wxEmptyString;
+			wxString strNewline = _T('\n');
+			if (pCurrentSrcPhrase != NULL)
+			{
+				previousWordBreak = pCurrentSrcPhrase->GetSrcWordBreak(); // could be space, newline, ZWSP, ...
+			}
+			if (defaultWordBreak != previousWordBreak)
+			{
+				if (previousWordBreak.IsEmpty())
+				{
+					// Space will have to do
+					pLastOne->SetSrcWordBreak(defaultWordBreak);
+				}
+				else // it's not empty
+				{
+					// Is it a newline?
+					if (previousWordBreak == strNewline)
+					{
+						pLastOne->SetSrcWordBreak(defaultWordBreak);
+					}
+					else
+					{
+						// Give it the left-of-Placeholder's CSourcePhrase value for the word-break string
+						pLastOne->SetSrcWordBreak(previousWordBreak);
+					}
+				}
+			} // end of TRUE block for test: if (defaultWordBreak != previousWordBreak)
+
+			// BEW 11Oct10, warn left association is not permitted when a word pair
+			// joined by the USFM ~ (fixed-space indicator symbol) precedes
+			if (IsFixedSpaceSymbolWithin(pCurrentSrcPhrase))
+			{
+				wxMessageBox(_(
+"Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nAssociation with the two words is not possible."),
+_("Warning: Unacceptable Backwards Association"), wxICON_EXCLAMATION | wxOK);
+				goto m; // make no further adjustments, just jump to the RecalcLayout() call near the end
+			}
+			// the association is to the text which precedes, so transfer from there
+			// to the last in the list, or the only one if nCount is 1
+
+			if (bEndMarkersPrecede)
+			{
+				// these have to be moved to the placeholder, pLastOne; the 3 strings were
+				// set further up in the function, and their pCurrentSrcPhrase members for
+				// these were cleared above too
+				pLastOne->SetEndMarkers(endmarkersToTransfer);
+				pLastOne->SetInlineNonbindingEndMarkers(inlineNonbindingEndmarkersToTransfer);
+				pLastOne->SetInlineBindingEndMarkers(inlineBindingEndmarkersToTransfer);
+			}
+			if (bPreviousFollPunct)
+			{
+				// transfer the following punctuation
+				pLastOne->m_follPunct = pCurrentSrcPhrase->m_follPunct;
+				pCurrentSrcPhrase->m_follPunct.Empty();
+
+				pLastOne->SetFollowingOuterPunct(pCurrentSrcPhrase->GetFollowingOuterPunct());
+				pCurrentSrcPhrase->SetFollowingOuterPunct(emptyStr);
+
+				// do an adjustment of the m_targetStr member (because it has just lost
+				// its following punctuation to the placeholder), simplest solution is
+				// to make it same as the m_adaption member
+				pCurrentSrcPhrase->m_targetStr = pCurrentSrcPhrase->m_adaption;
+			}
+
+
+
+
+// TODO  more yet here - so far at 1134 in CODE app
+
+
+		} // end of TRUE block for test: if (!bForRetranslation)
+
+
+
+
+
+
+// TODO left associating, inserted-after
+		
+
+		// legacy code follows -- it will be replaced by content from InsertNullSourcePhrase() etc
+		/*
+		else
+		{
+			// the 'next' pile is not beyond the document's end, so make it the insert
+			// location
+			CPile* pPile = m_pView->GetNextPile(pInsertLocPile);
+			wxASSERT(pPile != NULL);
+			pInsertLocPile = pPile;
+			m_pApp->m_pActivePile = pInsertLocPile; // ensure it is up to date
+			nSequNum++; // make the sequence number agree
+		}
+
+		m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
+		InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount, TRUE, FALSE, FALSE); // here, never
+																				  // for Retransln
+		m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+												  // if we inserted a dummy, now get rid of it and clear the global flag
+		if (m_bDummyAddedTemporarily)
+		{
+			m_bDummyAddedTemporarily = FALSE;
+
+			// first, remove the temporary partner pile
+			pDoc->DeletePartnerPile(pDummySrcPhrase);
+
+			// now remove the dummy element, and make sure memory is not leaked!
+			if (pDummySrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pSavedWords;
+			if (pDummySrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialMarkers;
+			if (pDummySrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialPuncts;
+			bool deleteOK;
+			deleteOK = pSrcPhrases->DeleteNode(pSrcPhrases->GetLast());
+			wxASSERT(deleteOK);
+			deleteOK = deleteOK; // avoid warning (BEW 3Jan12, leave it as is, a leak is unlikely)
+			if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase;
+
+			// get another valid layout
+			m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
+#ifdef _NEW_LAYOUT
+			m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+			m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+			m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporarily at the end, 
+																			 // caller will fix
+			nSequNum = m_pApp->GetMaxIndex();
+		}
+
+		// BEW added 10Sep08 in support of Vertical Edit mode
+		if (gbVerticalEditInProgress)
+		{
+			// update the relevant parts of the gEditRecord (all spans are affected
+			// equally, except the source text edit section is unchanged)
+			gEditRecord.nAdaptationStep_ExtrasFromUserEdits += 1;
+			gEditRecord.nAdaptationStep_NewSpanCount += 1;
+			gEditRecord.nAdaptationStep_EndingSequNum += 1;
+		}
+
+		// jump to it (can't use old pile pointers, the recalcLayout call 
+		// will have clobbered them)
+		CPile* pPile = m_pView->GetPile(nSequNum);
+		m_pView->Jump(m_pApp, pPile->GetSrcPhrase()); // whm note: calls ScrollIntoView(), PlacePhraseBox(2), Invalidate() and PlaceBox()
+*/	
+
+
+
+
+
+
+
+
+
+
+		// TODO
+	}  // End of FALSE block for test: if (bInsertBefore) i.e. ends the block for inserting "after"
+
+	/* AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA After block ends */
+
+	// recalculate the layout
+#ifdef _NEW_LAYOUT
+
+m : m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+
+	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+	wxASSERT(m_pApp->m_pActivePile);
+
+	// don't draw the layout and the phrase box when this function is called
+	// as part of a larger inclusive procedure
+	if (bRestoreTargetBox)
+	{
+		// restore focus, and selection if any
+		// whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+		// SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+		// whm 3Aug2018 Note: The following SetSelection restores any previous
+		// selection, so no adjustment for 'Select Copied Source' needed here.
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar);
+
+		// scroll into view, just in case a lot were inserted
+		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+	}
+	m_pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+}
+
+
+void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
+{
+	CAdapt_ItApp* pApp = m_pApp;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CPile* pInsertLocPile = pApp->m_pActivePile;
+	int nCount = 1; // The button or shortcut can only insert one
+	bool bRestoreTargetBox = TRUE;
+	bool bForRetranslation = FALSE;
+	bool bInsertBefore = TRUE;
+	bool bAssociateLeftwards = FALSE; // we want rightwards association
+
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NULL_SRC_LEFT);
+	// Return if the toolbar item is hidden or disabled															   
+	if (tbi == NULL)
+	{
+		::wxBell();
+		return;
+	}
+	// whm 20Mar2020 modified test below to detect whether the insert placeholder 
+	// to left button is disabled, if so abort insertion
+	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_LEFT))
+	{
+		::wxBell();
+		return;
+	}
+	if (gbIsGlossing)
+	{
+		//IDS_NOT_WHEN_GLOSSING
+		wxMessageBox(_(
+			"This particular operation is not available when you are glossing."),
+			_T(""), wxICON_INFORMATION | wxOK);
+		return;
+	}
+
+	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
+		bForRetranslation, bInsertBefore, bAssociateLeftwards);
+}
+
+void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
+{
+	CAdapt_ItApp* pApp = m_pApp;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CPile* pInsertLocPile = pApp->m_pActivePile;
+	int nCount = 1;  // The button or shortcut can only insert one
+	bool bRestoreTargetBox = TRUE;
+	bool bForRetranslation = FALSE;
+	bool bInsertBefore = FALSE;
+	bool bAssociateLeftwards = TRUE; // we want leftwards association
+
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NULL_SRC_RIGHT);
+	// Return if the toolbar item is hidden or disabled															   
+	if (tbi == NULL)
+	{
+		::wxBell();
+		return;
+	}
+	// whm 20Mar2020 modified test below to detect whether the insert placeholder 
+	// to right button is disabled, if so abort insertion
+	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_RIGHT))
+	{
+		::wxBell();
+		return;
+	}
+	if (gbIsGlossing)
+	{
+		//IDS_NOT_WHEN_GLOSSING
+		wxMessageBox(_(
+			"This particular operation is not available when you are glossing."),
+			_T(""), wxICON_INFORMATION | wxOK);
+		return;
+	}
+
+	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
+		bForRetranslation, bInsertBefore, bAssociateLeftwards);
+}
+
+
+#endif

@@ -692,6 +692,11 @@ public:
 		bool bSaveWithinAttributesSpanValue; // If editing source text, m_bWithinMkrAttributeSpan
 			// has to be FALSE until the source text edit is done with; so here cache the 
 			// boolean's value across the handler for editing source text
+		bool IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr); // BEW 3Apr20, for refactored placeholder insertion
+		bool GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& finalMkr); // BEW 3Apr20, for refactored placeholder insertion
+		bool GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, 
+									int& atBeginSequNum, int& atMatchSequNum); // BEW 3Apr20, for 
+									// refactored placeholder insertion
 protected:
 		wxChar* m_ptr;
 		wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
