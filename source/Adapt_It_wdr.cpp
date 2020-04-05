@@ -9724,14 +9724,20 @@ wxSizer *PlaceholderInsertDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item4 = new wxButton( parent, wxID_YES, _("YES"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->SetDefault();
+    wxButton *item4 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetToolTip( _("Click Cancel to abort insertion of placeholder") );
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item3->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item5 = new wxButton( parent, wxID_NO, _("NO"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item5 = new wxButton( parent, wxID_YES, _("Yes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetDefault();
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item6 = new wxButton( parent, wxID_NO, _("No"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item3, 0, wxALIGN_RIGHT|wxALL, 5 );
 
