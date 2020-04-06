@@ -4296,7 +4296,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				{
 					wxString chNum = _T("0"); // initialise
 					wxString vsNum = _T("-1"); // initialise
-					bool bOK = gpApp->SeparateChapterAndVerse(gpSrcPhrase->m_chapterVerse,
+					bool bOK = SeparateChapterAndVerse(gpSrcPhrase->m_chapterVerse,
 						chNum, vsNum);
 					if (bOK)
 					{
@@ -7794,8 +7794,10 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 		gpApp->m_bParsingSource = TRUE;
 		wxString myFilename(_T("Log_Doc_XML_Load_Attempt"));
 		gpApp->m_filename_for_ParsingSource = myFilename;
-
-		gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(gpApp->m_curOutputFilename);
+        // whm 5Apr2020 changed the parameter sent to SetupDocCreationLog() below to gpApp->m_filename_for_ParsingSource,
+        // after noting that when opening an existing non-collaboration document, the OnOpenDocument() call in the Doc, 
+        // the App's gpApp->m_curOutputFilename is empty - triggering a wxASSERT in SetupDocCreationLog().
+        gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(gpApp->m_filename_for_ParsingSource); //gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(gpApp->m_curOutputFilename);
 	}
 
 	// whm 24Aug11 modified to move the wxProgressDialog from this
@@ -7849,7 +7851,39 @@ bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint3
 	bool bXMLok = ParseXML(path,progressTitle,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
-}	
+}
+
+// whm 5Apr2020 moved to here from Adapt_It.cpp since it is only called in a function defined here ()
+bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
+{
+    wxString colon = _T(":");
+    wxString zero = _T("0");
+    int offset = wxNOT_FOUND;
+
+    //  chapterVerse might be an empty string - if so, return "0" for each, and FALSE
+    if (chapterVerse.IsEmpty())
+    {
+        strChapter = zero;
+        strVerse = zero;
+        return FALSE;
+    }
+    // If there is no colon, return "0" for chapter, and the rest as strVerse, and TRUE
+    offset = chapterVerse.Find(colon);
+    if (offset == wxNOT_FOUND)
+    {
+        strChapter = zero;
+        strVerse = chapterVerse;
+        return TRUE;
+    }
+    else
+    {
+        // A colon was found, so separate into chapter and verse strings, return TRUE
+        strChapter = chapterVerse.Left(offset);
+        offset++;
+        strVerse = chapterVerse.Mid(offset);
+    }
+    return TRUE;
+}
 
 /*****************************************************************
 *

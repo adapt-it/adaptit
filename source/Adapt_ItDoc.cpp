@@ -12624,7 +12624,8 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-	}
+        halt_here = halt_here; // avoid gcc warning
+    }
 #endif
 	int inputLen = len; // save the input len value - so that if a marker is found and
 						// stored, we can easily test for that fact
@@ -30990,7 +30991,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1;
-			}
+                halt_here = halt_here; // avoid gcc warning
+            }
 #endif
 			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
 				bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
@@ -31697,7 +31699,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-	}
+        halt_here = halt_here; // avoid gcc warning
+    }
 #endif
 	// If ptr points at punctuation, start collecting it
 	bool bMorePunctsHaveBeenAccepted = FALSE;

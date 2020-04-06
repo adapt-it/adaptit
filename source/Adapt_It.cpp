@@ -56745,6 +56745,8 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     return TRUE; // tell caller we found one or more substrings
 }
 
+// whm 5Apr2020 moved to XML.cpp since it is only used there
+/*
 bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
 {
 	wxString colon = _T(":");
@@ -56775,6 +56777,7 @@ bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strC
 	}
 	return TRUE;
 }
+*/
 
 /*  Note the new values.....
 enum ServDiscInitialDetail
