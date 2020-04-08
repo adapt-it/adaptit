@@ -41,10 +41,12 @@ public:
     void CreateControls();
 
 	wxScrolledWindow* m_scrolledWindow;
-	
+    wxCheckBox*	m_pCheckboxMakeDocCreationLogfile;
+
 	wxSizer* pDocPageSizer;
 	bool m_bForceUTF8;
-	wxString m_staticModeStr;
+    bool bTempMakeDocCreationLogfile;
+    wxString m_staticModeStr;
 	wxString m_staticFolderStr;
 	wxString m_docName;
 
@@ -71,8 +73,9 @@ protected:
 	void OnWizardPageChanging(wxWizardEvent& event);
 	void OnButtonWhatIsDoc(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeFolder(wxCommandEvent& event);
-	void OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event));
-	//void OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event));
+    void OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event));
+    void OnCheckMakeDocCreationLogfile(wxCommandEvent& WXUNUSED(event));
+    //void OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// other class attributes

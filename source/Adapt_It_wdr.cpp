@@ -1209,21 +1209,24 @@ wxSizer *DocPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item8->SetToolTip( _("List of Adapt It documents in the current project") );
     item0->Add( item8, 1, wxGROW|wxALL, 5 );
 
-    wxCheckBox *item9 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
+    wxCheckBox *item9 = new wxCheckBox( parent, ID_CHECKBOX_DOCPAGE_DIAGNOSTIC_LOG, _("Make diagnostic logfile during document creation and opening"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item9, 0, wxLEFT, 10 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxCheckBox *item10 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
+    item0->Add( item10, 0, wxLEFT, 10 );
 
-    wxButton *item11 = new wxButton( parent, IDC_CHANGE_FOLDER_BTN, _("Change Folder..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Click this button to change the folder for storing documents") );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item12 = new wxCheckBox( parent, IDC_CHECK_FORCE_UTF8, _("Force UTF-8 encoding for source data input"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetToolTip( _("Check this box to force Adapt It to read the input file as Unicode UTF-8 data") );
-    item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item12 = new wxButton( parent, IDC_CHANGE_FOLDER_BTN, _("Change Folder..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Click this button to change the folder for storing documents") );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxCheckBox *item13 = new wxCheckBox( parent, IDC_CHECK_FORCE_UTF8, _("Force UTF-8 encoding for source data input"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Check this box to force Adapt It to read the input file as Unicode UTF-8 data") );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -1769,10 +1772,6 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
     item0->Add( item30, 0, wxLEFT, 5 );
-
-    wxCheckBox *item31 = new wxCheckBox( parent, ID_CHECKBOX_DIAGNOSTIC_LOG, _("Document creation failed. Make logfile on next try. (Warning: time consuming)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetToolTip( _("Creates logfile: Log_For_Document_Creation.txt in _LOGS_EMAIL_REPORTS folder ") );
-    item0->Add( item31, 0, wxLEFT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
@@ -6317,16 +6316,19 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item20->SetToolTip( _("More information about the status of a selected chapter or book") );
     item0->Add( item20, 1, wxGROW|wxALL, 5 );
 
-    wxStaticLine *item21 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item21, 0, wxGROW|wxALL, 5 );
+    wxCheckBox *item21 = new wxCheckBox( parent, ID_CHECKBOX_COLLAB_DIAGNOSTIC_LOG, _("Make diagnostic logfile during document creation and opening"), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item21, 0, wxALL, 5 );
 
-    wxStdDialogButtonSizer *item22 = new wxStdDialogButtonSizer;
+    wxStaticLine *item22 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item0->Add( item22, 0, wxGROW|wxALL, 5 );
+
+    wxStdDialogButtonSizer *item23 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item22->AddButton( button ); }
-    item22->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item22->Realize();
-    item0->Add( item22, 0, wxGROW|wxALL, 5 );
+      item23->AddButton( button ); }
+    item23->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item23->Realize();
+    item0->Add( item23, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

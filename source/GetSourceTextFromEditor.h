@@ -41,6 +41,7 @@ public:
 	wxStaticText* pFreeTransProj;
 	wxStaticBox* pStaticBoxUsingTheseProjects;
 	wxStaticText* pUsingAIProjectName;
+    wxCheckBox* m_pCheckboxMakeDocCreationLogfile;
 	//wxButton* pBtnChangeProjects;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
@@ -80,6 +81,7 @@ public:
 	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
 	wxString m_SaveCollabChapterSelected;
 	bool m_bSaveCollaborationExpectsFreeTrans;
+    bool m_bTempSaveMakeDocCreationLogfile;
 
 	wxArrayString projList;
 
@@ -113,6 +115,7 @@ protected:
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
+    void OnCheckBoxClicked(wxCommandEvent& WXUNUSED(event));
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);

@@ -225,11 +225,20 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			break;
 #endif
 		case 27: // a wait message if the user turns on the diagnostic log file creation for a doc parse failure
-			WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
-			break;
+            //WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
+            // whm 6Apr2020 reformulating the wait message below. Previously this message was presented
+            // due to the long time it took to generate the doc creation log file. Log file creation now
+            // however, is not the source of the delay in creating a new document in OnNewDocument, rather
+            // it is the time taken to process TokenizeText(). Hence, I'm making this waitMsg a more
+            // general one as shown below
+            WaitMsg = _("Please wait while creating a new document...");
+            break;
 		case 28: // a wait message if the user enters or leaves "See Glosses" mode from or to adapting mode, respectively
 			WaitMsg = _("Please wait: all widths are being resized, then strips created again");
 			break;
+        case 29:
+            WaitMsg = _("Please wait while creating a new document - and creates a diagnostic log in folder _LOGS_EMAIL_REPORTS...");
+            break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}

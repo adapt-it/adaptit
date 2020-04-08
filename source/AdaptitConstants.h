@@ -133,6 +133,9 @@
 #define DISPARATE_SIZES_DENOMINATOR 2
 
 #define NUM_OLD_USERPROFILES_FILES_TO_KEEP 4
+
+#define NUM_OLD_DOC_CREATION_FILES_TO_KEEP 5
+
 // NUMINSERTS is the maximum number of consecutive auto-inserts before the m_nInsertCount
 // is reset to 0 for the next sequence of that many. Thaw() calls are done at the OnePass()
 // call which is penultimate to this NUMINSERTS call.
