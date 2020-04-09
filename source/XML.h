@@ -334,6 +334,9 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressTit
 // parsing of the XML file
 bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint32 nProgMax);
 
+// whm 5Apr2020 moved from Adapt_It.h to here
+bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse);
+
 // read and parse function for Adapt It xml prefix and suffix files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file

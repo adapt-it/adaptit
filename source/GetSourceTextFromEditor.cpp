@@ -73,6 +73,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
+    EVT_CHECKBOX(ID_CHECKBOX_COLLAB_DIAGNOSTIC_LOG, CGetSourceTextFromEditorDlg::OnCheckBoxClicked)
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
@@ -128,6 +129,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pFreeTransProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_FREETRANS_PROJ);
 	wxASSERT(pFreeTransProj != NULL);
+
+    m_pCheckboxMakeDocCreationLogfile = (wxCheckBox*)FindWindowById(ID_CHECKBOX_COLLAB_DIAGNOSTIC_LOG);
+    wxASSERT(m_pCheckboxMakeDocCreationLogfile != NULL);
 
 	// Note: STATIC_TEXT_DESCRIPTION is a pointer to a wxStaticBoxSizer which wxDesigner casts back
 	// to the more generic wxSizer*, so we'll use a wxDynamicCast() to cast it back to its original
@@ -213,6 +217,11 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
         PTvers = m_pApp->m_collaborationEditor;
     usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
     pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
+
+    // whm 6Apr2020 added check box at bottom of dialog "Make diagnostic logfile during document creation and opening"
+    // Set the tick mark to agree with what's on the App's m_bMakeDocCreationLogfile
+    m_bTempSaveMakeDocCreationLogfile = m_pApp->m_bMakeDocCreationLogfile;
+    m_pCheckboxMakeDocCreationLogfile->SetValue(m_bTempSaveMakeDocCreationLogfile); // initially defaults to FALSE
 
 	// Assign the Temp values for use in this dialog until OnOK() executes
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
@@ -481,6 +490,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 						// bare number string rather than the list box's book + ' ' + chnumber
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
+
+    // whm 6Apr2020 added check box at bottom of dialog "Make diagnostic logfile during document creation and opening"
+    // Set the App's m_bMakeDocCreationLogfile to whether check box is ticked or not.
+    m_pApp->m_bMakeDocCreationLogfile = m_bTempSaveMakeDocCreationLogfile;
+
 
 	// whm 26Feb12 Note: With project-specific collaboration, the user's choice of
 	// m_CollabBookSelected and m_CollabChapterSelected within the current dialog has
@@ -1485,6 +1499,11 @@ void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WX
 	EndModal(wxID_OK);
 }
 
+void CGetSourceTextFromEditorDlg::OnCheckBoxClicked(wxCommandEvent& WXUNUSED(event))
+{
+    m_bTempSaveMakeDocCreationLogfile = m_pCheckboxMakeDocCreationLogfile->GetValue();
+}
+
 void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 {
 	pListBoxBookNames->SetSelection(-1); // remove any selection
@@ -1504,6 +1523,9 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 		pStatusBar->SetStatusText(message,0); // use first field 0
 		m_pApp->LogUserAction(message);
 	}
+
+    // whm 6Apr2020 if user ticked the Make diagnostic logfile... check box before canceling,
+    // don't change the App's value - leave it at what it was upon entry to this dialog.
 
 	// whm 19Sep11 modified:
 	// Previously, OnCancel() here emptied the m_pApp->m_curProjectPath. But that I think should

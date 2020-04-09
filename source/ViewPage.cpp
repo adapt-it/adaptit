@@ -87,7 +87,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempShowAdminMenu = pApp->m_bShowAdministratorMenu;
 	tempNotLegacySourceTextCopy = FALSE;
 	bTempFreezeAndThaw = FALSE;
-	bTempMakeDocCreationLogfile = FALSE;
+	//bTempMakeDocCreationLogfile = FALSE;
 
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
@@ -102,7 +102,9 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
 	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
-	m_pCheckboxMakeDocCreationLogfile = (wxCheckBox*)FindWindowById(ID_CHECKBOX_DIAGNOSTIC_LOG);
+    // whm 6Apr2020 removed check box from ViewPage
+	//m_pCheckboxMakeDocCreationLogfile = (wxCheckBox*)FindWindowById(ID_CHECKBOX_DIAGNOSTIC_LOG);
+    //wxASSERT(m_pCheckboxMakeDocCreationLogfile != NULL);
 
 	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
 	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
@@ -378,8 +380,9 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	pApp->m_AutoInsertionsHighlightColor = tempAutoInsertionsHighlightColor;
 	pApp->m_bShowAdministratorMenu = m_pCheckShowAdminMenu->GetValue();
 	
-	bTempMakeDocCreationLogfile = m_pCheckboxMakeDocCreationLogfile->GetValue();
-	pApp->m_bMakeDocCreationLogfile = bTempMakeDocCreationLogfile;
+    // whm 6Apr2020 removed check box from ViewPage
+    //bTempMakeDocCreationLogfile = m_pCheckboxMakeDocCreationLogfile->GetValue();
+	//pApp->m_bMakeDocCreationLogfile = bTempMakeDocCreationLogfile;
 }
 
 void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -387,7 +390,8 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// initialize our local temp variables from those on the App, where relevant
-	bTempMakeDocCreationLogfile = FALSE; // never permanently, set m_bMakeDocCreationLogfile on the app, and clear to FALSE
+    // whm 6Apr2020 removed check box from ViewPage
+    //bTempMakeDocCreationLogfile = FALSE; // never permanently, set m_bMakeDocCreationLogfile on the app, and clear to FALSE
 										 // when the next doc create attempt finishes
 	tempLeading = pApp->m_curLeading;
 	tempGapWidth = pApp->m_curGapWidth;
@@ -418,11 +422,13 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
 
 	// BEW added 22Jul16
-	bTempMakeDocCreationLogfile = pApp->m_bMakeDocCreationLogfile; // should be FALSE at entry to view page
-			// because we don't want the user to be able to leave this setting on indefinitely - it works
-			// at about 150 source text words a second - so a large file can take minutes to parse in if ON
-	wxASSERT(!bTempMakeDocCreationLogfile);
-	m_pCheckboxMakeDocCreationLogfile->SetValue(bTempMakeDocCreationLogfile);
+    // whm 6Apr2020 removed check box from ViewPage
+	//bTempMakeDocCreationLogfile = pApp->m_bMakeDocCreationLogfile; 
+    //// [BEW] should be FALSE at entry to view page
+	//// because we don't want the user to be able to leave this setting on indefinitely - it works
+	//// at about 150 source text words a second - so a large file can take minutes to parse in if ON
+	//wxASSERT(!bTempMakeDocCreationLogfile);
+	//m_pCheckboxMakeDocCreationLogfile->SetValue(bTempMakeDocCreationLogfile);
 
 	// transfer initial values to controls
 	wxString strTemp;

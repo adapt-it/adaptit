@@ -4301,11 +4301,11 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			{
 				gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 
-				if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
+                if (gpApp->m_bMakeDocCreationLogfile) //if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
 				{
 					wxString chNum = _T("0"); // initialise
 					wxString vsNum = _T("-1"); // initialise
-					bool bOK = gpApp->SeparateChapterAndVerse(gpSrcPhrase->m_chapterVerse,
+					bool bOK = SeparateChapterAndVerse(gpSrcPhrase->m_chapterVerse,
 						chNum, vsNum);
 					if (bOK)
 					{
@@ -4608,15 +4608,23 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
 
 			}
-			// If logging ws requested, update the log file with the new values
-			if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
-			{
-				if (gpApp->m_bParsingSource)
-				{
-					gpDoc->UpdateDocCreationLog(gpSrcPhrase, gpApp->m_chapterNumber_for_ParsingSource,
-						gpApp->m_verseNumber_for_ParsingSource);
-				}
-			}
+            // whm 6Apr2020 modified to use new doc creation logging routine
+            // Calls to the LogDocCreationData() here use an input parameter composed of
+            // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+            // the verse number, since we are merely logging data for each source phrase/word
+            // being parsed during document loading. 
+            // If there is a parse failure, it happened after the last m_srcPhrase in
+            // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+            // if logging is turned ON.
+            if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+            {
+                if (gpApp->m_bParsingSource) //if (gpApp->m_bSetupDocCreationLogSucceeded && gpApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
+                {
+                    wxString strLine = strLine.Format(_T("%s %d %s:%s"), gpSrcPhrase->m_srcPhrase, gpSrcPhrase->m_nSequNumber, gpApp->m_chapterNumber_for_ParsingSource, gpApp->m_verseNumber_for_ParsingSource);
+                    gpApp->LogDocCreationData(strLine);
+                }
+            }
+
 
 			gpSrcPhrase = NULL;
 		}
@@ -7813,14 +7821,31 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 
 	// If logging is wanted, attempt to setup for it. Do the first update with 
 	// special values to indicate we've yet to create a gpSrcPhrase
-	wxString saveOnInitFilename = gpApp->m_filename_for_ParsingSource;
+    // whm 6Apr2020 removed m_filename_for_ParsingSource from App
+	//wxString saveOnInitFilename = gpApp->m_filename_for_ParsingSource;
 	if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
 	{
+        // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
+        // of LogDocCreationData(fileNameLine) is done in the Doc's OnNewDocument() for 
+        // non-collab doc opening, and in CollabUtilities's OpenDocWithMerger() for collab
+        // doc opening.
 		gpApp->m_bParsingSource = TRUE;
-		wxString myFilename(_T("Log_Doc_XML_Load_Attempt"));
-		gpApp->m_filename_for_ParsingSource = myFilename;
 
-		gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(gpApp->m_curOutputFilename);
+        // whm 6Apr2020 removed m_filename_for_ParsingSource from App, and the following two lines related to m_filename_for_ParsingSource
+		//wxString myFilename(_T("Log_Doc_XML_Load_Attempt"));
+		//gpApp->m_filename_for_ParsingSource = myFilename;
+        // whm 5Apr2020 note: Added code back in OnOpenDocument to ensure that the App's m_curOutputFilename is
+        // assigned BEFORE the present call of ReadDoc_XML() is made from OnOpenDocument().
+        // Previously the m_curOutputFilename member was empty at this point for when opening an existing 
+        // non-collaboration document- triggering a wxASSERT in the SetupDocCreationLog() call below.
+        
+        // Construct the parameter string composed of the current output filename + date-time stamp for Now().
+        wxString fileNameLine;
+        wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+        wxString timeStr;
+        timeStr = theTime.Format();
+        fileNameLine = gpApp->m_curOutputFilename + _T(" ") + timeStr;
+        gpApp->LogDocCreationData(fileNameLine);
 	}
 
 	// whm 24Aug11 modified to move the wxProgressDialog from this
@@ -7846,7 +7871,8 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 		// a build to happen
 
 	// Restore the original log filename - "Log_For_Document_Creation"
-	gpApp->m_filename_for_ParsingSource = saveOnInitFilename;
+    // whm 6Apr2020 removed m_filename_for_ParsingSource from App
+	//gpApp->m_filename_for_ParsingSource = saveOnInitFilename;
 
 	return bXMLok;
 }	
@@ -7874,7 +7900,39 @@ bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint3
 	bool bXMLok = ParseXML(path,progressTitle,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
-}	
+}
+
+// whm 5Apr2020 moved to here from Adapt_It.cpp since it is only called in a function defined here ()
+bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
+{
+    wxString colon = _T(":");
+    wxString zero = _T("0");
+    int offset = wxNOT_FOUND;
+
+    //  chapterVerse might be an empty string - if so, return "0" for each, and FALSE
+    if (chapterVerse.IsEmpty())
+    {
+        strChapter = zero;
+        strVerse = zero;
+        return FALSE;
+    }
+    // If there is no colon, return "0" for chapter, and the rest as strVerse, and TRUE
+    offset = chapterVerse.Find(colon);
+    if (offset == wxNOT_FOUND)
+    {
+        strChapter = zero;
+        strVerse = chapterVerse;
+        return TRUE;
+    }
+    else
+    {
+        // A colon was found, so separate into chapter and verse strings, return TRUE
+        strChapter = chapterVerse.Left(offset);
+        offset++;
+        strVerse = chapterVerse.Mid(offset);
+    }
+    return TRUE;
+}
 
 /*****************************************************************
 *

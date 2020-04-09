@@ -2880,15 +2880,14 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	{
 		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
 		{
-			pApp->m_bSetupDocCreationLogSucceeded = pApp->SetupDocCreationLog(pApp->m_curOutputFilename);
-			if (pApp->m_bSetupDocCreationLogSucceeded)
-			{
-				pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
-			}
-			else
-			{
-				pApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
-			}
+            // Construct the parameter string composed of the current output filename + date-time stamp for Now().
+            wxString fileNameLine;
+            wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+            wxString timeStr;
+            timeStr = theTime.Format();
+            fileNameLine = pApp->m_curOutputFilename + _T(" ") + timeStr;
+            pApp->LogDocCreationData(fileNameLine);
+            pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
 		}
 
 		// first task is to tokenize the (possibly edited) source text just obtained from

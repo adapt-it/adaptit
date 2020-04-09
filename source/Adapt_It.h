@@ -313,7 +313,9 @@ inline int GetAISvnVersion()
 //#define SHOW_KB_I_O_BENCHMARKS
 #define SORTKB 1 // change to 0 for output of legacy unsorted KB map entries
 
-//#define SHOW_DOC_I_O_BENCHMARKS
+// uncomment the define below to output I/O benchmarks for OnNewDocument() and/or OnOpenDocument
+// as wxLogDebug output (in debug mode only)
+#define SHOW_DOC_I_O_BENCHMARKS
 
 #ifdef _UNICODE
 #define _RTL_FLAGS  // for the m_bSrcRTL etc flags and supporting code, the Layout menu, etc
@@ -3190,9 +3192,9 @@ public:
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;
-	wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
-	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
-	bool	 SetupDocCreationLog(wxString& filename);
+	//wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
+	//bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
+	//bool	 SetupDocCreationLog(wxString& filename);
 	bool	 m_bMakeDocCreationLogfile;
 	bool	 m_bFinalTypedPunctsGrabbedAlready;
 
@@ -3507,6 +3509,11 @@ public:
 
 	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
 	wxFile*		m_userLogFile; // whm added 12Nov10 the wxFile descriptor used with m_usageLogFilePathAndName
+
+    // whm 6Apr2020 added below for document creation log file
+    wxString    m_docCreationFilePathAndName; 
+    wxFile*     m_docCreationLogFile;
+
 	//wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
 	//wxString	m_ccTableFilePathOnly; // whm added 14Jul11
 
@@ -4618,12 +4625,13 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
-	bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse);
+	//bool SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
+    void    LogDocCreationData(wxString ParsedWordDataLine); // whm 6Apr2020 added
     void InventoryCollabEditorInstalls();
     bool IsThisParatextVersionInstalled(wxString PTVersion); // whm added 4Feb2020
     wxString ValidateCollabEditorAndVersionStrAgainstInstallationData(wxString &collabEditor, wxString collabEditorVerStr);
@@ -4882,7 +4890,8 @@ public:
 	void	SetCollabSettingsToNewProjDefaults();
 	void	SetPageOrientation(bool bIsPortrait);
 	bool	SetupDirectories();
-	bool	CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors);
+    void    RemoveOldDocCreationLogFiles();
+    bool	CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors);
 	void	SetupKBPathsEtc();
 	void	SetupMarkerStrings();
 	bool	StoreGlossingKB(bool bShoWaitDlg, bool bAutoBackup);

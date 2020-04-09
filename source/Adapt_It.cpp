@@ -13886,6 +13886,43 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
     }
 }
 
+// whm 6Apr2020 added to replace logging system BEW setup earlier
+// This log function simply appends a line to the end of the current session's doc creation
+// log file which persists on the App for a given session pointed to at m_docCreationLogFile.
+// The function that appends the string lines to this log file is called CAdapt_ItApp::LogDocCreationData().
+// The LogDocCreationData() function is called once at the beginning of the process of opening an AI document
+// at the following points in program flow:
+//    1. In CAdapt_ItDoc::OnNewDocument()
+//    2. In ReadDoc_XML() when opening an existing AI xml document
+//    3. In OpenDocWithMerger (in CollabUtilities.cpp) when opening a collaboration document
+// Then the LogDocCreationData() function is called once for each source phrase/word parsed during 
+// document creation/opening at the following points in the program flow:
+//    4. CAdapt_ItDoc::TokenizeText() - two times - at about line 16911 and also at about line 18914
+//    5. In ReadDoc_XML() (at about line 4595) for each source word parsed opening an existing xml doc
+// where for each source phrase/word parsed a line is appended to the log file containing the source 
+// phrase/word, sequ number, and a ch:verse reference. 
+// The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
+void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
+{
+    if (m_docCreationLogFile != NULL)
+    {
+        // Convert any \n chars in ParsedWordDataLine to <BR> to keep each output to one line,
+        // but embedded <BR> would allow us to process line breaks for display
+        // as HTML.
+        ParsedWordDataLine.Replace(_T("\n"), _T("<BR>"));
+        // For doc creation logging, a timeStr should only be included with the filename at beginning of 
+        // the log for a given document being opened, hence the timeStr calculation should be done before
+        // the LogDocCreationData, and already be concatenated with the ParseMoreDataLine strin that
+        // is input into this function via its parameter.
+        //wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+        //wxString timeStr;
+        //timeStr = theTime.Format();
+        //m_docCreationLogFile->Write(timeStr + _T(':') + ParsedWordDataLine + m_eolStr);
+        m_docCreationLogFile->Write(ParsedWordDataLine + m_eolStr); // m_eolStr makes it a plain text file with appropriate eols.
+        m_docCreationLogFile->Flush();
+    }
+}
+
 // This function determines which versions of Paratext are installed on this
 // computer. It sets a set of 13 boolean values which are stored in the App's
 // global space. These global bool variables are:
@@ -19898,9 +19935,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_verseNumber_for_ParsingSource = _T("0");
 	// I'll call the file "Log_For_Document_Creation.txt",
 	// and it will be stored in the _LOGS_EMAIL_REPORTS folder in the work folder
-	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
-	m_bSetupDocCreationLogSucceeded = FALSE;
-	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
+	//m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
+	//m_bSetupDocCreationLogSucceeded = FALSE;
+    m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
 	m_bALT_KEY_DOWN = FALSE;
 
 	m_bDoNormalProjectOpening = TRUE; // default value
@@ -20818,6 +20855,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
         //m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
         //m_ccTableFilePathOnly = _T(""); // whm added 14Jul11
+
+    // whm 6Apr2020 added below for document creation log file
+    m_docCreationFilePathAndName = _T("");
+    m_docCreationLogFile = (wxFile*)NULL;
 
     // The following use the _T() macro as they shouldn't be translated/localized
     m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"), m_strNR.c_str());
@@ -22122,6 +22163,33 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // !!!!!!!!!!! SET UP SOME STANDARD PATHS ABOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+    /*
+    // whm testing wxDateTime below
+    wxDateTime dateTimeNow;
+    wxTimeSpan timeSpan7Days;
+    wxTimeSpan timeSpan10Days;
+    dateTimeNow = wxDateTime::Now();
+    timeSpan7Days = wxTimeSpan::Days(7);
+    timeSpan10Days = wxTimeSpan::Days(10);
+    wxDateTime dateTime7DaysAgo;
+    dateTime7DaysAgo = wxDateTime(dateTimeNow - timeSpan7Days);
+    wxDateTime dateTime10DaysAgo;
+    dateTime10DaysAgo = wxDateTime(dateTimeNow - timeSpan10Days);
+    wxString dateStr = dateTimeNow.FormatISODate();
+    wxString timeStr = dateTimeNow.FormatISOTime();
+    wxString dateTimeStr = dateTimeNow.FormatISOCombined();
+    bool bStaleFile = FALSE;
+    if (dateTime10DaysAgo.IsEarlierThan(dateTimeNow - timeSpan7Days))
+    {
+        bStaleFile = TRUE;
+    }
+    int dummy = 1;
+    dummy = dummy;
+    // Test results: Above test shows that we can use a parsed wxDateTime from a date-time-embedded log filename
+    // substituting it in place of the dateTime10DaysAgo value above to determine if that log file is more than 
+    // 7 days older than the parsed wxDateTime from the most recent date-time-embedded log filename in the directory,
+    // rthe most recent date-time-embedded log filename being epresented value dateTimeNow above.
+    */
 
     // make a timesettings struct for autosaving feature & put some default values in it
     // (after first launch, values will come from the m_pConfig file settings instead)
@@ -25018,6 +25086,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString AIuserProfilesWorkFolderPath;
     wxString AIemailReportFolderPathOnly;
     wxString AIusageLogFolderPath;
+    wxString AIDocCreateLogFolderPath;
     wxString AIpackedDocumentFolderPathOnly;
     wxString AIccTableFolderPathOnly;
     //#if defined(FWD_SLASH_DELIM)
@@ -25025,6 +25094,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
     // folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
     //#endif
+
+    wxDateTime dateTNow;
+    dateTNow = wxDateTime::Now();
+    wxString dateTimeStrForFilename = dateTNow.FormatISOCombined();
+    dateTimeStrForFilename.Replace(_T(":"), _T("_")); // Don't use colons in file names - replace with underscores
+    dateTimeStrForFilename.Replace(_T("-"), _T("_")); // Don't use hyphens in file names - replace with underscores
+
     wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
     if (strUserID.IsEmpty())
     {
@@ -25047,6 +25123,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
         AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+        AIDocCreateLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
@@ -25066,6 +25143,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
         AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+        AIDocCreateLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
@@ -25080,11 +25158,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_logsEmailReportsFolderPath = AIemailReportFolderPathOnly;
     m_packedInputsAndOutputsFolderPath = AIpackedDocumentFolderPathOnly; //m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
     m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
+    m_docCreationFilePathAndName = AIDocCreateLogFolderPath; // whm added 6Apr2020
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
 
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
+
+    // Delete older doc creation log files if there are more than 5 such files in the _LOGS_EMAIL_REPORTS
+    // folder.
+    // Each doc creation log file is of the form: DocCreateLog_<userID>_2020_04_06T08_02_03Z.txt
+    // The default number to keep is 5 and that number is stored in a define called 
+    // NUM_OLD_DOC_CREATION_FILES_TO_KEEP in the AdaptItConstants.h header file.
+    // The function enumerates the existing doc creation log files in the _LOGS_EMAIL_REPORTS folder,
+    // and preserves the 5 the most recent doc creation log files, deleting all older ones.
+    // This is to prevent unnecessary bloat of disk usage in the _LOGS_EMAIL_REPORTS log folder over time.
+    // The RemoveOldDocCreationLogFiles() uses the same strategy that the 
+    // RemoveUnwantedOldUserProfilesFiles() function uses.
+    RemoveOldDocCreationLogFiles();
+
+    // Create a new instance of the m_docCreationLogFile which will be a file with a unique date-time substring in
+    // its filename - see creation of AIDocCreateLogFolderPath above and its eventual assignment to the App's
+    // member m_docCreationFilePathAndName. This m_docCreationLogFile will contain the parsed words and references
+    // for each document that is opened during this session of the program. 
+    // The function that appends the string lines to this log file is called CAdapt_ItApp::LogDocCreationData().
+    // The LogDocCreationData() function is called once at the beginning of the process of opening an AI document
+    // at the following points in program flow:
+    //    1. In CAdapt_ItDoc::OnNewDocument() - about line 1143
+    //    2. In ReadDoc_XML() when opening an existing AI xml document - about line 7794
+    //    3. In OpenDocWithMerger (in CollabUtilities.cpp about line 2883) when opening a collaboration document
+    // Then the LogDocCreationData() function is called once for each source phrase/word parsed during 
+    // document creation/opening at the following points in the program flow:
+    //    4. CAdapt_ItDoc::TokenizeText() - two times - at about line 16911 and also at about line 18914
+    //    5. In ReadDoc_XML() (at about line 4595) for each source word parsed opening an existing xml doc
+    // where for each source phrase/word parsed a line is appended to the log file containing the source 
+    // phrase/word, sequ number, and a ch:verse reference. 
+    // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
+    m_docCreationLogFile = new wxFile(m_docCreationFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
     // Now the user log file is set up, we can call git:
     m_DVCS_installed = (m_pDVCS->DoDVCS(DVCS_CHECK, 0) == 0);       // if this call returns an error, assume DVCS not installed
@@ -27259,6 +27369,15 @@ int CAdapt_ItApp::OnExit(void)
         delete m_userLogFile;
     }
 
+    // whm 6Apr2020 added to avoid memory leaks
+    if (m_docCreationLogFile != NULL)
+    {
+        m_docCreationLogFile->Close();
+        delete m_docCreationLogFile;
+    }
+
+
+
     int aTot;
     aTot = m_pRemovedMenuItemArray->GetCount();
     if (aTot == 0L)
@@ -28668,6 +28787,84 @@ void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
         } // end of TRUE block for test: if (!filenames.IsEmpty())
     } // end of TRUE block for test: if (!path.IsEmpty())
 }
+
+// whm 6Apr2020 added
+// This function is called in OnInit() to prevent accumulation of too many old
+// doc creation log files, stored in the _LOGS_EMAIL_REPORTS folder. 
+// Each doc creation log file is of the form: DocCreateLog_<userID>_2020_04_06T08_02_03Z.txt
+// The default number to keep is 5 and that number is stored in a define called 
+// NUM_OLD_DOC_CREATION_FILES_TO_KEEP in the AdaptItConstants.h header file.
+void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
+{
+    // Procedure: enumerate their filenames as wxString objects, sort them in reverse
+    // order (only the datetime stamp at the end distinguishes one from another), and
+    // then remove them from the end backwards, retaining the most recent
+    // NUM_OLD_DOC_CREATION_FILES_TO_KEEP ones
+    wxString path = m_docCreationFilePathAndName;
+    wxSortedArrayString filenames;
+    wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
+    if (strUserID.IsEmpty())
+    {
+        // we must supply a default if nothing was returned
+        strUserID = _T("unknownUser");
+    }
+    wxString wildcardFilename = _T("DocCreateLog_") + strUserID + _T("*");
+    if (!path.IsEmpty())
+    {
+        wxFileName fn(path);
+        fn.Normalize(); // with flags = wxPATH_NORM_ALL
+        int flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
+        wxString dirPath = fn.GetPath(flags); // gets it in native format, including final separator
+        wxString searchStr = dirPath + wildcardFilename;
+        wxString aFilename = wxFindFirstFile(searchStr);
+        while (!aFilename.IsEmpty())
+        {
+            filenames.Add(aFilename);
+            aFilename = wxFindNextFile();
+        }
+        if (!filenames.IsEmpty())
+        {
+#if defined(_DEBUG)
+            /*
+            int i; int num;
+            num = filenames.GetCount();
+            for (i=0; i<num; i++)
+            {
+            wxString aName = filenames.Item(i);
+            wxLogDebug(_T("RemoveOldDocCreationLogFiles(): wxSortedArrayString items:  index %d   filename  %s"),
+            i, aName.c_str());
+            }
+            int counter = 0;
+            */
+#endif
+
+            int numberToDelete = filenames.GetCount() - NUM_OLD_DOC_CREATION_FILES_TO_KEEP;
+            if (numberToDelete < 0)
+            {
+                numberToDelete = 0;
+                return; // nothing to do yet
+            }
+            int index;
+            for (index = 0; index < numberToDelete; index++)
+            {
+                wxString deleteThisOne = filenames.Item(index);
+                bool bFileExists = wxFileExists(deleteThisOne);
+                if (bFileExists)
+                {
+#if defined(_DEBUG)
+                    /*
+                    wxLogDebug(_T("Removing file:  %s   deletion count:  %d"), deleteThisOne.c_str(), ++counter);
+                    */
+#endif
+                    wxRemoveFile(deleteThisOne);
+
+                }
+            } // end of loop: for (index = 0; index < numberToDelete; index++)
+            filenames.Clear();
+        } // end of TRUE block for test: if (!filenames.IsEmpty())
+    } // end of TRUE block for test: if (!path.IsEmpty())
+}
+
 
 bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors)
 {
@@ -56755,6 +56952,8 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     return TRUE; // tell caller we found one or more substrings
 }
 
+// whm 5Apr2020 moved to XML.cpp since it is only used there
+/*
 bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
 {
 	wxString colon = _T(":");
@@ -56785,6 +56984,7 @@ bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strC
 	}
 	return TRUE;
 }
+*/
 
 /*  Note the new values.....
 enum ServDiscInitialDetail
@@ -56938,6 +57138,7 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
     }
 }
 
+/*
 // Return TRUE if the file is correctly setup in the _LOGS_EMAIL_REPORTS folder, with
 // the current document filename loaded in as the first line; FALSE if setup fails
 bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
@@ -57005,6 +57206,7 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 	}
 	return TRUE;
 }
+*/
 
 // BEW 17Apr18 a self-contained logger for feedback about m_bAbandonable and
 // friends, to be used when _ABANDONABLE is #defined. _ABANDONABLE is #defined near the top

@@ -186,6 +186,7 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 							 // if the user then exits, which would otherwise clobber settings in the last
 							 // written out project config file unnecessarily and unwantedly)
 	m_bForceUTF8 = FALSE;
+    bTempMakeDocCreationLogfile = FALSE;
 
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_NEWDOC_AND_EXISTINGDOC);
 
@@ -196,6 +197,9 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 	//pChangeFixedSpaceToRegular->Show(FALSE); // start with fixed space ... check box hidden
 	//bChangeFixedSpaceToRegularSpace = gpApp->m_bChangeFixedSpaceToRegularSpace;
 	//pChangeFixedSpaceToRegular->SetValue(bChangeFixedSpaceToRegularSpace);
+    
+    m_pCheckboxMakeDocCreationLogfile = (wxCheckBox*)FindWindowById(ID_CHECKBOX_DOCPAGE_DIAGNOSTIC_LOG);
+    wxASSERT(m_pCheckboxMakeDocCreationLogfile != NULL);
 
 	wxTextCtrl* pTextCtrlAsStaticDocPage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_DOCPAGE);
 	wxASSERT(pTextCtrlAsStaticDocPage != NULL);
@@ -302,6 +306,10 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 			event.Veto();
 			return;
 		}
+
+        // whm 6Apr2020 added for check box handling of "Make diagnostic logfile ..."
+        bTempMakeDocCreationLogfile = m_pCheckboxMakeDocCreationLogfile->GetValue();
+        gpApp->m_bMakeDocCreationLogfile = bTempMakeDocCreationLogfile;
 
 		//int nSel;
 		//nSel = m_pListBox->GetSelection(); //nSel = m_listBox.GetCurSel();
@@ -412,6 +420,10 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 
 	//InitDialog() is not virtual, no call needed to a base class
 
+    // whm 6Apr2020 added
+    bTempMakeDocCreationLogfile = FALSE; // never permanently, set m_bMakeDocCreationLogfile on the app, and clear to FALSE
+                                         // when the next doc create attempt finishes
+
 	wxCheckBox* pCheck = (wxCheckBox*)FindWindowById(IDC_CHECK_FORCE_UTF8);
 	wxASSERT(pCheck != NULL);
 
@@ -420,6 +432,12 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 #else
 	pCheck->Show(TRUE);
 #endif
+
+    // [BEW] should be FALSE at entry to view page
+    // because we don't want the user to be able to leave this setting on indefinitely - it works
+    // at about 150 source text words a second - so a large file can take minutes to parse in if ON
+    wxASSERT(!bTempMakeDocCreationLogfile);
+    m_pCheckboxMakeDocCreationLogfile->SetValue(bTempMakeDocCreationLogfile);
 
 	OnSetActive(); // wx version calls our internal function from InitDialog
 	gpApp->RefreshStatusBarInfo();
@@ -768,6 +786,11 @@ void CDocPage::OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event))
 	gbForceUTF8 = pCheck->GetValue();
 }
 
+void CDocPage::OnCheckMakeDocCreationLogfile(wxCommandEvent & WXUNUSED(event))
+{
+
+}
+
 // BEW added 04Aug05
 //void CDocPage::OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event))
 //{
@@ -957,7 +980,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
         // default the m_nActiveSequNum value to -1 when getting the doc created
 		pApp->m_nActiveSequNum = -1;
-		bool bResult = pDoc->OnNewDocument();
+        bool bResult = pDoc->OnNewDocument();
 		// whm 17Apr11 changed test below to include check for m_nActiveSequNum being
 		// -1 after return of OnNewDocument(). If user cancels the file dialog within
 		// OnNewDocument() it still returns TRUE within bResult (due to a change Bruce
@@ -1027,7 +1050,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		gbDoingInitialSetup = FALSE;
 
 		pApp->RefreshStatusBarInfo();
-		if (pApp->m_bReadOnlyAccess)
+
+        if (pApp->m_bReadOnlyAccess)
 		{
 			// try get an extra paint job done, so background will show all pink from the
 			// outset

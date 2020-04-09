@@ -1133,22 +1133,29 @@ bool CAdapt_ItDoc::OnNewDocument()
 			}
 
 			// Everything is now setup to normalize the input text and do the parse,
-			// so setup our logging file that will store the filename followed by
-			// the last 5 lines successfully parsed: each line contains the following
-			// information: m_srcPhrase, m_nSequNumber, the chapter number, the verse number
-			// So if there is a parse failure, it happened after the last m_srcPhrase in
+			// so setup our logging file that will store the filename and date-time.
+            // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
+            // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
+            // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+            // the verse number, instead of the fileNameLine + date-time string as output
+            // here at the beginning of doc creation logging for this file being opened.
+			// If there is a parse failure, it happened after the last m_srcPhrase in
 			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
-			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+            // when "Make diagnostic logfile during document creation and opening" check box
+            // is ticked in the Preferences > View page.
+			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard; it is OFF by default
 			{
-				gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(pApp->m_curOutputFilename);
-				if (gpApp->m_bSetupDocCreationLogSucceeded)
-				{
-					gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
-				}
-				else
-				{
-					gpApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
-				}
+                // Construct the parameter string composed of the current output filename + date-time stamp for Now().
+                wxString fileNameLine;
+                wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+                wxString timeStr;
+                timeStr = theTime.Format();
+                fileNameLine = gpApp->m_curOutputFilename + _T(" ") + timeStr;
+                gpApp->LogDocCreationData(fileNameLine);
+                // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
+                // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
+                // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
+                gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
 			}
 
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
@@ -1214,61 +1221,113 @@ bool CAdapt_ItDoc::OnNewDocument()
 			*pApp->m_pBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, *pApp->m_pBuffer);
 //#endif
 			// parse the input file
+            // whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
+            // that the warning message below would ever be show to the user since the wxMessageBox that
+            // displays the message below TokenizeText().
 			int nHowMany;
-			wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
-			wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+			wxString msg = _("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shous the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
+            msg = msg.Format(msg, gpApp->m_docCreationFilePathAndName);
+            wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shous the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
+            msgEnglish = msgEnglish.Format(msgEnglish, gpApp->m_docCreationFilePathAndName);
 
-			if (pApp->m_bMakeDocCreationLogfile)
-			{
+            if (pApp->m_bMakeDocCreationLogfile)
+            {
+                // whm 6Apr2020 TODO: modified the CWaitDlg routine below. The TokenizeText() routine
+                // takes more time now making it desirable to have a wait dialog show while the document
+                // is being created. Logging the doc creation also takes time, so I've re-instituted the 
+                // wait dialog to the outer block so that it will be visible during doc creation here - 
+                // both for when logging and when not logging the doc creation.
 #if defined(__WXMSW__)
-				CWaitDlg waitDlg(pApp->GetMainFrame());
-				// indicate we want the closing the document wait message
-				waitDlg.m_nWaitMsgNum = 27;	// 27 has "Retrying & making a log file in folder _LOGS_EMAIL_REPORTS. It is slow..."
-				waitDlg.Centre();
-				waitDlg.Show(TRUE);
-				waitDlg.Update();
-				// the wait dialog is automatically destroyed when it goes out of scope below
+                CWaitDlg waitDlg(pApp->GetMainFrame());
+                // indicate we want the follwoing wait wait message
+                waitDlg.m_nWaitMsgNum = 29;	// 29 has "Please wait while creating a new document - and creates a diagnostic log in folder _LOGS_EMAIL_REPORTS..."
+                waitDlg.Centre();
+                waitDlg.Show(TRUE);
+                waitDlg.Update();
+                // the wait dialog is automatically destroyed when it goes out of scope below
 #endif
 #if defined(_DEBUG) && defined (FIXORDER)
-				wxLogDebug(_T("OnNewDocument line %d  m_bTokenizingTargetText = %d"),
-					__LINE__, (int)m_bTokenizingTargetText);
+                wxLogDebug(_T("OnNewDocument line %d  m_bTokenizingTargetText = %d"),
+                    __LINE__, (int)m_bTokenizingTargetText);
 #endif
-				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
-					(int)pApp->m_nInputFileLength);
-				if (nHowMany == -1)
-				{
-					// Abort the document creation, there has been a significant parsing error.
-					// Do a diagnostic run (see View page of Preferences)
-					pApp->LogUserAction(msgEnglish);
-					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-					return TRUE;
-				}
-			}
-			else
-			{
-				// No logfile is to be created
+
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+                wxDateTime dt1 = wxDateTime::Now(),
+                    dt2 = wxDateTime::UNow();
+#endif
+
+                nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+                    (int)pApp->m_nInputFileLength);
+
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+                dt1 = dt2;
+                dt2 = wxDateTime::UNow();
+                wxLogDebug(_T("OnNewDocument-with-logging TokenizeText() executed in %s ms"),
+                    (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+                if (nHowMany == -1)
+                {
+                    // whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
+                    // that the warning message below would ever be show to the user since the wxMessageBox that
+                    // displays the message below TokenizeText().
+                    // Abort the document creation, there has been a significant parsing error.
+                    // Do a diagnostic run (see View page of Preferences)
+                    pApp->LogUserAction(msgEnglish);
+                    wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+                    return TRUE;
+                }
+            }
+            else
+            {
+                // No logfile is to be created
+#if defined(__WXMSW__)
+                CWaitDlg waitDlg(pApp->GetMainFrame());
+                // indicate we want the following wait message
+                waitDlg.m_nWaitMsgNum = 27;	// 27 has "Please wait while creating a new document..."
+                waitDlg.Centre();
+                waitDlg.Show(TRUE);
+                waitDlg.Update();
+                // the wait dialog is automatically destroyed when it goes out of scope below
+#endif
+
 #if defined(_DEBUG) && defined (FIXORDER)
-				wxLogDebug(_T("OnNewDocument line %d  m_bTokenizingTargetText = %d"),
-					__LINE__, (int)m_bTokenizingTargetText);
+                wxLogDebug(_T("OnNewDocument line %d  m_bTokenizingTargetText = %d"),
+                    __LINE__, (int)m_bTokenizingTargetText);
 #endif
-				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
-					(int)pApp->m_nInputFileLength);
-				if (nHowMany == -1)
-				{
-					// Abort the document creation, there has been a significant parsing error.
-					// Do a diagnostic run (see View page of Preferences)
-					pApp->LogUserAction(msgEnglish);
-					pApp->m_bParsingSource = FALSE;
-					pApp->m_bMakeDocCreationLogfile = FALSE;
-					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-					return TRUE;
-				}
-			}
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+                wxDateTime dt1 = wxDateTime::Now(),
+                    dt2 = wxDateTime::UNow();
+#endif
+
+                nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+                    (int)pApp->m_nInputFileLength);
+
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+                dt1 = dt2;
+                dt2 = wxDateTime::UNow();
+                wxLogDebug(_T("OnNewDocument-without-logging TokenizeText() executed in %s ms"),
+                    (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+                if (nHowMany == -1)
+                {
+                    // whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
+                    // that the warning message below would ever be show to the user since the wxMessageBox that
+                    // displays the message below TokenizeText().
+                    // Abort the document creation, there has been a significant parsing error.
+                    // Do a diagnostic run (see View page of Preferences)
+                    pApp->LogUserAction(msgEnglish);
+                    pApp->m_bParsingSource = FALSE;
+                    pApp->m_bMakeDocCreationLogfile = FALSE;
+                    wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+                    return TRUE;
+                }
+            }
 			//wxUnusedVar(nHowMany); // avoid warning
 
 			pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
 											 // until explicitly turned on at another time
-			pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
+
+            pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
 				// leaving it turned on, and wondering why doc creation takes minutes to complete
 
 #if defined(_DEBUG) //&& defined(FWD_SLASH_DELIM)
@@ -1628,7 +1687,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
-
+/*
 void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse)
 {
 	wxString myLine;
@@ -1661,6 +1720,7 @@ void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& cha
 		}
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -6147,6 +6207,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxFileName fn(thePath);
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
+
+        // whm 6Apr2020 Note: For document creation logging in ReadDoc_XML, the App's m_curOutputFilename needs to be
+        // set to the current output file name, before the ReadDoc_XML() function call below. 
+        gpApp->m_curOutputFilename = fullFileName;
 
 		bool bReadOK = ReadDoc_XML(thePath, this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 
@@ -12624,7 +12688,8 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-	}
+        halt_here = halt_here; // avoid gcc warning
+    }
 #endif
 	int inputLen = len; // save the input len value - so that if a marker is found and
 						// stored, we can easily test for that fact
@@ -16903,12 +16968,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 #endif
 				// If logging is wanted, update with this entry
-				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+                // whm 6Apr2020 modified to use new doc creation logging routine
+                // Calls to the LogDocCreationData() here use an input parameter composed of
+                // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+                // the verse number, since we are merely logging data for each source phrase/word
+                // being parsed during document loading. 
+                // If there is a parse failure, it happened after the last m_srcPhrase in
+                // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder.
+                // when logging is turned ON.
+                if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
 				{
-					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
 					{
-						UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
-							pApp->m_verseNumber_for_ParsingSource);
+                        wxString strLine = strLine.Format(_T("%s %d %s:%s"), pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_chapterNumber_for_ParsingSource, pApp->m_verseNumber_for_ParsingSource);
+                        pApp->LogDocCreationData(strLine);
 					}
 				}
 
@@ -17090,7 +17163,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// Track the verse number if logging is wanted
 				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
 				{
-					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
 					{
 						pApp->m_verseNumber_for_ParsingSource = temp;
 					}
@@ -17174,7 +17247,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// Track the chapter if logging is wanted
 				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
 				{
-					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
 					{
 						pApp->m_chapterNumber_for_ParsingSource = pApp->m_curChapter;
 					}
@@ -18906,14 +18979,23 @@ parsing:
 		wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
 #endif
 		// If logging is wanted, update with this entry
-		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
-		{
-			if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
-			{
-				UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
-					pApp->m_verseNumber_for_ParsingSource);
-			}
-		}
+        // whm 6Apr2020 modified to use new doc creation logging routine
+        // Calls to the LogDocCreationData() here use an input parameter composed of
+        // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+        // the verse number, since we are merely logging data for each source phrase/word
+        // being parsed during document loading. 
+        // If there is a parse failure, it happened after the last m_srcPhrase in
+        // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+        // if logging is turned ON
+        if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+        {
+            if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
+            {
+                wxString strLine = strLine.Format(_T("%s %d %s:%s"), pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_chapterNumber_for_ParsingSource, pApp->m_verseNumber_for_ParsingSource);
+                pApp->LogDocCreationData(strLine);
+            }
+        }
+
 
 		// BEW added 31Oct16  If ptr has reached pEnd, we don't want to iterate and try
 		// build another CSourcePhrase - so test and break out if so
@@ -31009,7 +31091,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1;
-			}
+                halt_here = halt_here; // avoid gcc warning
+            }
 #endif
 			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
 				bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
@@ -31716,7 +31799,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-	}
+        halt_here = halt_here; // avoid gcc warning
+    }
 #endif
 	// If ptr points at punctuation, start collecting it
 	bool bMorePunctsHaveBeenAccepted = FALSE;
