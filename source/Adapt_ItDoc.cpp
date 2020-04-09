@@ -30241,6 +30241,25 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				int nWordLen = (int)m_cachedWordBeforeBar.Len();
 				len += nWordLen;
 
+				// BEW 6Apr20 we don't allow the m_punctsPattern member to
+				// have content at a pSrcPhrase which we want to store
+				// cached attributes data on. (For mergers with internal
+				// punctuation, it will have content unrelated to the cached
+				// metadata.) Which should win? The caching of metadata, because
+				// that otherwise would get lost; but clearing out the stuff
+				// in m_punctsPattern to make way for the caching is safer, 
+				// because at worse a Placement dialog will appear for the
+				// user to do a manual placement. (Later I'll refactor to
+				// handle suppression of Placement dialogs in a better way,
+				// but I've no time for that for version 6.10.0)
+				if (pSrcPhrase->m_bHasInternalPunct)
+				{
+					// Get rid of that stuff
+					pSrcPhrase->m_punctsPattern.Empty();
+					pSrcPhrase->m_bHasInternalPunct = FALSE;
+					pSrcPhrase->m_bUnused = FALSE;
+				}
+
 				// Save the metadata in pSourcePhrase's m_punctsPattern
 				pSrcPhrase->InsertCachedAttributesMetadata(m_cachedAttributeData),
 					// Now, this data which is bar and what follows up to the 
@@ -35092,6 +35111,7 @@ bool CAdapt_ItDoc::GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& fina
 	}
 	return FALSE;
 }
+/* deprecated 8Apr20  function code is unfinished, I didn't use it
 
 // BEW 3Apr20 input pInitialSrcPhrase, it is at the start of the span we are interested in, and set
 // atBeginSequNum from it. Construct strEndMkr in the caller, it will be one of \f* or \ef* or \x*
@@ -35101,8 +35121,9 @@ bool CAdapt_ItDoc::GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& fina
 // return its sequence number in atMatchSequNum; and return TRUE to the caller.
 // Return FALSE if a match cannot be made. If a match cannot be made before a beginMarker in
 // a subsequent pSrcPhrase's m_markers member is found, that indicates the span is not terminated
-// correctly with the correct endmarker. If so, take that locatioin as ending the span, and return
+// correctly with the correct endmarker. If so, take that location as ending the span, and return
 // TRUE, and its sequ num in atMatchSequNum - as that is the best we can do with a bad situation.
+// If pList is empty, return FALSE and -1 for each of atBeginSequNum and atMatchSequNum
 bool CAdapt_ItDoc::GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, int& atBeginSequNum, int& atMatchSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -35115,12 +35136,17 @@ bool CAdapt_ItDoc::GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxStri
 		atBeginSequNum = pInitialSrcPhrase->m_nSequNumber;
 
 
+		// UNFINISHED
 
-
+	}
+	else
+	{
+		atBeginSequNum = -1;
+		atMatchSequNum = -1;
 	}
 	return FALSE;
 }
-
+*/
 
 /// returns				one of the enum values as follows:
 /// enum WordParseEndsAt {
@@ -35599,10 +35625,20 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			{
 				// While the begin-marker is one that potentially can take attributes,
 				// this one has none. So there is nothing to hide. Return FALSE.
-				m_pSrcPhraseBeingCreated->m_bUnused = FALSE;
-				m_pSrcPhraseBeingCreated->m_punctsPattern.Empty(); //clear it
-				ClearAttributeMkrStorage();
-				return FALSE;
+				// BEW 6Apr20, however, check that m_pSrcPhraseBeingCreated->m_bHasInternalPunct
+				// is not TRUE; because if it's TRUE then that instance would be a merger
+				// in which there is internal punctuation - and that also stores into
+				// m_punctsPattern, and we DON'T want to clear m_bUnused not m_punctsPattern,
+				// nor clear the attribute storage
+				if (!m_pSrcPhraseBeingCreated->m_bHasInternalPunct)
+				{
+					// m_punctsPattern is not being used for storing data string for 
+					// avoiding a Placement of puncts dialog - so safe to do the following clear
+					m_pSrcPhraseBeingCreated->m_bUnused = FALSE;
+					m_pSrcPhraseBeingCreated->m_punctsPattern.Empty(); //clear it
+					ClearAttributeMkrStorage();
+					return FALSE;
+				}
 			}
 			else
 			{
@@ -36251,4 +36287,261 @@ wxString CAdapt_ItDoc::SimpleWordParser2(wxChar* pChar, wxString*  pEndPuncts, w
 		}
 	}
 	return key;
+}
+
+// BEW 7Apr20. A helper function when scanning for the ending CSourcePhrase instance
+// of a footnote, cross reference, or extended footnote - if there was a USFM markup
+// error or other glitch that results in a matching endmarker for the passed in
+// beginMkr not found - we want to limit the amount of "run on" - so things like \v
+// \c \p \ip \s \s1 or \\f \x or \ef should cause a halt to define the span end.
+// We might as well make it check for the matching endmarker at the start of
+// pSrcPhrase->m_bEndMarkers - that's where it should be, somewhere in the list
+bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase)
+{
+	wxString matchEndMkr = endMkr;
+	wxString endMkrs = pSrcPhrase->GetEndMarkers();
+	bool bGotAMatch = FALSE;
+	if (!endMkrs.IsEmpty())
+	{
+		wxString firstMkr = GetWholeMarker(endMkrs); // Gets the first, if there are more than 1
+		if (matchEndMkr == firstMkr)
+		{
+			// We have a match, return TRUE to force this pSrcPhrase to be the span end
+			return TRUE;
+		}
+	}
+	if (!bGotAMatch || endMkrs.IsEmpty())
+	{
+		// Protect from long run-on
+		wxString augmentedBeginMkr = endMkr.Left(endMkr.Len() - 1); // remove the final *
+		augmentedBeginMkr += _T(' ');
+		// Make a fast access string for the markers which should halt the scan
+		wxString haltersStr = _T("\\p \\ip \\v \\c \\f \\x \\ef \\s \\s1 ");
+		// Check for a match of any of these
+		int offset = wxNOT_FOUND; // initialise
+		offset = haltersStr.Find(augmentedBeginMkr);
+		if (offset >= 0)
+		{
+			// Gotta halt here
+			return TRUE;
+		}
+	}
+	return FALSE; // Don't halt the scanning at the passed in pSrcPhrase
+}
+
+// BEW 8Apr20
+// We scan the list, backwards from where the passed in pSrcPhrase is located, looking
+// for the first CSourcePhrase having begin marker \f \ef or \x in its m_markers member.
+// When we find that, we scan forward starting from the passed in pSrcPhrase location,
+// looking for the endmarker (in m_endMarkers) which ends the span.
+// Of course, this algorithm may find a span, but the span is located nowhere near the
+// location where pSrcPhrase is: so we'll compare sequence numbers - pSrcPhrase is
+// in such a span only if its sequence number lies between those for the start and end
+// of the span - and return TRUE. We may also not find a span, in which case return FALSE
+// Usage: we the span is taboo for inserting a placeholder within it - we'll use this
+// function in the placeholder insertion Update...() handler to disable using the two
+// buttons when control is within a footnote, extendeded footnote, or cross-ref span
+// The next three functions accomplish the above.
+// Note: pos = pos->GetPrevious() will work, but that pos cannot in the same function
+// be used to do pos = pos->GetNext(). I tried having one function with both scanning back
+// and then scanning forwards, but that resulted in a C2440 error message. (Gloogling 
+// that was singularly unfruitful). So I split the work into the next two functions - 
+// one scans back, the other scans forward. That works sweetly.
+bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, 
+					wxString& beginMkr, int& nBeginSN)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxASSERT(!pList->IsEmpty());
+	int nSequNum = pSrcPhrase->m_nSequNumber;
+
+	SPList::Node* pos = pList->Item(nSequNum);
+	SPList::Node* docStartPos = pList->GetFirst();
+
+	int spanStartSequNum = -1; // initialise
+
+	// Scan back to find the first srcPhrase's sequ number having one of \f \ef \x
+	// begin-markers; there might be none - if so, the scan would go to the doc start
+	CSourcePhrase* pSP = pSrcPhrase;
+
+	// Initialisations
+	wxString m_markersBeginMkr = wxEmptyString;
+	wxString prohibitedBeginMkr = wxEmptyString;
+	bool bGotBeginMkr = FALSE;
+	bool bIsForbiddenMkr = FALSE;
+	bool bFoundSpanStart = FALSE;
+
+	bGotBeginMkr = GetFinalBeginMarker(pSP, m_markersBeginMkr);
+	if (bGotBeginMkr)
+	{
+		// Is it one of \f \ef or \x ?
+		bIsForbiddenMkr = IsForbiddenMarker(m_markersBeginMkr, FALSE); // FALSE is bCheckForEndMkr
+	}
+	if (bIsForbiddenMkr)
+	{
+		bFoundSpanStart = TRUE;
+		prohibitedBeginMkr = m_markersBeginMkr;
+		spanStartSequNum = pSP->m_nSequNumber; // we've found the span start
+	}
+	// Else, if the passed in pSrcPhrase does not start such a span, loop
+	// back to find the first pSP of a candidate prohibited span
+	else
+	{
+		while (pos >= docStartPos)
+		{
+			pos = pos->GetPrevious();
+			pSP = pos->GetData();
+			// Re-initialisations
+			m_markersBeginMkr = wxEmptyString;
+			bGotBeginMkr = FALSE;
+			bIsForbiddenMkr = FALSE;
+			bFoundSpanStart = FALSE;
+
+			bGotBeginMkr = GetFinalBeginMarker(pSP, m_markersBeginMkr);
+			if (bGotBeginMkr)
+			{
+				// Is it one of \f \ef or \x ?
+				bIsForbiddenMkr = IsForbiddenMarker(m_markersBeginMkr, FALSE); // FALSE is bCheckForEndMkr
+			}
+			if (bIsForbiddenMkr)
+			{
+				bFoundSpanStart = TRUE;
+				prohibitedBeginMkr = m_markersBeginMkr;
+				spanStartSequNum = pSP->m_nSequNumber; // we've found the span start
+				break;
+			}
+		}
+	} // end of else block for test: if (bIsForbiddenMkr)
+
+	if (bFoundSpanStart)
+	{
+		// Half way there. Next scan forward from the pos value when the above 
+		// loop exited having found a span beginning
+		beginMkr = prohibitedBeginMkr;
+		nBeginSN = spanStartSequNum;
+		return TRUE;
+	}
+	else
+	{
+		beginMkr = wxEmptyString;
+		nBeginSN = -1;
+		return FALSE;
+	}
+}
+
+bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxASSERT(!pList->IsEmpty());
+	int nSequNum = pSpanStart_SrcPhrase->m_nSequNumber;
+	wxASSERT(!matchEndMkr.IsEmpty());
+
+	SPList::Node* pos = pList->Item(nSequNum);
+	SPList::Node* docEndPos = pList->GetLast();
+
+	int spanEndSequNum = -1;   // initialise
+
+	// Scan forwards to find the first sequ number storing one of \f* \ef* \x* end-markers;
+	// there might be none - the scan would go to the doc end, except this function will
+	// check for over-run and terminate with a probably over-long but reasonable span length
+	CSourcePhrase* pSP = pSpanStart_SrcPhrase;
+
+	// Initialisations
+	wxString endMarkerToMatch = matchEndMkr; // as passed in
+	bool bGotSpanEnd = FALSE;
+	bool bIsForbiddenEndMkr = FALSE;
+	bool bFoundSpanEnd = FALSE;
+
+	bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP);
+	if (bGotSpanEnd)
+	{
+		// Is it one of \f* \ef* or \x* ?
+		bIsForbiddenEndMkr = IsForbiddenMarker(endMarkerToMatch, TRUE); // TRUE is bCheckForEndMkr
+	}
+	if (bIsForbiddenEndMkr && bGotSpanEnd)
+	{
+		bFoundSpanEnd = TRUE;
+		spanEndSequNum = pSP->m_nSequNumber; // we've found the span end (probably by matching)
+		nEndSN = spanEndSequNum;
+		return TRUE;
+	}
+	// Else, if the passed in pSrcPhrase does not end such the span, loop
+	// forward to find the first pSP which stores a matching endmarker, or
+	// which halts the scan because a significant begin-marker prevented run-on
+	else
+	{
+		while (pos <= docEndPos)
+		{
+			pos = pos->GetNext();
+			pSP = pos->GetData();
+			// Re-initialisations
+			bGotSpanEnd = FALSE;
+			bIsForbiddenEndMkr = FALSE;
+			bFoundSpanEnd = FALSE;
+
+			bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP);
+			if (bGotSpanEnd)
+			{
+				// Is it one of \f* \ef* or \x* ?
+				bIsForbiddenEndMkr = IsForbiddenMarker(endMarkerToMatch, TRUE); // TRUE is bCheckForEndMkr
+			}
+			if (bIsForbiddenEndMkr && bGotSpanEnd)
+			{
+				bFoundSpanEnd = TRUE;
+				spanEndSequNum = pSP->m_nSequNumber; // we've found the span end (probably by matching)
+				nEndSN = spanEndSequNum;
+				break;
+			}
+		}
+	} // end of else block for test: if (bIsForbiddenEndMkr && bGotSpanEnd)
+
+	if (bFoundSpanEnd)
+	{
+		// Half way there. Next scan forward from the pos value when the above 
+		// loop exited having found a span beginning
+		return TRUE;
+	}
+	else
+	{
+		nEndSN = -1;
+		return FALSE;
+	}
+}
+
+
+bool CAdapt_ItDoc::IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int SequNumSpanStart = -1;
+	int SequNumSpanEnd = -1;
+	int SequNumCurLoc = pSrcPhrase->m_nSequNumber;
+	wxString spanBeginMkr = wxEmptyString;
+	bool bGotSpanEnd = FALSE;
+
+	bool bFoundSpanStart = FindBeginningOfSpanProhibitingPlaceholderInsertion(pSrcPhrase, spanBeginMkr, SequNumSpanStart);
+	if (!bFoundSpanStart)
+	{
+		return FALSE;
+	}
+	else
+	{
+		// Got a starting location, now try for the ending location
+		SPList::Node* pos = pApp->m_pSourcePhrases->Item(SequNumSpanStart);
+		CSourcePhrase* pSpanStart_SrcPhrase = pos->GetData();
+		wxASSERT(pSpanStart_SrcPhrase != NULL);
+		spanBeginMkr.Trim(); // ensure no white space at its end
+		wxString matchEndMkr = spanBeginMkr += _T('*');
+		bGotSpanEnd = FindEndOfSpanProhibitingPlaceholderInsertion(pSpanStart_SrcPhrase, matchEndMkr, SequNumSpanEnd);
+	}
+	if (bGotSpanEnd && (SequNumSpanEnd != -1))
+	{
+		// Check, is our SequNumCurLoc value within the bounds, including start and end of the span?
+		if ((SequNumCurLoc >= SequNumSpanStart) && (SequNumCurLoc <= SequNumSpanEnd))
+		{
+			return TRUE;
+		}
+	}
+	// It's not within such a span
+	return FALSE;
 }

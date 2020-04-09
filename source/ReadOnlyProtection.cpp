@@ -717,7 +717,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 ///                                     running process's integer ID, and oshostname.
 /// \remarks Does the work of removing a given read-only protection file (ROP file), but
 /// first it checks to make sure it is entitled to do the removal. The ROP file has to be
-/// owned my running Adapt It instance, and I must be the account holder, and the machine
+/// owned by running Adapt It instance, and I must be the account holder, and the machine
 /// mine, to qualify for removal. It the user, machine, or process is not mine, then the
 /// file is left in place.
 ////////////////////////////////////////////////////////////////////////////////////////////

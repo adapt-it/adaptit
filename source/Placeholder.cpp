@@ -3845,12 +3845,7 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = m_pApp;
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	CPile* pInsertLocPile = pApp->m_pActivePile;
-	int nCount = 1; // The button or shortcut can only insert one
-	bool bRestoreTargetBox = TRUE;
-	bool bForRetranslation = FALSE;
-	bool bInsertBefore = TRUE;
-	bool bAssociateLeftwards = FALSE; // we want rightwards association
+	wxUnusedVar(event);
 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -3878,6 +3873,13 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 		return;
 	}
 
+	CPile* pInsertLocPile = pApp->m_pActivePile;
+	int nCount = 1; // The button or shortcut can only insert one
+	bool bRestoreTargetBox = TRUE;
+	bool bForRetranslation = FALSE;
+	bool bInsertBefore = TRUE;
+	bool bAssociateLeftwards = FALSE; // we want rightwards association
+
 	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
 		bForRetranslation, bInsertBefore, bAssociateLeftwards);
 }
@@ -3886,12 +3888,7 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = m_pApp;
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	CPile* pInsertLocPile = pApp->m_pActivePile;
-	int nCount = 1;  // The button or shortcut can only insert one
-	bool bRestoreTargetBox = TRUE;
-	bool bForRetranslation = FALSE;
-	bool bInsertBefore = FALSE;
-	bool bAssociateLeftwards = TRUE; // we want leftwards association
+	wxUnusedVar(event);
 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -3918,6 +3915,13 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 			_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
+
+	CPile* pInsertLocPile = pApp->m_pActivePile;
+	int nCount = 1;  // The button or shortcut can only insert one
+	bool bRestoreTargetBox = TRUE;
+	bool bForRetranslation = FALSE;
+	bool bInsertBefore = FALSE;
+	bool bAssociateLeftwards = TRUE; // we want leftwards association
 
 	DoInsertPlaceholder(pDoc, pInsertLocPile, nCount, bRestoreTargetBox,
 		bForRetranslation, bInsertBefore, bAssociateLeftwards);

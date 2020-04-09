@@ -4707,6 +4707,10 @@ public:
 	wxString GetStoredSourceText_PostEdit(); // accessor for getting the src text
 	// end of collaboration declarations
 
+	// BEW 7Apr20 for hidden attribute data support - exports
+	bool	HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase); // A better test than m_bUnused == TRUE
+					// because m_bUnused TRUE supports two unrelated functionalities
+
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion
 	// is offered) in each document that has a valid bookID. This is needed for XHTML and
 	// Pathway exports (we support only the scripture canon, not the deuterocanon)

@@ -3153,6 +3153,12 @@ wxString CSourcePhrase::GetTgtWordBreak()
 
 void CSourcePhrase::ClearCachedAttributesMetadata()
 {
+	// BEW 7Apr20, protect from calling this on data which
+	// actually is not cached attributes metadata, but words
+	// associated with helping avoid puncts Placement when
+	// m_bHasInternalPunct is TRUE
+	if (this->m_bHasInternalPunct)
+		return; // don't clear m_punctsPattern nor set m_bUnused to FALSE
 	if (!this->m_punctsPattern.IsEmpty())
 	{
 		this->m_punctsPattern.Empty();
@@ -3168,15 +3174,19 @@ void CSourcePhrase::InsertCachedAttributesMetadata(wxString metadata)
 		m_bUnused = FALSE;
 		return;
 	}
-	this->m_punctsPattern = metadata;
-	m_bUnused = TRUE;
+	if (!this->m_bHasInternalPunct)
+	{
+		// Only insert if it really is cached attributes metadata
+		this->m_punctsPattern = metadata;
+		m_bUnused = TRUE;
+	}
 }
 
 // Return the metadata, but if there is none, return empty string
 wxString CSourcePhrase::ExtractCachedAttributesMetadata()
 {
 	wxString metadata = wxEmptyString;
-	if (!this->m_punctsPattern.IsEmpty())
+	if (!this->m_punctsPattern.IsEmpty() && !this->m_bHasInternalPunct)
 	{
 		metadata = this->m_punctsPattern;
 	}

@@ -692,11 +692,17 @@ public:
 		bool bSaveWithinAttributesSpanValue; // If editing source text, m_bWithinMkrAttributeSpan
 			// has to be FALSE until the source text edit is done with; so here cache the 
 			// boolean's value across the handler for editing source text
+
+		// Prototypes for determining the span of CSourcePhrase instances for \f, \ef or \x inline markers
 		bool IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr); // BEW 3Apr20, for refactored placeholder insertion
 		bool GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& finalMkr); // BEW 3Apr20, for refactored placeholder insertion
-		bool GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, 
-									int& atBeginSequNum, int& atMatchSequNum); // BEW 3Apr20, for 
-									// refactored placeholder insertion
+		//bool GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, 
+		//							int& atBeginSequNum, int& atMatchSequNum); // BEW 3Apr20, for 
+									// refactored placeholder insertion  <<-- deprecated, unfinished,  8Apr20
+		bool ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase); // BEW 7Apr20
+		bool IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase); // BEW 8Apr20
+		bool FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, wxString& beginMkr, int& nBeginSN); // BEW 8Apr20
+		bool FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN);
 protected:
 		wxChar* m_ptr;
 		wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 

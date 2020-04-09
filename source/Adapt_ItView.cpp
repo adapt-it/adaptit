@@ -10974,7 +10974,16 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 // The parameter strAt returns the m_srcPhrase string from the first CSourcePhrase
 // instance which contains stored hidden attributes metadata - so the user can be shown
 // where the offending storage location is - so as to avoid it.
-// 
+// BEW 6Apr20, since a CSourcePhrase can store data which is NOT attributes metadata in
+// its m_punctsPattern member, and have m_bUnused set TRUE as a consequence of that, we
+// must also check that the pSrcPhrase does not have m_bHasInternalPunct set TRUE, because
+// if that is true, then the pSrcPhrase is not storing cached metadata, but rather words
+// for helping with auto puncts placement that avoids a Placement... dialog
+// If ever these two storage options clash on the one CSourcePhrase instance, then the
+// hiding of attributes metadata will win - which probably means that a punctuation
+// Placement dialog which otherwise would not show, will show and the the user will have
+// to do a manual placement within it. (It's safer that way, than letting the cache data
+// be lost)
 bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -10983,12 +10992,17 @@ bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxS
 	if (pos == NULL)
 		return FALSE; // there isn't any content in the list
 	bool bIllegalInternalHiddenMetadata = FALSE;
+	// There could be both types of storage in the span; we don't allow both on the
+	// same pSrcPhrase - earlier code gives priority to attributes hiding; but if
+	// the span has both at different locations, the there is no clash, but the
+	// presence of attribute hiding wins out in the suppression stakes. So the
+	// simple double test below suffices
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bUnused == TRUE)
+		if ((pSrcPhrase->m_bUnused == TRUE) && (pSrcPhrase->m_bHasInternalPunct == FALSE))
 		{
 			bIllegalInternalHiddenMetadata = TRUE;
 			strAt = pSrcPhrase->m_srcPhrase;

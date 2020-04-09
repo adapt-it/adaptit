@@ -17417,7 +17417,6 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
-
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
 			// on, then check for hidden metadata - if present, pSrcPhrase->m_bUnused 
@@ -17427,7 +17426,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// the string which is to be filtered out.
 			if (gpApp->GetDocument()->m_bCurrentlyFiltering)
 			{
-				if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
+				if ((gpApp->HasBarFirstInPunctsPattern(pSrcPhrase) == TRUE) 
+					&& !gpApp->m_bClipboardAdaptMode)
 				{
 #if defined (_DEBUG)
 					// Check we are in the right (sub)list...
@@ -18669,7 +18669,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// or a relic from AI legacy versions of long ago. Clear it out.
 				if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 				{
-					if (pSrcPhrase->m_bUnused == TRUE && !gpApp->m_bClipboardAdaptMode)
+					if ((gpApp->HasBarFirstInPunctsPattern(pSrcPhrase) == TRUE)
+						&& !gpApp->m_bClipboardAdaptMode)
 					{
 						pSrcPhrase->m_bUnused = FALSE;
 						pSrcPhrase->m_punctsPattern.Empty();
@@ -18785,8 +18786,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	int textLen = targetstr.Length();
 	target = targetstr; // return all the text in one long wxString
-
-//#if defined(FWD_SLASH_DELIM)
+	//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
 	target = FwdSlashtoZWSP(target);
@@ -18830,6 +18830,7 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	{
 		// Fix the document before returning, clear m_bUnused to FALSE
 		pSrcPhrase->m_bUnused = FALSE;
+		pSrcPhrase->m_bHasInternalPunct = FALSE;
 		return str; // str is unchanged - an error condition, since pSrcPhrase->m_bUnused 
 					// was wrongly TRUE in the caller's test
 	}
@@ -18837,9 +18838,11 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	// had data. To have metadata, it must contain an end-marker of form \mkr* and
 	// so we can check for * and if * is not there, then clear the variable, and
 	// clear m_bUnused as well just in case it is wrongly still TRUE.
+	// For this test, m_bHasInternalPunct must be FALSE as well for the TRUE block
+	// to be entered.
 	wxString contents = wxEmptyString;
 	wxString reversed = wxEmptyString;
-	if (!pSrcPhrase->m_punctsPattern.IsEmpty())
+	if (!pSrcPhrase->m_punctsPattern.IsEmpty() && !pSrcPhrase->m_bHasInternalPunct)
 	{
 		// Make the above check...
 		metadata = pSrcPhrase->m_punctsPattern; // this should have an end mkr at string end

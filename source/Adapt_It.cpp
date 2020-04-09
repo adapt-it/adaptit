@@ -24778,8 +24778,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_USE_CC, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ACCEPT_CHANGES, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
-    m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+    m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE)
     */
+
+	// BEW 6Apr20 remove widowed ~AIROP file persisting due to previous bad shutdown
+	if (!m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+		wxUnusedVar(bRemoved); // to avoid warning
+		m_bReadOnlyAccess = FALSE;
+		m_bFictitiousReadOnlyAccess = FALSE;
+		//GetView()->canvas->Refresh(); // force color change back to normal white background
+	}
 
     // whm added 6Jan12. Show or Hide the toolbar, modeBar and/or statusBar according
     // to the user preferences. The Basic Config file was read in above, so the user's
@@ -35064,7 +35074,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 /// \return     The count of how many document *.xml files were enumerated
 /// \param      paths					<-  reference to the array of absolute paths to all documents
 /// \param      adaptationsFolderPath	->  the absolute path to the project's Adaptations folder
-///                             is to have its document files enumerated
+///                            which is to have its document files enumerated
 /// \remarks
 /// Called from: the View's DoGlobalRestoreOfSaveToKB().
 /// This function collects the paths, relative to the passed in Adaptation's folders path,
@@ -57183,6 +57193,28 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, w
 		str += pSrcPhrase->GetFollowingOuterPunct();
 	}
 	return str;
+}
+
+// BEW 7Apr20, A better test than m_bUnused == TRUE
+// because m_bUnused TRUE supports two unrelated functionalities;
+// testing for an initial bar in m_punctsPattern is 100% sure to
+// indicate that m_punctsPattern contains hidden attributes metadata for
+// some new USFM3 markers. When m_punctsPattern has source text for
+// helping avoid putting up a punctuation Placement dialog when there
+// is medial punctuation, m_bUnused is also TRUE for that, but also
+// that instance has m_bHasInternalPunct TRUE as well, but the latter
+// fact is not the case when pSrcPhrase is storing cached metadata to 
+// hide it away from being seen in the GUI for adapting
+bool CAdapt_ItApp::HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase)
+{
+	if (pSrcPhrase == NULL)
+		return FALSE;
+	if (pSrcPhrase->m_punctsPattern.IsEmpty())
+		return FALSE;
+	int offset = wxNOT_FOUND; // initialise
+	wxString bar = _T('|');
+	offset = pSrcPhrase->m_punctsPattern.Find(bar);
+	return (offset == 0) ? TRUE : FALSE;
 }
 
 void CAdapt_ItApp::MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glossStr,

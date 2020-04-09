@@ -4228,22 +4228,31 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 						// to internally call the "Clear....() function to ensure the
 						// member is empty, and then insert strAttrValue - thereby
 						// restoring the preload value for this member
-						gpEmbeddedSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
-						gpEmbeddedSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
-#if defined (_DEBUG)
+
+						// We want to check two possibilities; (1) stored metadata which
+						// will commence with a bar ( | ) character; or (2) word or words
+						// stored for assisting in restoration to a merger of internal
+						// punctuation character(s)
+
 						wxString aBar = _T("|");
 						int offset = wxNOT_FOUND;
 						offset = strAttrValue.Find(aBar);
-						if ((offset == wxNOT_FOUND) || (offset > 0))
+						if (offset != 0) // 
 						{
-							// We want to catch two error possibilities; (1) stored metadata which
-							// does not commence with a bar ( | ) character; and (2) data which
-							// does contain a bar, but its location is not string-initial. These
-							// tests are not done in the Unicode Release version.
-							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
-								__FILE__, __FUNCTION__, __LINE__, gpEmbeddedSrcPhrase->m_nSequNumber, gpEmbeddedSrcPhrase->m_key.c_str());
+							// It's situation (2), not attributes hidden metadata material
+							gpEmbeddedSrcPhrase->m_punctsPattern = strAttrValue;
+							gpEmbeddedSrcPhrase->m_bHasInternalPunct = TRUE;
+							gpEmbeddedSrcPhrase->m_bUnused = TRUE; // TRUE above and so I'm not carrying attributes metadata
+							gpEmbeddedSrcPhrase->m_bHasInternalPunct = TRUE;
 						}
-#endif
+						else
+						{
+							// It's situation (1), insert cached attributes metadata
+							gpEmbeddedSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+							gpEmbeddedSrcPhrase->m_bHasInternalPunct = FALSE;
+							gpEmbeddedSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+							gpEmbeddedSrcPhrase->m_bHasInternalPunct = FALSE;
+						}
 					} // end of else block for test: if (strAttrValue.IsEmpty())
 				}
 				else
@@ -4431,22 +4440,34 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 						// to internally call the "Clear....() function to ensure the
 						// member is empty, and then insert strAttrValue - thereby
 						// restoring the preload value for this member
-						gpSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
-						gpSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
-#if defined (_DEBUG)
+						// BEW 7Apr20, this member can store either metadata or
+						// words for assisting the handling of phrase-internal puncts
+						// so determine which is the case
+
+						// We want to check two possibilities; (1) stored metadata which
+						// will commence with a bar ( | ) character; or (2) word or words
+						// stored for assisting in restoration to a merger of internal
+						// punctuation character(s)
+
 						wxString aBar = _T("|");
 						int offset = wxNOT_FOUND;
 						offset = strAttrValue.Find(aBar);
-						if ((offset == wxNOT_FOUND) || (offset > 0))
+						if (offset != 0) // 
 						{
-							// We want to catch two error possibilities; (1) stored metadata which
-							// does not commence with a bar ( | ) character; and (2) data which
-							// does contain a bar, but its location is not string-initial. These
-							// tests are not done in the Unicode Release version.
-							wxLogDebug(_T("%s::%s() line: %d , Attributes metadata error: bar is absent, or is not initial. sn=%d key=%s"),
-								__FILE__,__FUNCTION__,__LINE__, gpSrcPhrase->m_nSequNumber, gpSrcPhrase->m_key.c_str());
+							// It's situation (2), not attributes hidden metadata material
+							gpSrcPhrase->m_punctsPattern = strAttrValue;
+							gpSrcPhrase->m_bHasInternalPunct = TRUE;
+							gpSrcPhrase->m_bUnused = TRUE; // TRUE above and so I'm not carrying attributes metadata
+							gpSrcPhrase->m_bHasInternalPunct = TRUE;
 						}
-#endif
+						else
+						{
+							// It's situation (1), insert cached attributes metadata
+							gpSrcPhrase->InsertCachedAttributesMetadata(strAttrValue);
+							gpSrcPhrase->m_bHasInternalPunct = FALSE;
+							gpSrcPhrase->m_bUnused = TRUE; // means "I'm carrying bar-initial attributes metadata"
+							gpSrcPhrase->m_bHasInternalPunct = FALSE;
+						}
 					} // end of else block for test: if (strAttrValue.IsEmpty())
 					
 				} // end of TRUE block for test: if (gnDocVersion >= 6 && attrName == xml_pupat)
@@ -4647,6 +4668,10 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 
 	// clear the old m_bParagraph boolean, we don't use it in docV5, and in the latter it
 	// is m_bUnused
+	// BEW 7Apr20 the following test and clearing of the bool can be left here, because
+	// FromDocVersion4ToDocVersionCurrent() is only called if docVersion 4 is current, and
+	// it hasn't been so for about a decade - so it will do no harm if a really old document
+	// created for docVersion 4 were to be read in to a current app version
 	if (pSrcPhrase->m_bUnused)
 		pSrcPhrase->m_bUnused = FALSE;
 
