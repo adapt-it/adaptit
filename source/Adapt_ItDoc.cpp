@@ -23,8 +23,8 @@
 #define _AT_PTR
 //#define FIXORDER
 #define LOGMKRS
-const int logStart = 6;
-const int logEnd = 7;
+const int logStart = 4;
+const int logEnd = 5;
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -10891,6 +10891,8 @@ bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase,
 // function suggests only \f* and \x* return TRUE, \fe* will also return TRUE
 // BEW 7Dec10, added check for \fe or \f when SFM set is PngOnly
 // BEW 24Oct14 no changes needed for support of USFM nested markers
+// BEW 15Apr20 extended & refactored to support \ef* and \ex* USFM3
+// extended footnotes and extended cross-references
 bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 {
 	wxString endMkr = GetWholeMarker(pChar);
@@ -10914,20 +10916,59 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 	// return if endMkr is empty or if its first character is not '\'
 	if (endMkr.IsEmpty() || endMkr[0] != gSFescapechar)
 		return FALSE;
-	wxString reversed = MakeReverse(endMkr);
-	if (reversed[0] != _T('*'))
+	wxString rev = MakeReverse(endMkr);
+	if (rev[0] != _T('*'))
 		return FALSE;
 	else
 	{
-		reversed = reversed.Mid(1); // remove initial *
-		endMkr = MakeReverse(reversed); // now \x or \f should be first 2
-										// characters if it is to quality
+		rev = rev.Mid(1); // remove initial *
+		// rev is maybe one of:   f\  fe\  x\  xe\
+		// To qualify for correctness, the [0] index one must be either f or x
+		// For each of those, also test [1] for 'e' - and for each each the
+		// backslash must follow. First, footnote and extended footnote
+		if (rev[0] == _T('f'))
+		{
+			if (rev[1] == gSFescapechar)
+			{
+				// it's a \f* end marker
+				return TRUE;
+			}
+			else
+			{
+				if (rev[1] == _T('e') && rev[2] == gSFescapechar)
+				{
+					// it's a \ef* extended footnote end marker
+					return TRUE;
+				}
+			}
+		}
+		// Next, handle cross refs ones
+		if (rev[0] == _T('x'))
+		{
+			if (rev[1] == gSFescapechar)
+			{
+				// it's a \x* end marker
+				return TRUE;
+			}
+			else
+			{
+				if (rev[1] == _T('e') && rev[2] == gSFescapechar)
+				{
+					// it's a \ex* extended x-ref end marker
+					return TRUE;
+				}
+			}
+		}
+/* legacy code
+		endMkr = MakeReverse(reversed); 
 		int length = endMkr.Len();
 		if (length > 2)
 			return FALSE; // what remains is more than \x or \f, so disqualified
 		if ((endMkr.Find(_T("\\x")) == 0) || (endMkr.Find(_T("\\f")) == 0))
 			return TRUE; // what remains is either \x or \f, so it qualifies
+*/
 	}
+	// It's none of these
 	return FALSE;
 }
 
@@ -12737,7 +12778,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 {
 #if defined (_DEBUG)
 
-	if (pSrcPhrase->m_nSequNumber >= 2)
+	if (pSrcPhrase->m_nSequNumber >= 4)
 	{
 		int halt_here = 1;
         halt_here = halt_here; // avoid gcc warning
@@ -12746,10 +12787,14 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 	int inputLen = len; // save the input len value - so that if a marker is found and
 						// stored, we can easily test for that fact
 	endMkr.Empty();
-	if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
+	bool bIs_f_x_fe_xe_endMkr = FALSE;
+	bool bIsMkr = IsMarker(ptr);
+	wxUnusedVar(bIsMkr);
+	bool bIsEndMkr = IsEndMarker(ptr, pEnd);
+	//if (bIsMkr || bIsEndMkr)
+	if (!bIsEndMkr)
 	{
-		// do no parse if we are not pointing to a marker, and if we are, do no parse if
-		// what we are pointing at is not an endmarker
+		// do no parse if we are not pointing to an end- marker
 		return len;
 	}
 	else
@@ -12768,9 +12813,24 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 		// m_endMarkers member of the CSourcePhrase instance; with the exception that
 		// if the endMarker is \+jmp then that will be included also in the 'normal' set and
 		// so be stored in m_endMarkers
-		if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
+
+		// BEW 15Apr20 for \f* \x* \ef* \ex*, if we find one of these but don't store
+		// it yet in here, the caller still needs to know it found a 'Normal' endMkr
+		// so the parsing doesn't end prematurely; and I need to refactor
+		// IsFootnoteOrCrossReferenceEndMarker(ptr) to handle \ef* and \ex*. (I think
+		// the caller handles \em*)
+		bIs_f_x_fe_xe_endMkr = IsFootnoteOrCrossReferenceEndMarker(ptr);
+		if (bIs_f_x_fe_xe_endMkr)
 		{
-			// it's not one of \f* \fe* or \x*; and we also in the function do not parse
+			// Tell caller, but don't increase len if not storing herein
+			bNormalEndMkrFound = TRUE;
+			endMkr = GetWholeMarker(ptr); // let caller know - refrain from storing yet (sounds silly)
+								// I may refactor this protocol - more testing will tell me
+		}
+		// The following are the storage attempts for the rest of what markers may occur
+		if (!bIs_f_x_fe_xe_endMkr)
+		{
+			// it's not one of \f* \ef* \x* or \ex*; and we also in the function do not parse
 			// over any of the 5 inline non-binding endmarkers (\wj* \qt* \sls* \tl*
 			// \fig*) so test for these and exit without doing anything if we are pointing
 			// at one of them
@@ -12890,7 +12950,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 			ptr += length;
 
 		} // end of TRUE block for test: if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
-	} // end of else block for test: if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
+	} // end of else block for test: if (!IsEndMkr)
 
 	// Did we parse and store an endmarker?
 	if (len > inputLen)
@@ -12904,7 +12964,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 			(ptr < pEnd) &&
 			!IsWhiteSpace(ptr) &&
 			(*ptr != _T(']')) &&
-			(!(IsMarker(ptr) && !IsEndMarker(ptr, pEnd)) ) )
+			(!IsMarker(ptr) && !IsEndMarker(ptr,pEnd)) )
 		{
 			if (bUseTgtPuncts)
 			{
@@ -16813,11 +16873,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 6)
+/*		if (pSrcPhrase->m_nSequNumber >= 4)
 		{
 			int halt_here = 1;
             halt_here = halt_here; // avoid gcc warning
         }
+*/
 #endif
 
 		// strCacheDelayedFilteredContent = temp; set on previous iteration (approx lines at 17,200) 
@@ -17097,7 +17158,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 			// *** This is where to put the function for metadata hiding in support of USFM3 ***
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber == 6)
+		if (pSrcPhrase->m_nSequNumber == 12)
 		{
 			int halt_here = 1;
             halt_here = halt_here; // avoid gcc warning
@@ -31225,15 +31286,25 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// We'll retain the somewhat misleadingly named bThrewAwayWhiteSpaceAfterWord
 			int saveLen = len;
 			// The following call passes in a reference to the pointer, so the internal loop
-			// will update ptr here in the caller for each whitespace character parsed over
+			// will update ptr here in the caller for each whitespace character parsed over,
+			// and return the updated ptr and  updated len value if, in fact, there were
+			// one or more whitespace characters parsed over
 			len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
 			if (len > saveLen)
 			{
 				// These whites are to be considered "thrown away", but we may reverse that
 				// decision in code further down, if this whitespace turns out to be the word
 				// delimitation whitespace
-				bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've
-													  // started into parsing of following puncts & endmarkers
+				bThrewAwayWhiteSpaceAfterWord = TRUE; // a TRUE value means that
+					// ptr got augmented, but savePtr didn't, and len got increased
+					// but saveLen didn't. But if len == saveLen, then 
+					// bThrewAwayWhiteSpaceAfterWord will remain FALSE. BEWARE, DO
+					// NOT do: if (bThrewAwayWhiteSpaceAfterWord) test unilaterally
+					// below when this boolean is FALSE - it would cause important
+					// parsing code to be skipped.
+				// Hmm, we don't actually use this below any more - but I'll leave
+				// this bool value to be available to any new refactoring that may
+				// find it useful.
 			}
 		} // end of else block for test: if (bStartedPunctParse)
 
@@ -31286,25 +31357,168 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 #endif
 
-		if (bThrewAwayWhiteSpaceAfterWord)
-		{
 #if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-			{
-				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
-			}
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+		{
+			wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+		}
 #endif
-			// the most likely thing is that we've halted at punctuation or begin marker for
-			// the next word to be parsed, or the start of the next word itself. But if we
-			// have come to closing quotes or endmarkers, we'll let parsing continue on the
-			// assumption the user had a bogus space after the word which shouldn't be there
-			if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
+		// the most likely thing is that we've halted at punctuation or begin marker for
+		// the next word to be parsed, or the start of the next word itself. But if we
+		// have come to closing quotes or endmarkers, we'll let parsing continue on the
+		// assumption the user had a bogus space after the word which shouldn't be there
+		if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
+		{
+			// if it's opening quotes punctuation, then definitely return
+			if (IsOpeningQuote(ptr))
 			{
-				// if it's opening quotes punctuation, then definitely return
-				if (IsOpeningQuote(ptr))
+				// BEW 14Jul14, decrement len until it points to start of any
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr - 1L))
 				{
+					ptr = ptr - 1L;
+					len--;
+				}
+				return len;
+			}
+			else
+			{
+				// some languages can have opening punctuation other than quotes, so if it
+				// is other punctuation characters, the situation is ambiguous. Our
+				// solution is to look ahead for the first char past the puncts, if that is
+				// an endmarker or a ] closing bracket we'll keep the punctuation as
+				// following puncts for the current pSrcPhrase, but any other option -
+				// we'll just return without advancing over the puncts.
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+				}
+#endif
+				if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
+				{
+					// it's some sort of nonquote punctuation (IsOpeningQuote() call above
+					// returns true even if straight quote or double quote is matched)
+					wxChar* ptr2 = ptr;
+					int countThem = 0;
+					// BEW 30Sep19 added subtest for "not at \esbe marker"
+					while (spacelessPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']') && !FoundEsbeEndMkr(ptr, whitespaceLen))
+					{
+						ptr2++;
+						countThem++;
+					}
+					if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
+					{
+						// we'll treat this as following puncts for our current pSrcPhrase
+						// and return if we came to ], otherwise parse on...
+						wxString finalPuncts(ptr, countThem);
+						pSrcPhrase->m_follPunct += finalPuncts;
+						pSrcPhrase->m_srcPhrase += finalPuncts;
+						// also do it for the secondWord's CSourcePhrase when ~ is conjoining
+						if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+						{
+							pSrcPhrWord2->m_follPunct += finalPuncts;
+							pSrcPhrWord2->m_srcPhrase += finalPuncts;
+						}
+						len += countThem;
+						ptr += countThem;
+
+						if (*ptr == _T(']'))
+						{
+							// BEW 14Jul14, decrement len until it points to start of any
+							// preceding whitespace, and then return
+							while (IsWhiteSpace(ptr - 1L))
+							{
+								ptr = ptr - 1L;
+								len--;
+							}
+							return len;
+						}
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+						}
+#endif
+						// BEW 30Sep19 check for ptr at \esbe, if so add to m_endMarkers and
+						// increase len and get ptr updated to point past it.
+						{
+							int itsLen = 0;
+							// scoping block -- we'll have one of these at about a half dozen places
+							bool bEsbeEndMkr = FoundEsbeEndMkr(ptr, whitespaceLen); // do nothing if returns false
+							if (bEsbeEndMkr)
+							{
+								itsLen = StoreEsbeEndMarker(ptr, pSrcPhrase, whitespaceLen);
+								len += itsLen;
+								ptr += itsLen;
+								return len;
+							}
+						}
+
+						// otherwise, let processing continue within this call of ParseWord()
+					}
+					else
+					{
+						// Nah, must belong to what follows on next ParseWord() call...
+
+						// BEW 14Jul14, decrement len until it points to start of any
+						// preceding whitespace, and then return
+						while (IsWhiteSpace(ptr - 1L))
+						{
+							ptr = ptr - 1L;
+							len--;
+						}
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+						}
+#endif
+						return len;
+					}
+				} // it's not punctuation
+				else
+				{
+					// if we enter here, the usual scenario is that a word doesn't have
+					// any following punctuation and we've just parsed over white space -
+					// we could return now, except that it wouldn't be apppropriate to do
+					// so if what we are pointing at is an endmarker which ends a TextType
+					// (such as a footnote, endnote or crossReference in USFM, or a
+					// footnote in PNG 1998 SFM set). The code for detecting the endmarker
+					// in the caller uses that detection to end the TextType for the
+					// earlier stuff, change to the next TextType, or if there's no begin
+					// marker present, reinstore 'verse' and m_bSpecialText = FALSE for
+					// the CSourcePhrase instances which will follow. So we must check for
+					// the endmarker here (we care only about m_endMarkers content here,
+					// because only what's in that member can disrupt the TextType
+					// propagating in order to start a new value thereafter) and make sure
+					// it gets stored before we return
+					wxString theEndMarker;
+					theEndMarker.Empty();
+#if defined (_DEBUG) && defined (LOGMKRS)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+					{
+						wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
+					}
+#endif
+					if (IsEndMarkerRequiringStorageBeforeReturning(ptr, &theEndMarker))
+					{
+						int aLength = theEndMarker.Len();
+						ptr += aLength;
+						len += aLength;
+						// get the marker stored
+						pSrcPhrase->AddEndMarker(theEndMarker);
+					}
 					// BEW 14Jul14, decrement len until it points to start of any
 					// preceding whitespace, and then return
 					while (IsWhiteSpace(ptr - 1L))
@@ -31314,155 +31528,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					}
 					return len;
 				}
-				else
-				{
-					// some languages can have opening punctuation other than quotes, so if it
-					// is other punctuation characters, the situation is ambiguous. Our
-					// solution is to look ahead for the first char past the puncts, if that is
-					// an endmarker or a ] closing bracket we'll keep the punctuation as
-					// following puncts for the current pSrcPhrase, but any other option -
-					// we'll just return without advancing over the puncts.
-#if defined (_DEBUG) && defined (LOGMKRS)
-					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-					{
-						wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
-							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
-					}
-#endif
-					if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
-					{
-						// it's some sort of nonquote punctuation (IsOpeningQuote() call above
-						// returns true even if straight quote or double quote is matched)
-						wxChar* ptr2 = ptr;
-						int countThem = 0;
-						// BEW 30Sep19 added subtest for "not at \esbe marker"
-						while (spacelessPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']') && !FoundEsbeEndMkr(ptr, whitespaceLen))
-						{
-							ptr2++;
-							countThem++;
-						}
-						if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
-						{
-							// we'll treat this as following puncts for our current pSrcPhrase
-							// and return if we came to ], otherwise parse on...
-							wxString finalPuncts(ptr, countThem);
-							pSrcPhrase->m_follPunct += finalPuncts;
-							pSrcPhrase->m_srcPhrase += finalPuncts;
-							// also do it for the secondWord's CSourcePhrase when ~ is conjoining
-							if (IsFixedSpaceSymbolWithin(pSrcPhrase))
-							{
-								pSrcPhrWord2->m_follPunct += finalPuncts;
-								pSrcPhrWord2->m_srcPhrase += finalPuncts;
-							}
-							len += countThem;
-							ptr += countThem;
-
-							if (*ptr == _T(']'))
-							{
-								// BEW 14Jul14, decrement len until it points to start of any
-								// preceding whitespace, and then return
-								while (IsWhiteSpace(ptr - 1L))
-								{
-									ptr = ptr - 1L;
-									len--;
-								}
-								return len;
-							}
-#if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-							{
-								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
-									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-									pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
-							}
-#endif
-
-							// BEW 30Sep19 check for ptr at \esbe, if so add to m_endMarkers and
-							// increase len and get ptr updated to point past it.
-							{
-								int itsLen = 0;
-								// scoping block -- we'll have one of these at about a half dozen places
-								bool bEsbeEndMkr = FoundEsbeEndMkr(ptr, whitespaceLen); // do nothing if returns false
-								if (bEsbeEndMkr)
-								{
-									itsLen = StoreEsbeEndMarker(ptr, pSrcPhrase, whitespaceLen);
-									len += itsLen;
-									ptr += itsLen;
-									return len;
-								}
-							}
-
-							// otherwise, let processing continue within this call of ParseWord()
-						}
-						else
-						{
-							// Nah, must belong to what follows on next ParseWord() call...
-
-							// BEW 14Jul14, decrement len until it points to start of any
-							// preceding whitespace, and then return
-							while (IsWhiteSpace(ptr - 1L))
-							{
-								ptr = ptr - 1L;
-								len--;
-							}
-#if defined (_DEBUG) && defined (LOGMKRS)
-							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-							{
-								wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
-									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-									pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
-							}
-#endif
-							return len;
-						}
-					} // it's not punctuation
-					else
-					{
-						// if we enter here, the usual scenario is that a word doesn't have
-						// any following punctuation and we've just parsed over white space -
-						// we could return now, except that it wouldn't be apppropriate to do
-						// so if what we are pointing at is an endmarker which ends a TextType
-						// (such as a footnote, endnote or crossReference in USFM, or a
-						// footnote in PNG 1998 SFM set). The code for detecting the endmarker
-						// in the caller uses that detection to end the TextType for the
-						// earlier stuff, change to the next TextType, or if there's no begin
-						// marker present, reinstore 'verse' and m_bSpecialText = FALSE for
-						// the CSourcePhrase instances which will follow. So we must check for
-						// the endmarker here (we care only about m_endMarkers content here,
-						// because only what's in that member can disrupt the TextType
-						// propagating in order to start a new value thereafter) and make sure
-						// it gets stored before we return
-						wxString theEndMarker;
-						theEndMarker.Empty();
-#if defined (_DEBUG) && defined (LOGMKRS)
-						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-						{
-							wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  iBEM = %s"),
-								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetInlineBindingEndMarkers().c_str());
-						}
-#endif
-						if (IsEndMarkerRequiringStorageBeforeReturning(ptr, &theEndMarker))
-						{
-							int aLength = theEndMarker.Len();
-							ptr += aLength;
-							len += aLength;
-							// get the marker stored
-							pSrcPhrase->AddEndMarker(theEndMarker);
-						}
-						// BEW 14Jul14, decrement len until it points to start of any
-						// preceding whitespace, and then return
-						while (IsWhiteSpace(ptr - 1L))
-						{
-							ptr = ptr - 1L;
-							len--;
-						}
-						return len;
-					}
-				}
-			} // end of TRUE block for test: if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
-		} // end of TRUE block for test: if (bThrewAwayWhiteSpaceAfterWord)
+			}
+		} // end of TRUE block for test: if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
 
 	} // end of TRUE block for test: if (!bSkipLegacyParsingBlock) ************************************
 #if defined (_DEBUG) && defined (LOGMKRS)
