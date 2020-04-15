@@ -237,7 +237,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			WaitMsg = _("Please wait: all widths are being resized, then strips created again");
 			break;
         case 29:
-            WaitMsg = _("Please wait while creating a new document - and creates a diagnostic log in folder _LOGS_EMAIL_REPORTS...");
+            WaitMsg = _("Please wait while creating a new document - and creating a diagnostic log file in folder _LOGS_EMAIL_REPORTS...");
             break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");

@@ -2816,6 +2816,13 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			pStatusBar->StartProgress(_("Opening Document and Merging With Current Document"), msgDisplayed, nTotal);
 		}
 
+        // whm 14Apr2020 added following additional LogDocCreationData() call to indicate source of 
+        // logging data
+        if (pApp->m_bMakeDocCreationLogfile)
+        {
+            pApp->LogDocCreationData(_T("In OpenDocWithMerger() logging Data via ReadDoc_XML(). Expect second list of logging Data via TokenizeTextString() below this list:"));
+        }
+
 		bool bReadOK = ReadDoc_XML(thePath, pDoc, (nTotal > 0) ? _("Opening Document and Merging With Current Document") : _T(""), nTotal); // defined in XML.cpp
 
 		if (!bReadOK)
@@ -2878,17 +2885,13 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	if (bDoMerger)
 	{
-		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
-		{
-            // Construct the parameter string composed of the current output filename + date-time stamp for Now().
-            wxString fileNameLine;
-            wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
-            wxString timeStr;
-            timeStr = theTime.Format();
-            fileNameLine = pApp->m_curOutputFilename + _T(" ") + timeStr;
-            pApp->LogDocCreationData(fileNameLine);
-            pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
-		}
+        // whm 13Apr2020 Note: Originally BEW's logging function was placed here in
+        // OpenDocWithMerger(), but this function is not called when a collaboration
+        // document is first created, but only after it already exists and merging
+        // process is being done. I've remove it from here and placed the initial
+        // LogDocCreationData(fileNameLine) in the OK_btn_delayedHandler_GetSourceTextFromEditor()
+        // function after the App's m_curOutputPath is assigned, and before the 
+        // OpenDocWithMerger() calls. 
 
 		// first task is to tokenize the (possibly edited) source text just obtained from
 		// PT or BE
@@ -2950,7 +2953,15 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
 
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
-		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+
+        // whm 14Apr2020 added following additional LogDocCreationData() call to indicate specific source of 
+        // logging data. 
+        if (pApp->m_bMakeDocCreationLogfile)
+        {
+            pApp->LogDocCreationData(_T("In OpenDocWithMerger() logging Data via TokenizeTextString() below:"));
+        }
+        
+        nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
 
 		// Check for a parse error, abort the parse if there was a parse error
 		if (nHowMany == -1)
@@ -3199,7 +3210,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// remove the progress dialog
 	pStatusBar->FinishProgress(_("Merging Documents..."));
 
-	return TRUE;
+    // whm 13Apr2020 Note: Don't put any LogDocCreationData() call here to indicate
+    // the End-of-Document. That call needs to go at the end of the calling function
+    // OK_btn_delayedHandler_GetSourceTextFromEditor(). 
+
+    return TRUE;
 }
 
 void UnloadKBs(CAdapt_ItApp* pApp)
@@ -10911,7 +10926,49 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			pApp->m_curOutputBackupFilename = pApp->GetFileNameForCollaboration(_T("_Collab"),
 							bookCode, _T(""), chForDocName, _T(".BAK"));
 
-			// disallow Book mode, and prevent user from turning it on
+            // whm 13Apr2020 added - set the App's m_curOutputPath too from here
+            pApp->m_curOutputPath = docPath;
+
+            // whm 13Apr2020 moved the code block below here from OpenDocWithMerger. 
+            // This OK_btn_delayedHandler_GetSourceTextFromEditor() function is a good place
+            // to write the first document creation/opening log line that includes the output
+            // path/name of the collaboration document. It is better to do it here, rather than
+            // in OpenDocWithMerger() which is only called when a collaboration chapter/book  
+            // already existed and is being merged. OpenDocWithMerger is not called when the
+            // collaboration chapter/book is first created.
+
+            // Everything is now setup to normalize the input text and do the parse,
+            // so setup our logging file that will store the filename and date-time.
+            // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
+            // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
+            // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+            // the verse number, instead of the fileNameLine + date-time string as output
+            // here at the beginning of doc creation logging for this file being opened.
+            // If there is a parse failure, it happened after the last m_srcPhrase in
+            // this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+            // when "Make diagnostic logfile during document creation and opening" check box
+            // is ticked at the bottom of the GetSopurceTextFromEditor dialog.
+            if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
+            {
+                // Construct the parameter string composed of the current output filename + date-time stamp for Now().
+                wxString fileNameLine;
+                wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+                wxString timeStr;
+                timeStr = theTime.Format();
+                // whm 13Apr2020 changed to log whole path of fileNameLine
+                fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
+                pApp->LogDocCreationData(fileNameLine);
+                // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
+                // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
+                // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
+                pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of steps 1-4. Other calls of LogDocCreationData() are made at successful completion of
+                // remaining steps farther below.
+                pApp->LogDocCreationData(_T("Steps 1-4 successful in OK_btn_delayedHandler_GetSourceTextFromEditor() function..."));
+            }
+
+            // disallow Book mode, and prevent user from turning it on
 			pApp->m_bBookMode = FALSE;
 			pApp->m_pCurrBookNamePair = NULL;
 			pApp->m_nBookIndex = -1;
@@ -10987,7 +11044,14 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
 #endif
 #endif
-				nStep = 6;
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 5.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 5 successful"));
+                }
+                
+                nStep = 6;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 
@@ -11061,6 +11125,12 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				wxString pathCreationErrors;
 				wxString sourceFileTitle = pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode,
 									_T(""), chForDocName, _T(""));
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 6.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 6 successful"));
+                }
 
 				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -11087,7 +11157,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // BEW 15Sep14 made frame be the parent
 					pApp->LogUserAction(msg);
 				}
-			} // end of TRUE block for test: if (::wxFileExists(docPath))
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 7.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 7 successful"));
+                }
+            } // end of TRUE block for test: if (::wxFileExists(docPath))
 			else
 			{
 				nStep = 5;
@@ -11117,7 +11193,14 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				{
 					nHowMany = pView->TokenizeTextString(pSourcePhrases,m_collab_sourceWholeBookBuffer, 0);
 				}
-				// copy the pointers over to the app's m_pSourcePhrases list (the document)
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 5.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 5 successful"));
+                }
+
+                // copy the pointers over to the app's m_pSourcePhrases list (the document)
 				if (nHowMany > 0)
 				{
 					SPList::Node* pos = pSourcePhrases->GetFirst();
@@ -11137,7 +11220,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					// in the view window
 					wxASSERT(!pApp->m_pSourcePhrases->IsEmpty());
 
-					nStep = 6;
+                    nStep = 6;
 					msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 					pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 
@@ -11159,6 +11242,12 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return 0L;
 				}
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 6.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 6 successful"));
+                }
 
  				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -11194,8 +11283,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // BEW 15Sep14 made frame be the parent
 					pApp->LogUserAction(msg);
 				}
-
-			} // end of else block for test: if (::wxFileExists(docPath))
+                // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+                // of step 7.
+                if (pApp->m_bMakeDocCreationLogfile)
+                {
+                    pApp->LogDocCreationData(_T("Step 7 successful"));
+                }
+            } // end of else block for test: if (::wxFileExists(docPath))
 		} // end of TRUE block for test: if (bSucceeded)
 		else
 		{
@@ -11297,6 +11391,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	}
 // end of the factored-out code
 
+    // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+    // of step 8.
+    if (pApp->m_bMakeDocCreationLogfile)
+    {
+        pApp->LogDocCreationData(_T("Step 8 successful"));
+    }
+
 	nStep = 9;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
@@ -11311,6 +11412,24 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 
 	// remove the progress dialog
 	pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
+    
+    // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
+    if (pApp->m_bMakeDocCreationLogfile)
+    {
+        pApp->LogDocCreationData(_T("Step 9 successful"));
+    }
+
+    // whm 13Apr2020 added line at end of document creation/opening log to indicate we reached end of the document
+    // This essentially signals within the log file that the document creation/opening was successful.
+    if (pApp->m_bMakeDocCreationLogfile)
+    {
+        pApp->LogDocCreationData(_T("***End-of-Document***"));
+    }
+    pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
+                                    // until explicitly turned on at another time
+    pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
+                                             // leaving it turned on, and wondering why doc creation takes minutes to complete
+
 
 	// For safety's sake, clear the globals used to default safe values
 	m_collab_bTextOrPunctsChanged = FALSE;
