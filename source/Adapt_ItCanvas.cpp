@@ -2043,7 +2043,7 @@ x:					CCell* pCell = 0;
 						// BEW 20May16 added 3rd subtest to next line, otherwise it bleeds out
 						// user's choice of manual typing of punctuation in the block further
 						// down
-						wxLogDebug(_T("OnLButtonDown() 1837; after x: label,  m_nCacheLeavingLocation = %d"),
+						wxLogDebug(_T("OnLButtonDown() 2046; after x: label,  m_nCacheLeavingLocation = %d"),
 							pApp->m_nCacheLeavingLocation);
 
 						if (pApp->m_nOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
@@ -2102,7 +2102,7 @@ x:					CCell* pCell = 0;
 								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
 								// pOldActivePile pointer
 								pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-								wxLogDebug(_T(" OnLButtonDown() 1906, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+								wxLogDebug(_T(" OnLButtonDown() 2105, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 									pApp->m_nCacheLeavingLocation);
 
 								pApp->m_bLandingBox = TRUE;

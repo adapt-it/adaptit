@@ -3040,10 +3040,20 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 	if (m_pApp->m_pTargetBox != NULL)
 	{
 		// BEW changed 24Jan13, to make the test more robust
+		// BEW added more, 9Apr20, to disable if active location is within a span
+		// of footnote, extended footnote, or cross-reference
 		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1 ) || 
 			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() == wxWindow::FindFocus()))) // whm 12Jul2018 added ->GetTextCtrl() part
 		{
 			bCanInsert = TRUE;
+
+			if (m_pApp->m_bDisablePlaceholderInsertionButtons)
+			{
+				// BEW addition 9Apr20 handler is called on leaving and on landing - we
+				// only what this disable when landing at a new location; clear the flag
+				// when 'leaving'. See PlacePhraseBox() in view file.
+				bCanInsert = FALSE;
+			}
 		}
 	}
 	event.Enable(bCanInsert);

@@ -19879,6 +19879,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
 
+	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
+
     // Call the InventoryCollabEditorInstalls() function to determine which versions of Paratext 
     // are installed on this computer. The function sets a set of 13 boolean values which are 
     // stored in the App's global space. These global bool variables are:
@@ -20365,6 +20367,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
     m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
 	m_bIsEmbeddedJmpMkr = FALSE; // BEW 13Mar20 added - to differentiate \+jmp from \jmp behaviours; initialise
+
+	// BEW 10Apr20 Fast access strings to be used only for "prohibitive" matching, so as
+	// to determine spans which wrap the active location - where such spans prohibit
+	// placeholder insertion buttons - by disabling them
+	m_prohibitiveBeginMarkers = _T("\\f \\ef \\x \\ex "); // footnotes, extended footnotes, xrefs, extended xrefs
+	m_prohibitiveEndMarkers = _T("\\f* \\ef* \\x* \\ex* "); // footnotes, extended footnotes, xrefs, extended xrefs
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
@@ -57558,3 +57566,126 @@ void CAdapt_ItApp::MyLogger()
 		}
 	}
 }
+
+// BEW 11Apr20 made this function, to search for the marker in m_markers rather than
+// assuming it is last in that member storage. It's companion will likewise seach in
+// m_endMarkers - because the latter can have things like "\\+jmp*\\ef*" so the assumption
+// that the matching endMarker will be first in the m_endMarkers breaks down.
+// Pass in pSrcPhrase, and return any found prohibitive begin marker in beginMkr
+bool CAdapt_ItApp::FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& beginMkr)
+{
+	beginMkr = wxEmptyString;
+	if (pSrcPhrase == NULL)
+		return FALSE;
+	wxString beginMarkers = pSrcPhrase->m_markers;
+	if (beginMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		// m_markers has content - does it start a span of the prohibitive type?
+		// Make a space-augmented marker search string, and do a Find() on
+		// the relevant fast-access string. (Return a matched markere in beginMkr)
+		int offset = wxNOT_FOUND;
+		wxString mkr = _T("\\f ");  // augmented by trailing space
+		offset = beginMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \f
+			beginMkr = mkr.Trim(); // remove final space & return it
+			return TRUE;
+		}
+		mkr = _T("\\x ");  // augmented by trailing space
+		offset = beginMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \x
+			beginMkr = mkr.Trim(); // remove final space & return it
+			return TRUE;
+		}
+		mkr = _T("\\ef ");  // augmented by trailing space
+		offset = beginMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \ef
+			beginMkr = mkr.Trim(); // remove final space & return it
+			return TRUE;
+		}
+		mkr = _T("\\ex ");  // augmented by trailing space
+		offset = beginMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \ex
+			beginMkr = mkr.Trim(); // remove final space & return it
+			return TRUE;
+		}
+	}
+	// not found a match in m_markers
+	return FALSE; 
+}
+
+// BEW 11Apr20 made this function, to search for the marker in m_EndMarkers rather than
+// assuming it is first in that member storage - because the latter can have things like
+// "\\+jmp*\\ef*" so the assumption that it will be first in m_endMarkers breaks down. 
+// It's companion function above (for finding begin marker beforehand) will likewise 
+// search - but in m_markers (which has space delimiting each) - for the same kind
+// of reason. But in m_endMarkers there is normally no delimiting space, as * does
+// that job.
+// Read in pSrcPhrase, return a found prohibitive endMarker via signature's endMkr
+bool CAdapt_ItApp::FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& endMkr)
+{
+	endMkr = wxEmptyString;
+	if (pSrcPhrase == NULL)
+		return FALSE;
+	wxString endMarkers = pSrcPhrase->GetEndMarkers();
+	if (endMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		// m_markers has content - does it end a span of the prohibitive type?
+		// Make a space-augmented marker search string, and do a Find() on
+		// the relevant fast-access string. (Return a matched endMarker in endMkr,
+		// it's not guaranteed to be the one we hope for; the caller can test
+		// for that.)
+		int offset = wxNOT_FOUND;
+		wxString mkr = _T("\\f*");
+		offset = endMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \f*
+			endMkr = mkr;
+			return TRUE;
+		}
+		mkr = _T("\\x*");
+		offset = endMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \x*
+			endMkr = mkr;
+			return TRUE;
+		}
+		mkr = _T("\\ef*");
+		offset = endMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \ef*
+			endMkr = mkr;
+			return TRUE;
+		}
+		mkr = _T("\\ex*");
+		offset = endMarkers.Find(mkr);
+		if (offset >= 0)
+		{
+			// Found \ex*
+			endMkr = mkr;
+			return TRUE;
+		}
+	}
+	// we did not find any prohibitive end  markers in m_endMarkers
+	return FALSE;
+}
+
+

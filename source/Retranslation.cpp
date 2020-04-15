@@ -2224,7 +2224,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // BEW added 8May09; if the active location was far from the retranslation (defined as
     // "more than 80 piles from its end"), it is probably better to make the final active
     // location be the CSourcePhrase instance immediately following the retranslation, and
-    // set the global gnOldsequNum to the old sequence number value so the Back button can
+    // set the app'sm_nOldSequNum to the old sequence number value so the Back button can
     // later jump back to the old active location if the user wants
     m_pApp->m_nOldSequNum = nSaveActiveSequNum;
 	int nSaveOldSequNum = m_pApp->m_nOldSequNum; // need this to avoid calls below clobbering the

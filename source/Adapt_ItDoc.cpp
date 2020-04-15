@@ -35060,33 +35060,38 @@ bool CAdapt_ItDoc::FindMatchingEndMarker(wxChar* pChar, wxChar* pEnd, int& offse
 	return TRUE;
 }
 
-// BEW 3Apr20 This function returns true if \f, \x, or \ef begin-marker is at ptr
-// when bCheckForEndMkr is FALSE; or when \f*, \x*, or \ef* end-marker is at ptr.
-// This function will be used in a scanning function called: bool
-// IsWithinSpanProhibitingPlaceholderInsertion(), in support of refactoring for
-// two placeholder buttons, and their Update...() handlers for determining when
+// BEW 3Apr20 This function returns true if \f, \x, \ef or \ex begin-marker is at
+// ptr when bCheckForEndMkr is FALSE; or when \f*, \x*, \ef* of \ex* end-marker is
+// at ptr when the bool is TRUE.
+// This function will be used in a scanning function called: 
+// bool IsWithinSpanProhibitingPlaceholderInsertion(), in support of refactoring
+// for two placeholder buttons, and their Update...() handlers for determining when
 // to disable or enable the GUI buttons. We get the input mkr from the caller
 // by checking each pSrcPhrase->m_markers member, or pSrcPhrase->m_endMarkers
-// member (for the latter we need to use an access function), as the boolean
-// directs. The begin markers are stored with following space, and the end markers
-// with final * (we no longer support PNG SFM markup).
-// For begin markers, do not augment in the caller with a trailing space, that
+// member (using its access function), as the bCheckForEndMkr boolean directs.
+// The begin markers are stored with following space in each CSrcPhrase, and the 
+// end markers with final * (we no longer support PNG SFM markup).
+// For begin markers, do not augment, in the caller, with a trailing space, that
 // will be done here where needed.
+// We call these "prohibitive" because they only belong to the code for
+// determining when active pSrcPhrase belongs to a marker span which
+// into which placeholder insertion is prohibited
 bool CAdapt_ItDoc::IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr)
 {
-	
+	mkr = mkr.Trim(); // just in case  it came in with a trailing space
 	if (bCheckForEndMkr)
 	{
 		// All these end markers are stored in m_endMarkers private member
 		wxString footnoteEndMkr = _T("\\f*");
 		wxString extFootnoteEndMkr = _T("\\ef*");
 		wxString xRefEndMkr = _T("\\x*");
+		wxString extxRefEndMkr = _T("\\ex*");
 		// Check for endMarker
 		int length = mkr.Len();
 		wxChar charLast = mkr.GetChar(length - 1); // should be an * character
 		if (charLast != _T('*'))
 		{
-			return FALSE; // not an inline USFM2 or USFM3 end marker
+			return FALSE; // not an inline USFM2 or USFM3 prohibitive end marker
 		}
 		else
 		{
@@ -35102,6 +35107,10 @@ bool CAdapt_ItDoc::IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr)
 			{
 				return TRUE;
 			}
+			if (mkr == extxRefEndMkr)
+			{
+				return TRUE;
+			}
 		}
 	}
 	else
@@ -35110,24 +35119,21 @@ bool CAdapt_ItDoc::IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr)
 
 		wxString footnoteMkr = _T("\\f ");
 		wxString extFootnoteMkr = _T("\\ef ");
+		wxString extxRefMkr = _T("\\ex ");
 		wxString xRefMkr = _T("\\x ");
-
-		// Play safe, the developer may pass in a beginMkr augmented with a final
-		// space. So Trim() any final whitespace.
-		mkr = mkr.Trim();
 
 		// Check for beginMarker
 		int length = mkr.Len();
 		wxChar charLast = mkr.GetChar(length - 1); // should be an f or x character
-		if (charLast != _T('f') || charLast != _T('x'))
+		if (!(charLast == _T('f') || charLast == _T('x')))
 		{
-			return FALSE; // not one of the three \f , \ef, or \x markers
+			return FALSE; // not one of the three \f , \ef, \ex  or \x markers
 		}
 		else
 		{
-			// Append a space, since all three begin markers are stored in m_markers
-			// which stores with a trailing space; the last begin-mkr is what we
-			// need to test as there could be others, like \v for instance, preceding
+			// Append a space, since all these prohibitive begin markers are stored in
+			// m_markers which stores with a trailing space; need a  trailing space for
+			// these tests
 			mkr += _T(' ');
 			if (mkr == footnoteMkr)
 			{
@@ -35141,45 +35147,94 @@ bool CAdapt_ItDoc::IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr)
 			{
 				return TRUE;
 			}
+			if (mkr == extxRefMkr)
+			{
+				return TRUE;
+			}
 		}
 	}
 	return FALSE; // no match
 }
 
-// BEW created 3Apr20, to look within pSrcPhrase->m_markers for content, and return
-// in finalMkr the last of any begin markers stored there. Return TRUE if one was
-// found, FALSE if there was no content in pSrcPhrase->m_markers, or no marker
-// could be identified from what was in that member of pSrcPhase.
+// BEW created 3Apr20, pass in m_markers and look for begin markers (whether
+// prohibitive or not). Internally, in a loop, check each one found using
+// IsForbiddenMarker() i.e. one of \f, \x \ef or \ex - these only. Return it
+// in beginMkr if found. Return TRUE if one is found, FALSE if there was no 
+// content in pSrcPhrase->m_markers, or no such marker could be identified from
+// what was in that member of pSrcPhase.
+//
 // Usage: in refactoring for support of two placeholder insert buttons, we want to
-// know if the active location is within a footnote span, xref span, or an extended
-// footnote span (\ef ... \ef*). Retranslations and Free Transation spans have
-// begin and end booleans, and an additional one for every CSourcePhrase in either
-// span. But not so for footnotes, xrefs, and extended footnotes. So this is a helper
-// function used only in looking for whether or not the active pile lies within 
-// a span for those three types of inline spans - footnote, extended footnote, or
-// cross reference. The ultimate caller will be a function: bool
-// IsWithinSpanProhibitingPlaceholder(CPile* pCurrentPile) - that function allows
-// us to disable placeholder insertion within those span types.
-bool CAdapt_ItDoc::GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& finalMkr)
+// know if the active location is within a footnote span, xref span, an extended
+// footnote span (\ef ... \ef*) or an extended cross-reference span (\ex ... \ex*). 
+// Retranslations and Free Transation spans have begin and end booleans, and an 
+// additional boolean for every CSourcePhrase in either of such spans.
+// But not so for footnotes, xrefs, extended footnotes or extended xrefs. So this 
+// is a helper function used only in looking for whether or not the active pile 
+// lies within a span of those four types of inline spans - footnote, extended 
+// footnote, cross reference or extended cross reference. The ultimate caller 
+// will be a function: bool IsWithinSpanProhibitingPlaceholder(CPile* pCurrentPile) 
+// - that function allows us to disable placeholder insertion within those span types.
+bool CAdapt_ItDoc::FindProhibitiveBeginMarker(wxString& strMarkers, wxString& beginMkr)
 {
-	finalMkr.Empty(); // initialise to an empty string
-	wxString beginMkrs = pSrcPhrase->m_markers;
-	if (beginMkrs.IsEmpty())
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	beginMkr.Empty(); // initialise to an empty string
+
+	if (strMarkers.IsEmpty())
 	{
 		return FALSE;
 	}
 	else
 	{
-		//  m_markers has content; is there at least one marker?
+		// strMarkers (i.e. caller's m_markers) has content; look for one of
+		// the prohibited beginMks within it, return it if found
 		int offset = wxNOT_FOUND;
-		offset = beginMkrs.Find(gSFescapechar); // look for backslash
+		offset = strMarkers.Find(gSFescapechar); // look for backslash
 		if (offset == wxNOT_FOUND)
 		{
-			return FALSE;
+			return FALSE; // there are no markers in this strMarkers
 		}
 		else
 		{
-			// There is at least one marker present
+			// There is at least one marker present in strMarkers
+			wxString testMkr = wxEmptyString;
+			wxString subString = strMarkers.Mid(offset); // start at backslash of first mkr
+			do {
+				testMkr = GetWholeMarker(subString);
+				bool bIsProhibitiveMkr = IsForbiddenMarker(testMkr, FALSE); //FALSE is bCheckForEndMkr
+				if (bIsProhibitiveMkr)
+				{
+					beginMkr = testMkr;
+					return TRUE;
+				}
+				else
+				{
+					// shortenString, iterate to get another if present
+					int length = testMkr.Len();
+					subString = subString.Mid(length);
+					if (!subString.IsEmpty())
+					{
+						testMkr = wxEmptyString;
+						offset = subString.Find(gSFescapechar); // look for backslash
+						if (offset == wxNOT_FOUND)
+						{
+							// No more markers present
+							break;
+						}
+						else
+						{
+							subString = subString.Mid(offset);
+							//now iterate loop
+						}
+					}
+					else
+					{
+						break; 
+					}
+				}
+			} while (offset >= 0);
+
+			/* // deprecated, it assumes such a begin marker will be final in m_markers; 
+			// probably is so, but the assumption is dangerous
 			wxString strRev = MakeReverse(beginMkrs);
 			int length = beginMkrs.Len();
 			// Find the first backslash in the reversed string and
@@ -35189,8 +35244,9 @@ bool CAdapt_ItDoc::GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& fina
 			offset++; // step past it
 			offset = length - offset; // offset now points to last backslash in beginMkrs
 			beginMkrs = beginMkrs.Mid(offset); // now shortened so that the last mkr starts the string
-			finalMkr = GetWholeMarker(beginMkrs); // return it to the caller
+			beginMkr = GetWholeMarker(beginMkrs); // return it to the caller
 			return TRUE;
+			*/
 		}
 	}
 	return FALSE;
@@ -36377,21 +36433,39 @@ wxString CAdapt_ItDoc::SimpleWordParser2(wxChar* pChar, wxString*  pEndPuncts, w
 // of a footnote, cross reference, or extended footnote - if there was a USFM markup
 // error or other glitch that results in a matching endmarker for the passed in
 // beginMkr not found - we want to limit the amount of "run on" - so things like \v
-// \c \p \ip \s \s1 or \\f \x or \ef should cause a halt to define the span end.
-// We might as well make it check for the matching endmarker at the start of
+// \c \p \ip \s \s1 should cause a halt to define the span end.
+// We might as well make it check for the matching endmarker within
 // pSrcPhrase->m_bEndMarkers - that's where it should be, somewhere in the list
-bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase)
+// Get or form the wanted endmarker in the caller; it should be the wholeMarker (no space following)
+// endMkr		->	the prohibitive begin-marker found, if TRUE was returned
+// pSrcPhrase	->	ptr to the CSourcePhrase instance in the loop, being examined for a match to endMkr 
+// bStoppingRunOn <- FALSE if end-of-span was successfully determined by matching endMkr to its
+//					corresponding same endmarker in the loop's CSourcePhrase instance. TRUE if no
+//					such match was achieved and a stop to run-on was produced by other means herein
+// Return TRUE when end-of-span was determined in either way - the caller can get the sequence number
+// for the span end from pSrcPhrase, or that with the help of bStoppingRunOn when the latter is TRUE
+bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase, bool& bStoppingRunOn)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bStoppingRunOn = FALSE; // initialise
 	wxString matchEndMkr = endMkr;
+	matchEndMkr.Trim(); // ensure no space trailing it
 	wxString endMkrs = pSrcPhrase->GetEndMarkers();
 	bool bGotAMatch = FALSE;
+	wxString endMkrFound = wxEmptyString;
 	if (!endMkrs.IsEmpty())
 	{
-		wxString firstMkr = GetWholeMarker(endMkrs); // Gets the first, if there are more than 1
-		if (matchEndMkr == firstMkr)
+		bool bFoundOne = pApp->FindProhibitiveEndMkr(pSrcPhrase, endMkrFound); // endMkrFound will
+													// not be returned with a trailing space
+		if (bFoundOne)
 		{
-			// We have a match, return TRUE to force this pSrcPhrase to be the span end
-			return TRUE;
+			// We got one, check for a match. If matched, return TRUE to force 
+			// this pSrcPhrase to be the span end
+			if (matchEndMkr == endMkrFound)
+			{
+				endMkr = endMkrFound;
+				return TRUE;
+			}
 		}
 	}
 	if (!bGotAMatch || endMkrs.IsEmpty())
@@ -36400,18 +36474,33 @@ bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase)
 		wxString augmentedBeginMkr = endMkr.Left(endMkr.Len() - 1); // remove the final *
 		augmentedBeginMkr += _T(' ');
 		// Make a fast access string for the markers which should halt the scan
-		wxString haltersStr = _T("\\p \\ip \\v \\c \\f \\x \\ef \\s \\s1 ");
+		wxString haltersStr = _T("\\p \\ip \\v \\c \\s \\s1 ");
 		// Check for a match of any of these
 		int offset = wxNOT_FOUND; // initialise
 		offset = haltersStr.Find(augmentedBeginMkr);
 		if (offset >= 0)
 		{
 			// Gotta halt here
+			bStoppingRunOn = TRUE; // Used to tell caller to reduce the ending sequNum by 1
 			return TRUE;
 		}
 	}
 	return FALSE; // Don't halt the scanning at the passed in pSrcPhrase
 }
+
+/* deprecated - not needed
+// BEW 9Apr20 quick return of pSrcPhase & sequNum from loop iterator
+int CAdapt_ItDoc::ReturnSN(SPList::Node* pos, CSourcePhrase*& pSrcPhrase)
+{
+	if (pos == NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)NULL;
+		return (int)wxNOT_FOUND;
+	}
+	pSrcPhrase = pos->GetData();
+	return pSrcPhrase->m_nSequNumber;
+}
+*/
 
 // BEW 8Apr20
 // We scan the list, backwards from where the passed in pSrcPhrase is located, looking
@@ -36431,6 +36520,13 @@ bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase)
 // and then scanning forwards, but that resulted in a C2440 error message. (Gloogling 
 // that was singularly unfruitful). So I split the work into the next two functions - 
 // one scans back, the other scans forward. That works sweetly.
+// pSrcPhrase	->	the active pile's CSourcePhrase pointer 
+// beginMkr		<-	the prohibitive begin-marker found, if TRUE was returned
+// nBeginSN		<-	the m_nSequNumber value of the CSourcePhrase instance at which
+//					the span commences
+// If FALSE is returned, interpret that as no beginning of a prohibitive span was
+// found prior to the pSrcPhrase location (other spans may exist, but we ignore them);
+// and FALSE would be a sufficent reason for keeping the placeholder insertion buttons enabled)
 bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, 
 					wxString& beginMkr, int& nBeginSN)
 {
@@ -36442,75 +36538,58 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 	SPList::Node* pos = pList->Item(nSequNum);
 	SPList::Node* docStartPos = pList->GetFirst();
 
-	int spanStartSequNum = -1; // initialise
-
 	// Scan back to find the first srcPhrase's sequ number having one of \f \ef \x
 	// begin-markers; there might be none - if so, the scan would go to the doc start
 	CSourcePhrase* pSP = pSrcPhrase;
 
 	// Initialisations
 	wxString m_markersBeginMkr = wxEmptyString;
-	wxString prohibitedBeginMkr = wxEmptyString;
 	bool bGotBeginMkr = FALSE;
-	bool bIsForbiddenMkr = FALSE;
 	bool bFoundSpanStart = FALSE;
 
-	bGotBeginMkr = GetFinalBeginMarker(pSP, m_markersBeginMkr);
+	bGotBeginMkr = FindProhibitiveBeginMarker(pSP->m_markers, m_markersBeginMkr);
 	if (bGotBeginMkr)
 	{
-		// Is it one of \f \ef or \x ?
-		bIsForbiddenMkr = IsForbiddenMarker(m_markersBeginMkr, FALSE); // FALSE is bCheckForEndMkr
-	}
-	if (bIsForbiddenMkr)
-	{
-		bFoundSpanStart = TRUE;
-		prohibitedBeginMkr = m_markersBeginMkr;
-		spanStartSequNum = pSP->m_nSequNumber; // we've found the span start
+		beginMkr = m_markersBeginMkr;
+		nBeginSN = pSP->m_nSequNumber; // we've found the span start
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s Line %d, src= %s , nBeginSN= %d , m_markers= %s , beginMkr= %s  IS-AT"),
+			__FILE__, __FUNCTION__, __LINE__, pSP->m_srcPhrase.c_str(), nBeginSN, pSP->m_markers.c_str(), beginMkr.c_str());
+#endif
+		return TRUE;
 	}
 	// Else, if the passed in pSrcPhrase does not start such a span, loop
 	// back to find the first pSP of a candidate prohibited span
 	else
 	{
-		while (pos >= docStartPos)
+		while (pos != docStartPos)
 		{
 			pos = pos->GetPrevious();
 			pSP = pos->GetData();
 			// Re-initialisations
 			m_markersBeginMkr = wxEmptyString;
 			bGotBeginMkr = FALSE;
-			bIsForbiddenMkr = FALSE;
 			bFoundSpanStart = FALSE;
 
-			bGotBeginMkr = GetFinalBeginMarker(pSP, m_markersBeginMkr);
+			bGotBeginMkr = FindProhibitiveBeginMarker(pSP->m_markers, m_markersBeginMkr);
 			if (bGotBeginMkr)
 			{
-				// Is it one of \f \ef or \x ?
-				bIsForbiddenMkr = IsForbiddenMarker(m_markersBeginMkr, FALSE); // FALSE is bCheckForEndMkr
+				beginMkr = m_markersBeginMkr;
+				nBeginSN = pSP->m_nSequNumber; // we've found the span start
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s::%s Line %d, src= %s , nBeginSN= %d , m_markers= %s , beginMkr= %s  IS-EARLIER"),
+					__FILE__, __FUNCTION__, __LINE__, pSP->m_srcPhrase.c_str(), nBeginSN, pSP->m_markers.c_str(), beginMkr.c_str());
+#endif
+				return TRUE;
 			}
-			if (bIsForbiddenMkr)
-			{
-				bFoundSpanStart = TRUE;
-				prohibitedBeginMkr = m_markersBeginMkr;
-				spanStartSequNum = pSP->m_nSequNumber; // we've found the span start
-				break;
-			}
-		}
-	} // end of else block for test: if (bIsForbiddenMkr)
+		} // end of while loop
 
-	if (bFoundSpanStart)
-	{
-		// Half way there. Next scan forward from the pos value when the above 
-		// loop exited having found a span beginning
-		beginMkr = prohibitedBeginMkr;
-		nBeginSN = spanStartSequNum;
-		return TRUE;
-	}
-	else
-	{
-		beginMkr = wxEmptyString;
-		nBeginSN = -1;
-		return FALSE;
-	}
+	} // end of else block for test: if (bGotBeginMkr)
+
+	// Not found the start of a prohibitive span
+	beginMkr = wxEmptyString;
+	nBeginSN = -1;
+	return FALSE;
 }
 
 bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN)
@@ -36518,7 +36597,7 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 	CAdapt_ItApp* pApp = &wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(!pList->IsEmpty());
-	int nSequNum = pSpanStart_SrcPhrase->m_nSequNumber;
+	int nSequNum = pSpanStart_SrcPhrase->m_nSequNumber; 
 	wxASSERT(!matchEndMkr.IsEmpty());
 
 	SPList::Node* pos = pList->Item(nSequNum);
@@ -36536,26 +36615,39 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 	bool bGotSpanEnd = FALSE;
 	bool bIsForbiddenEndMkr = FALSE;
 	bool bFoundSpanEnd = FALSE;
-
-	bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP);
+	bool bStoppingRunOn = FALSE; // if TRUE, the run-on block was accessed and the proper
+								 // location to end the span is at the previous pSrcPhrase
+	// Check the starting location first (it must not be the CSourcePhrase instance which
+	// was the span-initial one - but later - our algorithm will scan from the immediate next
+	// one and forwards)
+	bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP, bStoppingRunOn);
 	if (bGotSpanEnd)
 	{
-		// Is it one of \f* \ef* or \x* ?
+		// Is it one of \f* \ef* \x* or \ex? -- checks to make a redundant confirmation that
+		// we have matched only one of the four prohibitive endMarkers
 		bIsForbiddenEndMkr = IsForbiddenMarker(endMarkerToMatch, TRUE); // TRUE is bCheckForEndMkr
 	}
 	if (bIsForbiddenEndMkr && bGotSpanEnd)
 	{
 		bFoundSpanEnd = TRUE;
 		spanEndSequNum = pSP->m_nSequNumber; // we've found the span end (probably by matching)
+		if (bStoppingRunOn)
+		{
+			spanEndSequNum--; // end at the previous pile
+		}
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
+#endif
 		nEndSN = spanEndSequNum;
 		return TRUE;
 	}
-	// Else, if the passed in pSrcPhrase does not end such the span, loop
+	// Else, if the passed in pSrcPhrase does not end such a span, loop
 	// forward to find the first pSP which stores a matching endmarker, or
 	// which halts the scan because a significant begin-marker prevented run-on
 	else
 	{
-		while (pos <= docEndPos)
+		while (pos != docEndPos)
 		{
 			pos = pos->GetNext();
 			pSP = pos->GetData();
@@ -36563,17 +36655,26 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 			bGotSpanEnd = FALSE;
 			bIsForbiddenEndMkr = FALSE;
 			bFoundSpanEnd = FALSE;
+			bStoppingRunOn = FALSE;
 
-			bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP);
+			bGotSpanEnd = ForceSpanEnd(endMarkerToMatch, pSP, bStoppingRunOn);
 			if (bGotSpanEnd)
 			{
-				// Is it one of \f* \ef* or \x* ?
+				// Is it one of \f* \ef* \ex* or \x* ?
 				bIsForbiddenEndMkr = IsForbiddenMarker(endMarkerToMatch, TRUE); // TRUE is bCheckForEndMkr
 			}
 			if (bIsForbiddenEndMkr && bGotSpanEnd)
 			{
 				bFoundSpanEnd = TRUE;
 				spanEndSequNum = pSP->m_nSequNumber; // we've found the span end (probably by matching)
+				if (bStoppingRunOn)
+				{
+					spanEndSequNum--; // end at the previous pile
+				}
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
+					__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
+#endif
 				nEndSN = spanEndSequNum;
 				break;
 			}
@@ -36582,8 +36683,6 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 
 	if (bFoundSpanEnd)
 	{
-		// Half way there. Next scan forward from the pos value when the above 
-		// loop exited having found a span beginning
 		return TRUE;
 	}
 	else
@@ -36592,7 +36691,6 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 		return FALSE;
 	}
 }
-
 
 bool CAdapt_ItDoc::IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase)
 {
@@ -36611,7 +36709,19 @@ bool CAdapt_ItDoc::IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pS
 	else
 	{
 		// Got a starting location, now try for the ending location
-		SPList::Node* pos = pApp->m_pSourcePhrases->Item(SequNumSpanStart);
+
+		// Gotta start at next one,
+		// because \f or \ef or \x  or \ex is in the quick access string 'halters'
+		// within the prevent-run-on-block within ForceSpanEnd()
+		int nSequNum = SequNumSpanStart + 1;
+		if (nSequNum > pApp->GetMaxIndex())
+		{
+			// protect from list index out-of-bounds
+			nSequNum = pApp->GetMaxIndex();
+			SequNumSpanEnd = nSequNum;
+			return TRUE; // end is end of doc
+		}
+		SPList::Node* pos = pApp->m_pSourcePhrases->Item(nSequNum);
 		CSourcePhrase* pSpanStart_SrcPhrase = pos->GetData();
 		wxASSERT(pSpanStart_SrcPhrase != NULL);
 		spanBeginMkr.Trim(); // ensure no white space at its end

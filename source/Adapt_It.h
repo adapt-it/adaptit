@@ -2783,6 +2783,9 @@ public:
 
 	CPlaceholder* m_pPlaceholder;
 	CPlaceholder* GetPlaceholder();
+	bool m_bDisablePlaceholderInsertionButtons; // Set & cleared in PlacePhraseBox() when
+				// m_bLanding is TRUE, and FALSE, given the value returned by pDoc->
+				// bool IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase)
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup
@@ -4128,6 +4131,10 @@ public:
 	// smarter about when to close off parsing a marker - in the event of bad markup (no
 	// whitespace between marker end and certain things which must NEVER be in a marker)
 	wxString m_forbiddenInMarkers; // set contents in OnInit()
+	wxString m_prohibitiveBeginMarkers; // given contents in .cpp at 20,374++
+	wxString m_prohibitiveEndMarkers;   // ditto
+	bool     FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& beginMkr); // BEW 11Apr20
+	bool	 FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& endMkr);     // BEW 11Apr20
 
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is
 				// being viewed in the ViewFilteredMaterial dialog

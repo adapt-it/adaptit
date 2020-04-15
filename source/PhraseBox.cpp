@@ -1834,6 +1834,19 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
             // get set to NULL
 		pLayout->PlaceBox();
 
+		// BEW 13Apr20, control goes thru here when TAB or Enter gets a move to next empty
+		// pile done - and PlacePhraseBox() does not get called (nor Jump()), so we have
+		// to check here for landing within a footnote, extended footnote, cross-marker or
+		// extended cross-marker span - if so, the two placeholder insert buttons must
+		// be disabled by the Update...() handler for those
+		pApp->m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to enabled buttons
+		if (pApp->m_pActivePile != NULL)
+		{
+			CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+			bool bProhibited = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
+			pApp->m_bDisablePlaceholderInsertionButtons = bProhibited;
+		}
+
 		if (bWantSelect)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
 		else
@@ -4891,6 +4904,19 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		pView->Invalidate();
 		pLayout->PlaceBox();
 
+		// BEW 13Apr20, control goes thru here when TAB or Enter gets a move to next empty
+		// pile done - and PlacePhraseBox() does not get called (nor Jump()), so we have
+		// to check here for landing within a footnote, extended footnote, cross-marker or
+		// extended cross-marker span - if so, the two placeholder insert buttons must
+		// be disabled by the Update...() handler for those
+		pApp->m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to enabled buttons
+		if (pApp->m_pActivePile != NULL)
+		{
+			CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+			bool bProhibited = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
+			pApp->m_bDisablePlaceholderInsertionButtons = bProhibited;
+		}
+
 		if (bNeedModify)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
 		else
@@ -5268,6 +5294,19 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 		// BEW note 30Mar09: later we may set clipping here or somewhere
 		pView->Invalidate(); // I think this call is needed
 		GetLayout()->PlaceBox();
+
+		// BEW 13Apr20, control goes thru here when TAB or Enter gets a move to next empty
+		// pile done - and PlacePhraseBox() does not get called (nor Jump()), so we have
+		// to check here for landing within a footnote, extended footnote, cross-marker or
+		// extended cross-marker span - if so, the two placeholder insert buttons must
+		// be disabled by the Update...() handler for those
+		pApp->m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to enabled buttons
+		if (pApp->m_pActivePile != NULL)
+		{
+			CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+			bool bProhibited = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
+			pApp->m_bDisablePlaceholderInsertionButtons = bProhibited;
+		}
 
         /* // whm 13Mar2020 the following added block's if test seems to never be entered and testing shows
         // it is not needed.
@@ -5914,7 +5953,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         }
     }
 
-    // Inserting placeholders both BEFORE and AFTER is now handled above for SHFIT+ALT+LEFT and SHIFT+ALT+RIGHT
+    // Inserting placeholders both BEFORE and AFTER is now handled above for SHIFT+ALT+LEFT and SHIFT+ALT+RIGHT
     // instead of the block below which handled just the BEFORE case using a hard to remember down arrow combination.
     // I've commented out the following block
     /*
@@ -6631,7 +6670,15 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 //    and m_bRetainBoxContents = TRUE, for use if auto-merge (OnButtonMerge) is called on a selection.
 // 5. Detects WXK_F8 and if detected calls Adapt_ItView::ChooseTranslation() then return to suppress further handling.
 // Note: Put in this OnKeyUp() handler custom key handling that does not involve simultaneous use 
-// of ALT, SHIFT, or CTRL keys.
+// of ALT, SHIFT, or CTRL keys  
+// BEW 14Apr20 changes: The above note has these exceptions, Shift+Tab and Shift+Enter; because
+// trying to put these in OnSysKeyUp() runs foul of VisualStudio trapping them first, so that
+// Shift+Enter is the shortcut for VisualStudio to insert a blank line - and that makes the
+// whole file of code (PhraseBox.cpp) go "stale" - and the debug run cannot continue; and if 
+// its a Unicode Release build, then these two shortcuts just do nothing.  So these two have
+// to be in OnKeyUp() - and prior to the test which send control to OnSysKeyUp(). So...
+// 6. Detects SHIFT+ENTER to call MoveToPrevPile() so as to move the phrasebox back one location
+// 7. Detects SHIFT+TAB to do same thing as SHIFT+ENTER
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
     // wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode()); 
@@ -6644,7 +6691,78 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+	int keycode = event.GetKeyCode();
+	if (keycode == WXK_TAB
+		|| keycode == WXK_RETURN
+		|| keycode == WXK_NUMPAD_ENTER
+		|| keycode == WXK_NUMPAD_TAB) // whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
+	{
+		// Now handle the WXK_TAB or WXK_RETURN processing.
+		// whm 24June2018 Note: The handling of WXK_TAB and WXK_RETURN should be identical.
+		// So, pressing Tab within dropdown phrasebox - when the content of the dropdown's edit 
+		// box is open is tantamount to having selected that dropdown list item directly.
+		// It should - in the new app - do the same thing that happened in the legacy app when 
+		// the Choose Translation dialog had popped up and the desired item was already
+		// highlighted in its dialog list, and the user pressed the OK button. That OK button
+		// press is essentially the same as the user in the new app pressing the Enter key
+		// when something is contained in the dropdown's edit box. 
+		// Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
+		// the app to handle the contents as a change.
+		wxString boxContent;
+		boxContent = this->GetValue();
+		gpApp->m_targetPhrase = boxContent;
+		if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 12Jul2018 added GetTextCtrl()->
+		{
+			this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
+		}
+		this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
+									  // save old sequ number in case required for toolbar's Back button
+		pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
+		// SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
+		// whm Note: Beware! Setting breakpoints in OnChar() before this point can
+		// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+		// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
+		if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB or SHIFT+RETURN
+		{
+			// shift key is down, so move back a pile
+
+			if (keycode == WXK_TAB)
+				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_TAB key"));
+			else if (keycode == WXK_RETURN)
+				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_RETURN key"));
+
+			// Shift+Tab or Shift+RETURN (reverse direction) indicates user is probably
+			// backing up to correct something that was perhaps automatically
+			// inserted, so we will preserve any highlighting and do nothing
+			// here in response to Shift+Tab.
+
+			Freeze();
+
+			int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+			if (!bSuccessful)
+			{
+				// we have come to the start of the document, so do nothing
+				pLayout->m_docEditOperationType = no_edit_op;
+			}
+			else
+			{
+				// it was successful
+				pLayout->m_docEditOperationType = relocate_box_op;
+			}
+
+			// scroll, if necessary
+			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+			// save the phrase box's text, in case user hits SHIFT+END key to unmerge
+			// a phrase
+			m_SaveTargetPhrase = pApp->m_targetPhrase;
+
+			Thaw();
+			return;
+		}
+	}
     // Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method (like MFC did)
     // so we'll simply detect if the ALT key or Shift key was down modifying another key stroke
     // and call the OnSysKeyUp() method from here. The call of OnSysKeyUp() below for AltDown,
@@ -6673,7 +6791,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm 24June2018 combined WXK_TAB and WXK_RETURN handling in the same block of code below.
     // The WXK_RETURN key handling was previously located in OnChar(), but that seemed to not work
     // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
-    int keycode = event.GetKeyCode();
+    keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
     || keycode == WXK_RETURN
     || keycode == WXK_NUMPAD_ENTER
@@ -6841,72 +6959,14 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             pView->Invalidate();
         }
 
-        // Now handle the WXK_TAB or WXK_RETURN processing.
-        // whm 24June2018 Note: The handling of WXK_TAB and WXK_RETURN should be identical.
-        // So, pressing Tab within dropdown phrasebox - when the content of the dropdown's edit 
-        // box is open is tantamount to having selected that dropdown list item directly.
-        // It should - in the new app - do the same thing that happened in the legacy app when 
-        // the Choose Translation dialog had popped up and the desired item was already
-        // highlighted in its dialog list, and the user pressed the OK button. That OK button
-        // press is essentially the same as the user in the new app pressing the Enter key
-        // when something is contained in the dropdown's edit box. 
-        // Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
-        // the app to handle the contents as a change.
-        wxString boxContent;
-        boxContent = this->GetValue();
-        gpApp->m_targetPhrase = boxContent;
-        if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 12Jul2018 added GetTextCtrl()->
-        {
-            this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
-        }
-        this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+		// BEW 14Apr20 moved the "Move to Previous Pile" handler up, to preceded the above
+		// test:     if (event.AltDown() || event.ShiftDown() || event.ControlDown())
+		// because that test was sending control to OnSysKeyUp() and the code that was
+		// following here never got called if the SHIFT key was down. That fixed the problem
+		// and now SHIFT+ENTER & SHIFT+TAB work to move the box back one location, as before
+        //else <<-- had to also comment out the else here, and replace with the following test
 
-                                      // save old sequ number in case required for toolbar's Back button
-        pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
-
-        // SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
-        // whm Note: Beware! Setting breakpoints in OnChar() before this point can
-        // affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
-        // below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
-        if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB or SHIFT+RETURN
-        {
-            // shift key is down, so move back a pile
-
-            if (keycode == WXK_TAB)
-                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_TAB key"));
-            else if (keycode == WXK_RETURN)
-                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_REUTRN key"));
-
-            // Shift+Tab or Shift+RETURN (reverse direction) indicates user is probably
-            // backing up to correct something that was perhaps automatically
-            // inserted, so we will preserve any highlighting and do nothing
-            // here in response to Shift+Tab.
-
-            Freeze();
-
-            int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
-            if (!bSuccessful)
-            {
-                // we have come to the start of the document, so do nothing
-                pLayout->m_docEditOperationType = no_edit_op;
-            }
-            else
-            {
-                // it was successful
-                pLayout->m_docEditOperationType = relocate_box_op;
-            }
-
-            // scroll, if necessary
-            pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-            // save the phrase box's text, in case user hits SHIFT+END key to unmerge
-            // a phrase
-            m_SaveTargetPhrase = pApp->m_targetPhrase;
-
-            Thaw();
-            return;
-        }
-        else
+		if (!wxGetKeyState(WXK_SHIFT)) // not SHIFT+TAB or SHIFT+RETURN
         {
             //BEW changed 01Aug05. Some users are familiar with using TAB key to advance
             // (especially when working with databases), and without thinking do so in Adapt It
@@ -7394,6 +7454,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
         // text, while at the same time moving the highlight).
         return;
     }
+
     // whm 13Jul2018 added a new handler for SHIFT+WXK_SPACE to provide a keyboard 
     // method of selecting a highlighted item - putting it into the phrasebox's edit box.
     else if (event.GetKeyCode() == WXK_SPACE) // SHIFT+SPACE - select highlighted item from list into edit box.

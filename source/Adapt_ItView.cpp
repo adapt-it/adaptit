@@ -3020,6 +3020,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 								 // we set it TRUE later below when dealing with the "Landing" location								 
 //	wxLogDebug(_T("PlacePhraseBox at start:  m_nCacheLeavingLocation = %d"),
 //		pApp->m_nCacheLeavingLocation);
+
+	pApp->m_bDisablePlaceholderInsertionButtons = FALSE;
 								 
 	if (pCell == NULL)
 	{
@@ -3495,6 +3497,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	wxASSERT(pActivePile);
 
 	pApp->m_bLandingBox = TRUE;
+
 
 	// remove any existing selection
 	RemoveSelection();
@@ -3992,7 +3995,12 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	if (pSPhr != NULL)
 	{
 		pDoc->ResetPartnerPileWidth(pSPhr);
+
+		bool bProhibited = pApp->GetDocument()->IsWithinSpanProhibitingPlaceholderInsertion(pSPhr);
+		pApp->m_bDisablePlaceholderInsertionButtons = bProhibited;
 	}
+
+
 
 	// BEW 5Jul18, reinstate the line which sets the cached sequence number for the
 	// landing location. The next click somewhere will use that this value as the 

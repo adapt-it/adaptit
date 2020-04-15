@@ -695,11 +695,12 @@ public:
 
 		// Prototypes for determining the span of CSourcePhrase instances for \f, \ef or \x inline markers
 		bool IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr); // BEW 3Apr20, for refactored placeholder insertion
-		bool GetFinalBeginMarker(CSourcePhrase* pSrcPhrase, wxString& finalMkr); // BEW 3Apr20, for refactored placeholder insertion
+		bool FindProhibitiveBeginMarker(wxString& strMarkers, wxString& beginMkr); // BEW 3Apr20, for refactored placeholder insertion
+		//int  ReturnSN(SPList::Node* pos, CSourcePhrase*& pSrcPhrase); // BEW 9Apr20 quick return of pSrcPhase & sequNum from loop iterator
 		//bool GetMatchingEndMarker(CSourcePhrase* pInitialSrcPhrase, wxString strEndMkr, 
 		//							int& atBeginSequNum, int& atMatchSequNum); // BEW 3Apr20, for 
 									// refactored placeholder insertion  <<-- deprecated, unfinished,  8Apr20
-		bool ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase); // BEW 7Apr20
+		bool ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase, bool& bStoppingRunOn); // BEW 7Apr20
 		bool IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase); // BEW 8Apr20
 		bool FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, wxString& beginMkr, int& nBeginSN); // BEW 8Apr20
 		bool FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN);
