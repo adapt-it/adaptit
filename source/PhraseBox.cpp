@@ -5735,8 +5735,94 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
     // simultaneous holding down of the SHIFT key.
     else if (event.ShiftDown() && !event.ControlDown()) // SHIFT + other key handled here, not with CTRL simultaneously down
     {
-        // whm 11Mar2020 Note: In this block we only handle SHIFT+UP, SHIFT+DOWN, SHIFT+PageUp, 
-        // and SHIFT+PageDown (and no simultaneous CTRL down)
+        // whm 11Mar2020 Note: In this block we only handle SHIFT+ENTER, SHIFT+TAB, SHIFT+NUMPAD_ENTER, SHIFT+NUMPAD_TAB,
+        // SHIFT+UP, SHIFT+DOWN, SHIFT+PageUp, and SHIFT+PageDown (and no simultaneous CTRL down)
+
+        // whm 14Apr2020 BEW called attention to the fact that SHIFT+ENTER and SHIFT+TAB was not working ever
+        // since I refactored the OnKeyUp() and OnSysKeyUp() handlers. Although I had suggested to him
+        // that the code should go here, he was having trouble with his VS2015 stealing focus preventing
+        // him from detecting/debugging the code when he tried to place it here in OnSysKeyUp(). I've tested
+        // it here where it works fine, so I've moved the code for handling SHIFT+ENTER and SHIFT+TAB from 
+        // OnKeyUp() where it was previously located (where I had forgotten to move it here during refactoring),
+        // and where yesterday BEW moved it up above the OnSysKeyUp() call in OnKeyUp(). I've removed it from the
+        // location he placed it at there, over to here in OnSysKeyUp(). He said he had tried to place it here but 
+        // couldn't do so, saying he couldn't test the SHIFT+ENTER or SHIFT+TAB here in OnSysKeyUp()
+        // without Visual Studio 15 stealing those key strokes and inserting a line in source code, making the 
+        // debugging session stale, and thus preventing him from being able to test the aforementioned code 
+        // handling here. However, I have not encountered any problem putting the code here in OnSysKeyUp() 
+        // where is should logically go along with other SHIFT modified key strokes all of which are 
+        // consolidated here.
+        int keycode = event.GetKeyCode();
+        if (keycode == WXK_TAB             // SHIFT+TAB
+            || keycode == WXK_RETURN       // SHIFT+ENTER
+            || keycode == WXK_NUMPAD_ENTER // SHIFT+NUMPAD_ENTER
+            || keycode == WXK_NUMPAD_TAB)  // SHIFT+NUMPAD_TAB  //whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
+        {
+            // Now handle the WXK_TAB or WXK_RETURN processing.
+            // whm 24June2018 Note: The handling of WXK_TAB and WXK_RETURN should be identical.
+            // So, pressing Tab within dropdown phrasebox - when the content of the dropdown's edit 
+            // box is open is tantamount to having selected that dropdown list item directly.
+            // It should - in the new app - do the same thing that happened in the legacy app when 
+            // the Choose Translation dialog had popped up and the desired item was already
+            // highlighted in its dialog list, and the user pressed the OK button. That OK button
+            // press is essentially the same as the user in the new app pressing the Enter key
+            // when something is contained in the dropdown's edit box. 
+            // Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
+            // the app to handle the contents as a change.
+            wxString boxContent;
+            boxContent = this->GetValue();
+            gpApp->m_targetPhrase = boxContent;
+            if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 12Jul2018 added GetTextCtrl()->
+            {
+                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
+            }
+            this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+
+                                          // save old sequ number in case required for toolbar's Back button
+            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
+            // SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
+            // whm Note: Beware! Setting breakpoints in OnChar() before this point can
+            // affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+            // below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
+            // shift key is down, so move back a pile
+
+            if (keycode == WXK_TAB)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_TAB key"));
+            else if (keycode == WXK_RETURN)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_RETURN key"));
+
+            // Shift+Tab or Shift+RETURN (reverse direction) indicates user is probably
+            // backing up to correct something that was perhaps automatically
+            // inserted, so we will preserve any highlighting and do nothing
+            // here in response to Shift+Tab.
+
+            Freeze();
+
+            int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+            if (!bSuccessful)
+            {
+                // we have come to the start of the document, so do nothing
+                GetLayout()->m_docEditOperationType = no_edit_op;
+            }
+            else
+            {
+                // it was successful
+                GetLayout()->m_docEditOperationType = relocate_box_op;
+            }
+
+            // scroll, if necessary
+            pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+            // save the phrase box's text, in case user hits SHIFT+END key to unmerge
+            // a phrase
+            m_SaveTargetPhrase = pApp->m_targetPhrase;
+
+            Thaw();
+            return;
+        }
+
+
 
         // does user want to unmerge a phrase?
 
@@ -6691,6 +6777,10 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+
+    // whm 14Apr2020 moved BEW's code below for handling SHIFT+ENTER and SHIFT+TAB to OnSysKeyUp() where it
+    // should go with all other SHIFT modified key strokes
+    /*
 	int keycode = event.GetKeyCode();
 	if (keycode == WXK_TAB
 		|| keycode == WXK_RETURN
@@ -6763,6 +6853,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 			return;
 		}
 	}
+     */
     // Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method (like MFC did)
     // so we'll simply detect if the ALT key or Shift key was down modifying another key stroke
     // and call the OnSysKeyUp() method from here. The call of OnSysKeyUp() below for AltDown,
@@ -6791,7 +6882,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm 24June2018 combined WXK_TAB and WXK_RETURN handling in the same block of code below.
     // The WXK_RETURN key handling was previously located in OnChar(), but that seemed to not work
     // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
-    keycode = event.GetKeyCode();
+    int keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
     || keycode == WXK_RETURN
     || keycode == WXK_NUMPAD_ENTER
@@ -6959,6 +7050,13 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             pView->Invalidate();
         }
 
+        // whm 14Apr2020 removed the if (!wxGetKeyState(WXK_SHIFT)) BEW added, which is
+        // not needed since SHIFT modified key strokes never get here being all diverted
+        // to the OnSysKeyUp() handler along with all ALT and CTRL modified key strokes.
+        // The old SHIFT modified code that was mistakenly left in the lower part of OnKeyUp(),
+        // and which I had forgotten about, has now so been removed, leaving the handling of
+        // the plain ENTER and TAB, etc key strokes in that part of OnKeyUp().
+        //
 		// BEW 14Apr20 moved the "Move to Previous Pile" handler up, to preceded the above
 		// test:     if (event.AltDown() || event.ShiftDown() || event.ControlDown())
 		// because that test was sending control to OnSysKeyUp() and the code that was
@@ -6966,44 +7064,44 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		// and now SHIFT+ENTER & SHIFT+TAB work to move the box back one location, as before
         //else <<-- had to also comment out the else here, and replace with the following test
 
-		if (!wxGetKeyState(WXK_SHIFT)) // not SHIFT+TAB or SHIFT+RETURN
-        {
-            //BEW changed 01Aug05. Some users are familiar with using TAB key to advance
-            // (especially when working with databases), and without thinking do so in Adapt It
-            // and expect the Lookup process to take place, etc - and then get quite disturbed
-            // when it doesn't happen that way. So for version 3 and onwards, we will interpret
-            // a TAB keypress as if it was an ENTER keypress
-			// BEW 26Mar20 added code to prevent immediate run-on by the phrasebox when the user
-			// selects the Enter or Tab key to get the default action - such as when inserting
-			// a placeholder, Choose Translation, Guesser dialog, and maybe others (but not all).
-			// Whether in Drafting or Reviewing mode, without the protection below, then an Enter
-			// or Tab key press would cause run-on the next hole, or next pile, respectively. 
-			pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
-			if (keycode == WXK_TAB)
-			{
-				pApp->m_bUserHitEnterOrTab = TRUE;
-				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
-			}
-			else if (keycode == WXK_RETURN)
-			{
-				pApp->m_bUserHitEnterOrTab = TRUE;
-				wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
-			}
-			if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
-			{
-				// Don't call JumpForward, because it is likely this is a bogus box run-on situation
-				;
-			}
-			else
-			{
-				// Normal jump is okay to do
-				JumpForward(pView);
-			}
-			// These a use-once-only booleans, after use they must be turned back off in case
-			// re-use is required at another active location in the doc
-			pApp->m_bUserDlgOrMessageRequested = FALSE;
-			pApp->m_bUserHitEnterOrTab = FALSE;
-        }
+		//if (!wxGetKeyState(WXK_SHIFT)) // not SHIFT+TAB or SHIFT+RETURN
+        //{
+        //BEW changed 01Aug05. Some users are familiar with using TAB key to advance
+        // (especially when working with databases), and without thinking do so in Adapt It
+        // and expect the Lookup process to take place, etc - and then get quite disturbed
+        // when it doesn't happen that way. So for version 3 and onwards, we will interpret
+        // a TAB keypress as if it was an ENTER keypress
+		// BEW 26Mar20 added code to prevent immediate run-on by the phrasebox when the user
+		// selects the Enter or Tab key to get the default action - such as when inserting
+		// a placeholder, Choose Translation, Guesser dialog, and maybe others (but not all).
+		// Whether in Drafting or Reviewing mode, without the protection below, then an Enter
+		// or Tab key press would cause run-on the next hole, or next pile, respectively. 
+		pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
+		if (keycode == WXK_TAB)
+		{
+			pApp->m_bUserHitEnterOrTab = TRUE;
+			wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+		}
+		else if (keycode == WXK_RETURN)
+		{
+			pApp->m_bUserHitEnterOrTab = TRUE;
+			wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
+		}
+		if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
+		{
+			// Don't call JumpForward, because it is likely this is a bogus box run-on situation
+			;
+		}
+		else
+		{
+			// Normal jump is okay to do
+			JumpForward(pView);
+		}
+		// These a use-once-only booleans, after use they must be turned back off in case
+		// re-use is required at another active location in the doc
+		pApp->m_bUserDlgOrMessageRequested = FALSE;
+		pApp->m_bUserHitEnterOrTab = FALSE;
+        //}
         return;
     }
     // whm 16Feb2018 Note: The following test using GetKeyCode will never work for detecting a WXK_ALT key event.
