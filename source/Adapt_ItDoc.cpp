@@ -1143,20 +1143,23 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
             // when "Make diagnostic logfile during document creation and opening" check box
             // is ticked in the Preferences > View page.
-			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard; it is OFF by default
+			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
 			{
                 // Construct the parameter string composed of the current output filename + date-time stamp for Now().
                 wxString fileNameLine;
                 wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
                 wxString timeStr;
                 timeStr = theTime.Format();
-                fileNameLine = gpApp->m_curOutputFilename + _T(" ") + timeStr;
+                // whm 13Apr2020 changed to log whole path of fileNameLine
+                fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
                 gpApp->LogDocCreationData(fileNameLine);
                 // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
                 // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
                 // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
                 gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
-			}
+                // whm 14Apr2020 added following log line to indicate source of Data
+                gpApp->LogDocCreationData(_T("In OnNewDocument() logging Data via TokenizeText() below:"));
+            }
 
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
 			Modify(FALSE);
@@ -1324,9 +1327,14 @@ bool CAdapt_ItDoc::OnNewDocument()
             }
 			//wxUnusedVar(nHowMany); // avoid warning
 
+            // whm 13Apr2020 added line at end of document creation log to indicate we reached end of the document
+            // This essentially signals within the log file that the document creation was successful.
+            if (pApp->m_bMakeDocCreationLogfile)
+            {
+                pApp->LogDocCreationData(_T("***End-of-Document***"));
+            }
 			pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
 											 // until explicitly turned on at another time
-
             pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
 				// leaving it turned on, and wondering why doc creation takes minutes to complete
 
@@ -6210,7 +6218,40 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
         // whm 6Apr2020 Note: For document creation logging in ReadDoc_XML, the App's m_curOutputFilename needs to be
         // set to the current output file name, before the ReadDoc_XML() function call below. 
+        pApp->m_curOutputPath = thePath;
         gpApp->m_curOutputFilename = fullFileName;
+
+        // whm 13Apr2020 moved the LogDocCreationData(fileNameLine) function here in
+        // the calling routine instead of having it in the ReadDoc_XML() function 
+        // that gets called below.
+        // Everything is now setup to normalize the input text and do the parse,
+        // so setup our logging file that will store the filename and date-time.
+        // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
+        // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
+        // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
+        // the verse number, instead of the fileNameLine + date-time string as output
+        // here at the beginning of doc creation logging for this file being opened.
+        // If there is a parse failure, it happened after the last m_srcPhrase in
+        // this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+        // when "Make diagnostic logfile during document creation and opening" check box
+        // is ticked in the Preferences > View page.
+        if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
+        {
+            // Construct the parameter string composed of the current output filename + date-time stamp for Now().
+            wxString fileNameLine;
+            wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+            wxString timeStr;
+            timeStr = theTime.Format();
+            // whm 13Apr2020 changed to log whole path of fileNameLine
+            fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
+            gpApp->LogDocCreationData(fileNameLine);
+            // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
+            // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
+            // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
+            gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+            // whm 14Apr2020 added following log line to indicate source of Data
+            gpApp->LogDocCreationData(_T("In OnOpenDocument() logging Data via ReadDoc_XML() below:"));
+        }
 
 		bool bReadOK = ReadDoc_XML(thePath, this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 
@@ -6270,8 +6311,19 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 				}
 				return FALSE;     // mrh - returning TRUE causes mayhem higher up!
 			}
-		}
-	}
+            gpApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
+                                            // until explicitly turned on at another time
+            gpApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
+                                                     // leaving it turned on, and wondering why doc creation takes minutes to complete
+
+        }
+        // whm 13Apr2020 added line at end of document opening log to indicate we reached end of the document
+        // This essentially signals within the log file that the XML document opening was successful.
+        if (gpApp->m_bMakeDocCreationLogfile)
+        {
+            gpApp->LogDocCreationData(_T("***End-of-Document***"));
+        }
+    }
 
 	if (pApp->m_bWantSourcePhrasesOnly)
 	{
@@ -18987,7 +19039,7 @@ parsing:
         // If there is a parse failure, it happened after the last m_srcPhrase in
         // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder
         // if logging is turned ON
-        if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+        if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
         {
             if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
             {

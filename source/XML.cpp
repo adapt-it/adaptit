@@ -7794,7 +7794,12 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 	// (overwriting previous values) the srcText word, its sequence number, and the
 	// chapter & verse strings).
 
-	// If logging is wanted, attempt to setup for it. Do the first update with 
+    // The writing of the first line in the doc creation/opening log below
+    // needs to done only from a calling routine rather than from here in ReadDoc_XML(). 
+    // The reason: The logging of the first line containing file path/name will get 
+    // called twice for certain collaboration document processing situations. 
+    /*
+    // If logging is wanted, attempt to setup for it. Do the first update with 
 	// special values to indicate we've yet to create a gpSrcPhrase
     // whm 6Apr2020 removed m_filename_for_ParsingSource from App
 	//wxString saveOnInitFilename = gpApp->m_filename_for_ParsingSource;
@@ -7819,9 +7824,11 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
         wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
         wxString timeStr;
         timeStr = theTime.Format();
-        fileNameLine = gpApp->m_curOutputFilename + _T(" ") + timeStr;
+        // whm 13Apr2020 changed to log whole path of fileNameLine
+        fileNameLine = gpApp->m_curOutputPath + _T(" ") + timeStr;
         gpApp->LogDocCreationData(fileNameLine);
 	}
+    */
 
 	// whm 24Aug11 modified to move the wxProgressDialog from this
 	// ReadDoc_XML() routine back to its callers. Now this function

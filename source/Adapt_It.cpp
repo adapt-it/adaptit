@@ -13886,21 +13886,42 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
     }
 }
 
-// whm 6Apr2020 added to replace logging system BEW setup earlier
+// whm 6Apr2020 added to replace logging system BEW setup earlier.
+// whm 13Apr2020 revised and relocated some calls to higher calling routines, added ***End-of-Document***
+// logging lines, and logging of steps 1-9 of the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor() 
+// function during collab document creation/opening.
 // This log function simply appends a line to the end of the current session's doc creation
-// log file which persists on the App for a given session pointed to at m_docCreationLogFile.
+// log file which persists on the App for a given session; App's m_docCreationLogFile points to the function.
 // The function that appends the string lines to this log file is called CAdapt_ItApp::LogDocCreationData().
-// The LogDocCreationData() function is called once at the beginning of the process of opening an AI document
-// at the following points in program flow:
-//    1. In CAdapt_ItDoc::OnNewDocument()
-//    2. In ReadDoc_XML() when opening an existing AI xml document
-//    3. In OpenDocWithMerger (in CollabUtilities.cpp) when opening a collaboration document
-// Then the LogDocCreationData() function is called once for each source phrase/word parsed during 
-// document creation/opening at the following points in the program flow:
-//    4. CAdapt_ItDoc::TokenizeText() - two times - at about line 16911 and also at about line 18914
-//    5. In ReadDoc_XML() (at about line 4595) for each source word parsed opening an existing xml doc
-// where for each source phrase/word parsed a line is appended to the log file containing the source 
-// phrase/word, sequ number, and a ch:verse reference. 
+// The LogDocCreationData() function is called only when user has specifically ticked a check box in either
+// the docPage (for non-collaboration document creation/optining); or the GetSourceTextFromEditor dialog 
+// (for collaboration document creation/opening), which sets the App's m_bMakeDocCreationLogfile TRUE.
+// The LogDocCreationData() function is only called when the App's m_bMakeDocCreationLogfile global flag
+// is TRUE.
+// USAGE: The LogDocCreationData() function calls are strategically located to capture log output at user
+// direction at the following points in program flow:
+// These calls below are for writing the log's first line only (the file path/name and date-time stamp).
+//    1. In CAdapt_ItDoc::OnNewDocument() before TokenizeText() is called - when creating a new 
+//       non-collab AI document, i.e., gpApp->LogDocCreationData(fileNameLine);
+//    2. In CAdapt_ItDoc::OnOpenDocument() just before its ReadDoc_XML() call - when opening an existing 
+//       non-collab AI xml document, i.e., gpApp->LogDocCreationData(fileNameLine);
+//    3. In CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() function - when opening
+//       either an existing collab document, or creating a new collabo document, i.e., pApp->LogDocCreationData(fileNameLine);
+// These calls below are for logging the data lines for each source phrase/word parsed, its sequ num, and ch:vs ref:
+//    4. In CAdapt_ItDoc::TokenizeText() after ParseWord() and ParsePreWord() calls have been made - when creating
+//       a new AI document, i.e., pApp->LogDocCreationData(strLine);
+//    5. In XML.cpp's AtDocEndTag() - when opening an existing XML document, i.e., gpApp->LogDocCreationData(strLine);
+// These calls below are for logging an ***End-of-Document*** last line in the log for a given doc creation/opening:
+//    6. In CAdapt_ItDoc::OnNewDocument() - when at the end of creating a new non-collab document after successful 
+//       TokenizeText(), i.e., pApp->LogDocCreationData(_T("***End-of-Document***"));
+//    7. In CAdapt_ItDoc::OnOpenDocument() - when at the end of opening an existing non-collab XML AI document, i.e., 
+//       gpApp->LogDocCreationData(_T("***End-of-Document***"));
+//    8. In CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() function - when at 
+//       the end of either creating or opening a collab document, i.e., pApp->LogDocCreationData(_T("***End-of-Document***"));
+// Note additional LogDocCreationData() calls are made between points 3 and 4 above to log Steps 1-4 and Step 5 within
+// the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor() function. More LogDocCreationData() calls are 
+// also made after the parsing points 4 and 5 above to log Steps 5, 6, 7, 8, and 9 before reaching points 6-8 
+// above - the logging of ***End-of-Document***.
 // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
 void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
 {
@@ -19937,7 +19958,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// and it will be stored in the _LOGS_EMAIL_REPORTS folder in the work folder
 	//m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
 	//m_bSetupDocCreationLogSucceeded = FALSE;
-    m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
+    m_bMakeDocCreationLogfile = FALSE; // a checkbox in DocPage or GetSourceTextFromEditor dialog turns it on
 	m_bALT_KEY_DOWN = FALSE;
 
 	m_bDoNormalProjectOpening = TRUE; // default value
@@ -27365,8 +27386,8 @@ int CAdapt_ItApp::OnExit(void)
         m_docCreationLogFile->Close();
         delete m_docCreationLogFile;
     }
-
-
+    // whm 14Apr2020 added
+    RemoveOldDocCreationLogFiles();
 
     int aTot;
     aTot = m_pRemovedMenuItemArray->GetCount();
@@ -28779,8 +28800,9 @@ void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
 }
 
 // whm 6Apr2020 added
-// This function is called in OnInit() to prevent accumulation of too many old
-// doc creation log files, stored in the _LOGS_EMAIL_REPORTS folder. 
+// This function is called in OnInit() just before and empty log file is created via 'new wxFile()'.
+// RemoveOldDocCreationLogFiles() is called to prevent accumulation of too many old
+// doc creation log files and any empty log files, stored in the _LOGS_EMAIL_REPORTS folder. 
 // Each doc creation log file is of the form: DocCreateLog_<userID>_2020_04_06T08_02_03Z.txt
 // The default number to keep is 5 and that number is stored in a define called 
 // NUM_OLD_DOC_CREATION_FILES_TO_KEEP in the AdaptItConstants.h header file.
@@ -28792,6 +28814,7 @@ void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
     // NUM_OLD_DOC_CREATION_FILES_TO_KEEP ones
     wxString path = m_docCreationFilePathAndName;
     wxSortedArrayString filenames;
+    wxArrayString deleteFileList;
     wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
     if (strUserID.IsEmpty())
     {
@@ -28827,7 +28850,34 @@ void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
             int counter = 0;
             */
 #endif
-
+            // whm 14Apr2020 added. First remove any files that are zero bytes in size. This is
+            // needed because an empty log file is created at each session startup in App's OnInit() function.
+            // This empty file should be removed if it remained empty from the last AI session - which would
+            // normally be the case if no doc creation/opening logging took place in that previous session.
+            size_t ct;
+            size_t tot = filenames.GetCount();
+            wxString fileStr;
+            // scan filenames array and put zero size file(s) in deleteFileList array
+            for (ct = 0; ct < tot; ct++)
+            {
+                fileStr = filenames.Item(ct);
+                // Is this file empty?
+                if (wxFileName::GetSize(fileStr) <= 0)
+                {
+                    deleteFileList.Add(fileStr);
+                }
+            }
+            // remove files that are zero size
+            if (deleteFileList.GetCount() > 0)
+            {
+                size_t total = deleteFileList.GetCount();
+                size_t index;
+                for (index = 0; index < total; index++)
+                {
+                    ::wxRemoveFile(deleteFileList.Item(index));
+                }
+            }
+        
             int numberToDelete = filenames.GetCount() - NUM_OLD_DOC_CREATION_FILES_TO_KEEP;
             if (numberToDelete < 0)
             {
