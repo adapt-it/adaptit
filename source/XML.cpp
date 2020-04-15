@@ -4301,7 +4301,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			{
 				gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 
-                if (gpApp->m_bMakeDocCreationLogfile) //if (gpApp->m_bMakeDocCreationLogfile && gpApp->m_bSetupDocCreationLogSucceeded)
+                if (gpApp->m_bMakeDocCreationLogfile)
 				{
 					wxString chNum = _T("0"); // initialise
 					wxString vsNum = _T("-1"); // initialise
@@ -4618,7 +4618,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
             // if logging is turned ON.
             if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
             {
-                if (gpApp->m_bParsingSource) //if (gpApp->m_bSetupDocCreationLogSucceeded && gpApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
+                if (gpApp->m_bParsingSource)
                 {
                     wxString strLine = strLine.Format(_T("%s %d %s:%s"), gpSrcPhrase->m_srcPhrase, gpSrcPhrase->m_nSequNumber, gpApp->m_chapterNumber_for_ParsingSource, gpApp->m_verseNumber_for_ParsingSource);
                     gpApp->LogDocCreationData(strLine);
@@ -7818,42 +7818,9 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 	// call for every gpSrcPhrase successfully constructed - putting into the file
 	// (overwriting previous values) the srcText word, its sequence number, and the
 	// chapter & verse strings).
-
-    // The writing of the first line in the doc creation/opening log below
-    // needs to done only from a calling routine rather than from here in ReadDoc_XML(). 
-    // The reason: The logging of the first line containing file path/name will get 
-    // called twice for certain collaboration document processing situations. 
-    /*
-    // If logging is wanted, attempt to setup for it. Do the first update with 
-	// special values to indicate we've yet to create a gpSrcPhrase
-    // whm 6Apr2020 removed m_filename_for_ParsingSource from App
-	//wxString saveOnInitFilename = gpApp->m_filename_for_ParsingSource;
-	if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
-	{
-        // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
-        // of LogDocCreationData(fileNameLine) is done in the Doc's OnNewDocument() for 
-        // non-collab doc opening, and in CollabUtilities's OpenDocWithMerger() for collab
-        // doc opening.
-		gpApp->m_bParsingSource = TRUE;
-
-        // whm 6Apr2020 removed m_filename_for_ParsingSource from App, and the following two lines related to m_filename_for_ParsingSource
-		//wxString myFilename(_T("Log_Doc_XML_Load_Attempt"));
-		//gpApp->m_filename_for_ParsingSource = myFilename;
-        // whm 5Apr2020 note: Added code back in OnOpenDocument to ensure that the App's m_curOutputFilename is
-        // assigned BEFORE the present call of ReadDoc_XML() is made from OnOpenDocument().
-        // Previously the m_curOutputFilename member was empty at this point for when opening an existing 
-        // non-collaboration document- triggering a wxASSERT in the SetupDocCreationLog() call below.
-        
-        // Construct the parameter string composed of the current output filename + date-time stamp for Now().
-        wxString fileNameLine;
-        wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
-        wxString timeStr;
-        timeStr = theTime.Format();
-        // whm 13Apr2020 changed to log whole path of fileNameLine
-        fileNameLine = gpApp->m_curOutputPath + _T(" ") + timeStr;
-        gpApp->LogDocCreationData(fileNameLine);
-	}
-    */
+    //
+    // whm 13Apr2020 moved the initial doc creation/opening log call to the routine that
+    // calls ReadDoc_XML().
 
 	// whm 24Aug11 modified to move the wxProgressDialog from this
 	// ReadDoc_XML() routine back to its callers. Now this function

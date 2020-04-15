@@ -19956,10 +19956,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bParsingSource = FALSE;
 	m_chapterNumber_for_ParsingSource = _T("0");
 	m_verseNumber_for_ParsingSource = _T("0");
-	// I'll call the file "Log_For_Document_Creation.txt",
-	// and it will be stored in the _LOGS_EMAIL_REPORTS folder in the work folder
-	//m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
-	//m_bSetupDocCreationLogSucceeded = FALSE;
+
     m_bMakeDocCreationLogfile = FALSE; // a checkbox in DocPage or GetSourceTextFromEditor dialog turns it on
 	m_bALT_KEY_DOWN = FALSE;
 

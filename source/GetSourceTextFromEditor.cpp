@@ -218,7 +218,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
     usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
     pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
-    // whm 6Apr2020 added check box at bottom of dialog "Make diagnostic logfile during document creation and opening"
+    // whm 6Apr2020 added at bottom of dialog check box: "[ ] Make diagnostic logfile during document creation and opening"
     // Set the tick mark to agree with what's on the App's m_bMakeDocCreationLogfile
     m_bTempSaveMakeDocCreationLogfile = m_pApp->m_bMakeDocCreationLogfile;
     m_pCheckboxMakeDocCreationLogfile->SetValue(m_bTempSaveMakeDocCreationLogfile); // initially defaults to FALSE
@@ -491,14 +491,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 
-    // whm 6Apr2020 added check box at bottom of dialog "Make diagnostic logfile during document creation and opening"
+    // whm 6Apr2020 added at bottom of dialog this check box: "[ ] Make diagnostic logfile during document creation and opening"
     // Set the App's m_bMakeDocCreationLogfile to whether check box is ticked or not.
     m_pApp->m_bMakeDocCreationLogfile = m_bTempSaveMakeDocCreationLogfile;
-    // whm 13Apr2020 need to also update the App's m_curOutputPath here so it will be available
-    // in the App's DoStartWorkingWizard() handler at the time OK is pressed here in GetSourceTextFromEditor.
-    // This requires calculating the App's m_curOutputFilename too.
-    // TODO: 
-    m_pApp->m_curOutputFilename = 
+
     m_pApp->m_curOutputPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator + m_pApp->m_curOutputFilename; 
 
 	// whm 26Feb12 Note: With project-specific collaboration, the user's choice of
