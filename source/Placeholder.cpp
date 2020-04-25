@@ -3104,6 +3104,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 	CSourcePhrase* pPrevSrcPhrase = NULL; // initialize
 	CSourcePhrase* pFollSrcPhrase = NULL; // initialize
 	SPList* pList = m_pApp->m_pSourcePhrases;
+	int placeholderLoc = pCurrentSrcPhrase->m_nSequNumber; // initialize to a close value
 
 	/*  Before block Begins */
 
@@ -3322,6 +3323,8 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 		// and so we can, for example, get the correct pile pointer for a given sequence
 		// number and from the pointer, get the correct CSourcePhrase)
 		m_pView->UpdateSequNumbers(nStartingSequNum);
+
+		placeholderLoc = pFirstOne->m_nSequNumber;
 
 		// We must check if there is preceding punctuation on the following source phrase, or a
 		// begin-marker or both; accociation is obligatorily to the right, so stuff
@@ -3604,7 +3607,9 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 		// TRUE and doing a call then clearing to FALSE after the call exits,
 		//  e.g PlacePhraseBox() call where PlaceBox() is going to be called
 		// later anyway. So leave as is.
-		m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added		
+		m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+
+		m_pApp->m_nActiveSequNum = placeholderLoc;
 		
 	} // End of TRUE block for test: if (bInsertBefore)
 
@@ -4388,28 +4393,6 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 #else
 	m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 #endif
-	// Find where the placeholder is, from starting m_pApp->m_nActiveSequNum
-	// and scanning back until m_key == ... is found
-	int nActiveSN = m_pApp->m_nActiveSequNum; // initialize
-		// but it probably is wrong for an "insert before"
-	SPList::Node* earlierPos = pList->Item(nActiveSN);
-	CSourcePhrase* pEarlierSP = earlierPos->GetData();
-	wxString dots(_T("..."));
-	int maxTries = 3; 
-	int counter = 0;
-	do {
-		counter++;
-		wxString key = pEarlierSP->m_key;
-		if (key == dots)
-		{
-			nActiveSN = pEarlierSP->m_nSequNumber;
-			break;
-		}
-		earlierPos = earlierPos->GetPrevious();
-		pEarlierSP = earlierPos->GetData();
-	} while (counter < maxTries);
-	m_pApp->m_nActiveSequNum = nActiveSN;
-
 	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	wxASSERT(m_pApp->m_pActivePile);
 
