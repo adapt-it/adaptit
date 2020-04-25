@@ -2817,7 +2817,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		}
 
         // whm 14Apr2020 added following additional LogDocCreationData() call to indicate source of 
-        // logging data
+        // logging data.
         if (pApp->m_bMakeDocCreationLogfile)
         {
             pApp->LogDocCreationData(_T("In OpenDocWithMerger() logging Data via ReadDoc_XML(). Expect second list of logging Data via TokenizeTextString() below this list:"));
@@ -10937,17 +10937,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
             // already existed and is being merged. OpenDocWithMerger is not called when the
             // collaboration chapter/book is first created.
 
-            // Everything is now setup to normalize the input text and do the parse,
-            // so setup our logging file that will store the filename and date-time.
-            // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
-            // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
-            // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
-            // the verse number, instead of the fileNameLine + date-time string as output
-            // here at the beginning of doc creation logging for this file being opened.
+            // Write the first couple log lines of our logging file to log the filename and 
+            // date-time. Also write a line telling what function we are calling from.
+            // See comments above the LogDocCreationData() function in the App for more details.
             // If there is a parse failure, it happened after the last m_srcPhrase in
             // this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
             // when "Make diagnostic logfile during document creation and opening" check box
-            // is ticked at the bottom of the GetSopurceTextFromEditor dialog.
+            // is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
             if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
             {
                 // Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -10955,16 +10951,17 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
                 wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
                 wxString timeStr;
                 timeStr = theTime.Format();
-                // whm 13Apr2020 changed to log whole path of fileNameLine
+                // whm 13Apr2020 changed to log whole path/name of doc being created/opened + date-time stamp
                 fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
                 pApp->LogDocCreationData(fileNameLine);
-                // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
-                // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
-                // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
-                pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+                // whm 6Apr2020 the following m_bParsingSource is set TRUE during logging 
+                // to prevent TokenizeText() from doing unwanted logging in other operations
+                // where TokenizeText is used.
+                pApp->m_bParsingSource = TRUE;
                 // whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
-                // of steps 1-4. Other calls of LogDocCreationData() are made at successful completion of
-                // remaining steps farther below.
+                // of steps 1-4 and place where function is called from. 
+                // Other calls of LogDocCreationData() are made at successful completion of remaining steps 
+                // farther below.
                 pApp->LogDocCreationData(_T("Steps 1-4 successful in OK_btn_delayedHandler_GetSourceTextFromEditor() function..."));
             }
 
@@ -11428,7 +11425,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
     pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
                                     // until explicitly turned on at another time
     pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
-                                             // leaving it turned on, and wondering why doc creation takes minutes to complete
+                                    // leaving it turned on, and wondering why doc creation takes minutes to complete
 
 
 	// For safety's sake, clear the globals used to default safe values

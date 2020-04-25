@@ -88,7 +88,6 @@ public:
 	bool	tempShowAdminMenu;
 	bool	tempNotLegacySourceTextCopy;
 	bool	bTempFreezeAndThaw;
-	//bool	bTempMakeDocCreationLogfile;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

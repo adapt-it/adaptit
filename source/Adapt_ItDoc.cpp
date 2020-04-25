@@ -1132,17 +1132,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 													 // m_lastDocPath to config files
 			}
 
-			// Everything is now setup to normalize the input text and do the parse,
-			// so setup our logging file that will store the filename and date-time.
-            // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
-            // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
-            // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
-            // the verse number, instead of the fileNameLine + date-time string as output
-            // here at the beginning of doc creation logging for this file being opened.
+			// Write the first couple log lines of our logging file to log the filename and 
+            // date-time. Also write a line telling what function we are calling from.
+            // See comments above the LogDocCreationData() function in the App for more details.
 			// If there is a parse failure, it happened after the last m_srcPhrase in
 			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
             // when "Make diagnostic logfile during document creation and opening" check box
-            // is ticked in the Preferences > View page.
+            // is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
 			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
 			{
                 // Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -1150,13 +1146,13 @@ bool CAdapt_ItDoc::OnNewDocument()
                 wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
                 wxString timeStr;
                 timeStr = theTime.Format();
-                // whm 13Apr2020 changed to log whole path of fileNameLine
+                // whm 13Apr2020 changed to log whole path/name of doc being created/opened + date-time stamp
                 fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
                 gpApp->LogDocCreationData(fileNameLine);
-                // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
-                // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
-                // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
-                gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+                // whm 6Apr2020 the following m_bParsingSource is set TRUE during logging 
+                // to prevent TokenizeText() from doing unwanted logging in other operations
+                // where TokenizeText is used.
+                gpApp->m_bParsingSource = TRUE;
                 // whm 14Apr2020 added following log line to indicate source of Data
                 gpApp->LogDocCreationData(_T("In OnNewDocument() logging Data via TokenizeText() below:"));
             }
@@ -1235,7 +1231,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
             if (pApp->m_bMakeDocCreationLogfile)
             {
-                // whm 6Apr2020 TODO: modified the CWaitDlg routine below. The TokenizeText() routine
+                // whm 6Apr2020 modified the CWaitDlg routine below. The TokenizeText() routine
                 // takes more time now making it desirable to have a wait dialog show while the document
                 // is being created. Logging the doc creation also takes time, so I've re-instituted the 
                 // wait dialog to the outer block so that it will be visible during doc creation here - 
@@ -1243,7 +1239,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 #if defined(__WXMSW__)
                 CWaitDlg waitDlg(pApp->GetMainFrame());
                 // indicate we want the follwoing wait wait message
-                waitDlg.m_nWaitMsgNum = 29;	// 29 has "Please wait while creating a new document - and creates a diagnostic log in folder _LOGS_EMAIL_REPORTS..."
+                waitDlg.m_nWaitMsgNum = 29;	// 29 has "Please wait while creating a new document - and creating a diagnostic log in folder _LOGS_EMAIL_REPORTS..."
                 waitDlg.Centre();
                 waitDlg.Show(TRUE);
                 waitDlg.Update();
@@ -1314,8 +1310,10 @@ bool CAdapt_ItDoc::OnNewDocument()
                 if (nHowMany == -1)
                 {
                     // whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
-                    // that the warning message below would ever be show to the user since the wxMessageBox that
-                    // displays the message below TokenizeText().
+                    // that the warning message below would ever be shown to the user since the wxMessageBox that
+                    // displays the message below is below the code execution point in TokenizeText() where crash 
+                    // would likely happen.
+                    //
                     // Abort the document creation, there has been a significant parsing error.
                     // Do a diagnostic run (see View page of Preferences)
                     pApp->LogUserAction(msgEnglish);
@@ -1325,7 +1323,6 @@ bool CAdapt_ItDoc::OnNewDocument()
                     return TRUE;
                 }
             }
-			//wxUnusedVar(nHowMany); // avoid warning
 
             // whm 13Apr2020 added line at end of document creation log to indicate we reached end of the document
             // This essentially signals within the log file that the document creation was successful.
@@ -6221,20 +6218,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
         pApp->m_curOutputPath = thePath;
         gpApp->m_curOutputFilename = fullFileName;
 
-        // whm 13Apr2020 moved the LogDocCreationData(fileNameLine) function here in
-        // the calling routine instead of having it in the ReadDoc_XML() function 
-        // that gets called below.
-        // Everything is now setup to normalize the input text and do the parse,
-        // so setup our logging file that will store the filename and date-time.
-        // Calls to the LogDocCreationData() in the Doc's TokenizeText and in XML.cpp's
-        // ReadDoc_XML() where the input parameter to LogDocCreationData() will be
-        // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
-        // the verse number, instead of the fileNameLine + date-time string as output
-        // here at the beginning of doc creation logging for this file being opened.
+        // Write the first couple log lines of our logging file to log the filename and 
+        // date-time. Also write a line telling what function we are calling from.
+        // See comments above the LogDocCreationData() function in the App for more details.
         // If there is a parse failure, it happened after the last m_srcPhrase in
         // this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
         // when "Make diagnostic logfile during document creation and opening" check box
-        // is ticked in the Preferences > View page.
+        // is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
         if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
         {
             // Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -6242,13 +6232,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
             wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
             wxString timeStr;
             timeStr = theTime.Format();
-            // whm 13Apr2020 changed to log whole path of fileNameLine
+            // whm 13Apr2020 changed to log whole path/name of doc being created/opened + date-time stamp
             fileNameLine = pApp->m_curOutputPath + _T(" ") + timeStr;
             gpApp->LogDocCreationData(fileNameLine);
-            // whm 6Apr2020 the following m_bParsingSource is also set TRUE where the initial call
-            // of LogDocCreationData(fileNameLine) is done in the CollabUtilities's OpenDocWithMerger() 
-            // for collab doc opening, and in XML's ReadDoc_XML() for opening existing docs.
-            gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+            // whm 6Apr2020 the following m_bParsingSource is set TRUE during logging 
+            // to prevent TokenizeText() from doing unwanted logging in other operations
+            // where TokenizeText is used.
+            gpApp->m_bParsingSource = TRUE;
             // whm 14Apr2020 added following log line to indicate source of Data
             gpApp->LogDocCreationData(_T("In OnOpenDocument() logging Data via ReadDoc_XML() below:"));
         }
@@ -6314,7 +6304,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
             gpApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF
                                             // until explicitly turned on at another time
             gpApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
-                                                     // leaving it turned on, and wondering why doc creation takes minutes to complete
+                                            // leaving it turned on, and wondering why doc creation takes minutes to complete
 
         }
         // whm 13Apr2020 added line at end of document opening log to indicate we reached end of the document
@@ -17004,18 +16994,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str());
 				}
 #endif
-				// If logging is wanted, update with this entry
+				// If logging is wanted, update with this source phrase/word data.
                 // whm 6Apr2020 modified to use new doc creation logging routine
-                // Calls to the LogDocCreationData() here use an input parameter composed of
+                // Calls of the LogDocCreationData() function here use an input parameter composed of
                 // a wxString containing the m_srcPhrase, m_nSequNumber, the chapter number, 
-                // the verse number, since we are merely logging data for each source phrase/word
-                // being parsed during document loading. 
-                // If there is a parse failure, it happened after the last m_srcPhrase in
-                // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder.
+                // the verse number. 
+                // If there is a parse failure, it happened after the last m_srcPhrase processed in
+                // this file. The log file is stored in the folder _LOGS_EMAIL_REPORTS in work folder
                 // when logging is turned ON.
-                if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+                if (pApp->m_bMakeDocCreationLogfile) // turn this ON in DocPage of the Wizard or the GetSourceTextFromEditor dialog.
 				{
-                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource) // m_bSetupDocCreationLogSucceeded no longer used
+                    if (pApp->m_bParsingSource)
 					{
                         wxString strLine = strLine.Format(_T("%s %d %s:%s"), pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_chapterNumber_for_ParsingSource, pApp->m_verseNumber_for_ParsingSource);
                         pApp->LogDocCreationData(strLine);
@@ -17198,9 +17187,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 				// Track the verse number if logging is wanted
-				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or the GetSourceTextFromEditor dialog
 				{
-                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+                    if (pApp->m_bParsingSource)
 					{
 						pApp->m_verseNumber_for_ParsingSource = temp;
 					}
@@ -17282,9 +17271,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pApp->m_curChapter = temp;
 
 				// Track the chapter if logging is wanted
-				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or the GetSourceTextFromEditor dialog
 				{
-                    if (pApp->m_bParsingSource) //if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+                    if (pApp->m_bParsingSource)
 					{
 						pApp->m_chapterNumber_for_ParsingSource = pApp->m_curChapter;
 					}

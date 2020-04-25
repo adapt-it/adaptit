@@ -3195,10 +3195,8 @@ public:
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;
-	//wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
-	//bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
-	//bool	 SetupDocCreationLog(wxString& filename);
-	bool	 m_bMakeDocCreationLogfile;
+
+    bool	 m_bMakeDocCreationLogfile;
 	bool	 m_bFinalTypedPunctsGrabbedAlready;
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
