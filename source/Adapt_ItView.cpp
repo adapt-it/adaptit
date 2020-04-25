@@ -4829,16 +4829,19 @@ wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 
 	// loop backwards until come to start of a verse or chapter
 	str = _T("0:0"); // a nonsense value which, if it gets displayed, tells us we've fouled up
-	while (pos != NULL)
+	if (nActiveSequNum > 0)
 	{
-		CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetPrevious(); // needed for our list
-		if (pSP->m_bChapter || pSP->m_bVerse)
+		while (pos != NULL)
 		{
-			if (!pSP->m_chapterVerse.IsEmpty())
-				str = pSP->m_chapterVerse;
-			wxASSERT(!str.IsEmpty());
-			break;
+			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetPrevious(); // needed for our list
+			if (pSP->m_bChapter || pSP->m_bVerse)
+			{
+				if (!pSP->m_chapterVerse.IsEmpty())
+					str = pSP->m_chapterVerse;
+				wxASSERT(!str.IsEmpty());
+				break;
+			}
 		}
 	}
 	return str;

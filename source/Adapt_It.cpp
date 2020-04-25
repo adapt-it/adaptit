@@ -264,6 +264,7 @@ int ID_PHRASE_BOX = 22030;
 int ID_BMTOGGLEBUTTON_PHRASEBOX = 22040;
 int ID_DROP_DOWN_LIST = 22050;
 
+
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
 // Arkadiy Shapkin. It is used under the GNU General Public License
@@ -19874,6 +19875,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
+	m_bkSlash = _T("\\");
     const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
     // on my Windows machine name = "Adapt_ItApp-Bill Martin"
     // on my Linux machine name = "Adapt_ItApp-wmartin"
@@ -19992,6 +19994,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// having been inserted
 	m_bUserHitEnterOrTab = FALSE; // default, set TRUE if Enter or Tab keypress detected
 				// within CPhraseBox::OnKeyUp()
+	// Initialise the next 4 to FALSE - meaning "legacy filtering & unfiltering applies)
+	m_bExt_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
+	m_bMkr_x_NotFiltered;  //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
+	m_bExt_ef_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
+	m_bUnfiltering_ef_Filtered; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
+	m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
 
 #if defined(_KBSERVER)
@@ -20394,6 +20402,47 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// placeholder insertion buttons - by disabling them
 	m_prohibitiveBeginMarkers = _T("\\f \\ef \\x \\ex "); // footnotes, extended footnotes, xrefs, extended xrefs
 	m_prohibitiveEndMarkers = _T("\\f* \\ef* \\x* \\ex* "); // footnotes, extended footnotes, xrefs, extended xrefs
+
+	// BEW 22Apr20 (large) fast access strings for markers and endMarkers which have a
+	// bearing on the new TextType propagation system; I define a Blue set (verses and quotes)
+	// a Red beginMkr set (change type to Red [special] colour), a Red endMkr set (indicates
+	// text type change is pending), maybe Ignore set (this comprises mkrs and endmarkers from
+	// the span embedded sets, binding set (and add binding endMkrs), and most from non-binding.
+	// Hmmm. An Ignore set (very large) is not needed - as anything not in the Red sets, or the 
+	// single Blue set, does NOT change the text type.
+	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr \\rq  ");
+
+	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\fig* \\esbe \\cat* ");
+
+	m_BlueBeginMarkers = _T("\\c \\v \\m \\ca \\va \\vp \\sls \\qt \\wj \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
+
+	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\qt* \\wj* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
+
+	m_EmbeddedIgnoreMarkers = _T("\\fe \\fr \\fq \\fqa \\fk \\fl \\fw \\fp \\fv \\ft \\fdc \\fm \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc ");
+
+	m_EmbeddedIgnoreEndMarkers = _T("\\fv* \\ft* \\fdc* \\fm* \\xop* \\xot* \\xnt* \\xdc* "); // included \ft* deliberately
+
+	m_bTextTypeChangePending = FALSE; // initialise
+
+	// these two copied from global space in Adapt_ItView.cpp, and made into app members here
+	// 
+	m_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup ");
+	// and the end marker forms
+	m_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn*  \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* ");
+
+
+	// BEW 22Apr20, following fast access strings are for setting TextType values
+	m_verseTypeMkrs = _T("\\c \\v \\m \\va \\vp \\ca \\cl \\cp \\cd \\lh \\li1 \\li2 \\li3 \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
+	m_verseTypeEndMkrs = _T("\\wj* \\tl* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
+	m_poetryTypeMkrs = _T("\\q \\qt \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd ");
+	m_poetryTypeEndMkrs = _T("\\qt* \\qs* \\qac* ");
+	m_sectionHeadMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 ");
+	m_mainTitleMkrs = _T("\\imt \\imt1 ");
+	m_secondaryTitleMkrs = _T("\\imt2 \\imt3 \\imt4 ");
+	m_footnoteMkrs = _T("\\f \\ef "); // that's all we need - the internal content markers do not change the TextType
+	m_xrefMkrs = _T("\\x \\ex "); // that's all we need - the internal content markers do not change the TextType
+	m_headerMkrs = _T("\\h \\r ");
+	m_identificationMkrs = _T("\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 ");
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
@@ -57738,4 +57787,233 @@ bool CAdapt_ItApp::FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& en
 	return FALSE;
 }
 
+// BEW 22Apr20 return the uaugmented begin marker at the location specified 
+// by FindLastBackslash()'s return's offset. If no location was found, 
+// return an empty string
+wxString CAdapt_ItApp::FindLastBeginMkr(wxString beginMkrs, int offset)
+{
+	CAdapt_ItDoc* pDoc = GetDocument();
+	wxString beginMkr = wxEmptyString;
+	if (beginMkrs.IsEmpty() || offset == (int)wxNOT_FOUND)
+		return beginMkr;
+	wxString str = beginMkrs.Mid(offset);
+	if (str.IsEmpty())
+		return beginMkr;
+	beginMkr = pDoc->GetWholeMarker(str);
+	// There might be an errant endmarker lurking in m_markers, so check for
+	// a * at the end, and if so, return an empty string
+	wxString star(_T('*'));
+	int offset2 = beginMkr.Find(star);
+	if (offset2 != wxNOT_FOUND)
+	{
+		beginMkr = wxEmptyString;
+		return beginMkr;
+	}
+	return beginMkr;
+}
+
+// BEW 22Apr20, within m_markers string, returns offset,
+// or -1 if none could be found
+int CAdapt_ItApp::FindLastBackslash(wxString beginMkrs)
+{
+	if (beginMkrs.IsEmpty())
+		return wxNOT_FOUND;
+	wxString str = beginMkrs;
+	int offset = wxNOT_FOUND; // initialise
+	int counter = 0;
+	wxString bs(_T('\\'));
+	do {
+		offset = str.Find(bs);
+		if (offset != wxNOT_FOUND)
+		{
+			counter += offset + 1; // get past that backslash
+			str = str.Mid(offset + 1); // shorten
+		}
+	} while (offset != wxNOT_FOUND);
+	// On exit, counter needs to be decremented by 1
+	if (counter == 0)
+	{
+		// No backslash was found
+		return wxNOT_FOUND;
+	}
+	else
+	{
+		return counter - 1;
+	}
+}
+
+// BEW 23Apr20 // Sets for \c or \v or other 'verse'-related markers, using pUSFMAnalysis values
+// We will use TextType verse (1), which XML.pp defaults to if no other type is specified
+// for the Temp and NoneOrNoType members
+void CAdapt_ItApp::SetDefaultTextType_Cached()
+{
+	m_marker_Cached = _T("\\v"); // no initial backslash (if parse \c then colour it like verse text)
+		// We never change m_marker_Cached from '
+	m_endMarker_Cached = wxEmptyString; // no initial backslash
+	bool	m_bInLine_Cached = FALSE;
+	bool	m_bSpecial_Cached = FALSE;
+	bool	m_bBdryOnLast_Cached = FALSE;
+	m_bMainTextType_Cached = verse; // permanently set to 'verse'
+	// And the two extras can be (pseudo-cleared) to value 1 (verse)
+	m_bTempTextType_Cached = verse; // set non-verse values here - e.g. 'poetry'
+	m_bNoneOrNoType_Cached = verse; // set non-verse skip over values here - e.g. note, none, noType
+}
+
+// BEW 23Apr20 pass in the wholeMarker, augment it internally, and then run thru the gamit of
+// the fast access strings (more likely ones tested before less likely ones) to return
+// what the appropriate TextType enum value should be. It's verse as a last resort, if we have
+// no success (unlikely - unless the input source text data has an unknown marker; our custom
+// markers are unknown to USFM, but they will never be within source text - \free, \bt and friends,
+// \note; our custom markers have dedicated storage in CSourcePhrase and can only be generated
+// by user GUI actions, like making a note, free translating a bit of the adaptation, etc. By 
+// "unknown" I mean things like \xyz or \y and so forth).
+// Uses IsNoType(mkr) to test for noType internally.
+TextType CAdapt_ItApp::GetTextTypeFromBeginMkr(wxString mkr) // pass in un-augmented begin-mkr
+{
+	TextType defaultType = verse;  // if we can't determine a time, safest option is to return verse
+
+
+
+// TODO
+
+	return defaultType;
+}
+
+// BEW 23Apr20, Determine if the mkr is appropriately a noType one. We need to do this by
+// using the fast-access strings to eliminate other possibilities, and only then
+// it must be a noType one
+bool CAdapt_ItApp::IsNoType(wxString mkr) // pass in un-augmented begin-mkr
+{
+	// If the marker belongs to the m_EmbeddedIgnoreMarkers set (ones from within foonote,
+	// cross-ref, or extended footnote or extended cross-ref), these are all noType because 
+	// we don't change text type in one of these spans, so return TRUE.
+
+	// If the marker belongs to the View.cpp's charFormatMkr set (like \w ... \w* and friends),
+	// they have type 'none' - so return FALSE.
+
+	// If it does belong to either of m_RedBeginMarkers (these are very definite "special text" ones),
+	// or m_BlueEndMarkers (these are verse-like and their text content is that for 'verse'),
+	// then return FALSE, because none of these are of type noType. But if belongs to neither,
+	// then its a noType type because the many scores of USFM3 markers not in those strings
+	// default to noType - and those we'd want to to have their content coloured RED
+
+	// Here we go...
+	wxString augMkr = mkr + _T(' '); // append space
+	int offset = wxNOT_FOUND;
+	offset = m_EmbeddedIgnoreMarkers.Find(augMkr);
+	if (offset != wxNOT_FOUND)
+	{
+		return TRUE;
+	}
+	offset = m_charFormatMkrs.Find(augMkr); //  same string is in global space of Adapt_ItView.cpp
+	if (offset != wxNOT_FOUND)
+	{
+		return FALSE;
+	}
+	offset = m_BlueBeginMarkers.Find(augMkr);
+	if (offset != wxNOT_FOUND)
+	{
+		// It's in the Blue set, so it can't be a noType value - return FALSE
+		return FALSE;
+	}
+	offset = m_RedBeginMarkers.Find(augMkr);
+	if (offset != wxNOT_FOUND)
+	{
+		// It's in the Red set, so it can't be a noType value (the Red set
+		// have TextType values other than noType, such as 'identification', or
+		// sectionHead, and so forth) - so return FALSE
+		return FALSE;
+	}
+	// It's in neither Red nor Blue, so must be noType
+	return TRUE;
+}
+
+// BEW 23Apr20, copies the pAnalysis members to the cache variables
+// on the app. See AI.h about lines 4174 plus or minus
+// ttTemp defaults to 'verse' (1) if no other value passed in; e.g. poetry USFM markers temporarily
+// set it to type 'poetry' (2).
+// ttNoneOr defaults to 'verse' if no other value passed in; e.g.  parsing character markers
+// which are meant to never change the TextType value, go here. e.g. types none, noType, or note
+
+void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, TextType ttNoneOr)
+{
+	// Remember, the USFMAnalysis struct's markers lack initial backslash, so we add it before
+	// copying values to the cache
+	CAdapt_ItDoc* pDoc = GetDocument();
+
+	if (pAnalysis == NULL)
+		return;  // What's cached remains unchanged, unless the caller sets chache values explicitly
+	
+	if (!pAnalysis->marker.IsEmpty())
+	{
+		m_marker_Cached = m_bkSlash + pAnalysis->marker; // a begin-marker
+	}
+
+	if (!pAnalysis->endMarker.IsEmpty())
+	{
+		m_endMarker_Cached = m_bkSlash + pAnalysis->endMarker; // an endMarker
+	}
+
+	m_bInLine_Cached = (bool)pAnalysis->inLine;
+	m_bSpecial_Cached = (bool)pAnalysis->special;
+	m_bBdryOnLast_Cached = (bool)pAnalysis->special;
+	
+	if (pAnalysis->textType == verse)
+	{
+		m_bMainTextType_Cached = verse;
+		// Switching back to default, so pseudo-clear the temp and none stores;
+		// Can't have other types active when 'verse' is active (so propagation unneeded)
+		m_bTempTextType_Cached = verse;
+		m_bNoneOrNoType_Cached = verse;
+	}
+	else
+	{
+		// textType has some other value. We need to make tests. AI_USFM uses 'noType' and
+		// ''none' sparingly, so no help looking in pAnalysis; we'll instead use the
+		// fast-access strings at pDoc about lines 20,412 and following
+
+		// Test for 'poetry'. The struct is sufficent for these, as all such bare markers
+		// start with 'q'
+		wxChar first = pAnalysis->marker.GetChar(0);
+		if (first == _T('q'))
+		{
+			m_bTempTextType_Cached = poetry;
+			m_bNoneOrNoType_Cached = poetry; // stays same until 'none' or 'noType' intervene
+		}
+		else
+		{
+			// What's next-most common? Probably subheadings - test that...
+
+
+
+
+
+
+
+
+
+
+// TODO - the rest
+		}
+	}
+}
+													 
+/* remove later
+bool    m_bTextTypeChangePending;
+
+// For our "cache" for recall of what was returned from TokenizeText's AI_USFM lookup for a marker
+wxString m_marker_Cached; // stored with initial backslash
+wxString m_endMarker_Cached; // stored with initial backslash
+bool	m_bInLine_Cached;
+bool	m_bSpecial_Cached;
+bool	m_bBdryOnLast_Cached;
+TextType m_bMainTextType_Cached; // use for default, ie' 'verse' for any of the verse or chapter mkrs
+// Next two are independent of USFMAnalysis struct, use for dynamic setting
+// (a) the Temp one, for things like poetry or footnotes, xrefs, extended ones
+// (b) the None or NoType one, for note, none, noType - things we want to skip
+// over without changing the TextType. When we default these two, it's to
+// what the XML defaults the TextType to - to 'verse'
+TextType m_bTempTextType_Cached;
+TextType m_bNoneOrNoType_Cached;
+*/
 

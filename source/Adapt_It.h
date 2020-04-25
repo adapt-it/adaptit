@@ -4136,6 +4136,69 @@ public:
 	bool     FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& beginMkr); // BEW 11Apr20
 	bool	 FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& endMkr);     // BEW 11Apr20
 
+	bool	 m_bExt_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
+	bool	 m_bExt_ef_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
+	bool	 m_bMkr_x_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
+	bool	 m_bUnfiltering_ef_Filtered; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
+	bool	 m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
+	wxString m_chapterVerseAttrSpan; // BEW 18Apr20, store nearest earlier ch:vs ref for error message
+
+	// BEW 22Apr20 marker and endmarker sets for the new way to handle text colouring & TextType
+	// propagation, and type-changing decisions
+	wxString m_RedBeginMarkers;
+	wxString m_RedEndMarkers;
+	wxString m_BlueBeginMarkers; // these have few endmarkers, and are the verse & poetry sets
+	wxString m_BlueEndMarkers;
+	wxString m_EmbeddedIgnoreMarkers;
+	wxString m_EmbeddedIgnoreEndMarkers;
+	wxString m_charFormatMkrs;
+	wxString m_charFormatEndMkrs;
+	int	FindLastBackslash(wxString beginMkrs); // BEW 22Apr20, within m_markers string, returns offset
+	wxString FindLastBeginMkr(wxString beginMkrs, int offset); // BEW 22Apr20
+	wxString m_verseTypeMkrs;
+	wxString m_verseTypeEndMkrs;
+	wxString m_poetryTypeMkrs;
+	wxString m_poetryTypeEndMkrs;
+	wxString m_sectionHeadMkrs;
+	wxString m_mainTitleMkrs;
+	wxString m_secondaryTitleMkrs;
+	// markers of type 'none' are tested for by doc.cpp IsBeginMarkerForTestTypeNone(pChar)
+	wxString m_footnoteMkrs;
+	wxString m_xrefMkrs;
+	wxString m_headerMkrs;
+	wxString m_identificationMkrs;
+	wxString m_bkSlash;
+	// ignore 'rightMarginReference' I can't find it in USFM3
+	// custom marker \note can be ignored, such data never shows in the GUI layout
+	// Useful bools for the text colouring changes
+	bool    m_bTextTypeChangePending;
+
+	// For our "cache" for recall of what was returned from TokenizeText's AI_USFM lookup for a marker
+	wxString m_marker_Cached; // stored with initial backslash
+	wxString m_endMarker_Cached; // stored with initial backslash
+	bool	m_bInLine_Cached;
+	bool	m_bSpecial_Cached;
+	bool	m_bBdryOnLast_Cached;
+	TextType m_bMainTextType_Cached; // use for default, ie' 'verse' for any of
+				// the verse or chapter mkrs.
+	// Next two are independent of USFMAnalysis struct, use for dynamic setting
+	// (a) the Temp one, for things like poetry or footnotes, xrefs, extended ones
+	// (b) the None or NoType one, for note, none, noType - things we want to skip
+	// over without changing the TextType. When we default these two, it's to
+	// what the XML defaults the TextType to - to 'verse'
+	TextType m_bTempTextType_Cached;
+	TextType m_bNoneOrNoType_Cached;
+
+	void	SetDefaultTextType_Cached(); // BEW 23Apr20
+	// BEW 23Apr20, copies the pAnalysis members to the cache variables *_Cached above
+	void	SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp = verse, TextType ttNoneOr = verse);
+	TextType GetTextTypeFromBeginMkr(wxString mkr); // pass in un-augmented begin-mkr
+	bool	IsNoType(wxString mkr); // pass in un-augmented begin-mkr
+
+	//bool	m_bInform_Cached;
+	//wxString m_navigationText_Cached;
+
+
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is
 				// being viewed in the ViewFilteredMaterial dialog
 

@@ -255,6 +255,8 @@ protected:
 						wxString& metadata, int& offset, int& nEnd);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
+
 	// BEW 30May17 next two for supporting inLine markers within a inLine span, such as a
 	// \xt marker within an unfiltered \f ... \f* span
 	bool			m_bIsWithinUnfilteredInlineSpan;
