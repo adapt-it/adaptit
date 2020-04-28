@@ -22,9 +22,9 @@
 #define maxLen 60
 //#define _AT_PTR
 //#define FIXORDER
-#define LOGMKRS
-const int logStart = 163;
-const int logEnd = 164;
+//#define LOGMKRS
+const int logStart = 2;
+const int logEnd = 5;
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -299,9 +299,9 @@ extern wxArrayInt m_exportFilterFlagsBeforeEdit;
 
 extern bool gbIsUnstructuredData;
 
-wxString charAttributeMkrs = _T("\\w \\xt \\fig \\jmp \\+jmp \\rb \\qt-s \\qt-e ");
+wxString charAttributeMkrs = _T("\\fig \\jmp \\+jmp \\rb \\qt-s \\qt-e "); // \w removed, it's a special case
 // and the end marker forms
-wxString charAttributeEndMkrs = _T("\\w* \\xt* \\fig* \\jmp* \\+jmp* \\rb* \\qt-s\\* \\qt-e\\* \\* ");
+wxString charAttributeEndMkrs = _T("\\fig* \\jmp* \\+jmp* \\rb* \\qt-s\\* \\qt-e\\* \\* "); // \w* removed, it's a special case
 
 
 // support for USFM and SFM Filtering
@@ -15593,7 +15593,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	// of these has some unreferenced variables. To avoid compiler variables, use 
 	// wxUnusedVar() for those which are not now referenced
 	wxUnusedVar(inlineNonbindingEndMrks);
-	
+#if defined (_DEBUG) && defined (LOGMKRS)
+	wxLogDebug(_T("Start of %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 	int len = 0;
 	wxChar* ptr = pChar;
 	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
@@ -15654,31 +15657,45 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	wxString tagOnly;
 	bool bIsNestedMkr = FALSE;
 	wxString baseOfEndMkr;
-
+#if defined (_DEBUG) && defined (LOGMKRS)
+	wxLogDebug(_T("1. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 	// BEW added test 21Mar17
 	if (len == 0 && ptr == pEnd)
 	{
 		return len;
 	}
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 6)
+	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
         halt_here = halt_here; // avoid gcc warning
 	}
 #endif
 
-	wxString aMkr = wxEmptyString;
-	bool bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
 
-	if (bIsInlineBeginMkr)
+	wxString aMkr = wxEmptyString;
+	bool bIsInlineBeginMkr = FALSE;
+	// One more  shot at setting m_bWithinMkrAttributeSpan flag
+	if (!m_bWithinMkrAttributeSpan)
 	{
-		m_bWithinMkrAttributeSpan = TRUE;
+		bIsInlineBeginMkr = IsAttributeBeginMarker(ptr, aMkr);
+
+		if (bIsInlineBeginMkr)
+		{
+			m_bWithinMkrAttributeSpan = TRUE;
+		}
+		else
+		{
+			m_bWithinMkrAttributeSpan = FALSE;
+		}
 	}
-	else
-	{
-		m_bWithinMkrAttributeSpan = FALSE;
-	}
+
+#if defined (_DEBUG) && defined (LOGMKRS)
+	wxLogDebug(_T("2. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 	if (bIsInlineNonbindingMkr)
 	{
@@ -15780,6 +15797,11 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			wholeMkr = gSFescapechar + bareMkr;
 			wholeMkrPlusSpace = wholeMkr + aSpace; // begin markers are handled by ParsePreWord()
 
+#if defined (_DEBUG) && defined (LOGMKRS)
+			wxLogDebug(_T("3. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
+
 			// BEW 14Mar20 add a hack here to deal with differentiating \+jmp from \jmp
 			// according to the protocols in the extended comment 30 lines above
 			if (!aMkr.IsEmpty() && bIsInlineBeginMkr && (pUsfmAnalysis->marker == _T("jmp")))
@@ -15807,6 +15829,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 					gpApp->m_bIsEmbeddedJmpMkr = FALSE;
 				}
 				// okay, use the gpApp->m_bIsEmbeddedJmpMkr value in the block below
+#if defined (_DEBUG) && defined (LOGMKRS)
+				wxLogDebug(_T("4. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+					__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 			}
 			bareMkr = emptyStr;
 
@@ -15828,6 +15854,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			}
 			
 			itemLen = wholeMkr.Len();
+#if defined (_DEBUG) && defined (LOGMKRS)
+			wxLogDebug(_T("5. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 			// store the whole marker, and a following space
 			if (gpApp->m_bIsEmbeddedJmpMkr)
@@ -15858,6 +15888,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			}
 
 		} // end of else block for test: if (bIsInlineBeginMkr && bIsFigure)
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("6. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 	} // end of TRUE block for test: if (bIsInlineNonbindingMkr)
 	else
@@ -15885,6 +15919,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		//{
 		//	int break_here = 1;
 		//}
+#endif
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("7. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
 #endif
 		// The signature said that ptr is pointing at an inLine binding marker;
 		// so which is it?
@@ -15920,6 +15958,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		// store the whole marker, and a following space
 		pSrcPhrase->SetInlineBindingMarkers(wholeMkrPlusSpace);
 		bParsedInlineBindingMkr = TRUE;
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("8. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		// point past the inline binding marker, and then parse over the white space
 		// following it, and point past that too
@@ -15934,6 +15976,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		{
 			return -1;
 		}
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("9. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 	}
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
@@ -16002,6 +16048,10 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 		}
 		len++; // we might be storing whitespace between words, so be careful below
 		       // to backtrack if that is the case
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("10. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		// BEW 3Aug17 Jakarta workshop participants ran into problems with markup
 		// word.' " \x - \xo etc
@@ -16077,6 +16127,11 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 tryagain:	if (IsMarker(ptr))
 	{
 	int nMkrLen = 0;
+#if defined (_DEBUG) && defined (LOGMKRS)
+	wxLogDebug(_T("11. tryagain: Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
+
 	// its a marker of some kind
 	if (IsVerseMarker(ptr, nMkrLen))
 	{
@@ -16199,6 +16254,10 @@ tryagain:	if (IsMarker(ptr))
 			} // end of else block for test: if (wholeMkr == _T("\\bt"))
 
 		} // end of else block for test: if (pUsfmAnalysis == NULL)
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("12. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		// point past the inline or binding marker, or the unknown marker, or 
 		// USFM3 inline special extended markup marker,
@@ -16223,6 +16282,10 @@ tryagain:	if (IsMarker(ptr))
 		itemLen = ParseWhiteSpace(ptr);
 		ptr += itemLen;
 		len += itemLen;
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("13. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		wxASSERT(ptr < pEnd);
 		if (ptr > pEnd)
@@ -16292,6 +16355,10 @@ tryagain:	if (IsMarker(ptr))
 		}
 		else
 		{
+#if defined (_DEBUG) && defined (LOGMKRS)
+			wxLogDebug(_T("14. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 			// The legacy code is in this block
 			while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
 			{
@@ -16373,6 +16440,10 @@ tryagain:	if (IsMarker(ptr))
 				return len;
 			}
 		}
+#if defined (_DEBUG) && defined (LOGMKRS)
+		wxLogDebug(_T("15. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		// When the above loop exits, and any squirreling required has been done, ptr may
 		// be pointing at the word, or at a preceding inline binding marker, like \k (for
@@ -16476,6 +16547,10 @@ tryagain:	if (IsMarker(ptr))
 			// the actual word for saving in m_key of pSrcPhrase ... well, usually.
 		}
 	} // end of else block for test: if (IsMarker(ptr))
+#if defined (_DEBUG) && defined (LOGMKRS)
+	wxLogDebug(_T("16. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
+#endif
 
 		// determine if we've found preceding punctuation
 	if (pSrcPhrase->m_precPunct.Len() > 0)
@@ -16520,7 +16595,7 @@ tryagain:	if (IsMarker(ptr))
 	//	int break_here = 1;
 	//}
 #endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (LOGMKRS)
 	wxLogDebug(_T("End of %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"), 
 		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
 #endif
@@ -16789,10 +16864,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 140)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1;
         }
+#endif
+#if defined (_DEBUG) && defined (LOGMKRS)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+		{
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+		}
 #endif
 
 		// strCacheDelayedFilteredContent = temp; set on previous iteration (approx lines at 17,200) 
@@ -16932,6 +17016,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxLogDebug(_T("TokenizeText: line %d  ,  sequNum = %d    m_srcPhrase:  %s , setting pLastSrcPhrase"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 #endif
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
 
 				continue; // iterate
 			}
@@ -17070,20 +17163,41 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, itemLen, (wxString(ptr, 24)).c_str(), (int)m_bWithinMkrAttributeSpan);
 #endif
 			// *** This is where to put the function for metadata hiding in support of USFM3 ***
-#if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber == 140)
+#if defined (_DEBUG) && defined (LOGMKRS)
+		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			int halt_here = 1;
-            halt_here = halt_here; // avoid gcc warning
-        }
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+		}
 #endif
+
 			if (!m_bWithinMkrAttributeSpan && !bIsUnstructured)
 			{
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
 				bool bHidingNeeded = FALSE;
 				{
 					bHidingNeeded = IsAttributeMarker(ptr);
 					if (bHidingNeeded)
 					{
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+						}
+#endif
 						// If it's for hiding the metadata, we can't do the hiding
 						// if further down the marker will be filtered out (e.g.
 						// a \fig ... \fig* span, is default filtered out). So we
@@ -17107,6 +17221,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						int anOffset = -1;
 						anOffset = gpApp->gCurrentFilterMarkers.Find(lookupStr);
 						bool bIsToBeFiltered = anOffset != -1;
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+						}
+#endif
 						if (!bIsToBeFiltered)
 						{
 							// Okay, it's not going to be filtered, so bar contents can 
@@ -17131,6 +17254,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 				}
 			}
+#if defined (_DEBUG) && defined (LOGMKRS)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+			{
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
+#endif
 
 #if defined (_DEBUG) && defined (FIXORDER)
 			{
@@ -17251,7 +17383,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pLastSrcPhrase->m_bEndFreeTrans = TRUE;
 					}
 				}
-
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
 				continue; // iterate inner loop to check if another marker follows
 			}
 			else if (IsChapterMarker(ptr)) // is it some other kind of marker -
@@ -17288,14 +17428,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				itemLen = ParseWhiteSpace(ptr); // parse white space following the number
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
 				ptr += itemLen; // point past it
-
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
 				continue; // iterate inner loop to check if another marker follows
 
 			}  // end of TRUE block for test: if (IsChapterMarker(ptr))
 			else
 			{
 #if defined(_DEBUG)
-				if (sequNumber >= 6)
+				if (sequNumber >= 2)
 				{
 					int halt_here = 1;
                     halt_here = halt_here; // avoid gcc warning
@@ -17363,8 +17511,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString wholeMkr = GetWholeMarker(ptr);
 				wxString augmentedWholeMkr = wholeMkr + _T(' '); // prevent spurious matches
 				wxString bareMkr = wholeMkr.Mid(1); // chop off the initial backslash
-				int anOffset = wxNOT_FOUND;
-				int charAttrOffset = wxNOT_FOUND; // this one for checking in charAttributeMkrs string
 
 				// BEW 11Oct10, the block for detecting an inline marker which is not
 				// one of the \f set nor one of the \x set..., or the \e set (\ef, \ex).
@@ -17386,6 +17532,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// the character inline binding marker, \em begins with 'e', so 3rd line
 				// needs extra test to return TRUE if bareMkr is em - to bleed out confusion
 				// with the subsequent initial 'e' subtest.
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
 				if (pUsfmAnalysis != NULL			// indicates the marker is a USFM2 or 3 one
 					&& (pUsfmAnalysis->inLine		// the main subtest, is it inLine?
 					|| bareMkr.Find(_T("em")) == 0) // // bleed out \em, as it's inLine too
@@ -17425,12 +17580,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 					// the hand-off takes place outside the loop, so set the flags we need
 					// to know beforehand, they are needed for ParsePreWord()'s signature
-
-					// BEW 30Sep19 some changes to make the parser safer when
-					// the parse goes wrong; and also to set one of the next two
-					// booleans for when control is passed to ParsePreWord() for
-					// identifying and storing inline binding, or inline
-					// non-binding, begin-marker
 					bIsInlineNonbindingMkr = FALSE; // default
 					bIsInlineBindingMkr = FALSE;    // default
 					// Check for an endmarker that failed to be parse - the
@@ -17451,6 +17600,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wholeEndMkr = wholeMkr;
 						bIsAnEndMkr = TRUE;
 					}
+#if defined (_DEBUG) && defined (LOGMKRS)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+					{
+						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+					}
+#endif
 					// Test for what kind of marker; binding or non-binding; but in
 					// the case it was an unexpected end marker - deal with that
 					if (bIsAnEndMkr)
@@ -17487,37 +17645,90 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 					else
 					{
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+						}
+#endif
 						// Not an endmarker. BEW 30Sep19, Check also in the fast-access
 						// string: charAttributeMkrs, because we store these also as
 						// belonging to the non-binding marker set; for instance, \+jmp etc
-						anOffset       = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
-						charAttrOffset = charAttributeMkrs.Find(augmentedWholeMkr);
-						if ((anOffset != wxNOT_FOUND) || (charAttrOffset != wxNOT_FOUND))
+						// BEW 28Apr20 refactored the tests
+
+						// \w has to be handled as a special case - it can take attributes
+						// following a bar, but storage has to be in the 'binding' mkr storage;
+						// set or clear bIsInlineNonbindingMkr and 	bIsInlineBindingMkr
+						wxString wMkr(_T("\\w"));
+						int offset = wxNOT_FOUND;
+						if (wholeMkr == wMkr)
 						{
-							// To TokenizeText() the embedded marker \+jmp will be lumped with
-							// other inline non-binding ones, so here we set bInInlineNonbindingMkr
-							// TRUE - (its in charAttributeMkrs fast access string), but when
-							// ParsePreWord() is called, there \+jmp will be handled differently
-							// in regards to where it is stored - it will go into m_markers, and
-							// its endmarker (as handled by ParseWord()) into m_endMarkers on the
-							// relevant CSourcePhrase instance for each
-							bIsInlineNonbindingMkr = TRUE;
-							bIsInlineBindingMkr = FALSE;
+							bIsInlineBindingMkr = TRUE;
+							bIsInlineNonbindingMkr = FALSE;
 						}
 						else
 						{
-							// Test for it being a marker of inline-binding type
-							anOffset = pApp->m_inlineBindingMarkers.Find(augmentedWholeMkr);
-							if (anOffset != wxNOT_FOUND)
+							offset = charAttributeMkrs.Find(augmentedWholeMkr);
+							if (offset != wxNOT_FOUND)
 							{
-								bIsInlineNonbindingMkr = FALSE;
-								bIsInlineBindingMkr = TRUE;
+								// it's one of a few which can take a bar followed by attributes data;
+								// these get stored as inline-non-binding markers
+								bIsInlineBindingMkr = FALSE;
+								bIsInlineNonbindingMkr = TRUE;
 							}
-						}
+							else
+							{
+								// It's not one of the character attribute markers, so check out
+								// the format markers fast access string
+								offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
+								if (offset != wxNOT_FOUND)
+								{
+									// It's one of the several markers like \k \it etc, textType 
+									// 'none' - binding ones
+									bIsInlineBindingMkr = TRUE;
+									bIsInlineNonbindingMkr = FALSE;
+								}
+								else
+								{
+									// It's not 'binding' type, check if it's 'non-binding' type
+									offset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
+									if (offset != wxNOT_FOUND)
+									{
+										// It's a nonbinding type
+										bIsInlineBindingMkr = FALSE;
+										bIsInlineNonbindingMkr = TRUE;
+									}
+									else
+									{
+										// It's not \w
+										// It's not a character formatting mkr
+										// It's not a 'binding' type of mkr
+										// It's not a 'non-binding' type of mkr
+										// It's not a character attributes marker (these take a bar)
+										// So let the legacy code decide what to do
+										bIsInlineBindingMkr = FALSE;
+										bIsInlineNonbindingMkr = FALSE;
+									}
+								} // end of the else block for testing for one in m_charFormatMkrs
+							} // end of else block for testing for one in charAttributeMkrs
+						} // end of else block for test: if (wholeMkr == wMkr)
+
+						// In TokenizeText() the embedded marker \+jmp, when ParsePreWord() is called, 
+						// \+jmp will be handled differently than expected in regards to where it is 
+						// stored - it will be put into m_markers, and its endmarker (as handled by 
+						// ParseWord()) into m_endMarkers, on the relevant CSourcePhrase instance for each
 					}
-#if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d   Go to ParsePreWord()"),
-						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+					{
+						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
 					break; // break out of the inner loop, to get to ParsePreWord() etc
 
@@ -17625,7 +17836,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						gpApp->m_bMkr_x_NotFiltered = TRUE;
 					}
 				}
-
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
+#endif
                 // whm moved declarations and initializations (to FALSE) here before the goto isnull 
                 // block below - otherwise GCC errors on "jump to label..."
 				// Initialise these bools to FALSE
@@ -17694,11 +17913,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							gpApp->m_bMkr_x_NotFiltered = FALSE;
 						}
 					}
-				}
-#if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
-					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+	{
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
+				}
 
 				// BEW 30Sep19, Bill's change Or to be AND didn't fix it. My logic was wrong.
 				// He made the change to fix an issue with parsing \h
@@ -17728,12 +17952,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				//wxUnusedVar(bFilteringIsWanted);
 				bInUnfilteredInlineSpan = m_bIsWithinUnfilteredInlineSpan;
 				wxUnusedVar(bInUnfilteredInlineSpan);
-//#if defined (_DEBUG) //&& defined (FIXORDER)
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("TokenizeText line %d: bCanFilterIt= %d, bFilteringIsWanted= %d, bInUnfilteredInlineSpan= %d"),
-						__LINE__, (int)bCanFilterIt, (int)bFilteringIsWanted, (int)bInUnfilteredInlineSpan);
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
-//#endif
+#endif
 				// Outermost test...
 				if (bIsToBeFiltered && bCanFilterIt)
 				{
@@ -17782,18 +18009,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							ClearAttributeMkrStorage(); // clears, and also sets 
 												// m_bWithinMkrAttributeSpan to FALSE
 						}
-#if defined (_DEBUG) //&& defined (FIXORDER)
-//	{
-//		wxLogDebug(_T("TokenizeText line %d: bItsSourceText= %d, bItsABeginMarkerForAttributes= %d, whichMkr= %s , wholeMkr= %s"),
-//			__LINE__, (int)bItsSourceText, (int)bItsABeginMarkerForAttributes, whichMkr.c_str(), wholeMkr.c_str());
-//	}
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+						}
 #endif
 						wxString temp = wxEmptyString;
 
-#if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
-							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
-#endif
 						// Ready for the filtering code...
 						itemLen = 0; // initialize
 
@@ -17849,9 +18075,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
 						ptr += itemLen; // advance ptr past its following whitespace
 
-#if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
-							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+					}
 #endif
 						continue; // iterate the inner loop
 					} // end of TRUE block for test: if (bItsSourceText && bItsABeginMarkerForAttributes)
@@ -18016,9 +18247,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 						ptr += itemLen;
 
-#if defined (_AT_PTR)
-						wxLogDebug(_T("TokenizeText: line %d  , itemLen = %d  %s  sn=%d  Filtering block ends"),
-							__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+						{
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
 						// legacy code ends
 
@@ -18115,9 +18351,14 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 						} // end of else block for test: if (offset != wxNOT_FOUND)
 					} // end of TRUE block for test: if (IsMarker(ptr))
 
-#if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
-						__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+					{
+						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+				}
 #endif
 					// For other marker types, see next comment. If we found one, ptr must
 					// still be pointing at it on entry to ParsePreWord() - in which case
@@ -18198,9 +18439,14 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 					pSrcPhrase->m_bFirstOfType = TRUE;
 					break;
 				}
-#if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d"),
-					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
 				continue; // iterate the inner loop to check if another marker follows
 
@@ -18283,9 +18529,14 @@ isnull:	            xxx = 0; // dummy convenience variable as a destination for 
 				// make this one be the "last" one for next time through
 				pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 
-#if defined (_AT_PTR)
-				wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d   Continue command follows"),
-					__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+				{
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+			}
 #endif
 				continue;
 			}
@@ -18356,9 +18607,14 @@ parsing:
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 				bTokenizingTargetText);
 
-#if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  After ParsePreWord()"),
-				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+			{
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
 			if (itemLen > 0)
 			{
@@ -18366,9 +18622,14 @@ parsing:
 				itemLen = 0; // re-initialize, for ParseWord()
 			}
 
-#if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Advanced ptr & reset itemLen"),
-				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
+#if defined (_DEBUG) && defined (LOGMKRS)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+			{
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+	}
 #endif
 			// Below is the Legacy ParseWord(). The refactored (Oct 2016) one
 			// further below is ParseWord2() - signature unchanged. Keep the Legacy one
@@ -18405,10 +18666,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(), 
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -18451,16 +18712,6 @@ parsing:
 				aSequNum, strParsed.c_str(), strComingNext.c_str());
 			aSequNum++;
 #endif
-#if defined (_DEBUG) && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
-			}
-#endif
-
 			// We do NormalizeToSpaces() only on the string of standard format markers which
 			// we store on sourcephrase instances in m_markers, it's not needed elsewhere in
 			// CSourcePhrase storage members.
@@ -18486,10 +18737,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -18560,13 +18811,6 @@ parsing:
 					}
 				}
 			}
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 128 && pSrcPhrase->m_nSequNumber <= 131)
-			{
-				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_markers);
-			}
-#endif
 
 			bool bEndedffexspanUsedToChangedTextType = FALSE;
 			// if not done before ParseWord() was called, do the update here, if needed
@@ -18585,8 +18829,14 @@ parsing:
 				bEndedffexspanUsedToChangedTextType = TRUE;
 
 			}
-#if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+#if defined (_DEBUG) && defined (LOGMKRS)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+			{
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+			}
 #endif
 			if (!tokBuffer.IsEmpty())
 			{
@@ -18614,8 +18864,14 @@ parsing:
 						len = wholeMkr.Len();
 						tokBuffer = tokBuffer.Mid(len);
 					}
-#if defined (_AT_PTR)
-					wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
+#if defined (_DEBUG) && defined (LOGMKRS)
+					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
+					{
+						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
+					}
 #endif
 					// m_markers doesn't store endmarkers in docversion 5, so we know it must
 					// be a beginmarker, or an empty string; if it is a beginmarker, it might
@@ -18697,6 +18953,7 @@ parsing:
 #if defined (_AT_PTR)
 			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
 #endif
+			/*
 #if defined (_DEBUG)
 			if (pSrcPhrase->m_nSequNumber >= 128 && pSrcPhrase->m_nSequNumber <= 131)
 			{
@@ -18704,7 +18961,7 @@ parsing:
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_markers);
 			}
 #endif
-
+			*/
 			// implement the decisions regarding propagation made above...
 			bool bTextTypeChangeBlockEntered = FALSE;
 			if (pLastSrcPhrase != NULL)
@@ -18792,17 +19049,16 @@ parsing:
 					}
 				} // end of else block for test: if (pLastSrcPhrase != NULL)
 			}
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 128 && pSrcPhrase->m_nSequNumber <= 131)
+#if defined (_DEBUG) && defined (LOGMKRS)
+			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_markers);
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
+					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
-#if defined (_AT_PTR)
-			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s"), __LINE__, itemLen, (wxString(ptr, 24)).c_str());
-#endif
 
 			// ************ New Propagation Code Ends Here ******************
 
@@ -18844,10 +19100,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 				if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
@@ -18869,28 +19125,12 @@ parsing:
 						}
 					}
 				}
-#if defined (_DEBUG) && defined (LOGMKRS)
-				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
-				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
-				}
-#endif
 			}
 #endif
 			// get rid of any final spaces which make it through the parse -- shouldn't be any
 			// now, but no harm in doing the check etc
 			pSrcPhrase->m_follPunct.Trim(TRUE); // trim right end
 			pSrcPhrase->m_follPunct.Trim(FALSE); // trim left end
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 128 && pSrcPhrase->m_nSequNumber <= 131)
-			{
-				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_markers);
-			}
-#endif
 
 			// BEW 11Oct10, do trim for the new m_follOuterPunct member
 			wxString follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
@@ -18911,10 +19151,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 			// to count 2 words for any m_key which contains the ~ symbol
@@ -18978,10 +19218,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -19065,22 +19305,15 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 		// store the pointer in the SPList (in order of occurrence in text)
 		if (pSrcPhrase != NULL)
 		{
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 128 && pSrcPhrase->m_nSequNumber <= 131)
-			{
-				wxLogDebug(_T("%s::%s(), line %d , sn = %d , m_key = %s ,  m_markers = %s  **APPENDING pSrcPhrase**"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_markers);
-			}
-#endif
 			pList->Append(pSrcPhrase);
 
 			// BEW added 13Jul11, to support tokenizing contentless USFM from Paratext
@@ -19148,10 +19381,10 @@ parsing:
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d ITERATING"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -30573,10 +30806,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 
@@ -30676,10 +30909,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -30695,10 +30928,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 				// following punctuation won't be present if we exited with ptr pointing at a
@@ -30768,12 +31001,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
+
 				return len;
 
 			}
@@ -30787,10 +31021,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 			while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
@@ -30922,13 +31156,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
-
 		} // end of else block for test: if (bMatchedFixedSpaceSymbol)
 
 		  // control should exit the above block with ptr pointing at the first character
@@ -30970,10 +31203,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -31011,10 +31244,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 			// NOTE: we are assuming ~ only ever joins TWO words in sequence, never 3 or more
@@ -31183,10 +31416,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 			length1 = pEndWordProper - pWordProper;
@@ -31223,10 +31456,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -31244,10 +31477,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -31283,10 +31516,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 #if defined (_DEBUG)
@@ -31311,10 +31544,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 				// m_srcPhrase has been updated with any additional final punctuation within
@@ -31343,10 +31576,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 
@@ -31403,10 +31636,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 		// Before we check for markers, we can get to this point having parsed a word which
@@ -31443,10 +31676,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 		if (bThrewAwayWhiteSpaceAfterWord)
@@ -31480,10 +31713,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 					if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 					{
-						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+						wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 							pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+							(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 					}
 #endif
 
@@ -31529,10 +31762,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 							{
-								wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+								wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 									pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-									(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+									(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 							}
 #endif
 							// BEW 30Sep19 check for ptr at \esbe, if so add to m_endMarkers and
@@ -31566,10 +31799,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 							if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 							{
-								wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+								wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 									__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 									pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-									(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+									(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 							}
 #endif
 							return len;
@@ -31597,10 +31830,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 						if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 						{
-							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+							wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 								pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+								(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 						}
 #endif
 						if (IsEndMarkerRequiringStorageBeforeReturning(ptr, &theEndMarker))
@@ -31628,12 +31861,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
+
 
 	// For USFM 3 support, when in an attributes span, this should be the jump location;
 	// the stuff above is legacy parsing for when we are not at a bar-having location
@@ -31644,10 +31878,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -31704,10 +31938,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 	if (IsEndMarker(ptr, pEnd))
@@ -31718,14 +31952,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
-
-
 		do {
 			saveLen = len;
 			bool bBindingEndMkrFound = FALSE;
@@ -31813,13 +32045,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
-
 			// If we found an endmarker, there might be a bogus space following it which is
 			// entirely unneeded and should be omitted, because any whitespace after an
 			// inline binding endmarker is a nuisance - so check for it and remove it,
@@ -31875,13 +32106,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
-
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
 
 		// Once we have got past the one or more endmarkers, there could be following
@@ -31916,10 +32146,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 
@@ -31971,10 +32201,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 
@@ -32008,10 +32238,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 
@@ -32041,10 +32271,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  Puncts for Outer"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 
@@ -32222,10 +32452,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -32249,10 +32479,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 	if (IsFootnoteOrCrossReferenceEndMarker(ptr)) // this test includes a check for endnote endmarker
@@ -32323,10 +32553,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -32387,10 +32617,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -32412,10 +32642,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -32452,10 +32682,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
@@ -32591,10 +32821,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 
@@ -32665,10 +32895,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 				if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 				{
-					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+					wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 						pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
 
@@ -32700,10 +32930,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
-			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+			wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 		// our delayed decisions above need be delayed no longer - establish now where ptr
@@ -32747,10 +32977,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 			{
-				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d"),
+				wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 			}
 #endif
 			return len;
@@ -32767,10 +32997,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 #if defined (_DEBUG) && defined (LOGMKRS)
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 	{
-		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  ParseWord() EXITS"),
+		wxLogDebug(_T("%s::%s() line %d sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 			pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText);
+			(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 	}
 #endif
 	return len;
@@ -35912,6 +36142,10 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 	// is tokenizing target text (which we do for special internal needs sometimes)
 	// then it's inappropriate to check for usfm3 attribute-having markers, as they
 	// should have been hidden at the parse of the document's source text.
+#if defined (_DEBUG)
+		int halt_here = 1;
+#endif
+
 	if (m_bTokenizingTargetText)
 	{
 		m_bWithinMkrAttributeSpan = FALSE;
@@ -36155,6 +36389,10 @@ void CAdapt_ItDoc::ParseWordBeforeBar2SourcePhrase(wxString& srcTextInput, CSour
 // enumMkrType	->	the caller determines which fast access string needs to be looked up
 bool  CAdapt_ItDoc::CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr, AttrMkrType enumMkrType)
 {
+	wxString wBeginMkr_Aug(_T("\\w "));
+	wxString wEndMkr_Aug(_T("\\w* "));
+	bool bIsWBeginMkr = FALSE;
+	bool bIsWEndMkr = FALSE;
 	matchedMkr.Empty(); // ensure the caller's cache for the marker starts off empty
 	if (attrMkr.IsEmpty())
 	{
@@ -36166,12 +36404,14 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr,
 		if (enumMkrType == attrBeginMkr)
 		{
 			int offset = wxNOT_FOUND;
-			offset = charAttributeMkrs.Find(attrMkr);
-			if (offset == wxNOT_FOUND)
+
+			// Check out \w<space> first
+			if (attrMkr == wBeginMkr_Aug)
 			{
-				return FALSE;
+				bIsWBeginMkr = TRUE;
 			}
-			else
+			offset = charAttributeMkrs.Find(attrMkr);
+			if ((bIsWBeginMkr == TRUE) || (offset != wxNOT_FOUND))
 			{
 				// An attribute-having marker was matched (includes the space following)
 				matchedMkr = attrMkr;
@@ -36193,23 +36433,29 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr,
 				}
 				return TRUE;
 			}
-		}
-		else if ((enumMkrType == attrEndMkr))
-		{
-			int offset = wxNOT_FOUND;
-			offset = charAttributeEndMkrs.Find(attrMkr);
-			if (offset == wxNOT_FOUND)
-			{
-				return FALSE;
-			}
 			else
 			{
-				// An attribute-having marker was matched (includes the space following)
+				// Not found
+				return FALSE;
+			}
+		} // end of TRUE block for test: if (enumMkrType == attrBeginMkr)
+		else if ((enumMkrType == attrEndMkr))
+		{
+			// Check out \w*<space>
+			if (attrMkr == wEndMkr_Aug)
+			{
+				bIsWEndMkr = TRUE;
+			}
+			int offset = wxNOT_FOUND;
+			offset = charAttributeEndMkrs.Find(attrMkr);
+			if ((bIsWEndMkr == TRUE) || (offset != wxNOT_FOUND))
+			{
+				// An attribute-having end marker was matched (includes the space following)
 				matchedMkr = attrMkr;
 				matchedMkr = matchedMkr.Trim();
 				return TRUE;
 			}
-		}
+		} // end of else if block for test:else if ((enumMkrType == attrEndMkr))
 	}
 	// It's neither, so return FALSE to be safe
 	return FALSE;

@@ -19992,12 +19992,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUserHitEnterOrTab = FALSE; // default, set TRUE if Enter or Tab keypress detected
 				// within CPhraseBox::OnKeyUp()
 	// Initialise the next 4 to FALSE - meaning "legacy filtering & unfiltering applies)
-	m_bExt_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
-	m_bMkr_x_NotFiltered;  //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
-	m_bExt_ef_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
-	m_bUnfiltering_ef_Filtered; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
-	m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
-
+	m_bExt_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
+	m_bMkr_x_NotFiltered = FALSE;  //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
+	m_bExt_ef_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
+	m_bUnfiltering_ef_Filtered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
+	m_bUnfiltering_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
 #if defined(_KBSERVER)
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
@@ -57842,8 +57841,10 @@ int CAdapt_ItApp::FindLastBackslash(wxString beginMkrs)
 // BEW 23Apr20 // Sets for \c or \v or other 'verse'-related markers, using pUSFMAnalysis values
 // We will use TextType verse (1), which XML.pp defaults to if no other type is specified
 // for the Temp and NoneOrNoType members
+// Currently unused, but retain in case I refactor the type propagation code later on
 void CAdapt_ItApp::SetDefaultTextType_Cached()
 {
+	/*
 	m_marker_Cached = _T("\\v"); // no initial backslash (if parse \c then colour it like verse text)
 		// We never change m_marker_Cached from '
 	m_endMarker_Cached = wxEmptyString; // no initial backslash
@@ -57854,6 +57855,7 @@ void CAdapt_ItApp::SetDefaultTextType_Cached()
 	// And the two extras can be (pseudo-cleared) to value 1 (verse)
 	m_bTempTextType_Cached = verse; // set non-verse values here - e.g. 'poetry'
 	m_bNoneOrNoType_Cached = verse; // set non-verse skip over values here - e.g. note, none, noType
+	*/
 }
 
 // BEW 23Apr20 pass in the wholeMarker, augment it internally, and then run thru the gamit of
@@ -57865,6 +57867,7 @@ void CAdapt_ItApp::SetDefaultTextType_Cached()
 // by user GUI actions, like making a note, free translating a bit of the adaptation, etc. By 
 // "unknown" I mean things like \xyz or \y and so forth).
 // Uses IsNoType(mkr) to test for noType internally.
+// Currently incomplete and not hooked up to anything. Retain, for if I refactor propagation code
 TextType CAdapt_ItApp::GetTextTypeFromBeginMkr(wxString mkr) // pass in un-augmented begin-mkr
 {
 	TextType defaultType = verse;  // if we can't determine a time, safest option is to return verse
@@ -57879,6 +57882,7 @@ TextType CAdapt_ItApp::GetTextTypeFromBeginMkr(wxString mkr) // pass in un-augme
 // BEW 23Apr20, Determine if the mkr is appropriately a noType one. We need to do this by
 // using the fast-access strings to eliminate other possibilities, and only then
 // it must be a noType one
+// Currently unused, it's part of new propagation code, which I've not completed nor hooked up to anything
 bool CAdapt_ItApp::IsNoType(wxString mkr) // pass in un-augmented begin-mkr
 {
 	// If the marker belongs to the m_EmbeddedIgnoreMarkers set (ones from within foonote,
@@ -57931,12 +57935,13 @@ bool CAdapt_ItApp::IsNoType(wxString mkr) // pass in un-augmented begin-mkr
 // set it to type 'poetry' (2).
 // ttNoneOr defaults to 'verse' if no other value passed in; e.g.  parsing character markers
 // which are meant to never change the TextType value, go here. e.g. types none, noType, or note
-
+// At the  moment, this function is incomplete and not hooked up to anything. One day perhaps...
 void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, TextType ttNoneOr)
 {
 	// Remember, the USFMAnalysis struct's markers lack initial backslash, so we add it before
 	// copying values to the cache
 	CAdapt_ItDoc* pDoc = GetDocument();
+	wxUnusedVar(pDoc); // temporarily... 
 
 	if (pAnalysis == NULL)
 		return;  // What's cached remains unchanged, unless the caller sets chache values explicitly
@@ -57985,7 +57990,9 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 
 
 
-
+		// temporary...
+			wxUnusedVar(ttTemp);
+			wxUnusedVar(ttNoneOr);
 
 
 
