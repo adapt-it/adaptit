@@ -6264,7 +6264,13 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
         {
             wxCommandEvent dummyevent;
+
+#if defined(_PHRefactor)
+            pApp->GetPlaceholder()->OnButtonNullSrcRight(dummyevent);
+#else
             pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
+#endif
+
         }
         // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
         if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)

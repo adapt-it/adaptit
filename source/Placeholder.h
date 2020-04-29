@@ -20,7 +20,7 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma interface "Placeholder.h"
 #endif
-
+/*
 // The following CPlaceholderInsertDlg class was not needed after making the
 // insertion of placeholders directional to left/right of selection/phrasebox
 // a helper class for CPlaceholder
@@ -52,7 +52,7 @@ protected:
 private:
     DECLARE_EVENT_TABLE()
 };
-
+*/
 //////////////////////////////////////////////////////////////////////////////////
 /// The CPlaceholder class contains methods for working with placeholder 
 /// elements within the translated text.

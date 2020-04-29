@@ -3535,7 +3535,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 		{
 			// here we are interested in the single placeholder inserted not in any
 			// retranslation
-			if (!pPrevSrcPhrase == NULL)
+			if (!(pPrevSrcPhrase == NULL))
 			{
 				// the insertion was done not at the doc beginning, and typically it is some 
 				// general location in the doc - and we are associating right, or no associating
@@ -3593,7 +3593,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 					}
 				} // end of TRUE block for test: if (!pPrevSrcPhrase->m_bHasFreeTrans)
 
-			} // end of TRUE block for test: if (!pPrevSrcPhrase == NULL)
+			} // end of TRUE block for test: if (!(pPrevSrcPhrase == NULL))
 		} // end of the TRUE block for test: if (!bForRetranslation)
 
 		// BEW added 10Sep08 in support of Vertical Edit mode
