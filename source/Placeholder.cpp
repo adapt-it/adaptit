@@ -65,7 +65,7 @@ extern bool gbIsGlossing;
 extern bool gbShowTargetOnly;
 extern EditRecord gEditRecord;
 extern wxChar gSFescapechar;
-
+/*
 // The following CPlaceholderInsertDlg class was not needed after making the
 // insertion of placeholders directional to left/right of selection/phrasebox
 BEGIN_EVENT_TABLE(CPlaceholderInsertDlg, AIModalDialog)
@@ -155,6 +155,7 @@ void CPlaceholderInsertDlg::OnKeyDownChar(wxKeyEvent & event)
     }
     event.Skip();
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
@@ -165,13 +166,13 @@ EVT_TOOL(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnButtonRemoveNullSrcPhr
 EVT_UPDATE_UI(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase)
 EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnUpdateButtonNullSrc)
 EVT_UPDATE_UI(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnUpdateButtonNullSrc)
-#if defined(_PHRefactor)
+//#if defined(_PHRefactor)
 EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrcLeft)
 EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrcRight) 
-#else
-EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrc)
-EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrc) // call the same OnButtonNullSrc function used for ID_...LEFT above
-#endif
+//#else
+//EVT_TOOL(ID_BUTTON_NULL_SRC_LEFT, CPlaceholder::OnButtonNullSrc)
+//EVT_TOOL(ID_BUTTON_NULL_SRC_RIGHT, CPlaceholder::OnButtonNullSrc) // call the same OnButtonNullSrc function used for ID_...LEFT above
+//#endif
 END_EVENT_TABLE()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2627,6 +2628,7 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 // It is also called by the CPhraseBox::OnSysKeyUp() handler for the CTRL+I hot key (on Linux and Mac).
 // OnButtonNullSrc() internally calls the InsertNullSourcePhrase() function which in turn calls
 // either InsertNullSrcPhraseBefore() or InsertNullSrcPhraseAfter().
+/* BEW deprecated 28Apr20
 void CPlaceholder::OnButtonNullSrc(wxCommandEvent& event)
 {
     // Since the Add placeholder toolbar button has an accelerator table hot key (CTRL-I
@@ -2992,6 +2994,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& event)
 		m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 	}
 }
+*/
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -3672,19 +3675,29 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 		}
 		wxASSERT(nSequNum >= 0);
 
-		// check we are not in a retranslation - we can't insert there! If there is no selection
-		// then the passed in pInsertLocPile is used, and it that is in the retranslation (but
-		// we disallow that anyway) the we warn user and return
-		if (pInsertLocPile2->GetSrcPhrase()->m_bRetranslation)
+		// check we are not in a retranslation, for manual inserts - we can't insert there! 
+		// But when padding a long retranslation, the insertion of the extras relies on
+		// the insertion being an "insert after", and that means that the insert location
+		// necessarily must be at the last selected pile's location. So, use the 
+		// pointer to the retranslation object (on the app) to grab the public boolean
+		// m_bIsRetranslationCurrent (with value TRUE) to tweak the next block to only
+		// warn when necessary
+		CSourcePhrase* pInsSrcPhr = pInsertLocPile2->GetSrcPhrase();
+		if (pInsSrcPhr->m_bRetranslation)
 		{
-			// Disallow insertion
-			wxMessageBox(_(
-				"You cannot insert a placeholder within a retranslation. The command has been ignored.")
-				, _T(""), wxICON_EXCLAMATION | wxOK);
-			m_pView->RemoveSelection();
-			m_pView->Invalidate();
-			m_pLayout->PlaceBox();
-			return;
+			CRetranslation* pRetrans = m_pApp->GetRetranslation();
+			bool bIsRetranslating = pRetrans->m_bIsRetranslationCurrent;
+			if (!bIsRetranslating)
+			{
+				// Disallow insertion when we are not within a retranslation
+				wxMessageBox(_(
+					"You cannot insert a placeholder within a retranslation. The command has been ignored.")
+					, _T(""), wxICON_EXCLAMATION | wxOK);
+				m_pView->RemoveSelection();
+				m_pView->Invalidate();
+				m_pLayout->PlaceBox();
+				return;
+			}
 		}
 
 		// ensure the contents of the phrase box are saved to the KB

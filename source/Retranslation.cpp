@@ -1316,10 +1316,10 @@ void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 // wordbreak strings which precede each target text word (these are stored as m_key and
 // m_srcPhrase of course, by the tokenization), and pRetransList is not passed in to this
 // padding function so we can't access the wordbreaks here. The padding is based on merely
-// there being a +ve result to nNewCOunt - nCount, and the placeholders inserted on that
+// there being a +ve result to nNewCount - nCount, and the placeholders inserted on that
 // basis. After this function is called, the caller will call
 // BuildRetranslationSourcePhraseInstances() which *does* pass in pRetransList, and so it
-// is in that that we do the refactoring which takes ZWSP storage into account etc.
+// is in that that we do the refactoring which takes ZWSP stor  age into account etc.
 void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 							SPList* pSrcPhrases,int nEndSequNum,int nNewCount,int nCount)
 {
@@ -1363,11 +1363,18 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 			m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // temporary active location
 
 			// now we can do the insertions, preceding the dummy end pile
-			CPile* pPile = m_pView->GetPile(nEndIndex);
+			// BEW 29Apr20 changed "nEndIndex" to "nEndIndex - 1" because our new
+			// DoInsertPlaceholder(), when associating to the left, has to be at the end of
+			// the selection - since it does a "insert after", rather than legacy "insert before"
+			//
+			// This makes the dummy  appending of SrcPhrase and removal after unnecessary, but
+			// as the end of the doc is rarely going to be a retranslation location, we can just
+			// leave the dummy insert & remove afterwards, be unchanged
+			CPile* pPile = m_pView->GetPile(nEndIndex - 1);
 			wxASSERT(pPile != NULL);
-			m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE for restoring
-			// the phrase box, TRUE for doing it for a retranslation, and default TRUE for
-			// bInsertBefore flag at end
+
+			//m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); 
+			m_pApp->GetPlaceholder()->DoInsertPlaceholder(pDoc, pPile, nExtras, FALSE, TRUE, FALSE, TRUE);
 
 			// BEW 21Jul14, ZWSP support: add the most likely needed space type to the
 			// extra placeholder piles added, copying m_lastNonPlaceholderSrcWordBreak
@@ -1404,10 +1411,16 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 		{
             // not at the end, so we can proceed immediately; get the insertion location's
             // pile pointer
-			CPile* pPile = m_pView->GetPile(nEndSequNum + 1); // nEndIndex is out of scope here
+			// BEW 29Apr20 changed "nEndSequNum + 1" to just "nEndSequNum" because our new
+			// DoInsertPlaceholder(), when associating to the left, has to be at the end of
+			// the selection - since it does a "insert after", rather than legacy "insert before"
+			CPile* pPile = m_pView->GetPile(nEndSequNum); // nEndIndex is out of scope here
 			wxASSERT(pPile != NULL);
-			m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE is for
+			//m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE is for
 			// restoring the phrase box, TRUE is for doing it for a retranslation
+			//m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc, pPile, nExtras, FALSE, TRUE);
+			m_pApp->GetPlaceholder()->DoInsertPlaceholder(pDoc, pPile, nExtras, FALSE, TRUE, FALSE, TRUE);
+
 			m_pApp->m_nActiveSequNum = nSaveActiveSN;
 
 			// BEW 21Jul14, ZWSP support: add the most likely needed space type to the

@@ -111,10 +111,21 @@ public:
 	void OnButtonRetranslation(wxCommandEvent& event); // whm moved to public in wx version
 	void OnUpdateButtonRetranslation(wxUpdateUIEvent& event); // whm moved to public in wx version
 	
+	bool m_bIsRetranslationCurrent;	// set TRUE when retranslating or editing same, 
+		// used to suppress removing of KB entries during edit or creation  of the
+		// retranslation; default FALSE at other times.
+		// BEW 29Apr20 moved this to public; because with the new "insert after" placeholder
+		// button which has the smarts for padding of a long retranslation, the ending 
+		// pSrcPhrase within the retranslation has to be where DoInsertPlaceholder() is
+		// called to get the padding done. This means this boolean's TRUE value will
+		// be needed in the DoInsertPlaceholder() call to suppress a message saying
+		// "You cannot insert a placeholder within a retranslation. The command has been ignored"
 private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
 	CLayout*		m_pLayout;
 	CAdapt_ItView*	m_pView;
+
+	// deglobalified globals
 
 	// BEW added 28Sep17, the next two - to ensure a single word selection with empty tgt or
 	// a single word target, gets the m_bEndRetranslation flag set. Up to this time, it has
@@ -123,10 +134,6 @@ private:
 	CSourcePhrase* m_pFirstSrcPhrase;
 	bool m_bSourceIsASingleWord;
 	
-	// deglobalified globals
-	bool m_bIsRetranslationCurrent;		// set TRUE when retranslating or editing same, used to 
-										// suppress removing of KB entries during edit or creation
-										// of the retranslation; default FALSE at other times
 	bool m_bInsertingWithinFootnote;	// TRUE if inserting a null sourcephrase
 										// within a footnote; eg. if a retranslation is within a
 										// footnote and gets padded with null sourcephrases.

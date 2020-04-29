@@ -11,7 +11,8 @@ a placeholder will associate with what comes before or after it.
 * One user reported that collaboration would not work after updating from 
 Paratext 8 to Paratext 9. Adapt It is now fully compatible with Paratext 9 when
 set up for collaboration with Paratext. Also some dialogs were updated to 
-recognize/facilitate collaboration with Paratext 9. 
+recognize/facilitate collaboration with Paratext 9. (Adapt It also still collaborates
+successfully with Paratext 7.)
 * Removed the prohibition against removing < and > from the list of punctuation 
 characters. This gives Adapt It more flexibility for handling unusual custom 
 markup. Such removal should not be done without good reason; but now it can be 
@@ -22,7 +23,13 @@ good sense.
 * Made the app compliant with USFM 3.0's new attribute marker features.
 * Made the app not show metadata with attributes in the GUI, but auto-restoring
 them to the document when the document is being exported to Paratext or Bibledit
-in a collaboration.
+in a collaboration; or when, out of a collaboration, the user requests an export of
+the source text (as USFM). The idea behind this change is as follows: attributes 
+metadata in the content of some USFM3 standard format markers is a nuisance
+if seen in Adapt It, but Paratext needs that stuff, so what Paratext needs is hidden
+away automatically so the user is not bothered by it when adapting; but it 
+(magically) reappears in the data being sent to Paratext in a collaboration - because
+it's only Paratext that needs it - as it's publication-related stuff.
 Note: when the restored metadata appears in the Paratext (or Bibledit) target text
 project, any adaptable content within that metadata will not have been translated.
 The onus is then on the user doing any necessary translating of that kind of 
@@ -32,6 +39,22 @@ the target text.
 defaults to sending the email data to the users default email program. The secure
 SSL sending of problem reports/feedback is disabled in this version due to issues
 on the adapt-it.org server.
+* Many improvements have been made to the parser of input source text; including
+changes for robust handling of USFM3.
+* The names of some of the command bar button icons have been shortened. Long
+names were a nuisance because not many buttons could be seen in the command bar
+if the names were unnecessarily long. Now more large-size buttons will fit.
+* Adapt It does a better job at handling  ( or [ or { immediately following
+a word, provided the text following these is terminated by the matching ) or ] or }.
+This allows grammatical information to be typed into a target text as well as 
+backtranslating the words and phrases.
+* In the View menu of Preferences, the default has whether or not to keep the phrase
+box midscreen has been changed to "don't do so". It defaults to keeping the strips
+stationary and the phrasebox moves down the page until it gets to the last line,
+and then the app scrolls the window down and repositions the phrasebox near the
+top. This setting makes adapting more pleasant, the strips don't dance round as much,
+and it works better when the view is projected on a screen for several people to watch
+what is happening.
 ---------------------------------------------
 Bug fixes in 6.10.0 update
 ---------------------------------------------

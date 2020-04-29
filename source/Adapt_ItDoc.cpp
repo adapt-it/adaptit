@@ -12791,6 +12791,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 	if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd) // 136 &  137 
 	{
 		int halt_here = 1;
+		wxUnusedVar(halt_here);
     }
 #endif
 	int inputLen = len; // save the input len value - so that if a marker is found and
@@ -13247,6 +13248,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd) // 136 &  137 
 			{
 				int halt_here = 1;
+				wxUnusedVar(halt_here);
 			}
 #endif
 		} // end of TRUE block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
@@ -16867,6 +16869,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1;
+			wxUnusedVar(halt_here);
         }
 #endif
 #if defined (_DEBUG) && defined (LOGMKRS)
@@ -17816,6 +17819,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				if (pSrcPhrase->m_nSequNumber >= 137) // Data: _fix_ef_mkr.txt at its end
 				{
 					int halt_here = 1;
+					wxUnusedVar(halt_here);
 				}
 #endif
 				if (wholeMkr == wxString("\\ex"))
@@ -36144,6 +36148,7 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 	// should have been hidden at the parse of the document's source text.
 #if defined (_DEBUG)
 		int halt_here = 1;
+		wxUnusedVar(halt_here);
 #endif
 
 	if (m_bTokenizingTargetText)
@@ -37115,8 +37120,8 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 				beginMkr = m_markersBeginMkr;
 				nBeginSN = pSP->m_nSequNumber; // we've found the span start
 #if defined (_DEBUG)
-				wxLogDebug(_T("%s::%s Line %d, src= %s , nBeginSN= %d , m_markers= %s , beginMkr= %s  IS-EARLIER"),
-					__FILE__, __FUNCTION__, __LINE__, pSP->m_srcPhrase.c_str(), nBeginSN, pSP->m_markers.c_str(), beginMkr.c_str());
+//				wxLogDebug(_T("%s::%s Line %d, src= %s , nBeginSN= %d , m_markers= %s , beginMkr= %s  IS-EARLIER"),
+//					__FILE__, __FUNCTION__, __LINE__, pSP->m_srcPhrase.c_str(), nBeginSN, pSP->m_markers.c_str(), beginMkr.c_str());
 #endif
 				return TRUE;
 			}
@@ -37174,8 +37179,8 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 			spanEndSequNum--; // end at the previous pile
 		}
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
-			__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
+//		wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
+//			__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
 #endif
 		nEndSN = spanEndSequNum;
 		return TRUE;
@@ -37210,8 +37215,8 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 					spanEndSequNum--; // end at the previous pile
 				}
 #if defined (_DEBUG)
-				wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
-					__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
+//				wxLogDebug(_T("%s::%s Line %d, spanEndSequNum= %d , bStoppingRunOn= %d"),
+//					__FILE__, __FUNCTION__, __LINE__, (int)spanEndSequNum, (int)bStoppingRunOn);
 #endif
 				nEndSN = spanEndSequNum;
 				break;

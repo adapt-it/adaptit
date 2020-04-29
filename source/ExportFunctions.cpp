@@ -1651,7 +1651,7 @@ void DoExportAsType(enum ExportType exportType)
 	switch (exportType)
 	{
 	case sourceTextExport:
-		nTextLength = RebuildSourceText(source);
+		nTextLength = RebuildSourceText(source, pList);
 		nTextLength = nTextLength; // avoid warning TODO: test for failures? (BEW
 								   // 3Jan12, No, allow length to be zero)
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
