@@ -6217,12 +6217,16 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
     ...
     entries[35].Set(wxACCEL_CTRL, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
     */
+
+    /*
     // **** NOTICE The following blocks of code are only executed in the Linux/Mac versions **** 
     // **** when the phrasebox's dropdown list is open and blocking the accelerator keys.   ****
-
-    // TODO: whm 11Mar2020 test that the blocks below that are conditionally compiled for __WXGTK__
+    //  whm 11Mar2020 test that the blocks below that are conditionally compiled for __WXGTK__
     // and __WXMAC__ work on those platforms when the dropdown list is showing, and that the CTRL+I
     // in particular doesn't result in double placeholders being inserted.
+    // whm 29Apr2020 update: The new phrasebox that has separate wxList doesn't have the problem
+    // that the first dropdown list box has that necessitated handling the CTRL+key hot key alternates
+    // for Linux defined below. So, I have commented out this block below
 
     if (pApp->m_pTargetBox->GetDropDownList()->IsShown())
     {
@@ -6264,7 +6268,13 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
         if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
         {
             wxCommandEvent dummyevent;
+
+#if defined(_PHRefactor)
+            pApp->GetPlaceholder()->OnButtonNullSrcRight(dummyevent);
+#else
             pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
+#endif
+
         }
         // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
         if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)
@@ -6338,6 +6348,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 #endif
     }
     // whm Note: no event.Skip() from OnSysKeyUP()
+*/
 }
 
 // return TRUE if we traverse this function without being at the end of the file, or

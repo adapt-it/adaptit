@@ -136,7 +136,7 @@ echo *** End of WdrTweaks.exe processing</Command>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.9</Version>
+      <Version>6.10</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"

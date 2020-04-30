@@ -10912,7 +10912,7 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 	else
 	{
 		rev = rev.Mid(1); // remove initial *
-		// rev is maybe one of:   f\  fe\  x\  xe\
+		// rev is maybe one of:   f\  fe\  x\  xe\  <== ending backslash in comment. GCC warns about muitiline comment
 		// To qualify for correctness, the [0] index one must be either f or x
 		// For each of those, also test [1] for 'e' - and for each each the
 		// backslash must follow. First, footnote and extended footnote
@@ -16558,6 +16558,8 @@ tryagain:	if (IsMarker(ptr))
 	if (pSrcPhrase->m_precPunct.Len() > 0)
 		bHasPrecPunct = TRUE;
 
+    wxUnusedVar(bHasPrecPunct);
+
 	// this is where the first character of the word possibly starts...
 
 	// BEW 31Jan11, it is possible that a dynamic punctuation change has just made one or
@@ -16586,6 +16588,9 @@ tryagain:	if (IsMarker(ptr))
 		{
 			// we've a newly-defined initial punctuation character to move to m_precPunct
 			bHasPrecPunct = TRUE;
+
+            wxUnusedVar(bHasPrecPunct);
+
 			pSrcPhrase->m_precPunct += *ptr;
 			ptr++;
 			len++;
@@ -36202,7 +36207,10 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 		if (bFound)
 		{
 			whichType = attrBeginMkr;
-			m_strAttrBeginMkr = m_strMatchedMkr; // transfer it  (including the space at the end)
+
+            wxUnusedVar(whichType);
+
+            m_strAttrBeginMkr = m_strMatchedMkr; // transfer it  (including the space at the end)
 			m_bWithinMkrAttributeSpan = TRUE; // the span of the marker content is beginning
 			m_bHiddenMetadataDone = FALSE; // use to stop clearing of the cached material
 										   // until the hiding of the metadata etc has been done
@@ -36349,6 +36357,9 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			if (bFound)
 			{
 				whichType = attrEndMkr;
+
+                wxUnusedVar(whichType);
+
 				// Trim off the final space, the asterisk is already present
 				m_strMatchedMkr.Trim();
 				m_strAttrEndMkr = m_strMatchedMkr; // transfer it (no space at the end)
@@ -37113,6 +37124,8 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 			m_markersBeginMkr = wxEmptyString;
 			bGotBeginMkr = FALSE;
 			bFoundSpanStart = FALSE;
+
+            wxUnusedVar(bFoundSpanStart);
 
 			bGotBeginMkr = FindProhibitiveBeginMarker(pSP->m_markers, m_markersBeginMkr);
 			if (bGotBeginMkr)

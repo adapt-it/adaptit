@@ -14135,6 +14135,9 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	{
 		bLeftBracketIsPunct = TRUE;
 	}
+
+    wxUnusedVar(bLeftBracketIsPunct);
+
 	offset = spacelessPunctsStr.Find(strRightBracket);
 	if (offset >= 0)
 	{
@@ -14500,6 +14503,8 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 		bRightBracketIsPunct = TRUE;
 	}
 
+    wxUnusedVar(bRightBracketIsPunct);
+
 	// Now for ( and )
 	wxString strLeftParenthesis(_T('('));
 	wxString strRightParenthesis(_T(')'));
@@ -14517,6 +14522,8 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 		bRightParenthesisIsPunct = TRUE;
 	}
 
+    wxUnusedVar(bRightParenthesisIsPunct);
+
 	// Now for { and }
 	wxString strLeftBrace(_T('{'));
 	wxString strRightBrace(_T('}'));
@@ -14533,6 +14540,8 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	{
 		bRightBraceIsPunct = TRUE;
 	}
+
+    wxUnusedVar(bRightBraceIsPunct);
 
 	// =============== Now do the providing of match character ===========
 
