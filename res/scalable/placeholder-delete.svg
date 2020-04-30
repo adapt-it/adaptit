@@ -14,11 +14,11 @@
    height="48.000000px"
    id="svg249"
    sodipodi:version="0.32"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="placeholder-delete.svg"
-   inkscape:export-filename="/home/erik/svn/adaptit/trunk/res/22x22/placeholder-delete.png"
-   inkscape:export-xdpi="59.186615"
-   inkscape:export-ydpi="59.186615"
+   inkscape:export-filename="/home/bill/projects/adaptit/res/48x48/placeholder-delete.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.1">
   <title
@@ -237,7 +237,7 @@
        x2="24.155018"
        y2="36.299068"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.416,0,0,1.416,-9.8911864,-10.609278)" />
+       gradientTransform="matrix(1.4114156,0,0,1.7418446,-9.7804491,-18.708455)" />
     <inkscape:perspective
        id="perspective5221"
        inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
@@ -254,7 +254,7 @@
        x2="23.876869"
        y2="29.308773"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.416,0,0,1.416,-9.8911864,-10.609278)" />
+       gradientTransform="matrix(1.4114156,0,0,1.7418446,-9.7804491,-18.708455)" />
     <inkscape:perspective
        id="perspective3773"
        inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
@@ -364,16 +364,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="6.1198265"
-     inkscape:cx="-6.3485231"
-     inkscape:cy="23.380442"
+     inkscape:cx="11.026919"
+     inkscape:cy="19.630487"
      inkscape:current-layer="layer4"
      showgrid="false"
      inkscape:grid-bbox="true"
      inkscape:document-units="px"
-     inkscape:window-width="1362"
+     inkscape:window-width="1058"
      inkscape:window-height="688"
-     inkscape:window-x="109"
-     inkscape:window-y="35"
+     inkscape:window-x="842"
+     inkscape:window-y="296"
      inkscape:showpageshadow="false"
      inkscape:window-maximized="0" />
   <metadata
@@ -392,11 +392,11 @@
         </dc:creator>
         <dc:source>http://adapt-it.org</dc:source>
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
         <dc:description>Create a new placeholder</dc:description>
       </cc:Work>
       <cc:License
-         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Reproduction" />
         <cc:permits
@@ -450,46 +450,48 @@
      inkscape:label="new"
      style="display:inline">
     <rect
-       style="fill:url(#linearGradient5211);fill-opacity:1;stroke:#888a85;stroke-width:1.41600001;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:url(#linearGradient5211);fill-opacity:1;stroke:#888a85;stroke-width:1.56794989;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect3746"
-       width="43.92907"
-       height="34.315639"
-       x="2.3477857"
-       y="5.7665615"
-       rx="1.1125128"
-       ry="1.4656949"
+       width="43.786842"
+       height="42.212227"
+       x="2.4188983"
+       y="1.4357308"
+       rx="1.1089109"
+       ry="1.8029752"
        inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/32x32/placeholder-delete.png"
        inkscape:export-xdpi="86.089622"
        inkscape:export-ydpi="86.089622" />
     <rect
-       ry="1.3404396"
-       rx="1.0463901"
-       y="7.2328358"
-       x="3.2593999"
-       height="31.383091"
-       width="41.318123"
+       ry="1.6488966"
+       rx="1.0430022"
+       y="3.239419"
+       x="3.3275609"
+       height="38.604847"
+       width="41.184353"
        id="rect5238"
-       style="fill:url(#linearGradient5256);fill-opacity:1;stroke:#eeeeec;stroke-width:1.31328619;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:url(#linearGradient5256);fill-opacity:1;stroke:#eeeeec;stroke-width:1.45421398;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/32x32/placeholder-delete.png"
        inkscape:export-xdpi="86.089622"
        inkscape:export-ydpi="86.089622" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16.99199867px;line-height:0%;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Bold';text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#204a87;fill-opacity:1;stroke:none;stroke-width:1.41600001"
-       x="4.5443892"
-       y="34.390472"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.81539345px;line-height:0%;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Bold';text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#204a87;fill-opacity:1;stroke:none;stroke-width:1.41600001"
+       x="5.1194873"
+       y="32.987919"
        id="text2897"
        inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/32x32/placeholder-delete.png"
        inkscape:export-xdpi="86.089622"
-       inkscape:export-ydpi="86.089622"><tspan
+       inkscape:export-ydpi="86.089622"
+       sodipodi:linespacing="0%"
+       transform="scale(0.90016631,1.1109058)"><tspan
          sodipodi:role="line"
          id="tspan2877"
-         x="4.5443892"
-         y="34.390472"
-         style="font-size:33.98399734px;line-height:1.25;stroke-width:1.41600001">...</tspan></text>
+         x="5.1194873"
+         y="32.987919"
+         style="font-size:37.6307869px;line-height:1.25;stroke-width:1.41600001">...</tspan></text>
     <g
        style="display:inline"
-       transform="matrix(0.04936465,0,0,0.04936465,53.392871,13.965821)"
+       transform="matrix(0.04920482,0,0,0.06072426,53.298719,11.521773)"
        id="g220734"
        inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/32x32/placeholder-delete.png"
        inkscape:export-xdpi="86.089622"
