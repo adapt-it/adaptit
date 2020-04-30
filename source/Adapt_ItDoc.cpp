@@ -10912,7 +10912,7 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 	else
 	{
 		rev = rev.Mid(1); // remove initial *
-		// rev is maybe one of:   f\  fe\  x\  xe\ 
+		// rev is maybe one of:   f\  fe\  x\  xe\  <== ending backslash in comment. GCC warns about muitiline comment
 		// To qualify for correctness, the [0] index one must be either f or x
 		// For each of those, also test [1] for 'e' - and for each each the
 		// backslash must follow. First, footnote and extended footnote
