@@ -1763,7 +1763,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		// set nNewKeySel to be the previous item in listbox unless it already
 		// is the first item
 		if (nNewKeySel > 0)
+		{
 			nNewKeySel--;
+		}
 	}
 	LoadDataForPage(m_nCurPage,nNewKeySel);
 	m_pTypeSourceBox->SetSelection(0,0); // sets selection to beginning of type
@@ -2721,7 +2723,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// possible zero starting selection, next best thing is to look up the source
 			// phrase at the current active location of the phrasebox.
 			// get the key for the source phrase at the active location
-			wxString srcKey;
+safe:		wxString srcKey;
 			srcKey = gpApp->m_pActivePile->GetSrcPhrase()->m_key;
 			// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
@@ -2763,21 +2765,53 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			}
 			m_srcKeyStr = str;
 			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, exactString);
-			wxASSERT(nNewSel != -1);
-			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
-			// BEW 4May16, make 3 lines above selection visible, or less if close to the top
-			nTopOfListItem = nNewSel - 3;
-			// Check we are not out of bounds
-			if (nTopOfListItem < 0)
+
+			// BEW 30Apr20 if str changes to lower case, and nNewSel is present as a lower case
+			// variant, then the user will experience a disturbing jump to a case-adjusted different entry -
+			// either before or after, which may have quite a different set of adaptations. So test
+			// for the jump (by +/- 1) and if so, then restore to nStartingSelection value
+			if ((nNewSel == nStartingSelection - 1) || (nNewSel == nStartingSelection + 1))
 			{
-				nTopOfListItem++;
+				nNewSel = nStartingSelection;
+				m_pListBoxKeys->SetSelection(nStartingSelection);
+				str = m_pListBoxKeys->GetString(nStartingSelection);
+				m_srcKeyStr = str;
+			}
+			//wxASSERT(nNewSel != -1);
+			if (nNewSel != wxNOT_FOUND)
+			{
+				pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
+				// BEW 4May16, make 3 lines above selection visible, or less if close to the top
+				nTopOfListItem = nNewSel - 3;
+				// Check we are not out of bounds
 				if (nTopOfListItem < 0)
 				{
 					nTopOfListItem++;
 					if (nTopOfListItem < 0)
 					{
 						nTopOfListItem++;
+						if (nTopOfListItem < 0)
+						{
+							nTopOfListItem++;
+						}
 					}
+				}
+			}
+			else
+			{
+				// BEW added 30Ap20, because the commented out assert above tripped
+				// once when I removed the last of 5 adaptations in the tgt list. I
+				// was unable to get the error to repeat, so I've added this safety
+				// first block
+				int count = m_pListBoxKeys->GetCount();
+				if (count > 0)
+				{
+					nStartingSelection = 0;
+					goto safe;
+				}
+				else
+				{
+					return;
 				}
 			}
 		}
