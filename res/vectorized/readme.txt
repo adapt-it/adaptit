@@ -4,13 +4,18 @@ Date: 08 June 2012
 --------
 
 Background: wxWidgets supports several graphics formats, but at least with the
-2.8.x and 2.9.3 library versions only supports alpha transparencies with the .png format. This is great for using freely-available image libraries like the Tango icon library, but there is a hitch: embedding .png images in a cross-platform manner requires that we vectorize the image in a C vector.
+2.8.x and 2.9.3 library versions only supports alpha transparencies with the .png format. 
+This is great for using freely-available image libraries like the Tango icon library, but 
+there is a hitch: embedding .png images in a cross-platform manner requires that we vectorize 
+the image in a C vector.
 
 The wxwidgets wiki comes to the rescue here. We're following the instructions posted here:
 
 http://wiki.wxwidgets.org/Embedding_PNG_Images
 
-First, there's source code for a utility called bin2c that I've built for Linux. This utility can be run from the command line to convert a .png file into a .cpp file containing the vectorized version. Here's the license from the source:
+First, there's source code for a utility called bin2c that I've built for Linux. 
+This utility can be run from the command line to convert a .png file into a .cpp file 
+containing the vectorized version. Here's the license from the source:
 
 // bin2c.c
 //
@@ -46,6 +51,9 @@ Here are the basic steps to bring a new image into Adapt It:
        .\bin2c -c -z <path/to/image.png> <image>_<size>.cpp
    Where <size> is the size (32px, 48px, etc.) of the image. That should create
    a .cpp file in this directory that can be pulled into the AI project.
+   whm 29Apr2020 Note: Need to tweak the internal name of the image in the .cpp file
+       and also tweak the #ifdef...<header_name>...#define <header_name>...endif lines
+       to be unique for the Adapt It project.
 3. To use the image in Adapt It:
    a. #include the image. For example: #include "../res/vectorized/pw_48.cpp"
    b. Where you would normally work with a wxImage, replace it with the following:
