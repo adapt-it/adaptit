@@ -49,13 +49,16 @@
 # Revised 2019-02-15
 #   - Add cosmic to OSRELEASES and UBUNTU_SUITES
 #   - Add disco to OSRELEASES and UBUNTU_SUITES
+# Revised 2020-05-02 by Bill Martin
+#   - Add eoan and focal to OSRELEASES and UBUNTU_SUITES
+#   - Add tina and tricia to Linux Mint dists
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
 HOOKSDIR="/hooks"
 PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
 PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety zesty artful bionic cosmic disco sid"}
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety zesty artful bionic cosmic disco eoan focal sid"}
 DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
@@ -111,7 +114,7 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("disco" "cosmic" "bionic" "artful" "zesty" "yakkety" \
+UBUNTU_SUITES=("focal" "eoan" "disco" "cosmic" "bionic" "artful" "zesty" "yakkety" \
     "xenial" "wily" "vivid" "utopic" \
     "trusty" "saucy" "raring" "quantal" \
     "precise" "oneiric" "natty" "maverick" \
@@ -177,6 +180,12 @@ case "$DIST" in
         DIST="bionic"
         ;;
     "tessa")
+        DIST="bionic"
+        ;;
+    "tina")
+        DIST="bionic"
+        ;;
+    "tricia")
         DIST="bionic"
         ;;
 esac
@@ -306,6 +315,12 @@ case "$DIST" in
         DIST="bionic"
         ;;
     "tessa")
+        DIST="bionic"
+        ;;
+    "tina")
+        DIST="bionic"
+        ;;
+    "tricia")
         DIST="bionic"
         ;;
 esac
