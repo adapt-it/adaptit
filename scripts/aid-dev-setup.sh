@@ -20,6 +20,7 @@
 # Revision: 26January2017 Added test for Internet connection and wget error check.
 # Requires an Internet connection to retrieve keys and use apt-get install
 # Revision: 5June2018 added support for Linux Mint up to Tara, Ubuntu up to Bionic.
+# Revision: 4May2020 added suport for Ubuntu up to Focal and Linux Mint up to Tricia.
 
 # Test for Internet connection
 echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
@@ -60,15 +61,17 @@ APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela rosa sarah serena sonya sylvia tara precise trusty utopic vivid wily xenial yakkety zesty artful bionic"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah serena sonya sylvia tara tessa tricia precise trusty utopic vivid wily xenial yakkety zesty artful bionic cosmic disco eoan focal"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
 distID=`lsb_release -is`
 echo "  This system is: $distID"
 # Determine what the Codename is of the system
-# The 'lsb_release -cs' command returns "maya", "rafaela", "rosa", "sarah", "serena" on Mint LTS systems, 
-#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial", "yakkety" on Ubuntu systems"
+# The 'lsb_release -cs' command returns "maya", "rafaela", "rosa", "sarah", "serena". "sonya", "sylvia", 
+# "tara", "tessa", "tricia" on Mint LTS systems, 
+#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial", "yakkety", "zesty", "artful", "bionic", 
+# "cosmic", "disco", "eoan", "focal" on Ubuntu systems"
 distCodename=`lsb_release -cs`
 echo "  The Codename is: $distCodename"
 if echo "$supportedDistIDs" | grep -q "$distID"; then
@@ -88,7 +91,7 @@ fi
 # Ensure the apt repository is setup for the SIL repository using the proper Codename.
 # On LinuxMint/Wasta systems, the Codename for the SIL repo must use the Ubuntu equivalent 
 # LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, rafaela, rosa, 
-# "xenial" for sarah, serena, sonya, sylvia, "bionic" for tara.
+# "xenial" for sarah, serena, sonya, sylvia, "bionic" for tara, tessa, tina, tricia, "focal" for .
 case $distCodename in
   "maya")
   distCodename="precise"
@@ -118,6 +121,15 @@ case $distCodename in
   distCodename="xenial"
   ;;
   "tara")
+  distCodename="bionic"
+  ;;
+  "tessa")
+  distCodename="bionic"
+  ;;
+  "tina")
+  distCodename="bionic"
+  ;;
+  "tricia")
   distCodename="bionic"
   ;;
 esac
@@ -208,8 +220,8 @@ case $distCodename in
   ;;
   "bionic")
     # 
-    echo "As of June 2018, the PPA for codeblocks-stable/ubuntu bionic main"
-    echo "   has not been released."
+    echo "As of May 2020, the PPA for codeblocks-stable/ubuntu bionic main, nor for focal main"
+    echo "   have not been released."
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu bionic main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu bionic main@d' \
         $APT_SOURCES_LIST_DIR
@@ -269,7 +281,7 @@ sudo apt-get -q update
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools for $distCodename..."
 # When next LTS after xenial arrives we need to include it in test below
-if [ "$distCodename" = "xenial" ] || [ "$distCodename" = "bionic" ]; then
+if [ "$distCodename" = "xenial" ] || [ "$distCodename" = "bionic" ] || [ "$distCodename" = "focal" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else
   sudo apt-get install $AID_DEV_TOOLS_OLD -y
