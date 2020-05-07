@@ -240,8 +240,10 @@ HOOKDIR=~/pbuilder/hooks
 # whm 7May2020 modified to include libwxgtk3.0-gtk3-dev in EXTRAPACKAGES list for focal below:
 if [ x"$DIST" = "focal" ]; then
     EXTRAPACKAGES="wget libwxgtk3.0-gtk3-dev" #"apt-utils"
+    echo "DIST is focal - EXTRAPACKAGES content is: wget libwxgtk3.0-gtk3-dev"
 else
     EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev" #"apt-utils"
+    echo "DIST is NOT focal - EXTRAPACKAGES content is: wget libgtk-3-dev libwxgtk3.0-dev"
 fi
 if [ x"$DIST" = x"lucid" ];then
     # Running a Ubuntu Lucid chroot.  Add lucid-updates mirror site too.
