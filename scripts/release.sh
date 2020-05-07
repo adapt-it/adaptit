@@ -52,6 +52,8 @@
 # Revised 2020-05-02 by Bill Martin
 #   - Add eoan and focal to OSRELEASES and UBUNTU_SUITES
 #   - Add tina and tricia to Linux Mint dists
+# Revised 2020-05-07 by Bill Martin
+#   - Add libwxgtk3.0-gtk3-dev to EXTRAPACKAGES list within the installed/updated .pbuilderrc file:
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
@@ -235,7 +237,8 @@ APTCACHEHARDLINK=no
 #OTHERMIRROR="deb file://"$DEPDIR" ./"
 #BINDMOUNTS=$DEPDIR
 HOOKDIR=~/pbuilder/hooks
-EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev" #"apt-utils"
+# whm 7May2020 added libwxgtk3.0-gtk3-dev to EXTRAPACKAGES list below:
+EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev libwxgtk3.0-gtk3-dev" #"apt-utils"
 
 if [ x"$DIST" = x"lucid" ];then
     # Running a Ubuntu Lucid chroot.  Add lucid-updates mirror site too.

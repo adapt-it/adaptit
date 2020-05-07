@@ -56,6 +56,10 @@ AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-dev \
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-dev libwxgtk3.0-0v5 \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n libcanberra-gtk-module"
+AID_DEV_TOOLS_NEWER="codeblocks poedit git gnome-common libgtk-3-dev \
+  build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+  libwxbase3.0-0v5 libwxbase3.0-dev libwxgtk3.0-gtk3-0v5 \
+  libwxgtk3.0-gtk3-dev wx-common wx3.0-headers wx3.0-i18n libcanberra-gtk-module"
 APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 # Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
@@ -281,7 +285,9 @@ sudo apt-get -q update
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools for $distCodename..."
 # When next LTS after xenial arrives we need to include it in test below
-if [ "$distCodename" = "xenial" ] || [ "$distCodename" = "bionic" ] || [ "$distCodename" = "focal" ]; then
+if [ "$distCodename" = "focal" ]; then
+  sudo apt-get install $AID_DEV_TOOLS_NEWER -y
+elif [ "$distCodename" = "xenial" ] || [ "$distCodename" = "bionic" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else
   sudo apt-get install $AID_DEV_TOOLS_OLD -y
