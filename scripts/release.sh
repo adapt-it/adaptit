@@ -238,7 +238,7 @@ APTCACHEHARDLINK=no
 #BINDMOUNTS=$DEPDIR
 HOOKDIR=~/pbuilder/hooks
 # whm 7May2020 modified to include libwxgtk3.0-gtk3-dev in EXTRAPACKAGES list for focal below:
-if [ x"$DIST" = "focal" ]; then
+if [ x"$DIST" = x"focal" ]; then
     EXTRAPACKAGES="wget libwxgtk3.0-gtk3-dev" #"apt-utils"
     echo "DIST is focal - EXTRAPACKAGES content is: wget libwxgtk3.0-gtk3-dev"
 else
