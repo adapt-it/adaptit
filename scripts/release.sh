@@ -1,10 +1,11 @@
 #!/bin/bash
-# release-sh -- Downloads and creates release pacakges of AdaptIt
-#               First parameter must be a version number e.g. 6.2.2
+# release-sh -- Downloads and creates release pacakges of Adapt It
+#               First parameter must be a version number tag e.g. 6.2.2
 #               Second parameter must be a space-delimited set
-#                 of distro names to build for, e.g. "precise trusty utopic vivid"
+#                 of distro names to build for, e.g. "trusty bionic focal"
 #
-# Author: Jonathan Marsden <jmarsden@fastmail.fm>
+# Example usage: ./release.sh 6.10.0 "trusty xenial bionic focal"
+# Authors: Jonathan Marsden <jmarsden@fastmail.fm> & Bill Martin <bill_martin@sil.org>
 # Date: 2012-10-03
 # Revised 2015-01-21 by Bill Martin to include "utopic"
 # Revised 2015-05-26 by Bill Martin to remove non-empty .git dirs from sources
@@ -39,30 +40,64 @@
 #   - Add echo comments to console output to more easily track progress 
 # Revised 2018-02-05 by Bill Martin
 #   - Add zesty, artful and bionic to OSRELEASES and UBUNTU_SUITES
-# Revised 2018-04-17
+# Revised 2018-04-17 by Bill Martin
 #   - Corrected the A05suffix hook script to cd to /tmp/buildd/*/ instead of ~/*?
 #   - Moved wx library static build parts of script to release-static.sh
-# Revised 2018-08-25
+# Revised 2018-08-25 by Bill Martin
 #   - Added a call to autogen.sh from within the bin/linux dir of the checkout folder
-#        $PACKAGING_DIR/adaptit-${RELEASE}, for example, $HOME/packaging/adaptit-6.9.1/bin/linux
-#        The call of autogen.sh is now done before the cleanup of unwanted non-source files.
-# Revised 2019-02-15
+#     $PACKAGING_DIR/adaptit-${RELEASE}, for example, $HOME/packaging/adaptit-6.9.1/bin/linux
+#     The call of autogen.sh is now done before the cleanup of unwanted non-source files.
+# Revised 2019-02-15 by Bill Martin
 #   - Add cosmic to OSRELEASES and UBUNTU_SUITES
 #   - Add disco to OSRELEASES and UBUNTU_SUITES
 # Revised 2020-05-02 by Bill Martin
 #   - Add eoan and focal to OSRELEASES and UBUNTU_SUITES
 #   - Add tina and tricia to Linux Mint dists
 # Revised 2020-05-07 by Bill Martin
-#   - Use libwxgtk3.0-gtk3-dev only for focal dist in EXTRAPACKAGES list within the installed/updated .pbuilderrc file:
+#   - Use libwxgtk3.0-gtk3-dev only for focal and later DISTs in EXTRAPACKAGES list within the 
+#     installed/updated .pbuilderrc file:
+#   - Added a variable named OSRELEASES64BITONLY to list OS releases that will only be packaged 
+#     in 64-bit, i.e., focal and later DISTs.
+#   - Added a convenience function called list_contains_item { } to this script (but not to the 
+#     .pbuilderrc script), to determine if the current DIST is contained within the 
+#     OSRELEASES64BITONLY list, so that pbuilder can be called appropriately (for both amd64 and 
+#     i396, or just for amd64 in focal and later DISTs). 
+#     Note: The modifications within .pbuilder that determine the EXTRAPACKAGES content have to 
+#     be manually updated for "focal" and later packages.
+# !!!!!!! NOTE: UPDATES REQUIRED WHEN NEW UBUNTU, DEBIAN and LINUX MINT DISTs APPEAR !!!!!!!!!!
+# 1. Add any new DIST name (lower case) to the $OSRELEASES string list at about line 93 below.
+#    See current releases for Ubuntu at: https://wiki.ubuntu.com/ReleaseSchedule 
+# 2. Add any new DIST name (lower case) to the $OSRELEASES64BITONLY string list at about line 97.
+# 3. Remove any no-longer-supported DIST names from the $OSRELEASES (and eventually from the
+#    $OSRELEASES64BITONLY) string lists about lines 93 and 97.
+# 4. Update list of UBUNTU_SUITES if needed at about line 182. See:  https://wiki.ubuntu.com/ReleaseSchedule 
+# 5. Update the codenames for Debian suites if needed according to their alias about lines 174-175,
+#    lines 230-234, and lines 397-401. See: https://wiki.debian.org/DebianReleases
+# 6. Update Linux Mint aliases assignments to DIST at about 275 and 442. 
+#    See: https://www.linuxmint.com/download_all.php
+# 7. Add ORed tests:   || [ x"$DIST" = x"DISTname" ]   to the if test statement at about linne 343.
+# !!!!!!! NOTE: UPDATES REQUIRED WHEN NEW UBUNTU, DEBIAN and LINUX MINT DISTs APPEAR !!!!!!!!!!
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
 HOOKSDIR="/hooks"
 PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
 PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety zesty artful bionic cosmic disco eoan focal sid"}
+# The ${2:- "..."} syntax below sets OSRELEASES to the 2nd parameter sent to release.sh, or if empty 
+# sets all OSes listed in the default string. Probably wouldn't want to leave the 2nd parameter empty
+# since would not want to attempt to package up all Ubuntu releases listed in the default OSRELEASES
+# variable below.
+# TODO: Add any recent Ubuntu releases to the $OSRELEASES and $OSRELEASES64BITONLY string lists below 
+# as they become available in the future. Remove no longer supported end-of-life releases.
+# whm 8May2020 removed unsupported DIST names from OSRELEASES below:
+OSRELEASES=${2:-"trusty xenial bionic eoan focal sid"}
+# The string list $OSRELEASES64BITONLY is used in writing/updating the HERE DOC .pbuilderrc file
+# in the user's home directory, and for tests below here in release.sh. Note: the 'export' command
+# doesn't appear to make $OSRELEASES64BITONLY visible to .pbuilder for some unknown reason.
+export OSRELEASES64BITONLY="focal"
 DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
-BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
+#BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev" # whm 7May2020 removed libwxgtk2.8-dev
+BUILDDEPS="zip uuid-dev libcurl3-gnutls-dev"
 
 # The building of 64 bit packages requires that we are using a 64-bit architecture machine
 Arch=`dpkg --print-architecture`
@@ -88,6 +123,34 @@ then
   exit 1
 fi
 
+# This convenience function determines if someList contains someItem
+# Usage: list_contains_item someList someItem
+# Returns: returns 0 for success (someList contains someItem), 1 for failure
+function list_contains_item {
+  local list="$1"
+  local item="$2"
+  if [[ $list =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
+    # list includes the item
+    result=0
+  else
+    # list doesn't include the item
+    result=1
+  fi
+  return $result
+}
+
+echo "This run of release.sh building for OSRELEASES=\"$OSRELEASES\""
+for i in $OSRELEASES; do
+  list_contains_item "$OSRELEASES64BITONLY" "$i"
+  result=$?
+  if [ "$result" = "0" ]; then
+    echo "The $i package will be built for 64-Bit (amd64) ONLY"
+  else
+    echo "The $i package will be built for 32-Bit (i386) AND 64-Bit (amd64)"
+  fi
+done
+#exit 1
+
 # Get any existing DEBFULLNAME and DEBEMAIL env values to put into the A05suffix hook file generated below
 SAVEDDEBFULLNAME=$DEBFULLNAME
 SAVEDDEBEMAIL=$DEBEMAIL
@@ -96,36 +159,55 @@ SAVEDDEBEMAIL=$DEBEMAIL
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install $DEVTOOLS -y
 
-# Always install/update the ~/.pbuilderrc pbuilder settings file
+# Always install/update the ~/.pbuilderrc pbuilder settings file afresh for each run of release.sh
 # Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
-#       Using << EOF to create HERE DOC parameter expansion happens
+#       Using << EOF to create HERE DOC parameter expansion happens (not desirable here)
 #[ -f $HOME/.pbuilderrc ] || cat >$HOME/.pbuilderrc <<"EOF"
   cat >$HOME/.pbuilderrc <<"EOF"
 echo ""
 echo "******************************************************************************"
 echo " Begin executing the $HOME/.pbuilderrc pbuilder setup script "
 echo "******************************************************************************"
-
-# Codenames for Debian suites according to their alias.
+# See release.sh script for what to update in this .pbuilderrc file as new DISTs appear.
+# Codenames for Debian suites according to their alias. See: https://wiki.debian.org/DebianReleases
 UNSTABLE_CODENAME="sid"
-TESTING_CODENAME="stretch"
-STABLE_CODENAME="jessie"
+TESTING_CODENAME="bullseye"
+STABLE_CODENAME="buster"
 
 # List of Debian suites.
 DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
-# List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("focal" "eoan" "disco" "cosmic" "bionic" "artful" "zesty" "yakkety" \
-    "xenial" "wily" "vivid" "utopic" \
-    "trusty" "saucy" "raring" "quantal" \
-    "precise" "oneiric" "natty" "maverick" \
-    "lucid" "karmic" "jaunty" \
-    "intrepid" "hardy" "gutsy")
+# List of Ubuntu suites. Add new releases, remove end-of-life releases when needed.
+UBUNTU_SUITES=("focal" "eoan" "bionic" "xenial" "trusty")
 
 # Mirrors to use. Update these to your preferred mirror.
 DEBIAN_MIRROR="ftp.us.debian.org"
 UBUNTU_MIRROR="mirrors.kernel.org"
+
+#OSRELEASES64BITONLY="focal"
+
+# Apparently one cannot use a function like the following within the .pbuilderrc
+# file. It works fine in release.sh, but not when placed within .pbuilderrc, so
+# in the "Local mods section" below we'll test for [ x"$DIST" = x"focal" ] and 
+# add OR ( | ) tests there for future DISTs of Ubuntu.
+#echo "Before the list_contains_item function declaration"
+# This function determines if someList contains someItem
+# Usage: list_contains_item someList someItem
+# contains returns 0 for success (someList contains someItem), 1 for failure
+#function list_contains_item {
+#    local list="$1"
+#    local item="$2"
+#    if [[ $list =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
+#        # list includes the item
+#        result=0
+#    else
+#        # list doesn't include the item
+#        result=1
+#    fi
+#    return $result
+#}
+#echo "After the list_contains_item function declaration"
 
 # Use the changelog of a package to determine the suite to use if none set.
 if [ -z "${DIST}" ] && [ -r "debian/changelog" ]; then
@@ -146,13 +228,10 @@ case "$DIST" in
         DIST="sid"
         ;;
     $TESTING_CODENAME)
-        DIST="stretch"
+        DIST="bullseye"
         ;;
     $STABLE_CODENAME)
-        DIST="jessie"
-        ;;
-    "maya")
-        DIST="precise"
+        DIST="buster"
         ;;
     "qiana")
         DIST="trusty"
@@ -189,6 +268,9 @@ case "$DIST" in
         ;;
     "tricia")
         DIST="bionic"
+        ;;
+    "ulyana")
+        DIST="focal"
         ;;
 esac
 echo "Distribution DIST Codename is: $DIST"
@@ -237,18 +319,43 @@ APTCACHEHARDLINK=no
 #OTHERMIRROR="deb file://"$DEPDIR" ./"
 #BINDMOUNTS=$DEPDIR
 HOOKDIR=~/pbuilder/hooks
+
 # whm 7May2020 modified to include libwxgtk3.0-gtk3-dev in EXTRAPACKAGES list for focal below:
+#
+# Apparently one cannot use a function like list_contains_item within the .pbuilderrc
+# file. It works fine in release.sh, but not when placed here within .pbuilderrc, so
+# we'll just test for [ x"$DIST" = x"focal" ] and will need to add OR ( || ) tests there 
+# for future DISTs of Ubuntu.
+#list_contains_item "${OSRELEASES64BITONLY}" "${DIST}"
+#result=$?
+#if [ "$result" = "0" ]; then
+#    EXTRAPACKAGES="wget libwxgtk3.0-gtk3-dev" #"apt-utils"
+#    echo "DIST is $DIST - EXTRAPACKAGES content is: $EXTRAPACKAGES"
+#    echo "The $DIST package will be built for 64-Bit (amd64) ONLY"
+#else
+#    EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev" #"apt-utils"
+#    echo "DIST is $DIST - EXTRAPACKAGES content is: $EXTRAPACKAGES"
+#    echo "The $DIST package will be built for 32-Bit (i386) AND 64-Bit (amd64)"
+#fi
+
+# !!!!!!!!!!!!! TODO: UPDATE TEST BELOW FOR EACH NEW UBUNTU DIST RELEASED !!!!!!!!!!!!!!!
+# Add ORed:   || [ x"$DIST" = x"DISTname" ]    tests to if statement below:
 if [ x"$DIST" = x"focal" ]; then
     EXTRAPACKAGES="wget libwxgtk3.0-gtk3-dev" #"apt-utils"
-    echo "DIST is focal - EXTRAPACKAGES content is: wget libwxgtk3.0-gtk3-dev"
+    echo "DIST is focal or later - EXTRAPACKAGES content is: wget libwxgtk3.0-gtk3-dev"
+    echo "The $DIST package will be built for 64-Bit (amd64) ONLY"
 else
     EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev" #"apt-utils"
-    echo "DIST is NOT focal - EXTRAPACKAGES content is: wget libgtk-3-dev libwxgtk3.0-dev"
+    echo "DIST is PRE focal - EXTRAPACKAGES content is: wget libgtk-3-dev libwxgtk3.0-dev"
+    echo "The $DIST package will be built for 32-Bit (i386) AND 64-Bit (amd64)"
 fi
-if [ x"$DIST" = x"lucid" ];then
-    # Running a Ubuntu Lucid chroot.  Add lucid-updates mirror site too.
-    OTHERMIRROR="deb http://us.archive.ubuntu.com/ubuntu/ ${DIST}-updates main restricted multiverse universe"
-fi
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# whm 7May2020 removed obsolete test for "lucid" block below:
+#if [ x"$DIST" = x"lucid" ];then
+#    # Running a Ubuntu Lucid chroot.  Add lucid-updates mirror site too.
+#    OTHERMIRROR="deb http://us.archive.ubuntu.com/ubuntu/ ${DIST}-updates main restricted multiverse universe"
+#fi
 echo "******************************************************************************"
 echo " Finished executing the $HOME/.pbuilderrc pbuilder setup script "
 echo "******************************************************************************"
@@ -258,7 +365,7 @@ EOF
 # Always install/update the pbuilder A05suffix hook to add a distro suffix to package versions
 mkdir -p ${PBUILDFOLDER}$HOOKSDIR
 # Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
-#       Using << EOF to create HERE DOC parameter expansion happens
+#       Using << EOF to create HERE DOC parameter expansion happens (not wanted here)
 echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
   cat >${PBUILDFOLDER}$HOOKSDIR/A05suffix <<"EOF"
 #!/bin/bash
@@ -271,6 +378,7 @@ echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
 # whm - 2016-12-09 Added serena => xenial DIST
 # whm - 2017-01-14 Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
 # whm - 2018-04-17 Corrected to cd to /tmp/buildd/*/
+# whm - 2020-05-08 Added Debian and Linux Mint dists and their Ubuntu equivalents
 
 echo ""
 echo "******************************************************************************"
@@ -287,13 +395,10 @@ case "$DIST" in
         DIST="sid"
         ;;
     $TESTING_CODENAME)
-        DIST="stretch"
+        DIST="bullseye"
         ;;
     $STABLE_CODENAME)
-        DIST="jessie"
-        ;;
-    "maya")
-        DIST="precise"
+        DIST="buster"
         ;;
     "qiana")
         DIST="trusty"
@@ -330,6 +435,9 @@ case "$DIST" in
         ;;
     "tricia")
         DIST="bionic"
+        ;;
+    "ulyana")
+        DIST="focal"
         ;;
 esac
 USER=$(id -un)
@@ -509,41 +617,82 @@ echo -e "\nBuild Suffix: $buildSuffix"
 cd $PACKAGING_DIR
 
 for i in $OSRELEASES; do
-  export DIST=$i	# $DIST is used in .pbuilderrc
-  # Ensure pbuilder-dist symlinks for relevant releases exist
-  echo -e "\nEnsuring pbuilder-dist symlinks for relevant releases exist"
-  [ -L /usr/bin/pbuilder-$i ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i)
-  [ -L /usr/bin/pbuilder-$i-i386 ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i-i386)
-
-  # Create pbuilder chroots if they do not already exist
-  echo -e "\nCreating pbuilder chroots if they don't already exist"
-  [ -f ${PBUILDFOLDER}/$i-base.tgz ] || pbuilder-$i create
-  [ -f ${PBUILDFOLDER}/$i-i386-base.tgz ] || pbuilder-$i-i386 create
-
-  # Update and clean pbuilder chroots, add extra packages so A05suffix hook works
-  echo -e "\nUpdating & cleaning pbuilder chroots, add extrapackages so A05suffix hook works"
-  pbuilder-$i update --extrapackages "lsb-release devscripts"
-  pbuilder-$i-i386 update --extrapackages "lsb-release devscripts"
-  pbuilder-$i clean
-  pbuilder-$i-i386 clean
+  export DIST=$i	# $DIST is used in .pbuilderrc and below
   
-  # TODO: Pass an option on Xenial that will change build configuration of AID to use 
-  # static and the custom wx library?
-  # Or, instead of working with the A06makewx hook script:
-  # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release" 
-  # for xenial and higher dists. Pbuilder doc says about its --execute command:
-  # "Execute a script or command inside the chroot, in a similar manner to --login 
-  # The file specified in the command-line argument will be copied into the chroot, and invoked.
-  # The remaining arguments are passed on to the script."
+  list_contains_item "$OSRELEASES64BITONLY" "$DIST"
+  result=$?
+  echo "result of list_contains_item call is: $result"
+  if [ "$result" = "0" ]; then
+    # Create ONLY amd64 package
+    # Ensure pbuilder-dist symlinks for relevant releases exist
+    echo -e "\nEnsuring pbuilder-dist symlinks for relevant releases exist"
+    [ -L /usr/bin/pbuilder-$i ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i)
+    #[ -L /usr/bin/pbuilder-$i-i386 ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i-i386)
 
-  # Build in each pbuilder
-  echo -e "\nBuilding in each pbuilder with command:"
-  echo "  pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc"
-  pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc
-  echo -e "\nBuilding in each pbuilder with command:"
-  echo "  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc"
-  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc
+    # Create pbuilder chroots if they do not already exist 
+    echo -e "\nCreating pbuilder chroots if they don't already exist"
+    [ -f ${PBUILDFOLDER}/$i-base.tgz ] || pbuilder-$i create
+    #[ -f ${PBUILDFOLDER}/$i-i386-base.tgz ] || pbuilder-$i-i386 create
 
+    # Update and clean pbuilder chroots, add extra packages so A05suffix hook works
+    echo -e "\nUpdating & cleaning pbuilder chroots, add extrapackages so A05suffix hook works"
+    pbuilder-$i update --extrapackages "lsb-release devscripts"
+    #pbuilder-$i-i386 update --extrapackages "lsb-release devscripts"
+    pbuilder-$i clean
+    #pbuilder-$i-i386 clean
+  
+    # TODO: Pass an option on Xenial that will change build configuration of AID to use 
+    # static and the custom wx library?
+    # Or, instead of working with the A06makewx hook script:
+    # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release" 
+    # for xenial and higher dists. Pbuilder doc says about its --execute command:
+    # "Execute a script or command inside the chroot, in a similar manner to --login 
+    # The file specified in the command-line argument will be copied into the chroot, and invoked.
+    # The remaining arguments are passed on to the script."
+
+    # Build in each pbuilder
+    echo -e "\nBuilding in each pbuilder with command:"
+    echo "  pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc"
+    pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc
+    #echo -e "\nBuilding in each pbuilder with command:"
+    #echo "  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc"
+    #pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc
+  else
+    # Create BOTH amd64 and i386 packages
+    # Ensure pbuilder-dist symlinks for relevant releases exist
+    echo -e "\nEnsuring pbuilder-dist symlinks for relevant releases exist"
+    [ -L /usr/bin/pbuilder-$i ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i)
+    [ -L /usr/bin/pbuilder-$i-i386 ] || (cd /usr/bin ; sudo ln -s pbuilder-dist pbuilder-$i-i386)
+
+    # Create pbuilder chroots if they do not already exist 
+    echo -e "\nCreating pbuilder chroots if they don't already exist"
+    [ -f ${PBUILDFOLDER}/$i-base.tgz ] || pbuilder-$i create
+    [ -f ${PBUILDFOLDER}/$i-i386-base.tgz ] || pbuilder-$i-i386 create
+
+    # Update and clean pbuilder chroots, add extra packages so A05suffix hook works
+    echo -e "\nUpdating & cleaning pbuilder chroots, add extrapackages so A05suffix hook works"
+    pbuilder-$i update --extrapackages "lsb-release devscripts"
+    pbuilder-$i-i386 update --extrapackages "lsb-release devscripts"
+    pbuilder-$i clean
+    pbuilder-$i-i386 clean
+  
+    # TODO: Pass an option on Xenial that will change build configuration of AID to use 
+    # static and the custom wx library?
+    # Or, instead of working with the A06makewx hook script:
+    # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release" 
+    # for xenial and higher dists. Pbuilder doc says about its --execute command:
+    # "Execute a script or command inside the chroot, in a similar manner to --login 
+    # The file specified in the command-line argument will be copied into the chroot, and invoked.
+    # The remaining arguments are passed on to the script."
+
+    # Build in each pbuilder
+    echo -e "\nBuilding in each pbuilder with command:"
+    echo "  pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc"
+    pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc
+    echo -e "\nBuilding in each pbuilder with command:"
+    echo "  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc"
+    pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc
+  fi
   # mkfit -p adaptit-debs-${RELEASE}
   #mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
 
