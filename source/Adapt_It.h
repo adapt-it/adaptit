@@ -311,6 +311,11 @@ inline int GetAISvnVersion()
 
 // uncomment the define below to output KB I/O benchmarks (in debug mode only)
 //#define SHOW_KB_I_O_BENCHMARKS
+
+// whm 12May2020 added defines below to output benchmarks for the OnePass() and LookAhead() functions (in debug mode only)
+#define SHOW_LOOK_AHEAD_BENCHMARKS
+#define SHOW_ONEPASS_BENCHMARKS
+
 #define SORTKB 1 // change to 0 for output of legacy unsorted KB map entries
 
 // uncomment the define below to output I/O benchmarks for OnNewDocument() and/or OnOpenDocument

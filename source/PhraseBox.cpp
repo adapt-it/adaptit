@@ -1612,12 +1612,24 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// strip index added to the CLayout::m_invalidStripArray
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+        wxDateTime dt1 = wxDateTime::Now(),
+            dt2 = wxDateTime::UNow();
+#endif
         // look ahead for a match with KB phrase content at this new active location
         // LookAhead (July 2003) has been ammended for auto-capitalization support; and
         // since it does a KB lookup, it will set gbMatchedKB_UCentry TRUE or FALSE; and if
         // an entry is found, any needed case change will have been done prior to it
         // returning (the result is in the global variable: translation)
 		bAdaptationAvailable = LookAhead(pNewPile);
+
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+        dt1 = dt2;
+        dt2 = wxDateTime::UNow();
+        wxLogDebug(_T("In MoveToNextPile() LookAhead() executed in %s ms"),
+            (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+
 		pView->RemoveSelection();
 
 		// check if we found a match and have an available adaptation string ready
@@ -2107,12 +2119,24 @@ b:	pApp->m_bSaveToKB = TRUE;
         // CLayout::m_invalidStripArray
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+        wxDateTime dt1 = wxDateTime::Now(),
+            dt2 = wxDateTime::UNow();
+#endif
         // look ahead for a match with KB phrase content at this new active location
         // LookAhead (July 2003) has been ammended for auto-capitalization support; and
         // since it does a KB lookup, it will set gbMatchedKB_UCentry TRUE or FALSE; and if
         // an entry is found, any needed case change will have been done prior to it
         // returning (the result is in the global variable: translation)
 		bAdaptationAvailable = LookAhead(pNewPile);
+
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+        dt1 = dt2;
+        dt2 = wxDateTime::UNow();
+        wxLogDebug(_T("In MoveToNextPile_InTransliterationMode() LookAhead() executed in %s ms"),
+            (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+
 		pView->RemoveSelection();
 
 		// check if we found a match and have an available adaptation string ready

@@ -2612,9 +2612,19 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					str.Empty();
 					return;
 				}
-				// it's not free translation mode, so try find something
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+                wxDateTime dt1 = wxDateTime::Now(),
+                    dt2 = wxDateTime::UNow();
+#endif
+                // it's not free translation mode, so try find something
 				bGotOne = pApp->m_pTargetBox->LookAhead(pApp->m_pActivePile);
-			}
+#ifdef SHOW_LOOK_AHEAD_BENCHMARKS
+                dt1 = dt2;
+                dt2 = wxDateTime::UNow();
+                wxLogDebug(_T("In DoGetSuitableText_ForPlacePhraseBox() LookAhead() executed in %s ms"),
+                    (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+            }
 			else // we are in reviewing mode for the code in next block
 			{
 				// Reviewing mode, we still need to ensure that if the user cancelled a

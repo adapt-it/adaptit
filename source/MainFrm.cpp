@@ -4676,8 +4676,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 			DoDelay(); // defined in Helpers.cpp (m_nCurDelay is in tick units)
 		}
-		bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is
+#ifdef SHOW_ONEPASS_BENCHMARKS
+        wxDateTime dt1 = wxDateTime::Now(),
+            dt2 = wxDateTime::UNow();
+#endif
+
+        bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
+
+#ifdef SHOW_ONEPASS_BENCHMARKS
+        dt1 = dt2;
+        dt2 = wxDateTime::UNow();
+        wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
+            (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+
 #if defined(_DEBUG)
 		if (pApp->m_bSupportFreeze)
 		{
