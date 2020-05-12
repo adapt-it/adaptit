@@ -24468,8 +24468,19 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
     // "filter" unzipping the stream from pathName
 	wxZipInputStream zipStream(zippedfile);
 	wxString unzipFileName;
-	pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the
-									   // .aip file
+	pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the .aip file
+
+    // whm 11May2020 added the following error message if pEntry is NULL
+    if (pEntry == NULL)
+    {
+        wxString msg;
+        msg = msg.Format(_(
+            "Error uncompressing; Adapt It cannot read the information in the packed .aip file."));
+        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        gpApp->LogUserAction(msg);
+        return;
+    }
+
 	unzipFileName = pEntry->GetName(); // access the meta-data
     // construct the path to the .aiz file so that it goes temporarily in the project
     // folder this .aiz file is erased below after DoUnPackDocument is called on it
