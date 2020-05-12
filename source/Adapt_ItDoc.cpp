@@ -24476,7 +24476,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
         wxString msg;
         msg = msg.Format(_(
             "Error uncompressing; Adapt It cannot read the information in the packed .aip file."));
-        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        wxMessageBox(msg, _("Unable to unpack the packed document"), wxICON_EXCLAMATION | wxOK);
         gpApp->LogUserAction(msg);
         return;
     }
