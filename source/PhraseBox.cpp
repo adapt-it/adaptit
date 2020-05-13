@@ -25,7 +25,7 @@
 #endif
 
 // defines for debugging purposes
-//#define _FIND_DELAY
+#define _FIND_DELAY
 //#define _AUTO_INS_BUG
 //#define LOOKUP_FEEDBACK
 //#define DROPDOWN
