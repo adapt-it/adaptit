@@ -56484,8 +56484,29 @@ void CAdapt_ItApp::ClearSavedSelection()
 
 void CAdapt_ItApp::ClobberGuesser()
 {
-    m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser,
-                                     // and probably never will (unrelated languages, so a bad idea)
+    // whm 13May2020 removed the following line that unilaterally sets the Guesser back on!
+    // The App's member m_bUseAdaptationsGuesser has nothing to do with glossing. It is the
+    // member that indicates whether the Guesser is ON or OFF. Since ClobberGuesser() is called
+    // BEFORE the application saves the project config file at project closure and/or app shutdown,
+    // the following assignment unilaterally turns the Guesser ON for the project even if the user 
+    // explicitly turned it OFF using the GuesserSettingsDlg. Hence, although the user can turn off
+    // the Guesser during the current session, it will always automatically turn back on when the
+    // project and/or application is closed - meaning that it will alwaiys be ON the next time the
+    // application is run and the project opened. Yikes!
+    // This problem with the Guesser ON/OFF switch was not noticed until today when I tracked down
+    // the performance problem reported by Feridoon's to be due to the Guesser being bogged down
+    // when dealing with a large KB. Feridoon's data had a very large KB and the culprit was the
+    // DoGuess() call in the View's CopySourceKey() function. Then, when I attempted to turn off
+    // the Guesser using the GuesserSettingsDlg, the setting change would only turn off for the
+    // current session while the project was open. Later, however, the setting would always revert
+    // to Guesser ON.
+    // For projects with a very large KB, the Guesser function DoGuess() is a bottle-neck in the
+    // application and results in significant slow-down of the application. More problematic 
+    // is that the guesser gets turned back on every time the project/application is closed 
+    // (because of the following line in this ClobberGuesser() function call) that occurs BEFORE
+    // the project config file is saved.
+    //m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser,
+    //                                 // and probably never will (unrelated languages, so a bad idea)
     m_preGuesserStr.Empty();
     m_bIsGuess = FALSE;
     m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
@@ -56506,7 +56527,13 @@ void CAdapt_ItApp::ClobberGuesser()
     GuesserSuffixesLoaded = FALSE;
     GuesserPrefixCorrespondencesLoaded = FALSE;
     GuesserSuffixCorrespondencesLoaded = FALSE;
-    m_nGuessingLevel = 50;
+    // whm 13May2020 modificantion: The following assignment which sets the Guesser level to 50
+    // will alwyas happen regardless of the User's setting done in the GuesserSettingsDlg - due
+    // to the same reason that the Guesser would always get turned ON by the unilateral
+    // assignment of m_bUseAdaptationsGuesser = TRUE above. Since we want the user's Guesser
+    // switch and the Guesser Level to persist in the project config file, I've also removed
+    // the following line
+    //m_nGuessingLevel = 50;
     // We don't delete m_pAdaptationsGuesser, nor m_pGlossesGuesser, except in OnExit()
     // because the Guesser objects are set up once per launch of AI, and persist until
     // AI is shut down. Changing from one project to another just uses, or ignores, the

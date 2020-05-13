@@ -7436,6 +7436,14 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// Ensure Guesser settings don't persist over the closure of the project which
 	// may have been using them; we clear the flags, and empty the lists and arrays
 	// by initializing the two Guesser objects (which are on the heap)
+    // whm 13May2020 Note: I removed two assignments in the App's ClobberGuesser() function:
+    //     m_bUseAdaptationsGuesser = TRUE; and
+    //     m_nGuessingLevel = 50;
+    // because, although ClobberGuesser() is called after the >WriteConfigurationFile(szProjectConfiguration,...)
+    // call above, another >WriteConfigurationFile(szProjectConfiguration,...) call will happen subsequently
+    // that will force a save of the two ClobberGuesser() assignments above - resulting in the user's changes
+    // made within the GuesserSettingsDlg to be lost, i.e., the Guesser would otherwise alwyas be ON and at a
+    // 50% level each time the project is opened.
 	pApp->ClobberGuesser(); // it's only OnExit() which deletes the two Guesser objects
 							// until then they must persist to be available for a new guesser setup
 }
@@ -24009,11 +24017,19 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 			pApp->LoadGuesser(pApp->m_pGlossingKB);
 			pApp->LoadGuesser(pApp->m_pKB);
 		}
-		pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
-		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
+        // whm 13May2020 value from the dialog's bUserAdaptationsGuesser was not getting assigned to the App's m_bUseAdaptationGuesser so I used GetValue() directly on the dialog's checkbox contrl
+        // pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
+        pApp->m_bUseAdaptationsGuesser = gsDlg.pCheckUseGuesser->GetValue();
+        pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
 		pApp->m_GuessHighlightColor = gsDlg.tempGuessHighlightColor;
 
 		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowGuesseronUnchangedCCOutput;
+
+        // whm 13May2020 added code to make any open document dirty so that any changes to
+        // the Guesser settings get saved in the project config file.
+        CAdapt_ItDoc* pDoc = pApp->GetDocument();
+        if (pDoc != NULL)
+            pDoc->Modify(TRUE);
 	}
 }
 
