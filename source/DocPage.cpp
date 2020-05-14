@@ -449,7 +449,10 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	// changing from guesser off to on
 	if (gpApp->m_bUseAdaptationsGuesser)
 	{
-		if (gpApp->m_pKB != NULL && gpApp->m_bKBReady)
+        // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+        // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
+        //
+        if (gpApp->m_pKB != NULL && gpApp->m_bKBReady)
 		{
 			gpApp->m_pKB->GetMinimumExtras(gpApp->m_numLastEntriesAggregate); // ignore returned minimumExtras value
 		}

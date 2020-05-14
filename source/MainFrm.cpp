@@ -4825,7 +4825,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// for the latter, and size_t minimumAdded for the former.
 	if (pApp->m_bUseAdaptationsGuesser)
 	{
-		// We only need this stuff when the guesser is turned on. And even then, we update only when
+        // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+        // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
+        //
+        // We only need this stuff when the guesser is turned on. And even then, we update only when
 		// there has been a minimum number, which increases with KB size increases, of entries added 
 		// to the KB since the last update
 		size_t minimumAdded = 0;

@@ -3992,7 +3992,7 @@ public:
 									// visibility value for the <New Project> profile item. If the
 									// <New Project> item is absent from the list box, it
 									// effectively prevents the user from creating new projects.
-	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
+	bool m_bUseAdaptationsGuesser;	// If TRUE(the default is FALSE) use the Guesser for adaptations
 	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
 	int  m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
 	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE the Guesser can operate on unchanged

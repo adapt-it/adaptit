@@ -21180,8 +21180,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 19Oct10 for user workflow profiles support
     m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
-    m_bUseAdaptationsGuesser = TRUE; // the default is TRUE; use the Guesser for adaptations unless
-                                     // changed by config file settings
+
+    // whm 13May2020 changed default for Guesser to FALSE.
+    // Note that in the ProjectPage::OnWizardPageChanging() after the project config
+    // file is read, we now unilaterally force the m_bUseAdaptationsGuesser to be FALSE
+    // so that the Guesser is set OFF for a given session and at the opening of the
+    // project.
+    m_bUseAdaptationsGuesser = FALSE; 
     m_bIsGuess = FALSE;				// the default is FALSE, changed by the guesser when returning a guess
     m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50);
                                     // default is 50 unless changed by config file settings
@@ -26882,7 +26887,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is
     // to be on. This also needs to be done in other places, like when entering a project, and also when
-    // changing from guesser off to on
+    // changing from guesser off to on.\
+    //
+    // whm 13May2020 Note: The m_bUseAdaptationsGuesser value is now initialized to FALSE above in OnInit().
+    // Existing Adapt It users like Feridoon will have m_bUseAdaptationsGuesser set to TRUE in their
+    // project configuration files which degrades performance for their large KBs. When they upgrade to this
+    // version, the Guesser will still be ON unless they explicitly turn it OFF after the upgrade. Since the
+    // Guesser has shown little benefit and eventually degrades performance, I'mm changing how the Guesser
+    // settings are handled - namely, m_bUseAdaptationsGuesser will default to OFF FOR EACH SESSION of Adapt It
+    // at start up. It will only ever be ON if the user explicitly sets it to ON by ticking the check box within
+    // the Guesser Settings dialog, and the Guesser will only stay ON for the duration of that AI session. It
+    // seems safest - especially for existing users - to require the Guesser to be turned on for any given
+    // AI session that the user wants to use it. This change will also make it easy for existing users like
+    // Feridoon and his teams to experience better performance automatically when they upgrade to the new
+    // version containing this change to Guesser settings - and they won't have to turn the Guesser OFF at 
+    // each session as they must do as a work-around with AI versions up through 6.10.1.
+    // With this change, there really is no need for the various Guesser settings to be saved in the project
+    // config file, since their values will no longer persist from one session to the next - but I will leave
+    // the settings in the project config file for now as they aren't hurting anything - and it would be
+    // easier to update the code if Alan B decides to make a version of the Guesser that doesn't noticeably
+    // affect performance like the current Guesser does.
     if (m_bUseAdaptationsGuesser)
     {
         if (m_pKB != NULL && m_bKBReady)
@@ -30466,7 +30490,9 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
             // (off) doesn't help, because the crash happens first. The user needs a
             // way to turn off the LoadGuesser() when it fails, so wrapping it with the
             // appropriate flag accomplishes that - he just now can manually change the
-            // project config file
+            // project config file.
+            // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+            // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
             if (m_bUseAdaptationsGuesser)
             {
                 LoadGuesser(m_pKB); // whm added 29Oct10
@@ -30549,6 +30575,8 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
             // way to turn off the LoadGuesser() when it fails, so wrapping it with the
             // appropriate flag accomplishes that - he just now can manually change the
             // project config file
+            // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+            // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
             if (m_bUseAdaptationsGuesser)
             {
                 LoadGuesser(m_pGlossingKB); // whm added 29Oct10
@@ -38955,19 +38983,19 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 {
     SetDefaultCaseEquivalences(); // The GetProjectConfiguration() function originally only called this function
 
-                                  // whm 28Oct13 Note: The values for FoldersProtectedFromNavigation are
-                                  // stored in BOTH the AI-BasicConfiguration.aic file AND the
-                                  // AI-ProjectConfiguration.aic file. The ability to restore these
-                                  // navigation protection folder settings should be done for the project
-                                  // configuration file as well as the basic configuration file. Therefore,
-                                  // I am copying the code from SetDefaults() here in SetProjectDefaults().
-                                  //
-                                  // whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
-                                  // and outputs folders at the time the user held down the SHIFT key to get the app going again, we
-                                  // would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
-                                  // Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
-                                  // it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
-                                  // down restart), restore the value stored in Adapt_It_WX.ini.
+    // whm 28Oct13 Note: The values for FoldersProtectedFromNavigation are
+    // stored in BOTH the AI-BasicConfiguration.aic file AND the
+    // AI-ProjectConfiguration.aic file. The ability to restore these
+    // navigation protection folder settings should be done for the project
+    // configuration file as well as the basic configuration file. Therefore,
+    // I am copying the code from SetDefaults() here in SetProjectDefaults().
+    //
+    // whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
+    // and outputs folders at the time the user held down the SHIFT key to get the app going again, we
+    // would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
+    // Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
+    // it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
+    // down restart), restore the value stored in Adapt_It_WX.ini.
     bool bReadOK = FALSE;
     wxString tempFoldersProtectedFromNavigation;
     wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
@@ -40369,6 +40397,8 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
     // whm added next three for Guesser support
     data.Empty();
+    // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+    // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
     if (m_bUseAdaptationsGuesser)
         number = _T("1");
     else
@@ -41458,6 +41488,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 
         else if (name == szUseAdaptationsGuesser)
         {
+            // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+            // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
             num = wxAtoi(strValue);
             if (!(num == 0 || num == 1))
                 num = 1;
@@ -56494,7 +56526,7 @@ void CAdapt_ItApp::ClobberGuesser()
     // project and/or application is closed - meaning that it will alwaiys be ON the next time the
     // application is run and the project opened. Yikes!
     // This problem with the Guesser ON/OFF switch was not noticed until today when I tracked down
-    // the performance problem reported by Feridoon's to be due to the Guesser being bogged down
+    // the performance problem reported by Feridoon to be due to the Guesser being bogged down
     // when dealing with a large KB. Feridoon's data had a very large KB and the culprit was the
     // DoGuess() call in the View's CopySourceKey() function. Then, when I attempted to turn off
     // the Guesser using the GuesserSettingsDlg, the setting change would only turn off for the
@@ -56502,9 +56534,9 @@ void CAdapt_ItApp::ClobberGuesser()
     // to Guesser ON.
     // For projects with a very large KB, the Guesser function DoGuess() is a bottle-neck in the
     // application and results in significant slow-down of the application. More problematic 
-    // is that the guesser gets turned back on every time the project/application is closed 
+    // is that the guesser gets turned back ON every time the project/application is closed 
     // (because of the following line in this ClobberGuesser() function call) that occurs BEFORE
-    // the project config file is saved.
+    // the project config file's final save is done.
     //m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser,
     //                                 // and probably never will (unrelated languages, so a bad idea)
     m_preGuesserStr.Empty();

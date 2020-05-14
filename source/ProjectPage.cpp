@@ -733,6 +733,22 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// this project.
 			pApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
+            // whm 13May2020 changed default for Guesser to FALSE each time project is opened.
+            // Note that here in the CProjectPage::OnWizardPageChanging() after the project config
+            // file is read, we now unilaterally force the m_bUseAdaptationsGuesser to be FALSE
+            // so that the Guesser is set OFF for a given session and at the opening of the
+            // project (eventually we may want to remove m_bUseAdaptationsGuesser value and other
+            // Guesser related values from being saved in the project config file since now Guesser
+            // settings need not be persistent).
+            // We need to override any old project config values in Adapt It versions prior to
+            // version 6.10.1 that would have unilaterally set the Guesser default to being ON 
+            // when opening a project.
+            // Also note that if the user holds down the SHIFT key to bypass reading the
+            // project config file, the m_bUseAdaptationsGuesser value will have been set to
+            // new FALSE value by the App's OnInit() function at program startup.
+            pApp->m_bUseAdaptationsGuesser = FALSE;
+
+
 			// whm modified 18Feb12. Now that the project config file has been read we
 			// can determine what the collaboration settings are for this AI project. If
 			// collaboration with PT/BE has been setup by the administrator for hooking

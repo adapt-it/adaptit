@@ -7322,7 +7322,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// update status bar with project name
 	wxString message;
 	// IDS_NO_PROJECT
-	message = message.Format(_("No project is currently active"));
+	message = message.Format(_("No project is currently active - select \"Start Working...\" from the File menu to open a project"));
 	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
 	{
 		wxString mssg;
@@ -7443,7 +7443,8 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
     // call above, another >WriteConfigurationFile(szProjectConfiguration,...) call will happen subsequently
     // that will force a save of the two ClobberGuesser() assignments above - resulting in the user's changes
     // made within the GuesserSettingsDlg to be lost, i.e., the Guesser would otherwise alwyas be ON and at a
-    // 50% level each time the project is opened.
+    // 50% level each time the project is opened. The Guesser now defaults to OFF for each session of Adapt It,
+    // and only is ON for that sesssion if the user explicitly turns it ON in the Guesser Settings dialog.
 	pApp->ClobberGuesser(); // it's only OnExit() which deletes the two Guesser objects
 							// until then they must persist to be available for a new guesser setup
 }
@@ -15245,7 +15246,10 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	bool bIsGuess = FALSE;
 	if (pApp->m_bUseAdaptationsGuesser && !pApp->m_bUseSilConverter)
 	{
-		// The Guesser cannot be used if the SIL Converters is being used.
+        // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+        // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
+        //
+        // The Guesser cannot be used if the SIL Converters is being used.
 		// Also, the Guesser can be used only if Consistent Changes is not being used
 		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
 		// was set to true by the administrator checking the appropriate checkbox
@@ -24002,7 +24006,10 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 
 	if (gsDlg.ShowModal() == wxID_OK)
 	{
-		// Assign any new settings to the App's corresponding members if we
+        // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+        // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
+        //
+        // Assign any new settings to the App's corresponding members if we
 		// detect any changes made in GuesserSettingsDlg.
 
 		// Generally the Guesser's correspondence lists are populated when a
@@ -24017,7 +24024,8 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 			pApp->LoadGuesser(pApp->m_pGlossingKB);
 			pApp->LoadGuesser(pApp->m_pKB);
 		}
-        // whm 13May2020 value from the dialog's bUserAdaptationsGuesser was not getting assigned to the App's m_bUseAdaptationGuesser so I used GetValue() directly on the dialog's checkbox contrl
+        // whm 13May2020 value from the dialog's bUserAdaptationsGuesser was not getting assigned to 
+        // the App's m_bUseAdaptationGuesser so I used GetValue() directly on the dialog's checkbox control
         // pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
         pApp->m_bUseAdaptationsGuesser = gsDlg.pCheckUseGuesser->GetValue();
         pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;

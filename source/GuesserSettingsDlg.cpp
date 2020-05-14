@@ -117,12 +117,13 @@ void CGuesserSettingsDlg::OnCancel(wxCommandEvent& event)
 
 void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	//InitDialog() is not virtual, no call needed to a base class
-	bUseAdaptationsGuesser = m_pApp->m_bUseAdaptationsGuesser;
+    bUseAdaptationsGuesser = m_pApp->m_bUseAdaptationsGuesser;
 	if (bUseAdaptationsGuesser)
 	{
-		// If turned on, make sure that the app variables are initialized...
+        // whm 13May2020 Note: The App's m_bUseAdaptationsGuesser now defaults to FALSE.
+        // Therefore, the Guesser remains OFF unless the user explicitly turns it ON for a given session.
+        //
+        // If turned on, make sure that the app variables are initialized...
 		// Guesser support - initialize the current counts for each KB  (first 4 maps only)
 		// if guessing is already on.
 		if (m_pApp->m_bUseAdaptationsGuesser)
