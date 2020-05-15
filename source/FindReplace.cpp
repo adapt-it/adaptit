@@ -112,7 +112,20 @@ BEGIN_EVENT_TABLE(CFindDlg, wxScrollingDialog)
 	
 	EVT_COMBOBOX(IDC_COMBO_SFM, CFindDlg::OnSelchangeComboSfm)
 	EVT_BUTTON(IDC_BUTTON_SPECIAL, CFindDlg::OnButtonSpecial)
-	
+    
+    // whm 14May2020 added the following EVT_TEXT_ENTER() lines to intercept and prevent
+    // an ENTER key press inside the "Source Text" and/or "Translation" edit boxes from
+    // propagating to the phrasebox in the main window and causing the phrasebox to move 
+    // on from the found location. 
+    // The OnSrcEditBoxEnterKeyPress() and OnTgtEditBoxEnterKeyPress() handlers simply 
+    // call the OnFindNext() handler with a dummy event, and then return without calling 
+    // event.Skip().
+    // whm 14May2020 followup note: The following handlers work sometimes and not at other
+    // times. They tend to work well when the debugger stops the flow of control at a 
+    // breakpoint within the handlers and then allowed program control to resume.
+    EVT_TEXT_ENTER(IDC_EDIT_SRC_FIND, CFindDlg::OnSrcEditBoxEnterKeyPress)
+    EVT_TEXT_ENTER(IDC_EDIT_TGT_FIND, CFindDlg::OnTgtEditBoxEnterKeyPress)
+
 	EVT_BUTTON(wxID_OK, CFindDlg::OnFindNext)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_ONLY_FIND, CFindDlg::OnRadioSrcOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_TGT_ONLY_FIND, CFindDlg::OnRadioTgtOnly)
@@ -238,6 +251,9 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	gbReplaceAllIsCurrent = FALSE;
 	gbJustCancelled = FALSE;
 
+    // whm 15May2020 added
+    m_bSearchFromDocBeginning = FALSE;
+
 	// make the font show user-chosen point size in the dialog
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSrc, NULL,
@@ -322,7 +338,10 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	m_pStaticTgtBoxLabel->Hide();
-	
+
+    // whm 14May2020 added set focus in the m_pEditSrc edit box
+    m_pEditSrc->SetFocus();
+
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->Hide();
 
@@ -434,6 +453,9 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 
 	m_nCount = 0; // nothing matched yet
 
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
 	pFindDlgSizer->Layout(); // force the sizers to resize the dialog
 }
 // initdialog here above
@@ -442,12 +464,29 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 // BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
 // for glossing KB
 // BEW 23Apr15 added support for using / as a word-breaking whitespace character
+// whm 14May2020 revised to support searching from beginning of document when a search
+// reaches the end of the document and doesn't find the search string. Also revised to
+// use m_bUserDlgOrMessageRequested to help prevent run on phrasebox while interacting
+// with the dialog.
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->RemoveSelection();
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
+    int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber; // could be 0 if active pile is at 0
+
+repeatfind:
+
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
@@ -457,10 +496,9 @@ void CFindDlg::DoFindNext()
 		return;
 	}
 
-	int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	if (gbJustReplaced)
-	{
-		// do all the housekeeping tasks associated with a move, after a replace was done
+    if (gbJustReplaced)
+    {
+        // do all the housekeeping tasks associated with a move, after a replace was done
 		// if the targetBox is visible, store the contents in KB since we will advance the
 		// active location potentially elsewhere
 		// whm Note 12Aug08. The following should be OK even though in the wx version the
@@ -662,8 +700,63 @@ void CFindDlg::DoFindNext()
 		// In wx version we seem to need to scroll to the found location
 		gpApp->GetMainFrame()->canvas->ScrollIntoView(nAtSequNum); // whm added 7Jun07
 	}
-	else
+	else // bFound is FALSE
 	{
+        // whm 14May2020 added below for giving option to search earlier in document.
+        // Notify user that end of document was reached and search item was not found.
+        // If search didn't start at doc beginning, ask if the search should be made of the earlier part of
+        // the document.
+        wxString searchStr;
+        if (m_bSrcOnly)
+            searchStr = m_pEditSrc->GetValue();
+        else if (m_bTgtOnly)
+            searchStr = m_pEditTgt->GetValue();
+        else if (m_bSrcAndTgt)
+            searchStr = m_pEditSrc->GetValue(); // when searching both src and translated text the m_srcStr is used
+
+        wxString msg;
+        if (nKickOffSequNum == 0) // nKickOffSequNum was 0 at beginning of document
+        {
+            // nKickOffSequNum was at start of doc, and nothing was found
+            msg = _("All of document was searched. No \"%s\" was found.");
+            msg = msg.Format(msg, searchStr.c_str());
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+            // pass throgh to pView->FindNextHasLanded() below...
+        }
+        else if (nKickOffSequNum > 0)
+        {
+            // nKickOffSequNum was NOT at start of doc, and nothing was found
+            if (m_bSearchFromDocBeginning)
+            {
+                // We searched already from the beginning and nothing was found
+                m_bSearchFromDocBeginning = FALSE;
+                // starting point was reached and nothing found
+                msg = _("Remainder of document was searched. No \"%s\" was found.");
+                msg = msg.Format(msg, searchStr.c_str());
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+            }
+            else
+            {
+                // nKickOffSequNum was not at start of doc and nothing found, but earlier part of 
+                // doc was not searched, so offer to search it.
+                gpApp->LogUserAction(_T("   Not Found!"));
+                m_nCount = 0; // none matched
+                // Search was initiated in middle of document
+                msg = _("End of document was reached. No \"%s\" was found. Search for %s in the earlier part of document?");
+                msg = msg.Format(msg, searchStr.c_str(), searchStr.c_str());
+                int result;
+                result = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                if (result == wxYES)
+                {
+                    m_bSearchFromDocBeginning = TRUE;
+                    nKickOffSequNum = 0;
+                    // Go to near beginning of DoFindNext() above to setup and do another Find operation
+                    goto repeatfind;
+                }
+            }
+        }
+
+
 		gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
@@ -704,6 +797,9 @@ void CFindDlg::DoRadioTgtOnly()
 	
 	wxASSERT(m_pEditSrc != NULL);
 	m_pEditSrc->Hide();
+
+    // whm 14May2020 added set focus in the m_pEditTgt box
+    m_pEditTgt->SetFocus();
 	
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	wxString str;
@@ -934,6 +1030,46 @@ void CFindDlg::OnButtonSpecial(wxCommandEvent& WXUNUSED(event))
 		m_pCheckSpanSrcPhrases->Hide();
 	}
 	pFindDlgSizer->Layout(); // force the top dialog sizer to re-layout the dialog
+}
+
+// whm 14May2020 addition. The following OnSrcEditBoxEnterKeyPress() function is triggered from
+// the EVENT_TABLE macro line: EVT_TEXT_ENTER(IDC_EDIT_SRC_FIND, CFindDlg::OnSrcditBoxEnterKeyPress)
+// when an ENTER key is pressed from within the Source Text wxTextCtrl, which has its
+// wxTE_PROCESS_ENTER style flag set. Here we set up a default action we call the DoFindNext() handler 
+// function to make it be the default action triggered by the ENTER key press.
+void CFindDlg::OnSrcEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    wxLogDebug(_T("CFindDlg::OnSrcEditBoxEnterKeyPress() handling WXK_RETURN key"));
+    this->DoFindNext();
+    // don't call event.Skip() here, just return.
+    return; // event.Skip();
+}
+
+// whm 14May2020 addition. The following OnTgtEditBoxEnterKeyPress() function is triggered from
+// the EVENT_TABLE macro line: EVT_TEXT_ENTER(IDC_EDIT_TGT_FIND, CFindDlg::OnTgtditBoxEnterKeyPress)
+// when an ENTER key is pressed from within the Translation wxTextCtrl, which has its
+// wxTE_PROCESS_ENTER style flag set. Here we set up a default action we call the DoFindNext() handler 
+// function to make it be the default action triggered by the ENTER key press.
+void CFindDlg::OnTgtEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    wxLogDebug(_T("CFindDlg::OnTgtEditBoxEnterKeyPress() handling WXK_RETURN key"));
+    this->DoFindNext();
+    // don't call event.Skip() here, just return.
+    return; // event.Skip();
 }
 
 void CFindDlg::OnRadioSfm(wxCommandEvent& event) 

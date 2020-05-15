@@ -100,6 +100,9 @@ public:
 	int m_nCount;
 	bool m_bSelectionExists;
 
+    // whm 15May2020 added
+    bool m_bSearchFromDocBeginning;
+
 	wxSizer* pFindDlgSizer;
 	
 	void DoFindNext();
@@ -113,6 +116,8 @@ protected:
 	// these are unique to CFindDlg
 	void OnSelchangeComboSfm(wxCommandEvent& WXUNUSED(event));
 	void OnButtonSpecial(wxCommandEvent& WXUNUSED(event));
+    void OnSrcEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    void OnTgtEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSfm(wxCommandEvent& event);
 	void OnRadioRetranslation(wxCommandEvent& WXUNUSED(event));
 	void OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event));

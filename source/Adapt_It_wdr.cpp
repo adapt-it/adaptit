@@ -1771,7 +1771,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
-    item0->Add( item30, 0, wxLEFT, 5 );
+    item0->Add( item30, 0, wxLEFT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
@@ -3906,7 +3906,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, IDC_STATIC_SRC_FIND, _("Source Text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_SRC_FIND, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_SRC_FIND, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_PROCESS_ENTER );
     item11->SetToolTip( _("Type source text to find here") );
     item9->Add( item11, 1, wxGROW|wxRIGHT, 10 );
 
@@ -3917,7 +3917,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item13 = new wxStaticText( parent, IDC_STATIC_TGT_FIND, _("With Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_TGT_FIND, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_TGT_FIND, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_PROCESS_ENTER );
     item14->SetToolTip( _("Type translation text to find here") );
     item12->Add( item14, 1, wxGROW|wxRIGHT, 10 );
 
@@ -4006,8 +4006,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item29->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item31 = new wxButton( parent, wxID_OK, _("Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetDefault();
+    wxButton *item31 = new wxButton( parent, wxID_OK, _("Find &Next"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->SetToolTip( _("Find the next occurrence (if any)") );
     item29->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
