@@ -116,12 +116,14 @@ protected:
 	// these are unique to CFindDlg
 	void OnSelchangeComboSfm(wxCommandEvent& WXUNUSED(event));
 	void OnButtonSpecial(wxCommandEvent& WXUNUSED(event));
-    void OnSrcEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
-    void OnTgtEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSfm(wxCommandEvent& event);
 	void OnRadioRetranslation(wxCommandEvent& WXUNUSED(event));
 	void OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event));
 	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
+
+    // whm 15May2020 added
+    void OnSrcEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    void OnTgtEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
 
 	void OnFindNext(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSrcOnly(wxCommandEvent& WXUNUSED(event));
@@ -200,7 +202,10 @@ public:
 	int m_nCount;
 	bool m_bSelectionExists;
 
-	wxSizer* pReplaceDlgSizer;
+    // whm 15May2020 added
+    bool m_bSearchFromDocBeginning;
+
+    wxSizer* pReplaceDlgSizer;
 
 	bool OnePassReplace(); // do a single Find Next & Replace, provided the Find Next succeeded
 
@@ -216,12 +221,19 @@ protected:
 	void OnReplaceAllButton(wxCommandEvent& event);
 	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
 	
-	void OnFindNext(wxCommandEvent& WXUNUSED(event));
+    // whm 15May2020 added
+    void OnSrcEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    void OnTgtEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    void OnReplaceEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    
+    void OnFindNext(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSrcOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTgtOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSrcAndTgt(wxCommandEvent& WXUNUSED(event));
 	void OnSpanCheckBoxChanged(wxCommandEvent& WXUNUSED(event));
-	void UpdateReplaceAllButton(wxUpdateUIEvent& event);
+    void OnUpdateReplaceAllButton(wxUpdateUIEvent& event);
+    void OnUpdateReplace(wxUpdateUIEvent& event);
+    void OnUpdateFindNext(wxUpdateUIEvent& event);
 private:
     DECLARE_DYNAMIC_CLASS( CReplaceDlg )
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

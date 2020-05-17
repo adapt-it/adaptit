@@ -4065,14 +4065,14 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item9 = new wxStaticText( parent, IDC_STATIC_SRC_REPLACE, _("Source Text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, IDC_EDIT_SRC_REPLACE, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    wxTextCtrl *item10 = new wxTextCtrl( parent, IDC_EDIT_SRC_REPLACE, wxT(""), wxDefaultPosition, wxSize(200,40), wxTE_PROCESS_ENTER );
     item10->SetToolTip( _("Type source text to find here") );
     item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, IDC_STATIC_TGT_REPLACE, _("With Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_TGT_REPLACE, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_TGT_REPLACE, wxT(""), wxDefaultPosition, wxSize(200,40), wxTE_PROCESS_ENTER );
     item12->SetToolTip( _("Type translation text to find here") );
     item8->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4103,7 +4103,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item17 = new wxStaticText( parent, IDC_STATIC_REPLACE, _("Replacement Text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_REPLACE, wxT(""), wxDefaultPosition, wxSize(400,40), 0 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_REPLACE, wxT(""), wxDefaultPosition, wxSize(400,40), wxTE_PROCESS_ENTER );
     item18->SetToolTip( _("Type replacement text here") );
     item16->Add( item18, 1, wxGROW|wxALL, 5 );
 
@@ -4111,20 +4111,20 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item20 = new wxButton( parent, wxID_OK, _("Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item20 = new wxButton( parent, wxID_OK, _("Find &Next"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->SetDefault();
     item20->SetToolTip( _("Find the next occurrence (if any)") );
     item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item21 = new wxButton( parent, IDC_REPLACE, _("Replace"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, IDC_REPLACE, _("&Replace"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("Replace once") );
     item19->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item22 = new wxButton( parent, IDC_REPLACE_ALL_BUTTON, _("Replace All"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item22 = new wxButton( parent, IDC_REPLACE_ALL_BUTTON, _("Replace &All"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Replace all instances found") );
     item19->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 

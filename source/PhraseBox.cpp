@@ -6848,6 +6848,29 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         || keycode == WXK_NUMPAD_ENTER // NUMPAD_ENTER
         || keycode == WXK_NUMPAD_TAB)  // NUMPAD_TAB  //whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
+        // whm 16May2020 moved the code for handling bogus Enter key presses causeing
+        // phrasebox run-on situation, from where BEW placed it below, up here to the beginning 
+        // of the block detecting ENTER and TAB key presses. The Reason: To avoid executing the
+        // auto-merging code below and the pView->RemoveSelection() call below that can cause
+        // problems if a phrasebox run-on situation exists. Up here we deal with the run-on
+        // situation by immediately calling return from this OnKeyUp() handler.
+        pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
+        if (keycode == WXK_TAB) // TAB
+        {
+        	pApp->m_bUserHitEnterOrTab = TRUE;
+        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+        }
+        else if (keycode == WXK_RETURN) // ENTER or RETURN
+        {
+        	pApp->m_bUserHitEnterOrTab = TRUE;
+        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
+        }
+        if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
+        {
+        	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation
+        	return;
+        }
+
         // whm 13Mar2020 PROBLEM identified: Within CSourcePhrase::InsertNullSourcePhrase()
         // a YES/NO wxMessageBox/wxMessageDialog can present itself to ask the user where the 
         // placeholder should be placed, asking if the placeholder should be placed BEFORE
@@ -7012,27 +7035,49 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		// a placeholder, Choose Translation, Guesser dialog, and maybe others (but not all).
 		// Whether in Drafting or Reviewing mode, without the protection below, then an Enter
 		// or Tab key press would cause run-on the next hole, or next pile, respectively. 
-		pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
-		if (keycode == WXK_TAB) // TAB
-		{
-			pApp->m_bUserHitEnterOrTab = TRUE;
-			wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
-		}
-		else if (keycode == WXK_RETURN) // ENTER or RETURN
-		{
-			pApp->m_bUserHitEnterOrTab = TRUE;
-			wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
-		}
-		if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
-		{
-			// Don't call JumpForward, because it is likely this is a bogus box run-on situation
-			;
-		}
-		else
-		{
-			// Normal jump is okay to do
-			JumpForward(pView);
-		}
+        // 
+        // whm 16May2020 moved the code block below that BEW added up above the automatic merge
+        // code in this OnKeyUp() handler. The Reason: The run-on situation should be supressed
+        // before getting to the point of auto-merging selected source phrases. Also for certain
+        // doalogs such as the CReplaceDlg, pressing Enter in the Replacement Text edit box is
+        // one situation where an unwanted Enter key press ends up here in OnKeyUp(). When that
+        // happens the View's MakeSelectionForFind() function selects some source text. In most
+        // cases the selection count (theCount) above is not greater than 1, so the else block
+        // directly above is executed which calls pView->RemoveSelection() which messed up the
+        // work that MakeSelectionForFind() does in the CReplaceDlg. By moving this block above
+        // that auto-merge code, we eliminate the lost selection, and possibly avoid other
+        // problems if a rogue Enter key press comes into OnKeyUp() with more source text
+        // selected - resulting in a possibly unwanted merger happening. The only part of the
+        // code block below that should remain is the JumpForward(pView) call which was the only
+        // thing there before BEW added this block. After moving it to a location above, a
+        // rogue Enter key code passing through will be detected by the code test
+        // if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab), and if
+        // TRUE a call to return will be made from up there.
+		//pApp->m_bUserHitEnterOrTab = FALSE; // Initialize to FALSE, as if user mouse-clicked
+		//if (keycode == WXK_TAB) // TAB
+		//{
+		//	pApp->m_bUserHitEnterOrTab = TRUE;
+		//	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+		//}
+		//else if (keycode == WXK_RETURN) // ENTER or RETURN
+		//{
+		//	pApp->m_bUserHitEnterOrTab = TRUE;
+		//	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
+		//}
+		//if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
+		//{
+		//	// Don't call JumpForward, because it is likely this is a bogus box run-on situation
+		//	;
+		//}
+		//else
+		//{
+		//	// Normal jump is okay to do
+		//	JumpForward(pView);
+		//}
+
+        // Normal jump is okay to do
+        JumpForward(pView);
+
 		// These a use-once-only booleans, after use they must be turned back off in case
 		// re-use is required at another active location in the doc
 		pApp->m_bUserDlgOrMessageRequested = FALSE;

@@ -1280,15 +1280,32 @@ BEGIN_EVENT_TABLE(CReplaceDlg, wxScrollingDialog)
 	EVT_INIT_DIALOG(CReplaceDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CReplaceDlg::OnCancel)	
 	
-	EVT_BUTTON(IDC_REPLACE, CReplaceDlg::OnReplaceButton)
+
+    // whm 14May2020 added the following EVT_TEXT_ENTER() lines to intercept and prevent
+    // an ENTER key press inside the "Source Text" and/or "Translation" edit boxes from
+    // propagating to the phrasebox in the main window and causing the phrasebox to move 
+    // on from the found location. 
+    // The OnSrcEditBoxEnterKeyPress() and OnTgtEditBoxEnterKeyPress() handlers simply 
+    // call the OnFindNext() handler with a dummy event, and then return without calling 
+    // event.Skip().
+    // whm 14May2020 followup note: The following handlers work sometimes and not at other
+    // times. They tend to work well when the debugger stops the flow of control at a 
+    // breakpoint within the handlers and then allowed program control to resume.
+    EVT_TEXT_ENTER(IDC_EDIT_SRC_FIND, CReplaceDlg::OnSrcEditBoxEnterKeyPress)
+    EVT_TEXT_ENTER(IDC_EDIT_TGT_FIND, CReplaceDlg::OnTgtEditBoxEnterKeyPress)
+    EVT_TEXT_ENTER(IDC_EDIT_REPLACE, CReplaceDlg::OnReplaceEditBoxEnterKeyPress)
+
+    EVT_BUTTON(IDC_REPLACE, CReplaceDlg::OnReplaceButton)
 	EVT_BUTTON(IDC_REPLACE_ALL_BUTTON, CReplaceDlg::OnReplaceAllButton)
-	EVT_BUTTON(wxID_OK, CReplaceDlg::OnFindNext)
+	EVT_BUTTON(wxID_OK, CReplaceDlg::OnFindNext) // Find Next button has ID of wxID_OK
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_ONLY_REPLACE, CReplaceDlg::OnRadioSrcOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_TGT_ONLY_REPLACE, CReplaceDlg::OnRadioTgtOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_AND_TGT_REPLACE, CReplaceDlg::OnRadioSrcAndTgt)
 	EVT_CHECKBOX(IDC_CHECK_SPAN_SRC_PHRASES_REPLACE, CReplaceDlg::OnSpanCheckBoxChanged)
-	EVT_UPDATE_UI(IDC_REPLACE_ALL_BUTTON, CReplaceDlg::UpdateReplaceAllButton)
-END_EVENT_TABLE()
+    EVT_UPDATE_UI(IDC_REPLACE_ALL_BUTTON, CReplaceDlg::OnUpdateReplaceAllButton)
+    EVT_UPDATE_UI(IDC_REPLACE, CReplaceDlg::OnUpdateReplace)
+    EVT_UPDATE_UI(wxID_OK, CReplaceDlg::OnUpdateFindNext)  // Find Next button has ID of wxID_OK
+    END_EVENT_TABLE()
 
 CReplaceDlg::CReplaceDlg()
 {
@@ -1386,7 +1403,10 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	gbReplaceAllIsCurrent = FALSE;
 	gbJustCancelled = FALSE;
 
-	// make the font show user-chosen point size in the dialog
+    // whm 15May2020 added
+    m_bSearchFromDocBeginning = FALSE;
+
+    // make the font show user-chosen point size in the dialog
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSrc, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
@@ -1465,6 +1485,17 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->Show(TRUE);
 
+    // whm 16May2020 added - initially disable the Replace and Replace All buttons
+    wxASSERT(m_pButtonReplace != NULL);
+    m_pButtonReplace->Disable();
+
+    wxASSERT(m_pButtonReplaceAll != NULL);
+    m_pButtonReplaceAll->Disable();
+
+
+    // whm 14May2020 in CReplaceDlg we set initial focus in the m_pEditTgt edit box
+    m_pEditTgt->SetFocus();
+
     // set the default button to Find Next button explicitly (otherwise, an MFC bug makes
     // it the Replace All button)
 	// whm note: The "Find Next" button is assigned the wxID_OK identifier
@@ -1473,19 +1504,39 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 
 	m_nCount = 0; // nothing matched yet
 
-	pReplaceDlgSizer->Layout(); // force the sizers to resize the dialog
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    pReplaceDlgSizer->Layout(); // force the sizers to resize the dialog
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 23Apr15 added support for / used as a word-breaking whitespace character
-void CReplaceDlg::DoFindNext() 
+// whm 14May2020 revised to support searching from beginning of document when a search
+// reaches the end of the document and doesn't find the search string. Also revised to
+// use m_bUserDlgOrMessageRequested to help prevent run on phrasebox while interacting
+// with the dialog.
+void CReplaceDlg::DoFindNext()
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->RemoveSelection();
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	// do nothing if past the end of the last srcPhrase, ie. at the EOF
+    int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber; // could be 0 if active pile is at 0
+
+repeatfind:
+
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    // do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
 	{	
 		wxASSERT(gpApp->m_pActivePile == 0);
@@ -1493,7 +1544,6 @@ void CReplaceDlg::DoFindNext()
 		return;
 	}
 
-	int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	if (gbJustReplaced)
 	{
 		// do all the housekeeping tasks associated with a move, after a replace was done
@@ -1703,18 +1753,73 @@ void CReplaceDlg::DoFindNext()
 		// In wx version we seem to need to scroll to the found location
 		gpApp->GetMainFrame()->canvas->ScrollIntoView(nAtSequNum); // whm added 7Jun07
 	}
-	else
+	else // bFound is FALSE
 	{
-		gpApp->LogUserAction(_T("   Not Found!"));
+        // whm 14May2020 added below for giving option to search earlier in document.
+        // Notify user that end of document was reached and search item was not found.
+        // If search didn't start at doc beginning, ask if the search should be made of the earlier part of
+        // the document.
+        wxString searchStr;
+        if (m_bSrcOnly)
+            searchStr = m_pEditSrc->GetValue();
+        else if (m_bTgtOnly)
+            searchStr = m_pEditTgt->GetValue();
+        else if (m_bSrcAndTgt)
+            searchStr = m_pEditSrc->GetValue(); // when searching both src and translated text the m_srcStr is used
+
+        wxString msg;
+        if (nKickOffSequNum == 0) // nKickOffSequNum was 0 at beginning of document
+        {
+            // nKickOffSequNum was at start of doc, and nothing was found
+            msg = _("All of document was searched. No \"%s\" was found.");
+            msg = msg.Format(msg, searchStr.c_str());
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+            // pass throgh to pView->FindNextHasLanded() below...
+        }
+        else if (nKickOffSequNum > 0)
+        {
+            // nKickOffSequNum was NOT at start of doc, and nothing was found
+            if (m_bSearchFromDocBeginning)
+            {
+                // We searched already from the beginning and nothing was found
+                m_bSearchFromDocBeginning = FALSE;
+                // starting point was reached and nothing found
+                msg = _("Remainder of document was searched. No \"%s\" was found.");
+                msg = msg.Format(msg, searchStr.c_str());
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+            }
+            else
+            {
+                // nKickOffSequNum was not at start of doc and nothing found, but earlier part of 
+                // doc was not searched, so offer to search it.
+                gpApp->LogUserAction(_T("   Not Found!"));
+                m_nCount = 0; // none matched
+                              // Search was initiated in middle of document
+                msg = _("End of document was reached. No \"%s\" was found. Search for %s in the earlier part of document?");
+                msg = msg.Format(msg, searchStr.c_str(), searchStr.c_str());
+                int result;
+                result = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                if (result == wxYES)
+                {
+                    m_bSearchFromDocBeginning = TRUE;
+                    nKickOffSequNum = 0;
+                    // Go to near beginning of DoFindNext() above to setup and do another Find operation
+                    goto repeatfind;
+                }
+            }
+        }
+
+
+        gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
 
 		// disable the Replace and Replace All buttons
 		wxASSERT(m_pButtonReplace != NULL);
-		m_pButtonReplace->Enable(FALSE);
+		m_pButtonReplace->Disable();
 		
 		wxASSERT(m_pButtonReplaceAll != NULL);
-		m_pButtonReplaceAll->Enable(FALSE);
+		m_pButtonReplaceAll->Disable();
 		pView->FindNextHasLanded(gpApp->m_nActiveSequNum,FALSE); // show old active location
 		
 		Update();
@@ -1736,7 +1841,7 @@ void CReplaceDlg::OnSpanCheckBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// button's handler, so disabling the button suffices.
 		m_bSpanSrcPhrases = TRUE;
 		m_pCheckSpanSrcPhrases->SetValue(TRUE);
-		m_pButtonReplaceAll->Enable(FALSE);
+		m_pButtonReplaceAll->Disable();
 	}
 	else
 	{
@@ -1748,18 +1853,65 @@ void CReplaceDlg::OnSpanCheckBoxChanged(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void CReplaceDlg::UpdateReplaceAllButton(wxUpdateUIEvent& event)
+void CReplaceDlg::OnUpdateReplaceAllButton(wxUpdateUIEvent& event)
 {
-	if (m_bSpanSrcPhrases)
+    // whm 16May2020 added. The Replace All button should be disabled if the Replacement Text edit box is empty,
+    // or if the Translation text box is empty. Both edit boxes need to have some text value before the Replace
+    // All button is enabled. These conditions can be combined with m_bSpanSrcPhrases
+    
+	if (m_bSpanSrcPhrases || m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
 	{
 		// keep the Replace All button disabled
 		event.Enable(FALSE);
 	}
 	else
 	{
+        // When m_bSpanSrcPhrases is FALSE, and both the Translation edit box and the Replacement edit box have text
 		// keep the Replace All button enabled
 		event.Enable(TRUE);
 	}
+}
+
+// whm 16May2020 added the following OnUpdateReplace() handler
+// to keep the Replace button disabled until there is text in both
+// the Translation edit box as well as the Replacement Text edit box.
+// In addition, the Replace button should not be enabled unless a Find Next
+// has been executed - resulting in a source text selection being active.
+void CReplaceDlg::OnUpdateReplace(wxUpdateUIEvent & event)
+{
+    if (gpApp->m_selection.GetCount() == 0)
+    {
+        event.Enable(FALSE);
+    }
+    else if (m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
+    {
+        // keep the Replace All button disabled
+        event.Enable(FALSE);
+    }
+    else
+    {
+        // When m_bSpanSrcPhrases is FALSE, and both the Translation edit box and the Replacement edit box have text
+        // keep the Replace All button enabled
+        event.Enable(TRUE);
+    }
+}
+
+// whm 16May2020 added the following OnUpdateFindNext() handler
+// to keep the Find Next button disabled until there is text in both
+// the Translation edit box as well as the Replacement Text edit box.
+void CReplaceDlg::OnUpdateFindNext(wxUpdateUIEvent & event)
+{
+    if (m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
+    {
+        // keep the Replace All button disabled
+        event.Enable(FALSE);
+    }
+    else
+    {
+        // When m_bSpanSrcPhrases is FALSE, and both the Translation edit box and the Replacement edit box have text
+        // keep the Replace All button enabled
+        event.Enable(TRUE);
+    }
 }
 
 void CReplaceDlg::DoRadioSrcOnly() 
@@ -1792,8 +1944,11 @@ void CReplaceDlg::DoRadioTgtOnly()
 	
 	wxASSERT(m_pEditSrc != NULL);
 	m_pEditSrc->Hide();
-	
-	wxASSERT(m_pStaticTgtBoxLabel != NULL);
+
+    // whm 14May2020 added set focus in the m_pEditTgt box
+    m_pEditTgt->SetFocus();
+
+    wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	wxString str;
 	str = _("        Translation:"); //IDS_TRANS
 	m_pStaticTgtBoxLabel->SetLabel(str);
@@ -1837,9 +1992,90 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 	m_bSrcAndTgt = TRUE;	
 }
 
+// whm 14May2020 addition. The following OnSrcEditBoxEnterKeyPress() function is triggered from
+// the EVENT_TABLE macro line: EVT_TEXT_ENTER(IDC_EDIT_SRC_FIND, CFindDlg::OnSrcditBoxEnterKeyPress)
+// when an ENTER key is pressed from within the Source Text wxTextCtrl, which has its
+// wxTE_PROCESS_ENTER style flag set. Here we set up a default action we call the DoFindNext() handler 
+// function to make it be the default action triggered by the ENTER key press.
+void CReplaceDlg::OnSrcEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    wxLogDebug(_T("CReplaceDlg::OnSrcEditBoxEnterKeyPress() handling WXK_RETURN key"));
+    this->DoFindNext();
+    // don't call event.Skip() here, just return.
+    return; // event.Skip();
+}
+
+// whm 14May2020 addition. The following OnTgtEditBoxEnterKeyPress() function is triggered from
+// the EVENT_TABLE macro line: EVT_TEXT_ENTER(IDC_EDIT_TGT_FIND, CFindDlg::OnTgtditBoxEnterKeyPress)
+// when an ENTER key is pressed from within the Translation wxTextCtrl, which has its
+// wxTE_PROCESS_ENTER style flag set. Here we set up a default action we call the DoFindNext() handler 
+// function to make it be the default action triggered by the ENTER key press.
+void CReplaceDlg::OnTgtEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CReplaceDlg, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    wxLogDebug(_T("CReplaceDlg::OnTgtEditBoxEnterKeyPress() handling WXK_RETURN key"));
+    this->DoFindNext();
+    // don't call event.Skip() here, just return.
+    return; // event.Skip();
+}
+
+void CReplaceDlg::OnReplaceEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CReplaceDlg, it needs to be set to TRUE in each DoFindNext() call 
+    // in order to supress all phrasebox run-on instances due to ENTER key getting 
+    // propagated on to CPhraseBox::OnKeyUp().
+    // Here we need to check is a source text selection is active or not. If so we can call
+    // the OnReplaceButton() handler, but if no source text selection is active it means that
+    // we haven't yet done a FindNext operation, and we should do that operation first in
+    // response to the Enter key proes in this Replacement Text box.
+    if (gpApp->m_selection.GetCount() == 0)
+    {
+        // No selection is active so execute the DoFindNext handler first to locate the target string
+        // and get tha source location selected.
+        wxLogDebug(_T("CReplaceDlg::OnTgtEditBoxEnterKeyPress() handling WXK_RETURN key - executing DoFindNext()"));
+        this->DoFindNext();
+    }
+    else
+    {
+        // There is a source text selection so execute the OnReplaceButton() handler
+        wxLogDebug(_T("CReplaceDlg::OnReplaceEditBoxEnterKeyPress() handling WXK_RETURN key"));
+        wxCommandEvent dummyevent;
+        this->OnReplaceButton(dummyevent);
+    }
+
+    // don't call event.Skip() here, just return.
+    return; // event.Skip();
+}
+
 void CReplaceDlg::OnReplaceButton(wxCommandEvent& event) 
 {
-	// whm added 15Mar12 for read-only mode
+    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+    // but it becomes FALSE again (by code elsewhere) after the first Replace is done. 
+    // For modeless dialogs - which can execute ENTER-generated commands multiple times
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // only is not sufficient. Here in CReplaceDlg, it needs to be set to TRUE in each 
+    // OnReplaceButton() call in order to supress all phrasebox run-on instances due to
+    // ENTER key getting propagated on to CPhraseBox::OnKeyUp().
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    // whm added 15Mar12 for read-only mode
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		::wxBell();
