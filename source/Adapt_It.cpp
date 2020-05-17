@@ -6508,6 +6508,11 @@ AIModalDialog::~AIModalDialog()
 ////////////////////////////////////////////////////////////////////////////////////////
 int AIModalDialog::ShowModal()
 {
+    // whm 17May2020 added - set the App's m_bUserDlgOrMessageRequested flag to TRUE for all
+    // modal dialogs based on AIModalDialog
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
+
     // override of wxDialog's ShowModal() method to stop all idle processing including
     // processing of UI events while the modal dialog is displaying.
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);

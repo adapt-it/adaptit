@@ -6867,6 +6867,9 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         }
         if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
         {
+            // set both global flags badk to FALSE so next legit ENTER will get processed.
+            pApp->m_bUserDlgOrMessageRequested = FALSE; 
+            pApp->m_bUserHitEnterOrTab = FALSE;
         	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation
         	return;
         }
@@ -7078,10 +7081,11 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         // Normal jump is okay to do
         JumpForward(pView);
 
-		// These a use-once-only booleans, after use they must be turned back off in case
+		// whm 16May2020 moved these two initializations to new location above just before return above
+        // These a use-once-only booleans, after use they must be turned back off in case
 		// re-use is required at another active location in the doc
-		pApp->m_bUserDlgOrMessageRequested = FALSE;
-		pApp->m_bUserHitEnterOrTab = FALSE;
+		//pApp->m_bUserDlgOrMessageRequested = FALSE;
+		//pApp->m_bUserHitEnterOrTab = FALSE;
 
         return;
     }
