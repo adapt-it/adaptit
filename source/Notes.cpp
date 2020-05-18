@@ -1728,6 +1728,10 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 						aStr = aStr.Format(
 _("Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"),
 						nRemainder);
+
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
 						wxMessageBox(aStr, _T(""), wxICON_INFORMATION | wxOK);
 						break; // break out of the loop and let the rest of the 
 						// function do the replacements of those that were successfully
@@ -2954,6 +2958,10 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
 	int answer = wxMessageBox(_(
 "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
 	_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);

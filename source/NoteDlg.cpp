@@ -351,7 +351,10 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	{
 		//pOldFocusWnd = FindFocus();
 		pEditNote->SetFocus();
-	}
+    }
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -404,6 +407,10 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	pSrcPhrase->SetNote(m_strNote); // overwrite whatever is in m_note already, if anything
 	pSrcPhrase->m_bHasNote = TRUE;
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
 	Destroy(); // destroy the dialog window (see comments at end for why)
 
 	// wx version note: Compare to the ViewFilteredMaterialDlg where it is sometimes also necessary to
@@ -440,7 +447,10 @@ void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	// intact despite the Invalidate() call below
 	gpApp->m_pLayout->Redraw(); // better than calling Invalidate() here, see previous line
 
-	Destroy();
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
@@ -476,7 +486,10 @@ void CNoteDlg::OnBnClickedDeleteBtn(wxCommandEvent& event)
 		pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
 		pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
 	}
-	OnOK(event); //OnBnClickedOk(event);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    OnOK(event); //OnBnClickedOk(event);
 }
 
 void CNoteDlg::OnBnClickedPrevBtn(wxCommandEvent& event)
@@ -578,7 +591,10 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 										pWordList, numWords, nStartOffset, nEndOffset);
 	if (nFoundSequNum == -1)
 	{
-		// the string was not found in any subsequent note - so tell this to the user
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        
+        // the string was not found in any subsequent note - so tell this to the user
 		//IDS_NO_MATCHING_NOTE
 		wxMessageBox(
 		_("Searching forward did not find a note with text matching that which you typed into the box."),
