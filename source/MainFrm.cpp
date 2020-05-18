@@ -4271,6 +4271,10 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
         {
             if (pApp->m_pTargetBox->IsShown())
             {
+                // whm 17May2020 Note: The following call of SetFocusAndSetSelectionAtLanding() gets called
+                // early on AFTER the closure of a modal dialog, AND BEFORE a bogus ENTER key press is passed on
+                // to the CPhraseBox::OnKeyUp() handler.
+                wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
                 pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
         }
@@ -5089,8 +5093,37 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				(int)vsz.y), 1);
 		}
 	}
+    // whm 17May2020 added here at/near the end of OnIdle(). This test might not work if it is moved earler in OnIdle().
+    // Set the App's m_bUserDlgOrMessageRequested flag to FALSE if it is TRUE. 
+    // This is to use an Idle event to turn off that flag when an AIModalDialog based dialog
+    // is dismissed by a mouse click on OK or Cancel, instead of via an Enter key press. This is
+    // needed because dismissing a dialog with a mouse click doesn't result in the propagation of
+    // an unwanted ENTER key events being caught by CPhraseBox::OnKeyUp(), and as a result we need
+    // another method in such cases to set the flag back to FALSE. Otherwise m_bUserDlgOrMessageRequested
+    // would remain TRUE and cause the next real Enter key press in the phrasebox to be blocked,
+    // making it necessary for the user to press Enter twice in the phrasebox to get it to move on.
+    // Setting the flag back to FALSE here at the end of OnIlde() provides the time needed by the
+    // CPhraseBox::OnKeyUp() to handle a bogus Enter key event before this OnIdle() handler sets
+    // it back to FALSE. It is a matter of timing, but it seems to work out well and allows us
+    // to simply set the App's m_bUserDlgOrMessageRequested flag in the AIModalDialog::ShowModal()
+    // handler.
+    if (pApp->m_bUserDlgOrMessageRequested)
+    {
+        static int lastCount = idleCount; 
+        // Wait 5 idle cycles then set the flag to FALSE. The wait is not generally needed for most AIModalDialog
+        // based dialogs when they get dismissed via Enter key press. However, for the DocPage's OnWizardFinish() 
+        // at least one, possibly more idle cycles delay is needed before setting the flag to FALSE keeping the 
+        // TRUE value longer so that any bogus Enter key event gets rejected in CPhraseBox::OnKeyUp(). 
+        if (idleCount - lastCount == 5) 
+        {
+            // The following wxLogDebug output shows that setting m_bUserDlgOrMessageRequested to FALSE here
+            // happens AFTER the CPhraseBox::OnKeyUp()'s handling of a bogus Enter key event is completed.
+            wxLogDebug(_T("In CMainFrame::OnIdle() setting App's m_bUserDlgOrMessageRequested to FALSE"));
+            pApp->m_bUserDlgOrMessageRequested = FALSE;
+        }
+    }
 
-}
+} // end of OnIdle()
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
 #if defined(SCROLLPOS) && defined(__WXGTK__)

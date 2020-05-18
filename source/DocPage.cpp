@@ -1274,7 +1274,16 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			// outset
 			pView->canvas->Refresh();
 		}
-		return; //return CPropertyPage::OnWizardFinish();
+
+        // whm 17May2020 added. The StartWorking Wizard is not an AIModalDialog, so we need to
+        // set the m_bUserDlgOrMessageRequested flag TRUE here - which will help prevent unwanted
+        // phrasebox run-on if the Enter key is used to select the wizard's "Finish" or "Cancel"
+        // buttons. The flag will then be automatically set to FALSE by the CMainFrame::OnIdle()
+        // which kicks in once the wizard has closed, but after CPhraseBox::OnKeyUp() has had a
+        // chance to handle any bogus Enter key events.
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+        return; //return CPropertyPage::OnWizardFinish();
 	}
 }
 

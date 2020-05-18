@@ -6871,6 +6871,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             pApp->m_bUserDlgOrMessageRequested = FALSE; 
             pApp->m_bUserHitEnterOrTab = FALSE;
         	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation
+            wxLogDebug(_T("Bogus Enter key press detected -  exiting prematurely from CPhraseBox::OnKeyUp()"));
         	return;
         }
 
@@ -7200,6 +7201,8 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 // This OnKeyDown function is called via the EVT_KEY_DOWN event in our CPhraseBox
 // Event Table. 
 // OnKeyDown() is the first key handler generated, and is triggered for ALL key strokes.
+//
+// WARNING: OnKeyDown() is called REPEATEDLY when a key is held DOWN!!!
 // 
 // The wx docs say: "If a key down (EVT_KEY_DOWN) event is caught and the event handler 
 // does not call event.Skip() then the corresponding char event (EVT_CHAR) will not happen. 
