@@ -1200,7 +1200,10 @@ void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
 	m_pFindSFM->SetValue(m_bFindSFM);
 	m_pComboSFM->SetSelection(m_marker);
-	Destroy();
+
+    // whm 17May2020 set the flag just before Destroy() call in this OnCancel() handler
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    Destroy();
 
 	gbFindIsCurrent = FALSE;
 	gbJustReplaced = FALSE; // clear to default value 
@@ -2261,6 +2264,9 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
 	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
 	m_pEditReplace->ChangeValue(m_replaceStr);
+
+    // whm 17May2020 set the flag just before Destroy() call in this OnCancel() handler
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
 	Destroy();
 
 	gbFindIsCurrent = FALSE;

@@ -92,6 +92,7 @@ public:
 
 	void InitDialog(wxInitDialogEvent& event);
 	void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
 	// Wrapper handlers for fontPage
 	void OnSourceFontChangeBtn(wxCommandEvent& event);
 	void OnTargetFontChangeBtn(wxCommandEvent& event);

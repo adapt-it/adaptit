@@ -1458,6 +1458,9 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
 	m_pApp->m_bAiSessionExpectsUserDefinedProfile = (m_pApp->m_nWorkflowProfile != 0);
 
+    // whm 17May2020 added to prevent run-on of phrasebox when Enter used to activate OK button
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 	
@@ -1538,6 +1541,10 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			return; // don't Cancel
 		}
 	}
+
+    // whm 17May2020 added to prevent run-on of phrasebox when Enter used to activate Cancel button
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event); // need to call EndModal here
 }
 

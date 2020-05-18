@@ -101,6 +101,7 @@ extern struct fontInfo SrcFInfo, TgtFInfo, NavFInfo;
 BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxPropertySheetDialog)
 	EVT_INIT_DIALOG(CEditPreferencesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CEditPreferencesDlg::OnOK)
+    EVT_BUTTON(wxID_CANCEL, CEditPreferencesDlg::OnCancel)
 
 	// Note: The following handlers call methods of the same name in CFontPagePrefs
 	EVT_BUTTON(IDC_SOURCE_LANG, CEditPreferencesDlg::OnSourceFontChangeBtn)
@@ -838,7 +839,15 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
         event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event);
     }
 
-}// end of OnOK
+}
+void CEditPreferencesDlg::OnCancel(wxCommandEvent & event)
+{
+    // whm 17May2020 set the flag just before dismissing the Preferences via this OnCancel() handler
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    gpApp->LogUserAction(_T("User Cancel from wizard"));
+    event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+// end of OnOK
 
 // The following are wrapper handlers for the fontPage
 void CEditPreferencesDlg::OnSourceFontChangeBtn(wxCommandEvent& event) // top right Change... button
