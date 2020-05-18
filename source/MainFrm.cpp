@@ -1401,6 +1401,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 
 	idleCount = 0;
+    lastCount = 0;
 //#ifdef _DEBUG
 //	m_bShowScrollData = TRUE; // shows scroll parameters and client size in status bar
 //#else
@@ -4289,7 +4290,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnIdle(wxIdleEvent& event)
 {
-	idleCount++; // unused, may want to use this later
+	idleCount++; // See end of OnIdle() for one example of useage
 
 	// from exec sample below
     //size_t count = m_running.GetCount();
@@ -5109,18 +5110,25 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     // handler.
     if (pApp->m_bUserDlgOrMessageRequested)
     {
-        static int lastCount = idleCount; 
         // Wait 5 idle cycles then set the flag to FALSE. The wait is not generally needed for most AIModalDialog
         // based dialogs when they get dismissed via Enter key press. However, for the DocPage's OnWizardFinish() 
         // at least one, possibly more idle cycles delay is needed before setting the flag to FALSE keeping the 
         // TRUE value longer so that any bogus Enter key event gets rejected in CPhraseBox::OnKeyUp(). 
-        if (idleCount - lastCount == 5) 
+        if (idleCount - lastCount >= 5) 
         {
             // The following wxLogDebug output shows that setting m_bUserDlgOrMessageRequested to FALSE here
             // happens AFTER the CPhraseBox::OnKeyUp()'s handling of a bogus Enter key event is completed.
-            wxLogDebug(_T("In CMainFrame::OnIdle() setting App's m_bUserDlgOrMessageRequested to FALSE"));
+            wxLogDebug(_T("In CMainFrame::OnIdle() Idle for %d so setting App's m_bUserDlgOrMessageRequested to FALSE"), idleCount - lastCount);
             pApp->m_bUserDlgOrMessageRequested = FALSE;
         }
+        else
+        {
+            wxLogDebug(_T("Idle for %d"),idleCount-lastCount);
+        }
+    }
+    else
+    {
+        lastCount = idleCount; // track the idleCount when App's m_bUserDlgOrMessageRequested flag is FALSE
     }
 
 } // end of OnIdle()

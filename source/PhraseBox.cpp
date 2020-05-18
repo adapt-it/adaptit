@@ -6871,7 +6871,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             pApp->m_bUserDlgOrMessageRequested = FALSE; 
             pApp->m_bUserHitEnterOrTab = FALSE;
         	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation
-            wxLogDebug(_T("Bogus Enter key press detected -  exiting prematurely from CPhraseBox::OnKeyUp()"));
+            wxLogDebug(_T("Bogus Enter key press detected - exiting prematurely from CPhraseBox::OnKeyUp()"));
         	return;
         }
 

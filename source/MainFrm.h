@@ -198,6 +198,7 @@ public:
 	// OnIdle moved here from the App. When it was in the App it was causing
 	// the File | Exit and App x cancel commands to not be responsive there
 	int idleCount;
+    int lastCount;
 	bool m_bShowScrollData;
 
 	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns BOOL

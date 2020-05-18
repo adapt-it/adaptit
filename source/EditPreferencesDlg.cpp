@@ -831,8 +831,12 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	if (usfmFilterPage != NULL)
 		usfmFilterPage->OnOK(event);
 
-	if (m_bDismissDialog)
-		event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event);
+    if (m_bDismissDialog)
+    {
+        // whm 18May2020 added App's glogal flag to prevent run-on phrasebox after dismissing dialog with Enter key press.
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event);
+    }
 
 }// end of OnOK
 
