@@ -126,7 +126,9 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	wxString strBox1 = pUsernameTextCtrl->GetValue();
 	if ( strBox1.IsEmpty() || strBox1 == NOOWNER )
 	{
-		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
 	else
@@ -139,7 +141,9 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	wxString strBox2 = pInformalUsernameTextCtrl->GetValue();
 	if ( strBox2.IsEmpty() || strBox2 == NOOWNER )
 	{
-		wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
 	else

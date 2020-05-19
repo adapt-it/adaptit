@@ -1295,7 +1295,9 @@ bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& leftPath, wxString& right
 		wxString msg;
 		::wxBell();
 		msg = msg.Format(_("The source and destination folders must not be the same folder."));
-		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_EXCLAMATION | wxOK);
 		return TRUE;
 	}
 	return FALSE;
@@ -1485,7 +1487,9 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 			wxString msg;
 			msg = msg.Format(_("The right folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the right folder's file, and then try again."),
 				filename.c_str());
-			wxMessageBox(msg,_("Unexpected Filename Conflict During Copy Or Move"),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_("Unexpected Filename Conflict During Copy Or Move"),wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		bool bSuccess2 = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
@@ -1495,7 +1499,9 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 			msg = msg.Format(
 _("Moving or copying the file with path %s failed unexpectedly. Possibly you forgot to use the button for locating the folder to show on the right. Do so then try again."),
 theLeftPath.c_str());
-			wxMessageBox(msg,_("Moving or copying failed"),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_("Moving or copying failed"),wxICON_EXCLAMATION | wxOK);
 			if (bSuccess)
 				bSuccess = FALSE;
 		}
@@ -1529,7 +1535,9 @@ bool AdminMoveOrCopy::RemoveSingleFile(wxString& thePath, wxString& filename)
 		msg = msg.Format(
 _("Removing the file with path %s failed. Removals have been halted. Possibly an application has the file still open. Close the file and then you can try the removal operation again."),
 		thisPath.c_str());
-		wxMessageBox(msg,_("Removing a file failed"),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Removing a file failed"),wxICON_EXCLAMATION | wxOK);
 
 		// use the m_bUserCancelled mechanism to force drilling up through any recursions,
 		// but don't clobber the AdminMoveOrCopy dialog itself
@@ -1594,7 +1602,9 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 		filesLimit = pPaneSelectedFiles->GetCount(); // populated in SetSelectionArray() call earlier
 	if (filesLimit == 0 && foldersLimit == 0)
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("You first need to select at least one item in either list before clicking the Delete button"),
 		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSelectedFilesArray->Clear(); // this one is on heap
@@ -1618,7 +1628,9 @@ _("You first need to select at least one item in either list before clicking the
 
 	// whm 9Feb12 added: Prompt with a warning before calling RemoveFilesAndFolders() below
 	int response;
-	response = wxMessageBox(_T("Delete the selected item(s)?"),_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    response = wxMessageBox(_T("Delete the selected item(s)?"),_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (response == wxYES)
 	{
 		RemoveFilesAndFolders(pathToPane, pSelectedFoldersArray, pSelectedFilesArray);
@@ -1735,7 +1747,9 @@ void AdminMoveOrCopy::RemoveFilesAndFolders(wxString theFolderPath,
 			{
 				wxString msg;
 				msg = msg.Format(_("Failed to remove the directory %s. \nPossibly it contains a hidden file that should not be removed. \nIf so, the rest of the contents may still have been removed."),theFolderPath2.c_str());
-				wxMessageBox(msg,_("Could not remove directory"),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,_("Could not remove directory"),wxICON_EXCLAMATION | wxOK);
 				m_bUserCancelled = TRUE;
 			}
 //			else
@@ -1971,7 +1985,9 @@ void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
 	msg = msg.Format(_(
 "One or more files selected for copying to the __SOURCE_INPUTS folder were not copied.\nThey were: %s"),
 	strAllInvalids.c_str());
-	wxMessageBox(msg, _("Detected files not suitable for creating adaptation documents"),
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg, _("Detected files not suitable for creating adaptation documents"),
 	wxICON_EXCLAMATION | wxOK);
 }
 
@@ -2005,7 +2021,9 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
     // - we want to ensure some other app's data only gets copied, not moved
 	if (bDoMove && bToSourceDataFolder)
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Moving files to the __SOURCE_INPUTS folder is not permitted.\nYou are allowed to copy them to that folder, so use the Copy button instead."),
 		_("Only copy files to __SOURCE_INPUTS folder"), wxICON_INFORMATION | wxOK);
 		return;
@@ -2160,7 +2178,9 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
             // is taboo, so tell him and return (this makes the function reentrant in this
             // circumstance, but only to a depth of one level as the return done here kills
             // subsequent re-entrancy)
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "You are allowed only to copy files to the __SOURCE_INPUTS folder.\nThe folders you selected have not been copied.\nInstead, in the left pane, choose a folder and open it, select the files you want to copy, then click Copy."),
 			_("Copy of folders to __SOURCE_INPUTS folder is not allowed"), wxICON_EXCLAMATION | wxOK);
 			return;
@@ -2201,7 +2221,9 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 						msg = msg.Format(
 _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe parent dialog will now close.\nFiles and folders already copied or moved will remain so.\nYou may need to use your system's file browser to clean up before you try again."),
 						destFolderPath2.c_str());
-						wxMessageBox(msg, _("Error: could not make directory"), wxICON_EXCLAMATION | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(msg, _("Error: could not make directory"), wxICON_EXCLAMATION | wxOK);
 						m_bUserCancelled = TRUE; // causes call of EndModal() at top level call
 						if (pSrcSelectedFoldersArray2 != NULL) // whm 11Jun12 added NULL test
 							delete pSrcSelectedFoldersArray2; // don't leak memory
@@ -2344,7 +2366,9 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 	// do nothing if the source folder is not yet defined, or the destination folder
 	if (pathToSourcePane.IsEmpty())
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot copy"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
@@ -2353,7 +2377,9 @@ _("No source folder is defined. (The source folder is where your selections are 
 	}
 	if (pathToDestinationPane.IsEmpty())
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be copied to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot copy"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
@@ -2378,7 +2404,9 @@ _("No destination folder is defined. (The destination folder is where your selec
 	size_t filesLimit = pPaneSelectedFiles->GetCount(); // populated in SetSelectionArray() call earlier
 	if (filesLimit == 0 && foldersLimit == 0)
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("Before you click the Copy button, you need to select at least one item from the list in whichever pane you want to copy data from."),
 		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSrcSelectedFoldersArray->Clear(); // this one is on heap
@@ -2537,7 +2565,9 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 	// do nothing if the source folder is not yet defined, or the destination folder
 	if (pathToSourcePane.IsEmpty())
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot move"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
@@ -2546,7 +2576,9 @@ _("No source folder is defined. (The source folder is where your selections are 
 	}
 	if (pathToDestinationPane.IsEmpty())
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be moved to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot move"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
@@ -2575,7 +2607,9 @@ _("No destination folder is defined. (The destination folder is where your selec
 		if (bItsPresent)
 		{
 			// abort the Move
-			wxMessageBox(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(
 _("Trying to move the '__SOURCE_INPUTS' folder is not permitted.\nThe Move operation is cancelled. Nothing has been moved."),
 			_("Illegal folder move attempt"),wxICON_EXCLAMATION | wxOK);
 			pPaneSelectedFiles->Clear();
@@ -2605,7 +2639,9 @@ _("Trying to move the '__SOURCE_INPUTS' folder is not permitted.\nThe Move opera
 	size_t filesLimit = pPaneSelectedFiles->GetCount(); // populated in SetSelectionArray() call earlier
 	if (filesLimit == 0 && foldersLimit == 0)
 	{
-		wxMessageBox(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(
 _("Before you click the Move button, you need to select at least one item from the list in whichever pane you want to move data from."),
 		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSrcSelectedFoldersArray->Clear(); // this one is on heap
@@ -2723,7 +2759,9 @@ void AdminMoveOrCopy::NoSelectionMessage()
 	// nothing to Peek at, tell the user what to do
 	wxString str = _(
 "The Peek... button will show you up to the first 16 kB of whichever file you selected in either list.\nBut first, click on a file to select it, then click the Peek... button.");
-	wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION | wxOK);
 }
 
 // BEW added 14July10

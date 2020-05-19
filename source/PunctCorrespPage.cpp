@@ -868,7 +868,9 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 	{
 		wxString msg;
 		msg = msg.Format(_("Error, hex number longer than 4 digits: %s\n"),nnnnStr.c_str());
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		return _T("");
 	}
 
@@ -898,6 +900,8 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
     {
         wxString msg;
         msg = msg.Format(_("Error, pair of hex numbers plus space longer than 9 digits: %s\n"),dataStr.c_str());
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
         msg += _T("In PunctCorrespPage ") + msg;
         gpApp->LogUserAction(msg);
@@ -918,7 +922,9 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 		{
 			wxString msg;
 			msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			msg += _T("In PunctCorrespPage ") + msg;
 			gpApp->LogUserAction(msg);
 			return FALSE;
@@ -940,7 +946,9 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 			{
 				wxString msg;
 				msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				msg += _T("In PunctCorrespPage ") + msg;
 				gpApp->LogUserAction(msg);
 				return FALSE;

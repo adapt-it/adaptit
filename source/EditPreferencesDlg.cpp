@@ -487,7 +487,9 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 		if (gbIsGlossing && pgText == _("Punctuation"))
 		{
 			// Remove Punctuation page from Edit Preferences notebook when Glossing box is checked
-			wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION | wxOK); 
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION | wxOK);
 			pNotebook->RemovePage(pgCt);
 			break;
 		}
@@ -535,21 +537,27 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (fontPage->fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(fontsPageIndex); // Font tab is first in EditPreferencesDlg notebook
-			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+                                                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(fontsPageIndex);
-			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(fontsPageIndex);
-			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontNameBox->SetFocus();
 			return;
 		}
@@ -563,7 +571,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(fontsPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetFocus();
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
 			return;
@@ -574,7 +584,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(fontsPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetFocus();
 			return;
@@ -585,7 +597,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(fontsPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pNavFontSizeBox->SetFocus();
 			fontPage->fontPgCommon.tempNavTextSize = 12;
@@ -603,7 +617,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("source"));
 			pNotebook->SetSelection(kbPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditSrcName->SetFocus();
 			return;
 		}
@@ -611,7 +627,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("target"));
 			pNotebook->SetSelection(kbPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditTgtName->SetFocus();
 			return;
 		}
@@ -628,7 +646,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("vertical gap between text strips"),14,80);
 			pNotebook->SetSelection(viewPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditLeading->SetFocus();
 			return;
 		}
@@ -648,7 +668,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			//msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
 			msg = msg.Format(subStr,_("inter-pile gap width"),0,80);
 			pNotebook->SetSelection(viewPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditGapWidth->SetFocus();
 			return;
 		}
@@ -659,7 +681,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("left margin width"),16,40);
 			pNotebook->SetSelection(viewPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditLeftMargin->SetFocus();
 			return;
 		}
@@ -669,7 +693,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("expansion multiplier"),5,30);
 			pNotebook->SetSelection(viewPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditMultiplier->SetFocus();
 			return;
 		}
@@ -680,7 +706,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("font size for dialogs"),10,24);
 			pNotebook->SetSelection(viewPageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditDlgFontSize->SetFocus();
 			return;
 		}
@@ -695,7 +723,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of minutes value"),1,30);
 			pNotebook->SetSelection(autosavePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMinutes->SetFocus();
 			return;
 		}
@@ -705,7 +735,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of moves value"),10,1000);
 			pNotebook->SetSelection(autosavePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMoves->SetFocus();
 			return;
 		}
@@ -715,7 +747,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of minutes"),2,60);
 			pNotebook->SetSelection(autosavePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditKBMinutes->SetFocus();
 			return;
 		}
@@ -731,7 +765,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("source"));
 				pNotebook->SetSelection(punctuationPageIndex);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
 			}
@@ -739,7 +775,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("target"));
 				pNotebook->SetSelection(punctuationPageIndex);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
 			}
@@ -751,7 +789,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("source"));
 				pNotebook->SetSelection(punctuationPageIndex);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
 			}
@@ -759,7 +799,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("target"));
 				pNotebook->SetSelection(punctuationPageIndex);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
 			}
@@ -779,7 +821,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("source"));
 			pNotebook->SetSelection(casePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditSrcEquivalences->SetFocus();
 			return;
 		}
@@ -787,7 +831,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("target"));
 			pNotebook->SetSelection(casePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditTgtEquivalences->SetFocus();
 			return;
 		}
@@ -795,7 +841,9 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("gloss"));
 			pNotebook->SetSelection(casePageIndex);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditGlossEquivalences->SetFocus();
 			return;
 		}

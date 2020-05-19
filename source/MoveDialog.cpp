@@ -137,7 +137,9 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1)
 	{
-		wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_SELECT_MOVE_FILE
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_SELECT_MOVE_FILE
 		return;
 	}
 
@@ -162,11 +164,15 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 		{
 			case DOCUMENTMOVER_SUCCESS :
 				UpdateFileList();
-				wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION | wxOK); //IDS_SUCCESSFUL_MOVE
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION | wxOK); //IDS_SUCCESSFUL_MOVE
 				gpApp->LogUserAction(_T("Moving the document was successful."));
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTSAVECHANGES :
-				nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
 				switch (nAnswer)
 				{
 					case wxYES: //case +1 :
@@ -183,7 +189,11 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 				gpApp->LogUserAction(msg);
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTOVERWRITEEXISTINGFILE :
-				nAnswer = wxMessageBox(_("A file with this name already exists in the destination folder.  Do you want to overwrite it?"), _T(""), wxYES | wxCANCEL);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                nAnswer = wxMessageBox(_("A file with this name already exists in the destination folder.  Do you want to overwrite it?"), _T(""), wxYES | wxCANCEL);
 				if (nAnswer == wxYES) //IDS_THIS_FILE_EXISTS_ALREADY
 				{
 					m.OverwriteExistingFile = true;
@@ -196,12 +206,16 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 				gpApp->LogUserAction(_T("A file with this name already exists in the destination folder.  Do you want to overwrite it?"));
 				break;
 			case DOCUMENTMOVER_ERROR_BOOKVIOLATION :
-				wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
 				gpApp->LogUserAction(_T("Sorry, the file you are trying to move belongs to a different book folder than the current one."));
 				break;
 			default :
 				m.CancelMove();
-				wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_UNEXPECTED_MOVE_ERROR
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_UNEXPECTED_MOVE_ERROR
 				gpApp->LogUserAction(_T("An unexpected error occured while trying to do the move.  The move has been aborted."));
 				break;
 		}
@@ -219,7 +233,9 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1) 
 	{
-		wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_EXCLAMATION | wxOK); //IDS_SELECT_FILE_TO_RENAME
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_EXCLAMATION | wxOK); //IDS_SELECT_FILE_TO_RENAME
 		return;
 	}
 	if (bFromBookFolder) 
@@ -242,7 +258,9 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 	msg += str;
 
 	if (SelectedFileIsOpenWithUnsavedChanges) {
-		int nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        int nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
 		switch (nAnswer)
 		{
 			case wxYES: //case +1 :
@@ -299,7 +317,9 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 
 		} else 
 		{
-			wxMessageBox(_("Sorry, an unexpected error occured while trying to rename the document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNEXPECTED_ERROR_WHEN_RENAMING);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, an unexpected error occured while trying to rename the document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNEXPECTED_ERROR_WHEN_RENAMING);
 		}
 	}
 

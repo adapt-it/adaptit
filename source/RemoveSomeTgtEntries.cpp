@@ -363,7 +363,9 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				// a previous bulk removal is still in operation, so tell the user to wait
 				// a few minutes then try again
 				wxString msg = _("A previous bulk removal is still running in the background./nWait a few minutes for it to complete, then try again.\nIf the previous bulk removal involved many entries, you may have to wait and retry more than once.");
-				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsGlossingKBServerProject)
@@ -407,7 +409,9 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				// a previous bulk removal is still in operation, so tell the user to wait
 				// a few minutes then try again
 				wxString msg = _("A previous bulk removal is still running in the background./nWait a few minutes for it to complete, then try again.\nIf the previous bulk removal involved many entries, you may have to wait and retry more than once.");
-				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
@@ -599,7 +603,9 @@ void RemoveSomeTgtEntries::OnBtnSaveEntryListToFile(wxCommandEvent& WXUNUSED(eve
 	wxString msg = _("Do you want the date and time appended to the filename?");
 	wxString caption = _("Choose dated or undated filename");
 	bool bAddDatetime = FALSE;
-	int answer = wxMessageBox(msg, caption, wxYES_NO | wxCANCEL);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    int answer = wxMessageBox(msg, caption, wxYES_NO | wxCANCEL);
 	if (answer == wxCANCEL)
 	{
 		return;
@@ -764,7 +770,9 @@ void RemoveSomeTgtEntries::OnBtnSaveEntryListToFile(wxCommandEvent& WXUNUSED(eve
 	wxString fileNameAndExtOnly = fn.GetFullName();
 	msg.Empty();
 	msg = msg.Format(_("The saved file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Listed entries saved"),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg,_("Listed entries saved"),wxICON_INFORMATION | wxOK);
 	m_pApp->LogUserAction(_T("KB list entries save was successful"));
 }
 

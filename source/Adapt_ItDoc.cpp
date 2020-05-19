@@ -2036,6 +2036,8 @@ bool  CAdapt_ItDoc::Commit_valid()
         wxString msg;
         msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
             gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
 
         wxMessageBox(msg, _("Collaboration editor is running"), wxOK);
         return false;    // Bail out on an unsafe collaboration situation
@@ -2043,12 +2045,16 @@ bool  CAdapt_ItDoc::Commit_valid()
 
     if ( gpApp->m_strUserID == NOOWNER )
     {
-		wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
 		gpApp->LogUserAction (_T("Before saving in the document history, you must enter a username for yourself."));
         gpApp->OnEditChangeUsername (dummy);
 
         if ( gpApp->m_strUserID == NOOWNER )           // did we get a username?
         {                                              // nope - whinge and bail out.
+                                                       // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox (_("No username entered -- document not saved."));
             gpApp->LogUserAction (_T("No username entered -- document not saved."));
             return false;
@@ -2059,7 +2065,9 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
-		wxMessageBox ( _("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox ( _("Sorry, it appears the owner of this document is ") + gpApp->m_owner
 					  + _(" but the currently logged in user is ") + gpApp->m_strUserID
 					  + _(".  Only the document's owner can save in the document history.") );
 		gpApp->LogUserAction ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
@@ -2091,7 +2099,9 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 
 	if (pApp->m_trialVersionNum >= 0)
 	{
-		wxMessageBox (_("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox (_("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		pApp->LogUserAction (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
@@ -2222,12 +2232,16 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 
     if ( revNum < 0 )
     {                   // bail out if no more, coming forward
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("There are no more recent versions in the history!") );
         return;
     }
 
     if ( revNum >= gpApp->m_versionCount )
     {                   // bail out if no more, going back
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
     }
@@ -2292,18 +2306,24 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 
     if (pApp->m_commitCount <= 0)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("There are no earlier versions saved!") );
         return;
     }
 
     if (trialRevNum == 0)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("We're already back at the earliest version saved!") );
         return;
     }
 
     if (trialRevNum > 0)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_T("We shouldn't have got here!") );
         return;
     }
@@ -2397,7 +2417,9 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 
 	if (gpApp->m_trialVersionNum < 0)
 	{
-		wxMessageBox (_("We're not looking at earlier revisions!"));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox (_("We're not looking at earlier revisions!"));
         gpApp->LogUserAction(_T("We're not looking at earlier revisions!"));
 		return;
 	}
@@ -2496,6 +2518,8 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
     pApp->m_reopen_recovered_doc = FALSE;       // restore normal default
 
+                                                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
     wxMessageBox(_("This document was corrupt, but we have restored the latest version saved in the document history."));
     pApp->LogUserAction (_T("This document was corrupt, but we have restored the latest version saved in the document history."));
 
@@ -2586,6 +2610,8 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
     {                                           // an error probably means this is a new repository so there's nothing there yet.
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("There are no previous versions in the history!"));
         return;                                 // in this case we don't show the dialog
     }
@@ -2594,6 +2620,8 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 
     if (returnCode == 0)
     {                                           // there's a repository, but no versions saved yet
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("There are no previous versions in the history!"));
         return;                                 // in this case we don't show the dialog either
     }
@@ -2633,6 +2661,8 @@ void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 {
     if (!gpApp->m_DVCS_installed)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_T("Git is apparently not yet installed on this computer."));
         return;
     }
@@ -2813,7 +2843,9 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 						}
 					}
 				}
-				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(_T("Warning: document save failed for some reason."));
 			}
 			else // the original was not copied
@@ -2848,7 +2880,9 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 					// warn user to do a file save now while the doc is still in memory
 					wxString msg;
 					msg = msg.Format(_("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
-					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(_T("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
 				}
 			}
@@ -2866,7 +2900,9 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 				wxString msg;
 				msg = msg.Format(_("Something went wrong. The adaptation document was not saved to disk. Please click the Save command on the File menu immediately, and if the error persists, try the Save As... command instead - if that does not work, you are out of luck and the open document will not be saved, so shut down and start again."));
 				gpApp->LogUserAction(msg);
-				wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_EXCLAMATION | wxOK);
 			}
 		}
 	}
@@ -2906,6 +2942,8 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem, wxString msgDi
         msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
             gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg, _("Collaboration editor is running"), wxOK);
         return false;    // Bail out on an unsafe collaboration situation
     }
@@ -3390,7 +3428,9 @@ retry:	bFileIsRenamed = FALSE;
 			// warn user to try again
 			wxString msg;
 			msg = msg.Format(_("You must not use the Save As... dialog to change where Adapt It stores its document files. You can only rename the file, or make a different 'Save as type' choice, or both."));
-			wxMessageBox(msg,_("Folder Change Is Not Allowed"),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_("Folder Change Is Not Allowed"),wxICON_EXCLAMATION | wxOK);
 			gpApp->LogUserAction(_T("Folder Change Is Not Allowed"));
 			goto retry;
 		}
@@ -3418,7 +3458,9 @@ retry:	bFileIsRenamed = FALSE;
 			{
 				wxString msg;
 				msg = _("Adapt It documents cannot be renamed when collaborating with Paratext or Bibledit.");
-				wxMessageBox(msg,_("Cannot Change The Document's Filename"),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,_("Cannot Change The Document's Filename"),wxICON_EXCLAMATION | wxOK);
 				theNewFilename.Empty();
 				gpApp->LogUserAction(_T("Cannot Change The Document's Filename"));
 				goto retry;
@@ -3438,7 +3480,9 @@ retry:	bFileIsRenamed = FALSE;
 				wxString message;
 				message = message.Format(
 _("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."),illegals.c_str());
-				wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION | wxOK);
 				theNewFilename.Empty();
 				gpApp->LogUserAction(_T("Bad Characters In Filename"));
 				goto retry;
@@ -3449,7 +3493,9 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			{
 				wxString msg;
 				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."));
-				wxMessageBox(msg,_("Conflicting Filename"),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,_("Conflicting Filename"),wxICON_EXCLAMATION | wxOK);
 				theNewFilename.Empty();
 				gpApp->LogUserAction(_T("Conflicting Filename"));
 				goto retry;
@@ -3812,7 +3858,9 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		wxString appVerStr;
 		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
 		msg = msg.Format(_("This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."),gpApp->m_curOutputFilename.c_str(),appVerStr.c_str());
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 		gpApp->LogUserAction(_T("Save As done as version 3,4,5 xml format."));
 	}
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
@@ -4402,6 +4450,8 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 				{
 					wxString msg;
 					msg.Format(_T("The document %s was corrupt, but we have restored the latest version saved in the document history."), thePath.c_str());
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(msg);
 				}
             }
@@ -5818,7 +5868,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 	}
 
 	prompt = prompt.Format(_("The document %s has changed. Do you want to save it? "),name.c_str());
-	int result = wxMessageBox(prompt, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL); //AFX_IDP_ASK_TO_SAVE
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    int result = wxMessageBox(prompt, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL); //AFX_IDP_ASK_TO_SAVE
 	wxCommandEvent dummyEvent; // BEW added 29Apr10
 	switch (result)
 	{
@@ -20777,7 +20829,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	{
 		wxString msg;
 		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
-		wxMessageBox(msg,_T(""),wxICON_ERROR | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""),wxICON_ERROR | wxOK);
 		gpApp->LogUserAction(msg);
 	}
 
@@ -20800,7 +20854,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 
 		wxString msg;
 		msg = msg.Format(_("The packed document file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
-		wxMessageBox(msg,_("Packing of document successful"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Packing of document successful"),wxICON_INFORMATION | wxOK);
 		// whm 20Aug11 note: no need to log success after "initiating" log entry in caller
 	}
 	// remove the progress dialog
@@ -21400,6 +21456,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 
     if (pApp->m_trialVersionNum >= 0 && !m_bReopeningAfterClosing)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox (_("Before closing the document, you must either ACCEPT the revision or RETURN to the latest one."));
         return FALSE;
     }
@@ -24841,7 +24899,9 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 		msg = msg.Format(_(
 "%s%s%s\nDo you want the document being unpacked to overwrite the one already on this computer?"),
 		s1.c_str(),s2.c_str(),s3.c_str());
-		nResult = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        nResult = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO);
 		if(nResult  == wxYES)
 		{
 			// user wants the current file overwritten...
@@ -26085,7 +26145,9 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		stats = stats.Format(_(
 "The consistency check was successful. There were %d source words and phrases  in %d  files."),
 		nCumulativeTotal, nFileCount);
-		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
 	pStatusBar->FinishProgress(_("Performing Consistency Check"));
 	pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)

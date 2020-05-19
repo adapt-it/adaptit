@@ -183,7 +183,9 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	wxASSERT(pListBox != NULL);
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		return;
 	}

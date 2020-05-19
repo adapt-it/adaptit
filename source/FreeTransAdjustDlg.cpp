@@ -180,7 +180,9 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 			// can't join with what follows
 			wxString title = _("Cannot join with what follows");
 			wxString msg = _("The current section is at the document's end. There is nothing ahead to join on to. Instead, try to join with what precedes the current section.");
-			wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 			return; // stay in the Adjust dialog
 		}
 		else
@@ -193,7 +195,9 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
                 // a new verse or chapter
 				wxString title = _("Illegal join");
 				wxString msg = _("Joining across the boundary between two verses or two chapters is illegal. Instead, try to join with what precedes the current section.");
-				wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 				return; // stay in the Adjust dialog
 			} // end of TRUE block for test: if (!DoesItBeginAChapterOrVerse(pFollowingPile))
 
@@ -242,7 +246,9 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 			// dialog open for the user to do something else
 			wxString title = _("Cannot join with what precedes");
 			wxString msg = _("The current free translation section is preceded by one of the following: a footnote, endnote, or cross reference. Joining to one of these is not allowed. Instead, join with what follows the current section.");
-			wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 			return; // stay in the Adjust dialog
 		} 
 		else if ((pPrecedingPile == NULL) && (!bDoesFreeTransImmediatelyPrecede))
@@ -251,7 +257,9 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 			// we cannot join with what precedes
 			wxString title = _("Cannot join with what precedes");
 			wxString msg = _("The current section is at the document's start. There is nothing preceding to join on to. Instead, try to join with what follows the current section.");
-			wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 			return; // stay in the Adjust dialog
 		}
 		else

@@ -5540,6 +5540,10 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
                     // error message
                     titleMsg = _("Unable to remove existing AI_UserProfiles.xml file");
                     // msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_bUserDlgOrMessageRequested = TRUE;
+
                     wxMessageBox(msg, titleMsg, wxICON_EXCLAMATION | wxOK);
                     return FALSE;
                 }
@@ -5565,6 +5569,9 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
                 wxASSERT(bWriteOK != FALSE);
                 if (!bWriteOK)
                 {
+
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_bUserDlgOrMessageRequested = TRUE;
                     // error message
                     titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
                     //msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
@@ -5575,6 +5582,8 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
             }
             else
             {
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_bUserDlgOrMessageRequested = TRUE;
                 // error message
                 titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
                 //msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
@@ -16486,6 +16495,8 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
         // we will set isCollabProject to FALSE.
         wxString msg = _("Adapt It could not open the project configuration file (AI-ProjectConfiguration.aic) for the \"%s\" project. Please ask your administrator for help.");
         msg = msg.Format(msg, m_projectName.c_str());
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg, _("This project's configuration settings could not be read"), wxICON_EXCLAMATION | wxOK);
         // Add the following to the msg for the user log:
         msg += _T(" ");
@@ -16806,7 +16817,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		{
 			wxString aTitle = _("Restore collaboration also?");
 			wxString aMsg = _("If a collaboration was set up with Paratext or Bibledit, do you want it to be restored now, if possible?");
-			if (wxMessageBox(aMsg, aTitle, wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_bUserDlgOrMessageRequested = TRUE;
+            if (wxMessageBox(aMsg, aTitle, wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 			{
 				; // continue processing
 			}
@@ -18982,6 +18995,8 @@ void CAdapt_ItApp::ChangeUILanguage()
         //	if (m_pMainFrame->m_pComposeBar != NULL)
         //		m_pMainFrame->m_pComposeBar->UpdateWindowUI(wxUPDATE_UI_RECURSE);
         //}
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_(
             "The user interface language change may not fully take effect until you restart Adapt It."),
             m_FrameAndDocProgramTitle, wxOK | wxCENTRE | wxICON_INFORMATION);
@@ -19253,6 +19268,8 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             msg = msg.Format(_("A bad password was used, or an adaptations KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create an adaptations KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
                 m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str(), url.c_str(), url.c_str());
             wxString title = _("Bad password or adaptations database lacking");
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, title, wxICON_WARNING | wxOK);
             DeleteKbServer(1);
             m_bIsKBServerProject = FALSE;
@@ -19284,6 +19301,8 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             msg = msg.Format(_("A bad password was used, or a glosses KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create a glosses KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
                 m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), url.c_str(), url.c_str());
             wxString title = _("Bad password or glosses database lacking");
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
             DeleteKbServer(2);
             m_bIsGlossingKBServerProject = FALSE;
@@ -19648,6 +19667,8 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                     result = SD_MultipleUrls_UserCancelled;
                     wxString message;  message = message.Format(_(
                         "You did not choose a URL. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
                     m_theURLs.Clear();
                     m_theHostnames.Clear();
@@ -19701,6 +19722,8 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                 wxString message;  message = message.Format(_(
                     "The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
                     curURL.c_str(), chosenURL.c_str());
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_bUserDlgOrMessageRequested = TRUE;
                 int value = wxMessageBox(message, _("The URL has changed"),
                     wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if ((value == wxYES))
@@ -19719,6 +19742,8 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                     wxString message;  message = message.Format(_(
                         "You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
                         chosenURL.c_str());
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
                     chosenURL = wxEmptyString;
                     chosenHostname = wxEmptyString;
@@ -19736,6 +19761,8 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         // Nothing available, inform the user of what might be the problem or problems
         wxString message;  message = message.Format(_(
             "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nThe unique username for logging in may be different than what is expected. Check Edit > Change Username..."));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
         m_theURLs.Clear();
         m_theHostnames.Clear();
@@ -54230,6 +54257,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
     wxString msg;
     msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"), fileNameAndExtOnly.c_str(), exportPath.c_str());
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_bUserDlgOrMessageRequested = TRUE;
     wxMessageBox(msg, _("Export operation successful"), wxICON_INFORMATION | wxOK);
     gpApp->LogUserAction(_T("Export operation successful"));
 }

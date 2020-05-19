@@ -107,7 +107,9 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 		wxString msg = _(
 			"You have made changes to affixes: Do you want to save them?");
 		//msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        int response = wxMessageBox(msg,_("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 		if (response == wxYES)
 		{
 			bool bPrefixesOK, bSuffixesOK;
@@ -425,7 +427,9 @@ void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(eve
 		wxString msg = _(
 		"Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		m_pApp->LogUserAction(msg);
 		if (response == wxYES)
 		{
@@ -489,7 +493,9 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 			m_pSrcAffix->SetFocus();
 		//else
 		//	m_pTgtAffix->SetFocus();
-		wxMessageBox(_("Please type in an affix pair to Add"),_T(""),wxICON_INFORMATION | wxOK, this);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please type in an affix pair to Add"),_T(""),wxICON_INFORMATION | wxOK, this);
 		//event.Skip();
 	}
 	else if ((m_pltCurrentAffixPairListType == prefixesListType && PrefixExistsAlready(sSrc)) ||
@@ -498,7 +504,9 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 		wxString msg;
 		msg = _("Affix \"%s\" already exists. Multiple identical affixes are not allowed.");
 		msg = msg.Format(msg, sSrc.c_str());
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
 		//event.Skip();
 	}
 	else
@@ -551,7 +559,9 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 		//else
 		//	m_pTgtAffix->SetFocus();
 		DeselectButtonsAfterClick();
-		wxMessageBox(_("First select the pair to be Updated, so their affixes will appear in the two text boxes.\nEdit them there, then click Update."),_T(""),wxICON_INFORMATION | wxOK, this);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("First select the pair to be Updated, so their affixes will appear in the two text boxes.\nEdit them there, then click Update."),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 		return;
 	}
@@ -561,7 +571,9 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 		if (itemIndex == (long)wxNOT_FOUND)
 		{
 			DeselectButtonsAfterClick();
-			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
 			event.Skip();
 			return;
 		}
@@ -605,7 +617,9 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 			m_pSrcAffix->SetFocus();
 		//else
 		//	m_pTgtAffix->SetFocus();
-		wxMessageBox(_("Please type in an affix pair to Insert"),_T(""),wxICON_INFORMATION | wxOK, this);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please type in an affix pair to Insert"),_T(""),wxICON_INFORMATION | wxOK, this);
 		DeselectButtonsAfterClick();
 		event.Skip();
 		return;
@@ -615,7 +629,9 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 		itemIndex = GetSelectedItemIndex(); // will return (long)-1 if there is no selection current
 		if (itemIndex == (long)wxNOT_FOUND)
 		{
-			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
 			event.Skip();
 			return;
 		}
@@ -659,7 +675,9 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 		//else
 		//	m_pTgtAffix->SetFocus();
 		DeselectButtonsAfterClick();
-		wxMessageBox(_("Please select an affix pair to delete"), _T(""), wxICON_INFORMATION | wxOK, this);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please select an affix pair to delete"), _T(""), wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 		return;
 	}
@@ -669,7 +687,9 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 		if (itemIndex == (long)wxNOT_FOUND)
 		{
 			DeselectButtonsAfterClick();
-			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
 			event.Skip();
 			return;
 		}

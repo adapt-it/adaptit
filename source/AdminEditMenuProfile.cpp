@@ -1412,7 +1412,9 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 				msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
 				msg = msg.Format(msg,editedProfilesStr.c_str(),previousProfileName.c_str(),previousProfileName.c_str(),previousProfileName.c_str()); // in this case oldProfileName == newProfileName
 			}
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bProfileChanged.Item(tempWorkflowProfile - 1) != 1) // when tempWorkflowProfile is other than 0, the profile index is 1 less
@@ -1429,7 +1431,9 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 			msg += _T("\n");
 			msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
 			msg = msg.Format(msg,editedProfilesStr.c_str(),newProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else
@@ -1513,7 +1517,9 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg1;
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bSelChanged)
@@ -1523,7 +1529,9 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg2;
 			msg = msg.Format(msg,GetNameOfProfileFromProfileValue(startingWorkflowProfile).c_str(),
 				GetNameOfProfileFromProfileValue(tempWorkflowProfile).c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bItemsChanged)
@@ -1533,7 +1541,9 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg1;
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		if (response == wxNO)

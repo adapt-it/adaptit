@@ -243,7 +243,9 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	{
 		// tell user that the iso639-3codes.txt file cannot be found
 		wxString msg = msg.Format(_("Cannot open the %s language codes file at the path:\n   %s\nAdapt It cannot show the list of language names and their codes,\nbut you can enter the 3-letter language codes manually."),iso639_3CodesFileName.c_str(),pathToLangCodesFile.c_str());
-		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		m_bISO639ListFileFound = FALSE;
 	}
 

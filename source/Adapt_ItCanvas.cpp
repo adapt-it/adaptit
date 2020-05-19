@@ -1373,7 +1373,9 @@ x:					CCell* pCell = 0;
 					nClickedSequNum > gEditRecord.nAdaptationStep_EndingSequNum)
 				{
 					// IDS_CLICK_IN_GRAY_ILLEGAL
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1396,7 +1398,9 @@ x:					CCell* pCell = 0;
 					nClickedSequNum > gEditRecord.nGlossStep_EndingSequNum)
 				{
 					// IDS_CLICK_IN_GRAY_ILLEGAL
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1420,7 +1424,9 @@ x:					CCell* pCell = 0;
 					nClickedSequNum > gEditRecord.nFreeTranslationStep_EndingSequNum)
 				{
 					// IDS_CLICK_IN_GRAY_ILLEGAL
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1543,7 +1549,9 @@ x:					CCell* pCell = 0;
 									{
 										// warn user
 										// IDS_CANNOT_EXTEND_FWD
-										wxMessageBox(_(
+                                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                        pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                        wxMessageBox(_(
 	"Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."),
 										_T(""), wxICON_INFORMATION | wxOK);
 										event.Skip();
@@ -1666,7 +1674,9 @@ x:					CCell* pCell = 0;
 									{
 										// warn user
 										// IDS_CANNOT_EXTEND_BACK
-										wxMessageBox(_(
+                                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                        pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                        wxMessageBox(_(
 	"Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."),
 										_T(""), wxICON_INFORMATION | wxOK);
 										event.Skip();
@@ -1798,7 +1808,9 @@ x:					CCell* pCell = 0;
 						{
 							// IDS_NO_ACCESS_TO_RETRANS
 							::wxBell(); // a ding here might help too
-							wxMessageBox(_(
+                                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            pApp->m_bUserDlgOrMessageRequested = TRUE;
+                            wxMessageBox(_(
 	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
 							wxICON_INFORMATION | wxOK);
 							// put the focus back in the former place
@@ -2320,7 +2332,9 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				ReleaseMouse();
 			}
 			// IDS_DIFF_TEXT_TYPE
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			pView->RemoveSelection();

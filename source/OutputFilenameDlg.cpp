@@ -138,7 +138,9 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 		if (bNamesClash)
 		{
 			// IDS_TYPED_DOCNAME_CLASHES
-			wxMessageBox(_("The name you typed clashes with an existing document name. Please type a different name.")
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("The name you typed clashes with an existing document name. Please type a different name.")
 				,_T(""), wxICON_EXCLAMATION | wxOK);
 			return; // leave user in the dialog, to fix the name
 		}

@@ -248,7 +248,9 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	nSel = m_pListBoxKeys->GetSelection();
 	if (nSel == -1) // LB_ERR
 	{
-		wxMessageBox(_("Keys list box error when getting the current selection"),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Keys list box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 	}
@@ -573,7 +575,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	if (oldText == _T("<Not In KB>"))
 	{
 		// IDS_ILLEGAL_EDIT
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"Editing this kind of entry is not permitted."),
 		_T(""), wxICON_INFORMATION | wxOK);
 		return;
@@ -601,6 +605,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	m_messageCount++; //incremement the message count, if greater than 3, don't show the message again in this sesion
 	if (m_messageCount < m_maxMessageCount)
 	{
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
         int ok = wxMessageBox(_(
 "Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem,\nand tick its checkbox: Do blind fixes whenever possible.)\n(You will see this message only three times in this session.)\nDo you wish to go ahead with the spelling change?"),
 	_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -612,7 +618,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	if (newText.IsEmpty())
 	{
 		// IDS_REDUCED_TO_NOTHING
-		int value = wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        int value = wxMessageBox(_(
 "You have made the translation nothing. This is okay, but is it what you want to do?"),
 		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value != wxYES)
@@ -743,7 +751,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			str = _T("");
 		if ((str.IsEmpty() && newText.IsEmpty()) || (str == newText))
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "The translation you are attempting to associate with the current source phrase already exists."),
 			_T(""),wxICON_INFORMATION | wxOK);
 			return;
@@ -1040,7 +1050,9 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 															caseSensitive, exactString);
 		if (nFound == -1) // LB_ERR
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 			"Error warning: Did not find the translation text just inserted!"),_T("")
 			,wxICON_EXCLAMATION | wxOK);
 			m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
@@ -1106,7 +1118,9 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	// to happen
 	if (newText.IsEmpty())
 	{
-		int value = wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        int value = wxMessageBox(_(
 		"You are adding a translation which is nothing. That is okay, but is it what you want to do?"),
 		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value == wxNO)
@@ -1204,7 +1218,9 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 														caseSensitive, exactString);
 		if (nFound == -1) // LB_ERR
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 			"Error warning: Did not find the translation text just inserted!"),_T(""),
 			wxICON_EXCLAMATION | wxOK);
 			m_pListBoxExistingTranslations->SetSelection(0,TRUE);
@@ -1301,7 +1317,9 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 	if (contents.IsEmpty())
 	{
 		::wxBell();
-		wxMessageBox(_("You have not yet typed something to search for."),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("You have not yet typed something to search for."),
 		_("No search strings defined"), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
@@ -1404,7 +1422,9 @@ void CKBEditor::MessageForConsistencyCheck()
 	msg = msg.Format(_("You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do a consistency check of all documents as soon as you dismiss this message. Do you want the consistency check to start automatically?"));
 	wxString title = _("Do Consistency Check Now?");
 	long style = wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCENTRE;
-	int answer = ::wxMessageBox(msg.c_str(),title.c_str(),style);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
+    int answer = ::wxMessageBox(msg.c_str(),title.c_str(),style);
 	if (answer == wxYES)
 	{
 		// when the handler for the KBEditor dialog returns, a full consistency check will
@@ -1479,7 +1499,9 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 			wxString title;
 			title = _("Knowledge base sharing is (temporarily) disabled");
 			msg = _("This is a shared knowledge base project, but you have disabled sharing.\nSharing must be enabled, and with a working connection to the remote server, before a bulk removal of knowledge base entries can be allowed.\nTo enable sharing again, click Controls For Knowledge Base Sharing... on the Advanced menu, and click the left radio button.");
-			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 			return;
 		}
 	}
@@ -1561,7 +1583,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	if (str == _T("<Not In KB>"))
 	{
 		// IDS_ILLEGAL_REMOVE
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, you can only remove this kind of entry by putting the phrase box at the relevant location in the document, and then click the  \"Save To Knowledge Base\" checkbox back to ON."),_T(""),
 		wxICON_INFORMATION | wxOK);
 		return;
@@ -1621,7 +1645,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	message = message.Format(_(
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
 		str2.c_str(),nPreviousReferences);
-	int nResult = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
+    int nResult = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(nResult == wxYES))
 	{
 		return; // user backed out
@@ -1786,7 +1812,9 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Translations list box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
@@ -1918,7 +1946,9 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"Translations list box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
@@ -2290,7 +2320,9 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 			}
 			else
 			{
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Sorry, the translation you are attempting to associate with the current source phrase already exists."),
 				_T(""),wxICON_INFORMATION | wxOK);
 				pRefString->DeleteRefString(); // don't need this one

@@ -210,6 +210,8 @@ void CEditSourceTextDlg::OnHelpOnEditingSourceText(wxCommandEvent& WXUNUSED(even
         "  (2) It  automatically restores removed notes (their locations may differ a little bit).\n" \
         "  (3) It helps you to produce new free translations, or edit the old ones.\n" \
         "  (4) Any deleted back translations will be automatically collected again.");
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
     wxMessageBox(msg, _("Help on Editing Source Text"), wxICON_INFORMATION | wxOK);
 }
 

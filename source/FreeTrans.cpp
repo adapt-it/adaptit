@@ -5242,14 +5242,18 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	{
 		// there are no free translations in the document,
 		// so tell the user and return
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"The document does not contain any free translations."),
 		_T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("The document does not contain any free translations."));
 		return;
 	}
 
-	int nResult = wxMessageBox(_(
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    int nResult = wxMessageBox(_(
 "You are about to delete all the free translations in the document. Is this what you want to do?"),
 	_T(""), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (nResult == wxNO)
@@ -7287,7 +7291,9 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					sn > gEditRecord.nFreeTranslationStep_EndingSequNum)
 				{
 					// IDS_CLICK_IN_GRAY_ILLEGAL
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
 					return;
@@ -8298,7 +8304,9 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString title = _("Cannot turn button On");
 		wxString msg = _("Sectioning by punctuation cannot be turned on, because the Administrator menu item \n\"Force Free Translation Sectioning By Verse\" is still turned On. \nTurn it Off, then this button will respond. \n(A password is needed for showing the Administrator menu.)");
-		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 	}
 
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -9187,7 +9195,9 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	if (!bBTfound)
 	{
 		// there are no free translations in the document, so tell the user and return
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"The document does not contain any back translations."),
 		_T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("The document does not contain any back translations."));
@@ -9195,7 +9205,9 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	}
 
 	// IDS_DELETE_ALL_BT_ASK
-	if( wxMessageBox(_(
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    if( wxMessageBox(_(
 "You are about to delete all the back translations in the document. Is this what you want to do?"),
 	_T(""), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT) == wxNO)
 	{
@@ -10469,7 +10481,9 @@ CPile* CFreeTrans::TransferRemainderToWhatFollows(wxString& strRemainingFreeTran
 		// must abandon the remainder of the free translation - there's nowhere to put it
 		wxString title = _("No place to put the remaining free translation ");
 		wxString msg = _("The current section is at the document's end. There is nothing ahead to transfer the remainder of the split translation to. It will be abandoned.");
-		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 		return pFirstPile; // (returning NULL) & we will stay in the current section
 	}
 	// Okay, there's a pile which either is an anchor already, or can be made on in a

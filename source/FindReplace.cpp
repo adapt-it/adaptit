@@ -720,6 +720,8 @@ repeatfind:
             // nKickOffSequNum was at start of doc, and nothing was found
             msg = _("All of document was searched. No \"%s\" was found.");
             msg = msg.Format(msg, searchStr.c_str());
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, _T(""), wxICON_INFORMATION);
             // pass throgh to pView->FindNextHasLanded() below...
         }
@@ -733,6 +735,8 @@ repeatfind:
                 // starting point was reached and nothing found
                 msg = _("Remainder of document was searched. No \"%s\" was found.");
                 msg = msg.Format(msg, searchStr.c_str());
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
                 wxMessageBox(msg, _T(""), wxICON_INFORMATION);
             }
             else
@@ -745,6 +749,8 @@ repeatfind:
                 msg = _("End of document was reached. No \"%s\" was found. Search for %s in the earlier part of document?");
                 msg = msg.Format(msg, searchStr.c_str(), searchStr.c_str());
                 int result;
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
                 result = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if (result == wxYES)
                 {
@@ -1776,6 +1782,8 @@ repeatfind:
             // nKickOffSequNum was at start of doc, and nothing was found
             msg = _("All of document was searched. No \"%s\" was found.");
             msg = msg.Format(msg, searchStr.c_str());
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, _T(""), wxICON_INFORMATION);
             // pass throgh to pView->FindNextHasLanded() below...
         }
@@ -1789,6 +1797,8 @@ repeatfind:
                 // starting point was reached and nothing found
                 msg = _("Remainder of document was searched. No \"%s\" was found.");
                 msg = msg.Format(msg, searchStr.c_str());
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
                 wxMessageBox(msg, _T(""), wxICON_INFORMATION);
             }
             else
@@ -1801,6 +1811,8 @@ repeatfind:
                 msg = _("End of document was reached. No \"%s\" was found. Search for %s in the earlier part of document?");
                 msg = msg.Format(msg, searchStr.c_str(), searchStr.c_str());
                 int result;
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
                 result = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if (result == wxYES)
                 {
@@ -2114,7 +2126,9 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	{
 		m_bSelectionExists = FALSE;
 		// IDS_NO_SELECTION_YET
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, you cannot do a Replace operation because there is no selection yet."),
 		_T(""), wxICON_INFORMATION | wxOK);
 		gbJustReplaced = FALSE;
@@ -2135,7 +2149,9 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 
 	if (!bOK)
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"Failed to do the replacement without error. The next Find Next will be skipped."),
 		_T(""), wxICON_INFORMATION | wxOK);
 		return;

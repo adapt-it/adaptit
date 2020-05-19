@@ -204,7 +204,9 @@ void CRetranslation::DoRetranslation()
 {
 	wxCommandEvent dummyevent;
 	// IDS_TOO_MANY_SRC_WORDS
-	wxMessageBox(_(
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_(
 				   "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
 				 _T(""), wxICON_INFORMATION | wxOK);
 
@@ -614,7 +616,9 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			{
 				wxString str;
 				str = str.Format(_T("Bad file:  %s"),newName.c_str());
-				wxMessageBox(str,_T(""),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(str,_T(""),wxICON_EXCLAMATION | wxOK);
 				// whm Note: Even though this error should not happen but rarely, it
 				// shouldn't result in the entire application stopping!
 				return;
@@ -1926,7 +1930,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
 	if (gbIsGlossing)
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
 					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
@@ -1996,7 +2002,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
 	if (nCount == (int)m_pApp->m_pSourcePhrases->GetCount())
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 					   "Sorry, for a retranslation your selection must not include all the document contents - otherwise there would be no possible place for the phrase box afterwards. Shorten the selection then try again."),
 					 _T(""),wxICON_INFORMATION | wxOK);
 		return;
@@ -2023,7 +2031,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	bool bConstType = IsConstantType(pList);
 	if (!bConstType)
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		m_pView->RemoveSelection();
@@ -2048,7 +2058,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // if there is one
 	if (IsRetranslationInSelection(pList))
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -2076,7 +2088,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		wxString msg = _("Sorry, this operation is not allowed when the selection contains hidden(stored) USFM3 metadata. Instead, try making retranslations either side of the word at %s.");
 		msg = msg.Format(strAt.c_str());
-		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;
@@ -2498,7 +2512,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			if(!bSetSafely)
 			{
 				// IDS_ALL_RETRANSLATIONS
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
 				_T(""), wxICON_EXCLAMATION | wxOK);
                 // BEW changed 19Mar09 for refactored layout, to comment out & so allow the
@@ -2760,7 +2776,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
 					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
@@ -2791,7 +2809,10 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			{
 				// an error state
 				//IDS_NO_REMOVE_RETRANS
-			h:	wxMessageBox(_(
+            h:
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."),
 				_T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
@@ -3272,7 +3293,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			if(!bSetSafely)
 			{
 				// IDS_ALL_RETRANSLATIONS
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 							   "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
 							 _T(""), wxICON_EXCLAMATION | wxOK);
                 // BEW changed 19Mar09 for refactored layout, to comment out & so allow the
@@ -3704,7 +3727,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_("This particular operation is not available when you are glossing."),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("This particular operation is not available when you are glossing."),
 					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
@@ -3734,7 +3759,10 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			{
 				// an error state
 				// IDS_NO_REMOVE_RETRANS
-			h:				wxMessageBox(_(
+            h:				
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 										   "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."),
 										 _T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
@@ -4131,7 +4159,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
 					 _T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("This particular operation is not available when you are glossing."));
@@ -4191,7 +4221,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// a "Yes" answer is a choice for reporting only for the current document,
 			// a "No" answer will close the current document, scans all docs, builds
 			// the report and then reopens the document with the box at its old location
-			answer = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            answer = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			if (answer == wxYES)
 			{
 				bThisDocOnly = TRUE;
@@ -4397,7 +4429,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		if (!fsOK)
 		{
 			// something's real wrong!
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Could not save the current document. Retranslation Report command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("Could not close and save the current document. Retranslation Report command aborted."));
@@ -4437,7 +4471,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	{
 #ifdef _DEBUG
 		wxLogError(_("Unable to open report file.\n"));
-		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Unable to open report file."),_T(""), wxICON_EXCLAMATION | wxOK);
 #endif
         // whm added 05Jan07 to restore the former current working directory for safety
         // sake to what it was on entry, since there was a wxSetWorkingDirectory call made
@@ -4524,7 +4560,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (m_pApp->m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 			{
 				// nothing to work on, so abort the operation
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 							 _T(""),wxICON_EXCLAMATION | wxOK);
                 // whm added 05Jan07 to restore the former current working directory for
@@ -4752,7 +4790,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	if (bDocForcedToClose)
 	{
 		bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,

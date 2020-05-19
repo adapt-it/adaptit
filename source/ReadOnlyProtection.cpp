@@ -404,7 +404,9 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 		mssg = mssg.Format(
 _("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
 projectFolderPath.c_str());
-		wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_EXCLAMATION | wxOK);
 		return theFilename;
 	}
 	// sadly the following wxDir class function does not support a path which is a URI
@@ -652,7 +654,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 				{
 					wxString message;
 					message = _("Someone has your project folder open already, so you have READ-ONLY access.\nIf you need to be able to save your work, you can gain write access now.\nDoing so will force the other person to have read-only access.\n\nDo you to want to have write access now?");
-					int response = wxMessageBox(message, _T("Another process owns write permission"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    int response = wxMessageBox(message, _T("Another process owns write permission"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					if (response == wxYES)
 					{
 						// User responded "YES", i.e., wants to have immediate write access so the
@@ -1010,6 +1014,8 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
         // Put doc owner and user ID in dialog title.
         wxString msgTitle = _("Document owner is: %s. Your user ID is: %s");
         msgTitle = msgTitle.Format(msgTitle, m_pApp->m_owner.c_str(), m_pApp->m_strUserID.c_str());
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         int value = wxMessageBox (
                       _("This document is owned by someone else, so you have READ-ONLY access.  Do you want to take ownership of this document in order to change it?"),
             msgTitle.c_str(),
@@ -1070,7 +1076,9 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 				// trying to access the project folder on our own local machine, we can
 				if (!m_pApp->m_bFictitiousReadOnlyAccess)
 				{
-					wxMessageBox(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(
 	_("Someone has your project folder open already, so you have READ-ONLY access."),_("Another process owns write permission"),
 					wxICON_INFORMATION | wxOK);
 				}

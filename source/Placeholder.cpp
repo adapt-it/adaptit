@@ -270,7 +270,11 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_INSERT_IN_RETRANS
-			wxMessageBox(_(
+
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+            wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 						 _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pView->RemoveSelection();
@@ -372,7 +376,11 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_INSERT_IN_RETRANS
-			wxMessageBox(_(
+
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+            wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 						 _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pView->RemoveSelection();
@@ -1000,6 +1008,8 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 // BEW 25Mar20 refactor && prevent spurious phrasebox jump ahead
 
 
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                 wxMessageDialog dlg(NULL,_("Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
                     _T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if (dlg.ShowModal() == wxID_YES)
@@ -1008,7 +1018,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
                     bAssociatingRightwards = TRUE;
                     //m_pApp->b_Spurious_Enter_Tab_Propagated = TRUE;
 
-/* ** test ** */	m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+/* ** test ** */	
                 }
                 else
                 {
@@ -1029,7 +1039,11 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 				// joined by USFM ~ fixed space follows
 				if (IsFixedSpaceSymbolWithin(pSrcPhraseInsLoc))
 				{
-					wxMessageBox(_(
+
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                    wxMessageBox(_(
 "Two words are joined with fixed-space marker ( ~ ) following the placeholder.\nForwards association is not possible when this happens."),
 _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
@@ -1047,7 +1061,11 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						// end-padders; the way to fix the retranslation is not to try
 						// associate a preceding placeholder to it, but to edit the
 						// retranslation itself
-						wxMessageBox(_(
+
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                        wxMessageBox(_(
 "Trying to associate the inserted placeholder with the start of the retranslation text which follows it does not work.\nIt will be better if you now delete the placeholder and instead edit the retranslation itself."),
 _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
@@ -1145,7 +1163,11 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 				// joined by USFM ~ fixed space precedes
 				if (IsFixedSpaceSymbolWithin(pPrevSrcPhrase))
 				{
-					wxMessageBox(_(
+
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                    wxMessageBox(_(
 "Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nBackwards association is not possible when this happens."),
 _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
@@ -1342,7 +1364,11 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
                                     // asked for an association choice - so we must do so
                                     // now 
                                     // IDS_ASSOC_WITH_FREE_TRANS
-									if (wxMessageBox(_(
+
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                                    if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?")
 									,_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 									{
@@ -1421,7 +1447,11 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
                                 // no association is defined, so we must ask the user for
                                 // what to do 
                                 // IDS_ASSOC_WITH_FREE_TRANS
-								if (wxMessageBox(_(
+
+                                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                                if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"),
 								_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 								{
@@ -1472,7 +1502,11 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 						{
 							// no association known as yet, so ask the user
 							// IDS_ASSOC_LEFT_FREE_TRANS
-							if (wxMessageBox(_(
+
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                            if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which immediately precedes it?"),
 							_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 							{
@@ -1537,7 +1571,11 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
                             // punctuation) so we have no user action to guide us - so we
                             // must ask the user for guidance
 							// IDS_ASSOC_WITH_FREE_TRANS
-							if (wxMessageBox(_(
+
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                            if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"),
 							_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 							{
@@ -2460,7 +2498,11 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_("This particular operation is not available when you are glossing."),
+
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+        wxMessageBox(_("This particular operation is not available when you are glossing."),
 					 _T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
@@ -3169,7 +3211,11 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 		// if it is still a retranslation, we must abort the operation)
 		if (pInsertLocPile2->GetSrcPhrase()->m_bRetranslation)
 		{
-			wxMessageBox(_(
+
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+            wxMessageBox(_(
 				"Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 				_T(""), wxICON_EXCLAMATION | wxOK);
 			m_pView->RemoveSelection();
@@ -3689,7 +3735,11 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			bool bIsRetranslating = pRetrans->m_bIsRetranslationCurrent;
 			if (!bIsRetranslating)
 			{
-				// Disallow insertion when we are not within a retranslation
+
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                // Disallow insertion when we are not within a retranslation
 				wxMessageBox(_(
 					"You cannot insert a placeholder within a retranslation. The command has been ignored.")
 					, _T(""), wxICON_EXCLAMATION | wxOK);
@@ -4101,7 +4151,11 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// joined by the USFM ~ (fixed-space indicator symbol) precedes
 			if (IsFixedSpaceSymbolWithin(pCurrentSrcPhrase))
 			{
-				wxMessageBox(_(
+
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                wxMessageBox(_(
 					"Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nAssociation with the two words is not possible."),
 					_("Warning: Unacceptable Backwards Association"), wxICON_EXCLAMATION | wxOK);
 				goto m; // make no further adjustments, just jump to the RecalcLayout() call near the end
@@ -4145,7 +4199,11 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// joined by USFM ~ fixed space precedes
 			if (IsFixedSpaceSymbolWithin(pPrevSrcPhrase))
 			{
-				wxMessageBox(_(
+
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+                wxMessageBox(_(
 					"Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nBackwards association is not possible when this happens."),
 					_T("Warning: Unacceptable Backwards Association"), wxICON_EXCLAMATION | wxOK);
 				goto m; // make no further adjustments, just jump to the 
@@ -4461,7 +4519,11 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+        wxMessageBox(_(
 			"This particular operation is not available when you are glossing."),
 			_T(""), wxICON_INFORMATION | wxOK);
 		return;
@@ -4504,7 +4566,11 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+        wxMessageBox(_(
 			"This particular operation is not available when you are glossing."),
 			_T(""), wxICON_INFORMATION | wxOK);
 		return;

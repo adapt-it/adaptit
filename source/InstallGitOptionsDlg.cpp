@@ -190,6 +190,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             // required during the installation - as this installer does.
             msg = msg + _("The Git installer can be downloaded separately (from: http://git-scm.com/downloads) and installed at a later time apart from using this installer. It you decide to install Git that way, you should run the Git installer in a cmd window using this command:\n     %s /SILENT");
             msg = msg.Format(msg, GitInstallerFileName.c_str());
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, _("Git Installation Information"), wxICON_INFORMATION | wxOK);
         }
     }
@@ -236,6 +238,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             // more appropriate message here that tells the user to first Quit AI before attempting a
             // system restart.
             //needsRestartMsg = 'The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.';
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(needsRestartMsg, _("Git Installation completed"), wxICON_INFORMATION | wxOK);
         }
     }
@@ -250,6 +254,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             int result;
             wxString msg = _("A Git installer is available on this computer at: %s.\nThat installer could be used to install Git without accessing the Internet. Do you want Adapt It to install Git now using that installer?");
             msg = msg.Format(msg, GitInstallerPathAndName.c_str());
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             result = wxMessageBox(msg, _("Found a Git installer"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
             if (result == wxYES)
             {
@@ -276,6 +282,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
                     // more appropriate message here that tells the user to first Quit AI before attempting a
                     // system restart.
                     //needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. First close this message, then quit Adapt It, and restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(needsRestartMsg, _("Git Installation completed"), wxICON_INFORMATION | wxOK);
                 }
             }
@@ -343,6 +351,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
                     // more appropriate message here that tells the user to first Quit AI before attempting a
                     // system restart.
                     //needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. First close this message, then quit Adapt It, and restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(needsRestartMsg, _("Git Installation completed"), wxICON_INFORMATION | wxOK);
                 }
             }
@@ -350,6 +360,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             {
                 // User canceled from the GetOpenFileName dialog
                 wxString msg = _("No Git Installer was selected. Git will not be installed if you continue.\nIf you still want to install Git, after you click OK, you can try one of the Git install options page, and try again, or click Cancel to quit the options page.");
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                 wxMessageBox(msg, _T("No Git installer selected"), wxICON_INFORMATION | wxOK);
                 return;
             }

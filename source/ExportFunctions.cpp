@@ -383,7 +383,9 @@ bool DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 		msg = msg.Format(_("Cascading Stylesheet file, aiDefault.css, is missing.\n The aiDefault.css file was supposed to be at: %s\nThe export cannot be done unless the file exists at that location.\n(If you can find such a file, you can manually copy it to that location, and try the export again.)"),
 			pathToAIDefaultCSS.c_str());
 		gpApp->LogUserAction(msg);
-		wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
 		return bResult;
 	}
 	bOkay = MakeAndSaveMyCSSFile(path, fname, pathToAIDefaultCSS);
@@ -443,7 +445,7 @@ bool MakeAndSaveMyCSSFile(wxString path, wxString fname, wxString pathToAIDefaul
 		msg = msg.Format(_T("wxCopyFilePath() failed in MakeAndSaveMyCSSFile for an xhtml export attempt.\n The aiDefault.css file was supposed to be at: %s\nThe path for the copy was: %s"),
 			pathToAIDefaultCSS.c_str(), pathForCopy.c_str());
 		gpApp->LogUserAction(msg);
-		wxMessageBox(msg,_T("CSS file creation: copying aiDefault.css failed"),wxICON_EXCLAMATION | wxOK);
+        wxMessageBox(msg,_T("CSS file creation: copying aiDefault.css failed"),wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	// now rename the copied aiDefault.css file to be what is needed for this export; the
@@ -480,7 +482,9 @@ bool DeclineIfUnstructuredData()
 	{
 		msg = msg.Format(_(
 "Export in XHTML xml format is supported only for data originally marked up in standard format (meaning, the data includes backslash markers).\nThe current document lacks backslash markers."));
-		wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
 		return TRUE;
 	}
 	return FALSE;
@@ -503,7 +507,9 @@ bool DeclineIfNoBookCode(wxString& bookCode)
 		msg = msg.Format(_(
 "The book code either is invalid, or does not exist.\nAn xhtml export is not possible without it. (It should be at the start of the adaptation.)\nThe book code obtained was %s"),
 		bookCode.c_str());
-		wxMessageBox(msg,_("Invalid or Absent Book Code"), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Invalid or Absent Book Code"), wxICON_EXCLAMATION | wxOK);
 		return TRUE;
 	}
 	return FALSE;
@@ -598,7 +604,9 @@ bool DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode)
 	{
 		msg = msg.Format(_(
 "The language's 2-letter or 3-letter code code is not set, so the export cannot be done yet. \nYou can set the right code in the Backups & Misc page of Preferences...\nDo so now, and then try the xhtml export again."));
-		wxMessageBox(msg,_("No Language Code Is Set"),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("No Language Code Is Set"),wxICON_EXCLAMATION | wxOK);
 		return TRUE;
 	}
 	return FALSE;
@@ -872,7 +880,9 @@ bool WriteXHTML_To_File(wxString exportPath, CBString& myxml, bool bShowMessageI
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(), exportPath.c_str());
 	if (bShowMessageIfSucceeded == true)
 	{
-		wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
 	}
 	gpApp->LogUserAction(_T("XHTML export operation successful"));
 
@@ -1201,7 +1211,9 @@ void DoExportAsType(enum ExportType exportType)
 					msg = msg.Format(_("Missing Stylesheet file: %s.\nThe Pathway export cannot be completed without this file."),
 						exportCSS.c_str());
 					gpApp->LogUserAction(msg);
-					wxMessageBox(msg,_("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,_("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
 					return;
 				}
 
@@ -1275,7 +1287,9 @@ void DoExportAsType(enum ExportType exportType)
                 if (code)
                 {
 					aMsg = _("Error: Pathway export could not be started,");
-					wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
 					gpApp->LogUserAction(aMsg);
 					return;
@@ -1314,7 +1328,9 @@ void DoExportAsType(enum ExportType exportType)
                 if (!errMsg.IsEmpty())
                 {
    						aMsg = aMsg.Format(_("Error: Pathway export returned an error:\n%s"), errMsg.c_str());
-						wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
 						aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
 						gpApp->LogUserAction(aMsg);
 						return;
@@ -1378,7 +1394,9 @@ void DoExportAsType(enum ExportType exportType)
 							{
 								// No output AND low disk space -- tell the user (this might have been the cause)
 								aMsg = aMsg.Format(_("Pathway did not create any files. This could be due to low disk space.\nYou currently have %s bytes of free disk space."), free.ToString().c_str());
-								wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                                wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 								gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 								return;
 							}
@@ -1390,7 +1408,9 @@ void DoExportAsType(enum ExportType exportType)
 							// There _is_ some output -- list it
 							aMsg = aMsg.Format(_("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
 						}
-						wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 						gpApp->LogUserAction(aMsg);
 						return;
 					}
@@ -1403,7 +1423,9 @@ void DoExportAsType(enum ExportType exportType)
 				{
 					// Pathway succeeded (maybe?), but we have low disk space -- tell the user
 					aMsg = aMsg.Format(_("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
-					wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 					return;
 				}
@@ -1431,14 +1453,18 @@ void DoExportAsType(enum ExportType exportType)
 					// In the off chance that they didn't get an earlier message, let them know that
 					// we've found some weird results and that they might want to verify the export.
 					aMsg = _("Pathway did not clean up temporary files in the output directory. This might be due to an earlier error in the Pathway export.");
-					wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(aMsg);
 					return;
 				}
 
 				// Pathway didn't complain, and produced a file of some sort (this may or may not be a good output). Tell the user where to look for the files.
 				aMsg = aMsg.Format(_("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
-				wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
 				return;
             }
             else // xhtml output
@@ -1895,7 +1921,9 @@ void DoExportAsType(enum ExportType exportType)
 
 		wxString msg;
 		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 
 		return; // this ends RTF output
 	}
@@ -1915,14 +1943,18 @@ void DoExportAsType(enum ExportType exportType)
 			wxLogDebug(_T("Unable to open export source text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		case glossesTextExport:
 			#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export glosses text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 
 			break;
 		case freeTransTextExport:
@@ -1930,7 +1962,9 @@ void DoExportAsType(enum ExportType exportType)
 			wxLogDebug(_T("Unable to open export free translation text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		default:
 		case targetTextExport:
@@ -1938,7 +1972,9 @@ void DoExportAsType(enum ExportType exportType)
 			wxLogDebug(_T("Unable to open export target text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		}
 		gpApp->LogUserAction(msg);
@@ -2057,7 +2093,9 @@ void DoExportAsType(enum ExportType exportType)
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Export operation successful"));
 
 	f.Close();
@@ -2848,7 +2886,9 @@ void DoExportInterlinearRTF()
 	{
 	   #ifdef _DEBUG
 		  wxLogError(_("Unable to open export file.\n"));
-		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_EXCLAMATION | wxOK);
+          // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+          gpApp->m_bUserDlgOrMessageRequested = TRUE;
+          wxMessageBox(_("Unable to open export file."),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
 		  //bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 		  gpApp->LogUserAction(_T("Unable to open export file in DoExportInterlinearRTF()."));
@@ -8738,7 +8778,9 @@ b:						// b: is exit point to write the last columns of data
 		// graciously inform user that there was not Chapter/Verse Range
 		// or Final Matter to output
 		// IDS_NO_OUTPUT_FOUND
-		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION | wxOK);
 		gpApp->LogUserAction(_T("No text was found to output in the range you specified. The output file will exist but will be empty."));
 	}
 
@@ -8757,7 +8799,9 @@ b:						// b: is exit point to write the last columns of data
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Export operation successful"));
 
 	// BEW changed next line 24Jun05 since this doc parameter can't change once the doc is created
@@ -8797,7 +8841,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	{
 	   #ifdef _DEBUG
 		  wxLogDebug(_T("Unable to open export source text file\n"));
-		  wxMessageBox(_("Unable to open export source text file"),_T(""),wxICON_EXCLAMATION | wxOK);
+          // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+          gpApp->m_bUserDlgOrMessageRequested = TRUE;
+          wxMessageBox(_("Unable to open export source text file"),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
 	  return;
 	}

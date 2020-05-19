@@ -4133,6 +4133,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     // MS Word for better, more stable results.
     wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
     wxString title = _T("Printing Disabled");
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
     wxMessageBox(msg, title, wxICON_WARNING | wxOK);
     pApp->LogUserAction(msg);
     //return;
@@ -4317,6 +4319,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // MS Word for better, more stable results.
     wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
     wxString title = _T("Print Preview Disabled");
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
     wxMessageBox(msg, title, wxICON_WARNING | wxOK);
     pApp->LogUserAction(msg);
     //return;
@@ -4436,6 +4440,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	        delete preview;
 		wxString msg = _T(
 		"There was a problem previewing.\nPerhaps your current printer is not set correctly?");
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg,_T("Previewing"), wxICON_WARNING | wxOK);
         pApp->LogUserAction(msg);
 		return;
@@ -4518,7 +4524,9 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	int nMaxStrips = nTotalStripCount;
 	if(nMaxStrips <= 0)
 	{
-		wxMessageBox(_T("Error: Cannot paginate an empty document."),_T(""),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_T("Error: Cannot paginate an empty document."),_T(""),
 			wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
@@ -5501,14 +5509,18 @@ bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const
 	if (nFromCh < 0 || nToCh < 0 || nToCh < nFromCh || nToV < 1 || nFromV < 1)
 	{
 		// IDS_ILLEGAL_RANGE
-		wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	else if (nFromCh == nToCh && nToV < nFromV)
 	{
 		// IDS_ILLEGAL_RANGE
-		wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
@@ -5612,7 +5624,9 @@ bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const
 					if (nFromCh > 1)
 					{
 						// IDS_NO_CHAPTERS
-						wxMessageBox(_(
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        pApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(_(
 "Error: a chapter number was specified, but this document does not appear to contain chapter specifications. The print operation has been aborted."),
 						_T(""), wxICON_STOP);
 						return FALSE; // error condition, non-zero chapter number,
@@ -5680,7 +5694,9 @@ bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const
 	// if we get here, we didn't find the start of the range - this is an error condition,
 	// so abort the print
 	//IDS_RANGE_START_FAILURE
-	wxMessageBox(_(
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_(
 "Error: the specified chapter and verse for the start of the printing range could not be found. The print operation has been aborted."),
 	_T(""), wxICON_STOP);
 	return FALSE;
@@ -5733,7 +5749,9 @@ b:	if (bHasChapters)
 		if (nToCh > 1)
 		{
 			// IDS_NO_CHAPTERS
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Error: a chapter number was specified, but this document does not appear to contain chapter specifications. The print operation has been aborted."),
 			_T(""), wxICON_STOP);
 			return FALSE; // error condition, non-zero or non-1 chapter number,
@@ -5845,7 +5863,9 @@ d:	;
 					if (nToCh > 1)
 					{
 						// IDS_NO_CHAPTERS
-						wxMessageBox(_(
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        pApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(_(
 "Error: a chapter number was specified, but this document does not appear to contain chapter specifications. The print operation has been aborted."),
 						_T(""), wxICON_STOP);
 						return FALSE; // error condition, non-zero chapter number,
@@ -5895,7 +5915,9 @@ d:	;
     // if we get here, we didn't find the end of the range - this is an error condition, so
     // abort the print
 	// IDS_RANGE_END_FAILURE
-	wxMessageBox(_(
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_(
 "Error: the specified chapter and verse for the end of the printing range could not be found. The print operation has been aborted."),
 	_T(""), wxICON_STOP);
 	return FALSE;
@@ -7147,7 +7169,9 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& event)
 		mess += _("and try one of the recovery strategies (either use the backup one ");
 		mess += _("or the Restore Knowledge Base command). DO NOT use ");
 		mess += _("the Backup Knowledge Base command now!");
-		wxMessageBox(mess, _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(mess, _T(""), wxICON_EXCLAMATION | wxOK);
 		pApp->LogUserAction(mess);
 	}
 }
@@ -10394,7 +10418,9 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
                     // any change of location; because the end of the doc has only
                     // retranslations, so restore the old state & tell user
 					//IDS_CANNOT_STEP_DOWN //  BEW changed message 10Apr09
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "Adapt It cannot step down to the beginning of the next chapter because it cannot find a legal place to put the phrase box, retranslations at the end of the document prevent it."),
 					_T(""),wxICON_INFORMATION | wxOK);
 					// restore old location's values (no RecalcLayout() was done, so
@@ -10750,7 +10776,9 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
                     // change of location; because the start of the doc has only
                     // retranslations, so restore the old state & tell user
 					//IDS_CANNOT_STEP_UP //  BEW changed message 11Apr09
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "Adapt It cannot step up to the beginning of chapter, or to the beginning of the previous chapter because it cannot find a legal place to put the phrase box, retranslations at the beginning of the document prevent it."),
 					_T(""),wxICON_INFORMATION | wxOK);
 					// restore old location's values (no RecalcLayout() was done, so
@@ -11062,7 +11090,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"This particular operation is not available when you are glossing."),
 		_T(""), wxICON_INFORMATION | wxOK);
 		pApp->m_bMergerIsCurrent = FALSE;
@@ -11378,7 +11408,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (IsRetranslationInSelection(pList))
 	{
 		// IDS_NO_RETRANSLATION_IN_SEL
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "This operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -11413,7 +11445,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// forbid the merger in the first place)
 	if (IsFixedSpaceSymbolInSelection(pList))
 	{
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Merging is not permitted when the selection contains ~ which is the USFM fixed space marker.\nTry a retranslation instead."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -11443,7 +11477,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (IsNullSrcPhraseInSelection(pList))
 	{
 		// IDS_NO_NULL_SRCPHRASE_IN_SEL
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Merging a selection which contains a placeholder (represented by ... dots) is not permitted."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -11477,7 +11513,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (IsFilteredMaterialNonInitial(pList))
 	{
 		//IDS_NO_MERGE_FILTERED
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"Merging words across filtered material is not allowed."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -11507,7 +11545,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (IsSelectionAcrossFreeTranslationEnd(pList))
 	{
 		//IDS_NO_MERGE_ACROSS_FT_END
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Merging across the end of a free translation is not permitted. (You can merge up to the end of the free translation, but not beyond that point in the same merger.)"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
@@ -11548,7 +11588,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. The metadata is hidden at the word: %s");
 		msg = msg.Format(strAt.c_str());
-		wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;
@@ -12545,7 +12587,9 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 		"This particular operation is not available when you are glossing."),
 		_T(""),wxICON_INFORMATION | wxOK);
 		return;
@@ -12875,7 +12919,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			}
 			else
 			{
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 				"Error while trying to deselect a cell. Try selecting using the mouse instead.\n"),
                 _T(""), wxICON_INFORMATION | wxOK);
 				RemoveSelection();	// whm added 7July06 to prevent crash when invoking
@@ -12932,7 +12978,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		}
 		else
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 			"Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"),
             _T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();	// whm added 7July06 to prevent crash when invoking
@@ -12990,7 +13038,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		}
 		else
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 			"Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"),
             _T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();	// whm added 7July06 to prevent crash when invoking
@@ -13092,7 +13142,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			}
 			else // pPrevCell is NULL
 			{
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 				"Error while trying to deselect a cell. Try selecting using the mouse instead.\n"),
                 _T(""), wxICON_INFORMATION | wxOK);
 				return FALSE;
@@ -13216,7 +13268,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		}
 		else
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 			"Could not get a pointer to the previous cell. Try selecting with the mouse instead.\n"
 			), _T(""), wxICON_INFORMATION | wxOK);
 			return FALSE;
@@ -15449,7 +15503,9 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 				ccErrorStr.Format(
 				_(" Processing a CC table failed. Got error code %d with table having index %d."),
 				iResult,nTableIndex);
-				wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
 				return str; // if there was a table procesing error then return the original
 							// string, ie. no tables used
 			}
@@ -15593,7 +15649,9 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			wxString msg = _(
 "The dialog can be opened at a selection only if the phrase box is located at the first word of the selection.");
 			wxString title = _("Illegal attempt to open ChooseTranslation dialog");
-			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -15662,7 +15720,9 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	if (pApp->pCurTargetUnit == NULL)
 	{
 		// IDS_NO_KB_ENTRY
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
         pApp->m_pTargetBox->m_nWordsInPhrase = 0;
@@ -15949,7 +16009,9 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 		bool bSuccess = pApp->DoStartWorkingWizard(evt);
 		if (!bSuccess)
 		{
-			wxMessageBox(_T(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_T(
 "The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(_T("The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."));
@@ -16017,7 +16079,9 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 				_("You have changed this source text ( %s ) to be stored in the knowledge base, along with its translation.\nDo you want this to happen, in all documents, at every location where the same source text occurs with an asterisk?\n(The translations at other locations can be the same or different, that will not matter.)"),
 				sourceKey.c_str());
 			int style = wxYES_NO;
-			int choice = wxMessageBox(msg, title, style, pFrame);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            int choice = wxMessageBox(msg, title, style, pFrame);
 			if (choice == wxYES)
 			{
 				// DoNotInKB(pSrcPhrase,FALSE) above leaves pSrcPhrase's m_bHasKBEntry
@@ -16280,7 +16344,9 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 				wxString fullFilename = fn.GetFullName();
 				wxString msg;
 				msg = msg.Format(_("Writing the automatically updated document (  %s ) failed. So the older version remains unchanged."), fullFilename.c_str());
-				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			}
 			// Clobber the document - clearing pSrcPhrases to empty
 			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
@@ -18431,7 +18497,9 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									// nowhere is a safe location! (Is the user retranslating
 									// everything? !!!)
 									//IDS_GOTO_FAILED
-									wxMessageBox(_(
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
                                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -18491,7 +18559,9 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									// nowhere is a safe location! (Is the user retranslating
 									// everything? !!!)
 									// IDS_GOTO_FAILED
-									wxMessageBox(_(
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""),wxICON_EXCLAMATION | wxOK);
                                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -18553,7 +18623,9 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									// nowhere is a safe location! (Is the user retranslating
 									// everything? !!!)
 									// IDS_GOTO_FAILED
-									wxMessageBox(_(
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
                                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -18638,7 +18710,9 @@ f:					if (!gbIsGlossing)
 									// nowhere is a safe location! (Is the user retranslating
 									// everything? !!!)
 									// IDS_GOTO_FAILED
-									wxMessageBox(_(
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
                                     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -18681,7 +18755,9 @@ f:					if (!gbIsGlossing)
 a:			str = str.Format(_(
 "Sorry, but the chapter and verse combination  %s  does not exist in this document. The command will be ignored."),
 			dlg.m_chapterVerse.c_str());
-			wxMessageBox(str,_T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(str,_T(""), wxICON_EXCLAMATION | wxOK);
             pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 			pApp->LogUserAction(str);
 			goto b;
@@ -23736,7 +23812,9 @@ a:		pCell = GetNextCell(pCell,cellIndex);
 				pFrame->canvas->ReleaseMouse(); // assume no failure
 			}
 			// IDS_DIFF_TEXT_TYPE
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();
@@ -23784,7 +23862,9 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 				pFrame->canvas->ReleaseMouse(); // assume no failure
 			}
 			// IDS_DIFF_TEXT_TYPE
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();
@@ -24576,7 +24656,9 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			// no CSourcePhrase token instances...
 			if (pApp->m_pSourcePhrases->IsEmpty())
 			{
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Warning: there was no source language data in the file you imported, so the document has not been changed."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
 
@@ -24614,7 +24696,9 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		if (!bIsOK)
 		{
 			// unlikely to fail, so just have something for the developer here
-			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
 			_T(""), wxICON_STOP);
 			wxASSERT(FALSE);
 			pApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"));
@@ -24688,7 +24772,9 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString strMessage;
 		strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
-		wxMessageBox(strMessage,_T(""), wxICON_ERROR | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(strMessage,_T(""), wxICON_ERROR | wxOK);
 		pApp->LogUserAction(strMessage);
 		break;
 	}

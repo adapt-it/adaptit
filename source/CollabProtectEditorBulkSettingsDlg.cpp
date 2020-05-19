@@ -344,6 +344,8 @@ void CCollabProtectEditorBulkSettingsDlg::OnCancel(wxCommandEvent & event)
         wxString msg = _("You made changes to the Data Transfer Protections for the \"%s\" collaboration project.\n\nDo you want to abandon the changes you made?");
         msg = msg.Format(msg, m_TempCollabAIProjectName.c_str());
         wxString title = _("Changes made to the project settings");
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         result = wxMessageBox(msg, title, wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
         if (result == wxNO)
         {
@@ -689,6 +691,8 @@ void CCollabProtectEditorBulkSettingsDlg::OnBtnAllChapters(wxCommandEvent & WXUN
     // If Chapters List is not loaded, notify user and return
     if (pListOfChapters->GetCount() == 0)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Select a book from the \"Books List\"."), _("No book is selected."), wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -734,6 +738,8 @@ void CCollabProtectEditorBulkSettingsDlg::OnBtnDeselectAllChapters(wxCommandEven
     // If Chapters List is not loaded, notify user and return
     if (pListOfChapters->GetCount() == 0)
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Select a book from the \"Books List\"."), _("No book is selected."), wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -1091,6 +1097,8 @@ void CCollabProtectEditorBulkSettingsDlg::DoSetControlsFromConfigFileCollabData(
         wxString title = _("The %s versification definition file was not found");
         title = title.Format(title, versificationName.c_str());
         m_pApp->LogUserAction(msg);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg, title, wxICON_WARNING | wxOK);
         return;
     }

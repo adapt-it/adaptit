@@ -922,7 +922,9 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 			}
 		}
 		// IDS_NO_ACCESS_TO_RETRANS
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
 						_T(""), wxICON_INFORMATION | wxOK);
         gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
@@ -3101,7 +3103,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// soon become a nuisance - having to click it away each time
 				if (!pApp->m_bClipboardAdaptMode)
 				{
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
@@ -3304,7 +3308,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		if (pApp->m_bTransliterationMode)
 		{
 			::wxBell();
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Sorry, transliteration mode is not supported in review mode. Turn review mode off."),
 			_T(""), wxICON_INFORMATION | wxOK);
 			pLayout->m_docEditOperationType = no_edit_op;
@@ -3327,7 +3333,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// soon become a nuisance - having to click it away each time
 				if (!pApp->m_bClipboardAdaptMode)
 				{
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
@@ -3358,7 +3366,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			}
 			else // pFwdPile is valid, so must have bumped against a retranslation
 			{
-				wxMessageBox(_(
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_(
 "Sorry, the next pile cannot be a valid active location, so no move forward was done."),
 				_T(""), wxICON_INFORMATION | wxOK);
 #ifdef _NEW_LAYOUT
@@ -4617,7 +4627,9 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 	if (nCurSequNum == 0)
 	{
 		// IDS_CANNOT_GO_BACK
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "You are already at the start of the file, so it is not possible to move back any further."),
 		_T(""), wxICON_INFORMATION | wxOK);
         pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
@@ -4634,7 +4646,9 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 		if (!gbIsGlossing && pPrev->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_ACCESS_TO_RETRANS
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "To edit or remove a retranslation you must use the toolbar buttons for those operations."),
 			_T(""), wxICON_INFORMATION | wxOK);
             pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
@@ -5480,7 +5494,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			// transliteration mode on before using this feature, so warn him to turn it on and then
 			// do nothing
 			//IDS_TRANSLITERATE_OFF
-			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_EXCLAMATION | wxOK);
 
 			// restore focus to the phrase box
             if (pApp->m_pTargetBox != NULL)
@@ -5594,6 +5610,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
                     {
                         // did not succeed - do something eg. warn user he's collided with a boundary
                         // IDS_RIGHT_EXTEND_FAIL
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
                         wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."), _T(""), wxICON_INFORMATION | wxOK);
                     }
                 }
@@ -5622,6 +5640,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
                     {
                         // did not succeed, so warn user
                         // IDS_LEFT_EXTEND_FAIL
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
                         wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION | wxOK);
                     }
                 }
@@ -5734,6 +5754,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
                 if (gbIsGlossing)
                 {
                     // IDS_NOT_WHEN_GLOSSING
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(_("This particular operation is not available when you are glossing."),
                         _T(""), wxICON_INFORMATION | wxOK);
                     return;
@@ -6176,6 +6198,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             // special KB storage mode, but forgot to turn the transliteration mode on before
             // using this feature, so warn him to turn it on and then do nothing
             // IDS_TRANSLITERATE_OFF
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(_("Transliteration mode is not yet turned on."), _T(""), wxICON_EXCLAMATION | wxOK);
 
             // restore focus to the phrase box

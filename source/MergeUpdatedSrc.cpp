@@ -837,7 +837,9 @@ bool MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	// So tell the user - and hint that he may be trying to import a different language!
 	wxString msg = _("Importing your chosen source text file is impossible.\nWords in the file did not match any words in the current open document.\nCheck the file really contains an edited version of the document's source text.\nThe import attempt will now be abandoned.");
 	wxString title = _("Warning: different kinds of text");
-	wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 	return FALSE;
 }
 

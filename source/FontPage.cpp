@@ -694,21 +694,27 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		// Don't accept blank face names for any of the 3 fonts
 		if (fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
 		{
-			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pSrcFontNameBox->SetFocus();
 			event.Veto();
 			return;
 		}
 		if (fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
 		{
-			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pTgtFontNameBox->SetFocus();
 			event.Veto();
 			return;
 		}
 		if (fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
 		{
-			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pNavFontNameBox->SetFocus();
 			event.Veto();
 			return;
@@ -725,7 +731,9 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_T("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
 			fontPgCommon.pSrcFontSizeBox->SetFocus();
 			fontPgCommon.tempSourceSize = 12;
@@ -737,7 +745,9 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_T("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
 			fontPgCommon.pTgtFontSizeBox->SetFocus();
 			fontPgCommon.tempTargetSize = 12;
@@ -749,7 +759,9 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_T("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
 			fontPgCommon.pNavFontSizeBox->SetFocus();
 			fontPgCommon.tempNavTextSize = 12;

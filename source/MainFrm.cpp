@@ -1085,7 +1085,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					if (!bOK)
 					{
 						// IDS_LOAD_DOC_FAILURE
-						wxMessageBox(_(
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(_(
 "Loading the document failed. Possibly it was created with a later version of Adapt It. Contact the developers if you cannot resolve the problem yourself."),
 						_T(""), wxICON_ERROR | wxOK);
 						bool bOK;
@@ -2491,7 +2493,9 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	// non-normal execution is to use the wxWidgets built in html viewer
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, quickStartHelpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		gpApp->LogUserAction(msg);
 		if (response == wxYES)
 		{
@@ -2627,7 +2631,9 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
 		gpApp->m_bIsGlossingKBServerProject = FALSE;
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."),
 		_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 	}
@@ -2841,7 +2847,9 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
 		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
 		{
-			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
 		}
 	}
 }
@@ -4666,7 +4674,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// soon become a nuisance - having to click it away each time
 		if (!pApp->m_bClipboardAdaptMode)
 		{
-			wxMessageBox(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(
 			_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 			_T(""), wxICON_INFORMATION | wxOK);
 		}
@@ -7371,7 +7381,9 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	if (!bOK)
 	{
 		// unlikely to fail, give a warning if it does
-		wxMessageBox(_("Warning: recollecting the back translations did not succeed. Try doing it manually."),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Warning: recollecting the back translations did not succeed. Try doing it manually."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 

@@ -165,7 +165,9 @@ bool CSplitDialog::GoToNextChapter_Interactive()
 	else 
 	{
 		// IDS_NO_MORE_CHAPTERS
-		wxMessageBox(_("There are no more chapters after the current phrasebox location."),_T(""), wxICON_INFORMATION | wxOK); //TellUser();
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("There are no more chapters after the current phrasebox location."),_T(""), wxICON_INFORMATION | wxOK); //TellUser();
 		return false;
 	}
 }
@@ -260,7 +262,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT
-		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 		return;
 	}
 	FirstFileName = CAdapt_ItApp::ApplyDefaultDocFileExtension(FirstFileName);
@@ -296,7 +300,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileNameIsSecondFileName)
 	{
 		// IDS_MUST_BE_DIFFERENT_NAMES
-		wxMessageBox(_("Your name choices would result in the two document parts having the same name, which would cause the data in the first part to be lost.\nPlease make the name in the second box different than the name of the currently open document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser();
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Your name choices would result in the two document parts having the same name, which would cause the data in the first part to be lost.\nPlease make the name in the second box different than the name of the currently open document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -325,7 +331,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 		common = _("If you click OK the content of the  %s  document will be overwritten. This could cause data loss. If you are unsure, you should click Cancel and first check what is in the  %s  and  %s  documents.\n\nDo you want to overwrite it?"); //.LoadString(IDS_COMMON_SPLIT_WARNING_PART); // ditto
 		msg2 = msg2.Format(common.c_str(),FirstFileName.c_str(),FirstFileName.c_str(),OriginalFileName.c_str());
 		msg += msg2;
-		int nResult = wxMessageBox(msg,_T(""),wxOK | wxCANCEL);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        int nResult = wxMessageBox(msg,_T(""),wxOK | wxCANCEL);
 		if (nResult == wxCANCEL) 
 		{
 			return;
@@ -342,7 +350,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 		common = _("If you click OK the content of the  %s  document will be overwritten. This could cause data loss. If you are unsure, you should click Cancel and first check what is in the  %s  and  %s  documents.\n\nDo you want to overwrite it?"); //.LoadString(IDS_COMMON_SPLIT_WARNING_PART); // ditto
 		msg2 = msg2.Format(common.c_str(),SecondFileName.c_str(),SecondFileName.c_str(),OriginalFileName.c_str());
 		msg += msg2;
-		int nResult = wxMessageBox(msg,_T(""),wxOK | wxCANCEL);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        int nResult = wxMessageBox(msg,_T(""),wxOK | wxCANCEL);
 		if (nResult == wxCANCEL) 
 		{
 			return;
@@ -369,7 +379,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 		pView->canvas->Thaw();
 		pSplittingWait->Show(FALSE);
 		// IDS_BOX_NOT_MOVED_FORWARD
-		wxMessageBox(_("The split was aborted because the phrase box was still at the start of the document."),_T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("The split was aborted because the phrase box was still at the start of the document."),_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -435,7 +447,9 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	pView->canvas->Thaw();
 	pSplittingWait->Show(FALSE);
 	//IDS_SPLIT_SUCCEEDED
-	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Splitting the document succeeded - split at phrasebox."));
 }
 
@@ -622,7 +636,9 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	if (FileNameBase.IsEmpty()) 
 	{
 		// IDS_SUPPLY_FILENAME_BASE
-		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -633,7 +649,9 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	{
 		pSplittingWait->Show(FALSE);
 		// IDS_ONLY_ONE_CHAPTER_IN_DOC
-		wxMessageBox(_("There is only one chapter in this document."),_T(""), wxICON_EXCLAMATION | wxOK); //TellUser();
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("There is only one chapter in this document."),_T(""), wxICON_EXCLAMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -645,7 +663,9 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		if (FileExists(c->FilePath)) 
 		{
 			// IDS_FILENAME_CONFLICT
-			wxMessageBox(_("There is a name conflict with an existing file.  Please specify a different file name base."),_T(""),wxICON_EXCLAMATION | wxOK);//TellUser();
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("There is a name conflict with an existing file.  Please specify a different file name base."),_T(""),wxICON_EXCLAMATION | wxOK);//TellUser();
 			pSplittingWait->Show(FALSE);
 			return;
 		}
@@ -726,7 +746,9 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	wxCommandEvent event;
 	OnOK(event);
 	// IDS_SPLIT_SUCCEEDED
-	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 	gpApp->LogUserAction(_T("Splitting the document succeeded - split into chapters interactive."));
 
 	// having the end result be an empty window could be confusing, so have the Start Working...

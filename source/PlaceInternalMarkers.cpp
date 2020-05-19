@@ -128,7 +128,9 @@ void CPlaceInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_("List box error when getting the current selection, place manually instead"),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("List box error when getting the current selection, place manually instead"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return; // whm added
 	}

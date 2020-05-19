@@ -478,7 +478,9 @@ void CProjectPage::OnButtonWhatIsProject(wxCommandEvent& WXUNUSED(event))
 	s = s.Format(_("In the list below, if you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."));
 	accum += s;
 
-	wxMessageBox(accum, _T(""), wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(accum, _T(""), wxICON_INFORMATION | wxOK);
 }
 
 // whm added 10Mar12
@@ -542,7 +544,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
-		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
 		event.Veto();
 		return;
 	}
@@ -704,7 +708,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				{
 					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");
 					msg = msg.Format(msg,pApp->m_curProjectName.c_str());
-					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
  					pApp->LogUserAction(msg);
 					event.Veto();
 					return;
@@ -860,6 +866,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                         {
                             // increment msg with additional info about the Collaboration Project Migration dialog not appearing anymore and needing to make future changes to collaboration in the Setup Or Remove Collaboration dialog
                             msg = msg + _("\n\nYou also chose to not show the \"Collaboration Project Migration\" dialog again. If you later decide you want this Adapt It project to collaborate with projects in Paratext 8 you, or an administrator will need to manually set up this project using the \"Setup Or Remove Collaboration\" dialog from Adapt It's Administrator menu.");
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            gpApp->m_bUserDlgOrMessageRequested = TRUE;
                             wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
                             pApp->LogUserAction(msg);
                         }
@@ -867,6 +875,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                         {
                             // increment msg with additional info about the Collaboration Project Migration dialog appearing again
                             msg = msg + _T("\n\n") + reappearMsg;
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            gpApp->m_bUserDlgOrMessageRequested = TRUE;
                             wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
                         }
                     }
@@ -885,6 +895,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                     // User Cancelled the dialog, we assume collaboration setup will remain with PT7
                     pApp->LogUserAction(_T("Collab Project Migration dialog: User Cancelled dialog. Collab with PT7 not changed."));
                     msg =reappearMsg;
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
                 }
             }
@@ -920,7 +932,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						titleMsg = _("Cannot determine this project's settings");
 					}
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
 					event.Veto();
 					return;
@@ -966,7 +980,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						msg = msg.Format(msg,m_projectName.c_str());
 					}
 					int response;
-					response = wxMessageBox(msg,titleMsg,wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    response = wxMessageBox(msg,titleMsg,wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					pApp->LogUserAction(msg);
 					if (response == wxYES)
 					{
@@ -988,7 +1004,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						msg = _("Remember to check and possibly adjust your fonts, punctuation and other settings by accessing Preferences... on the Edit menu.");
 						msg = msg.Format(msg);
 					}
-					wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 					break;
 				}
 			case collabProjExistsButEditorNotInstalled:
@@ -1062,6 +1080,8 @@ _("The collaboration settings for the AI \"%s\" project were successfully remove
 Reminder: You may now open any adaptation documents that exist in this project. If you later decide to resume collaboration, \
 you or your administrator will have to install Paratext or Bibledit and then set up collaboration from scratch.");
                             msg = msg.Format(msg, m_projectName.c_str(), newAIconfigFilePath.c_str());
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            gpApp->m_bUserDlgOrMessageRequested = TRUE;
                             wxMessageBox(msg, _("Removal of collaboration settings successful"), wxICON_INFORMATION | wxOK);
                             pApp->LogUserAction(msg);
                             // whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
@@ -1095,6 +1115,8 @@ _("The collaboration settings for the \"%s\" AI project were not changed.\n\n\
 Reminder: You cannot open this project until your administrator installs Paratext or Bibledit along with these projects:\n\n\
 %s\n\n");
                         msg = msg.Format(msg, m_projectName.c_str(), projects.c_str());
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
                         wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
                         pApp->LogUserAction(msg);
                         event.Veto();
@@ -1115,7 +1137,9 @@ Reminder: You cannot open this project until your administrator installs Paratex
 			case collabProjExistsButIsInvalid:
 				{
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
 					// Either the config file's CollabProjectForSourceInputs or
 					// CollabProjectForTargetExports string was missing, or if present,
@@ -1194,7 +1218,9 @@ Reminder: You cannot open this project until your administrator installs Paratex
 						// on how to proceed.
 						wxString msg2 = _("No %s projects are available. To get access to the \"%s\" project out of collaboration mode, collaboration mode must be turned off. This is an administrator-only action, it requires showing the password protected Administrator menu, and using the Setup or Remove Collaboration... command to remove collaboration on this project.");
 						msg2 = msg2.Format(msg2,gpApp->m_collaborationEditor.c_str(),m_projectName.c_str());
-						wxMessageBox(msg2,_T(""), wxICON_ERROR | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(msg2,_T(""), wxICON_ERROR | wxOK);
 						pApp->LogUserAction(msg2);
 						event.Veto();
 						return;
@@ -1266,7 +1292,9 @@ Reminder: You cannot open this project until your administrator installs Paratex
 						wxString msg = _("Sorry, the projects you selected have the following problem:\n%s\n\nCollaboration is not possible until the necessary %s projects have been set up. Please ask your administrator to set up %s with the projects necessary for collaboration with Adapt It.");
 						msg = msg.Format(msg,errStr.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 						// Note: The errProj returned string is not used here.
-						wxMessageBox(msg,_("Administrator setup required for collaboration"),wxICON_EXCLAMATION | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(msg,_("Administrator setup required for collaboration"),wxICON_EXCLAMATION | wxOK);
 						gpApp->LogUserAction(_T("User selected PT/BE projects to collaborate with after missing reports, but those selected projects didn't pass validity testing so vetoed ProjectPage's OnWizardPageChanging()."));
 						event.Veto();
 						return;
@@ -1454,7 +1482,9 @@ Reminder: You cannot open this project until your administrator installs Paratex
 								if (!pApp->m_bReadOnlyAccess)
 								{
 									wxString msg = _("Adapt It could not enter read-only mode for some unknown reason. You may continue to access the user's documents, but proceed with care.");
-									wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_EXCLAMATION | wxOK);
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_EXCLAMATION | wxOK);
 									pApp->LogUserAction(msg);
 								}
 								else
@@ -1577,7 +1607,9 @@ Reminder: You cannot open this project until your administrator installs Paratex
 				// IDS_KB_BACKUP_OFF
 				if (!pApp->m_bUseCustomWorkFolderPath)
 				{
-					wxMessageBox(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(
 _("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
 					_T(""), wxICON_INFORMATION | wxOK);
 				}

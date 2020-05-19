@@ -2362,7 +2362,9 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 
 		if( !f.Open( pathName, wxFile::read))
 		{
-			wxMessageBox(_("Unable to open import file for reading."),
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Unable to open import file for reading."),
 		  _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			if (nTotal > 0)
@@ -2428,7 +2430,9 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		{
 			// assume there was no configuration file in existence yet,
 			// so nothing needs to be fixed
-			wxMessageBox(_("Unable to open import file for reading."));
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Unable to open import file for reading."));
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			return;
 		}
@@ -2883,6 +2887,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
         if (!m_pApp->m_suppress_KB_messages)
         {		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
             msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
             m_pApp->LogUserAction(msg);
         }
@@ -3178,7 +3184,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						langStr += _("target language code");
 					}
 					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you want to try again?"),langStr.c_str());
-					int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					if (response == wxNO)
 					{
 						// user wants to abort
@@ -3259,7 +3267,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	{
 		wxString message;
 		message = message.Format(_("Deleted entries are kept in the knowledge base but are hidden. Do you want these included in the export?\n(Click No only if you intend to later import the data to a legacy version of Adapt It, otherwise click Yes.)"));
-		int result = wxMessageBox(message,_("How should deleted entries be handled?"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        int result = wxMessageBox(message,_("How should deleted entries be handled?"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (result == wxNO)
 		{
 			bSuppressDeletionsInSFMexport = TRUE;
@@ -4334,7 +4344,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
-		wxMessageBox(_(
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
 		_T(""),wxICON_INFORMATION | wxOK);
 		gbMatchedKB_UCentry = FALSE;
@@ -5124,7 +5136,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // make sure it is now turned off
-		wxMessageBox(_(
+                                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_(
 			"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
 			, _T(""), wxICON_INFORMATION | wxOK);
 		gbMatchedKB_UCentry = FALSE;
@@ -6632,7 +6646,9 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 			bSavedOK = m_pApp->SaveKB(FALSE, FALSE);
 		if (!bSavedOK)
 		{
-			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
 							_T(""), wxICON_INFORMATION | wxOK);
 			m_pApp->LogUserAction(_T("Warning: something went wrong doing a save of the KB"));
 		}
@@ -6670,7 +6686,9 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		msg = msg.Format(_(
 "Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
 		logName.c_str());
-		wxMessageBox(msg,_T(""), wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""), wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 	}
 	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App

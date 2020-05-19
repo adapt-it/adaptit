@@ -1292,7 +1292,9 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 			if (!bFirstWarningGiven)
 			{
 				bFirstWarningGiven = TRUE;
-				int response = wxMessageBox(warnText, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                int response = wxMessageBox(warnText, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 				if (response != wxYES) //if (response != IDYES)
 				{
 					// User aborted so remove the check from the checkbox
@@ -1603,7 +1605,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1665,7 +1669,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				msg2 = msg2.Format(_(
 "The currently open document is marked up using the PNG 1998 Marker Set.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(msg2);
 				// restore the radio button to what it was before the click
 				if (currentSet == PngOnly)
@@ -1780,7 +1786,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1908,7 +1916,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
             // exit the handler keeps being reentered (the event is not consumed) - at
             // least four times before an OK or Cancel click gets 'seen'; remove the
             // breakpoint and all is well!
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1971,7 +1981,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 				msg2 = msg2.Format(_(
 "The currently open document is marked up as USFM.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(msg2);
 				// restore the radio button to what it was before the click
 				if (currentSet == UsfmOnly)
@@ -2069,7 +2081,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2171,7 +2185,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2253,7 +2269,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 "The open document contains markers unique to either the USFM marker set, or unique to the PNG 1998 marker set.\nChanging to the %s is allowed.\nHowever, it is risky. If it contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
 				newSet.c_str());
 			}
-			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
 			if (nResult == wxCANCEL)
 			{
 				if (currentSet == UsfmOnly)
@@ -2354,7 +2372,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2454,7 +2474,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2490,7 +2512,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 			msg2 = msg2.Format(_(
 "There is no currently open document.\nTherefore changing to the %s is allowed.\nHowever, only do so if you are confident that the input files for creating documents for this project are marked up with the marker set you are now choosing.\n Cancel if you are unsure."),
 			newSet.c_str());
-			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
 			if (nResult == wxCANCEL)
 			{
 				if (currentSet == PngOnly)
@@ -2538,7 +2562,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 				msg2 = msg2.Format(_(
 "The currently open document is marked up with markers from the %s.\nChanging to the %s is unlikely to be helpful.\n(This may result in a badly formed document, and similarly for other documents in this project which are marked up the same way.)"),
 				docSet.c_str(), newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == PngOnly)
 				{
@@ -2664,7 +2690,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2779,7 +2807,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2815,7 +2845,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 			msg2 = msg2.Format(_(
 "There is no currently open document.\nTherefore changing to the %s is allowed.\nHowever, only do so if you are confident that the input files for creating documents for this project are marked up with the marker set you are now choosing.\n Cancel if you are unsure."),
 			newSet.c_str());
-			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
 			if (nResult == wxCANCEL)
 			{
 				if (currentSet == UsfmOnly)
@@ -2858,7 +2890,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 				msg2 = msg2.Format(_(
 "The currently open document is marked up as USFM.\nChanging to the %s is unlikely to be helpful.\n(This may result in a badly formed document, and similarly for other documents in this project which are marked up the same way.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == UsfmOnly)
 				{
@@ -2973,7 +3007,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -3075,7 +3111,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -3154,7 +3192,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
 "The open document contains markers unique to either the USFM marker set, or unique to the PNG 1998 marker set.\nChanging to the %s is allowed.\nHowever, it is risky for this document and for any new ones created with the changed setting. If a document contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
 				newSet.c_str());
 			}
-			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
 			if (nResult == wxCANCEL)
 			{
 				if (currentSet == UsfmOnly)
@@ -3278,7 +3318,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -3771,7 +3813,9 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		{
 			wxString msgForIllegalJob = _(
 "Trying to change the standard format marker (SFM) set at the same time as trying to change the marker filtering settings is illegal.\nThe filtering changes will be ignored. Only the SFM set change will be done now.\nTo get the filtering changes done, return to this page after the SFM set changes are completed and then set up the filtering changes a second time.");
-			wxMessageBox(msgForIllegalJob, _T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msgForIllegalJob, _T(""), wxICON_EXCLAMATION | wxOK);
 			gpApp->LogUserAction(msgForIllegalJob);
 
 			// undo the filter changes here

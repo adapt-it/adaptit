@@ -388,7 +388,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
 	{
-		wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent
 		pListBoxBookNames->SetFocus();
 		return; // don't accept any changes until a book is selected
 	}
@@ -396,7 +398,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// whm added 27Jul11 a test for whether we are working by chapter
 	if (m_bTempCollabByChapterOnly && pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
 	{
-		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListCtrlChapterNumberAndStatus->SetFocus();
 		return; // don't accept any changes until a chapter is selected
 	}
@@ -934,7 +938,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
 		}
 		msg = msg.Format(msg,concatMsgs.c_str());
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		m_pApp->LogUserAction(msg);
 		wxLogDebug(msg);
 
@@ -1107,7 +1113,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
@@ -1152,7 +1160,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		msg2 += _("Please select a different book, or use %s to import content into %s that is usable as source texts, then try again.");
 		msg2 = msg2.Format(msg2,m_pApp->m_collaborationEditor.c_str(),fullBookName.c_str());
 		msg += msg2;
-		wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		return;
 	}
 
@@ -1170,7 +1180,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
@@ -1289,7 +1301,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
 		pListCtrlChapterNumberAndStatus->Enable(FALSE);
 		pBtnCancel->SetFocus();
@@ -1703,7 +1717,9 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 			msg2 = _("Please select the Bibledit Project that contains the source texts you will use for adaptation work.");
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_T("No books found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg1,_T("No books found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too

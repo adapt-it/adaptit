@@ -10615,7 +10615,9 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 		if (resultSrc != 0)
 		{
 			// not likely to happen so an English warning will suffice
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
 			_T(""),wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 			wxString temp;
@@ -11087,6 +11089,8 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
                 {
 					//this->EndModal(wxID_CANCEL);
 					wxString aMsg = _("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing.");
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox (aMsg);
                     pApp->LogUserAction (aMsg);
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
@@ -11112,7 +11116,9 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
                     // the copy flag was ON, and was just turned off above, and there are
                     // probably going to be new adaptable 'holes' in the document, so tell
                     // user Copy Source been turned off, etc
-					wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "The Copy Source (to Target) command on View Menu is temporarily turned off because the source text was edited outside of Adapt It.\nNow you need to adapt the changed parts again.\nAdapt It will guide you, displaying each location that was changed. Use the Enter key to jump to the next location after you enter each new adaptation.\nIf these locations have free translations, you should update each free translation too."),
 					_T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 				}
@@ -11592,6 +11598,8 @@ Do you want to remove collaboration settings from this \"%s\" project?");
     msg = errMessageCommon + msg;
     wxString title = _("This project's collaboration settings are invalid");
     int result;
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
     result = wxMessageBox(msg, title, wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT);
     return result;
 }

@@ -211,7 +211,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pAcceptedFiles->GetCount() == 0) 
 	{
-		wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_NONE_FOR_JOINING);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_NONE_FOR_JOINING);
 		gbDoingSplitOrJoin = FALSE; // restore default
 		return;
 	}
@@ -259,7 +261,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	{
 		if (!IsValidFileName(MergeFileName)) 
 		{
-			wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
 			this->pJoiningWait->Show(FALSE);
 			gbDoingSplitOrJoin = FALSE; // restore default
 			return;
@@ -283,7 +287,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			}
 			if (CantOverwrite) 
 			{
-				wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
 				this->pJoiningWait->Show(FALSE);
 				gbDoingSplitOrJoin = FALSE; // restore default
 				return;
@@ -333,7 +339,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			// if any -- the user message should indicate which doc (using FileName) is the offending one
 			wxString msg;
 			msg = msg.Format(_("The book ID in the document with filename %s does not match the book ID for the currently open document."),FileName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 
 			// BEW 18Oct14, restore the pre-Join state if things went pear shape.
 			ol->Clear(); // we don't want the concatenated list so far constructed
@@ -379,13 +387,17 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			if (bOkay)
 			{
 				// Success message
-				wxMessageBox(msg1Yes, _T(""),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg1Yes, _T(""),wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(msg1Yes);
 			}
 			else
 			{
 				// Failure message, with a warning
-				wxMessageBox(msg1No,_T(""),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg1No,_T(""),wxICON_EXCLAMATION | wxOK);
 				gpApp->LogUserAction(msg1No);
 			}
 			ol->Clear(); // clear, but don't delete contents as they are now managed by m_pSourcePhrases
@@ -479,7 +491,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	wxString strUserTyped = gpApp->m_curOutputFilename;
 	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
 
-	wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION | wxOK);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Joining to the current document was successful."));	
 
 	gpApp->RefreshStatusBarInfo();
@@ -687,7 +701,9 @@ void CJoinDialog::OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
-		wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"), 
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"),
 						_T(""),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
@@ -724,7 +740,9 @@ void CJoinDialog::OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
-		wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
 						_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
@@ -767,7 +785,9 @@ void CJoinDialog::MoveSelectedItems(wxListBox& From, wxListBox& To)
 
 	if (From.GetSelection() == -1) 
 	{
-		wxMessageBox(_("Nothing selected."),_T(""),wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Nothing selected."),_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	for (i = 0; i < (int)From.GetCount(); ++i) 
 	{

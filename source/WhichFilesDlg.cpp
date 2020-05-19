@@ -339,7 +339,9 @@ void CWhichFilesDlg::OnOK(wxCommandEvent& event)
 	if (count == 0)
 	{
 		// IDS_NO_DOCS_ERR
-		wxMessageBox(_("Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."),_T(""), wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."),_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	// We don't need to use a validator to transfer data since below we

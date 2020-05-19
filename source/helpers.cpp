@@ -1755,7 +1755,9 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 		wxString msg;
 		msg = msg.Format(_("The consistent changes table file: %s , does not exist in the folder _CCTABLE_INPUTS_OUTPUTS"),
 			pathToCCTable.c_str());
-		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		gpApp->LogUserAction(msg);
 		return str; // return the input string unchanged
 	}
@@ -1804,7 +1806,9 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 		msg2 = msg2.Format(_("  Warning: the consistent changes table: %s, was not successfully loaded."),
 			pathToCCTable.c_str());
 		sError += msg2;
-		wxMessageBox(sError, _("Table load failure"), wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(sError, _("Table load failure"), wxICON_INFORMATION | wxOK);
 		gpApp->LogUserAction(sError);
 		free(pOutStr);
 		delete pConsistentChanger;
@@ -1820,7 +1824,9 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 	{
 		ccErrorStr.Format(_(" Processing the CC table failed, for table: %s   Error code: %d"),
 			pathToCCTable.c_str(), iResult);
-		wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(ccErrorStr);
 		free(pOutStr);
 		delete pConsistentChanger;
@@ -3471,7 +3477,9 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 	{
 		if (!bSuppressMessage)
 		{
-			wxMessageBox(_(
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_(
 "No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
 			_("Error, empty path specification"), wxICON_EXCLAMATION | wxOK);
 		}
@@ -3490,7 +3498,9 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 				msg = msg.Format(
 _("Failed to make the directory  %s  the current working directory prior to getting the directory's child directories; perhaps try again."),
 				pathToFolder.c_str());
-				wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
 			}
 			return FALSE;
 		}
@@ -3670,7 +3680,9 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 			msg = msg.Format(
 _("Failed to make the directory  %s  the current working directory prior to getting the folder's files; perhaps try again."),
 			pathToFolder.c_str());
-			wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
 		}
 		return FALSE;
 	}
@@ -9887,10 +9899,12 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 				// & continue
 				if (!bSuppressWarningOnStoreKBFailure)
 				{
-				wxMessageBox(_(
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(_(
 "Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-				_T(""),wxICON_EXCLAMATION | wxOK);
-				bNoStore = TRUE;
+				    _T(""),wxICON_EXCLAMATION | wxOK);
+				    bNoStore = TRUE;
 				}
 			}
 			else
@@ -10883,7 +10897,9 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 					langStr = langStr.Left(thelength - 1);
 				}
 				message = message.Format(_("Missing language code for the following language(s):\n\n%s\n\nA code is required for each language that you missed.\nDo you want to try again?"),langStr.c_str());
-				int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 
 				// Accept whatever we've got so far, at least
 				gpApp->m_sourceLanguageCode = srcCode;
@@ -11575,7 +11591,9 @@ _("The attempt to share the adaptations knowledge base failed.\nYou can continue
 						wxString title = _("Setup failed");
 						wxString msg = 
 _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
-						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        pApp->m_bUserDlgOrMessageRequested = TRUE;
+                        wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
 						bSetupKBserverFailed = TRUE;
 					} // 4
@@ -11779,7 +11797,9 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 					// Defeat! Tell use what might be the problem (be sure to leave
 					// pApp->m_strKbServerURL unchanged)
 					wxString error_msg = _("No KBserver is running on the local area network yet. Or possibly you forgot to set a KBserver running. Or maybe the machine hosting the KBserver has lost power.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
-					wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                    wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
 				} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
 
 				// An error message will have been seen already; so just treat this as a cancellation
@@ -11896,7 +11916,9 @@ here:				dlgReturnCode = dlg.ShowModal();
 									// Tell the user
 									wxString title = _("Setup failed");
 									wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
-									wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 									pApp->m_bLoginFailureErrorSeen = TRUE;
 									bSetupKBserverFailed = TRUE;
 									pApp->m_bUserLoggedIn = FALSE;
@@ -11914,7 +11936,9 @@ here:				dlgReturnCode = dlg.ShowModal();
 									// Tell the user
 									wxString title = _("Setup failed");
 									wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
-									wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                    pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                    wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 									pApp->m_bLoginFailureErrorSeen = TRUE;
 									bSetupKBserverFailed = TRUE;
 									pApp->m_bUserLoggedIn = FALSE;
@@ -11998,7 +12022,9 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 							wxString title = _("No password was typed, or you cancelled");
 							wxString msg = _(
 								"No password was typed in, or you chose to Cancel. This will cancel the attempt to Authenticate. You can try again later.");
-							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                            pApp->m_bUserDlgOrMessageRequested = TRUE;
+                            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 							pApp->m_bLoginFailureErrorSeen = TRUE;
 							bUserCancelled = TRUE;
 							pApp->m_bUserLoggedIn = FALSE;
@@ -12083,7 +12109,9 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 								wxString title = _("Setup failed");
 								wxString msg = _(
 									"The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
-								wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
 								bSetupKBserverFailed = TRUE;
 								pApp->m_bUserLoggedIn = FALSE;
@@ -12102,7 +12130,9 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 								wxString title = _("Setup failed");
 								wxString msg = _(
 									"The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
-								wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                                pApp->m_bUserDlgOrMessageRequested = TRUE;
+                                wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
 								bSetupKBserverFailed = TRUE;
 								pApp->m_bUserLoggedIn = FALSE;

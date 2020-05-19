@@ -959,7 +959,9 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 	if (pBuff == NULL)
 	{
 		// IDS_BUFFER_ALLOC_ERR
-		wxMessageBox(_("Failed to allocate a buffer for parsing in the XML document's data"), _T(""), wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("Failed to allocate a buffer for parsing in the XML document's data"), _T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	memset(pBuff,0,BUFFSIZE); // assume no error
@@ -1085,7 +1087,9 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		// several other xml file types that parseXML is called on including AI_USFM.xml, 
 		// books.xml and AI_UserProfiles.xml.
 		//errStr << _("\nIf you wish you can try opening some other document and continue working.");
-		wxMessageBox(errStr, _T(""), wxICON_STOP);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(errStr, _T(""), wxICON_STOP);
 		delete[] pBuff; // whm added 15Sep10 to prevent memory leak when xml file is not found
 		return FALSE;
 	}
@@ -1158,7 +1162,9 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 			wxString errStr;
 			// IDS_UTF16_BOM_PRESENT
 			errStr = errStr.Format(_("The XML file (%s) being loaded begins with a UTF-16 BOM (Byte Order Mark), so it is not UTF-8 data. Maybe you edited the file in a word processor and did not specify UTF-8 output. Please do that then try opening the document again."), path1.c_str());
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			//close the stream before returning
 			file.Close();
 			delete[] pBuff;
@@ -3392,7 +3398,9 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 
 		if (inputDocVersion > VERSION_NUMBER)
 		{
-			wxMessageBox (_T("It appears that this document has been created with a newer version of Adapt It. Some things that the newer version supports, won't be available."));
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox (_T("It appears that this document has been created with a newer version of Adapt It. Some things that the newer version supports, won't be available."));
 			inputDocVersion = VERSION_NUMBER;
 		}
 		gnDocVersion = inputDocVersion;
@@ -8009,7 +8017,9 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, const wxString& progressItem, wxUint
 		wxString msg;
 		msg = msg.Format(_T("The source language already has the code %s which does not match the code %s in the LIFT file for the source text language.\nImporting this LIFT file would mix two different languages in the one knowledge base, which is not allowed.\nThis LIFT import attempt will not be done."),
 			gpApp->m_sourceLanguageCode.c_str(), gpApp->m_LIFT_src_lang_code.c_str());
-		wxMessageBox(msg, _T("Different source languages, not allowed"));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg, _T("Different source languages, not allowed"));
 		return TRUE; // returning TRUE prevents the xml error dialog from being triggered
 	}
 
@@ -8060,7 +8070,9 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, const wxString& progressItem, wxUint
 	{
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Undeletions %d");
 		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nUndeletions);
-		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
 	}
 	return bXMLok;
 }	
@@ -9315,7 +9327,9 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		{
 			// ?? no definitions or glosses - can't happen, 
 			// tell developer (English message will do) & abort the import
-			wxMessageBox(_T("GetLIFTlanguageCodes(), found no <gloss> nor <definition> entries - so aborting the LIFT import"));
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_T("GetLIFTlanguageCodes(), found no <gloss> nor <definition> entries - so aborting the LIFT import"));
 			return FALSE;
 		}
 

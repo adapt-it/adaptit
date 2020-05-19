@@ -786,7 +786,9 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 			{
 				wxString msg = _T("Initialization of the new locale and use of localization files for %s failed.");
 				msg = msg.Format(msg,currLocInfo.curr_fullName.c_str());
-				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                gpApp->m_bUserDlgOrMessageRequested = TRUE;
+                wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 
 				// remove the user defined language from the registry/hidden settings file by calling the App's
 				// RemoveUserDefinedanguageInfoStringFromConfig()

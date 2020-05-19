@@ -341,7 +341,9 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		if (pSrcBox->GetValue().IsEmpty())
 		{
 			// IDS_NULL_SOURCE_NAME
-			wxMessageBox(_("Sorry, the source language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the source language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			pSrcBox->SetFocus();
 			event.Veto();
 			return;
@@ -349,7 +351,9 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		if (pTgtBox->GetValue().IsEmpty())
 		{
 			// IDS_NULL_TARGET_NAME
-			wxMessageBox(_("Sorry, the target language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            gpApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(_("Sorry, the target language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			pTgtBox->SetFocus();
 			event.Veto();
 			return;

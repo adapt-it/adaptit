@@ -475,7 +475,9 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 		{
 			wxString msg = _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
 			msg = msg.Format(msg, m_TempCollaborationEditor.c_str());
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 			if (m_TempCollabProjectForSourceInputs.IsEmpty())
 				this->pBtnSelectFmListSourceProj->SetFocus();
 			else
@@ -497,6 +499,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 {
     if (gbPTNotInstalled && !m_pApp->BibleditIsInstalled())
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."),_("Cannot select any projects"),wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -602,7 +606,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			msg2 += _("Please select a different %s project that Adapt It can use for obtaining source texts.");
 			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str());
 			msg += msg2;
-			wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
@@ -623,7 +629,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			msg2 += _("Only the following books currently have actual verse content that Adapt It can use as source texts:\n\n%s\n\nThe user will only be able to select from books that have some verse content. If this is not what you want or expect, please set up the %s project with the books containing text that Adapt It can use for its source texts.");
 			msg2 = msg2.Format(msg2,booksWithContent.c_str(),m_TempCollaborationEditor.c_str());
 			msg += msg2;
-			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
 			// do not clear out source control in this case as it is only a warning about selecting this
 			// PT/BE project
 			break;
@@ -646,7 +654,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			msg = msg1 + _T(' ') + msg2;
 			titleMsg = _("No chapters and verses found in project: \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForSourceInputs.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
@@ -659,7 +669,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 			titleMsg = _("No books found in project: \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForSourceInputs.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
@@ -668,7 +680,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	case processingError:
 		{
 			wxASSERT(!errorMsg.IsEmpty());
-			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
 			break;
 		}
@@ -689,6 +703,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 {
     if (gbPTNotInstalled && !m_pApp->BibleditIsInstalled())
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot select any projects"), wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -797,7 +813,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			msg2 = msg2.Format(msg2,m_TempCollabProjectForTargetExports.c_str());
 			msg += msg2;
 			int response;
-			response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			if (response == wxYES)
 			{
 				; // do nothing but continue with selection
@@ -829,7 +847,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			msg2 += _("Please note that the following books in the \"%s\" project already have translations:\n\n%s\n\nAdapt It will overwrite any existing translations with new translations if you adapt all the text in books such as these that already have translations.");
 			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
 			msg += msg2;
-			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
 			break;
 		}
 	case projHasNoChaptersOrVerses:
@@ -850,7 +870,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			msg = msg1 + _T(' ') + msg2;
 			titleMsg = _("No chapters and verses found in project: \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForTargetExports.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForTargetExports = _T(""); // invalid project for source inputs
@@ -863,7 +885,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 			titleMsg = _("No books found in project \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForTargetExports.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForTargetExports = _T(""); // invalid project for source inputs
@@ -872,7 +896,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	case processingError:
 		{
 			wxASSERT(!errorMsg.IsEmpty());
-			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
 			break;
 		}
@@ -893,6 +919,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 {
     if (gbPTNotInstalled && !m_pApp->BibleditIsInstalled())
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot select any projects"), wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -1000,7 +1028,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			msg2 = msg2.Format(msg2,m_TempCollabProjectForFreeTransExports.c_str());
 			msg += msg2;
 			int response;
-			response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			if (response == wxYES)
 			{
 				; // do nothing but continue with selection
@@ -1032,7 +1062,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			msg2 += _("Please note that the following books in the \"%s\" project already have free translations:\n\n%s\n\nAdapt It will overwrite any existing free translations with new free translations if you adapt all the text in books such as these that already have free translations.");
 			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
 			msg += msg2;
-			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
 			break;
 		}
 	case projHasNoChaptersOrVerses:
@@ -1053,7 +1085,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			msg = msg1 + _T(' ') + msg2;
 			titleMsg = _("No chapters and verses found in project: \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForFreeTransExports.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
 			m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for source inputs
@@ -1066,7 +1100,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 			titleMsg = _("No books found in project \"%s\"");
 			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForFreeTransExports.c_str());
-			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 			// clear out the source control
 			pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
 			pBtnNoFreeTrans->Disable();
@@ -1077,7 +1113,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	case processingError:
 		{
 			wxASSERT(!errorMsg.IsEmpty());
-			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
 			break;
 		}
@@ -1398,6 +1436,8 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                         wxString msg;
                         msg = msg0 + msg2;
                         msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), newAIconfigFilePath.c_str());
+                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                         wxMessageBox(msg, _("Removal of collaboration settings successful"), wxICON_INFORMATION | wxOK);
                         m_pApp->LogUserAction(msg);
                         m_bCollabChangedThisDlgSession = FALSE;
@@ -1473,6 +1513,8 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 Reminder: The user will not be able to open this project until you install Paratext or Bibledit along with these projects:\n\n\
 %s\n\n");
                     msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), projects.c_str());
+                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
                     m_pApp->LogUserAction(msg);
                     // Disable and refresh the dialog AI Project selection controls
@@ -1780,7 +1822,9 @@ Reminder: The user will not be able to open this project until you install Parat
 	{
 		wxString msg = _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
 		msg = msg.Format(msg, m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 		if (m_TempCollabProjectForSourceInputs.IsEmpty())
 			this->pBtnSelectFmListSourceProj->SetFocus();
 		else
@@ -1953,7 +1997,9 @@ Reminder: The user will not be able to open this project until you install Parat
 		msg2 += _T("\n\n");
 		msg2 += _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
 		msg2 = msg2.Format(msg2, m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg2,_T(""),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg2,_T(""),wxICON_INFORMATION | wxOK);
 		return; // return here otherwise the block below will also flag these projects as invalid because
 				// they have no books created - the actual problem here is that they aren't projects found
 				// in the PT/BE list of projects.
@@ -1985,7 +2031,9 @@ Reminder: The user will not be able to open this project until you install Parat
 		msg += msg1;
 		wxString titleMsg = _("Invalid %s projects detected");
 		titleMsg = titleMsg.Format(titleMsg,m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(titleMsg);
 	}
     else
@@ -2052,6 +2100,8 @@ Reminder: The user will not be able to open this project until you install Parat
             wxString title;
             title = _("Important information about collaboration project: %s");
             title = title.Format(title, m_TempCollabAIProjectName.c_str());
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
         }
     }
@@ -2088,7 +2138,9 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 	{
 		wxString msg = _("You made changes to this collaboration setup - Do you want to save those changes?");
 		int response;
-		response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (response == wxYES)
 		{
 			if (!DoSaveSetupForThisProject())
@@ -2190,6 +2242,8 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 {
     if (gbPTNotInstalled && !m_pApp->BibleditIsInstalled())
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot create a new project for collaboration"), wxICON_EXCLAMATION | wxOK);
         return;
     }
@@ -2247,7 +2301,9 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			message = message.Format(_("Error: attempting to create an Adapt It project for supporting collaboration with an external editor, failed.\nThe application is not in a state suitable for you to continue working, but it will still run. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s  if it exists.\nThen relaunch, and try again."),
 				m_TempCollaborationEditor.c_str());
 			m_pApp->LogUserAction(message);
-			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(message,_("Project Not Created"), wxICON_ERROR | wxOK);
 			return;
 		}
 		else
@@ -2287,7 +2343,9 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
             // confirm to the user that the project was created
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_TempCollaborationEditor.c_str());
-			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION | wxOK);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION | wxOK);
 			DoSetControlsFromConfigFileCollabData(TRUE); // Sets all Temp collab values as read from project config file TRUE = we're creating a new project
 			 // Override the AI Proj Name related Temp values with the new AI project's name (from above)
 			this->m_TempCollabSourceProjLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
@@ -2310,6 +2368,8 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 {
     if (gbPTNotInstalled && !m_pApp->BibleditIsInstalled())
     {
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot save collaboration setup. "), wxICON_EXCLAMATION | wxOK);
         return FALSE;
     }
@@ -2326,7 +2386,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		msg += _T(' ');
 		msg += _("Adapt It will save the collaboration settings you make in this dialog for the Adapt It project you select (or create) in step 1.");
 		msgTitle = _("No Adapt It project designated for this collaboration setup");
-		wxMessageBox(msg,msgTitle,wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,msgTitle,wxICON_INFORMATION | wxOK);
 		// set focus on the combo box
 		pComboAiProjects->SetFocus();
 		m_pApp->LogUserAction(msgTitle);
@@ -2350,7 +2412,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		msg = _("Please select a %s project for getting source texts. Use the \"Select Source Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION | wxOK);
 		pBtnSelectFmListSourceProj->SetFocus();
 		m_pApp->LogUserAction(msg);
 		return FALSE; // don't accept any changes - return FALSE to the caller
@@ -2362,7 +2426,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select Target Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION | wxOK);
 		pBtnSelectFmListTargetProj->SetFocus();
 		m_pApp->LogUserAction(msg);
 		return FALSE; // don't accept any changes - return FALSE to the caller
@@ -2379,7 +2445,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		{
 			wxString msg;
 			msg = _("The projects selected for getting source texts and receiving translation drafts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
-			wxMessageBox(msg);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg);
 			m_pApp->LogUserAction(msg);
 			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
@@ -2389,7 +2457,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		{
 			wxString msg;
 			msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
-			wxMessageBox(msg);
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg);
 			m_pApp->LogUserAction(msg);
 			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
@@ -2408,7 +2478,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled for the %s Adapt It project in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled.\n\nDo you want to continue setting up this project for collaboration with %s?"),
 			strSel.c_str(), m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
-		if (wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxNO)
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        if (wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxNO)
 		{
 			m_pApp->LogUserAction(msg);
 			return FALSE; // don't accept any changes - return FALSE to the caller
@@ -2438,7 +2510,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		msg += msg1;
 		wxString titleMsg = _("Invalid %s projects detected");
 		titleMsg = titleMsg.Format(titleMsg,m_TempCollaborationEditor.c_str());
-		wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(titleMsg);
 		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
@@ -2515,7 +2589,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		// Tell administrator that the setup has been saved.
 		wxString msg = _("The collaboration settings for the \"%s\" project were successfully saved in the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
 		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
-		wxMessageBox(msg,_T("Save of collaboration settings successful"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T("Save of collaboration settings successful"),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 		m_bCollabChangedThisDlgSession = FALSE;
 
@@ -2575,7 +2651,9 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	wxString projName = m_TempCollabAIProjectName;
 	wxString msg = _("You are about to remove the collaboration settings for the %s project. If you continue the user will not be able to turn on collaboration with %s for this project.\n\nDo you want to remove the collaboration settings for %s?");
 	msg = msg.Format(msg, projName.c_str(),m_TempCollaborationEditor.c_str(),projName.c_str());
-	int response = wxMessageBox(msg,_("Confirm removal of collaboration settings"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    int response = wxMessageBox(msg,_("Confirm removal of collaboration settings"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (response == wxNO)
 		return;
 
@@ -2628,7 +2706,9 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
         wxString msg;
         msg = msg0 + msg1 + msg2;
         msg = msg.Format(msg,m_TempCollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
-		wxMessageBox(msg,_T("Removal of collaboration settings successful"),wxICON_INFORMATION | wxOK);
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(msg,_T("Removal of collaboration settings successful"),wxICON_INFORMATION | wxOK);
 		m_bCollabChangedThisDlgSession = FALSE;
 
 		// whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
@@ -2856,6 +2936,8 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
         // Send/Receive feature. If you want to collaborate with PT7 it is at
         // own risk!
         wxString msg = _("WARNING: Paratext 7 is no longer supported.\n\nWhile Adapt It can still be configured to collatorate with Paratext 7, the adaptations sent to a Paratext 7 project can no longer be stored remotely using its Send/Receive feature.\n\nDo you really want to set up this project to collaborate with Paratext 7?");
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         if (wxMessageBox(msg, _("Important Warning"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT) == wxYES)
         {
             ; // Call DoInit() below and allow the process to continue with Paratext 7 radio button selected

@@ -176,7 +176,9 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 				int style = wxYES_NO | wxCANCEL | wxNO_DEFAULT;
 				msg = msg.Format(_T("The target language already has the code %s. But your chosen code for the glossing language, %s, is the same language. \nThis is allowable, but choose No if you don't want the target and glossing languages to be the same, and then select a different language or Cancel.\nDo you want the languages to be the same?"),
 					m_pApp->m_targetLanguageCode.c_str(), s.c_str());
-				int answer = wxMessageBox(msg, _T("Beware: same languages"), style);
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+                int answer = wxMessageBox(msg, _T("Beware: same languages"), style);
 				if (answer == wxYES)
 				{
 					// go ahead, allow the choice

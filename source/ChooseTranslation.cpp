@@ -816,7 +816,9 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	{
         // In wxGTK, when m_pMyListBox->Clear() is called it triggers this
         // OnSelchangeListExistingTranslations handler.
-		wxMessageBox(_("List box error when getting the current selection"),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("List box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
@@ -865,7 +867,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 	{
 		// message can be in English, it's never likely to occur
-		wxMessageBox(_("List box error when getting the current selection"),
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxMessageBox(_("List box error when getting the current selection"),
 		_T(""), wxICON_ERROR | wxOK);
 		return;
 	}
@@ -927,7 +931,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	message = message.Format(_(
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
 		str2.c_str(),nPreviousReferences);
-	int response = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+    int response = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(response == wxYES))
 	{
 		m_bRemovingEntryFromList = FALSE; // so OnOK() will know what happened

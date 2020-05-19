@@ -322,5 +322,7 @@ void CChooseCollabOptionsDlg::OnBtnTellMeMore(wxCommandEvent& WXUNUSED(event))
 					m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),
 					m_aiProjName.c_str());
 
-	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK, this);     // mrh - we make this the parent so the wxMessageBox comes up on top in Linux
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+    wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK, this);     // mrh - we make this the parent so the wxMessageBox comes up on top in Linux
 }
