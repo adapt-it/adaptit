@@ -628,6 +628,9 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
 	this->CenterOnParent();
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
 }
 
 // event handling functions
@@ -885,7 +888,11 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
 										// ViewFilteredMaterialDlg dialog is active/inactive
-	Destroy();
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    Destroy();
 	// wx version: See note in OnCancel(). Here, however calling delete doesn't appear to be necessary.
 	// No memory leaks detected in the wx version.
 	//delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak
@@ -905,7 +912,11 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItView* pView = gpApp->GetView();
-	Destroy();
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
+    Destroy();
 	// wx version: Unless delete is called on the App's pointer to the dialog below, a "ghost" dialog
 	// appears (with no data in controls) when clicking on a different green wedge when the dialog 
 	// was still open at a different green wedge location. 
@@ -1095,6 +1106,10 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 
 	// BEW added 16Jul09 to get loss of wedge visibly done when free trans is removed
 	gpApp->m_pLayout->Redraw();
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    gpApp->m_bUserDlgOrMessageRequested = TRUE;
+
 }
 
 // takes the list of markers in the first list box in the dialog, and nSelection is the index
