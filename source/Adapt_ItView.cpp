@@ -2450,7 +2450,11 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 			}
 		} while (pPile->GetSrcPhrase()->m_bHasKBEntry ||
 					pPile->GetSrcPhrase()->m_bNotInKB ||
+                    (pPile->GetSrcPhrase()->m_bNullSourcePhrase && !pPile->GetSrcPhrase()->m_adaption.IsEmpty()) || // whm 20May2020 added this test
 					pPile->GetSrcPhrase()->m_bRetranslation);
+        // whm 20May2020 added a 4th subtest above to prevent GetNextEmptyPile from stopping 
+        // at a placeholder that already has some adapted text.
+        //
 		// BEW 3Sep14, added 3rd subtest to the while () test, because some
 		// retranslations in Roland Fumey's glossary document had their padding
 		// placeholders with m_bNotInKB FALSE, when TRUE was expected (all the

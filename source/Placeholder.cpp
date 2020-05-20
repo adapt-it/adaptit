@@ -3345,6 +3345,12 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			{
 				pLastOne = pSrcPhrasePH;
 			}
+            // whm 20May2020 Note: It turns out to be inappropriate to make the new placeholder source phrase
+            // have a m_bHasKBEntry flag set TRUE - the code within the GetNextEmptyPile() considers it to be
+            // an error and resets it to FALSE. The place to deal with the problem of a placeholder with an 
+            // adaptation being considered as a 'hole', is within the do...while loop in the View's 
+            // GetNextEmptyPile() function - adding a 4th test there: 
+            // (pPile->GetSrcPhrase()->m_bNullSourcePhrase && !pPile->GetSrcPhrase()->m_adaption.IsEmpty()) ||
 			pSrcPhrasePH->m_bNullSourcePhrase = TRUE;
 			pSrcPhrasePH->m_srcPhrase = _T("...");
 			pSrcPhrasePH->m_key = _T("...");
