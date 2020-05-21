@@ -7434,6 +7434,9 @@ void CMainFrame::OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event))
 // mode is current) - otherwise the wrong value would be in the phrasebox
 // when all is done.
 // BEW refactored 19Oct15 to support the better way of exiting vertical edit
+// BEW 21May20. Fixed bug, needed to add nAdaptationStep_ExtrasFromUserEdits,
+// and in View.cpp at line 28172 needed code to ensure nSequNum value there
+// is not beyond the doc end. Did those things, and it seems okay now.
 void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -7445,6 +7448,9 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	// Get from the app the various phrasebox and sequ num location params
 	// needed for restoring the original state
 	//int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
+	// for debugging... what value is this??
+	//int nVertEditSN = pRec->nAdaptationStep_EndingSequNum;
+
 	// BEW 21Feb18 using the commented line above, when an Enter keypress has
 	// sent the phrasebox into the gray area, (first CSourcePhrase which is grayed0
 	// results in a wrong active location being calculated, because the correct
@@ -7452,7 +7458,8 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	// value at this point. Inspecting the EditRecord reveals that it's nStartingSequNum
 	// is correct, and its nNewSpanCount is correct; so the final CSourcePhrase location
 	// can be calculated from these two values - avoiding the sequ num location error
-	int nLastActiveSequNum = pRec->nStartingSequNum + pRec->nNewSpanCount - 1;
+	int nLastActiveSequNum = pRec->nStartingSequNum + pRec->nNewSpanCount + 
+		pRec->nAdaptationStep_ExtrasFromUserEdits - 1; // BEW 21May20 added nAdaptationStep_ExtrasFromUserEdits
 
 	//BEW 14Apr16 removed this assert because it is violated by the legitimate user
 	// action of doing an edit source text with selection of the last word of the document

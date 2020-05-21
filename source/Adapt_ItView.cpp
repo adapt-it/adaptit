@@ -28166,7 +28166,15 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 	{
 		// We'll have to resort to a hack, that is, the fallback location. It probably
 		// won't be the last active location (except if restoring from free trans mode,
-		// where the active location stays stuck to the anchor pile)
+		// where the active location stays stuck to the anchor pile) But it could be
+		// that the last active location is within removed doc-end text, in which case
+		// we have to check if nSequNum is beyond the end. If it is, put the box at the end.
+		pView->UpdateSequNumbers(0);
+		int lastSN = pApp->GetMaxIndex();
+		if (nSequNum > lastSN)
+		{
+			nSequNum = lastSN;
+		}
 		pApp->m_pActivePile = pView->GetPile(nSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);
 		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
