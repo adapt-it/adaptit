@@ -1,5 +1,95 @@
 ﻿----------------------------------------------
-Version 6.10.0 update 30 April 2020
+Version 6.10.1 update 22 May 2020
+----------------------------------------------
+Feature changes and new features in 6.10.1
+--------------------------------------------------------------------------------------------
+* Improved the display spacing of the two Insert Placeholder tool bar buttons. 
+Previously inserting a placeholder pile sometimes did not widen the pile 
+sufficiently for a longer multi-word translation text under that source "..." 
+placeholder. This could result in a temporary overwriting of the longer 
+translation text by the following pile in the display.
+* When moving the phrasebox by Enter/Tab key press, the phrasebox would stop at
+a previously inserted placeholder location thinking the placeholder was a 'hole'.
+This was unhelpful as it would also remove the previously entered translation
+text under that placeholder. This behavior has been changed in 6.10.1 so that
+adapted placeholders are no longer considered 'holes' or stopping points.
+* A long-time user with a very large knowledge base reported that the program 
+had slowed down so much that it became almost unusable. Investigation showed 
+that the problem was due to the Guesser function getting bogged down. To solve
+this problem, we've made the Guesser to default to being OFF (previously it 
+defaulted to being ON). To avoid the slow-down in the future, the Guesser now
+defaults to being OFF for each new session of Adapt It and after a project is
+closed or the application shut down. If a user wants to use the Guesser it must
+now be turned ON for each working session of Adapt It.
+* The Find and Find-and-Replace dialogs now inform the user when the end of the
+document was reached, and give the user the option of continuing those functions
+in an earlier part of a document, if they were initiated in a later part of the
+document.
+* Carried over from the previous limited distribution version, this version
+also should be fully compatible with all current versions of Paratext when 
+Adapt It and Paratext are set up to collaborate together. See the HTML file
+Help_for_Administrators.htm from the Administrator menu, or from the Adapt It
+website at: https://adapt-it.org/Help_for_Administrators.htm
+* [Carried over from the limited version 6.10.0] this version is
+also compliant with the USFM 3.0 new attribute marker features. Additionally
+the app does not show metadata with attributes in the GUI, but auto-restores
+them to the document when the document is being exported to Paratext or Bibledit
+in a collaboration; or when, out of a collaboration, the user requests an 
+export of the source text (as USFM). 
+* [Carried over from the limited version 6.10.0] email reporting of problem 
+reports or feedback using the Help menu options now default to transfering the 
+email data to the users default email program on the user's computer. The secure
+SSL sending of problem reports/feedback is disabled in this version due to issues
+on the adapt-it.org server.
+* [Carried over from version 6.10.0] many improvements have been made to the 
+parser of input source text; including changes for robust handling of USFM3.
+* [Carried over from version 6.10.0] The names of some of the command bar button 
+icons have been shortened. Long names were a nuisance because not many buttons 
+could be seen in the command bar if the names were unnecessarily long. Now more 
+large-size buttons will fit.
+* [Carried over from version 6.10.0] Adapt It does a better job at handling
+the ( or [ or { characters immediately following a word, provided the text 
+following these is terminated by the matching ) or ] or }. This allows for
+grammatical information to be typed into a target text as well as when
+backtranslating words and phrases.
+* [Carried over from version 6.10.0] In the View menu of Preferences, the default 
+has setting of whether or not to keep the phrase box midscreen has been changed 
+to "don't do so". It defaults to keeping the strips stationary and the phrasebox 
+moves down the page until it gets to the last line, and then the app scrolls 
+the window down and repositions the phrasebox near the top. This setting makes 
+adapting more pleasant, the strips don't dance round as much, and it works better 
+when the view is projected on a screen for several people to watch what is 
+happening.
+
+---------------------------------------------
+Bug fixes in 6.10.1 update
+---------------------------------------------
+* For those who customarily use the Tab key to move the focus around to various
+controls within dialogs and other input areas of the program, and then use the
+Enter key to select a button such as OK or Cancel, they have reported that
+the phrase box would suddenly advance forward to the next 'hole' in the document
+which might be a long way down in a document that was previously mostly adapted.
+That unhelpful behavior of a run-on phrasebox, should now be fixed when a user 
+dismisses a message box or a dialog by use of the Enter key.
+* A potential crash was fixed in situations where a merger was at the end of
+a document, and the Edit Source Text dialog was used to add additional text to
+the end of the document. The crash would happen when ending the vertical edit
+session. This has been fixed.
+* [Carried over from version 6.10.0] The source text parser within Adapt It had 
+several changes made to remove misparsing errors in some complex USFM2 or USFM3 
+markup scenarios.
+* [Carried over from version 6.10.0] Fixed a rare coincidence where the document 
+is being deleted at the instant an automatic save is requested by an internal 
+timer. When this  happened, the document was lost - unless a document backup was 
+available. The problem now cannot happen.
+* [Carried over from version 6.10.0] Fixed infinite loop hanging of the Import 
+Edited Source Text feature, when the document is short - less than 80 words long.
+* [Carried over from version 6.10.0] Fixed infinite loop hanging problem that 
+could happen when certain punctuation characters ']' and/or ')' were used at the 
+end of the phrasebox contents.
+
+----------------------------------------------
+Version 6.10.0 update unadvertised limited distribution 30 April 2020
 ----------------------------------------------
 Feature changes and new features in 6.10.0
 --------------------------------------------------------------------------------------------

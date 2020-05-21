@@ -26920,7 +26920,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is
     // to be on. This also needs to be done in other places, like when entering a project, and also when
-    // changing from guesser off to on.\
+    // changing from guesser off to on.
     //
     // whm 13May2020 Note: The m_bUseAdaptationsGuesser value is now initialized to FALSE above in OnInit().
     // Existing Adapt It users like Feridoon will have m_bUseAdaptationsGuesser set to TRUE in their

@@ -1,5 +1,23 @@
 Adapt It WX - Localization Information
 
+NOTE: Many of the non-English interface localizations of Adapt It are 
+incomplete due to lack of translators for those interface languages. The
+exception is Tok Pisin (spoken widely in Papua New Guinea and which is known
+by the developers). Hence, Tok Pisin is the only non-English interface 
+language that we developers can keep up to date with changes in the program. 
+You can switch to one of the existing interface language localizations if you 
+like and it should work OK, but those parts of the interface that haven't been 
+translated into the non-English language localization will appear just in 
+English during the running of the program. Please let the developers know if 
+you (or someone you know) would like to work on the localization of Adapt It's 
+interface for one of the supported languages (currently Azeri, Spanish, French, 
+Indonesian, Portuguese, Russian, Swahili, Mandarin Chinese) or even a new 
+language. The Adapt It program is open source and available to anyone without 
+cost. Hence, the team does not have the resources to pay anyone for their work 
+in helping to provide a localization. It is a fair amount of work to translate
+the occasionally technical wording of Adapt It's many interface elements and
+messages (there are over 3,000 such words, phrases and sentences to translate).
+
 Beginning with version 4.0.0 of Adapt It WX and Adapt It WX Unicode, you can
 easily switch the language of Adapt It's interface to any language into which 
 Adapt It's interface has been translated.

@@ -1224,9 +1224,9 @@ bool CAdapt_ItDoc::OnNewDocument()
             // that the warning message below would ever be show to the user since the wxMessageBox that
             // displays the message below TokenizeText().
 			int nHowMany;
-			wxString msg = _("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shous the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
+			wxString msg = _("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shows the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
             msg = msg.Format(msg, gpApp->m_docCreationFilePathAndName);
-            wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shous the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
+            wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shows the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
             msgEnglish = msgEnglish.Format(msgEnglish, gpApp->m_docCreationFilePathAndName);
 
             if (pApp->m_bMakeDocCreationLogfile)
