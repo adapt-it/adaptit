@@ -1641,6 +1641,10 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 	}
+
+    // whm 21May2020 added - make the doc dirty so it can be samed after insertion of placeholder
+    pDoc->Modify(TRUE);
+
 	m_pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
 }
 
@@ -2397,6 +2401,10 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	m_pView->Invalidate();
 	// now place the box
 	m_pLayout->PlaceBox();
+
+    // whm 21May2020 added - make the doc dirty so it can be samed after insertion of placeholder
+    m_pApp->GetDocument()->Modify(TRUE);
+
 }
 
 // pList is the sublist of (formerly) selected source phrase instances, pSrcPhrases is the
