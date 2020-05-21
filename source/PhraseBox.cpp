@@ -6412,9 +6412,21 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+    CAdapt_ItDoc* pDoc = pApp->GetDocument();
+    wxASSERT(pDoc != NULL);
 	CLayout* pLayout = GetLayout();
 	// BEW added 18Aug18 - ensure a large former m_curBoxWidth value is not retained in the move
 	pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
+
+    // whm 20May2020 added call of ResetPartnerPileWidth() below. The above m_curBoxWidth setting 
+    // alone resulted in a pile with too small for an inserted '...' placeholder when the target
+    // text entered was much wider than the source "..." placeholder. The current pile's width
+    // invalidate the strip needs to be done by a call to ResetPartnerPileWidth() before leaving 
+    // this location, at least for when we are leaving a freshly inserted placeholder that has 
+    // gotten a target text adaptation that is wider than the width of the source text's '...' 
+    // placeholder. If this isn't done, the target string under the placeholder is overwritten 
+    // by the following pile's target text when the phrasebox moves on. 
+    pDoc->ResetPartnerPileWidth(pLayout->GetPile(pApp->m_nActiveSequNum)->GetSrcPhrase());
 
 	//CSourcePhrase* pOldActiveSrcPhrase = NULL; // set but not used
 	int nActiveSequNum = pApp->m_nActiveSequNum;

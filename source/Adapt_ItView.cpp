@@ -1972,6 +1972,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
     return TRUE;
 }
 
+// whm 20May2020 This function is only used in the View's DoTargetBoxPaste()
 int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 {
     // a sudden change in the m_targetPhrase's length (eg. due to a paste into the phrase

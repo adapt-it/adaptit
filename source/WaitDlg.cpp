@@ -253,5 +253,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pApp->GetView()->PositionDlgNearBottomRight(this);
 	}
 #endif
+
+    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
 }
 
