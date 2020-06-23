@@ -104,12 +104,15 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-m32" />
 					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
+					<Add option="-D_UNICODE" />
+					<Add option="-D_KBSERVER" />
 					<Add directory="/wx30/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
+					<Add option="-m32" />
 					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
@@ -169,9 +172,13 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-m64" />
 			<Add option="-g" />
 			<Add option="-Wno-unused-local-typedefs" />
 		</Compiler>
+		<Linker>
+			<Add option="-m64" />
+		</Linker>
 		<ExtraCommands>
 			<Add before="#define __WXGTK__" />
 			<Add before="#ifndef _UNICODE" />
