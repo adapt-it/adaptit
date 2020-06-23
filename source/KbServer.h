@@ -69,23 +69,23 @@ struct KbServerLanguage;
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
 		// because KBserver upload threads may not all be finished when the two KBserver
-		// instances are released, and if they are not finished, then the KbServerEntry 
+		// instances are released, and if they are not finished, then the KbServerEntry
 		// structs they store will need to live on as long as possible
-WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for 
+WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for
 										  // the ListUsers() client
-WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for 
+WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for
 										  // the ListKbs() client
-WX_DECLARE_LIST(KbServerLanguage, LanguagesList); // stores pointers to KbServerLanguage structs for 
+WX_DECLARE_LIST(KbServerLanguage, LanguagesList); // stores pointers to KbServerLanguage structs for
 // the ListLanguages() client (the latter's handler filters out ISO639 codes, leaving only custom codes)
 
-WX_DECLARE_LIST(KbServerLanguage, FilteredList); // stores pointers to KbServerLanguage structs 
+WX_DECLARE_LIST(KbServerLanguage, FilteredList); // stores pointers to KbServerLanguage structs
 //  filtered from LanguagesList, so that only the structs for custom codes are in filteredList
 
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
 // pairs which already have a presence in the remote server; used when doing a full KB upload
-WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap); 
-													   
+WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap);
+
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
 struct KbServerEntry {
@@ -171,13 +171,13 @@ public:
 					   // otherwise FALSE
 	// ///////// The API which we expose ////////////////////////////////////////////
 	// (note:  srcPhrase & tgtPhrase are often each just a single word)
-	
+
     // By passing in a copy of the required strings, we avoid mutex problems that would
     // happen because the internal code would otherwise need to make calls to the KbServer
 	// instance to get needed params; these API kbserver functions are setup within the
 	// main thread before the containing thread is fired, and so the parameter accesses
 	// are synchronous and no mutex is required
-	
+
 	// The functions in this next block do the actual calls to the remote KBserver, they are
 	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
 	// do other classes
@@ -188,7 +188,7 @@ public:
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword,
 						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
@@ -204,14 +204,14 @@ public:
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);
 	int		 RemoveCustomLanguage(wxString langID);
-	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
-						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
+	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
+						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
 						KbServerUser* pEditedUserStruct, wxString password);
 	void	 UploadToKbServer();
 	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
-	
+
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
 	void	DoChangedSince();
@@ -291,7 +291,7 @@ protected:
 	// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
 	// s_DoGetAllMutex)
 	void PopulateUploadsMap(KbServer* pKbSvr);
-	
+
 	// Populate the m_uploadsList - either with the help of the remote DB's data in the
 	// hashmap, or without (the latter when the remote DB has no content yet for this
 	// particular language pair) - pass in a flag to handle these two options
@@ -303,7 +303,7 @@ private:
 	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
-	wxString    m_httpStatusText; 
+	wxString    m_httpStatusText;
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// KBserver for a given KB type (their getters are further below)
@@ -342,7 +342,7 @@ public:
 	// password and username - and those will get stored in the relevant places in the ptr to the
 	// "stateless" KbServer ptr instance which, for example, the Manager points at with its
 	// m_pKbServer member. So then the getters below will get the stateless strings, and that means
-	// any user settings for access to a KBserver instance, whether same one or not, won't get 
+	// any user settings for access to a KBserver instance, whether same one or not, won't get
 	// clobbered by some administrator person accessing the KB Sharing Manager from the user's machine.
 	wxString	GetKBServerURL();
 	wxString	GetKBServerUsername();
@@ -381,7 +381,7 @@ private:
 
 	// the templated list which holds KbServerEntry structs, created on the heap, one such
 	// for each KB server DB line -- for uploading the src/tgt data in each to the remote
-	// DB in Thread_UploadMulti 
+	// DB in Thread_UploadMulti
 	UploadsList		m_uploadsList;
 
 	// For use in full KB uploads

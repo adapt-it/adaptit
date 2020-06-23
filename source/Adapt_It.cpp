@@ -11110,7 +11110,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 /*  This way ran into asserts tripping, try adding dynamically instead
 void CAdapt_ItApp::RemoveDeveloperMenuItem()
 {
-	wxBell(); 
+	wxBell();
 	wxMessageBox(_T(" RemoveDeveloperMenuItem() called"), _T(" Called it"));
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
@@ -13904,22 +13904,22 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 
 // whm 6Apr2020 added to replace logging system BEW setup earlier.
 // whm 13Apr2020 revised and relocated some calls to higher calling routines, added ***End-of-Document***
-// logging lines, and logging of steps 1-9 of the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor() 
+// logging lines, and logging of steps 1-9 of the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor()
 // function during collab document creation/opening.
 // This log function simply appends a line to the end of the current session's doc creation
 // log file which persists on the App for a given session; App's m_docCreationLogFile points to the function.
 // The function that appends the string lines to this log file is called CAdapt_ItApp::LogDocCreationData().
 // The LogDocCreationData() function is called only when user has specifically ticked a check box in either
-// the docPage (for non-collaboration document creation/optining); or the GetSourceTextFromEditor dialog 
+// the docPage (for non-collaboration document creation/optining); or the GetSourceTextFromEditor dialog
 // (for collaboration document creation/opening), which sets the App's m_bMakeDocCreationLogfile TRUE.
 // The LogDocCreationData() function is only called when the App's m_bMakeDocCreationLogfile global flag
 // is TRUE.
 // USAGE: The LogDocCreationData() function calls are strategically located to capture log output at user
 // direction at the following points in program flow:
 // These calls below are for writing the log's first line only (the file path/name and date-time stamp).
-//    1. In CAdapt_ItDoc::OnNewDocument() before TokenizeText() is called - when creating a new 
+//    1. In CAdapt_ItDoc::OnNewDocument() before TokenizeText() is called - when creating a new
 //       non-collab AI document, i.e., gpApp->LogDocCreationData(fileNameLine);
-//    2. In CAdapt_ItDoc::OnOpenDocument() just before its ReadDoc_XML() call - when opening an existing 
+//    2. In CAdapt_ItDoc::OnOpenDocument() just before its ReadDoc_XML() call - when opening an existing
 //       non-collab AI xml document, i.e., gpApp->LogDocCreationData(fileNameLine);
 //    3. In CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() function - when opening
 //       either an existing collab document, or creating a new collabo document, i.e., pApp->LogDocCreationData(fileNameLine);
@@ -13928,15 +13928,15 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 //       a new AI document, i.e., pApp->LogDocCreationData(strLine);
 //    5. In XML.cpp's AtDocEndTag() - when opening an existing XML document, i.e., gpApp->LogDocCreationData(strLine);
 // These calls below are for logging an ***End-of-Document*** last line in the log for a given doc creation/opening:
-//    6. In CAdapt_ItDoc::OnNewDocument() - when at the end of creating a new non-collab document after successful 
+//    6. In CAdapt_ItDoc::OnNewDocument() - when at the end of creating a new non-collab document after successful
 //       TokenizeText(), i.e., pApp->LogDocCreationData(_T("***End-of-Document***"));
-//    7. In CAdapt_ItDoc::OnOpenDocument() - when at the end of opening an existing non-collab XML AI document, i.e., 
+//    7. In CAdapt_ItDoc::OnOpenDocument() - when at the end of opening an existing non-collab XML AI document, i.e.,
 //       gpApp->LogDocCreationData(_T("***End-of-Document***"));
-//    8. In CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() function - when at 
+//    8. In CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() function - when at
 //       the end of either creating or opening a collab document, i.e., pApp->LogDocCreationData(_T("***End-of-Document***"));
 // Note additional LogDocCreationData() calls are made between points 3 and 4 above to log Steps 1-4 and Step 5 within
-// the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor() function. More LogDocCreationData() calls are 
-// also made after the parsing points 4 and 5 above to log Steps 5, 6, 7, 8, and 9 before reaching points 6-8 
+// the lengthy OK_btn_delayedHandler_GetSourceTextFromEditor() function. More LogDocCreationData() calls are
+// also made after the parsing points 4 and 5 above to log Steps 5, 6, 7, 8, and 9 before reaching points 6-8
 // above - the logging of ***End-of-Document***.
 // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
 void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
@@ -13947,7 +13947,7 @@ void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
         // but embedded <BR> would allow us to process line breaks for display
         // as HTML.
         ParsedWordDataLine.Replace(_T("\n"), _T("<BR>"));
-        // For doc creation logging, a timeStr should only be included with the filename at beginning of 
+        // For doc creation logging, a timeStr should only be included with the filename at beginning of
         // the log for a given document being opened, hence the timeStr calculation should be done before
         // the LogDocCreationData, and already be concatenated with the ParseMoreDataLine strin that
         // is input into this function via its parameter.
@@ -13976,7 +13976,7 @@ void CAdapt_ItApp::LogDocCreationData(wxString ParsedWordDataLine)
 //   gbPTLinuxVer8OnlyInstalled
 //   gbPTLinuxVer9OnlyInstalled
 //   gbPTNotInstalled
-//   
+//
 // This function is called initially from the App's OnInit() function when the
 // program loads up. It is also called any time the Administrator accesses
 // the SetupEditorCollaboration dialog from the Administrator menu - ensuring
@@ -13990,9 +13990,9 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
     // the SetupEditorCollaboration dialog from the Administrator menu.
     // Within the CSetupEditorCollaboration class it is called early in the InitDialog()
     // method.
-    // These global bool values were all initialized to FALSE in the App's global space, 
-    // and then changed to TRUE below if that particular PT version is found to be installed 
-    // at the time this function is called (either in App's OnInit() or the 
+    // These global bool values were all initialized to FALSE in the App's global space,
+    // and then changed to TRUE below if that particular PT version is found to be installed
+    // at the time this function is called (either in App's OnInit() or the
     // CSetupEditorCollaboration dialog).
     gbPTVer7Installed = IsThisParatextVersionInstalled(_T("PTVersion7"));
     gbPTVer8Installed = IsThisParatextVersionInstalled(_T("PTVersion8"));;
@@ -14001,7 +14001,7 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
     gbPTLinuxVer8Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion8"));;
     gbPTLinuxVer9Installed = IsThisParatextVersionInstalled(_T("PTLinuxVersion9"));;
 
-    // Set up some convenience boolean variables for other possible PT installations, and a boolean 
+    // Set up some convenience boolean variables for other possible PT installations, and a boolean
     // for whan no PT installations are found.
 
     // First, set some convenience bools that indicate when ONLY a certain version is installed on this machine
@@ -14017,7 +14017,7 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
         gbPTLinuxVer8OnlyInstalled = TRUE;
     if (gbPTLinuxVer9Installed && !gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed)
         gbPTLinuxVer9OnlyInstalled = TRUE;
-    
+
     // Also set another convenience bool named gbPTNotInstalled if none of the PT versions are installed
     // on this machine.
     if (!gbPTVer7Installed && !gbPTVer8Installed && !gbPTVer9Installed && !gbPTLinuxVer7Installed && !gbPTLinuxVer8Installed && !gbPTLinuxVer9Installed)
@@ -14030,14 +14030,14 @@ void CAdapt_ItApp::InventoryCollabEditorInstalls()
 ///             appropriate location for the specified PT version.
 ///             FALSE if the installation's Paratext.exe cannot be found, or the appropriate data store
 ///             folder cannot be found for the specified PT version.
-/// \param   -> PTVersion  A wxString which must be one of: "PTVersion7", "PTVersion8", "PTVersion9", 
+/// \param   -> PTVersion  A wxString which must be one of: "PTVersion7", "PTVersion8", "PTVersion9",
 ///             "PTLinuxVersion7", "PTLinuxVersion8", or "PTLinuxVersion9"
-/// \remarks    This function is a convenience function that uses much of the same code as the 
+/// \remarks    This function is a convenience function that uses much of the same code as the
 /// ParatextVersionInstalled() function. This function just verifies whether a particular PT version is
-/// actually installed on the computer - where "installed" means having the requisite Paratext.exe 
-/// executable within installation location/folder as determined by the registry, and has a Paratext 
-/// data store folder at the location as determined by the registry or failing that, the default location. 
-/// This function does not attempt to determine whether the PT version has any appropriate projects for 
+/// actually installed on the computer - where "installed" means having the requisite Paratext.exe
+/// executable within installation location/folder as determined by the registry, and has a Paratext
+/// data store folder at the location as determined by the registry or failing that, the default location.
+/// This function does not attempt to determine whether the PT version has any appropriate projects for
 /// collaboration or not, nor whether those projects are valid projects for adaptation purposes.
 /// whm 4Feb2020 added mainly to be able to enable/disable the "Paratext 7", "Paratext 8" and "Paratext 9"
 /// radio buttons appropriately in the CSetupEditorCollaboration class, but it could be used elsewhere
@@ -14054,9 +14054,9 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
     // In this function we'll get the installation folder info from the registry only as required by the
     // specific version specified in the PTVersion input string.
     // There are two registry views where the PT 8 key might be depending on the host OS architecture
-    // NOTE: With its initial relaease PT9 uses the same registry key that is used below for PT8, 
-    // that is ...\Paratext\8 so we'll declare the wxRegKey for PT8 here before the if blocks below 
-    // since the following two wxRegKey instances may be used in both the PTVersion9 block and the 
+    // NOTE: With its initial relaease PT9 uses the same registry key that is used below for PT8,
+    // that is ...\Paratext\8 so we'll declare the wxRegKey for PT8 here before the if blocks below
+    // since the following two wxRegKey instances may be used in both the PTVersion9 block and the
     // "PTVersion8" block farther below.
     wxRegKey keyOS64PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
     wxRegKey keyOS32PT8InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
@@ -14065,8 +14065,8 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
         // CAUTION: What if the PT developers decide to change the RegKey of a PT9 installation to make
         // it conform to the actual version number? i.e., ...\\Paratext\\9 ??? If they ever decide to do
         // so, this function will fail to detect that PT version. So, as a way to forestall that possibility,
-        // we can do a little pre-emptive programming and test here for a ...\\Paratext\\9 key, and if it 
-        // exists use it, otherwise we go ahead and use the current ...\\Paratext\\8 key above for the 
+        // we can do a little pre-emptive programming and test here for a ...\\Paratext\\9 key, and if it
+        // exists use it, otherwise we go ahead and use the current ...\\Paratext\\8 key above for the
         // "PTVersion9" test.
         wxRegKey keyOS64PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\9"));
         wxRegKey keyOS32PT9InstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\9"));
@@ -14208,7 +14208,7 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
             // Check the default PT8 installation location for 32-bit/64-bit PT
             wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
             wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
-            // whm 4Feb2020 decided to forego the detection of ParatextShared.dll since is was being 
+            // whm 4Feb2020 decided to forego the detection of ParatextShared.dll since is was being
             // discontinued at some point before PT9 release.
             //wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
             //wxString dllPathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\ParatextShared.dll");
@@ -14329,15 +14329,15 @@ bool CAdapt_ItApp::IsThisParatextVersionInstalled(wxString PTVersion)
 // If either the collabEditor, or a valid PT version cannot be determined the function itself returns
 // an empty string.
 // This function is called from:
-//   CAdapt_ItApp::SetCollabSettingsToNewProjDefaults() within CAdapt_ItApp::OnInit()'s, 
+//   CAdapt_ItApp::SetCollabSettingsToNewProjDefaults() within CAdapt_ItApp::OnInit()'s,
 //   CAdapt_ItApp::GetAIProjectCollabStatus(),
-//   CSetupEditorCollaboration::InitDialog(), and 
+//   CSetupEditorCollaboration::InitDialog(), and
 //   CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() [3X].
 wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(wxString &collabEditor, wxString collabEditorVerStr)
 {
     // whm 4Feb2020 Note: Either parateter of this function can be empty strings when this function is called.
     // In fact, both parameters will be empty when it is first called in the SetCollabSettingsToNewProjectDefaults()
-    // function call within the App's OnInit(). Just before that first call, the App value for m_collaborationEditor 
+    // function call within the App's OnInit(). Just before that first call, the App value for m_collaborationEditor
     // and m_ParatextVersionForProject will have been initialized to empty strings, and the result of this
     // ValidateCollabEditorAndVersionStrAgainstInstallationData() function call there will be that m_collaborationEditor
     // will remain an empty string, but if any version of PT is installed, the highest version of PT installed will
@@ -14372,7 +14372,7 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // since it is the only version for possible collaboration.
             tempCollabEditorVerStr = _T("PTVersion9");
         }
-        // Now that the "Only" versions are bled off, check when two or more version are 
+        // Now that the "Only" versions are bled off, check when two or more version are
         // installed, starting with all 3 versions are installed, and moving on to when
         // just 2 of the 3 are installed.
         else if (gbPTVer7Installed && gbPTVer8Installed && gbPTVer9Installed)
@@ -14381,10 +14381,10 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTVersion9".
-            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8", or "PTVersion9" 
+            // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8", or "PTVersion9"
             // it will NOT be changed by the test below.
             if (tempCollabEditorVerStr.IsEmpty())
             {
@@ -14409,7 +14409,7 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTVersion9".
             // Note: If tempCollabEditorVerStr has a value of "PTVersion9" or "PTVersion8" it will NOT be
@@ -14432,13 +14432,13 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
         }
         else if (gbPTVer7Installed && gbPTVer9Installed)
         {
-            // PT7 and PT9 are installed - PT8 not installed - this would be fairly uncommon unless a 
+            // PT7 and PT9 are installed - PT8 not installed - this would be fairly uncommon unless a
             // user previously used PT7 and never migrated data to a PT8 installation before installing
-            // PT9. 
+            // PT9.
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTVersion9".
             // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion9" it will NOT be
@@ -14462,14 +14462,14 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
         {
             // Both PT versions 7 and 8 are installed on the machine.
 
-            // whm modified 4Feb2020. Set the PT version according to what is specified in the project 
-            // config file unless it is the case that tempCollabEditorVerStr is an empty string. 
+            // whm modified 4Feb2020. Set the PT version according to what is specified in the project
+            // config file unless it is the case that tempCollabEditorVerStr is an empty string.
             // If it is an empty string then we will have to guess which PT version the user might want.
-            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7 
+            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7
             // to PT8, so I think that we can set PT8 as the suggested editor as long as there are at
-            // lease 2 valid PT projects available in PT8 (source and target projects). 
-            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration 
-            // can't actually be set up in this session, and we will leave the suggestion set to 
+            // lease 2 valid PT projects available in PT8 (source and target projects).
+            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration
+            // can't actually be set up in this session, and we will leave the suggestion set to
             // "PTVersion7".
             // Note: If tempCollabEditorVerStr has a value of "PTVersion7" or "PTVersion8" it will NOT be
             // changed by the test below.
@@ -14525,7 +14525,7 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // since it is the only version for possible collaboration.
             tempCollabEditorVerStr = _T("PTLinuxVersion7");
         }
-        // Now that the "Only" versions are bled off, check when two or more version are 
+        // Now that the "Only" versions are bled off, check when two or more version are
         // installed, starting with all 3 versions are installed, and moving on to when
         // just 2 of the 3 are installed.
         else if (gbPTLinuxVer7Installed && gbPTLinuxVer8Installed && gbPTLinuxVer9Installed)
@@ -14534,10 +14534,10 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
-            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8", or "PTLinuxVersion9" 
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8", or "PTLinuxVersion9"
             // it will NOT be changed by the test below.
             if (tempCollabEditorVerStr.IsEmpty())
             {
@@ -14557,12 +14557,12 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
         }
         else if (gbPTLinuxVer8Installed && gbPTLinuxVer9Installed)
         {
-            // PT8 and PT9 Linux versions are installed - PT7 Linux is not installed - the common case for 
+            // PT8 and PT9 Linux versions are installed - PT7 Linux is not installed - the common case for
             // recent PT users who upgraded from PT8 to PT9.
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
             // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion9" or "PTLinuxVersion8" it will NOT be
@@ -14585,13 +14585,13 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
         }
         else if (gbPTLinuxVer7Installed && gbPTLinuxVer9Installed)
         {
-            // PT7 and PT9 Linux versions are installed - PT8 Linux is not installed - this would be 
-            // fairly uncommon unless a user previously used PT7 and never migrated data to a PT8 
-            // installation before installing PT9. 
+            // PT7 and PT9 Linux versions are installed - PT8 Linux is not installed - this would be
+            // fairly uncommon unless a user previously used PT7 and never migrated data to a PT8
+            // installation before installing PT9.
             // If tempCollabEditorVerStr is NOT empty when we get here, AND it points to an installed
             // version of PT, then we accept what it points to even an older PT version and the Administrator
             // can select a newer version if desired, but we should keep the older version config value
-            // so start with. 
+            // so start with.
             // If tempCollabEditorVerStr IS EMPTY, or it doesn't point to one of the installed PT
             // versions, set it to the highest installed version, in this case "PTLinuxVersion9".
             // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion9" it will NOT be
@@ -14616,16 +14616,16 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
         {
             // Both PT Linux versions 7 and 8 are installed on the machine.
 
-            // whm modified 4Feb2020. Set the PT version according to what is specified in the project 
-            // config file unless it is the case that tempCollabEditorVerStr is an empty string. 
+            // whm modified 4Feb2020. Set the PT version according to what is specified in the project
+            // config file unless it is the case that tempCollabEditorVerStr is an empty string.
             // If it is an empty string then we will have to guess which PT version the user might want.
-            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7 
+            // As of December 31, 2019 all PT7 projects were supposed to have been migrated from PT7
             // to PT8, so I think that we can set PT8 as the suggested editor as long as there are at
-            // lease 2 valid PT projects available in PT8 (source and target projects). 
-            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration 
-            // can't actually be set up in this session, and we will leave the suggestion set to 
+            // lease 2 valid PT projects available in PT8 (source and target projects).
+            // If there aren't at least 2 such valid PT projects available in PT8, the collaboration
+            // can't actually be set up in this session, and we will leave the suggestion set to
             // "PTLinuxVersion7".
-            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8" it 
+            // Note: If tempCollabEditorVerStr has a value of "PTLinuxVersion7" or "PTLinuxVersion8" it
             // will NOT be changed by the test below.
             if (tempCollabEditorVerStr.IsEmpty()
                 || (tempCollabEditorVerStr != _T("PTLinuxVersion8") && tempCollabEditorVerStr != _T("PTLinuxVersion7")))
@@ -14715,10 +14715,10 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
 /// However, the above assumptions/recommendations, while useful in a general way,
 /// are not so useful for AID collaboration. AID collaboration requires an exact
 /// determination of the Paratext version (and hence the installation and data store
-/// locations) in order to collaborate correctly, exchange data via the rdwrtp7.exe or rdwrtp8.exe 
-/// utility is required to collaborate correctly after an administrator has upgraded a user 
-/// from PT 7 to PT 8 and/or PT 9. The PT developers eventually added rdwrtp8.exe to the PT 8 
-/// Windows installation. 
+/// locations) in order to collaborate correctly, exchange data via the rdwrtp7.exe or rdwrtp8.exe
+/// utility is required to collaborate correctly after an administrator has upgraded a user
+/// from PT 7 to PT 8 and/or PT 9. The PT developers eventually added rdwrtp8.exe to the PT 8
+/// Windows installation.
 ///
 /// Called from: the App's OnInit(), GetAIProjectCollabStatus(), SetCollabSettingsToNewProjDefaults()
 ///    CSetupEditorCollaboration::InitDialog(), CSetupEditorCollaboration::DoInit(),
@@ -14738,7 +14738,7 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
 ///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw8
 ///    when running on a 32-bit version of Windows
 ///    For Paratext 9: // Note ...\Paratext\8\ reg path is still used in PT9, and only the value Program_Files_Directory_Ptw9 is added
-///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw9 
+///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw9
 ///    when running on a 64-bit version of Windows
 ///    or
 ///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw9 // Note ...\Paratext\8\ reg path is still used in PT9
@@ -14749,7 +14749,7 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
 ///    Paratext 8 running on 32-bit Windows; or "C:\Program Files (x86)\Paratext 8\",
 ///    in the case of Paratext 8 running on 64-bit Windows installations,
 ///    "C:\Program Files\Paratext 9\", in the case of Paratext 9 running on 32-bit Windows;'
-///    or "C:\Program Files (x86)\Paratext 9\", in the case of Paratext 9 running on 64-bit 
+///    or "C:\Program Files (x86)\Paratext 9\", in the case of Paratext 9 running on 64-bit
 ///    Windows installations.
 /// 3. Checks if the folder designated in 2 above contains the Paratext.exe executable file
 ///    and (for PT7 and PT8 only) the ParatextShared.dll file - there is no ParatextShared.dll
@@ -14761,11 +14761,11 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
 ///    executables are in their default installation folders even when the installation
 ///    paths cannot be determined from the normal Windows registry calls using wxRegKey.
 /// Note: We make every attemtp to get a definitive PT version on Windows for when each version
-///    PT 7, PT 8, and PT 9 are installed, and that the projects dir of both installations currently 
+///    PT 7, PT 8, and PT 9 are installed, and that the projects dir of both installations currently
 ///    have valid/usable PT projects. If only PT 7 has valid/usable projects within its
 ///    "My Paratext Projects" projects dir, we can assume that PTVer7 should be returned.
 ///    Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8 Projects"
-///    projects dir, we can assume that PTVer8 or PTVer9 should be returned. However, if the 
+///    projects dir, we can assume that PTVer8 or PTVer9 should be returned. However, if the
 ///    projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
 ///    return an ambiguous enum value of PTVer7and8. In that case the caller has to
 ///    determine whether to give priority to PT 8, or to query the user/administrator for
@@ -14956,7 +14956,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // whm 4Feb2020 added. If Paratext 9 is installed it is an "upgrade" to Paratext 8, so we
     // should be able to assume that it is being used even though earlier versions of Paratext
     // may be installed alongside it. Even if a user fires up Paratext 8 instead of Paratext 9
-    // PT8 and PT9 use the same data store, and eventually this function would return PTVer8 
+    // PT8 and PT9 use the same data store, and eventually this function would return PTVer8
     // during that running of PT8. It doesn't appear to make a difference whether rdwrtp8.exe
     // is called from the PT8 or PT9 installation location for collaboration to succeed.
     if (bPT9Installed)
@@ -15168,12 +15168,12 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
 /// Called from IsThisParatextVersionInstalled().
 /// This method opens up the "PTVersion" text file that is located at the PTVersionFilePath
 /// which will be either /usr/lib/Paratext/PTVersion, or /usr/lib/Paratext8/PTVersion,
-/// or /usr/lib/Paratext9/PTVersion, and parses out the last line that has an embedded 
-/// reference to the PT version within parentheses and double quote marks similar to 
+/// or /usr/lib/Paratext9/PTVersion, and parses out the last line that has an embedded
+/// reference to the PT version within parentheses and double quote marks similar to
 /// this: ("7.5.100.312") or ("8.x.xxx...), etc.
 /// We parse out the string value that represents the first digit of that version number,
-/// which will normally be a "7" or an "8" or a "9" and return that single digit string. 
-/// If the PTVersion file is not found or doesn't have a recognizable major string number, 
+/// which will normally be a "7" or an "8" or a "9" and return that single digit string.
+/// If the PTVersion file is not found or doesn't have a recognizable major string number,
 /// an empty string is returned.
 /// Note that, although this method is may be called under the Windows environment, it won't
 /// ordinarily find a PTVersion file at a /usr/lib/Paratext... path on a Windows computer.
@@ -15211,7 +15211,7 @@ wxString CAdapt_ItApp::GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersi
     // We can parse the first digit from inside the quotes to get the major version number
     // - in the above examples it would be "7" or "8".
     // Note: this PTVersion file is apparently only located in a Linux/Mono installation,
-    // and doesn't appear to be present in a Windows installation. 
+    // and doesn't appear to be present in a Windows installation.
 
     if (PTVersionFilePath.IsEmpty())
         return verStr; // empty
@@ -15382,9 +15382,9 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 /// actually creates a "My Paratext 9 Projects" folder! Hence some users will have a "My Paratext 8 Projects"
 /// folder and some (usually newer) user will have a "My Paratext 9 Projects" folder after installing PT9!
 /// For Windows we first look for the specified PT installation and if found, returns its Projects Dir path
-/// by inspecting the Settings_Directory key value. 
-/// If the incoming parameter is empty string we look first for PT 8. If no PT 8 installation is found, 
-/// we look for a PT 7 installation and if found, return its Projects Dir path by inspecting its 
+/// by inspecting the Settings_Directory key value.
+/// If the incoming parameter is empty string we look first for PT 8. If no PT 8 installation is found,
+/// we look for a PT 7 installation and if found, return its Projects Dir path by inspecting its
 /// ...Settings_Directory key.
 /// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
@@ -15415,10 +15415,10 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     dirStrValue.Empty(); // dirStrValue is returned as empty string if no keys or matching directories are found.
     // whm 4Feb2020 Note: In the future it is possible that the PT developers may create a registry key
     // that is unique to Paratext 9, so the first test below attempts to take advantage of that possibility
-    // if it should happen by checking for the existence of these keys: 
+    // if it should happen by checking for the existence of these keys:
     //    "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\9", and
     //    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\9"
-    // If no such keys exist (as is the case in Feb2020), the test then tries to find the PT8 keys ...\\Paratext\\8 
+    // If no such keys exist (as is the case in Feb2020), the test then tries to find the PT8 keys ...\\Paratext\\8
     // (which are currently used by PT 9), and extracts the Projects Dir Path from those keys.
     // There are two registry views where the PT 8 key might be depending on the host OS architecture
     // Note: Currently, as of Feb2020, PT 9 uses the same \Paratext\8 key, rather than ...\\Paratext\\9
@@ -15607,7 +15607,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     wxString strRegPath;
     if (PTVersion == _T("PTLinuxVersion9")) // whm 4Feb2020 added test for "PTLinuxVersion9"
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT9"));
-    else if (PTVersion == _T("PTLinuxVersion8")) 
+    else if (PTVersion == _T("PTLinuxVersion8"))
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8"));
     else if (PTVersion == _T("PTLinuxVersion7"))
         strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7"));
@@ -16714,7 +16714,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             }
             // whm added 20June2016. Note: the following if block looks like the following one but this one looks
             // for the outdated szParatextVersionForProject config string rather than the szCollabParatextVersionForProject
-            // config string. This was needed to detect the config string before all collaboration config settings got a 
+            // config string. This was needed to detect the config string before all collaboration config settings got a
             // Collab... prefix on the setting string. Hence, the next block below should never be entered, except for
             // a really ancient AI version's project config file.
             chPos = lineStr.Find(szParatextVersionForProject);
@@ -16745,7 +16745,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                         collabPTVersionStrFound = _T("PTLinuxVersion7");
                     }
                     // whm 4Feb2020 moved line below from only within each if block above - always use whatever version is found in config
-                    m_ParatextVersionForProject = collabPTVersionStrFound; 
+                    m_ParatextVersionForProject = collabPTVersionStrFound;
                     bFoundCollabPTVersion = TRUE;
                 }
                 continue;
@@ -17007,7 +17007,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // AI project's collaboration status has become more complicated and the tests to validate
         // the collab editor and any PT version have been put into a separate function.
         // The ValidateCollabEditorAndVersionStrAgainstInstallationData() call below verifies
-        // that the data store for that version of PT has valid PT projects for the specified 
+        // that the data store for that version of PT has valid PT projects for the specified
         // source and target language projects.
 
         // Verify that the collaboration editor specified in the config file is actually
@@ -19936,8 +19936,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
 
-    // Call the InventoryCollabEditorInstalls() function to determine which versions of Paratext 
-    // are installed on this computer. The function sets a set of 13 boolean values which are 
+    // Call the InventoryCollabEditorInstalls() function to determine which versions of Paratext
+    // are installed on this computer. The function sets a set of 13 boolean values which are
     // stored in the App's global space. These global bool variables are:
     //   gbPTVer7Installed
     //   gbPTVer8Installed
@@ -19952,20 +19952,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //   gbPTLinuxVer8OnlyInstalled
     //   gbPTLinuxVer9OnlyInstalled
     //   gbPTNotInstalled
-    // This function is called initially here from the App's OnInit() function when 
+    // This function is called initially here from the App's OnInit() function when
     // the program loads up. It is also called any time the Administrator accesses
     // the SetupEditorCollaboration dialog from the Administrator menu - ensuring
     // that when the Administrator accesses the SetupEditorCollaboration the above
     // PT installation-related bools are up to date.
-    // NOTE: This InventoryCollabEditorInstalls should be called relatively early 
+    // NOTE: This InventoryCollabEditorInstalls should be called relatively early
     // within OnInit() - at least it should be called before any code that changes
     // or sets the defaults of collaboration settings, such as the function
     // SetCollabSettingsToNewProjDefaults() <--- called in OnInit() line 21410
-    // much farther below - the SetCollabSettingsToNewProjDefaults() in turn also 
+    // much farther below - the SetCollabSettingsToNewProjDefaults() in turn also
     // calls the ValidateCollabEditorAndVersionStrAgainstInstallationData() function
     // which also depends on the PT version install data collected by the call below.
     InventoryCollabEditorInstalls();
-    
+
     m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
 								  // anything when the doc is being or has been clobbered
     m_nDropDownClickedItemIndex = -1;
@@ -20016,7 +20016,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	strAfterSpace = _T("[[after_space^^]]"); // the 'space' may or may not be an ascii one
 	strSearchForAfter = _T("[[after_"); // the search string when checking for post-word
 										// placement when unfiltering
-	m_bUserDlgOrMessageRequested = FALSE; // added for suppressing, with a TRUE value, 
+	m_bUserDlgOrMessageRequested = FALSE; // added for suppressing, with a TRUE value,
 				// OnePass() from doing anything when an unwanted (bogus) Enter or Tab
 				// event causes immediate jump of the phrasebox before the user can
 				// react to what is to be done at the current location - such as a placeholder
@@ -20436,7 +20436,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// a Red beginMkr set (change type to Red [special] colour), a Red endMkr set (indicates
 	// text type change is pending), maybe Ignore set (this comprises mkrs and endmarkers from
 	// the span embedded sets, binding set (and add binding endMkrs), and most from non-binding.
-	// Hmmm. An Ignore set (very large) is not needed - as anything not in the Red sets, or the 
+	// Hmmm. An Ignore set (very large) is not needed - as anything not in the Red sets, or the
 	// single Blue set, does NOT change the text type.
 	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr \\rq  ");
 
@@ -20453,7 +20453,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bTextTypeChangePending = FALSE; // initialise
 
 	// these two copied from global space in Adapt_ItView.cpp, and made into app members here
-	// 
+	//
 	m_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup ");
 	// and the end marker forms
 	m_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn*  \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* ");
@@ -20550,7 +20550,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
-    /* 
+    /*
     // Testing the IsThisParatextVersionInstalled(wxString PTVersion) function
     bool bTestPT7 = IsThisParatextVersionInstalled(_T("PTVersion7"));
     bool bTestPT8 = IsThisParatextVersionInstalled(_T("PTVersion8"));
@@ -20973,7 +20973,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // TODO: check the Unpack process when unpacking a packed file coming from
     // a different localization.
     m_adaptationsFolder = _("Adaptations");
-    m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set 
+    m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set
 		// to _T("") above - don't do alternative custom loc'n here
     m_curProjectPath = _T("");
     m_sourceInputsFolderPath = _T("");
@@ -21047,7 +21047,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // begins to get truncated off the right side of main frame window. Smaller
     // resolutions have more tool bar icons hidden so that a resolution of 1080
     // would have the last three icons out of view (View Translation or Glosses
-    // Elsewhere in the Document, No Punctuation Copy, and Help). To deal with 
+    // Elsewhere in the Document, No Punctuation Copy, and Help). To deal with
     // potential tool bar visibility, we'll check the available resolution during
     // the 'if (m_bWorkFolderBeingSetUp)' block on OnInit() below starting at
     // about line 23160.
@@ -21076,7 +21076,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_ptViewTopLeft.y = 20;
 	//m_szView.x = 640; unhelpful values
 	//m_szView.y = 580;   "        "
-	// restore them for present; m_wxSize is storage in 
+	// restore them for present; m_wxSize is storage in
 	// GetBasicConfiguration() for WinSizeCX and WinSizeCY (frame)
 	m_szView.x = 640; //unhelpful values
 	m_szView.y = 580; //  "        "
@@ -21218,7 +21218,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // file is read, we now unilaterally force the m_bUseAdaptationsGuesser to be FALSE
     // so that the Guesser is set OFF for a given session and at the opening of the
     // project.
-    m_bUseAdaptationsGuesser = FALSE; 
+    m_bUseAdaptationsGuesser = FALSE;
     m_bIsGuess = FALSE;				// the default is FALSE, changed by the guesser when returning a guess
     m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50);
                                     // default is 50 unless changed by config file settings
@@ -21330,7 +21330,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the settings for the new project.
     // NOTE: This SetCollabSettingsToNewProjDefaults() function should only be
     // called AFTER the InventoryCollabEditorInstalls() function - which is
-    // called earlier about line 20125 in OnInit(). 
+    // called earlier about line 20125 in OnInit().
     // The reason: The SetCollabSettingsToNewProjDefaults() call below depends
     // on the early detection of what collab editor(s) are installed and what
     // version(s) of Paratext is installed - the SetCollabSettingsToNewProjDefaults()
@@ -22297,7 +22297,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     int dummy = 1;
     dummy = dummy;
     // Test results: Above test shows that we can use a parsed wxDateTime from a date-time-embedded log filename
-    // substituting it in place of the dateTime10DaysAgo value above to determine if that log file is more than 
+    // substituting it in place of the dateTime10DaysAgo value above to determine if that log file is more than
     // 7 days older than the parsed wxDateTime from the most recent date-time-embedded log filename in the directory,
     // rthe most recent date-time-embedded log filename being epresented value dateTimeNow above.
     */
@@ -24460,18 +24460,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// platforms are currently defaulting to the whole display until a way is found to
 		// provide this infor for all windows managers, etc."
     wxRect desktopWndRect = wxGetClientDisplayRect();
-	//wxLogDebug(_T("%s:%s line %d, Desktop Metrics - desktopWndRect: x = %d , y = %d , width = %d , height = %d , Display_w = %d, Display_h = %d"), 
-	//	__FILE__, __FUNCTION__,__LINE__, 
+	//wxLogDebug(_T("%s:%s line %d, Desktop Metrics - desktopWndRect: x = %d , y = %d , width = %d , height = %d , Display_w = %d, Display_h = %d"),
+	//	__FILE__, __FUNCTION__,__LINE__,
 	//	desktopWndRect.x , desktopWndRect.y , desktopWndRect.GetWidth(), desktopWndRect.GetHeight(),
 	//	nDisplayWidthInPixels, nDisplayHeightInPixels);
 
 
-    // whm 26Jun2019 Note: Detect if there is more than one monitor connected to the 
-    // user's computer, and if so, check whether the desktop has been extended from the  
-    // primary monitor in some direction to create a larger virtual desktop onto a secondary 
-    // monitor. If such a larger virtual desktop has been made available by the system, we 
+    // whm 26Jun2019 Note: Detect if there is more than one monitor connected to the
+    // user's computer, and if so, check whether the desktop has been extended from the
+    // primary monitor in some direction to create a larger virtual desktop onto a secondary
+    // monitor. If such a larger virtual desktop has been made available by the system, we
     // need to determine the boundarry rect for valid main frame sizes and positions.
-    // Checking for multiple monitors and their sizes can be done with the wxDisplay 
+    // Checking for multiple monitors and their sizes can be done with the wxDisplay
     // class.
 	//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 	//	__LINE__, m_szView.x, m_szView.y);
@@ -24499,9 +24499,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// monitors.
         //
         // whm 26Jun2019 Notes:
-        // 1. The wxWidgets' class wxDisplay docs say that the wxDisplay instance created with an index of 0 
+        // 1. The wxWidgets' class wxDisplay docs say that the wxDisplay instance created with an index of 0
         //    is "the Primary Monitor". Hence, in our case, displayOne is the "Primary Monitor", and a call to
-        //    displayOne(monitorOne).IsPrimary() will always return TRUE, and the IsPrimary() call on any other 
+        //    displayOne(monitorOne).IsPrimary() will always return TRUE, and the IsPrimary() call on any other
         //    attached monitor will return FALSE.
         // 2. The "Primary Monitor" also will always have its start coordinates at x=0, y=0 (the "origin")
         //    as detected by a call to GetClientArea() or GetGeometry() made on the primary monitor.
@@ -24510,12 +24510,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         //    on the overall virtual "desktop" in relation to the primary monitor's 0,0 origin.
         // 4. When two monitors are attached and the non-primary display is set to simply "mirror" the
         //    primary display, then the second monitor should return its upper-left coordinates at x=0, y=0
-        //    (the "origin"). 
+        //    (the "origin").
         // Hence, for cases such as the case Bruce postulates above (secondary monitor extends desktop
-        // "above" the primary monitor), I've changed the test below to simply test whether the x coord 
+        // "above" the primary monitor), I've changed the test below to simply test whether the x coord
         // value of the non-primary monitor is other than 0 (a positive or negative value other than 0).
         // The if test below simply sets the size of the virtual desktopWndRect. The position of AI's
-        // main frame window within the virtual desktopWndRect is determined farther below once the basic  
+        // main frame window within the virtual desktopWndRect is determined farther below once the basic
         // config file's settings have been read - if it exists.
         if (dispTwoRect.x != 0) // if (dispTwoRect.x > 0 || dispOneRect.x > 0)
         {
@@ -24549,14 +24549,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // 40 pixels of the desktopWndRect. Doing it like that, however, makes the main frame span
     // both dual monitors with the application divided in the middle and the Welcome screen
     // residing at the middle area within the primary monitors screen!
-    // Therefore, I've made some modifications to his code below to initially keep the 
+    // Therefore, I've made some modifications to his code below to initially keep the
     // application on the primary monitor, leaving a 40 pixel space around the main window
     // but only on that primary monitor.
     //
     // I've also corrected a hack in the App's GetBasicConfiguration() function that
     // attempted to restrict the minimum value of m_ptViewTopLeft.x to -6. When AI was positioned
     // on a secondary monitor that extends the desktop to the left of the primary monitor (which
-    // always has a x-coordinate of 0), the value of m_ptViewTopLeft.x can actually be a large 
+    // always has a x-coordinate of 0), the value of m_ptViewTopLeft.x can actually be a large
     // number such as -1920 on my 1920 x 1200 secondary monitor. The x coordinate
     // of the main frame positioned on such a secondary monitor can be a negative value up to
     // horizontal resolution of that secondary monitor.
@@ -24571,21 +24571,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// with a custom location) and that would erase values established here - so we
 	// also provide saved copies of the values we establish so as to restore what
 	// we want for a suitably sized first frame window
- 
+
     // put a margin around the frame window - for starters
 	int myAllSidesMargin = 40;
-    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the 
+    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the
     // primary monitor sized to have 40 pixel margin.
     //int nClientWidth = desktopWndRect.GetWidth() - 2 * myAllSidesMargin;
     //int nClientHeight = desktopWndRect.GetHeight() - 2 * myAllSidesMargin;
     int nClientWidth = displayOne.GetClientArea().GetWidth () - 2 * myAllSidesMargin;
     int nClientHeight = displayOne.GetClientArea().GetHeight() - 2 * myAllSidesMargin;
-    m_szView.x = nClientWidth; // these two are where the Basic config file saves the 
+    m_szView.x = nClientWidth; // these two are where the Basic config file saves the
 							   // frame's width & height
 	m_szView.y = nClientHeight;
 
 	wxSize clientTopLeft;
-    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the 
+    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the
     // primary monitor at a position to have 40 pixel margin.
 	// BEW 9Jul19, minor correction. Edited a .x rather than .y in second line below,
 	// which fixed the frame being displayed totally offscreen above where it should
@@ -24597,8 +24597,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//clientTopLeft.y = desktopWndRect.y + myAllSidesMargin;
 	clientTopLeft.x = displayOne.GetClientArea().GetTopLeft().x + myAllSidesMargin;
 	clientTopLeft.y = displayOne.GetClientArea().GetTopLeft().y + myAllSidesMargin;
-	m_ptViewTopLeft.x = clientTopLeft.x; // these two are where the Basic config file 
-										 // saves the frame's top-left position 
+	m_ptViewTopLeft.x = clientTopLeft.x; // these two are where the Basic config file
+										 // saves the frame's top-left position
 	m_ptViewTopLeft.y = clientTopLeft.y;
 
 	// Next bits of the equation are at the GetBasicConfiguration() call below, and
@@ -24677,7 +24677,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     }
 #endif // wxUSE_POSTSCRIPT
 */
-	
+
     //////////////////////////////////////////////////////////////////////////////////
     // Since we are about to read the config files, any data structures containing data
     // that might be changed from the reading of config files need to be created by this
@@ -24711,7 +24711,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // at the custom location (provided the user or admin doesn't change the location
         // using the Administrator menu).
         // !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration 
+        bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
 													// detects SHIFT-DOWN
 		if (m_bWorkFolderBeingSetUp)
 		{
@@ -24730,15 +24730,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_ptViewTopLeft.y = clientTopLeft.y;
 
             // whm 7Jul2019 added another test to determine initial tool bar icon sizes.
-            // If the adjusted nClientWidth is less than 1200, not all of the medium 
-            // sized tool bar icons will be in view (one or more at right end will be out 
+            // If the adjusted nClientWidth is less than 1200, not all of the medium
+            // sized tool bar icons will be in view (one or more at right end will be out
             // of view within the initial sized main frame window (on Windows).
             // We can deal with this by programatically setting the initial default of
-            // the m_toolbarSize member back to btnSmall. BEW suggested the possibility 
+            // the m_toolbarSize member back to btnSmall. BEW suggested the possibility
             // of just removing 3 of the not-often used tool bar buttons, Open, New and
             // View Translation or Glosses Elsewhere in the document. But attempting
             // to remove/hide individual buttons would take a lot more work and messing
-            // especially with Open and New would possibly be problematic because of their 
+            // especially with Open and New would possibly be problematic because of their
             // 'black-box' roles within the Doc-View framework.
             if (nClientWidth < 1200)
             {
@@ -25279,31 +25279,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Delete older doc creation log files if there are more than 5 such files in the _LOGS_EMAIL_REPORTS
     // folder.
     // Each doc creation log file is of the form: DocCreateLog_<userID>_2020_04_06T08_02_03Z.txt
-    // The default number to keep is 5 and that number is stored in a define called 
+    // The default number to keep is 5 and that number is stored in a define called
     // NUM_OLD_DOC_CREATION_FILES_TO_KEEP in the AdaptItConstants.h header file.
     // The function enumerates the existing doc creation log files in the _LOGS_EMAIL_REPORTS folder,
     // and preserves the 5 the most recent doc creation log files, deleting all older ones.
     // This is to prevent unnecessary bloat of disk usage in the _LOGS_EMAIL_REPORTS log folder over time.
-    // The RemoveOldDocCreationLogFiles() uses the same strategy that the 
+    // The RemoveOldDocCreationLogFiles() uses the same strategy that the
     // RemoveUnwantedOldUserProfilesFiles() function uses.
     RemoveOldDocCreationLogFiles();
 
     // Create a new instance of the m_docCreationLogFile which will be a file with a unique date-time substring in
     // its filename - see creation of AIDocCreateLogFolderPath above and its eventual assignment to the App's
     // member m_docCreationFilePathAndName. This m_docCreationLogFile will contain the parsed words and references
-    // for each document that is opened during this session of the program. 
+    // for each document that is opened during this session of the program.
     // The function that appends the string lines to this log file is called CAdapt_ItApp::LogDocCreationData().
     // The LogDocCreationData() function is called once at the beginning of the process of opening an AI document
     // at the following points in program flow:
     //    1. In CAdapt_ItDoc::OnNewDocument() - about line 1143
     //    2. In ReadDoc_XML() when opening an existing AI xml document - about line 7794
     //    3. In OpenDocWithMerger (in CollabUtilities.cpp about line 2883) when opening a collaboration document
-    // Then the LogDocCreationData() function is called once for each source phrase/word parsed during 
+    // Then the LogDocCreationData() function is called once for each source phrase/word parsed during
     // document creation/opening at the following points in the program flow:
     //    4. CAdapt_ItDoc::TokenizeText() - two times - at about line 16911 and also at about line 18914
     //    5. In ReadDoc_XML() (at about line 4595) for each source word parsed opening an existing xml doc
-    // where for each source phrase/word parsed a line is appended to the log file containing the source 
-    // phrase/word, sequ number, and a ch:verse reference. 
+    // where for each source phrase/word parsed a line is appended to the log file containing the source
+    // phrase/word, sequ number, and a ch:verse reference.
     // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
     m_docCreationLogFile = new wxFile(m_docCreationFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
@@ -26932,7 +26932,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // seems safest - especially for existing users - to require the Guesser to be turned on for any given
     // AI session that the user wants to use it. This change will also make it easy for existing users like
     // Feridoon and his teams to experience better performance automatically when they upgrade to the new
-    // version containing this change to Guesser settings - and they won't have to turn the Guesser OFF at 
+    // version containing this change to Guesser settings - and they won't have to turn the Guesser OFF at
     // each session as they must do as a work-around with AI versions up through 6.10.1.
     // With this change, there really is no need for the various Guesser settings to be saved in the project
     // config file, since their values will no longer persist from one session to the next - but I will leave
@@ -28921,9 +28921,9 @@ void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
 // whm 6Apr2020 added
 // This function is called in OnInit() just before and empty log file is created via 'new wxFile()'.
 // RemoveOldDocCreationLogFiles() is called to prevent accumulation of too many old
-// doc creation log files and any empty log files, stored in the _LOGS_EMAIL_REPORTS folder. 
+// doc creation log files and any empty log files, stored in the _LOGS_EMAIL_REPORTS folder.
 // Each doc creation log file is of the form: DocCreateLog_<userID>_2020_04_06T08_02_03Z.txt
-// The default number to keep is 5 and that number is stored in a define called 
+// The default number to keep is 5 and that number is stored in a define called
 // NUM_OLD_DOC_CREATION_FILES_TO_KEEP in the AdaptItConstants.h header file.
 void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
 {
@@ -28996,7 +28996,7 @@ void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
                     ::wxRemoveFile(deleteFileList.Item(index));
                 }
             }
-        
+
             int numberToDelete = filenames.GetCount() - NUM_OLD_DOC_CREATION_FILES_TO_KEEP;
             if (numberToDelete < 0)
             {
@@ -33154,13 +33154,13 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
         workFolderPath = dirPath + PathSeparator + workFolder;
     }
 
-    // whm 26Jun2019 Note: It might be better to check for the existence of the 
-    // AI-BasicConfiguration.aic file within the Adapt It Unicode Work folder before 
+    // whm 26Jun2019 Note: It might be better to check for the existence of the
+    // AI-BasicConfiguration.aic file within the Adapt It Unicode Work folder before
     // setting m_bWorkFolderBeingSetUp flag to TRUE, rather than only the existence of the
-    // work folder. Otherwise, if only existence of the work folder is tested for, an 
-    // aborted first run of the application will create a mostly empty work folder (without 
-    // a basic config file), and the next (successful initial) run will detect the existence 
-    // of the Adapt It Unicode Work folder, and the small frame window will still appear in 
+    // work folder. Otherwise, if only existence of the work folder is tested for, an
+    // aborted first run of the application will create a mostly empty work folder (without
+    // a basic config file), and the next (successful initial) run will detect the existence
+    // of the Adapt It Unicode Work folder, and the small frame window will still appear in
     // what essentially became the first successful startup of the application.
     // For now I'll leave the following test for only the work folder as is.
     m_bWorkFolderBeingSetUp = FALSE;
@@ -38557,10 +38557,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
             // (Bill Martin got, one time, -32000 values for top left in Unicode app!)
             //
             // whm 26Jun2019 modification:
-            // The hack described above that arbitrarily restricts the range of valid values for 
+            // The hack described above that arbitrarily restricts the range of valid values for
             // the "TopLeftX" config value here causes a problem with certain arrangements of
             // desktops spread across multiple monitors. For example, this value can easily be
-            // a fairly large negative value - such as -1500 for when the desktop extends to 
+            // a fairly large negative value - such as -1500 for when the desktop extends to
             // the left of the primary monitor. Therefore, I am removing the hack below which
             // prevents the positioning of the main frame at a previously used position on a
             // secondary monitor. The constriction on the m_szView.x and m_szView.y values
@@ -39355,7 +39355,7 @@ void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
 
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 for Linux that can co-exist with PT7
-/// Revised 4Feb2020 by whm to handle collaboration with PT 9 and to remove its dependency on the 
+/// Revised 4Feb2020 by whm to handle collaboration with PT 9 and to remove its dependency on the
 /// deprecated ParatextVersionInstalled() function and its enum complexity. Instead, it now utilizes
 /// the App's globals gbPT8Installed, gbPT9Installed, gbPTLinux8Installed, etc - set within the
 /// App's InventoryCollabEditorInstalls() which should be called before SetCollabSettingsToNewProjDefaults()
@@ -39395,7 +39395,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
         m_BibleditInstallDirPath = GetBibleditInstallDirPath();
         m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
     }
-    
+
     m_CollabProjectForSourceInputs = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForSourceInputs
     m_CollabProjectForTargetExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForTargetExports
     m_CollabProjectForFreeTransExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForFreeTransExports
@@ -42279,7 +42279,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
     // CSourcePhrase instance, not on consecutive ones)
     if (srcPunctuation.IsEmpty())
         goto n; // don't bother with the checks if there is no content anyway
-/* 
+/*
 	// BEW 20Sep19 removed this prohibition, its unhelpful as markup sometimes uses
 	// < (e.g AIATSIS does) as a wordbuilding char for a umlaut
 	int offset;
@@ -53975,9 +53975,9 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
     wxString radioBoxLabel = _("Choose type of format for export of data from the Knowledge Base:");
     // whm 5May2019 Note: The wxDesigner KBExportImportOptionsFunc() is the only dialog currently
     // in Adapt It that uses a %s format specifier within the label of a wxRadioBox. On the Windows
-    // port the internal calculation of the horizontal extent of the label text seems to be too 
+    // port the internal calculation of the horizontal extent of the label text seems to be too
     // small by the amount of about 2-3 characters resulting in truncation of that label. To work
-    // arount this and keep the wxRadioBox control, I've programatically added some non-localizable 
+    // arount this and keep the wxRadioBox control, I've programatically added some non-localizable
     // space to the right end of the wxRadioBox label. Only a little space is then truncated. I've
     // conditionally compiled this only for the Windows port.
 #ifdef __WXMSW__
@@ -54324,7 +54324,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// valid PT 7 projects; it won't list any PT 8 projects even if PT 8 is installed and
 /// contains valid projects. Similarly, if "PTVersion8" is passed in, this function will
 /// only return a list of valid PT 8 projects; it won't list any PT 7 projects even if
-/// PT 7 is installed and containes valid projects. PTVersion9 and PTLinuxVersion9 
+/// PT 7 is installed and containes valid projects. PTVersion9 and PTLinuxVersion9
 /// end up retrieving project data from the same data store.
 /// The same with "PTLinuxVersion7" and "PTLinuxVersion8".
 /// This function gathers a list of "usable" Paratext (PT) projects from the user's PT
@@ -54334,9 +54334,9 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// located in the PT projects directory ("My Paratext Projects" on Windows, or
 /// "ParatextProjects" on Linux), extracting from the xml the various properties
 /// described from each usable project.
-/// For "PTVersion8", "PTVersion9", "PTLinuxVersion8", and "PTLinuxVersion9", it parses  
-/// the PT project's Settings.xml files located in the project dirs of the PT projects 
-/// directory ("My Paratext 8 Projects" on Windows, or "Paratext8Projects" on Linux), 
+/// For "PTVersion8", "PTVersion9", "PTLinuxVersion8", and "PTLinuxVersion9", it parses
+/// the PT project's Settings.xml files located in the project dirs of the PT projects
+/// directory ("My Paratext 8 Projects" on Windows, or "Paratext8Projects" on Linux),
 /// extracting from the Settings.xml file the various properties described from each
 /// usable project.
 /// WARNING: =======================================================================
@@ -54360,7 +54360,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// whm 5April2017 modified to include the PT collabProjectGUID value of project. The
 /// GUID value helps to identify when a PT project had been migrated from PT7 to PT8
 /// in circumstances where both PT7 and PT8 are installed and both have valid projects.
-/// whm 4Feb2020 revised for compatibility with Paratext 9. 
+/// whm 4Feb2020 revised for compatibility with Paratext 9.
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 {
@@ -54722,7 +54722,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 
         }
     }
-    // whm 4Feb2020 modified the following test to include "PTVersion9" and "PTLinuxVersion9" since PT 9 
+    // whm 4Feb2020 modified the following test to include "PTVersion9" and "PTLinuxVersion9" since PT 9
     // uses the same data store location for projects that PT 8 used.
     else if (PTVersion == _T("PTVersion8") || PTVersion == _T("PTLinuxVersion8") || PTVersion == _T("PTVersion9") || PTVersion == _T("PTLinuxVersion9"))
     {
@@ -56554,7 +56554,7 @@ void CAdapt_ItApp::ClobberGuesser()
     // The App's member m_bUseAdaptationsGuesser has nothing to do with glossing. It is the
     // member that indicates whether the Guesser is ON or OFF. Since ClobberGuesser() is called
     // BEFORE the application saves the project config file at project closure and/or app shutdown,
-    // the following assignment unilaterally turns the Guesser ON for the project even if the user 
+    // the following assignment unilaterally turns the Guesser ON for the project even if the user
     // explicitly turned it OFF using the GuesserSettingsDlg. Hence, although the user can turn off
     // the Guesser during the current session, it will always automatically turn back on when the
     // project and/or application is closed - meaning that it will alwaiys be ON the next time the
@@ -56567,8 +56567,8 @@ void CAdapt_ItApp::ClobberGuesser()
     // current session while the project was open. Later, however, the setting would always revert
     // to Guesser ON.
     // For projects with a very large KB, the Guesser function DoGuess() is a bottle-neck in the
-    // application and results in significant slow-down of the application. More problematic 
-    // is that the guesser gets turned back ON every time the project/application is closed 
+    // application and results in significant slow-down of the application. More problematic
+    // is that the guesser gets turned back ON every time the project/application is closed
     // (because of the following line in this ClobberGuesser() function call) that occurs BEFORE
     // the project config file's final save is done.
     //m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser,
@@ -57355,10 +57355,10 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 			if (f.Open())
 			{
 				// We have a new empty log file open, put the filename as index = 0 line, and at index
-				// == 2 put a 'starting' entry to indicate the input is not yet accessed 
+				// == 2 put a 'starting' entry to indicate the input is not yet accessed
 				f.AddLine(filename); // count of lines is now 1, so index is 0
 
-				
+
 				wxString myLine = wxEmptyString; // initialise
 				int negOne = -1;
 				wxString starting = _T("starting...");
@@ -57601,7 +57601,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, w
 // helping avoid putting up a punctuation Placement dialog when there
 // is medial punctuation, m_bUnused is also TRUE for that, but also
 // that instance has m_bHasInternalPunct TRUE as well, but the latter
-// fact is not the case when pSrcPhrase is storing cached metadata to 
+// fact is not the case when pSrcPhrase is storing cached metadata to
 // hide it away from being seen in the GUI for adapting
 bool CAdapt_ItApp::HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase)
 {
@@ -57810,13 +57810,13 @@ bool CAdapt_ItApp::FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& 
 		}
 	}
 	// not found a match in m_markers
-	return FALSE; 
+	return FALSE;
 }
 
 // BEW 11Apr20 made this function, to search for the marker in m_EndMarkers rather than
 // assuming it is first in that member storage - because the latter can have things like
-// "\\+jmp*\\ef*" so the assumption that it will be first in m_endMarkers breaks down. 
-// It's companion function above (for finding begin marker beforehand) will likewise 
+// "\\+jmp*\\ef*" so the assumption that it will be first in m_endMarkers breaks down.
+// It's companion function above (for finding begin marker beforehand) will likewise
 // search - but in m_markers (which has space delimiting each) - for the same kind
 // of reason. But in m_endMarkers there is normally no delimiting space, as * does
 // that job.
@@ -57876,8 +57876,8 @@ bool CAdapt_ItApp::FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& en
 	return FALSE;
 }
 
-// BEW 22Apr20 return the uaugmented begin marker at the location specified 
-// by FindLastBackslash()'s return's offset. If no location was found, 
+// BEW 22Apr20 return the uaugmented begin marker at the location specified
+// by FindLastBackslash()'s return's offset. If no location was found,
 // return an empty string
 wxString CAdapt_ItApp::FindLastBeginMkr(wxString beginMkrs, int offset)
 {
@@ -57957,7 +57957,7 @@ void CAdapt_ItApp::SetDefaultTextType_Cached()
 // no success (unlikely - unless the input source text data has an unknown marker; our custom
 // markers are unknown to USFM, but they will never be within source text - \free, \bt and friends,
 // \note; our custom markers have dedicated storage in CSourcePhrase and can only be generated
-// by user GUI actions, like making a note, free translating a bit of the adaptation, etc. By 
+// by user GUI actions, like making a note, free translating a bit of the adaptation, etc. By
 // "unknown" I mean things like \xyz or \y and so forth).
 // Uses IsNoType(mkr) to test for noType internally.
 // Currently incomplete and not hooked up to anything. Retain, for if I refactor propagation code
@@ -57979,7 +57979,7 @@ TextType CAdapt_ItApp::GetTextTypeFromBeginMkr(wxString mkr) // pass in un-augme
 bool CAdapt_ItApp::IsNoType(wxString mkr) // pass in un-augmented begin-mkr
 {
 	// If the marker belongs to the m_EmbeddedIgnoreMarkers set (ones from within foonote,
-	// cross-ref, or extended footnote or extended cross-ref), these are all noType because 
+	// cross-ref, or extended footnote or extended cross-ref), these are all noType because
 	// we don't change text type in one of these spans, so return TRUE.
 
 	// If the marker belongs to the View.cpp's charFormatMkr set (like \w ... \w* and friends),
@@ -58034,11 +58034,11 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 	// Remember, the USFMAnalysis struct's markers lack initial backslash, so we add it before
 	// copying values to the cache
 	CAdapt_ItDoc* pDoc = GetDocument();
-	wxUnusedVar(pDoc); // temporarily... 
+	wxUnusedVar(pDoc); // temporarily...
 
 	if (pAnalysis == NULL)
 		return;  // What's cached remains unchanged, unless the caller sets chache values explicitly
-	
+
 	if (!pAnalysis->marker.IsEmpty())
 	{
 		m_marker_Cached = m_bkSlash + pAnalysis->marker; // a begin-marker
@@ -58052,7 +58052,7 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 	m_bInLine_Cached = (bool)pAnalysis->inLine;
 	m_bSpecial_Cached = (bool)pAnalysis->special;
 	m_bBdryOnLast_Cached = (bool)pAnalysis->special;
-	
+
 	if (pAnalysis->textType == verse)
 	{
 		m_bMainTextType_Cached = verse;
@@ -58094,7 +58094,7 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 		}
 	}
 }
-													 
+
 /* remove later
 bool    m_bTextTypeChangePending;
 
