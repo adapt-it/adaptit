@@ -11224,7 +11224,7 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 {
 	// Prepare an error message in case it is needed
 	wxString title = _("Unsuccessful connection attempt");
-	wxString msg = _("Tried to connect to the KBserver with URL: %s\nand name: %s but failed.\n Use the command \"Discover All KBservers\" or \"Discover One KBserver\" and then try to connect using the command\n\"Setup Or Remove Knowledge Base Sharing\"");
+	wxString msg = _("Tried to connect to the KBserver with URL: %s\nand name: %s but failed.\n Use the command \"Discover KBservers\", and then re-try to connect using\n\"Setup Or Remove Knowledge Base Sharing\"");
 	msg = msg.Format(msg, pApp->m_strKbServerURL.c_str(), pApp->m_strKbServerHostname.c_str());
 	pApp->m_bUserLoggedIn = FALSE; // initialize
 

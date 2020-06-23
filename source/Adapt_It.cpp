@@ -19604,8 +19604,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         m_theHostnames.Add(aHostname);
     }
 
-    // Bleed out user-decisions which were made at a prior call of either
-    // Discover One KBserver, or Discover All KBservers
+    // Bleed out user-decisions which were made at a prior call of Discover KBservers
     if (m_bUserDecisionMadeAtDiscovery == TRUE)
     {
         // The decision could have been to connect to a certain KBserver,

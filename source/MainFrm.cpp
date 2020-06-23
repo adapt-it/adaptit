@@ -2772,7 +2772,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
 	{
 		// Use columned dialog now - from here, as in the handler is too early - i.e. using
-		// the columned dialog from the Discover One KBserver handler gets a success but the
+		// the columned dialog gets a success but the
 		// columned dlg shows nothing. So delay it to be shown here instead...
 
 		// Initializations

@@ -2161,14 +2161,8 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
-	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on Leon's scripted
-	// way of discovering one or more KBservers which are publishing, in a single
-	// run. The older wxServDisc way, based on zeroconf, is retained temporarily and
-	// is used if Advanced > Discover All KBservers is clicked. The old menu item
-	// Discover One KBserver has been changed to be Discover KBservers, and it is
-	// in the handler for that choice that this new boolean works (and in other places
-	// of course). When Leon's scripted discovery works, the Discover All KBservers
-	// and related code will be removed from the app
+	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on discovering
+	// one or more KBservers which are publishing, in a single session.
 	bool m_bDiscoverKBservers;
 
 	// The following is the timer for incremental downloads; defaulted to
@@ -2207,18 +2201,17 @@ class CAdapt_ItApp : public wxApp
 
 	wxString				m_SD_Message_For_Connect; // set near start of OnInit()
 	wxString				m_SD_Message_For_Discovery; // ditto
-	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog shown from
-								// either Discover One KBserver or Discover All KBservers
-								// FALSE if shown from ConnectUsingServiceDiscoverResults()
+	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog is shown from
+								// Discover KBservers; FALSE if shown from ConnectUsingServiceDiscoverResults()
 								// The boolean governs which message is displayed in the dialog
 								// and consequently what the Cancel button does
 	ServDiscDetail			m_sd_Detail;
 	ServDiscInitialDetail	m_sd_InitialDetail;
 	bool m_bUserDecisionMadeAtDiscovery; // TRUE if at the OK click there was a user
-										 // selection current, or if he clicked Cancel button. If no selection,
-										 // then FALSE
-										 // The next two are used to store the url and (host)name of a discovered KBserver
-										 // from a call of either Discover One KBserver  or  Discover All KBservers
+		// selection current, or if he clicked Cancel button. If no selection,
+		// then FALSE
+	// The next two are used to store the url and (host)name of a discovered KBserver
+	// from a call of Discover KBservers
 	wxString m_chosenUrl;
 	wxString m_chosenHostname;
 
