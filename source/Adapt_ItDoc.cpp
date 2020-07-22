@@ -79,6 +79,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 //#include "csmatch.h" // " "
 
 // Other includes uncomment as implemented
+
 #include "Adapt_It.h"
 #include "OutputFilenameDlg.h"
 #include "helpers.h"

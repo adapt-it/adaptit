@@ -615,4 +615,6 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 		// is TRUE, and CSourcePhrase's  m_srcWordBreak contains a / (solidus, or forward slash)
 //#endif
 
+wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
+
 #endif	// helpers_h

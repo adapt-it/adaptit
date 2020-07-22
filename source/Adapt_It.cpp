@@ -20550,6 +20550,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
+	/* finished tests, 10July2020
+	// Testing helpers.cpp wxString SafetifyPath(wxString rawPath)
+	//wxString rawPath = _T("C:\\adaptit-git\\bin\\win32\\Unicode Debug\\");
+	wxString newPath = wxEmptyString;
+	//wxString rawPath = _T("C:\\name one\\aFolder\\\"Unicode Debug\"\\LastFldr\\");
+	//wxString rawPath = _T("C:\\name one\\\"name two\"\\");
+	//wxString rawPath = _T("C:\\\"name one\"\\name two\\");
+	wxString rawPath = _T("C:\\\"name one\"\\\"name two\"\\");
+	newPath = SafetifyPath(rawPath);
+	int halt_here = 1;
+	*/
+
     /*
     // Testing the IsThisParatextVersionInstalled(wxString PTVersion) function
     bool bTestPT7 = IsThisParatextVersionInstalled(_T("PTVersion7"));
@@ -56618,32 +56630,40 @@ void CAdapt_ItApp::ClobberGuesser()
 
 // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts. Called from MainFrm.cpp
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
+// BEW, LeonPearl, updated 22July20, for mariaDB-server (mysql) support using Python3 tool set
+// with C executable wrapper, dLss_win.exe. Linus and OSX refactoring will be added later
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
-    // Initializations
-    m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
-    m_bShownFromServiceDiscoveryAttempt = TRUE;
-    m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
+	// Initializations
+	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+	m_bShownFromServiceDiscoveryAttempt = TRUE;
+	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
 					   // accumulates composites from service discovery
-    m_theHostnames.Clear(); // ditto
+	m_theHostnames.Clear(); // ditto
 
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need
-								// it to be TRUE so the later loop is accessible
+												 // it to be TRUE so the later loop is accessible
+	wxString aSlash = PathSeparator;
+	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
+	wxString execPath = wxStandardPaths::Get().GetExecutablePath();  // path to Adapt_It_Unicode.exe if on windows
 
-    // whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
-    wxString execPath = wxStandardPaths::Get().GetExecutablePath();
-	// stdPaths.GetExecutablePath(); // ends with "adaptit", which is to be removed
+	// BEW 6Jul20 have to make the execPath safe for all contexts - 
+	// by quoting any folder names which contain space (see helpers.cpp)
+	// Oops, the added \" folder \" wrapping a folder name with internal spaces makes the
+	// conversion to a utf-8 char c-string result in an unparsable string in strncpy(),
+	// (\" gets put in, but the path separator gets lost - fix this before using again,
+	// but it turns out we don't really need it anyhow)
+	//execPath = SafetifyPath(execPath); // ends with executable file still
 
-    wxString aSlash = PathSeparator;
-    wxString revStr = MakeReverse(execPath);
-    int offset = revStr.Find(aSlash);
-    revStr = revStr.Mid(offset);
-    execPath = MakeReverse(revStr);
-    wxLogDebug(_T("Executable path = %s"),execPath.c_str());
-    wxString resultsStr= wxEmptyString; // a comma-separated result str from scan goes here
-	wxString resultsPath = wxEmptyString; // path to report.dat goes here
+	// Remove the executable from execPath, so it ends in the separator (aSlash)
+	wxString revStr = MakeReverse(execPath);
+	int offset = revStr.Find(aSlash);
+	revStr = revStr.Mid(offset);
+	execPath = MakeReverse(revStr);
+	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
 
- #if defined (__WXGTK__)
+	// Prior to this point, the code is agnostic of which platform is running
+#if defined (__WXGTK__)
 
 	// The wxShell() way for Linux
 	// First,we need a current working directory in the running Adapt It in order to have
@@ -56655,163 +56675,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxString resultsPathFile = _T("resultsPathFile");
 	wxString command = _T("echo `pwd` > resultsPathFile");
 	wxShell(command);
-    wxFFile rpffile(resultsPathFile); //opens for reading
-    if (rpffile.IsOpened())
-    {
-        bool bGotAll = rpffile.ReadAll(&resultsPath);
-        if (bGotAll)
-        {
-            // If successful, retain resultsPath, and close rpffile
-            // There is a newline at the end ofthe returned resultsPath
-            // so remove it before using the rest
-            resultsPath.Trim(); // whites
-            wxLogDebug(_T("Path to results: %s"), resultsPath.c_str() );
-            rpffile.Close();
-        }
-    }
-    // Make a redirecting argument string for the output of running dsb.sh in wxShell()
-    wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
-
-    // For opening the KBservers_List.txt file, we need to add the filename to resultsPath
-    wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
-
-    // While developing, this returns for execPath on Linux for a Debug build:
-    // /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
-    // But when running after normal installation, it will/should return:
-    // /usr/bin/adaptit   (again, the adaptit at path end is the executable)
-	// But the code above removes the executable from the end of execPath, leaving the slash there
-    wxString scriptPath = execPath + _T("dsb.sh");
-    wxLogDebug(_T("Script path = %s"),scriptPath.c_str());
-
-    // Run Leon's script
-    wxShell(scriptPath + redirectStr);
-
-    bool bFileExists = FALSE;
-    bFileExists = wxFileExists(resultsPath2);
-    if (bFileExists)
-    {
-        //#ifdef _DEBUG
-        //    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
-        //#endif
-
-        // look for file of comma-separated results in user's folder
-        wxFFile ffile(resultsPath2); //opens for reading
-        if (ffile.IsOpened())
-        {
-            bool bGotAll = ffile.ReadAll(&resultsStr);
-            bGotAll = bGotAll; // avoid gcc warning
-            wxLogDebug(_T("Found these: %s"), resultsStr.c_str() ); // for logging window
-
-            #ifdef _DEBUG
-                // While developing, show the same results in the GUI, for debug version
-                wxString msg;
-                msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
-                wxMessageBox(msg,_T("These...."), wxICON_INFORMATION | wxOK);
-            #endif
-
-            ffile.Close();
-        }
-        // Various other .dat files are produced along the way, which can now be
-        // dispensed with - Leon's script will do that at the start of each new
-		// run, and we leave the temporary files from the run 'as is' since they
-		// provide a handy auditing path for what went wrong if there was an error
-		// Here we need only remove the resultsPathFile, since we made it here
-        wxString rPthFile = _T("resultsPathFile");
-        wxString aPath = resultsPath + PathSeparator + rPthFile;
-        bFileExists = wxFileExists(aPath);
-        if (bFileExists)
-        {
-            wxRemoveFile(aPath); // Removes resultsPathFile
-        }
-    }
-#endif
-
-#if defined (__WXMSW__)
-
-	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
-	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
-
-	wxString tempFile = _T("report.dat"); // results string (single comma delimited line) are put here
-
-	//  dsb-win.bat produces, from anywhere in a command prompt window, a string like this for 3 kbservers running:
-	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
-
-	// Make a path to the executable's folder, ending with report.dat
-	resultsPath = execPath + tempFile; // execPath ends with backslash
-
-	// Make a path to the dsb-win.bat file, which should reside in whatever folder
-	// contains the Adapt It Unicode executable (will differ depending on whether running
-	// from the Vis Studio dev syste's Unicode Debug folder, or Unicode Release folder, of
-	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
-	// running a released version.
-
-	// Use braces to restrict scope to this block and avoid any clashing with program variables
-	{
-		int flags = wxEXEC_SYNC; // this works, and we want the blocking
-		// int flags = wxEXEC_ASYNC; // this works
-
-		wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
-		wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
-
-		wxFileName fName(execPath);
-		fName.SetCwd(execPath);
-		wxLogDebug(_T("SetCwd() to: %s"), execPath.c_str());
-
-		wxString space = _T(" ");
-		wxString quote = _T("\"");
-		wxString batchFileName = _T("dsb-win.bat");
-		wxString path2adaptitProj = execPath;
-		wxString winCmdProcessor = _T("cmd.exe");
-		wxString cmdOptions = _T("/c");
-		wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + quote;
-
-		// Use the wxExecute() override that takes the two wxStringArray parameters. This
-		// also redirects the output and suppresses the dos console window during execution.
-		// Note: Be patient! This wxExecute() call may take a few seconds (7 to 10) to complete!
-		wxArrayString outputMsg;
-		wxArrayString errorsMsg;
-		long returnVal = ::wxExecute(commandLine, outputMsg, errorsMsg, flags, NULL);
-		wxUnusedVar(returnVal);
-
-		// restore current working directory
-		fName.SetCwd(saveCurrentWorkingDirectory);
-		wxLogDebug(_T("Restore current working directory: %s"), (wxFileName::GetCwd()).c_str());
-
-		// look for file of comma-separated results in executable's folder
-		wxFFile ffile(resultsPath); //opens for reading
-		if (ffile.IsOpened())
-		{
-			bool bGotAll = ffile.ReadAll(&resultsStr);
-			bGotAll = bGotAll; // avoid gcc warning
-			wxLogDebug(_T("Found this: %s"), resultsStr.c_str()); // for logging window
-
-			ffile.Close();
-		}
-	}
-
-#ifdef _DEBUG
-	//A test data string to use until we get the wxExecute() call working properly
-	//resultsStr = _T("192.168.2.20@@@kbserverXPSP3,192.168.2.13@@@kbserver,192.168.2.15@@@kbserverX1Carbon");
-
-	// The above test results are processed correctly by the code further below. Comment
-	// out when wxExecute() , see above , is working correctly
-#endif
-
-#endif
-
-#if defined(__WXOSX_COCOA__)
-
-	// Although the script can be run from anywhere, the appropriate place to run
-	// it from is where the adaptit executable is located.
-	// It and other temporary files get lodged there, they are cleared out at the
-	// start of a new discovery run, and filled with the results of the new run.
-	wxString reportFile = _T("report.dat");
-/*
-	wxString resultsPathFile = _T("resultsPathFile");
-	// backtick pwd backtick means evaluate print working directory command and replace
-	// with the output in the wrapping command
-	wxString command = _T("echo `pwd` > resultsPathFile");
-	wxShell(command); //get the current working directory string stored in file named resultsPathFile
 	wxFFile rpffile(resultsPathFile); //opens for reading
 	if (rpffile.IsOpened())
 	{
@@ -56826,7 +56689,264 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			rpffile.Close();
 		}
 	}
-*/
+	// Make a redirecting argument string for the output of running dsb.sh in wxShell()
+	wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
+
+	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
+	wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
+
+	// While developing, this returns for execPath on Linux for a Debug build:
+	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
+	// But when running after normal installation, it will/should return:
+	// /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+	// But the code above removes the executable from the end of execPath, leaving the slash there
+	wxString scriptPath = execPath + _T("dsb.sh");
+	wxLogDebug(_T("Script path = %s"), scriptPath.c_str());
+
+	// Run Leon's script
+	wxShell(scriptPath + redirectStr);
+
+	bool bFileExists = FALSE;
+	bFileExists = wxFileExists(resultsPath2);
+	if (bFileExists)
+	{
+		//#ifdef _DEBUG
+		//    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
+		//#endif
+
+		// look for file of comma-separated results in user's folder
+		wxFFile ffile(resultsPath2); //opens for reading
+		if (ffile.IsOpened())
+		{
+			bool bGotAll = ffile.ReadAll(&resultsStr);
+			bGotAll = bGotAll; // avoid gcc warning
+			wxLogDebug(_T("Found these: %s"), resultsStr.c_str()); // for logging window
+
+#ifdef _DEBUG
+																   // While developing, show the same results in the GUI, for debug version
+			wxString msg;
+			msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
+			wxMessageBox(msg, _T("These...."), wxICON_INFORMATION | wxOK);
+#endif
+
+			ffile.Close();
+		}
+		// Various other .dat files are produced along the way, which can now be
+		// dispensed with - Leon's script will do that at the start of each new
+		// run, and we leave the temporary files from the run 'as is' since they
+		// provide a handy auditing path for what went wrong if there was an error
+		// Here we need only remove the resultsPathFile, since we made it here
+		wxString rPthFile = _T("resultsPathFile");
+		wxString aPath = resultsPath + PathSeparator + rPthFile;
+		bFileExists = wxFileExists(aPath);
+		if (bFileExists)
+		{
+			wxRemoveFile(aPath); // Removes resultsPathFile
+		}
+	}
+#endif
+
+#if defined (__WXMSW__)
+
+	//#if defined(__WXMSW__)
+	CWaitDlg waitDlg(GetMainFrame());
+	// indicate we want the closing the document wait message
+	waitDlg.m_nWaitMsgNum = 26;	// 26 has "Discovery of running KBservers is happening..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below
+	//#endif
+	GetMainFrame()->canvas->Freeze();
+	// Current volume not specified, so GetCwd() returns wxString containing whatever is
+	// the current working directory. Typically it is the project folder for whatever
+	// project is currently active in Adapt It Unicode Work folder.
+	// This will need to be temporarily changed to the "dist" folder, which contains the
+	// toolchain for the discovery of running active KBservers to which can be connected to
+	// by any mariaDB client. The name and location of the dist folder MUST be within the
+	// folder from which the Adapt_It_Unicode.exe executable is launched for running.
+	// Leon's kbserver discovery code will drop up to 6 *.dat files, which function as
+	// an audit trail should there be some malfunction in the discovery process. These
+	// *.dat files will be dropped into whatever is the "current working directory" at
+	// the time the system() call (see below) is done, regardless of where dLss_win.exe 
+	// is called. So the code for saving and restoring the cwi (current working directory)
+	// herein is not to be removed!
+
+	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+
+	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
+	wxString distFolder = _T("dist");
+
+	// Legacy code, dsb-win.bat produces, from anywhere in a command prompt window, a string 
+	// like this for 3 kbservers running:
+	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
+	// Leon's July2020 solution produces the same output, in kbservice_file.dat and is
+	// stored in the "dist" folder, along with other five other *.dat intermediate results files.
+
+	// Temporary path to the results... so we can get access to the *.dat files for auditing, etc
+	resultsPath = execPath + distFolder;
+	wxLogDebug(_T("Scanner's resultsPath: %s"), resultsPath.c_str());
+
+	// BEW 22July20, temporarily point the current working directory's path to results Path
+	wxFileName fName(resultsPath); // points to dist folder; ignore returned boolean
+	fName.SetCwd(resultsPath);
+	wxLogDebug(_T("SetCwd() was set to: %s"), fName.GetCwd().c_str());
+
+	// BEW note 22July20: resultsPath and discoveryPath are public wxString variables in 
+	// the CAdapt_ItApp class, and so the header with their declarations is accessible 
+	// from most of our classes.
+	// When using the dist folder during VisStudio AI development, manually place a copy 
+	// of the dist folder in the folders: Unicode Debug, and Unicode Release. When doing
+	// a Release version, the Adapt It installer must place the dist folder in the same
+	// folder as holds the Adapt_It_Unicode.exe executable.
+
+	// Make a path to the kbservice_file.dat results file.
+	// The new current working directory path will ensure that this
+	// path is the same as the path to where dLss_win.exe resides, in the dist folder.
+	discoveryPath = execPath + distFolder + aSlash + tempFile; // ends with _T("kbservice_file.dat")
+	wxLogDebug(_T("Scanner's discoveryPath: %s"), discoveryPath.c_str());
+	{
+		// Use braces to restrict scope to this block and avoid any clashing with program variables
+		wxString space = _T(" ");
+		wxString quote = _T("\"");
+
+		// Make a path to the dLss_win.exe file, which should reside in whatever folder
+		// contains the Adapt It Unicode executable (will differ depending on whether running
+		// from the Vis Studio dev system's Unicode Debug folder, or Unicode Release folder, or
+		// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
+		// running a released version.
+		// Scanner's executable path is to dLss_win.exe which is in a child folder in
+		// the adaptit executable's folder, called "dist".
+		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent, for Windows build
+		execPath += distFolder + aSlash + execDiscoveryFile;
+		wxLogDebug(_T("Scanner's execPath: %s  length = %d"), execPath.c_str(), execPath.Len());
+		// The above execPath returned a length of 58 characters, for our testing development
+
+		// Drop out to the system to make the needed call. dLss_win.exe has all that is needed -
+		// it is a standalone .exe and does not internally do a call of dLss.bat, the code for
+		// that is now in the C-function, dLss_win.exe which Leon says must be in the dist folder
+		// and the latter being a child of the folder which houses the AI executable
+
+		// Comment from Leon, 21July20 - retain for documenting his approach
+		/////////////////////////////////////////////////////////////////////////////////////////
+		// this is the inline code block I was referring to, the c++ compiled code will just 'drop-out' to the
+		// underlying OS to run 'dLss_win.exe' as if it was a system tool like 'nmap' where nmap in installed
+		// in c:\\Program Files\Nmap\bin and in order to run this the 'system()' command call has to have a
+		// full path variable OR at least a path variable set somewhere that points back to where nmap is.
+		// Calling 'dLss_win.exe' from the 'dist' as you did in the cli shell did exactly this , you supplied
+		// a path variable that could be used. 
+		// 80 char array handles our 58 characters with ease, and gives room for paths which may be longer
+		char command[80]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
+
+		//Leon said: strncpy( command,"insert here the full execpath to the dist folder\\dist\\dLss_win.exe" );
+		CBString dblQuote = '"';
+		CBString charPath = Convert16to8(execPath); // converts wxString to a multibyte C-string of UTF-8
+		// Wrap it with double-quote either end
+		charPath = dblQuote + charPath;
+		charPath += dblQuote;
+		wxASSERT(charPath.GetLength() < 80);
+		strncpy(command, charPath.GetBuffer(), 80);
+		// The following line works, but it is hard coded. We need the stuff above to get it to utf-8
+		//strncpy(command, "C:\\adaptit-git\\bin\\win32\\\"Unicode Debug\"\\dist\\dLss_win.exe", 80);
+		// For logging, use BString to convert back to wxString
+		wxString thePath = charPath.Convert8To16();
+		wxLogDebug(_T("full execPath, strncpy used, n=80: %s"), thePath.c_str());
+
+			// in my case, I run the dLss_win.exe code with the system command calls ( a few of them ) 
+			// in the 'dist' folder and all output .dat files appear in the same folder where
+			// 'dLss_win.exe' is run from.
+			// When I test run 'dLss_win.exe' from any other folder I have to ensure I run the
+			// .exe with some path variable set to where 'dist' folder is, whereas the output
+			// .dat files still always appear in that same folder with the .exe file
+			//
+			// NOTE: NOTE: NOTE: before I could do any c/c++/python-pyinstaller compiles or even 
+			// call wmic stuff and Nmap I had to first setup user & system path variables ... 
+			// this was how I was able to get around having to include hard-coded full
+			// path names in testing 
+			// NOTE: NOTE: NOTE: you need to supply path variables in order that adaptit 
+			// gets installed properly and the installer does that for you so adaptit 
+			// compiles c++ code knowing at runtime where the .dll's are.  
+			// What I am proposing is that you purposely type in the full path 
+			// to 'dLss_win.exe' during some part of your testing to satisfy yourself
+			// that adaptit, thru either wxExecute, or system( command ) here below, knows 
+			// where 'dLss_win.exe'is.
+			//
+			// next before this executes print out what the 'command' string is BEFORE the call,
+			// that way you will know what the exec path supplied is ... rightly or 
+			// wrongly supplied 
+		int result = system(command); // returns 0 when the path is ok 
+		wxUnusedVar(result);
+			// Leon says:
+			// incidentally , here is my path variable for user runtime use on win10, this is normal
+			// if I want tell the compiler to find code at runtime:-
+			// (BEW - It has no newlines or spaces between subparts, I cut it up into 6 lines for readability,
+			// and it's former length screwed my font size to miniscule)
+// PATH=C:\Program Files (x86)\Python38-32\Scripts\;C:\Program Files (x86)\Python38-32\;
+//C:\Program Files (x86)\Nmap;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;
+//C:\WINDOWS\System32\OpenSSH\;C:\Users\leonp\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\site-packages;
+//C:\Users\leonp\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Nmap;
+//C:\Users\leonp\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts;
+//C:\Users\leonp\AppData\Local\Programs\Microsoft VS Code\bin;
+			//
+			// you will see :- Python38-32\Scripts
+			//                 Python37\Scripts
+			//                 m'soft windows openssh
+			//                 nMap
+			//                 m'Soft VS Code
+			//                 m'soft powershell
+			// if I miss out on adding anything to the path variable setup then that code fails to run ..simple.
+
+		// BEW legacy code follows; look for file of comma-separated results in executable's folder,
+		//  or it may be a child folder...  (such as in "dist" folder - a child of the
+		// Unicode Debug folder, or Unicode Release folder if building the release version)
+		wxFFile ffile(discoveryPath); // kbservice_file.dat should open for reading
+		if (ffile.IsOpened())
+		{
+			bool bGotAll = ffile.ReadAll(&resultsStr);
+
+			wxUnusedVar(bGotAll); // avoid gcc warning
+			wxLogDebug(_T("Found ththese results: %s"), resultsStr.c_str()); // for logging window
+
+			ffile.Close();
+		}
+	}
+
+	// restore current working directory
+	fName.SetCwd(saveCurrentWorkingDirectory);
+	wxLogDebug(_T("Restored current working directory: %s"), (wxFileName::GetCwd()).c_str());
+
+	GetMainFrame()->canvas->Thaw();
+#endif
+
+#if defined(__WXOSX_COCOA__)
+
+	// Although the script can be run from anywhere, the appropriate place to run
+	// it from is where the adaptit executable is located.
+	// It and other temporary files get lodged there, they are cleared out at the
+	// start of a new discovery run, and filled with the results of the new run.
+	wxString reportFile = _T("report.dat");
+	/*
+	wxString resultsPathFile = _T("resultsPathFile");
+	// backtick pwd backtick means evaluate print working directory command and replace
+	// with the output in the wrapping command
+	wxString command = _T("echo `pwd` > resultsPathFile");
+	wxShell(command); //get the current working directory string stored in file named resultsPathFile
+	wxFFile rpffile(resultsPathFile); //opens for reading
+	if (rpffile.IsOpened())
+	{
+	bool bGotAll = rpffile.ReadAll(&resultsPath);
+	if (bGotAll)
+	{
+	// If successful, retain resultsPath, and close rpffile
+	// There is a newline at the end ofthe returned resultsPath
+	// so remove it before using the rest
+	resultsPath.Trim(); // whites
+	wxLogDebug(_T("Path to results: %s"), resultsPath.c_str());
+	rpffile.Close();
+	}
+	}
+	*/
 	// Make a redirecting argument string for output
 	// from dsb-osx.sh in wxShell()
 	//wxString redirectStr = _T(" 2>/dev/null"); <<-- I don't think we need this
@@ -56836,13 +56956,13 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	//resultsPath = resultsPathFile + PathSeparator + reportFile; // path to report.dat
 	resultsPath = execPath + reportFile; // path to report.dat
 
-	// While developing, this returns for execPath on Linux for a Debug build:
-	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
-	// But when running after normal installation, it will/should return:
-	// /usr/bin/adaptit   (again, the adaptit at path end is the executable)
-	// But the code at top removes the executable from the end of execPath, leaving the slash there
-	// For OSX, it remains to be seen what the paths are. Obtain from the logging if it is accessible
-	//wxString scriptPath = execPath + _T("dsb-osx.sh") + redirectStr;
+										 // While developing, this returns for execPath on Linux for a Debug build:
+										 // /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
+										 // But when running after normal installation, it will/should return:
+										 // /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+										 // But the code at top removes the executable from the end of execPath, leaving the slash there
+										 // For OSX, it remains to be seen what the paths are. Obtain from the logging if it is accessible
+										 //wxString scriptPath = execPath + _T("dsb-osx.sh") + redirectStr;
 	wxString scriptPath = execPath + _T("dsb-osx.sh");
 	wxLogDebug(_T("Script path = %s"), scriptPath.c_str());
 
@@ -56865,12 +56985,12 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			bGotAll = bGotAll; // avoid gcc warning
 			wxLogDebug(_T("Found these: %s"), resultsStr.c_str()); // for logging window
 
-	#ifdef _DEBUG
-			// While developing, show the same results in the GUI, for debug version
+#ifdef _DEBUG
+																   // While developing, show the same results in the GUI, for debug version
 			wxString msg;
 			msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
 			wxMessageBox(msg, _T("These...."), wxICON_INFORMATION | wxOK);
-	#endif
+#endif
 			ffile.Close();
 		}
 		/* no way, we leave it there!
@@ -56880,137 +57000,137 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		bFileExists = wxFileExists(aPath);
 		if (bFileExists)
 		{
-			wxRemoveFile(aPath); // Removes temporary resultsPathFile
+		wxRemoveFile(aPath); // Removes temporary resultsPathFile
 		}
 		*/
 	}
 #endif
-    // Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
-    // build glue code to link to the existing code for using ipaddr and hostname to be available
-    // to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
-    // class (which I probably will later remove), the logic for this glue is in the latter
-    // class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
-    // details. We'll have a local wxArrayString called arrNewComposites here in
-    // DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
-    // resulting from the output of Leon's script (dsb.sh for Linux, dsb-osx.sh for OSX) for which
+	// Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
+	// build glue code to link to the existing code for using ipaddr and hostname to be available
+	// to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
+	// class (which I probably will later remove), the logic for this glue is in the latter
+	// class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
+	// details. We'll have a local wxArrayString called arrNewComposites here in
+	// DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
+	// resulting from the output of Leon's script (dsb.sh for Linux, dsb-osx.sh for OSX) for which
 	// we have run using wxShell(). Then as in the earlier legacy logic, we need to make various
 	// checks as follows:
 
-    // (a) An update function that renames the hostname part of an "ipaddr@@@hostname" string
-    // stored in app's m_ipAddrs_Hostnames wxArrayString (the latter must store only correct
-    // data, and no duplicates) if the app array has a hostname for a given ip address which
-    // differs from the hostname of a running KBserver with identical ip address, just scanned.
-    // If this happens, the newly scanned address/hostname pair is taken as more uptodate, and
-    // so we replace the similar one stored in m_ipAddrs_Hostnames. The function:
-    // UpdateExistingAppCompositeSr() does this job.
+	// (a) An update function that renames the hostname part of an "ipaddr@@@hostname" string
+	// stored in app's m_ipAddrs_Hostnames wxArrayString (the latter must store only correct
+	// data, and no duplicates) if the app array has a hostname for a given ip address which
+	// differs from the hostname of a running KBserver with identical ip address, just scanned.
+	// If this happens, the newly scanned address/hostname pair is taken as more uptodate, and
+	// so we replace the similar one stored in m_ipAddrs_Hostnames. The function:
+	// UpdateExistingAppCompositeSr() does this job.
 
-    // (b) We have to check for uniqueness, when our scan has a certain ipAddr@@@hostname
-    // composite returned. We don't want duplicates. We don't want case mismatches in ipAddr.
-    // AddUniqueStrCase() does this job. It checks in the app member m_ipAddrs_Hostnames, and only
-    // Add()s a new (unique) ipAddr@@@hostname string to ipAddresses_Hostnames wxArrayString.
+	// (b) We have to check for uniqueness, when our scan has a certain ipAddr@@@hostname
+	// composite returned. We don't want duplicates. We don't want case mismatches in ipAddr.
+	// AddUniqueStrCase() does this job. It checks in the app member m_ipAddrs_Hostnames, and only
+	// Add()s a new (unique) ipAddr@@@hostname string to ipAddresses_Hostnames wxArrayString.
 
-    // (c) After (a) and (b) are done, what's in the local ipAddresses_Hostnames array can
-    // then safely be copied into the apps wxArrayString of name m_ipAddrs_Hostnames
+	// (c) After (a) and (b) are done, what's in the local ipAddresses_Hostnames array can
+	// then safely be copied into the apps wxArrayString of name m_ipAddrs_Hostnames
 
-    // Once that data copy of (c) is done, the legacy KBserver connection support code will work
-    // without additional changes being required. Once that is all debugged and robust, the
-    // wxServDisc-based code of zeroconf can be removed from Adapt It, and we can also remove
-    // the menu item "Discover All KBservers" because Leon's scripts find one or all in a single
-    // scan, but if not so, we can do another discovery with high probability of picking up any
-    // missed in earlier scan(s). The local wxString, resultsStr, has the comma-separated
-    // single line string of form ipAddr@@@hostname,ipAddr@@@hostname, etc, from the scan
+	// Once that data copy of (c) is done, the legacy KBserver connection support code will work
+	// without additional changes being required. Once that is all debugged and robust, the
+	// wxServDisc-based code of zeroconf can be removed from Adapt It, and we can also remove
+	// the menu item "Discover All KBservers" because Leon's scripts find one or all in a single
+	// scan, but if not so, we can do another discovery with high probability of picking up any
+	// missed in earlier scan(s). The local wxString, resultsStr, has the comma-separated
+	// single line string of form ipAddr@@@hostname,ipAddr@@@hostname, etc, from the scan
 
-    wxString composite; // for "ipAddr@@@hostname" as derived from the scan results
-    wxString aUrl; // for the ipAddr part of composite
-    wxString aHostname; // for the Hostname part of composite
-    wxArrayString arrNewComposites; // decomposing the comma separated scan string results
-        // may result in several ipAddr@@@hostname strings, we need to store them somewhere
-        // so here is the place
+	wxString composite; // for "ipAddr@@@hostname" as derived from the scan results
+	wxString aUrl; // for the ipAddr part of composite
+	wxString aHostname; // for the Hostname part of composite
+	wxArrayString arrNewComposites; // decomposing the comma separated scan string results
+									// may result in several ipAddr@@@hostname strings, we need to store them somewhere
+									// so here is the place
 
-    arrNewComposites.Clear();
-    // Turn the comma-delimited string into an array of  ipaddr@@@hostname wxStrings
-    bool bHasContent = CommaDelimitedStringToArray(resultsStr, &arrNewComposites);
-    if (bHasContent)
-    {
-        size_t count = arrNewComposites.GetCount();
-        size_t index;
-        for (index = 0; index < count; index++)
-        {
-            wxString aComposite = wxEmptyString;
-            aComposite = arrNewComposites.Item(index);
-            /* remove commenting out if debugging wants to show the composite string
-            #if defined(_DEBUG)
-            wxString msg;
-            msg = msg.Format(_T("Found composite:  %s"), aComposite.c_str());
-            wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
-            #endif
-            */
-            // Extract the ipAddress and Hostname string from the current composite string
-            aUrl.Empty();
-            aHostname.Empty();
-            ExtractIpAddrAndHostname(aComposite, aUrl, aHostname);  // return is void
+	arrNewComposites.Clear();
+	// Turn the comma-delimited string into an array of  ipaddr@@@hostname wxStrings
+	bool bHasContent = CommaDelimitedStringToArray(resultsStr, &arrNewComposites);
+	if (bHasContent)
+	{
+		size_t count = arrNewComposites.GetCount();
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			wxString aComposite = wxEmptyString;
+			aComposite = arrNewComposites.Item(index);
+			/* remove commenting out if debugging wants to show the composite string
+			#if defined(_DEBUG)
+			wxString msg;
+			msg = msg.Format(_T("Found composite:  %s"), aComposite.c_str());
+			wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
+			#endif
+			*/
+			// Extract the ipAddress and Hostname string from the current composite string
+			aUrl.Empty();
+			aHostname.Empty();
+			ExtractIpAddrAndHostname(aComposite, aUrl, aHostname);  // return is void
 
-            // Next, check for two identical ipaddr with different hostnames, one stored
-            // on the app already (e.g. as read in from config file), and the other just
-            // scanned. If such is found, remove the one from the config file and replace
-            // with the one from the scan.
-            bool bReplacedOne = UpdateExistingAppCompositeStr(aUrl, aHostname, aComposite);
-            if (!bReplacedOne)
-            {
-                // No instance of same ipaddresses but different hostnames for this
-                // composite string, so no replacment of hostname was done. Go ahead
-                // with checking for no duplication of ipaddr/hostname, if none, the
-                // app's array can be added to with this entry (the composite str) because
-                // it is unique
-                bool bIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, aComposite,TRUE);
-                wxUnusedVar(bIsUnique); // suppress compiler warning
-                if (bIsUnique)
-                {
-                    /* Remove commenting out if GUI reporting wanted for debugging purposes
-                    #if defined(_DEBUG)
-                    wxString msg1;
-                    msg1 = msg1.Format(_T("Adding to app's m_ipAddrs_Hostnames array:  %s"), aComposite.c_str());
-                    wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
-                    #endif
-                    */
-                    // Next three lines are not necessary, but do no harm
-                    aComposite.Empty();
-                    aUrl.Empty();
-                    aHostname.Empty();
-               }
-            } // end of TRUE block for test: if (!bReplacedOne)
-            else
-            {
-                // There was a replacement done, so this current composite string can
-                // now be abandoned, and the local variables cleared as preparation for
-                // the next loop iteration
-                aComposite.Empty();
-                aUrl.Empty();
-                aHostname.Empty();
-            } // end of else block for test: if (!bReplacedOne)
+																	// Next, check for two identical ipaddr with different hostnames, one stored
+																	// on the app already (e.g. as read in from config file), and the other just
+																	// scanned. If such is found, remove the one from the config file and replace
+																	// with the one from the scan.
+			bool bReplacedOne = UpdateExistingAppCompositeStr(aUrl, aHostname, aComposite);
+			if (!bReplacedOne)
+			{
+				// No instance of same ipaddresses but different hostnames for this
+				// composite string, so no replacment of hostname was done. Go ahead
+				// with checking for no duplication of ipaddr/hostname, if none, the
+				// app's array can be added to with this entry (the composite str) because
+				// it is unique
+				bool bIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, aComposite, TRUE);
+				wxUnusedVar(bIsUnique); // suppress compiler warning
+				if (bIsUnique)
+				{
+					/* Remove commenting out if GUI reporting wanted for debugging purposes
+					#if defined(_DEBUG)
+					wxString msg1;
+					msg1 = msg1.Format(_T("Adding to app's m_ipAddrs_Hostnames array:  %s"), aComposite.c_str());
+					wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
+					#endif
+					*/
+					// Next three lines are not necessary, but do no harm
+					aComposite.Empty();
+					aUrl.Empty();
+					aHostname.Empty();
+				}
+			} // end of TRUE block for test: if (!bReplacedOne)
+			else
+			{
+				// There was a replacement done, so this current composite string can
+				// now be abandoned, and the local variables cleared as preparation for
+				// the next loop iteration
+				aComposite.Empty();
+				aUrl.Empty();
+				aHostname.Empty();
+			} // end of else block for test: if (!bReplacedOne)
 
-        } // end of for loop, getting each new wxString  ipAddr@@@hostname  at each iteration
-        arrNewComposites.Clear(); // tidy up
+		} // end of for loop, getting each new wxString  ipAddr@@@hostname  at each iteration
+		arrNewComposites.Clear(); // tidy up
 
-    } // end of TRUE block for test:  if (bHasContent)
+	} // end of TRUE block for test:  if (bHasContent)
 
-    CMainFrame* pFrame = gpApp->GetMainFrame();
+	CMainFrame* pFrame = gpApp->GetMainFrame();
 	if (gpApp->m_bServDiscSingleRunIsCurrent)
 	{
 		// Initializations
 		ServDiscDetail result = SD_NoResultsYet;
-        result = result; // avoid gcc warning
+		result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
 		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
 								  // accumulates composites from service discovery
 		gpApp->m_theHostnames.Clear(); // ditto
-		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
-		// the individual arrays m_theURLs and m_theHostnames so these can be
-		// displayed to the user
-		//  In the next call, 1st param is the array of ip@@hostname lines, params
-		// 2 and  3 are for returning the individual ipaddresses and associated host
-		// for each (Dummy data is below, commented out, if testing was wanted)
+									   // deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
+									   // the individual arrays m_theURLs and m_theHostnames so these can be
+									   // displayed to the user
+									   //  In the next call, 1st param is the array of ip@@hostname lines, params
+									   // 2 and  3 are for returning the individual ipaddresses and associated host
+									   // for each (Dummy data is below, commented out, if testing was wanted)
 		int counter = pFrame->GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 

@@ -113,6 +113,8 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
 
+class test_system_call;
+
 #if wxVERSION_NUMBER < 2900
 //DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
 #else
@@ -153,6 +155,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // forward declaration
 class KbServer;
 class KBSharingMgrTabbedDlg;
+class test_system_call;
 
 // for a temporary ID for the "Controls For Knowledge Base Sharing" menu item on Advanced
 // menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
@@ -816,6 +819,7 @@ enum SendBackTextType
 };
 
 #if defined(_KBSERVER)
+
 /// Initial possible state after basic config file has first been read in a new session
 enum ServDiscInitialDetail
 {
@@ -2161,9 +2165,21 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
+	// BEW 15Jul20 next two used to be local strings in DoDiscoverKBservers(); but now
+	// they are app-wide accessible string vars. Makes connecting up Leon's solution
+	// to the legacy code easier.
+	wxString resultsPath;
+	wxString resultsStr;
+	wxString discoveryPath; // added this one because it will allow the path to the
+		// kbserver discovery code to be stored - it may temporarily be different
+		// from resultsPath or execPath
+
 	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on discovering
 	// one or more KBservers which are publishing, in a single session.
 	bool m_bDiscoverKBservers;
+
+	// BEW 20Jul20 added, for scanning for active mariaDB-service (mysql)
+//	Ctest_system_call* pCtest_system_call = Cnew test_system_call();
 
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-120 minutes,

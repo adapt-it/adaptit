@@ -649,6 +649,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\Xhtml.h" />
     <ClInclude Include="..\..\source\XML.h" />
     <ClInclude Include="..\..\source\XMLErrorDlg.h" />
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\source\NewClassHeaderTemplate.txt" />

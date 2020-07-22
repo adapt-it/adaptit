@@ -77,6 +77,10 @@
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
 #include "KBSharingStatelessSetupDlg.h"
+#if defined (_KBSERVER)
+#include <stdio.h>
+#include <stdlib.h>
+#endif
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -12407,4 +12411,416 @@ wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll)
 		} while (offset != wxNOT_FOUND);
 	}
 	return str;
+}
+
+// Getting the executable path, under Windows (but maybe same for Linux or OSX)
+// gets the path single-quoted, and any internal spaces in folder names result
+// in failure when the app tries to follow the path. The first space results in
+// the earlier path of the path being treated as a command, with the word of the
+// path immediately before the space being wrongly treated as a command - which 
+// it isn't, and the path fails. For example:
+// C:\adaptit-git\bin\win32\Unicode Debug\python dLss_win.py
+// fails because C:\adaptit-git\bin\win32\Unicode is taken wrongly as the whole
+// path, and Unicode is not recognised as a runnable CLI command.
+// So this function will take in the path, and double-quote any folder names with
+// internal space; and some other tests maybe, and send back the safe path - which
+// for this example would be: C:\adaptit-git\bin\win32\"Unicode Debug"\python dLss_win.py
+// and it would succeed because python is a runnable command, and dLss_win.py will be
+// picked up by the CLI as its file to run under python. (By the way, has to be python3,
+// for a successful run of dLss_win.py; and 3.7 is installed on this Win machine)
+wxString SafetifyPath(wxString rawpath)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString path = rawpath;
+	int offset = wxNOT_FOUND;
+	wxString space = _T(" ");
+	// Check for any spaces, if there are none, we've nothing to do here
+	// and can just return the unmodified raw string
+	offset = path.Find(space);
+	if (offset == wxNOT_FOUND)
+	{
+		return path;
+	}
+	// We've at least one space to deal with
+	wxString separator = pApp->PathSeparator;  // a / or backslash
+	wxChar charSeparator = separator[0];
+
+	int length = path.Len();
+	wxString newPath = wxEmptyString; // build output string here
+	wxChar dblQuote = _T('"');
+	bool bAfterFolderStart = FALSE;
+	bool bFoundSpace = FALSE;
+	bool bScanningToFolderEnd = FALSE;
+	bool bBeginningScan = TRUE;
+	wxChar charSpace = _T(' ');
+	int countFromLastSeparator = 0;
+	bool bHasFolderInitialQuote = FALSE;
+
+	{ // begin scoped block
+		wxStringBuffer pBuffer(path, length + 1);
+		wxChar* pBufStart = pBuffer;
+		wxChar* pEnd = pBufStart + length;
+		wxASSERT(*pEnd == _T('\0'));
+		wxChar* ptr = pBuffer;
+
+		while (ptr < pEnd)
+		{
+#if defined(_DEBUG)
+/*
+			if ((*ptr == _T('\\')) && (*(ptr+1) == dblQuote))
+			{
+				int break_here = 1;
+			}
+*/
+#endif
+			// Handle already-quoted multi-word folder names here at the top, these
+			// need no quoting insertions, and so we just scan & copy over until the
+			// matching " followed by separator which ends the folder name, or to the
+			// " followed by buffer end (ptr == pEnd) which ends the buffer
+			bool bReachedBufferEnd = FALSE;
+
+			if ((*ptr == charSeparator) && (*(ptr + 1) == dblQuote))
+			{
+				// use the inner loop (using ptr in the inner loop confuses the
+				// compiler and it can result in the inner loop jumping to a
+				// former processed but different path - so avoid this)
+				bHasFolderInitialQuote = TRUE; // keeps control in the inner loop 
+											   // while this is TRUE
+				newPath.Append(*ptr); // copy over the separator
+				ptr++; // advance
+				newPath.Append(*ptr); // copy over the double-quote
+				ptr++; // advance
+				// if we use the inner loop, we want these set FALSE on exit
+				// from it at a separator
+				bAfterFolderStart = FALSE;
+				bScanningToFolderEnd = FALSE;
+				bFoundSpace = FALSE;
+				bBeginningScan = FALSE;
+
+				// Inner loop, scan to matching " followed by separator - these
+				// are the possible end-conditions for the inner loop
+				while (bHasFolderInitialQuote && (ptr < pEnd))
+				{
+					// When two quoted folder names are in sequence, there is an intern
+					// 3-character sequence of dblQuote + separator + dblQuote, and we
+					// can, after advancing transferring those, continue the inner loop
+					// into the second folder name, keeping bHasFolderInitialQuote TRUE
+					if (bHasFolderInitialQuote && (*ptr == dblQuote) &&
+						(*(ptr + 1) == charSeparator) && (*(ptr + 2) == dblQuote))
+					{
+						newPath.Append(*ptr); // copy over the double-quote
+						ptr++; // advance
+						newPath.Append(*ptr); // copy over the separator
+						ptr++; // advance
+						newPath.Append(*ptr); // copy over the double-quote
+						ptr++; // advance
+					}
+					// Handle the situation where the multi-word folder is
+					// last in the buffer
+					else if (bHasFolderInitialQuote && (*ptr == dblQuote) && ((ptr + 1) == pEnd))
+					{
+						newPath.Append(*ptr); // copy over the double-quote
+						ptr++; // advance
+						wxASSERT(ptr == pEnd);
+						bReachedBufferEnd = TRUE;
+						bHasFolderInitialQuote = FALSE; // ends inner loop
+					}
+					else if (bHasFolderInitialQuote && (*ptr == dblQuote) && *(ptr + 1) == charSeparator)
+					{
+						newPath.Append(*ptr); // copy over the double-quote
+						ptr++; // advance
+
+						// but don't copy the following separator - the outer loop will handle that
+						bHasFolderInitialQuote = FALSE; // this will end the inner loop
+							// but allow processing of the outer loop to continue at the separator
+					}
+					else
+					{
+						// Neither end condition has happened, so just copy the character over and
+						// iterate the inner loop, advancing ptr after each copy
+						newPath.Append(*ptr); // copy over the folder-name's character
+						ptr++; // advance
+					}
+				} // end of inner loop, while (ptr2 < pEnd2)
+
+			} // end of TRUE block for test: 
+			  // if ((*ptr == _T('\\')) && (*(ptr + 1) == dblQuote))
+
+			if (bReachedBufferEnd)
+			{
+				break; // from the outer loop, with ptr at pEnd
+			}
+
+			if (*ptr == charSpace)
+			{
+				bFoundSpace = TRUE;
+				int newLength = newPath.Len();
+				wxString firstBit = newPath.Left(newLength - countFromLastSeparator);
+				wxString lastBit = newPath.Mid(newLength - countFromLastSeparator);
+				wxASSERT(firstBit.GetChar(firstBit.Len() - 1) == separator);
+				// firstBit should be ending in the separator, so we append " there
+				firstBit += dblQuote;
+				// Recombine the bits
+				newPath = firstBit + lastBit;
+				// Now add the space to newPath, and advance ptr
+				newPath.Append(*ptr); // copy over the double-quote
+				ptr++; // advance
+				// countFromLastSeparator has done its job, so clear to zero
+				countFromLastSeparator = 0;
+				// update the state boooleans, so that the block for
+				// bScanningToFolderEnd TRUE is scanned to its end, either to
+				// next separator (skipping over any spaces - the folder name
+				// may have more than two words) or to buffer end if no more
+				// separators follow
+				bBeginningScan = FALSE;
+				bScanningToFolderEnd = TRUE;  // and bFoundSpace set true above
+				bAfterFolderStart = FALSE;
+				// iterate
+			}
+			else  // end of TRUE block for test: if (*ptr == charSpace)
+			{
+/* I now handle already-quoted folder names above in an inner loop
+				if (bHasFolderInitialQuote && (*ptr == dblQuote))
+				{
+					// We expect a separator will follow, or end of path
+					wxASSERT(bAfterFolderStart);
+					newPath.Append(*ptr); // copy over the double-quote
+					ptr++; // advance
+					countFromLastSeparator = 0; // don't start counting yet
+					// Next two booleans set to false, because we were not scanning
+					// an unprotected multi-word folder name
+					bAfterFolderStart = FALSE;
+					bScanningToFolderEnd = FALSE;
+					bHasFolderInitialQuote = FALSE;
+				} // end of TRUE block for test: 
+				  // if (bHasFolderInitialQuote && (*ptr == dblQuote))
+*/
+
+				//else if (*ptr == charSeparator)
+				if (*ptr == charSeparator)
+				{
+					// pointing at a backslash or / separator
+					if (!bAfterFolderStart && !bScanningToFolderEnd)
+					{
+						// entering a folder name
+						newPath.Append(*ptr); // copy over the separator
+						ptr++; // advance
+						countFromLastSeparator = 0; // don't start counting yet
+						bBeginningScan = FALSE;
+
+						bAfterFolderStart = TRUE;
+/* no longer needed, as I handle already quoted folder names in inner loop above
+						// There might be a doublequote already next - check it out
+						if (*ptr == dblQuote)
+						{
+							newPath.Append(*ptr); // copy over the double-quote char
+							ptr++; // advance
+							bHasFolderInitialQuote = TRUE;
+							countFromLastSeparator = 0; // don't count, this folder name is protected
+						}
+*/
+						// iterate
+					} // end of TRUE block for test: if (!bAfterFolderStart && !bScanningToFolderEnd)
+					else
+					{
+						if (bAfterFolderStart && !bScanningToFolderEnd && (*ptr == charSeparator))
+						{
+							// transfer it & advance ptr
+							newPath.Append(*ptr); // copy over the separator
+							ptr++; // advance
+							countFromLastSeparator = 0; // counting is about to begin
+							//bAfterFolderStart = FALSE;
+							//continue;
+						}
+						// We've come to a separator, transferred it and advance over it
+						// but a new folder name may be starting, there may be a space or 
+						// spaces in the name
+						if (!bScanningToFolderEnd && bAfterFolderStart) // && (*ptr != charSeparator))
+						{
+							// We've just transferred the separator preceding a folder name. This
+							// folder name may have no space within it - in which case it won't
+							// need any double-quote protection, and that means ptr will traverse
+							// to end of buffer or to the next separator without bAtSpace going
+							// TRUE. We need to count characters in case there is space.
+							// If we come to a space (don't care if one of several, it will be
+							// intercepted by a test block above
+							// bBeginningScan = FALSE; // might not be needed here
+							if (ptr < pEnd)
+							{
+								if (*ptr == separator)
+								{
+									bAfterFolderStart = FALSE;
+									//continue;
+								}
+								else
+								{
+									newPath.Append(*ptr); // copy over the character of the foldername
+									ptr++; // advance
+									// Count each char traversed... we may come to a space 
+									countFromLastSeparator++;
+								}
+							}
+						} // end of TRUE block for test: if (!bScanningToFolderEnd && bAfterFolderStart)
+
+					} // end of else block for test: if (!bAfterFolderStart && !bScanningToFolderEnd)
+
+
+				} // end of TRUE block for test: if (*ptr == charSeparator)
+				//else				
+				if (!bBeginningScan && !bScanningToFolderEnd)
+				{
+					// If we come to a space, iterate without advancing so that the
+					// block near start of the loop intercepts the space
+					if (*ptr == charSpace)
+					{
+						continue;
+					}
+					else
+					{
+						// transfer character and advance
+						newPath.Append(*ptr);
+						ptr++; // advance
+						countFromLastSeparator++; // count, we may come to a space
+					}
+					// iterate
+				} // end of TRUE block for test: 
+				  // if (!bBeginningScan && !bScanningToFolderEnd)
+				else
+				{
+					if (bScanningToFolderEnd && bFoundSpace)
+					{
+						// Scan over the post-space material until the end or a separator is reached
+						if (ptr < pEnd)
+						{
+							if (*ptr != separator)
+							{
+								// just transfer the rest of the folder name
+								newPath.Append(*ptr);
+								ptr++; // advance
+								// Check, we may have reached pEnd, in which case we
+								// must end the string with a " to match the initial one
+								if (ptr == pEnd)
+								{
+									newPath.Append(dblQuote);
+									// iterate (and loop will exit at the while test)
+								}
+								else
+								{
+									// Have we advanced ptr to the end of the multi-word
+									// folder name, and are now pointing at speparator
+									// followed by the opening double-quote of a protected
+									// folder name? If so, the code for handling the next
+									// bit is at top of the loop, so we've got to add
+									// the closing doublequote for the currently being
+									// handled unprotected multi-word folder name - before
+									// iterating to handle the separator + " sequence
+									if ((*ptr == separator) && (*(ptr + 1) == dblQuote))
+									{
+										newPath.Append(dblQuote);
+										// no advance, leave ptr pointing at the separator
+									}
+									// iterate
+								}
+							}
+							else
+							{
+								// We've come to a separator, we must add the matching
+								// double-quote, default the state booleans, don't advance
+								// ptr, and iterate
+								newPath += dblQuote;
+								bFoundSpace = FALSE;
+								bScanningToFolderEnd = FALSE;
+								bAfterFolderStart = FALSE;
+								countFromLastSeparator = 0;
+								bHasFolderInitialQuote = FALSE;
+								bBeginningScan = FALSE;
+								// iterate, leaving ptr pointing at the separator
+							}
+						}
+						else
+						{
+							// we've come to end of buffer without finding another
+							// separator - so add the matching end dbl quote, and exit
+							// the loop
+							newPath += dblQuote;
+							bFoundSpace = FALSE;
+							bScanningToFolderEnd = FALSE;
+							bAfterFolderStart = FALSE;
+							break;
+						}
+					} // end of TRUE block for test: if (bScanningToFolderEnd && bFoundSpace
+				}
+			} // end of else block for test: if (*ptr == charSpace)
+
+			// ============== processing for what's not done above ==============
+
+			// not pointing at space or separator, or at beginning
+			// the span and not yet reached first separator
+			if (bBeginningScan)
+			{
+				// starting out on the scanning
+				wxASSERT(!bAfterFolderStart && !bScanningToFolderEnd);
+				newPath.Append(*ptr);
+				countFromLastSeparator = 0; // stays zero until we get to a separator
+				// advance
+				ptr++;
+			}
+
+			else
+			{
+				;
+/*
+				// in a folder name which is not initial
+
+				// First, deal with scanning over an already quote-protected
+				// folder name; for this scenario bHasFolderInitialQuote is TRUE;
+				// countFromLastSeparator is zero; bAfterFolderStart is  TRUE
+				if (bHasFolderInitialQuote && (countFromLastSeparator == 0) && bAfterFolderStart)
+				{
+					// What happens if the path is malformed, having a quote
+					// after the separator, but reading the next separator without
+					// a preceding quote? We need to fix that here.
+					if (*ptr == charSeparator)
+					{
+						// Oops, malformed path - fix it.
+						newPath.Append(dblQuote);
+						ptr++;
+						countFromLastSeparator = 0; // don't start counting yet
+						// Next two booleans set to false, because we were not scanning
+						// an unprotected multi-word folder name
+						bAfterFolderStart = FALSE;
+						bScanningToFolderEnd = FALSE;
+						bHasFolderInitialQuote = FALSE;
+						// iterate
+					}
+					else if (*ptr == dblQuote)
+					{
+						// we have reached the " at the end of the folder name
+						newPath.Append(*ptr);
+						ptr++;
+						bAfterFolderStart = FALSE;
+						bScanningToFolderEnd = FALSE;
+						bHasFolderInitialQuote = FALSE;
+						countFromLastSeparator = 0;
+						bFoundSpace = FALSE;
+						// iterate
+					}
+					else
+					{
+						// we have not yet reached the closing " at end of the folder name
+						// so just append the folder name's wxChar, and advance ptr
+						newPath.Append(*ptr);
+						ptr++;
+						// iterate...
+						// When the matching " is reached, a block well above will handle
+						// saving the " and iterating, and changing the state booleans
+					} // end of else block for test: if (*ptr == dblQuote)
+				} // end of TRUE block for test:
+				  // if (bHasFolderInitialQuote && (countFromLastSeparator == 0) && bAfterFolderStart)
+*/
+			} // else block for test: if (bBeginningScan)
+
+		};
+	} // end of the  { // begin scoped block
+	return newPath;
 }

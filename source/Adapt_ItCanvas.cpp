@@ -60,6 +60,7 @@
 #include "FreeTrans.h"
 #include "ChooseTranslation.h"
 
+
 //#define _FT_ADJUST
 //#define CAPTUREMOUSE
 
