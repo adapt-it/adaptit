@@ -113,8 +113,10 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	{
 		m_pBottomMessageBox->ChangeValue(pApp->m_SD_Message_For_Connect);
 	}
-
-	wxLogDebug(_T("CServDisc_KBserversDlg::InitDialog() list urls and their hostnames"));
+	// BEW 23July20 m_urlsArr now only stores ip addresses, Leon's solution is direct to the
+	// mariaDB service on the LAN or PAN, and we don't support connectivity remotely any more;
+	// the https:// protocol prefix was commented out at line 2,882 in MainFrm.cpp
+	wxLogDebug(_T("CServDisc_KBserversDlg::InitDialog() list ip addresses and their hostnames"));
 	// Make and store the composite strings
 	for (index = 0; index < count; index++)
 	{
@@ -133,7 +135,7 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	wxListItem column[2]; // first is the url, second is its user-defined name
 	// Column 0
 	column[0].SetId(0L);
-	column[0].SetText(_("URL"));
+	column[0].SetText(_("ipAddress"));
 	column[0].SetWidth(320);
 	m_pListCtrlUrls->InsertColumn(0, column[0]);
 	// Column 1
@@ -278,7 +280,7 @@ void CServDisc_KBserversDlg::OnURLDeselection(wxListEvent& event)
 void CServDisc_KBserversDlg::OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event))
 {
 	wxString title = _("More Information");
-	wxString msg = _("You can connect to a KBserver using only one of these URLs. The KBserver at the chosen URL must contain the knowledge base defined by the source and target text language codes for your translation project.  If you try to connect using the wrong URL, the connection will not succeed and you will see an error mesage.  Nothing bad will happen if your attempt fails. Just try again, and choose a different URL.  Remember, each URL is the address of a different KBserver, and each KBserver will have its own password.  You will need to know the correct password associated with the URL you try to connect with.");
+	wxString msg = _("Click only one KBserver ipAddress. The KBserver at that ipAddress must contain the knowledge base defined by the 'source language' and 'target language' codes for your translation project (see 'Preferences...' > 'Backups and Misc' tab).  A 'Knowledge Base Sharing Manager' tool, available from the hidden password-protected Administrator menu, can get this job done for you by someone who knows what to do, or by you - following documented instructions. If you try to connect using the wrong ipAddress for your project, the connection will fail and show an error message; but nothing bad will happen. Just try again, and choose a different ipAddress.  Remember, each ipAddress refers to a different KBserver, and each KBserver will have its own password.  You will need to know the correct password for your ipAdddress to get a successful connection.");
 	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 }
 

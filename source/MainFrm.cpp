@@ -2879,7 +2879,10 @@ int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
 			aHostname = wxEmptyString;
 			aComposite = compositesArray.Item(i);
 			gpApp->ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
-			aURL = _T("https://") + anIpAddress;
+			//aURL = _T("https://") + anIpAddress; <<-- deprecated 23July20, we no longer use https,
+			// we can keep athe URL name and m_urls etc, but just understand these, for Leon's solution 
+			// are now strictly the ipAddresses only, on the LAN or PAN
+			aURL = anIpAddress;
 			urlsArray.Add(aURL);
 			namesArray.Add(aHostname);
 		}

@@ -20034,8 +20034,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
 	m_bDiscoverKBservers = TRUE;
 
-	m_SD_Message_For_Connect = _("Select the URL you wish to connect to, then click OK.  If none is selected, a connection will not be tried. The listed URLs are  stored for use in this work session - including any remote ones for which you manually typed in the correct connection details.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, Remove Selected Entry will clear it from the list.  Take note - a successful connection also requires that an appropriate KBserver database has already been set up for the project you are in.");
-	m_SD_Message_For_Discovery = _("KBserver discovery only works for KBservers connected to the Local Area Network (LAN), or a private local network (PAN).  The server which supports the LAN, or PAN, does not have to be connected to the web, though it can be. Here you just see the KBservers presently running on the LAN or PAN.  A connection to a listed KBserver cannot be done from this discovery attempt; but the listed URLs are stored for use later in this work session.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, Remove Selected Entry will clear it from the list.");
+	m_SD_Message_For_Connect = _("Select the ipAddress you wish to connect to, then click OK.  If none is selected, a connection will not be tried. The listed ipAddresses are stored for use in this work session.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.  Note - connection requires that the correct KBserver database has been set up already for your adaptation project.");
+	m_SD_Message_For_Discovery = _("KBserver discovery works only for KBservers connected to the Local Area Network (LAN), or to a private local network (PAN).  Your LAN, or PAN, can be connected to the web, or not, because the internet will be ignored. The KBservers running on the LAN or PAN are shown.  Connecting to a listed KBserver is not done immediately, even if you select one; but those listed are stored for possible use later.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.");
 
     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
     // for a gui action by the user causes a TRUE value to be set for one of them, so that
@@ -56631,7 +56631,7 @@ void CAdapt_ItApp::ClobberGuesser()
 // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts. Called from MainFrm.cpp
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
 // BEW, LeonPearl, updated 22July20, for mariaDB-server (mysql) support using Python3 tool set
-// with C executable wrapper, dLss_win.exe. Linus and OSX refactoring will be added later
+// with C executable wrapper, dLss_win.exe. Linux and OSX refactoring will be added later
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
 	// Initializations
@@ -56769,7 +56769,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// an audit trail should there be some malfunction in the discovery process. These
 	// *.dat files will be dropped into whatever is the "current working directory" at
 	// the time the system() call (see below) is done, regardless of where dLss_win.exe 
-	// is called. So the code for saving and restoring the cwi (current working directory)
+	// is called. So the code for saving and restoring the cwd (current working directory)
 	// herein is not to be removed!
 
 	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
@@ -56821,7 +56821,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent, for Windows build
 		execPath += distFolder + aSlash + execDiscoveryFile;
 		wxLogDebug(_T("Scanner's execPath: %s  length = %d"), execPath.c_str(), execPath.Len());
-		// The above execPath returned a length of 58 characters, for our testing development
+		// The above execPath returned a length of 55 characters, for our testing development
 
 		// Drop out to the system to make the needed call. dLss_win.exe has all that is needed -
 		// it is a standalone .exe and does not internally do a call of dLss.bat, the code for
@@ -56836,7 +56836,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// full path variable OR at least a path variable set somewhere that points back to where nmap is.
 		// Calling 'dLss_win.exe' from the 'dist' as you did in the cli shell did exactly this , you supplied
 		// a path variable that could be used. 
-		// 80 char array handles our 58 characters with ease, and gives room for paths which may be longer
+		// 80 char array handles our 56 characters with ease, and gives room for paths which may be longer
 		char command[80]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
 
 		//Leon said: strncpy( command,"insert here the full execpath to the dist folder\\dist\\dLss_win.exe" );
@@ -57070,10 +57070,10 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			aHostname.Empty();
 			ExtractIpAddrAndHostname(aComposite, aUrl, aHostname);  // return is void
 
-																	// Next, check for two identical ipaddr with different hostnames, one stored
-																	// on the app already (e.g. as read in from config file), and the other just
-																	// scanned. If such is found, remove the one from the config file and replace
-																	// with the one from the scan.
+			// Next, check for two identical ipaddr with different hostnames, one stored
+			// on the app already (e.g. as read in from config file), and the other just
+			// scanned. If such is found, remove the one from the config file and replace
+			// with the one from the scan.
 			bool bReplacedOne = UpdateExistingAppCompositeStr(aUrl, aHostname, aComposite);
 			if (!bReplacedOne)
 			{
