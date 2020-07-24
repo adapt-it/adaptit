@@ -402,7 +402,7 @@ int ID_DROP_DOWN_LIST = 22050;
 
 #include "KbServer.h"
 //#include "KBSharingSetupDlg.h"
-#include "KBSharingStatelessSetupDlg.h"
+#include "KBSharingAuthenticationDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
@@ -20074,7 +20074,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pKbServer_Persistent = NULL; // initialize
     m_pKbServer_Occasional = NULL; // initialize
     m_bUserAuthenticating = TRUE; // initialize (set TRUE or FALSE prior to calling
-                                  // KBSharingStatelessSetupDlg, only FALSE when the
+                                  // KBSharingAuthenticationDlg, only FALSE when the
                                   // latter is used for authenticating to the KB
                                   // Sharing Manager tabbed dialog)
 
@@ -34212,9 +34212,9 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// vertically editing).
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
-/// The authentication dialog (KBSharingStatelessSetupDlg) produces a stateless KbServer
+/// The authentication dialog (KBSharingAuthenticationDlg) produces a stateless KbServer
 /// instance which the KB Sharing Manager GUI uses; it is produced on the heap, and deleted
-/// by the destructor of KBSharingStatelessSetupDlg when this handler function returns.
+/// by the destructor of KBSharingAuthenticationDlg when this handler function returns.
 /// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with three tabs- one for
 /// adding, editing or removing users from the mysql user table; the second for adding,
 /// editing or removing shared knowledge bases from the kbs table - and since a kb
@@ -34348,7 +34348,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // that deals with a remotely stored knowledge base, the codes for that remote kb are
         // identical for the local CKB instances. (The Manager checks internally for
         // violations and takes appropriate action, with warning messages)
-        KBSharingStatelessSetupDlg dlg(GetMainFrame(), m_bUserAuthenticating);
+        KBSharingAuthenticationDlg dlg(GetMainFrame(), m_bUserAuthenticating);
         dlg.Center();
         if (dlg.ShowModal() == wxID_OK)
         {

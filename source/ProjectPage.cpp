@@ -85,7 +85,7 @@
 
 #if defined(_KBSERVER)
 #include "KbServer.h"
-#include "KBSharingStatelessSetupDlg.h"
+#include "KBSharingAuthenticationDlg.h"
 #include "KbSvrHowGetUrl.h"
 #endif
 // globals

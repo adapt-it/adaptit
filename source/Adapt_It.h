@@ -3227,7 +3227,7 @@ public:
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
 	// Next three are set when authenticating with the bool bStateless 2nd param of the
-	// KBSharingStatelessSetupDlg constructor set TRUE. When TRUE, someone is authenticating
+	// KBSharingAuthenticationDlg constructor set TRUE. When TRUE, someone is authenticating
 	// to use the KB Sharing Manager gui; his credentials must be stored separately from
 	// the normal user's otherwise the advisor or administrator would overwrite the user's
 	// settings when he uses the mananger gui
@@ -3261,7 +3261,7 @@ public:
 			// session, or much of the session; but when that flag is false, it
 			// would be deleted when the KB Sharing Manager gets deleted. So
 			// we don't want either the Manager class, or the
-			// KBSharingStatelessSetupDlg class owning this pointer.
+			// KBSharingAuthenticationDlg class owning this pointer.
 			// (It needs to persist when a deletion of the entries in a remote
 			// kb is being done - deleting is done one by one, so it may take
 			// anything from minutes to hours or over a day - depending on

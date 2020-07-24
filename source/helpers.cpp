@@ -76,7 +76,7 @@
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
-#include "KBSharingStatelessSetupDlg.h"
+#include "KBSharingAuthenticationDlg.h"
 #if defined (_KBSERVER)
 #include <stdio.h>
 #include <stdlib.h>
@@ -11372,7 +11372,7 @@ bool IsURLStoreable(wxArrayString* pArr, wxString& url)
 // in the OnOK() handler of KbSharing Setup instance, where the options are the default - to
 // let service discovery search on the LAN for a KBserver, or the user knows a URL and elects
 // to type it in (if not shown from last-used stored value on basic config file). If he elects
-// to let discovery happen, KBSharingStatelessSetupDlg will hide the top multiline message in
+// to let discovery happen, KBSharingAuthenticationDlg will hide the top multiline message in
 // the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
 // Returns TRUE for success, FALSE if there was an error
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted)
@@ -11388,7 +11388,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	pApp->m_bUserLoggedIn = FALSE; // initialize
 
 	CMainFrame* pFrame = pApp->GetMainFrame();
-	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg 
+	// Make the bServiceDiscoveryWanted param accessible to KBSharingAuthenticationDlg 
 	// (the "Authenticate" dialog)
 	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
 
@@ -11493,8 +11493,8 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 			// We also can't assume the password, which may be already stored in the frame
 			// member within this session, is going to be the one required for whatever URL
 			// gets typed in. We can only assume the username is correct, but it will be
-			// checked in the KBSharingStatelessSetupDlg dialog's OnOK() handler
-			KBSharingStatelessSetupDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
+			// checked in the KBSharingAuthenticationDlg dialog's OnOK() handler
+			KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
 			dlg.Center();
 			int dlgReturnCode;
 here2:		dlgReturnCode = dlg.ShowModal();
@@ -11835,7 +11835,7 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 				{
 					// Authenticate to the server. Authentication also chooses, via the url provided or
 					// typed, which particular KBserver we connect to - there may be more than one available
-					KBSharingStatelessSetupDlg dlg(pFrame, pApp->m_bUserAuthenticating);
+					KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating);
 					dlg.Center();
 					int dlgReturnCode;
 here:				dlgReturnCode = dlg.ShowModal();

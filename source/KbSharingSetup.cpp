@@ -48,7 +48,7 @@
 #include "MainFrm.h"
 #include "helpers.h"
 #include "KbServer.h"
-#include "KBSharingStatelessSetupDlg.h" //  misnamed, it's actually just an authentication class
+#include "KBSharingAuthenticationDlg.h" //  misnamed, it's actually just an authentication class
 #include "KbSharingSetup.h"
 
 // event handler table

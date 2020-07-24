@@ -179,7 +179,7 @@ public:
 	// are synchronous and no mutex is required
 
 	// The functions in this next block do the actual calls to the remote KBserver, they are
-	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
+	// public access because KBSharingAuthenticationDlg will need to use several of them, as
 	// do other classes
 	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
@@ -336,7 +336,7 @@ public:
 	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
-	// unlikely); or from the "Authenticate" dialog (KBSharingStatelessSetupDlg.cpp & .h).
+	// unlikely); or from the "Authenticate" dialog (KBSharingAuthenticationDlg.cpp & .h).
 	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
 	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
 	// password and username - and those will get stored in the relevant places in the ptr to the

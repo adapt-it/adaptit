@@ -2650,7 +2650,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			gpApp->LogUserAction(_T("KbSharingSetup instantiated from call CMainFrame::OnKBSharingSetupDlg()"));
-			// Authentication, by means of KBSharingStatelessSetupDlg call, has been done
+			// Authentication, by means of KBSharingAuthenticationDlg call, has been done
 			// successfully in the OnOK() button handler of KbSharingSetup, and the wanted
 			// calls for one or both of SetupForKBServer(1) and SetupForKBServer(2) done,
 			// and checks for language codes completed successfully
