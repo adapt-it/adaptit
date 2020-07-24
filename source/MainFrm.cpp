@@ -2618,8 +2618,8 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
     // if not, open the dialog to get them set up -- the dialog cannot be closed except
     // by providing non-empty strings for the two text controls in it. Setting the
     // strings once from any project, sets them for all projects forever unless the
-	// user deliberately opens the dialog using the command in the View menu. (The
-	// strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
+	// user deliberately opens the dialog using the command in the Edit menu, "Change Username".
+	// (The strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
 	bool bUserDidNotCancel = CheckUsername();
 	if (!bUserDidNotCancel)
 	{
