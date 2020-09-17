@@ -560,7 +560,7 @@ bool CLayout::GetFullWindowDrawFlag()
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
-	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only. 
+	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only.
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
 #if defined(_DEBUG) && defined (_NEWDRAW)
 { // set a temporary scope
@@ -1027,7 +1027,7 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #endif
 	}
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// whm added 10Jan2018 the code in SetupDropDownPhraseBox() below to support quick selection of a 
+	// whm added 10Jan2018 the code in SetupDropDownPhraseBox() below to support quick selection of a
 	// translation equivalent.
 	// See comments in the SetupDropDownPhraseBox() function for a detailed description of what the
 	// function does.
@@ -1044,7 +1044,7 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 		//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
 		//wxWindow* fwin = wxWindow::FindFocus();
-		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
+		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"),
 		//    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
 	//}
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
@@ -1073,7 +1073,7 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 			}
 		}
 		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-																				  // whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block. 
+																				  // whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block.
 	}
 
 	m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1086,11 +1086,11 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #endif
 }
 m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
-										  // whm 8Aug2018 added. Assign phrasebox contents to initialPhraseBoxContentsOnLanding on landing at this location 
+										  // whm 8Aug2018 added. Assign phrasebox contents to initialPhraseBoxContentsOnLanding on landing at this location
 m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 
 // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
-// to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
+// to highlight a different item in the dropdown list before pressing Enter/Tab to leave the
 // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
 // is FALSE at each location of the phrasebox.
 m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE;
@@ -1782,13 +1782,13 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // called whenever the layout has been corrupted by a user action, such as a font change
 // (which clobbers prior text extent values stored in the piles) or a punctuation setting
 // change, or a change from adapting mode to that plus "See Glosses" (they could be wider
-// than the adaptations), or to Glossing mode - again, their widths could be often wider 
-// than those of the src or target widths. 
-// RecalcLayout() in the refactored design is a potentially "costly" calculation - if the 
-// document is large, the piles and strips for the whole document have to be recalculated 
-// from the data in it - (need to consider a progress bar in the status bar in window 
+// than the adaptations), or to Glossing mode - again, their widths could be often wider
+// than those of the src or target widths.
+// RecalcLayout() in the refactored design is a potentially "costly" calculation - if the
+// document is large, the piles and strips for the whole document have to be recalculated
+// from the data in it - (need to consider a progress bar in the status bar in window
 // bottom, or at least a "Please wait" message). The ptr value for the passed in pList
-// is usually the application's m_pSourcePhrases list, but it can be a sublist copied 
+// is usually the application's m_pSourcePhrases list, but it can be a sublist copied
 // from that
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
@@ -1836,7 +1836,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		selectorPassedIn = selector_3;
 	}
-//	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), 
+//	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"),
 //		selectorPassedIn.c_str(), modePassedIn.c_str());
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
@@ -2361,7 +2361,7 @@ void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
 
 		// BEW added 29Sep16, the user may have added ' (straight vertical quote)
-		// to the punctuation list, in which case it's no longer to be treated as a 
+		// to the punctuation list, in which case it's no longer to be treated as a
 		// word-building glottal stop character), or changed to remove it, so that
 		// the value of the app boolean m_bSingleQuoteAsPunct may need changing; so
 		// check and set or clear it here
@@ -2729,7 +2729,16 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 		}
 		index++;
 	} while (index < nTotalStrips);
-	wxASSERT(index < nTotalStrips);
+
+// mrh - in some of my data index can turn out to be equal to nTotalStrips instead of less, and this was
+// triggering the assert.  This change seems to work OK:
+    if ( index >= nTotalStrips)
+    {
+		wxLogDebug(_T("	index %d , nTotalStrips  %d"), index, nTotalStrips);
+		index = nTotalStrips-1;
+    }
+//	wxASSERT(index < nTotalStrips);
+
 	nFirstStripIndex = index;
 
 	// use nVisStrips to get the final visible strip (it may be off-window, but we
@@ -3090,7 +3099,7 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 
 	// BEW 19Aug18 see the comment in the else block below, with same date, for the reason
 	// why these extra strips (a max of 2 extras) are to be added. They are 'protection'
-	// in case the user's work changes the inventory of piles before the drawing is completed.	
+	// in case the user's work changes the inventory of piles before the drawing is completed.
 	int lastIndex = (int)(m_stripArray.GetCount() - 1);
 	if (nAfterStripIndex > lastIndex) // Sanity check
 	{
@@ -3108,7 +3117,7 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 		// invalid strips may no longer exist, so we can't assume a search for it will
 		// succeed)
 		// BEW 19Aug18 - I got crash this way. I had adapted piles, selected some which
-		// included 'bilongen' as a src word, it was a typo as it should have been 'bilong' 
+		// included 'bilongen' as a src word, it was a typo as it should have been 'bilong'
 		// 'en', and so I selected that and the preceding word 'namel' ('midddle') and
 		// did Edit Source Text. In that dialog I put in the missing space before 'en'
 		// and clicked OK. That sent the app into vertical edit mode - with 3 piles
@@ -4220,7 +4229,7 @@ bool CLayout::AreAnyAutoInsertHighlightsPresent()
 
 // BEW created 9Aug18 for taming the new drawing regime for the dropdown phrasebox
 // Return TRUE if no modifier key is held down and either a Backspace or Delete key
-// is simultaneously pressed, else returns FALSE. 
+// is simultaneously pressed, else returns FALSE.
 // Used in refactored FixBox()
 bool CLayout::BSorDEL_NoModifiers(wxKeyEvent event)
 {
@@ -4237,8 +4246,8 @@ bool CLayout::BSorDEL_NoModifiers(wxKeyEvent event)
 // returns the selection, if from is not equal to to, otherwise it is an
 // insertion point; since we want to have the length of the selection
 // as an integer, we get that on the side; returns TRUE if 'from' not equal
-// to 'to', and works out the length as well, returns FALSE if 'from' == 'to' 
-// and returns 0 for the length in that case. pTextCtrl should, of course, 
+// to 'to', and works out the length as well, returns FALSE if 'from' == 'to'
+// and returns 0 for the length in that case. pTextCtrl should, of course,
 // point to the phrasebox (m_pTargetBox) member's m_pTextCtrl
 bool CLayout::TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length)
 {
@@ -4314,7 +4323,7 @@ return FALSE;
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 // Called from the View's OnDraw() 2X, CPhraseBox's OnEditUndo(), OnChar(), and OnPhraseBoxChanged()
 //
-// BEW 10Aug18, This, below, is the legacy FixBox() in versions up to 6.9.0. Keeping it, 
+// BEW 10Aug18, This, below, is the legacy FixBox() in versions up to 6.9.0. Keeping it,
 // temporarily at least, for reference purpses. The refactored version is lower down in this file.
 // Formerly it was a public member of CPhraseBox. New one is public member of CLayout.
 /*
@@ -4615,7 +4624,7 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
 #endif
-	// update the active pile pointer 
+	// update the active pile pointer
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile);
 	CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
