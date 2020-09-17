@@ -735,16 +735,6 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	    else
 	    {
 	        // PT on Windows
-			// BEW 17Sep20, testing resetting cwd to Paratext 8 folder
-			bool bAllowed = FALSE;
-			wxString foreignPath = _T("C:\\Program Files (x86)\\Paratext 8\\");
-			bAllowed = ::wxSetWorkingDirectory(foreignPath);
-			if (bAllowed)
-			{
-				wxString gotten = ::wxGetCwd();
-				int yay = TRUE;
-			}
-
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
             commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
             if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
