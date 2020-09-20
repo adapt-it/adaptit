@@ -58026,6 +58026,40 @@ bool CAdapt_ItApp::IsNoType(wxString mkr) // pass in un-augmented begin-mkr
 	return TRUE;
 }
 
+// BEW 17Sep20 created for trialing cur wk dir moved to where wxExecute() is for
+// read and write when collaborating, for Windows build (John Bryant's issue)
+wxString CAdapt_ItApp::RemovePathPrefix(wxString cmdLine, wxString& pathPrefix)
+{
+	wxString cmd = cmdLine;
+	wxString strRdWrt = _T("rdwrtp"); // leave off the number, could be 7, 8, or 
+									  // even 9 later on sometime
+	wxString strexe = _T("exe");
+	if (cmd.IsEmpty())
+	{
+		return cmd;
+	}
+	else
+	{
+		int offset = cmd.Find(strRdWrt);	
+		if (offset == wxNOT_FOUND)
+		{
+			return cmd;
+		}
+		else
+		{
+			wxString strPath = cmd.Left(offset); // includes final path separator;
+			cmd = cmd.Mid(offset); // starts with "rdwrt....." so is shortened
+			offset = cmd.Find(strexe);
+			if (offset > 6)
+			{
+				cmd = cmd.Remove(offset + 3, 1); // remove the '\"' after rdwrtp8.exe or whatever
+			}
+			pathPrefix = strPath.Mid(1); //remove initial '\"'
+		}
+		return cmd; // path prefix now removed
+	}
+}
+
 // BEW 23Apr20, copies the pAnalysis members to the cache variables
 // on the app. See AI.h about lines 4174 plus or minus
 // ttTemp defaults to 'verse' (1) if no other value passed in; e.g. poetry USFM markers temporarily
