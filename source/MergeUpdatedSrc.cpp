@@ -54,12 +54,12 @@ WX_DEFINE_OBJARRAY(SPArray);
 // To turn on useful wxLogDebug() calls, uncomment out one or more of next lines.
 
 // If you don't know what you need to look at for debugging, turn on the first six below...
-#define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
+//#define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
 //#define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
 //#define LOOPINDEX             // this one gives the loop indices at the start of each iteration
 //#define MERGE_Recursively     // use this one and the next to look at the tuple processing
 //#define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
-#define _INCOMMON			  // this is for debugging GetMaxInCommonSubspan_ByWordGroupSampling() which
+//#define _INCOMMON			  // this is for debugging GetMaxInCommonSubspan_ByWordGroupSampling() which
 							  // handles non-milestoned large chunks mergers -- avoids
 							  // excessive multiple small pairings by sampling from
 							  // equidistant points in arrOld, doing word-group matchups
@@ -1814,7 +1814,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
 							pEndChunkOld = pOldChunk;
 							pEndChunkNew = pNewChunk;
-#if defined(_DEBUG) //&& defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 							wxLogDebug(_T("Removing some OLD: disparate sizes, oldChunkIndex < oldMatchedChunk && newChunkIndex == newMatchedChunk: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -2580,7 +2580,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 				// return TRUE, and with the last paired SfmChunk instances' indices set
 				oldEndChunk = oldIndex - 1;
 				newEndChunk = newIndex - 1;
-#if defined(_DEBUG) //&& defined(myMilestoneDebugCalls)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 				wxLogDebug(_T("GetMaxInSyncChunksPairing() ELSE block, returns TRUE (oldIndex >= oldChunkCount) last pairing: oldEndChunk index: %d newEndChunk index: %d"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2882,8 +2882,8 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		pPairedChunkNew = (SfmChunk*)pChunksNew->Item(anIndex + newChunkIndexKickoff);
 		indexNewStart = pPairedChunkNew->startsAt;
 		indexNewEnd   = pPairedChunkNew->endsAt;
-			wxLogDebug(_T("\nPairings List: index = %d    OLD [ %d : %d ] <-> NEW [ %d : %d ]  (new) Verse = %d"),
-				anIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
+//			wxLogDebug(_T("\nPairings List: index = %d    OLD [ %d : %d ] <-> NEW [ %d : %d ]  (new) Verse = %d"),
+//				anIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
 		}
 		}
 #endif
@@ -5251,9 +5251,9 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		if (pMaxInCommonSubspan != NULL)
 		{
 #if defined(_DEBUG)
-			wxLogDebug(_T("GetMaxInCommonSubspan(), by SAMPLING way,  OLD <-> NEW matched: (%d,%d) <-> (%d,%d)"),
-				pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
-				pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos);
+//			wxLogDebug(_T("GetMaxInCommonSubspan(), by SAMPLING way,  OLD <-> NEW matched: (%d,%d) <-> (%d,%d)"),
+//				pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
+//				pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos);
 #endif
 			return pMaxInCommonSubspan;
 		}
@@ -5267,7 +5267,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
     // Our first task is to populate the arrUniqueInCommonWords array, based on the data in
     // pParentSubspan
 #if defined(_DEBUG)
-	wxLogDebug(_T("GetMaxInCommonSubspan(): by non-sampling WORD-BASED way"));
+//	wxLogDebug(_T("GetMaxInCommonSubspan(): by non-sampling WORD-BASED way"));
 #endif
 	wxArrayString arrUniqueInCommonWords;
 	int wordCount = GetWordsInCommon(arrOld, arrNew, pParentSubspan, arrUniqueInCommonWords, limit);
@@ -5638,7 +5638,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 												// up of course)
 	#if defined(_DEBUG) && defined(_INCOMMON)
 	int arrNewSrcPhrasesCount = (int)(pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1);
-		wxLogDebug(_T("GetMaxInCommonSubspan(): arrOldSrcPhrasesCount = %d  , arrNewSrcPhrasesCount = %d"),arrOldSrcPhrasesCount,arrNewSrcPhrasesCount);
+//		wxLogDebug(_T("GetMaxInCommonSubspan(): arrOldSrcPhrasesCount = %d  , arrNewSrcPhrasesCount = %d"),arrOldSrcPhrasesCount,arrNewSrcPhrasesCount);
 	#endif
 	int nJumpDistance = 0; // initialize both to zero, they are set a couple of lines down
 	int numGroupWords = 0; // normally from 2 to 6 inclusive, but we allow more when

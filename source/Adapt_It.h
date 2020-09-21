@@ -801,6 +801,8 @@ enum DelayedFreeTransOperations
 	split_it
 };
 
+
+
 /// An enum for selecting which configuration file type in GetConfigurationFile()
 /// whether basic configuration file, or project configuration file.
 enum ConfigFileType
@@ -823,8 +825,8 @@ enum SendBackTextType
 /// Initial possible state after basic config file has first been read in a new session
 enum ServDiscInitialDetail
 {
-	SDInit_NoStoredUrl,
-	SDInit_StoredUrl
+	SDInit_NoStoredIpAddr,
+	SDInit_StoredIpAddr
 };
 
 /// states, various user action possibilities
@@ -837,16 +839,25 @@ enum ServDiscDetail
 	SD_NoKBserverFound,
 	SD_ServiceDiscoveryError,
 	SD_NoResultsAndUserCancelled,
-	SD_SameUrlAsInConfigFile,
-	SD_UrlDiffers_UserAcceptedIt,
-	SD_SingleUrl_UserAcceptedIt,
-	SD_SingleUrl_UserCancelled,
-	SD_SingleUrl_ButNotChosen,
-	SD_MultipleUrls_UserCancelled,
-	SD_MultipleUrls_UserChoseOne,
-	SD_MultipleUrls_UserChoseNone,
+	SD_SameIpAddrAsInConfigFile,
+	SD_IpAddrDiffers_UserAcceptedIt,
+	SD_SingleIpAddr_UserAcceptedIt,
+	SD_SingleIpAddr_UserCancelled,
+	SD_SingleIpAddr_ButNotChosen,
+	SD_MultipleIpAddr_UserCancelled,
+	SD_MultipleIpAddr_UserChoseOne,
+	SD_MultipleIpAddr_UserChoseNone,
 	SD_ValueIsIrrelevant
 };
+
+// Don't use an enum, int values are simpler
+	const int noDatFile = 0;
+	const int credentials_for_user = 1;
+	const int lookup_user = 2;
+	const int list_users = 3;
+// add more here, as our solution matures
+	const int blanksEnd = 3; // this one changes as we add more above
+
 
 #endif
 
@@ -954,7 +965,7 @@ enum LangCodesChoice {
 	all_possibilities,
 	source_and_target_only,
 	source_and_glosses_only
-};
+}; // keep 'Codes' in name, LanguageCodesDlg.cpp & .h needs them, for xhtml support
 
 /// A struct for specifying time settings. Struct members include:
 /// m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
@@ -2170,13 +2181,100 @@ class CAdapt_ItApp : public wxApp
 	// to the legacy code easier.
 	wxString resultsPath;
 	wxString resultsStr;
-	wxString discoveryPath; // added this one because it will allow the path to the
+	wxString discoveryPath; // added this one because it will allow the path to the  <<-- deprecate 
 		// kbserver discovery code to be stored - it may temporarily be different
 		// from resultsPath or execPath
+	wxString distPath; // to Leon's dist folder - always a child of the app's folder
+	wxString execPath; // the "executablePath" with the executable app at end removed
+	wxString MakeDistFolder(); // ending in the path separator
+	wxString PathToExecFolder(); // ending in the path separator
+
+	// Handler files for the cases in the KBserverDAT_Blanks switch
+	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
+
+
+	// BEW 20Au20 deprecation of the total KBSharingManager is pending, 'ForManager'
+	// variables, and anything managerish, will be weeded out. Our simpler system has
+	// a user table and an entry table. The calls to mariaDB/kbserver will be fewer,
+	// and will drop files as an audit trail (Leon's preference). Replacing 'manager'
+	// stuff will be variables, bools, functions, etc with the word 'Foreign' in it.
+	// For example,  m_bUseForeignOption (default FALSE) will specify, if TRUE, that
+	// 'foreign' users - ie. uses on other machines than one's own, are in focus. Eg...
+	// A techie going to the kbserver to enter a bunch of usernames for various people
+	// in a translation team, the code would use a .dat file like "add_foreign_user.dat"
+	bool m_bUseForeignOption;  // FALSE (default) means "normal local user stuff used,
+							   // such as m_strUserId and m_strUsername, etc
+							   // TRUE means 'other-user' focus, such as accessing the
+							   // kbserver with kbadmin username, kbauth pwd, etc
+	wxString m_strForeignPassword; // store the non-local-user one here
 
 	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on discovering
 	// one or more KBservers which are publishing, in a single session.
 	bool m_bDiscoverKBservers;
+
+	// BEW 1Sep20 for our refactored 2-page KB Sharing Manager, we'll store some
+	// helpful wxStrings here, which our Manager's code can pick up as needed, or set,
+	wxString m_curAuthUsername; // The username used for authenticating for a Manager access
+	wxString m_Username2;       // For LookupUser() only, second username - to be looked up
+	wxString m_curAuthPassword; // The password that goes with curAuthUsername
+	wxString m_curFullname;     // may not need it, but it's here for the'fullname' field's value
+								// if we want it.
+	bool m_bcurUseradmin;  // TRUE if user table table has m_curAuthUsername's useradmin value = 1, 
+						  // FALSE otherwise
+	bool m_bcurKbadmin;    // *ALWAYS* TRUE now, and no longer in user table's schema
+	wxString m_curIpAddr; // the ipaddr used for authenticating with m_curAuthUsername etc
+	wxString m_curSrcLangName; // source language name from current "src to tgt adaptations" str
+	wxString m_curTgtLangName; // target .... ditto
+	wxString m_curGlossLangName; // if user elects to have glossing enabled
+	wxString m_curFreeTransLangName; // user may want to send free trans to collaborating Paratext
+									 // in a language different from all the preceding ones
+
+	// BEW 2Sep20 public Updaters for the above public variables.
+	void UpdateCurAuthUsername(wxString str); 
+	void UpdateUsername2(wxString str); // This just for the username being looked up by LookupUser()
+	void UpdateCurAuthPassword(wxString str);
+	void UpdateCurFullname(wxString str);
+	void UpdatebcurUseradmin(bool bUseradmin);
+	void UpdatebcurKbadmin(); // always TRUE
+	void UpdateIpAddr(wxString str);
+	void UpdateCurSrcLangName(wxString str);
+	void UpdateCurTgtLangName(wxString str);
+	void UpdateCurGlossLangName(wxString str);
+	void UpdateCurFreeTransLangName(wxString str);
+
+	// BEW 5Sep20 - a parallel set of vars and updaters for the 'normal'
+	// user accesses, i.e. when m_bUserIsAuthenticating is TRUE
+	wxString m_curNormalUsername; // The username used for authenticating for a Manager access
+	wxString m_curNormalUsername2; // for the "look for this user" box, but may never be used
+	wxString m_curNormalPassword; // The password that goes with curAuthUsername
+	wxString m_curNormalFullname; // may not need it, but it's here for the'fullname'
+								  // field's value if we want it.
+	wxString m_possibleNormalPassword; // BEW 10Sep20, if the 'for manager' password stored
+		// here, and LookupUser() call with user1==user2 given, then m_bUserAuthenticating
+		// gets changed to TRUE; if so, then whats in m_possibleNormalPassword should be
+		// restored in frame's stored password, so that subsequent calls can pick it up from there
+	bool m_bcurNormalUseradmin;   // TRUE if user table table has m_curNormalUsername's 
+						   // useradmin value = 1, FALSE otherwise
+	bool m_bcurNormalKbadmin;    // *ALWAYS* TRUE now, and no longer in user table's schema
+	wxString m_curNormalIpAddr; // the ipaddr used for authenticating with m_curNormalUsername etc
+	wxString m_curNormalSrcLangName; // source language name from current "src to tgt adaptations" str
+	wxString m_curNormalTgtLangName; // target .... ditto
+	wxString m_curNormalGlossLangName; // if user elects to have glossing enabled
+	wxString m_curNormalFreeTransLangName; // user may want to send free trans to collaborating
+								// Paratext in a language different from all the preceding ones
+
+									 // BEW 2Sep20 public Updaters for the above public variables.
+	void UpdateCurNormalUsername(wxString str);
+	void UpdateCurNormalPassword(wxString str);
+	void UpdateCurNormalFullname(wxString str);
+	void UpdatebcurNormalUseradmin(bool bUseradmin);
+	void UpdatebcurNormalKbadmin(); // always TRUE
+	void UpdateNormalIpAddr(wxString str);
+	void UpdateCurNormalSrcLangName(wxString str);
+	void UpdateCurNormalTgtLangName(wxString str);
+	void UpdateCurNormalGlossLangName(wxString str);
+	void UpdateCurNormalFreeTransLangName(wxString str);
+
 
 	// BEW 20Jul20 added, for scanning for active mariaDB-service (mysql)
 //	Ctest_system_call* pCtest_system_call = Cnew test_system_call();
@@ -2189,29 +2287,44 @@ class CAdapt_ItApp : public wxApp
 
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
-	bool	m_bKbServerIncrementalDownloadPending;
+	bool m_bKbServerIncrementalDownloadPending;
 
 	// Periodicity for the new entry downloads (in minutes; but for use with the
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
-	int		m_nKbServerIncrementalDownloadInterval;
+	int  m_nKbServerIncrementalDownloadInterval;
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
 	// flags need to be known before either of the adapting or glossing KbServer classes
     // are instantiated (i.e. when checking if the user is in user table, and if the user
     // is authorized to create an entry in the kb table). These two flags implement the
-    // non-basic privilege levels for users of the KBserver. ( A third privilege,
-    // m_kbserver_languageadmin is defined, but is programmatically set to whatever is the
-    // value for m_kbserver_kbadmin, because it makes no sense to have one of those two
-    // without the other being set to the same value.)
-	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
-	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
+    // non-basic privilege levels for users of the KBserver. As of Aug 2020, m_kbserver_kbadmin
+	// is always TRUE, allowing anyone to make a new KB, even if they cannot add a new user.
+
+	bool m_kbserver_kbadmin;   // initialize to always TRUE in OnInit()
+	bool m_kbserver_useradmin; // initialize to default FALSE in OnInit()
+
+	// BEW 18Aug20 This function takes an int value, and uses an internal switch to call
+	// the appropriate function which configures a .DAT file, locating it in the app's
+	// folder, and populating it with the comma separated commandLine for that .DAT file
+	bool ConfigureDATfile(const int funcNumber);
+	// BEW 18Aug20 next three calls are used in sequence to (a) delete the old
+	// .dat file from the execPath, (b) move the 'blank' .dat file up from the dist folder
+	// to the parent folder, the execPath folder, and (c) configure the moved up .dat
+	// folder by shortening the contents to have a descriptive line followed by the
+	// filled out commandLine - with the appropriate values for the wxExecute() call to use
+	void DeleteOldDATfile(wxString filename, wxString execFolderPath);
+	void MoveBlankDatFileUp(wxString filename, wxString distFolderPath, wxString execFolderPath);
+	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
+	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
+			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
+
 
 	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
 	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
 
 
-	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
+	wxArrayString		m_theIpAddrs;      // lines of form <ipAddress> from CServiceDiscovery::m_ipAddrsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
 
@@ -2226,11 +2339,12 @@ class CAdapt_ItApp : public wxApp
 	bool m_bUserDecisionMadeAtDiscovery; // TRUE if at the OK click there was a user
 		// selection current, or if he clicked Cancel button. If no selection,
 		// then FALSE
-	// The next two are used to store the url and (host)name of a discovered KBserver
+	// The next two are used to store the ipAddress and (host)name of a discovered KBserver
 	// from a call of Discover KBservers
-	wxString m_chosenUrl;
+	wxString m_chosenIpAddr;
 	wxString m_chosenHostname;
 
+	// BEW 25Jul20 deprecated comment - wxServeDisc (with zeroconf use) is removed from app
 	// NOTE - IMPORTANT. The service discovery code, at the top levels, is copiously
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
@@ -2240,7 +2354,7 @@ class CAdapt_ItApp : public wxApp
 
 
 	// for support of service discovery
-	wxString		m_saveOldURLStr;
+	wxString		m_saveOldIpAddrStr;
 	wxString		m_saveOldHostnameStr;
 	wxString		m_saveOldUsernameStr;
 	wxString		m_savePassword;
@@ -2573,12 +2687,12 @@ public:
 	//  We only assign this string if version control is enabled.  If a different user
 	//  opens the document, it will come up read-only.
 
-#define  NOOWNER	_T("****")			// a real user can't have asterisks, and must have "@"
+#define  NOOWNER	_T("****")			// a real user can't have asterisks
 #define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2
-										//  as being for private use, so this can never be a real language code
+										//  as being for private use, so thany in this range are 'custom'
 
-	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine.  Going west soon...
-
+	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine. 
+										// Used for setting m_owner in XML.cpp near 3466
     wxString	m_strUserID;            // for the unique username for the kb server and DVCS, typically
                                         // the user's email address if he has one, if not, any
                                         // unique string will do provided the server administrator
@@ -3181,20 +3295,31 @@ public:
 	wxArrayString m_arrSourcesForPseudoDeletion;
 	wxArrayString m_arrTargetsForPseudoDeletion;
 
-
 	// project-defining attibutes
 	wxString	m_sourceName; // name of the source language
 	wxString	m_targetName; // name of the target language
 	wxString	m_glossesName; // name of the glossing language (usually set by a LIFT import)
 							   // but the user can do it in KBPage of the Preferences... dlg
 	wxString	m_freeTransName; // name of the language used for doing free translations
+		// The m_freeTransName is supported, but has only a little functionality. It's input 
+		// and and output via the basic and project config files; and the other use is for 
+		// KB.cpp where in the Kb page of the Preferences, if there is variance of m_sourceName,
+		// m_targetName, m_glossesName, or m_freeTransName due to user edit of any of these, 
+		// or discovered differences, the changed ones can be brought into line with the
+		// project's names.
 
 	// whm added 10May10 for KB LIFT XML Export support; also used for xhtml exports,
 	// and BEW 23July12 added m_freeTransLanguageCode to make all four text types be supported
-	wxString	m_sourceLanguageCode; // 3-letter code for the source language
-	wxString	m_targetLanguageCode; // 3-letter code for the target language
+	wxString	m_sourceLanguageCode; // code of the source language
+	wxString	m_targetLanguageCode; // code for the target language
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
+
+	// BEW 5Sep20 changed these to have 'Name' -to get past some compile errors - maybe remove later
+	wxString	m_sourceLanguageName; // name of the source language
+	wxString	m_targetLanguageName; // name for the target language
+	wxString	m_glossesLanguageName; // name
+	wxString	m_freeTransLanguageName;  // name for free translation language
 
 	// Status bar support
 	void	 RefreshStatusBarInfo();
@@ -3226,16 +3351,26 @@ public:
 
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
-	// Next three are set when authenticating with the bool bStateless 2nd param of the
+	// Next three are set when authenticating with the bool '...ForManager' 2nd param of the
 	// KBSharingAuthenticationDlg constructor set TRUE. When TRUE, someone is authenticating
 	// to use the KB Sharing Manager gui; his credentials must be stored separately from
 	// the normal user's otherwise the advisor or administrator would overwrite the user's
 	// settings when he uses the mananger gui
-	wxString	m_strStatelessUsername;
-	wxString	m_strStatelessURL;
-	wxString	m_strStatelessPassword;
+	wxString	m_strForManagerUsername;
+	wxString    m_strForManagerUsername2; // for LookupUser()
+	wxString	m_strForManagerIpAddr;
+	wxString	m_strForManagerPassword;
 
 	bool		m_bUserAuthenticating;
+	bool		m_bUser1IsUser2; // default FALSE - needed in LookupUser()
+
+	// Use a switch internally in CreatInputDatBlanks to make the constant text lines
+	// for the various *.dat 'input' files which are dynamically copied to the execPath
+	// folder and there their final line, the command line of parameters, is replaced 
+	// with the needed parameters for the call by an .exe file using ::wxExecute(...exe); 
+	void CreateInputDatBlanks(wxString& execPth);
+	bool AskIfPermissionToAddMoreUsersIsWanted();
+	void MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath);
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -3286,8 +3421,8 @@ public:
 			// this KbServer instance, so we don't need a mutex protection.
 			// The KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(...event)
 			// is the ONLY place that points at this KbServer instance; the
-			// sharing Manager's other handlers will use m_pKbServer_Occasional
-	KbServer* m_pKbServer_Occasional; // As above, created in OnInit(),
+			// sharing Manager's other handlers will use m_pKbServer_ForManager
+	KbServer* m_pKbServer_ForManager; // As above, created in OnInit(),
 			// destroyed in OnExit(), but used for short term KBserver accesses
 			// such as authentications. No mutex proection needed
 
@@ -3301,10 +3436,11 @@ public:
     bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
     bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
 	// BEW added next, 26Nov15
-	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL,
+	bool	  ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& chosenIpAddress,
 								 wxString& chosenHostname, enum ServDiscDetail &result);
-	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, FALSE for manual URL entry
-										 // and don't ever store the value in any config file; default TRUE
+	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, 
+					// FALSE for manual ipAddress entry; and don't ever store the value in 
+					// any config file; default TRUE
 	bool	  m_bEnteringKBserverProject; // used in OnIdle() to delay connection attempt until doc is displayed
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
 	bool	  m_bServDiscSingleRunIsCurrent;
@@ -3322,6 +3458,10 @@ public:
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
+	// Next two for opening Leon's little dialog for adding new users to user table
+	void	  OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event));
+	void      OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event);
+
 #endif
 #if !defined(_KBSERVER)
 	void	  OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
@@ -3332,9 +3472,8 @@ public:
 								// sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
-	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
-								  // or something like https://192.168.2.8 on a LAN
-	wxString	m_strKbServerHostname; // we support naming of the KBserver installations, BEEW added 13Apr16
+	wxString	m_strKbServerIpAddr; // for the server's ipAddr, something like 192.168.2.8 on a LAN
+	wxString	m_strKbServerHostname; // we support naming of the KBserver installations, BEW added 13Apr16
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
 									 // simultaneously if sharing both was requested
@@ -4630,6 +4769,26 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool m_bParatextIsRunning;
 	bool m_bCollaboratingWithParatext;
 	bool m_bCollaboratingWithBibledit;
+	// BEW 16Sep20 during collaboration, source text .txt file copies of the PT or BE
+	// source text grabbed from either, are deposited (unless user directs otherwise)
+	// in the project's _SOURCE_INPUTS folder - as 'archived temp files' which collab
+	// uses for mdfsums, milestoning comparisons, and whatever else. These, are not
+	// to be used for loading in with New... command - if a naive user did that and made
+	// a new document of them, the good .xml adapted document of the same name would be
+	// overwritten, losing all it's adaptations. Gotta prevent this. So I'm going to
+	// store the paths, when either of the two bools above a true, at the appropriate
+	// place in the app - which appears to be a CollabUtilities.cpp line 2294 just
+	// after the filePath is created (with the collab doc and .txt added at end).
+	// I'll store them in a wxArrayString dedicated to this task.
+	// Then, at OnExit() from the app, the array can be looked up in a loop, test for
+	// the file's existence in _SOURCE_INPUTS (don't need to worry if that folder is
+	// absent), and if there, use a file deletion function from wx, ::DeleteFile() I
+	// presume, to remove them from the folder. There is not reason for accumulating 
+	// them. By doing this when the above flags - one or both is true, I'll only be
+	// deleting the temporary session ones that are no longer wanted. Anything else
+	// my be there from work done outside collaboration mode, and should remain.
+	wxArrayString m_arrFilePathsToRemove;
+
 	// BEW 2Jul11, added next three booleans
 	bool m_bCollaborationExpectsFreeTrans;
 	bool m_bCollaborationDocHasFreeTrans;
@@ -5189,7 +5348,7 @@ public:
 	wxString m_consCheck_msg2; // The knowledge base entry is %s, the document does not agree
 
 	// For enhanced guesser rejection support
-	wxString m_preGuesserStr; // set it in CopySourceText() just before DoGuesser() is tried
+	wxString m_preGuesserStr; // set it in view's CopySourceKey() just before DoGuesser() is tried
 							  // and empty it when phrasebox moves for any reason BEW added 27Nov14
 
 	bool m_bXhtmlExportInProgress; // BEW 9Jun12

@@ -25172,20 +25172,20 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		if (bForeignAdaptingSharing && !bForeignGlossingSharing)
 		{
 			msg = _("The person who packed the document was sharing the adaptations knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else if (!bForeignAdaptingSharing && bForeignGlossingSharing)
 		{
 			msg = _("The person who packed the document was sharing the glossing knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else
 		{
 			// must have been sharing both kb types
 			msg = _("The person who packed the document was sharing both the adapting and the glossing knowledge bases to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}

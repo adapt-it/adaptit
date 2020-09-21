@@ -2627,10 +2627,12 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		// checks for a non-defined instance, and does nothing if so; otherwise, it
 		// deletes the KbServer instance from the heap, and sets its pointer to NULL
 		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
+/* Don't do this, it wipes out lots of stuff, instead, later check if they are running etc
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
 		gpApp->m_bIsGlossingKBServerProject = FALSE;
+*/
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_(
@@ -2726,13 +2728,13 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Allow the possibility that the project has never been a KB Sharing one
-	// and that a KBserver is running for which the user knows its URL (for example
-	// it might be on the web) and wants to setup using that URL; or maybe the
-	// project has been a KB sharing one, but the project configuration file does
-	// not currently store any ipaddress, but the user knows one that will work.
+	// and that a KBserver is running for which the user knows its ipAddress (for example
+	// it might be on the web) and wants to setup using that ipAddress; or maybe the
+	// project has been a KB sharing one, but the basic configuration file does
+	// not currently store any ipAddress, but the user knows one that will work.
 	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
 		(!gpApp->m_bIsKBServerProject || 
-		(gpApp->m_bIsKBServerProject && gpApp->m_strKbServerURL.IsEmpty())))
+		(gpApp->m_bIsKBServerProject && gpApp->m_strKbServerIpAddr.IsEmpty())))
 	{
 		event.Enable(TRUE);
 		return;
@@ -2740,7 +2742,7 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 
 	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
 		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty()) ||
-		!gpApp->m_strKbServerURL.IsEmpty())
+		!gpApp->m_strKbServerIpAddr.IsEmpty())
 	{
 		event.Enable(TRUE);
 		return;
@@ -2780,51 +2782,36 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
         result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
-		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
+		gpApp->m_theIpAddrs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
 								  // accumulates composites from service discovery
 		gpApp->m_theHostnames.Clear(); // ditto
 		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into 
-		// the individual arrays m_theURLs and m_theHostnames so these can be
+		// the individual arrays m_theIpAddrs and m_theHostnames so these can be
 		// displayed to the user
-		int counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
-										gpApp->m_theURLs, gpApp->m_theHostnames);
+		int counter = GetIpAddrAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
+										gpApp->m_theIpAddrs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
-		/*
-		#if defined(_DEBUG)
-		// Create some dummy data for display, for testing purposes
-		gpApp->m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
-		gpApp->m_theHostnames.Add(_T("Jonathans_kbserver"));
-		gpApp->m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
-		gpApp->m_theHostnames.Add(_T("AI-Team-KBserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.171"));
-		gpApp->m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.234"));
-		gpApp->m_theHostnames.Add(_T("Dell-Mini9"));
-		gpApp->m_theURLs.Add(_T("192.168.3.94"));
-		gpApp->m_theHostnames.Add(_T("kbserver-X1-Carbon"));
-		#endif
-		*/
-		// Set the app variables for chosen url and hostname, initializing
+		// Set the app variables for chosen ipAddr and hostname, initializing
 		// to the empty string first
-		gpApp->m_chosenUrl.Empty();
+		gpApp->m_chosenIpAddr.Empty();
 		gpApp->m_chosenHostname.Empty();
-		CServDisc_KBserversDlg dlg(this, &gpApp->m_theURLs, &gpApp->m_theHostnames);
+		CServDisc_KBserversDlg dlg(this, &gpApp->m_theIpAddrs, &gpApp->m_theHostnames);
 		dlg.Center();
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			gpApp->m_chosenUrl = dlg.m_urlSelected;
+			gpApp->m_chosenIpAddr = dlg.m_ipAddrSelected;
 			gpApp->m_chosenHostname = dlg.m_hostnameSelected;
 
-			if (gpApp->m_chosenUrl.IsEmpty())
+			if (gpApp->m_chosenIpAddr.IsEmpty())
 			{
 				// The user made no choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseNone;
+				result = SD_MultipleIpAddr_UserChoseNone;
 			}
 			else
 			{
 				// This is the user's choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseOne;
+				result = SD_MultipleIpAddr_UserChoseOne;
 			}
 		}
 		else
@@ -2832,9 +2819,9 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 			// Cancelled
 			if (dlg.m_bUserCancelled)
 			{
-				gpApp->m_chosenUrl.Empty();
+				gpApp->m_chosenIpAddr.Empty();
 				gpApp->m_chosenHostname.Empty();
-				result = SD_MultipleUrls_UserCancelled;
+				result = SD_MultipleIpAddr_UserCancelled;
 
 				// Since the user has deliberately chosen to Cancel, and the dialog
 				// has explained what will happen, no further message is needed here
@@ -2859,15 +2846,14 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 // a wxMessageBox() to display to the user what the current inventory of discovered
 // KBserver urls are, along with their (host)names
 // Returns the number of url/name pairs available at the time of the call
-int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
-					wxArrayString& urlsArray, wxArrayString& namesArray)
+int CMainFrame::GetIpAddrAndHostnameInventory(wxArrayString& compositesArray,
+					wxArrayString& ipAddrsArray, wxArrayString& namesArray)
 {
 
 	wxString anIpAddress;
 	wxString aHostname;
 	wxString aComposite;
-	wxString aURL;
-	urlsArray.clear();
+	ipAddrsArray.clear();
 	namesArray.clear();
 	int count = (int)compositesArray.GetCount(); // the array passed in is the app's m_ipAddrs_Hostnames one
 	int i;
@@ -2879,11 +2865,7 @@ int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
 			aHostname = wxEmptyString;
 			aComposite = compositesArray.Item(i);
 			gpApp->ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
-			//aURL = _T("https://") + anIpAddress; <<-- deprecated 23July20, we no longer use https,
-			// we can keep athe URL name and m_urls etc, but just understand these, for Leon's solution 
-			// are now strictly the ipAddresses only, on the LAN or PAN
-			aURL = anIpAddress;
-			urlsArray.Add(aURL);
+			ipAddrsArray.Add(anIpAddress);
 			namesArray.Add(aHostname);
 		}
 	}
@@ -2904,12 +2886,27 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
-wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
+wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostname)
 {
-	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.\n%s    %s\n The server name field is advisory, if <unknown> then ignore it.");
-	msg = msg.Format(msg, url.c_str(), hostname.c_str());
-	
-	wxString caption = _("Type the server's password");
+	wxString msg;
+	if (gpApp->m_bUseForeignOption)
+	{
+		msg = _("You are adding another person to the kbserver's user table.\nYou choose their Username, Informal Username, and password.\n The contents of the Edit menu's Choose Username... command is ignored.\nChoose a password now for this Username and type it below. Write down your choice.\nipAddress and hostname are: %s  &  %s\nYou must tell this user what choices you made for him, or her.");
+		msg = msg.Format(msg, ipAddr.c_str(), hostname.c_str());
+
+		gpApp->UpdateIpAddr(ipAddr);
+
+	}
+	else
+	{
+		msg = _("You are adding yourself ( %s ) to the kbserver's user table.\nYour Username is copied from the Edit menu's Choose Username... dialog.\nYour Informal Username ( %s ), copied from the same place, will also be included.\nChoose for yourself a password, and type it below.\nipAddress and hostname are: %s  &  %s\nYou must type a password - and remember it for later use. Write it down.");
+		msg = msg.Format(msg, gpApp->m_strUserID.c_str(), gpApp->m_strUsername.c_str(), ipAddr.c_str(), hostname.c_str());
+		// The following are known at this point, so save them in the 'normal' vars
+		gpApp->UpdateNormalIpAddr(ipAddr);
+		gpApp->UpdateCurNormalUsername(gpApp->m_strUserID);
+		gpApp->UpdateCurNormalFullname(gpApp->m_strUsername);
+	}
+	wxString caption = _("Type a suitable password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
@@ -2955,13 +2952,30 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 		// refrain from recording the password, that would introduce a vulnerability
 		strPwd = strPwd.Format(_T("GetPasswordFromUser(): A password was entered, of length: %d"), password.Len());
 		gpApp->LogUserAction(strPwd);
+
+		//BEW 20Aug20 added
+		if (gpApp->m_bUseForeignOption)
+		{
+			// store the password in app's string, m_strForeignPassword
+			gpApp->m_strForeignPassword = password;
+			// and in the associated updatable string vars
+			gpApp->UpdateCurAuthPassword(password);
+		}
+		else
+		{
+			// assume it's normal local user password, so let MainFrm.cpp store it
+			SetKBSvrPassword(password);
+			// and put in the updatable 'normal' string vars
+			gpApp->UpdateCurNormalPassword(password);
+		}
+		// End 20Aug20 addition
 	}
 	else
 	{
-		// No password - go back to the previous dialog where the url & username are 
-		// entered, so the user can either Cancel from there, or change url, or change 
-		// the username
-		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change url or username, or cancel the setup"));
+		// Empty password - go back to the previous dialog where the ipAddress & username are 
+		// entered, so the user can either Cancel from there, or change ipAddress, or change 
+		// the username, or change the password, and try again
+		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change ipAddress or username, or cancel the setup"));
 	}
 	return password;
 }
@@ -3525,7 +3539,15 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
             if (pShareMgrMenuItem)
 			    pShareMgrMenuItem->Enable(FALSE);
 		}
-	}
+
+		// BEW 3Aug20 and also disable the "Add Users to KBserver" command
+		if (pApp->m_bShowAdministratorMenu)
+		{
+			wxMenuBar* pMenuBar = GetMenuBar();
+			wxMenuItem* pAddUsersMenuItem = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
+			if (pAddUsersMenuItem)
+				pAddUsersMenuItem->Enable(FALSE);
+		}
 #endif
 #if defined(_DEBUG)
 	// BEW 11Oct19, Try dynamically adding the developer's debug-mode only wxMenuItem here,
@@ -4410,15 +4432,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		bool bUserCancelled;
 
 		// The purpose of this dialog is to present the user with two radiobuttons,
-		// whereby he can declare "I want to get the URL by means of using service
+		// whereby he can declare "I want to get the ipAddress by means of using service
 		// discovery results -- if necessary, service discovery should have been done
-		// earlier, or at least a login to a KBserver which gets a URL stored without
-		// actually doing a service discovery - using a config file URL value and there
-		// happens to be the correct KBserver running on the LAN); or, " I don't want
-		//  service discovery - I'll type a URL myself (because, presumably, the URL
-		// is to a KBserver running somewhere in the world and accessible over the web)
+		// earlier, or at least a login to a KBserver which gets an ipAddress stored without
+		// actually doing a service discovery - using a basic config file ipAddress value and
+		// there happens to be the correct KBserver running on the LAN); or, "I don't want
+		// service discovery - I'll type an ipAddress myself (because, presumably, the ipAddr
+		// is to a KBserver running somewhere on the LAN or PAN).
 		// If service discovery is wanted, the dialog sets m_bServiceDiscoveryWanted
 		// to TRUE (it's a boolean member of the CAdapt_ItApp class)
+		// Note: the user never sees the code details, so the legacy class name is retained
+		// for simplicity; but now it deals with ipAddresses, not U R Ls
 		dlgReturnCode = modalHowGetUrl.ShowModal();
 		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
 		// user's chosen value; Cancelling, however, cancels from setting up sharing

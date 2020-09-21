@@ -217,6 +217,37 @@ n:
 		goto n;
 }
 
+// BEW added 25Aug20 to enable waitDlg to persist long enough for user to read
+void DoMessageDelay(int hundredths)
+{
+	// set up a time delay loop, according to the m_nCurDelay value (1/100ths sec)
+	wxDateTime startTime;
+	startTime.SetToCurrent(); // need to initialize or get run-time error
+
+	int millisecsStart = startTime.GetMillisecond();
+	int secsStart = startTime.GetSecond();
+	int nSpan = hundredths * 10; // convert hundredths to milliseconds
+	wxDateTime currentTime;
+
+	// work out the time to be elapsed before breaking out of loop
+	int newmillisecs = millisecsStart + nSpan;
+	int endsecs = secsStart + newmillisecs / 1000; // same or up to 3 seconds larger
+	int endMsecs = newmillisecs % 1000; // modulo operator, to get remainder millisecs
+	if (endsecs > secsStart)
+	{
+		// the delay will take us into the next second's interval
+	m:					//_ftime(&currentTime);
+		currentTime.SetToCurrent();
+		if (currentTime.GetSecond() < endsecs)
+			goto m; // loop till we get to the final second's interval
+	}
+	// loop for the remaining milliseconds in the delay
+n:
+	currentTime.SetToCurrent();
+	if (currentTime.GetSecond() == endsecs && currentTime.GetMillisecond() <= endMsecs)
+		goto n;
+}
+
 //////////////////////////////////////////////////////////////
 /// \return nothing
 /// \remarks
@@ -10822,6 +10853,7 @@ wxMemorySize MacGetFreeMemory()
 /// elects to retain one or more NOCODE values, we accept them.
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
 {
+	/* BEW 5Sep20, no longer needed, remove
 	bUserCancelled = FALSE; // default
 	// The next test tests yields TRUE if a wanted code has its app storage member for it
 	// empty, or the NOCODE ("qqq") is currently in the app storage member and that member
@@ -10936,6 +10968,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 		gpApp->m_glossesLanguageCode = glossCode;
 		gpApp->m_freeTransLanguageCode = freeTransCode;
 	}
+*/
 	return TRUE;
 }
 
@@ -10989,7 +11022,7 @@ bool CheckUsername()
 		else
 		{
 			// user cancelled, so restore the saved original values & return FALSE
-			pApp->m_strUsername = saveUserID;
+			pApp->m_strUserID = saveUserID;
 			pApp->m_strUsername = saveInformalUsername;
 			return FALSE;
 		}
@@ -11028,11 +11061,11 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password)
 	return digestPassword;
 }
 
-bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
+bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
 					wxString srcLangCode, wxString tgtLangCode, int kbType)
 {
     // This function can be called before the app member pointers, m_pKbServer[0] and
-    // m_pKbServer[1] are instantiated, so we have to pass in the url, username, password
+    // m_pKbServer[1] are instantiated, so we have to pass in the ipAddress, username, password
     // and other params in order to be able to call KbServer::LookupSingleKb(). We must
     // temporarily set up a KbServer instance (type = 1 will do, since a parallel glossing
     // instance is always created or removed together with the adapting one), use the
@@ -11043,7 +11076,7 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
     // TRUE only if there is an adapting shared KB listed in the server's kb table. We
     // return the value of bMatchedKB.
 	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForSharedKbInKbServer.\nThe existence of the remote shared knowledge base could not be checked for, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
+	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\n so KB sharing is OFF.");
 	wxString title = _T("KbServer error");
 	//CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -11062,13 +11095,12 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 		return FALSE;
 	}
 	bool bMatchedKB = FALSE; // initialize
-	int cURLerror = pKbSvr->LookupSingleKb(url,username,password,srcLangCode,tgtLangCode,kbType,bMatchedKB);
-	if (cURLerror > CURLE_OK)
+	int error = pKbSvr->LookupSingleKb(ipAddr,username,password,srcLangCode,tgtLangCode,kbType,bMatchedKB);
+	if (error > 0)
 	{
 		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should treat the 404 not found, (reinterpretted
-		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
-		// message for a kb which was not found in the kb table
+		// debug mode. The Release version should > 0 as TRUE, and the caller can give
+		// the appropriate message for a kb which was not found in the kb table
 #if defined(_DEBUG)
 		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
 #endif
@@ -11091,25 +11123,25 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 }
 
 // checks app's string member m_strUserID is in entry table of kbserver
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password)
+bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password)
 {
 	// This function can be called before the app member pointers, m_pKbServer[0] and
-	// m_pKbServer[1] are instantiated, so we have to pass in the url, username and
+	// m_pKbServer[1] are instantiated, so we have to pass in the ipAddr, username and
 	// password in order to be able to call KbServer::LookupUser(). We must temporarily
 	// set up a KbServer instance, use the LookupUser() member, and pass the result back
 	// to the caller after deleting the temporary KbServer instance
 	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForValidUsernameForKbServer .\nThe username could not be checked for validity, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
+	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\n so KB sharing is OFF.");
 	wxString title = _T("KbServer error");
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 	// Instantiate an adaptation KbServer instance -- doesn't matter which type we use, but
-    // we'll use the 'adaptations' one, however we use a stateless constructor which omits
+    // we'll use the 'adaptations' one, however we use a 'ForManager' constructor which omits
     // trying to find currently loaded adapting and glossing local KBs, because we can do
 	// the username validation when no project is open (and so no local KB is loaded yet) -
 	// for example, when the administrator is wanting to access the KB Sharing Manager gui
 	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1,TRUE); // 1 is an adaptations one, TRUE means "it is stateless"
+	pKbSvr = new KbServer(1,TRUE); // 1 is an adaptations one, TRUE is bForManager in signature
 	// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (pKbSvr == NULL)
 	{
@@ -11119,26 +11151,25 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
 #endif
 		msg = msg; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = FALSE;
+		pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 it's now always TRUE
 		pApp->m_kbserver_useradmin = FALSE;
 		return FALSE;
 	}
 #if defined(_DEBUG)
-		wxLogDebug(_T("CheckForVaidUsernameForKbServer() url = %s , username = %s , password = %s"), url.c_str(), username.c_str(), password.c_str());
+		wxLogDebug(_T("CheckForValidUsernameForKbServer() ipAddr = %s , username = %s , password = %s"), ipAddr.c_str(), username.c_str(), password.c_str());
 #endif
 
-	int cURLerror = pKbSvr->LookupUser(url,username,password,username);
-	if (cURLerror > CURLE_OK)
+	int error = pKbSvr->LookupUser(ipAddr,username,password,username);
+	if (error > 0)
 	{
 		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should treat the 404 not found, (reinterpretted
-		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
-		// message for a username which was not found in the user table
+		// debug mode. The Release version should > 0 as simply a FALSE, and the caller
+		// can give the appropriate message for a username which was not found in the user table
 #if defined(_DEBUG)
 		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
 #endif
 		msg1 = msg1; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = FALSE;
+		pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 it's now always TRUE
 		pApp->m_kbserver_useradmin = FALSE;
 		pKbSvr->ClearUserStruct();
 		delete pKbSvr;
@@ -11152,15 +11183,15 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	// m_kbserver_kbadmin and m_kbserver_useradmin booleans
 	if (theUsername == username)
 	{
-		pApp->m_kbserver_kbadmin = astruct.kbadmin;
-		pApp->m_kbserver_useradmin = astruct.useradmin;
+		pApp->m_kbserver_kbadmin = astruct.kbadmin;  // see AI.h lines 2208 <<-- always TRUE now
+		pApp->m_kbserver_useradmin = astruct.useradmin; // see 2207
 		// cleanup
 		pKbSvr->ClearUserStruct();
 		delete pKbSvr;
 		return TRUE;
 	}
 	// Unmatched username, so set privilege level to safest (i.e. minimal)
-	pApp->m_kbserver_kbadmin = FALSE;
+	pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 always TRUE now
 	pApp->m_kbserver_useradmin = FALSE;
 	// cleanup
 	pKbSvr->ClearUserStruct();
@@ -11168,7 +11199,7 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	return FALSE;
 }
 
-void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
 		bool& saveSharingGlossesFlag, bool bJustRestore)
 {
@@ -11192,8 +11223,8 @@ void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnam
 	pApp->m_bIsKBServerProject = FALSE;
 	pApp->m_bIsGlossingKBServerProject = FALSE;
 
-	// Restore the earlier settings for url, username & password
-	pApp->m_strKbServerURL = saveOldURLStr;
+	// Restore the earlier settings for ipAddr, username & password
+	pApp->m_strKbServerIpAddr = saveOldIpAddrStr;
 	pApp->m_strKbServerHostname = saveOldHostnameStr;
 	pApp->m_strUserID = saveOldUsernameStr;
 	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
@@ -11201,7 +11232,7 @@ void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnam
 	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
 }
 
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
 		bool& saveSharingGlossesFlag)
 {
@@ -11216,7 +11247,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 	pApp->m_bIsGlossingKBServerProject = FALSE;
 
 	// Restore the earlier settings for url, username & password
-	pApp->m_strKbServerURL = saveOldURLStr;
+	pApp->m_strKbServerIpAddr = saveOldIpAddrStr;
 	pApp->m_strKbServerHostname = saveOldHostnameStr;
 	pApp->m_strUserID = saveOldUsernameStr;
 	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
@@ -11228,34 +11259,34 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 {
 	// Prepare an error message in case it is needed
 	wxString title = _("Unsuccessful connection attempt");
-	wxString msg = _("Tried to connect to the KBserver with URL: %s\nand name: %s but failed.\n Use the command \"Discover KBservers\", and then re-try to connect using\n\"Setup Or Remove Knowledge Base Sharing\"");
-	msg = msg.Format(msg, pApp->m_strKbServerURL.c_str(), pApp->m_strKbServerHostname.c_str());
+	wxString msg = _("Tried to connect to the KBserver with ipAddr: %s\nand name: %s but failed.\n Use the command \"Discover KBservers\", and then re-try to connect using\n\"Setup Or Remove Knowledge Base Sharing\"");
+	msg = msg.Format(msg, pApp->m_strKbServerIpAddr.c_str(), pApp->m_strKbServerHostname.c_str());
 	pApp->m_bUserLoggedIn = FALSE; // initialize
 
 
 	// In next call, FALSE is: bool bServiceDiscoveryWanted
 	// When we enter the project via the wizard (as we must) and it is one which
-	// the project config file says is a KB Sharing project, then that config file
-	// should have the url and hostname for the KBserver last logged in to. We
+	// the project config file says is a KB Sharing project, the basic config file
+	// should have the ipAddr and hostname for the KBserver last logged in to. We
 	// will try to log in with the old credentials, since service discovery will
 	// not at this point have had a change to be run and to discover any running
 	// KBservers. We assume must users will run the one KBserver before the session,
-	// and that it will have the same url each time. If the url is wrong, we let
+	// and that it will have the same ipAddr each time. If the ipAddr is wrong, we let
 	// the connection attempt fail (returning FALSE) and indicate that sharing has
 	// been turned off. If instead we succeed in connecting, then that proves the
-	// last used url is still valid and its KBserver is running - so we add the
+	// last used ipAddr is still valid and its KBserver is running - so we add the
 	// relevant data (a 'compositeStr' of form <ipaddress>@@@<hostname>)
 	// to app::m_ipAddrs_Hostnames array, as if a service discovery run had been
 	// made and succeeded in discovering that running KBserver.
 	// We run this AuthenticateEtcWithoutServiceDiscovery() function, not from
 	// ProjectPage::OnWizardPageChanging() as that would display the authentication
-	// dialog in the middle of the process of going in the wizard from project to
+	// dialog in the middle of working through the wizard, from project to
 	// and open document; but rather we just there set a boolean,
 	// CAdapt_ItApp::m_bEnteringKBserverProject to TRUE, and use that to call this 
 	// function from CMainFrame's OnIdle() handler - providing it's an adaptations
 	// or glosses sharing project. Its dialog will appear just after the document
 	// is laid out
-	if (pApp->m_strKbServerURL.IsEmpty())
+	if (pApp->m_strKbServerIpAddr.IsEmpty())
 	{
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		pApp->m_bUserLoggedIn = FALSE;
@@ -11268,23 +11299,16 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	{
 		pApp->m_bUserLoggedIn = TRUE; // if we don't set this, there are circumstances
 				// where the Controls For K B Sharing command will be disabled
-		if (!pApp->m_strKbServerURL.IsEmpty())
+		if (!pApp->m_strKbServerIpAddr.IsEmpty())
 		{
-			wxString url = pApp->m_strKbServerURL;
+			wxString ipAddress = pApp->m_strKbServerIpAddr;
 
-			wxLogDebug(_T("helpers.cpp 10,921: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+			wxLogDebug(_T("helpers.cpp line= %s: app's m_ipAdds_Hostnames entry count = %d"), 
+				__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 
-			// Don't proceed to store it if the same url is already stored within the array
-			if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
+			// Don't proceed to store it if the same ipAddr is already stored within the array
+			if (IsIpAddrStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerIpAddr))
 			{
-				wxLogDebug(_T("helpers.cpp 10,926: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
-				wxString protocol = _T("https://");
-				int len = protocol.Len();
-				int offset = url.Find(protocol);
-				if (offset == 0)
-				{
-					ipaddress = url.Mid(len);
-				}
 				wxASSERT(!ipaddress.IsEmpty());
 				wxString compositeStr = ipaddress + _T("@@@");
 				compositeStr += pApp->m_strKbServerHostname;
@@ -11292,7 +11316,8 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 			}
 			pApp->m_bLoginFailureErrorSeen = FALSE;
 			pApp->m_bUserLoggedIn = TRUE;
-			wxLogDebug(_T("helpers.cpp 10,941: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+			wxLogDebug(_T("helpers.cpp line = %d AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"),
+				__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 			return TRUE;
 		}
 		else
@@ -11327,7 +11352,7 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	return FALSE;
 }
 
-bool IsURLStoreable(wxArrayString* pArr, wxString& url)
+bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr)
 {
 	if (pArr->IsEmpty())
 	{
@@ -11335,32 +11360,23 @@ bool IsURLStoreable(wxArrayString* pArr, wxString& url)
 		// so return TRUE
 		return TRUE;
 	}
-	wxString strNoProtocol = url; // the url will, of course, have an initial https://
-						   // that we will need to strip off before doing a Find()
+	wxString strNoProtocol = ipAddr; 
 	size_t count = pArr->GetCount();
 	size_t index;
 	int offset = wxNOT_FOUND;
-	offset = strNoProtocol.Find(_T("//"));
-	if (offset == 0)
+	// strNoProtocol has just the ipAddress
+	for (index = 0; index < count; index++)
 	{
-		strNoProtocol = strNoProtocol.Mid(offset + 2);
-		// strNoProtocol should now have just the ipaddress part
-		for (index = 0; index < count; index++)
+		wxString anIpAddr = pArr->Item(index);
+		offset = anIpAddr.Find(strNoProtocol);
+		if (offset >= 0)
 		{
-			wxString aURL = pArr->Item(index);
-			offset = aURL.Find(strNoProtocol);
-			if (offset >= 0)
-			{
-				// We have matched the passed in url, so it is not storeable
-				return FALSE;
-			}
+			// We have matched the passed in ipAddr, so it is not storeable
+			return FALSE;
 		}
-		// If control gets to here, there were no matches, so it is storable
-		return TRUE;
 	}
-	// If control gets to here, the passed in string's structure is not correct
-	// for a url, and so declare the string 'not storable'
-	return FALSE;
+	// If control gets to here, there were no matches, so it is storable
+	return TRUE;
 }
 
 // The following function encapsulates KBserver service discovery, authentication to a running
@@ -11370,10 +11386,10 @@ bool IsURLStoreable(wxArrayString* pArr, wxString& url)
 // Use this function only when the user is authenticating. Authentication to the KB Sharing
 // Manager requires a different function (see below). bServiceDiscoveryWanted is set or cleared
 // in the OnOK() handler of KbSharing Setup instance, where the options are the default - to
-// let service discovery search on the LAN for a KBserver, or the user knows a URL and elects
+// let service discovery search on the LAN for a KBserver, or the user knows an ipAddr and elects
 // to type it in (if not shown from last-used stored value on basic config file). If he elects
 // to let discovery happen, KBSharingAuthenticationDlg will hide the top multiline message in
-// the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
+// the Authenticate dialog as it applies only when the user is doing a manual type in of the ipAddr
 // Returns TRUE for success, FALSE if there was an error
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted)
 {
@@ -11393,7 +11409,12 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
 
 	// BEW 11Jan16, save these five, so we can restore them if some kind of failure happens
-	pApp->m_saveOldURLStr = pApp->m_strKbServerURL;
+	pApp->m_saveOldIpAddrStr = pApp->m_chosenIpAddr; // should have valid ipAddr if manual discovery just done
+	if (!pApp->m_chosenIpAddr.IsEmpty())
+	{
+		pApp->m_curNormalIpAddr = pApp->m_chosenIpAddr; // make sure these have it too
+		pApp->m_curIpAddr = pApp->m_chosenIpAddr;
+	}
 	pApp->m_saveOldHostnameStr = pApp->m_strKbServerHostname;
 	pApp->m_saveOldUsernameStr = pApp->m_strUserID;
 	pApp->m_savePassword = pFrame->GetKBSvrPassword();
@@ -11410,7 +11431,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 								  // to the Manager dlg
 	wxString existingPassword = pFrame->GetKBSvrPassword();
 	bPasswordExists = existingPassword.IsEmpty() ? FALSE : TRUE;
-	bool bShowUrlAndUsernameDlg = TRUE; // initialize to the most likely situation
+	bool bShowIpAddrAndUsernameDlg = TRUE; // initialize to the most likely situation
 	bool bShowPasswordDlgOnly = FALSE;  // initialize
 	bool bAutoConnectKBSvr = FALSE;     // initialize
 
@@ -11477,7 +11498,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	}
 
     // If an adapting or glossing (or both) KBserver is wanted, do service
-	// discovery of _kbserver._tcp.local. and if found, get its URL, and then check
+	// discovery, and if found, get its ipAddr, and then check
 	// language codes and username and if all is well, login and set up the sharing
 	// instance or instances KbServer[0] and/or KbServer[1]
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
@@ -11487,11 +11508,11 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 			bool bSimulateUserCancellation = FALSE; // initialize
 			bool bSetupKBserverFailed = FALSE; // initialize
 
-			// The user wants to manually type the url -- possibly for a web-based KBserver.
-			// For this option, we can't assume the old URL will be valid - but we'll show it
+			// The user wants to manually type the ipAddr -- possibly for a web-based KBserver.
+			// For this option, we can't assume the old ipAddr will be valid - but we'll show it
 			// nevertheles, but with a message above to warn the user it could be incorrect.
 			// We also can't assume the password, which may be already stored in the frame
-			// member within this session, is going to be the one required for whatever URL
+			// member within this session, is going to be the one required for whatever ipAddr
 			// gets typed in. We can only assume the username is correct, but it will be
 			// checked in the KBSharingAuthenticationDlg dialog's OnOK() handler
 			KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
@@ -11509,7 +11530,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				if (dlg.m_bError)
 				{
 					pApp->m_bLoginFailureErrorSeen = TRUE;
-					goto bad2; // at line 11160
+					goto bad2; 
 				}
                 // We want valid codes for source and target if sharing the adaptations KB,
                 // and for source and glosses languages if sharing the glossing KB.
@@ -11525,7 +11546,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr, 
+						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
 							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
@@ -11541,7 +11562,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr, 
 							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
 							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
 							pApp->m_saveSharingGlossesFlag);
@@ -11556,7 +11577,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				{ // 3
 
 				// Shut down the old settings, and reestablish connection using the new
-				// settings (this may involve a url change to share using a different KBserver)
+				// settings (this may involve an ipAddr change to share using a different KBserver)
 				pApp->ReleaseKBServer(1); // the adaptations one
 				pApp->ReleaseKBServer(2); // the glossing one
 				pApp->m_bIsKBServerProject = FALSE;
@@ -11609,27 +11630,26 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
 
-					wxLogDebug(_T("helpers.cpp 11,255: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+					wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"),
+						__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 
-					// Don't proceed to store it if the same url is already stored within the array
-					if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
+					// Don't proceed to store it if the same ipAddr is already stored within the array
+					if (IsIpAddrStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerIpAddr))
 					{
-						wxLogDebug(_T("helpers.cpp 11,250: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
-						// Since the URL is okay, construct the composite string and .Add() it to the
+						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), 
+							__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
+						// Since the ipAddr is okay, construct the composite string and .Add() it to the
 						// app's m_ipAddrs_Hostnames array
 						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to 
 						// the CServiceDiscovery instance
-						wxString composite = pApp->m_strKbServerURL;
-						int offset = composite.Find(_T("://"));
-						if (offset > 0)
-						{
-							composite = composite.Mid(offset + 3); // retain what follows //
-							wxString defaultHostname = _("unknown");
-							wxString ats = _T("@@@");
-							composite += ats + defaultHostname;
-							pApp->m_ipAddrs_Hostnames.Add(composite);
-						}
-						wxLogDebug(_T("helpers.cpp 11,275: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+						wxString composite = pApp->m_strKbServerIpAddr;
+						wxString defaultHostname = _("unknown");
+						wxString ats = _T("@@@");
+						composite += ats + defaultHostname;
+						pApp->m_ipAddrs_Hostnames.Add(composite);
+						
+						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), 
+							__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 					}
 				} // 3
 				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
@@ -11637,24 +11657,18 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					pApp->GetKbServer(2)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
 
-					// Don't proceed to store it if the same url is already stored within the array
-					if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
+					// Don't proceed to store it if the same ipAddr is already stored within the array
+					if (IsIpAddrStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerIpAddr))
 					{
-						// Since the URL is okay, construct the composite string and .Add() it to the
+						// Since the ipAddr is okay, construct the composite string and .Add() it to the
 						// app's m_ipAddrs_Hostnames array
 						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to
 						// the CServiceDiscovery instance
-						wxString composite = pApp->m_strKbServerURL;
-						int offset = composite.Find(_T("://"));
-						if (offset > 0)
-						{
-							composite = composite.Mid(offset + 3); // retain what follows //
-							wxString defaultHostname = _("unknown");
-							wxString ats = _T("@@@");
-							composite += ats + defaultHostname;
-							pApp->m_ipAddrs_Hostnames.Add(composite);
-
-						}
+						wxString composite = pApp->m_strKbServerIpAddr;
+						wxString defaultHostname = _("unknown");
+						wxString ats = _T("@@@");
+						composite += ats + defaultHostname;
+						pApp->m_ipAddrs_Hostnames.Add(composite);
 					}
 				} // 3
 
@@ -11664,13 +11678,13 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 
 			else if (dlgReturnCode == wxID_CANCEL)
 			{ // 2
-				// User Cancelled the authentication, so the old url, username and
+				// User Cancelled the authentication, so the old ipAddr, username and
 				// password have been restored to their storage in the app and
 				// frame window instance; so it remains only to restore the old
-				// flag values. TRUE param is bJustRestore (the url, username and
+				// flag values. TRUE param is bJustRestore (the ipAddr, username and
 				// password). The function always sets m_bIsKBServerProject and
 				// m_bIsGlossingKBServerProject to FALSE
-bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr, 
+bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
 					pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 				bSetupKBserverFailed = TRUE;
@@ -11681,10 +11695,10 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 			{  // 2
 				// User clicked OK button but in the OnOK() handler, premature return was
 				// asked for most likely due to an empty password submitted or a Cancel
-				// from within one of the lower level calls, or there was a error, such as
-				// a cURL error saying that the connection could not be made, etc. So allow
-				// retry, or a change to the settings, or a Cancel button press at this
-				// level instead (the Authenticate dialog includes a Cancel button, pressing
+				// from within one of the lower level calls, or there was a error saying 
+				// that the connection could not be made, etc. So allow retry, or a change 
+				// to the settings, or a Cancel button press at this level instead (the 
+				// Authenticate dialog includes a Cancel button, pressing
 				// it makes the project not be a sharing one for adapting or glossing kbs)
 				goto here2; // <<-- back to showing the dialog window
 			} // 1
@@ -11710,14 +11724,14 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 		{
 			// BEW 11Jan16. This is the appropriate place for having
 			// ConnectUsingDiscoveryResults() and its subsequent code. Prior to this, the flag or
-			// flags being TRUE meant that a URL was stored on the basic config file
+			// flags being TRUE meant that an ipAddr was stored on the basic config file
 			// (all other KBserver related config params are in the project config
 			// file) - so all we needed to do here was give the correct password in the
-			// password dialog. But that assumed the URL is still the same (and that
+			// password dialog. But that assumed the ipAddr is still the same (and that
 			// assumption is easily violated by other computers being added or removed
 			// from the LAN). Putting service discovery here will catch the changes,
 			// and give the user guidance about how to proceed to connect; and if an
-			// automatic connection is possible (it should be if the url has not
+			// automatic connection is possible (it should be if the ipAddr has not
 			// changed, and there is a stored password available within this session)
 			// then it can be done. Any failures should not result in a return from 
 			// this wizard function, but just cancellation of the sharing setup.
@@ -11728,34 +11742,33 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 			bool bSimulateUserCancellation = FALSE; // initialize
 			bool bSetupKBserverFailed = FALSE; // initialize
 
-			// ConnectUsingDiscoveryResults() internally creates an instantiation of the ServiceDiscovery
-			// class. Internally it uses the wxServDisc class to get the work done. That in
-			// turn uses lower level C functions. The pointer CAdapt_ItApp::m_pServDisc points
+			// ConnectUsingDiscoveryResults() internally creates an instantiation of the 
+			// ServiceDiscovery class. The pointer CAdapt_ItApp::m_pServDisc points
 			// to the ServiceDiscovery instance and is non-NULL while the service discovery
 			// runs, but when it is shut down, that pointer needs to again be set to NULL
-			wxString curURL = pApp->m_strKbServerURL;
-			wxString chosenURL = _T("");
+			wxString curIpAddr = pApp->m_strKbServerIpAddr;
+			wxString chosenIpAddr = _T("");
 			wxString chosenHostname = _T("");
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = pApp->ConnectUsingDiscoveryResults(curURL, chosenURL, chosenHostname, returnedValue);
+			bool bOK = pApp->ConnectUsingDiscoveryResults(curIpAddr, chosenIpAddr, chosenHostname, returnedValue);
 			if (bOK)
 			{
-				// Got a URL to connect to
+				// Got an ipAddress to connect to
 				wxASSERT((returnedValue != SD_NoKBserverFound) && (returnedValue != SD_ServiceDiscoveryError) && (
-					returnedValue == SD_SameUrlAsInConfigFile ||
-					returnedValue == SD_UrlDiffers_UserAcceptedIt ||
-					returnedValue == SD_SingleUrl_UserAcceptedIt ||
-					returnedValue == SD_MultipleUrls_UserChoseOne));
+					returnedValue == SD_SameIpAddrAsInConfigFile ||
+					returnedValue == SD_IpAddrDiffers_UserAcceptedIt ||
+					returnedValue == SD_SingleIpAddr_UserAcceptedIt ||
+					returnedValue == SD_MultipleIpAddr_UserChoseOne));
 
-				// Make the chosen URL accessible to authentication (this is the hookup location
-				// of the service discovery's url to the earlier KBserver GUI code) for this situation
-				pApp->m_strKbServerURL = chosenURL;
+				// Make the chosen ipAddr accessible to authentication (this is the hookup location
+				// of the service discovery's ipAddr to the earlier KBserver GUI code) for this situation
+				pApp->m_strKbServerIpAddr = chosenIpAddr;
 				pApp->m_strKbServerHostname = chosenHostname;
-				if (!pApp->m_strUserID.IsEmpty() && returnedValue == SD_SameUrlAsInConfigFile)
+				if (!pApp->m_strUserID.IsEmpty() && returnedValue == SD_SameIpAddrAsInConfigFile)
 				{
-					// If same url, then autoconnect if there is a password stored;
+					// If same ipAddress, then autoconnect if there is a password stored;
 					// if no stored password, then just ask for that.
-					bShowUrlAndUsernameDlg = FALSE; // no need for it
+					bShowIpAddrAndUsernameDlg = FALSE; // no need for it
 					if (bPasswordExists)
 					{
 						bShowPasswordDlgOnly = FALSE;
@@ -11767,12 +11780,12 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 						bAutoConnectKBSvr = FALSE;
 					}
 				}
-				else if (returnedValue == SD_UrlDiffers_UserAcceptedIt ||
-						 returnedValue == SD_SingleUrl_UserAcceptedIt ||
-					     returnedValue == SD_MultipleUrls_UserChoseOne)
+				else if (returnedValue == SD_IpAddrDiffers_UserAcceptedIt ||
+						 returnedValue == SD_SingleIpAddr_UserAcceptedIt ||
+					     returnedValue == SD_MultipleIpAddr_UserChoseOne)
 				{
-					// show Authenticate dlg, with url & username dlg & password field
-					bShowUrlAndUsernameDlg = TRUE;
+					// show Authenticate dlg, with ipAddr & username dlg & password field
+					bShowIpAddrAndUsernameDlg = TRUE;
 					bShowPasswordDlgOnly = FALSE;
 				}
 			} // end of TRUE block for test: if (bOK)
@@ -11783,27 +11796,27 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 				// cancellation), or user cancelled, etc
 				wxASSERT(returnedValue == SD_NoResultsYet ||
 					returnedValue == SD_NoKBserverFound ||
-					returnedValue == SD_SingleUrl_UserCancelled ||
+					returnedValue == SD_SingleIpAddr_UserCancelled ||
 					returnedValue == SD_ServiceDiscoveryError ||
 					returnedValue == SD_NoResultsAndUserCancelled ||
-					returnedValue == SD_SingleUrl_ButNotChosen ||
-					returnedValue == SD_MultipleUrls_UserCancelled ||
-					returnedValue == SD_MultipleUrls_UserChoseNone ||
+					returnedValue == SD_SingleIpAddr_ButNotChosen ||
+					returnedValue == SD_MultipleIpAddr_UserCancelled ||
+					returnedValue == SD_MultipleIpAddr_UserChoseNone ||
 					returnedValue == SD_ValueIsIrrelevant
 					);
 				pApp->m_bLoginFailureErrorSeen = TRUE;
                 // If nothing was found, there may be several reasons. Advise the user.
 				// But a connection at this point cannot be had from service discovery
-				// results, so turn sharing off. User can try again, or can type a url
+				// results, so turn sharing off. User can try again, or can type an ipAddr
 				// manually after electing not to use service discovery.
 				if (returnedValue == SD_NoKBserverFound || returnedValue == SD_NoResultsYet)
 				{
 					// Defeat! Tell use what might be the problem (be sure to leave
-					// pApp->m_strKbServerURL unchanged)
+					// pApp->m_strKbServerIpAddr unchanged)
 					wxString error_msg = _("No KBserver is running on the local area network yet. Or possibly you forgot to set a KBserver running. Or maybe the machine hosting the KBserver has lost power.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
+                    wxMessageBox(error_msg, _("A KBserver was not discovered"), wxICON_WARNING | wxOK);
 				} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
 
 				// An error message will have been seen already; so just treat this as a cancellation
@@ -11812,9 +11825,8 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 				pApp->m_bIsKBServerProject = FALSE;
 				pApp->m_bIsGlossingKBServerProject = FALSE;
 
-				// Restore the earlier settings for url, username & password
-				pApp->m_strKbServerURL = pApp->m_saveOldURLStr;
-				pApp->m_strKbServerHostname = pApp->m_saveOldHostnameStr;
+				// Restore the earlier settings for ipAddr, username & password
+				pApp->m_strKbServerIpAddr = pApp->m_saveOldIpAddrStr;
 				pApp->m_strKbServerHostname = pApp->m_saveOldHostnameStr;
 				pApp->m_strUserID = pApp->m_saveOldUsernameStr;
 				pApp->GetMainFrame()->SetKBSvrPassword(pApp->m_savePassword);
@@ -11831,9 +11843,9 @@ bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 
 			if (bServiceDiscoverySucceeded)
 			{
-				if (bShowUrlAndUsernameDlg == TRUE)
+				if (bShowIpAddrAndUsernameDlg == TRUE)
 				{
-					// Authenticate to the server. Authentication also chooses, via the url provided or
+					// Authenticate to the server. Authentication also chooses, via the ipAddr provided or
 					// typed, which particular KBserver we connect to - there may be more than one available
 					KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating);
 					dlg.Center();
@@ -11845,8 +11857,8 @@ here:				dlgReturnCode = dlg.ShowModal();
 						{
 							pApp->m_bLoginFailureErrorSeen = TRUE;
 							pApp->m_bUserLoggedIn = FALSE;
-							gpApp->LogUserAction(_T("AuthenticationCheckAndSetupKBSharing() error. Bad username or username lookup failure"));
-							goto bad; // An error was seen, so just treat as a Cancel, bad: is below at line 11621
+							gpApp->LogUserAction(_T("AuthenticationCheckAndSetupKBSharing() error. Bad ipAddr or username lookup failure"));
+							goto bad; // An error was seen, so just treat as a Cancel, bad: is below
 						}
 						// Since KBSharingSetup.cpp uses the above KBSharingstatelessSetupDlg, we
 						// have to ensure that MainFrms's m_kbserverPassword member is set. Also...
@@ -11870,7 +11882,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 							{
 								// We must assume the src/tgt codes are wrong or incomplete, or that the
 								// user has changed his mind about KB Sharing being on - so turn it off
-								HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+								HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 									pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 									pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
@@ -11886,7 +11898,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 							{
 								// We must assume the src/gloss codes are wrong or incomplete, or that the
 								// user has changed his mind about KB Sharing being on - so turn it off
-								HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr,
+								HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr,
 									pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
 									pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
 									pApp->m_saveSharingGlossesFlag);
@@ -11900,7 +11912,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 						if (!bSimulateUserCancellation)
 						{
 							// Shut down the old settings, and reestablish connection using the new
-							// settings (this may involve a url change to share using a different KBserver)
+							// settings (this may involve an ipAddr change to share using a different KBserver)
 							pApp->ReleaseKBServer(1); // the adaptations one
 							pApp->ReleaseKBServer(2); // the glossing one
 							pApp->m_bIsKBServerProject = FALSE;
@@ -11915,7 +11927,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 								if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
 								{
 									// an error message will have been shown, so just log the failure
-									pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 11567"));
+									pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 11899"));
 									pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 									// Tell the user
 									wxString title = _("Setup failed");
@@ -11935,7 +11947,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 								if (!pApp->SetupForKBServer(2)) // try to set up a glossing KB share
 								{
 									// an error message will have been shown, so just log the failure
-									pApp->LogUserAction(_T("SetupForKBServer(2) failed in AuthenticateCheckAndSetupKBSharing()  at line 11585"));
+									pApp->LogUserAction(_T("SetupForKBServer(2) failed in AuthenticateCheckAndSetupKBSharing()  at line 11919"));
 									pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 									// Tell the user
 									wxString title = _("Setup failed");
@@ -11967,13 +11979,13 @@ here:				dlgReturnCode = dlg.ShowModal();
 
 					else if (dlgReturnCode == wxID_CANCEL)
 					{
-						// User Cancelled the authentication, so the old url, username and
+						// User Cancelled the authentication, so the old ipAddr, username and
 						// password have been restored to their storage in the app and
 						// frame window instance; so it remains only to restore the old
-						// flag values. TRUE param is bJustRestore (the url, username and
+						// flag values. TRUE param is bJustRestore (the ipAddr, username and
 						// password). The function always sets m_bIsKBServerProject and
 						// m_bIsGlossingKBServerProject to FALSE
-bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 						bSetupKBserverFailed = TRUE;
@@ -11984,10 +11996,10 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 					{
 						// User clicked OK button but in the OnOK() handler, premature return was
 						// asked for most likely due to an empty password submitted or a Cancel
-						// from within one of the lower level calls, or there was a error, such as
-						// a cURL error saying that the connection could not be made, etc. So allow
-						// retry, or a change to the settings, or a Cancel button press at this
-						// level instead (the Authenticate dialog includes a Cancel button, pressing
+						// from within one of the lower level calls, or there was a error, saying 
+						// that the connection could not be made, etc. So allow retry, or a change
+						// to the settings, or a Cancel button press at this level instead (the 
+						// Authenticate dialog includes a Cancel button, pressing
 						// it makes the project not be a sharing one for adapting or glossing kbs)
 						goto here; // <<-- back to the showing of the dialog
 					}
@@ -11995,17 +12007,17 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 				} // end of TRUE block for test: if (bShowUrlAndUsernameDlg == TRUE)
 				else
 				{
-					// The Authentication dialog (with url and username) does not need to be shown. So
+					// The Authentication dialog (with ipAddr and username) does not need to be shown. So
 					// we either just show the password dialog (if no password yet is stored), or
 					// autoconnect (if a password is stored already - this latter option is only offered
-					// when we know that the config file's url is the same as what was just created from
+					// when we know that the config file's ipAddr is the same as what was just created from
 					// the service discovery results - in this situation, we can pretty safely assume
 					// that the stored password applies)
 
 					// Control would get here if the "Setup or Remove Knowledge Base Sharing" menu command
 					// is clicked a second time, to change the settings (eg. turn on sharing of glossing
 					// KB, or some change - such as turning off sharing to one of the KB types)
-					wxString theUrl = pApp->m_strKbServerURL;
+					wxString theIpAddr = pApp->m_strKbServerIpAddr;
 					wxString theHostname = pApp->m_strKbServerHostname;
 					wxString theUsername = pApp->m_strUserID;
 
@@ -12013,14 +12025,16 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 					bool bUserCancelled = FALSE;
 					if (bPasswordExists && bAutoConnectKBSvr)
 					{
-						// The url, username and password are all in existence and known, so autoconnect
+						// The ipAddr, username and password are all in existence and known, so autoconnect
 						thePassword = pApp->GetMainFrame()->GetKBSvrPassword();
 					}
 					else if (bShowPasswordDlgOnly)
 					{
 						// The password is not stored, so we must ask for it - insist on something
 						// being typed in
-						thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(theUrl, theHostname); // show the password dialog
+						// show the password dialog
+						thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(theIpAddr, theHostname);
+
 						if (thePassword.IsEmpty())
 						{
 							wxString title = _("No password was typed, or you cancelled");
@@ -12062,7 +12076,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 							// that the user has changed his mind about KB Sharing being on
 							// - so turn it off. The function clears m_bIsKBServerProject
 							// and m_bIsGlossingKBServerProject to FALSE
-							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+							HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 								pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 							pApp->m_bLoginFailureErrorSeen = TRUE;
@@ -12079,7 +12093,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 						{
 							// We must assume the src/gloss codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
-							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 								pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 							pApp->m_bLoginFailureErrorSeen = TRUE;
@@ -12093,7 +12107,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 					{
 
 						// Shut down the old settings, and reestablish connection using the new
-						// settings (this may involve a url change to share using a different KBserver)
+						// settings (this may involve an iAddr change to share using a different KBserver)
 						pApp->ReleaseKBServer(1); // the adaptations one
 						pApp->ReleaseKBServer(2); // the glossing one
 						pApp->m_bIsKBServerProject = FALSE;
@@ -12107,7 +12121,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 							if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
 							{
 								// an error message will have been shown, so just log the failure
-								pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 11753"));
+								pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 12093"));
 								pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 								// Tell the user
 								wxString title = _("Setup failed");
@@ -12128,7 +12142,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 							if (!pApp->SetupForKBServer(2)) // try to set up a glossing KB share
 							{
 								// an error message will have been shown, so just log the failure
-								pApp->LogUserAction(_T("SetupForKBServer(2) failed in AuthenticateCheckAndSetupKBSharing() at line 11772"));
+								pApp->LogUserAction(_T("SetupForKBServer(2) failed in AuthenticateCheckAndSetupKBSharing() at line 12114"));
 								pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 								// Tell the user
 								wxString title = _("Setup failed");
@@ -12157,7 +12171,7 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnam
 
 					} // end of TRUE block for test: if (!bSimulateUserCancellation)
 				
-				} //end of else block for test: if (bShowUrlAndUsernameDlg == TRUE)
+				} //end of else block for test: if (bShowIpAddrAndUsernameDlg == TRUE)
 
 			} // end of TRUE block for test: if (bServiceDiscoverySucceeded)
 
@@ -12348,6 +12362,177 @@ void ShortWaitSharingOff()
 	pApp->m_msgShownTime = wxDateTime::Now();
 	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
+
+bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pUsername, 
+							wxString* pPassword, wxString datFilename)
+{
+	// Using absolute paths...
+	wxString separator = pApp->PathSeparator;
+	wxString ipaddr, username, pwd, mariaHostAddr;
+	ipaddr = *pIpAddr;
+	username = *pUsername;
+	pwd = *pPassword;
+	wxString comma = _T(",");
+	wxString distFolderPath = pApp->distPath; // store .dat 'input' file here
+	wxString datPath = distFolderPath + datFilename;
+
+	// Check that the file already exists, if not, create it
+	wxTextFile textFile; // line-oriented file of lines of text
+	bool bFileExists = FALSE; // initialise
+	bFileExists = wxFileName::FileExists(datPath);
+
+	// Create the lines to be added. Last is comma-separated credentials 
+	// Comment lines start with # (hash)
+	wxString comment1 = _T("# Usage: ipAddress,username,password,");
+	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+	wxString comment3 = _T("# dist folder's 'input' file: ");
+	comment3 += datFilename;
+	wxString credentials = ipaddr + comma +username + comma + pwd + comma;
+
+	if (!bFileExists)
+	{
+		// Create() must only be called when the file doesn't already exist
+		textFile.Create(datPath);
+		// Note textFile is empty at this point							   
+		textFile.Open();
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			textFile.AddLine(comment1);
+			textFile.AddLine(comment2);
+			textFile.AddLine(comment3);
+			textFile.AddLine(credentials);
+
+			// Write it to the dist buffer
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	else
+	{
+		// file exists
+		textFile.Open();
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			// Line numbering is 0-based
+			textFile.RemoveLine(3);
+			textFile.AddLine(credentials);
+
+			// Write it to the dist buffer
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	return TRUE;
+}
+/* remove, this one is not needed
+bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername,
+	wxString* pPassword, wxString datFilename)
+{
+	// Using absolute paths...
+	wxString separator = pApp->PathSeparator;
+	wxString ipaddr, username, pwd;
+	ipaddr = *pIpAddr;
+	username = *pUsername;
+	pwd = *pPassword;
+	wxString comma = _T(",");
+	wxString distFolderPath = pApp->distPath; // store .dat 'input' file here
+	wxString datPath = distFolderPath + datFilename;
+
+	// Check that the file already exists, if not, create it
+	wxTextFile textFile; // line-oriented file of lines of text
+	bool bFileExists = FALSE; // initialise
+	bFileExists = wxFileName::FileExists(datPath);
+
+	// Create the lines to be added. Last is comma-separated credentials 
+	// Comment lines start with # (hash)
+	wxString comment1 = _T("# Usage: ipAddress,username,password,");
+	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+	wxString comment3 = _T("# dist folder's 'input' file: ");
+	comment3 += datFilename;
+	wxString credentials = ipaddr + comma + username + comma + pwd + comma;
+
+	if (!bFileExists)
+	{
+		// Create() must only be called when the file doesn't already exist
+		textFile.Create(datPath);
+		// Note textFile is empty at this point							   
+		textFile.Open();
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			textFile.AddLine(comment1);
+			textFile.AddLine(comment2);
+			textFile.AddLine(comment3);
+			textFile.AddLine(credentials);
+
+			// Write it to the dist buffer
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	else
+	{
+		// file exists
+		textFile.Open();
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			// Line numbering is 0-based
+			textFile.RemoveLine(3);
+			textFile.AddLine(credentials);
+
+			// Write it to the dist buffer
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	return TRUE;
+}
+*/
+
+
+
+
+
+
+
+
+
+
 #endif // _KBSERVER
 
 // Remove the subStr from inputStr and return the resulting string. Remove once

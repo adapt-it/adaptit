@@ -33354,7 +33354,14 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(_T("G'day. Call your new code in this handler: View's OnHiddenMenuItem."), _T("Develop & Test Code"));
 
 // TODO -- whatever
-
+	wxString execPath = pApp->execPath;
+	wxString distPath = pApp->distPath;
+	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
+	wxString ipAddr = _T("192.168,1.9");
+	wxString user = _T("bruce@unit2");
+	wxString pwd = _T("BW^pass!");
+	wxString user2 = _T("glenys2unit2");
+	pKbSvr->LookupUser(ipAddr, user, pwd, user2);
 
 }
 

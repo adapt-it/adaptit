@@ -532,19 +532,19 @@ int CountSpaceDelimitedWords(wxString& str);
 
 #if defined (_KBSERVER)
 
-bool IsURLStoreable(wxArrayString* pArr, wxString& url);
+bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr);
 
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
+bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password); // BEW 6Jun13
 
-bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
+bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
 					wxString srcLangCode, wxString tgtLangCode, int kbType);
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
-void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag, 
 		bool& saveSharingGlossesFlag, bool bJustRestore = FALSE);
 
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
 		bool& saveSharingGlossesFlag);
 
@@ -560,6 +560,16 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // class
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted);
 bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
+
+bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername, 
+							wxString* pPassword, wxString datFilename);
+//bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername,  <<-- BEW 3Sep20 remove
+//	wxString* pPassword, wxString datFilename);
+
+void DoMessageDelay(int hundredths); // to enable waitDlg to persist long enough for user to read
+
+
+
 #endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)

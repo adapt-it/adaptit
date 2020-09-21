@@ -84,11 +84,12 @@ using namespace std;
 WX_DEFINE_LIST(DownloadsQueue);
 WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for KBserver support
 							  // (see member m_uploadsList)
-WX_DEFINE_LIST(UsersList);    // for use by the ListUsers() client, stores KbServerUser structs
+WX_DEFINE_LIST(UsersListForeign);    // for use by the ListUsers() client, stores KbServerUserForeign structs
 WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerKb structs
-WX_DEFINE_LIST(LanguagesList);    // for use by the ListKbs() client, stores KbServerKb structs
+//WX_DEFINE_LIST(LanguagesList);    // for use by the ListKbs() client, stores KbServerKb structs ??
 WX_DEFINE_LIST(FilteredList); // used in page 3 tab of Shared KB Manager, the LoadLanguagesListBox() call
 
+//WX_DEFINE_LIST(UsersListForeign);    // for use by the ListUsers() client, stores KbServerUserForeign structs
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
 #include "jsonreader.h"
@@ -184,7 +185,7 @@ KbServer::KbServer()
 	// one has been returned
 	//m_noEntryMessage = _T("No matching entry found");
 	//m_existingEntryMessage = _T("Existing matching entry found");
-	m_bStateless = FALSE;
+	m_bForManager = FALSE;
 }
 
 KbServer::KbServer(int whichType)
@@ -195,7 +196,7 @@ KbServer::KbServer(int whichType)
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(m_kbServerType);
 	m_queue.clear();
-	m_bStateless = FALSE;
+	m_bForManager = FALSE;
 }
 
 // I had to give the next contructor the int whichType param, because just having a single
@@ -203,7 +204,7 @@ KbServer::KbServer(int whichType)
 // compiler was wrongly calling the above, instead KbServer(bool bStateless)
 // Note: NEVER CALL THIS CONSTRUCTOR WITH THE PARAMETERS (2,FALSE). But (1,TRUE) or
 // (2,TRUE) are safe values.
-KbServer::KbServer(int whichType, bool bStateless)
+KbServer::KbServer(int whichType, bool bForManager)
 {
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = NULL; // There may be no KB loaded yet, and we don't need
@@ -216,12 +217,13 @@ KbServer::KbServer(int whichType, bool bStateless)
 					   // need to specify a KB type, such as support for the
 					   // KB sharing manager GUI, or for entire deletion of a given
 					   // type of kb (whether adapting or glossing) and all its entries,
-					   // so choose a adapting instantiation - it makes no difference
-					   // choice we make
+					   // so choose an adapting instantiation - but it makes no difference
+					   // what choice we make
 	}
 	m_queue.clear();
-	m_bStateless = bStateless;
-	m_kbServerLastSync = GetDateTimeNow(); // BEW added 24Feb15, an inintial value, so accesses won't fail
+	m_bForManager = bForManager;
+	m_kbServerLastSync = GetDateTimeNow(); // BEW added 24Feb15, an 
+						// inintial value, so accesses won't fail
 }
 
 
@@ -320,9 +322,9 @@ int KbServer::GetKBServerType()
 	return m_kbServerType;
 }
 
-wxString KbServer::GetKBServerURL()
+wxString KbServer::GetKBServerIpAddr()
 {
-	return m_kbServerURLBase;
+	return m_kbServerIpAddrBase;
 }
 wxString KbServer::GetKBServerUsername()
 {
@@ -335,21 +337,6 @@ wxString KbServer::GetKBServerPassword()
 wxString KbServer::GetKBServerLastSync()
 {
 	return m_kbServerLastSync;
-}
-
-wxString KbServer::GetSourceLanguageCode()
-{
-	return m_kbSourceLanguageCode;
-}
-
-wxString KbServer::GetTargetLanguageCode()
-{
-	return m_kbTargetLanguageCode;
-}
-
-wxString KbServer::GetGlossLanguageCode()
-{
-	return m_kbGlossLanguageCode;
 }
 
 wxString KbServer::GetPathToPersistentDataStore()
@@ -371,6 +358,41 @@ wxString KbServer::GetLastSyncFilename()
 {
 	return m_lastSyncFilename;
 }
+
+// BEW 7Sep20 legacy getters for codes, Life or xhtml may need these
+wxString KbServer::GetSourceLanguageCode()
+{
+	return m_kbSourceLanguageCode;
+}
+
+wxString KbServer::GetTargetLanguageCode()
+{
+	return m_kbTargetLanguageCode;
+}
+
+wxString KbServer::GetGlossLanguageCode()
+{
+	return m_kbGlossLanguageCode;
+}
+
+// BEW 7Sep20 new getters for Manager's tabbed dlg, uses language
+// 'Names' not codes
+wxString KbServer::GetSourceLanguageName()
+{
+	return m_kbSourceLanguageName;
+}
+
+wxString KbServer::GetTargetLanguageName()
+{
+	return m_kbTargetLanguageName;
+}
+
+wxString KbServer::GetGlossLanguageName()
+{
+	return m_kbGlossLanguageName;
+}
+
+
 
 // the public setters & interrogatives
 
@@ -394,9 +416,9 @@ void KbServer::SetKBServerType(int type)
 	m_kbServerType = type;
 }
 
-void KbServer::SetKBServerURL(wxString url)
+void KbServer::SetKBServerIpAddr(wxString ipAddr)
 {
-	m_kbServerURLBase = url;
+	m_kbServerIpAddrBase = ipAddr;
 }
 
 void KbServer::SetKBServerUsername(wxString username)
@@ -427,6 +449,20 @@ void KbServer::SetTargetLanguageCode(wxString targetCode)
 void KbServer::SetGlossLanguageCode(wxString glossCode)
 {
 	m_kbGlossLanguageCode = glossCode;
+}
+
+// BEW 7Sep20 new setters, for 'Name' strings ("Wangurri" etc)
+void KbServer::SetSourceLanguageName(wxString sourceLangName)
+{
+	m_kbSourceLanguageName = sourceLangName;
+}
+void KbServer::SetTargetLanguageName(wxString targetLangName)
+{
+	m_kbTargetLanguageName = targetLangName;
+}
+void KbServer::SetGlossLanguageName(wxString glossLangName)
+{
+	m_kbGlossLanguageName = glossLangName;
 }
 
 void KbServer::SetPathToPersistentDataStore(wxString metadataPath)
@@ -988,7 +1024,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 	wxString container = _T("entry");
 	wxString changedSince = _T("/?changedsince=");
 
-	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
+	aUrl = GetKBServerIpAddr() + slash + container + slash+ GetSourceLanguageCode() + slash +
 			langcode + slash + kbType + changedSince + timeStamp;
 #if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince(): wxString aUrl = %s"), aUrl.c_str());
@@ -1329,6 +1365,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	s_DoGetAllMutex.Unlock();
 }
 
+/*
 // Note: before running ListLanguages(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1352,7 +1389,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 	wxString colon(_T(':'));
 	wxString container = _T("language");
 
-	aUrl = GetKBServerURL() + slash + container;
+	aUrl = GetKBServerIpAddr() + slash + container;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
@@ -1374,7 +1411,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 		result = curl_easy_perform(curl);
 
 #if defined (SYNC_LOGS) //&& defined (__WXGTK__)
-		/* commented out to speed things up
+		
 		CBString s2(str_CURLheaders.c_str());
 		wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("ListLanguages(): Returned headers: %s"), showit2.c_str());
@@ -1383,7 +1420,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 		wxString showit = ToUtf16(s);
 		wxLogDebug(_T("ListLanguages() str_CURLbuffer has: %s    , The CURLcode is: %d"),
 			showit.c_str(), (unsigned int)result);
-		*/
+		
 #endif
 		// Get the HTTP status code, and the English message
 		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
@@ -1498,8 +1535,8 @@ int KbServer::ListLanguages(wxString username, wxString password)
 					pLanguageStruct->description = jsonval[index][_T("description")].AsString();
 					// to get rid of thesepLanguageStruct pointers once their job is done, if not, memory will be leaked
 
-					/* This is slow... so comment out unnecessary stuff
-					s =
+					
+					
 					pLanguageStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
 					// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
 					// which is this (Caller should only use the adaptations instance of KbServer)
@@ -1511,7 +1548,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 					pLanguageStruct->code.c_str(), pLanguageStruct->description.c_str(), pLanguageStruct->username.c_str(),
 					pLanguageStruct->timestamp.c_str());
 					#endif
-					*/
+					
 					// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
 					// which is this (Caller should only use the adaptations instance of KbServer)
 					m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
@@ -1537,7 +1574,8 @@ int KbServer::ListLanguages(wxString username, wxString password)
 	}
 	return 0;
 }
-
+*/
+/* BEW 31Jul20 deprecated legacy comment
 // Note: before running ListUsers(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1545,8 +1583,18 @@ int KbServer::ListLanguages(wxString username, wxString password)
 // need to get.
 // Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
 // HTTP error - such as no matching entry, or a badly formed request
+*/
+
 int KbServer::ListUsers(wxString username, wxString password)
 {
+
+// TODO preprocess for setting up .dat input file, call Leon's .exe, post-process to get the user structs list
+// I've done a "LoadUSersListBox(....) at 832++ & ConvertLinesToUserStructs(), 6077++ etc
+
+
+
+
+/* BEW 31Jul20  deprecated legacy code
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -1561,7 +1609,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 	wxString colon(_T(':'));
 	wxString container = _T("user");
 
-	aUrl = GetKBServerURL() + slash + container;
+	aUrl = GetKBServerIpAddr() + slash + container;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
@@ -1708,6 +1756,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
+*/
 	return 0;
 }
 
@@ -1720,6 +1769,10 @@ int KbServer::ListUsers(wxString username, wxString password)
 // HTTP error - such as no matching entry, or a badly formed request
 int KbServer::ListKbs(wxString username, wxString password)
 {
+
+// TODO  Leon's solution...
+
+/* legacy solution
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -1734,7 +1787,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 	wxString colon(_T(':'));
 	wxString container = _T("kb");
 
-	aUrl = GetKBServerURL() + slash + container;
+	aUrl = GetKBServerIpAddr() + slash + container;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
@@ -1888,9 +1941,11 @@ int KbServer::ListKbs(wxString username, wxString password)
 		str_CURLheaders.clear();
 		m_httpStatusText.Clear(); // otherwise, a memory leak
 	}
+*/
 	return 0;
 }
 
+/* BEW 31 Jul20 deprecated comment
 // Note: before running LookupUser(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1898,10 +1953,59 @@ int KbServer::ListKbs(wxString username, wxString password)
 // need to get.
 // Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
 // HTTP error - such as no matching entry, or a badly formed request
-// Note: url, username and password are passed in, because this request can be made before
-// the app's m_pKbServer[2] pointers have been instantiated
-int KbServer::LookupUser(wxString url, wxString username, wxString password, wxString whichusername)
+*/ 
+
+
+// Note: ipAddr, username and password are passed in, because this request can be made before
+// the app's m_pKbServer[two] pointers have been instantiated
+int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername)
 {
+	// Prepare the .dat input dependency: "lookup_user.dat" file, into
+	// the execPath folder, ready for the ::wxExecute() call below
+	// BEW 24Aug20 NOTE - calling _T("do_user_lookup.exe") with an absolute path prefix
+	// DOES NOT WORK! As in: wxString command = execPath + _T("do_user_lookup.exe")
+	// ::wxExecute() returns the error string:  Failed to execute script ....
+	// The workaround is to temporarily set the current working directory (cwd) to the
+	// AI executable's folder, do the wxExecute() call on just the script filename, and
+	// restore the cwd after it returns.
+	// I've encapsulated the needed code in a function: 
+	// bool CallExecute(execFileName,execPath,do_user_lookup_return_result_file.dat)
+	bool bReady = m_pApp->ConfigureDATfile(lookup_user); // arg is const int, value 2
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_user_lookup.exe
+		wxString execFileName = _T("do_user_lookup.exe");
+		wxString execPath = m_pApp->execPath;
+		wxString resultFile = _T("lookup_user_return_results.dat");
+		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 99, 99);
+		// In above call, last param, bReportResult, is default FALSE therefore omitted
+
+		if (bExecutedOK)
+		{
+			// success for the call, do subsequent code....
+
+			// TODO  set the Update...() variables that remain unset so far, look at the
+			// useradmin value, set kbadmin = 1, do any logic based on that - especially 
+			// if useradmin is FALSE (0 in user table's row), which means I have to
+			// do code so opening the KB Sharing Manager will allow access straight to
+			// the kb page, since a new project may be wanted for this username.
+			; // nothing to do, I'm handling post-wxExecute() tweaking code within CallExecute() now
+		}
+		else
+		{
+			// either failure; or user cancelled out (and saved params restored internally)
+			;
+// TODO  may not need a message - inner code will generate what user needs to see
+
+		}
+	} // end of TRUE block for test: if (bReady), if bReady is false, no lookup happens
+
+
+#if defined (_DEBUG)
+	int halt_here = 1;
+#endif
+
+/* deprecated - this is legacy code
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -2047,6 +2151,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
+*/
 	return 0;
 }
 
@@ -2060,9 +2165,14 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 // won't trigger an error message in the caller, because we'll instead return 0 (ie.
 // CURLE_OK) and bMatchedKB FALSE. The caller should just look at the bMatchedKB value. A
 // cURL error is a bit more important, so I will return that.
-int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType, bool& bMatchedKB)
+int KbServer::LookupSingleKb(wxString ipAddr, wxString username, wxString password,
+					wxString srcLangName, wxString nonsrcLangName, int kbType, bool& bMatchedKB)
 {
+
+	// TODO  Leon's stuff,  
+
+
+	/*
 	bMatchedKB = FALSE; // initialize
 	CURL *curl;
 	CURLcode result;
@@ -2309,6 +2419,8 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 		// headers are cleared
 		str_CURLheaders.clear();
 	} // end of else block for test: if (!str_CURLbuffer.empty())
+*/
+
 	return 0;
 }
 
@@ -2323,6 +2435,9 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 // otherwise it looks up only the first word of the phrase)
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
+
+	// TODO Leon's solution
+	/*
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -2366,7 +2481,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	}
 	wxString container = _T("entry");
 	// The URL has to be url-encoded -- do it later below with curl_easy_escape()
-	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
+	aUrl = GetKBServerIpAddr() + slash + container + slash+ GetSourceLanguageCode() +
 			slash + langcode + slash + kbType + slash; // url-encode the new 2 fields
 #if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("LookupEntryFields(): wxString aUrl = %s"), aUrl.c_str());
@@ -2522,6 +2637,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
+	*/
 	return 0;
 }
 
@@ -2557,6 +2673,9 @@ DownloadsQueue* KbServer::GetQueue()
 // want to delete a whole KB from the remote KBserver, the queue is useful, so retain this
 int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 {
+
+	//  TODO leon's way
+/*
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
 
@@ -2585,7 +2704,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 	wxString container = _T("entry");
 	wxString changedSince = _T("/?changedsince=");
 
-	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
+	aUrl = GetKBServerIpAddr() + slash + container + slash+ GetSourceLanguageCode() + slash +
 			langcode + slash + kbType + changedSince + timeStamp;
 #if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince_Queued(): wxString aUrl = %s"), aUrl.c_str());
@@ -2824,7 +2943,8 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 
     str_CURLbuffer.clear(); // always clear it before returning
     str_CURLheaders.clear(); // BEW added 9Feb13
-	return (int)CURLE_OK;
+*/
+	return (int)0;
 }
 
 
@@ -2851,6 +2971,9 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 // configuration file at present, but in a small file in the project folder.
 int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 {
+
+	// TODO Leon's way
+/*
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
 
@@ -2879,7 +3002,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	wxString container = _T("entry");
 	wxString changedSince = _T("/?changedsince=");
 
-	aUrl = GetKBServerURL() + slash + container + slash + GetSourceLanguageCode() + slash +
+	aUrl = GetKBServerIpAddr() + slash + container + slash + GetSourceLanguageCode() + slash +
 		langcode + slash + kbType + changedSince + timeStamp;
 #if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince_Timed(): wxString aUrl = %s"), aUrl.c_str());
@@ -3160,7 +3283,8 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 	str_CURLbuffer.clear(); // always clear it before returning
 	str_CURLheaders.clear(); // BEW added 9Feb13
-	return (int)CURLE_OK;
+*/
+	return (int)0;
 }
 
 void KbServer::ClearEntryStruct()
@@ -3199,13 +3323,10 @@ KbServerKb KbServer::GetKbStruct()
 
 void KbServer::ClearKbStruct()
 {
-	m_kbStruct.id = 0;
-	m_kbStruct.sourceLanguageCode.Empty();
-	m_kbStruct.targetLanguageCode.Empty();
+	m_kbStruct.sourceLanguageName.Empty();
+	m_kbStruct.targetLanguageName.Empty();
 	m_kbStruct.kbType = 1; // default to adaptations KB type
 	m_kbStruct.username.Empty();
-	m_kbStruct.timestamp.Empty();
-	m_kbStruct.deleted = 0;
 }
 
 KbServerLanguage KbServer::GetLanguageStruct()
@@ -3215,10 +3336,12 @@ KbServerLanguage KbServer::GetLanguageStruct()
 
 void KbServer::ClearLanguageStruct()
 {
+	/*
 	m_languageStruct.code.Empty();
 	m_languageStruct.username.Empty();
 	m_languageStruct.description.Empty();
 	m_languageStruct.timestamp.Empty();
+	*/
 }
 
 
@@ -3232,16 +3355,16 @@ KbServerUser KbServer::GetUserStruct()
 	return m_userStruct;
 }
 
-UsersList* KbServer::GetUsersList()
+UsersListForeign* KbServer::GetUsersListForeign() // a 'for manager' scenario
 {
-	return &m_usersList;
+	return &m_usersListForeign;
 }
 
-LanguagesList* KbServer::GetLanguagesList()
-{
-	return &m_languagesList;
-}
-
+//LanguagesList* KbServer::GetLanguagesList()
+//{
+//	return &m_languagesList;
+//}
+/*
 // deletes from the heap all KbServerLanguage struct ptrs within m_languagesList
 void KbServer::ClearLanguagesList(LanguagesList* pLanguagesList)
 {
@@ -3263,27 +3386,27 @@ void KbServer::ClearLanguagesList(LanguagesList* pLanguagesList)
 	// The list's stored pointers are now hanging, so clear them
 	pLanguagesList->clear();
 }
-
-// deletes from the heap all KbServerUser struct ptrs within m_usersList
-void KbServer::ClearUsersList(UsersList* pUsrList)
+*/
+// deletes from the heap all KbServerUser struct ptrs within m_usersListForeign
+void KbServer::ClearUsersListForeign(UsersListForeign* pUsrListForeign)
 {
-	if (pUsrList ==NULL || pUsrList->empty())
+	if (pUsrListForeign ==NULL || pUsrListForeign->empty())
 		return;
-	UsersList::iterator iter;
-	UsersList::compatibility_iterator c_iter;
+	UsersListForeign::iterator iter;
+	UsersListForeign::compatibility_iterator c_iter;
 	int anIndex = -1;
-	for (iter = pUsrList->begin(); iter != pUsrList->end(); ++iter)
+	for (iter = pUsrListForeign->begin(); iter != pUsrListForeign->end(); ++iter)
 	{
 		anIndex++;
-		c_iter = pUsrList->Item((size_t)anIndex);
-		KbServerUser* pEntry = c_iter->GetData();
+		c_iter = pUsrListForeign->Item((size_t)anIndex);
+		KbServerUserForeign* pEntry = c_iter->GetData();
 		if (pEntry != NULL)
 		{
 			delete pEntry; // frees its memory block
 		}
 	}
 	// The list's stored pointers are now hanging, so clear them
-	pUsrList->clear();
+	pUsrListForeign->clear();
 }
 
 KbsList* KbServer::GetKbsList()
@@ -3337,7 +3460,11 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 // to finish. So that's no different than a synchronous call such as this one.
 int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
 {
-	int rv;
+
+// TODO leon's way
+	
+	int rv =0;
+	/*
 	long entryID = 0;
 
 	s_BulkDeleteMutex.Lock();
@@ -3378,7 +3505,7 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 
 	wxUnusedVar(rv);
 	wxLogDebug(_T("Synchronous_CreateEntry(): On return from CreateEntry(): rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
-
+*/
 	return rv;
 }
 
@@ -3441,7 +3568,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetKBServerURL() + slash + container + slash;
+	aUrl = GetKBServerIpAddr() + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -3638,7 +3765,9 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, 
 						 bool bKbadmin, bool bUseradmin, bool bLanguageadmin)
 {
-	CURL *curl;
+	// TODO - Leon's way
+
+/*	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
 	struct curl_slist* headers = NULL;
 	wxString slash(_T('/'));
@@ -3683,7 +3812,7 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetKBServerURL() + slash + container + slash;
+	aUrl = GetKBServerIpAddr() + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -3761,6 +3890,7 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
         // scenario.
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+*/
 	return 0; // no error
 }
 
@@ -3910,8 +4040,13 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 	return 0; // CURLE_OK
 }
 
-int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt)
+int KbServer::CreateKb(wxString ipAddr, wxString username, wxString password, 
+			wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt)
 {
+
+	// TODO - Leon's way
+
+/*
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	wxASSERT(!srcLangCode.IsEmpty() && !nonsrcLangCode.IsEmpty());
 	CURL *curl;
@@ -3946,7 +4081,7 @@ int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTy
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetKBServerURL() + slash + container;
+	aUrl = GetKBServerIpAddr() + slash + container;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -4013,6 +4148,7 @@ int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTy
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+*/
 	return 0;
 }
 
@@ -4020,6 +4156,9 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
 						KbServerUser* pEditedUserStruct, wxString password)
 {
+
+	// TODO ?? need it?
+/*
 	CURLcode result = CURLE_OK;
 	wxString userIDStr;
 	wxItoa(userID, userIDStr);
@@ -4086,7 +4225,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetKBServerURL() + slash + container + slash + userIDStr;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + userIDStr;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -4146,6 +4285,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+*/
 	return 0;
 }
 
@@ -4172,7 +4312,7 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	aUrl = GetKBServerURL() + slash + container + slash + entryIDStr;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + entryIDStr;
 	charUrl = ToUtf8(aUrl);
 
 		// prepare curl
@@ -4239,6 +4379,9 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 
 int KbServer::RemoveUser(int userID)
 {
+
+	// TODO  Leon's way
+/*
 	wxString userIDStr;
 	wxItoa(userID, userIDStr);
 	CURL *curl;
@@ -4257,7 +4400,7 @@ int KbServer::RemoveUser(int userID)
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	aUrl = GetKBServerURL() + slash + container + slash + userIDStr;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + userIDStr;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -4317,6 +4460,7 @@ int KbServer::RemoveUser(int userID)
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+*/
 	return (CURLcode)0; // no error
 }
 
@@ -4340,7 +4484,7 @@ int KbServer::RemoveKb(int kbID)
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	aUrl = GetKBServerURL() + slash + container + slash + kbIDStr;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + kbIDStr;
 	charUrl = ToUtf8(aUrl);
 
 		// prepare curl
@@ -4421,7 +4565,7 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	aUrl = GetKBServerURL() + slash + container + slash + langID;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + langID;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -4493,6 +4637,7 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 // to finish. So that's no different than a synchronous call such as this one.
 int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
 {
+	/*
 	int rv;
 	long entryID = 0;
 
@@ -4533,10 +4678,14 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 	wxLogDebug(_T("Synchronous_PseudoUndelete(): returning: rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
 #endif
 	return rv;
+	*/
+	return 0;
 }
 
 int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
 {
+
+/*
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
 	int rv;
@@ -4579,11 +4728,12 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 	}
 
 	s_BulkDeleteMutex.Unlock();
-	return rv;
+*/
+	return 0;
 }
 
-/*
-int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecate, it's too slow
+
+int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecate?, is it too slow
 {
 	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
 	// where an entry (in the form of a pointer to struct) is being added to the end of
@@ -4598,7 +4748,7 @@ int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecat
 	// Error handling is at a lower level, so caller ignores the returned rv value
 	return rv;
 }
-*/
+
 int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
 {
 	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
@@ -4934,6 +5084,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
 {
+	/*
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
@@ -4975,7 +5126,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetKBServerURL() + slash + container + slash + entryIDStr;
+	aUrl = GetKBServerIpAddr() + slash + container + slash + entryIDStr;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -5046,6 +5197,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+	*/
 	return 0;
 }
 
@@ -5614,7 +5766,7 @@ void KbServer::UploadToKbServer()
 		{
 			translnLangCode = GetGlossLanguageCode();
 		}
-		wxString	url = GetKBServerURL();
+		wxString	url = GetKBServerIpAddr();
 		wxString	source;
 		wxString	transln; // either a target text translation, or a gloss
 		wxString	jsonStr; // the wxString containing the JSON object written as a string
@@ -5906,6 +6058,104 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 	}
 	return 0;
 }
+
+bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines)
+{
+	arrLines.Empty(); // clear contents
+	wxString pathToResults = execPath + resultFile;
+	bool bResultsFileExists = ::FileExists(pathToResults);
+	if (bResultsFileExists)
+	{
+		wxTextFile f(pathToResults);
+		bool bOpened = f.Open();
+		wxString firstLineStr = wxEmptyString;
+		int lineIndex = 0;
+		int lineCount = f.GetLineCount();
+		wxString strUserLine = wxEmptyString;
+		if (bOpened)
+		{
+			firstLineStr = f.GetFirstLine();
+			// first line is comment about the result, throw this away
+			firstLineStr.Empty();
+			for (lineIndex = 1; lineIndex < lineCount; lineIndex++)
+			{
+				strUserLine = f.GetLine(lineIndex);
+				arrLines.Add(strUserLine);
+			}
+		}
+	}
+	else
+	{
+		// results file does not exist, log the error
+		wxBell();
+		wxString msg = _T("DatFile2StringArray() does not exist in the executable's folder: %s");
+		msg = msg.Format(msg, execPath.c_str());
+		m_pApp->LogUserAction(msg);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersListForeign)
+{
+	pUsersListForeign->Clear(); // start with an empty (templated) list
+	size_t linesArrayCount = arrLines.GetCount();
+	size_t lineIndex = 0;
+	for (lineIndex = 0; lineIndex < linesArrayCount; lineIndex++)
+	{
+		wxString str = arrLines.Item(lineIndex); // format: username,fullname,useradmin,
+			// where useradmin is a wxChar with value _T('1') or _T('0') = TRUE or FALSE
+		// turn the comma-separated fields into struct member strings
+		KbServerUserForeign* pStruct = new KbServerUserForeign;
+
+		// BEW 28Aug20 kbadmin is always TRUE now, so anyone getting into the manager
+		// will be able to create a new KB, etc - accessing KBs page.
+		pStruct->kbadmin = TRUE; // because it's always TRUE
+
+		int offset = wxNOT_FOUND;
+		int fieldsCount = 3;
+		int pos;
+		wxString field = wxEmptyString;
+		wxString comma = _T(',');
+		for (pos = 0; pos <= fieldsCount; pos++)
+		{
+			switch (pos)
+			{
+			case 0:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+				pStruct->username = field;
+				// Shorten
+				str = str.Mid(offset + 1);
+				field.Empty();
+				break;
+			case 1:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+				pStruct->fullname = field;
+				// Shorten
+				str = str.Mid(offset + 1);
+				field.Empty();
+				break;
+			case 2:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+				pStruct->useradmin = field[0];
+				// We are done
+				break;
+			};
+		}
+		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, useradmin = %c kbadmin = %c"),
+			__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str(),
+			pStruct->fullname.c_str(), pStruct->useradmin, pStruct->kbadmin);
+		// Append each filled out KbServerUserForeign to the pUsersListForeign (for Leon's sol'n)
+		pUsersListForeign->Append(pStruct);
+	}
+}
+
 
 //=============================== end of KbServer class ============================
 

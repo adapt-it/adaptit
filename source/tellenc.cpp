@@ -22,7 +22,7 @@
  *
  *
  * The latest version of this software should be available at:
- *      <URL:http://wyw.dcweb.cn/>
+ *      <U R L:http://wyw.dcweb.cn/>
  *
  */
 

@@ -2076,55 +2076,6 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		// NOT prevent the collaboration from being hooked up.
 		pApp->m_bEnteringKBserverProject = TRUE;
 
-
-		/* The old code -- remove shortly
-		bool bUserCancelled = FALSE; // initialize
-		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
-		pHowGetUrl->Center();
-		int dlgReturnCode;
-		dlgReturnCode = pHowGetUrl->ShowModal();
-		if (dlgReturnCode == wxID_OK)
-		{
-			// m_bServiceDiscoveryWanted will have been set or cleared in
-			// the OnOK() handler of the above dialog
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
-		}
-		else
-		{
-			// User cancelled. This clobbers the sharing setup - that clobbering is
-			// already done in the OnCancel() handler
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
-		}
-		bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-		pHowGetUrl->Destroy();
-		//delete pHowGetUrl; // We don't want the dlg showing any longer
-
-		// If the user didn't cancel, then call Authenticate....()
-		if (!bUserCancelled) // if user did not cancel...
-		{
-            // Do service discovery of KBserver, authentication, checking, and KB
-            // Sharing setup. Second param, bool m_bUserAuthenticating must be TRUE.
-            // Note: the function could fail, in which case KB sharing will be turned
-            // off - this does **not** mean that the HookUpToExistingAIProject()
-            // function will, or should, also fail. KB sharing and PT or BE
-            // collaboration are orthogonal to each other, any project can have one or
-            // the other or both turned on. KB sharing not on does not prevent
-            // collaboration from doing its job
-            pApp->m_bUserAuthenticating = TRUE; // this means that the real user is
-				// logging in, or else someone who knows some other person's credentials
-				// is doing so (and the KBserver has to know those credentials too of
-				// course if the login is to succeed)
-			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_bServiceDiscoveryWanted);
-			wxUnusedVar(bSuccess);
-		}
-		else
-		{
-			// User canceled before Authentication could be attempted - so tell him
-			// that sharing is OFF
-			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
-		}
-		pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-		*/
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 
 #endif // _KBSERVER
@@ -2340,7 +2291,17 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 #endif
 	// create the path to the file
 	wxString filePath = folderPath + pApp->PathSeparator + fileTitle + _T(".txt");
-	// an earlier version of the file may already be present, if so, just overwrite it
+
+	// BEW 16Sep20 archive the temporary source text .txt files from collaboration
+	// dropped into __SOURCE_INPUTS, and remove these (but not non-collab ones) from
+	// that folder when OnExit() is called.
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		gpApp->m_arrFilePathsToRemove.Add(filePath);
+	}
+	// BEW end of 16Sep20 addition
+
+	// An earlier version of the file may already be present, if so, just overwrite it
 	wxFFile ff;
 	bool bOK;
 	// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds

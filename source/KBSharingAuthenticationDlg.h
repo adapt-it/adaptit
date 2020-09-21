@@ -21,7 +21,7 @@
 /// "stateless" variables to receive the authentication strings - so that the owner's
 /// settings don't get messed up by the interloper's authentication for some legitimate
 /// purpose - such as adding a KB or a username, etc.
-/// A flag m_bStateless is always TRUE when this class is instantiated.
+/// A flag m_bForManager is always TRUE when this class is instantiated.
 /// Note: This stateless instantiation creates a stateless instance of KbServer on the
 /// heap, in the creator, and deletes it in the destructor. This instance of KbServer
 /// supplies needed resources for the Manager GUI, but makes no assumptions about whether
@@ -32,7 +32,7 @@
 /// authentication, and for KB Sharing Manager authentication. The latter can be done by
 /// any username so long as it is a username the KBserver recognises and which has sufficient
 /// privileges. KBSharingAuthenticationDlg uses an instance of GetKbServer[0] (an 'adaptations'
-/// one) and throws that instance away when authentication etc is done. It's the m_bStateless
+/// one) and throws that instance away when authentication etc is done. It's the m_bForManager
 /// being TRUE that causes this to happen. However, the creator requires m_bUserAuthenticating
 /// be passed in, as TRUE or FALSE. FALSE is to be used when authenticating to the Manager.
 /// A further use of m_bUserAuthenticating with value FALSE is to force saving of temporary values for
@@ -54,13 +54,13 @@
 class KBSharingAuthenticationDlg : public AIModalDialog
 {
 public:
-    // Constructor (this one defaults m_bStateless to TRUE unilaterally), and pass in FALSE
+    // Constructor (this one defaults m_bForManager to TRUE unilaterally), and pass in FALSE
     // for m_bUserAuthenticating if the computer user is assumed NOT to be whoever is
     // authenticating (eg when using the KB Sharing Manager), otherwise pass in TRUE - in
     // which case the username, and password get remembered in the session, etc.
     // The constructor sets up a new KbServer instance on the heap, to which
-    // app's m_pKbServer_Occasional points; it is used while the class exists,
-    // and deleted when the class is destroyed, and m_pKbServer_Occasional set back
+    // app's m_pKbServer_ForManager points; it is used while the class exists,
+    // and deleted when the class is destroyed, and m_pKbServer_ForManager set back
     // to NULL. This way, if the user changes project it won't matter (in authentication
     // we always check that the local KB's language codes are in the KBserver, so there
     // is a weak dependency present. We can't possibly authenticate for sharing if 
@@ -75,32 +75,40 @@ public:
 	// not (default is not to be stateless). This stateless instantiation if for use by
 	// the KB Sharing Manager - which needs to get a temporary instance of KbServer class
 	// open (just the adapting one will do) in order to get access to it's methods and the
-	// stateless storage - i.e. wxString m_strStatelessUsername, etc. And also 3 strings for
+	// stateless storage - i.e. wxString m_strForManagerUsername, etc. And also 3 strings for
 	// storing url, username, and password when running stateless, so that the person
 	// using the Manager dialog can be accessing any KBserver accessible to him and in which
 	// he's a listed user, without impinging on any other setup resulting from the similar
 	// class, KBSharingSetupDlg. 
-	bool m_bStateless;
+	bool m_bForManager;
 	bool m_bError;
-	wxString m_strStatelessUsername;
-	wxString m_strStatelessURL;
-	wxString m_strStatelessPassword;
-	KbServer* m_pStatelessKbServer;
+	wxString m_strForManagerUsername;
+	wxString m_strForManagerIpAddr;
+	wxString m_strForManagerPassword;
+	// parallel set for 'normal' authentications
+	wxString m_strNormalUsername;
+	wxString m_strNormalIpAddr;
+	wxString m_strNormalPassword;
+
+	//KbServer* m_pForManagerKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other
 								  // person known to the KBserver is doing so
 	wxTextCtrl* m_pMessageAtTop;
 	wxSizer* m_pSizer;
+	wxString obfuscatedPassword;
+	bool bUsrAuthenticate;
 
 	// other methods
 
-	// Next two are needed because the user can invoke this dialog on an existing setup
-	// not realizing it is already running, and so we need to be able to check for that
-	// and tell him all's well; and we also need to be able to check for when the user
-	// wants to change servers on the fly
-	wxString m_saveOldURLStr;
+	// Next few are needed for restoration purposes
+	// First, the 'for manager' set of 3
+	wxString m_saveOldIpAddrStr;
 	wxString m_saveOldUsernameStr;
 	wxString m_savePassword; // so it can be restored if the user Cancels
-	//bool	 m_saveIsONflag;
+	// Next 3 are for the 'normal' scenario
+	wxString m_saveOldNormalIpAddrStr;
+	wxString m_saveOldNormalUsernameStr;
+	wxString m_saveNormalPassword; // so it can be restored if the user Cancels
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -109,7 +117,7 @@ protected:
 
 	CAdapt_ItApp* m_pApp;
 
-	wxTextCtrl*	  m_pURLCtrl;
+	wxTextCtrl*	  m_pIpAddrCtrl;
 	wxTextCtrl*	  m_pUsernameCtrl;
 	wxTextCtrl*	  m_pPasswordCtrl;
 	wxStaticText* m_pUsernameLabel;

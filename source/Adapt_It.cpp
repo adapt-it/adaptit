@@ -343,6 +343,7 @@ int ID_DROP_DOWN_LIST = 22050;
 #include "WaitDlg.h"
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
 #include "InstallGitOptionsDlg.h" // whm 26March2017
+#include "Authenticate2Dlg.h" // BEW 9Sep20
 
 #if wxCHECK_VERSION(2,9,0)
 // Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -6715,7 +6716,11 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
 #if defined(_KBSERVER)
     EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
     EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-//    EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
+	EVT_MENU(ID_MENU_ADMIN_ADD_USERS, CAdapt_ItApp::OnAddUsersToKBserver) // for creating some users to start with
+	EVT_UPDATE_UI(ID_MENU_ADMIN_ADD_USERS, CAdapt_ItApp::OnUpdateAddUsersToKBserver)
+
+		
+		//    EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
 #if !defined(_KBSERVER)
@@ -6997,8 +7002,9 @@ wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSour
 wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 
 // next two added 30Jan13
-/// The label for the project configuration file's line which stores the URL of the last
+/// The label for the basic configuration file's line which stores the ipAddress of the last
 /// used server for knowledge base sharing within a project designated as one for sharing
+/// BEW 27Jul20 return URL in name (to avoid bumping docVersion) but store ipAddress now
 wxString szKbServerURL = _T("KbServerURL");
 
 // Next added 27Apr16
@@ -7199,10 +7205,10 @@ wxString szLastDocPath = _T("LastDocumentPath");
 wxString szLastTargetOutputPath = _T("LastTargetExportPath"); // new 6.x.x label for config files
 wxString szLastExportPath = _T("LastExportPath"); // old pre-6.x.x label for reading old config files
 
-                                                  /// The label that identifies the following string as the application's
-                                                  /// "LastTargetRTFExportPath". This value is written in the "ProjectSettings"
-                                                  /// part of the project configuration file. Adapt It stores this path in the
-                                                  /// App's m_lastTargetRTFOutputPath member variable.
+/// The label that identifies the following string as the application's
+/// "LastTargetRTFExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
+/// App's m_lastTargetRTFOutputPath member variable.
 wxString szLastTargetRTFOutputPath = _T("LastTargetRTFExportPath");
 
 /// The label that identifies the following string as the application's
@@ -19214,18 +19220,17 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
         // this kbserver instance is for handling glosses KB
         syncfilename = _T("lastsync_glosses.txt");
     }
-    wxString url; url.Empty();
+    wxString ipAddr; ipAddr.Empty();
     wxString username; username.Empty();
     wxString password; password.Empty();
 
     // 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetup
-    // dialog, and we store url and username as app variables m_strKbServerURL and
-    // m_strUserID from now on (these are saved in the project config file too), and we get
-    // those here now; the password from the password dialog is stored in CMainFrame class
+    // dialog, and we store ipAddr and username as app variables m_strKbServerIpAddr and
+    // m_strUserID from now on, the password from the password dialog is stored in CMainFrame class
     // as the member m_kbserverPassword, private, and so accessed with GetKBSvrPassword(),
-    // & SetKBSvrPassword(wxString pwd)
-    wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
-    url = m_strKbServerURL;
+    // & SetKBSvrPassword(wxString pwd). Basic config file has the kbserver username and ipAddress
+    wxASSERT(!m_strKbServerIpAddr.IsEmpty() && !m_strUserID.IsEmpty());
+    ipAddr = m_strKbServerIpAddr;
     username = m_strUserID;
     password = GetMainFrame()->GetKBSvrPassword();
     wxASSERT(!password.IsEmpty());
@@ -19240,7 +19245,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
         GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
         GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
     }
-    GetKbServer(whichType)->SetKBServerURL(url);
+    GetKbServer(whichType)->SetKBServerIpAddr(ipAddr);
     GetKbServer(whichType)->SetKBServerUsername(username);
     GetKbServer(whichType)->SetKBServerPassword(password);
     GetKbServer(whichType)->SetPathSeparator(PathSeparator);
@@ -19257,7 +19262,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     if (whichType == 1)
     {
         // Testing for the adapting kb being in the table.
-        bool bSharedAdaptingKbExists = CheckForSharedKbInKbServer(url, username, password,
+        bool bSharedAdaptingKbExists = CheckForSharedKbInKbServer(ipAddr, username, password,
             m_sourceLanguageCode, m_targetLanguageCode, 1); // 1 is kbtype
         if (!bSharedAdaptingKbExists)
         {
@@ -19266,7 +19271,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // message first though.
             wxString msg;
             msg = msg.Format(_("A bad password was used, or an adaptations KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create an adaptations KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-                m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str(), url.c_str(), url.c_str());
+                this->m_sourceLanguageCode.c_str(), this->m_targetLanguageCode.c_str(), ipAddr.c_str(), ipAddr.c_str());
             wxString title = _("Bad password or adaptations database lacking");
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             m_bUserDlgOrMessageRequested = TRUE;
@@ -19290,7 +19295,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     else
     {
         //We must be testing for a glossing kb being in the table
-        bool bSharedGlossingKbExists = CheckForSharedKbInKbServer(url, username, password,
+        bool bSharedGlossingKbExists = CheckForSharedKbInKbServer(ipAddr, username, password,
             m_sourceLanguageCode, m_glossesLanguageCode, 2); // 2 is kbtype
         if (!bSharedGlossingKbExists)
         {
@@ -19299,7 +19304,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // helpful message first though.
             wxString msg;
             msg = msg.Format(_("A bad password was used, or a glosses KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create a glosses KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-                m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), url.c_str(), url.c_str());
+                m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), ipAddr.c_str(), ipAddr.c_str());
             wxString title = _("Bad password or glosses database lacking");
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             m_bUserDlgOrMessageRequested = TRUE;
@@ -19332,7 +19337,6 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     return TRUE;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// param       result          ->  a line of form "<ipaddr>@@@<hostname>
@@ -19340,7 +19344,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 ///				hostname		<-	reference to the hostname wxString associated with the
 ///									above ipaddr
 /// \remarks
-/// Extract the two string parts, and the caller can then make the first part into a URL
+/// Extract the two string parts
 void CAdapt_ItApp::ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname)
 {
     int offset = wxNOT_FOUND; // initialize to -1
@@ -19379,7 +19383,7 @@ void CAdapt_ItApp::ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, 
 // app's m_ipAddrs_Hostnames array as a second line, **BEFORE** UpdateExistingAppCompositeStr() gets called. I
 // have no idea how. But I'll have to build a little function that checks for this happening before
 // UpdateExistingAppCompositeStr() gets called - and remove the partiallyl duplicated bogus second line - or any
-// like that which are identical in the url, but may differ in the KBserver name.
+// like that which are identical in the ipAddress, but may differ in the KBserver name.
 bool CAdapt_ItApp::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
 {
 	int count = (int)m_ipAddrs_Hostnames.GetCount();
@@ -19492,46 +19496,29 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
-///             a discovered running KBserver on the LAN; FALSE if there was a problem or
-///             choice by the user to do otherwise than return a URL for auto-connection
+/// \return     TRUE if chosenIpAddr contains an ipAddress string to be used for authenticating to
+///             a discovered running KBserver on the LAN; FALSE if there was a problem, or
+///             choice by the user to do otherwise than return an ippAddress for auto-connection
 ///             purposes, or if no kbserver is running on the LAN as yet
-/// \param      curURL         -> the current URL - as currently in force, or just provided
+/// \param      curIpAddr      -> the current ipAdress - as currently in force, or just provided
 ///                               by reading from the AI-BasicConfiguration.aic file (it
 ///                               might be an empty string)
-/// \param      chosenURL      <- the URL to which connection is to be attempted (it
-///                               may not be the same as the curURL)
-/// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
-///                               ServDiscResults.txt file resides)
+/// \param      chosenIpAddress <- the ipAddress to which connection is to be attempted (it
+///                               may not be the same as the curIpAddr)
+/// \param      chosenHostname <- hostname (machine name) for identified running kbserver
+/// \param		ServDiscDetail <- a value from a set of enums of that type, to help govern code behaviour
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on scripts written
-/// by Leon Pearl. They work at a level lower than http or https, and so are not limited
-/// by system admin person's security protocol implemented at that higher level.
+/// by Leon Pearl. They work by direct access to kbserver in mariaDB (mysql alias) server
 ///
 /// ConnectUsingDiscoveryResults is called in an authentication attempt to a running KBserver.
-/// The service:  "_kbserver._tcp" is scanned for. The scripts are fast - typicaly finding all
-/// running KBservers within about 3 seconds. IP address, and hostname, are scanned for, and
-/// the results displayed to the user. Repeated user initiated scans are acceptable & safe.
 ///
-/// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
-/// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
-/// which does the service discovery may not be able to be created (unlikely though), or it
-/// refuses to run (also unlikely), or a KBserver instance was detected, but looking up either
-/// the hostname, or ip address, failed. Also, there may be a KBserver running, but it may not
-/// be the one used previously - in which case the function needs to compare the old url with
-/// the current running server's url, and if they differ, ask the user if he wants a connection
-/// to the different url. In a workshop, there could be several KBservers running, one for each
-/// of several workgroups from different language projects - so we have to discover them all.
-/// The service discovery will report the ip address and hostname for the KBserver/s it detects
-/// in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames wxArrayString arrays.
-/// DoServiceDiscovery() will, after the data is stored there, access that data and use it for
-/// implementing the protocols described above.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
 /// about line 803. It's over-specified for our needs, but the extra values are benign.
 /// enum ServDiscInitialDetail
 /// {
-/// 	SDInit_NoStoredUrl,
+/// 	SDInit_NoStoredIpAddr,
 /// 	SDInit_StoredUrl
 /// };
 ///
@@ -19541,32 +19528,32 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// 	SD_NoKBserverFound,
 /// 	SD_ServiceDiscoveryError,
 /// 	SD_NoResultsAndUserCancelled,
-/// 	SD_SameUrlAsInConfigFile,
-/// 	SD_UrlDiffers_UserAcceptedIt,
-/// 	SD_SingleUrl_UserAcceptedIt,
-/// 	SD_SingleUrl_UserCancelled,
-/// 	SD_SingleUrl_ButNotChosen,
-/// 	SD_MultipleUrls_UserCancelled,
-/// 	SD_MultipleUrls_UserChoseOne,
-/// 	SD_MultipleUrls_UserChoseNone,
+/// 	SD_SameIpAddrAsInConfigFile,
+/// 	SD_IpAddrDiffers_UserAcceptedIt,
+/// 	SD_SingleIpAddr_UserAcceptedIt,
+/// 	SD_SingleIpAddr_UserCancelled,
+/// 	SD_SingleIpAddr_ButNotChosen,
+/// 	SD_MultipleIpAddr_UserCancelled,
+/// 	SD_MultipleIpAddr_UserChoseOne,
+/// 	SD_MultipleIpAddr_UserChoseNone,
 /// 	SD_SD_ValueIsIrrelevant
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL,
+bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& chosenIpAddr,
     wxString& chosenHostname, enum ServDiscDetail &result)
 {
     // In my early code, I called this function DoServiceDiscovery. Now it doesn't do discovery,
-    // but just uses the results of service discovery. Discovery is CPU intensive, and needs
+    // but just uses the results of service discovery. Discovery is slow, and needs
     // to be divorced from connection-related code for the user's sake
 
-    chosenURL = _T(""); // initialize, we return the chosen url using this parameter
+    chosenIpAddr = _T(""); // initialize, we return the chosen url using this parameter
     result = SD_NoResultsYet; // initialize to a 'non-success' result
 
-                              // Add any not already in the aggregated storage on the app, used for display to the user;
+    // Add any not already in the aggregated storage on the app, used for display to the user;
 
-                              // Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
-    m_theURLs.Clear();
+    // Setup the ipAddresses (in m_theIpAddrs) and hostnames (in m_theHostnames)
+    m_theIpAddrs.Clear(); // we no longer use URLs, but the member name can stay unchanged (for now)
     m_theHostnames.Clear();
     wxString aComposite;
     int count;
@@ -19576,16 +19563,16 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
     chosenHostname = _("<unknown>");
 
     // We have an updated aggregate list. Decompose each string into the i[ address and
-    // hostname parts, add https:// to the ipaddress to make the URL, and store
+    // hostname parts, (no longer add https:// to the ipaddress to make the URL), and store
     // the parts in parallel in arrays m_theURLs, and m_theHostnames -
     wxString anIpAddress;
     wxString aHostname;
-    wxString aURL;
-    m_theURLs.clear();
+    //wxString aURL;
+    m_theIpAddrs.clear();
     m_theHostnames.clear();
     count = (int)m_ipAddrs_Hostnames.GetCount(); // this array is the app's one
 #if defined(_DOSERVDISC)
-    wxLogDebug(_T("\n CAdapt_ItApp::ConnectUsingDiscoveryResults() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
+    wxLogDebug(_T("\n CAdapt_ItApp::ConnectUsingDiscoveryResults() Updated ipAddresses and Hostnames. Unique KBserver ipAddrs aggregated so far = %d"),
         count);
 #endif
 
@@ -19595,12 +19582,13 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         aHostname = wxEmptyString;
         aComposite = m_ipAddrs_Hostnames.Item(i);
 #if defined(_DOSERVDISC)
-        wxLogDebug(_T(" CAdapt_ItApp::ConnectUsingDiscoveryResults() In LOOP: aComposite (url/hostname):  %s   Parts being extracted"), aComposite.c_str());
+        wxLogDebug(_T(" CAdapt_ItApp::ConnectUsingDiscoveryResults() In LOOP: aComposite (ipAddr/hostname):  %s   Parts being extracted"), aComposite.c_str());
 #endif
-        ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
+        ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname); // https:// has been removed
 
-        aURL = _T("https://") + anIpAddress;
-        m_theURLs.Add(aURL);
+		// aURL = _T("https://") + anIpAddress; <<-- deprecated 25Jul20, https not used any more
+		anIpAddress = anIpAddress;
+		m_theIpAddrs.Add(anIpAddress);
         m_theHostnames.Add(aHostname);
     }
 
@@ -19611,33 +19599,33 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         // or to Cancel from service-discovery - the latter we interpret
         // as a decision to not attempt a connection at the current time
         if ((m_sd_Detail == SD_NoResultsAndUserCancelled) ||
-            (m_sd_Detail == SD_SingleUrl_UserCancelled) ||
-            (m_sd_Detail == SD_MultipleUrls_UserCancelled) ||
+            (m_sd_Detail == SD_SingleIpAddr_UserCancelled) ||
+            (m_sd_Detail == SD_MultipleIpAddr_UserCancelled) ||
             (m_sd_Detail == SD_ServiceDiscoveryError) ||
-            (m_sd_Detail == SD_MultipleUrls_UserChoseNone)
+            (m_sd_Detail == SD_MultipleIpAddr_UserChoseNone)
             )
         {
             // No message is appropriate here, just silently turn off sharing
             // (but retain any url and hostname already stored , if any)
-            chosenURL.Empty();
+            chosenIpAddr.Empty();
             chosenHostname.Empty();
             result = SD_ValueIsIrrelevant;  // caller will use m_bUserDecisionMadeAtDiscovery TRUE instead
             return FALSE;
         }
-        else if ((m_sd_Detail == SD_SingleUrl_UserAcceptedIt) ||
-            (m_sd_Detail == SD_MultipleUrls_UserChoseOne)
+        else if ((m_sd_Detail == SD_SingleIpAddr_UserAcceptedIt) ||
+            (m_sd_Detail == SD_MultipleIpAddr_UserChoseOne)
             )
         {
-            chosenURL = m_chosenUrl;
+            chosenIpAddr = m_chosenIpAddr;
             chosenHostname = m_chosenHostname;
-            if ((m_sd_InitialDetail == SDInit_StoredUrl) && chosenURL == curURL && !m_strUserID.IsEmpty())
+            if ((m_sd_InitialDetail == SDInit_StoredIpAddr) && chosenIpAddr == curIpAddr && !m_strUserID.IsEmpty())
             {
-                result = SD_SameUrlAsInConfigFile;
+                result = SD_SameIpAddrAsInConfigFile;
                 return TRUE;
             }
             // caller can use m_bUserDecisionMadeAtDiscovery TRUE too, but the following
             // will ensure that the Authenticate dialog is shown with whatever was chosen
-            result = SD_SingleUrl_UserAcceptedIt;
+            result = SD_SingleIpAddr_UserAcceptedIt;
             return TRUE;
         }
     }
@@ -19651,31 +19639,31 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         if (count > 1)
         {
             // More than one, so setup the dialog etc. m_ipAddrs_Hostnames is the wxArrayString in which
-            // the composite url@@@hostname string(s) are kept, and m_theURLs & m_theHostnames are
+            // the composite ipaddress@@@hostname string(s) are kept, and m_theIpAddrs & m_theHostnames are
             // dynamically filled each time the former is accessed for its discovery data
-            CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
+            CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theIpAddrs, &m_theHostnames);
             dlg.Center();
             if (dlg.ShowModal() == wxID_OK)
             {
-                chosenURL = dlg.m_urlSelected;
+                chosenIpAddr = dlg.m_ipAddrSelected;
                 chosenHostname = dlg.m_hostnameSelected;
-                if (chosenURL.IsEmpty())
+                if (chosenIpAddr.IsEmpty())
                 {
                     // No choice at this point, his last chance to make one, dooms
                     // the connection attempt, so treat it as a cancellation
-                    result = SD_MultipleUrls_UserCancelled;
+                    result = SD_MultipleIpAddr_UserCancelled;
                     wxString message;  message = message.Format(_(
-                        "You did not choose a URL. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
+                        "You did not choose an ipAddress. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
-                    m_theURLs.Clear();
+                    m_theIpAddrs.Clear();
                     m_theHostnames.Clear();
                     return FALSE;
                 }
                 else
                 {
-                    result = SD_MultipleUrls_UserChoseOne;
+                    result = SD_MultipleIpAddr_UserChoseOne;
                     // Go on to Authentication in the caller
                     return TRUE;
                 }
@@ -19685,13 +19673,13 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                 // Cancelled
                 if (dlg.m_bUserCancelled)
                 {
-                    chosenURL.Empty();
+                    chosenIpAddr.Empty();
                     chosenHostname.Empty();
-                    result = SD_MultipleUrls_UserCancelled;
+                    result = SD_MultipleIpAddr_UserCancelled;
 
                     // Since the user has deliberately chosen to Cancel, and the dialog
                     // has explained what will happen, no further message is needed here
-                    m_theURLs.Clear();
+                    m_theIpAddrs.Clear();
                     m_theHostnames.Clear();
                     return FALSE;
                 }
@@ -19699,35 +19687,35 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
         }
         else
         {
-            // Only one unique KBserver URL was discovered. Handle the options
-            chosenURL = m_theURLs[0];
+            // Only one unique KBserver ipAddress was discovered. Handle the options
+            chosenIpAddr = m_theIpAddrs[0];
             chosenHostname = m_theHostnames[0];
             // First, if it is the same as the one stored in the basic config file,
             // then assume it is wanted (whether selected or not), and also assume
             // this unique username has not changed - and auto-connect, only asking
             // the user for the password (the latter actions are done in the caller)
-            if ((m_sd_InitialDetail == SDInit_StoredUrl) && (chosenURL == curURL) && !m_strUserID.IsEmpty())
+            if ((m_sd_InitialDetail == SDInit_StoredIpAddr) && (chosenIpAddr == curIpAddr) && !m_strUserID.IsEmpty())
             {
-                result = SD_SameUrlAsInConfigFile;
+                result = SD_SameIpAddrAsInConfigFile;
                 return TRUE;
             }
             else
             {
-                // It's a different url from the one that was last stored in the basic configuration
+                // It's a different ipAddress from the one that was last stored in the basic configuration
                 // file. The user will need to be asked if he wants to connect to it. It could be the
-                // same KBserver but with a different url in this session, or it may be a different
+                // same KBserver but with a different ipAddress in this session, or it may be a different
                 // KBserver (and maybe with different password as well). Alternatively, this might be
-                // the first attempt at a connection, so there was no stored url yet, but one discovered
+                // the first attempt at a connection, so there was no stored ipAddress yet, but one discovered
                 wxString message;  message = message.Format(_(
-                    "The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
-                    curURL.c_str(), chosenURL.c_str());
+                    "The ipAddress previously used was:  %s\nThe KBserver running now has ipAddress: %s\nThe ipAddress of a KBserver can change, though unikely. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new ipAddress?"),
+                    curIpAddr.c_str(), chosenIpAddr.c_str());
                 // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                 m_bUserDlgOrMessageRequested = TRUE;
-                int value = wxMessageBox(message, _("The URL has changed"),
+                int value = wxMessageBox(message, _("The ipAddress has changed"),
                     wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
                 if ((value == wxYES))
                 {
-                    result = SD_UrlDiffers_UserAcceptedIt;
+                    result = SD_IpAddrDiffers_UserAcceptedIt;
                     return TRUE;
                 }
                 else
@@ -19740,15 +19728,15 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                     // KBserver back into use, or whatever.
                     wxString message;  message = message.Format(_(
                         "You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
-                        chosenURL.c_str());
+                        chosenIpAddr.c_str());
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     m_bUserDlgOrMessageRequested = TRUE;
                     wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
-                    chosenURL = wxEmptyString;
+                    chosenIpAddr = wxEmptyString;
                     chosenHostname = wxEmptyString;
-                    m_theURLs.Clear();
+                    m_theIpAddrs.Clear();
                     m_theHostnames.Clear();
-                    result = SD_SingleUrl_UserCancelled;
+                    result = SD_SingleIpAddr_UserCancelled;
                 }
             }
         } // end of else block for test: if (count > 1)
@@ -19759,14 +19747,14 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
     {
         // Nothing available, inform the user of what might be the problem or problems
         wxString message;  message = message.Format(_(
-            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nThe unique username for logging in may be different than what is expected. Check Edit > Change Username..."));
+            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to get a KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nThe unique username for logging in may be different than what is expected. Check Edit > Change Username..."));
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
-        m_theURLs.Clear();
+        m_theIpAddrs.Clear();
         m_theHostnames.Clear();
         // If the unexpected happens, at least end safely...returning FALSE
-        if (chosenURL.IsEmpty() || result == SD_NoResultsYet)
+        if (chosenIpAddr.IsEmpty() || result == SD_NoResultsYet)
         {
             result = SD_NoResultsYet; // probably the best indicator
         }
@@ -19872,6 +19860,859 @@ int CAdapt_ItApp::GetKBTypeForServer()
         return 2; // for glossingKB
     }
     return 1; // for adaptingKB
+}
+
+// Ask user if permission 'useradmin' 1 (TRUE) is wanted; if wanted,
+// return TRUE. Internally, use wxMessageBox() for the request
+bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
+{
+	wxString caption = _("Permission to add users wanted?");
+	wxString msg = _("Click Yes to give this user permission to add more users");
+	int answer = wxMessageBox(msg, caption, wxYES_NO|wxCANCEL|wxOK_DEFAULT|wxCENTRE);
+	if (answer == wxYES)
+		return TRUE;      // permission flag useradmin will be set to 1
+	else
+		return FALSE;    // permission flag useradmin will be set to 0
+}
+
+// Use an internal switch, for enum KBserverDAT_Blanks, and use it to
+// to create each .dat file to be used with a kbserver supporting function
+// after being copied from dist folder to the execPath folder (parent)
+// for altering the command line to contain the data values needed for that
+// particular call on the mariaDB server (mysql) backend.
+// This function is to be called towards the end of OnInit(), after execPath
+// and distFolderPath (both absolute) have been correctly defined. The
+// funcion calls each enum value in turn, and each case has a uniquely named
+// 'blank' *.dat file - which are stored by this function in the distFolderPath
+// folder. Creating each such file is done only once. A check is made for each
+// and if present, no creation takes place. Alterations to each are made only
+// on a copy which is programmatically moved (use wxCopyFile(f1,f2);) to the
+// parent folder, which holds the executable AI file which is running. These
+// copies are temporary - each is destroyed after use. The blanks, however,
+// lodged in the dist folder, have constant contents.
+void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
+{
+	bool execExists = wxDirExists(execPth);
+	wxString distPth = this->MakeDistFolder(); // makes path to dist
+			// based on Get().GetExecutablePaths(), and sets it as 
+			// a child of execPth - don't rely on OnInit() having set 
+			// it up already
+	// Check that distPth now exists
+	bool distExists = wxDirExists(distPth);
+	if (distExists)
+	{
+		// Make sure distPath in AI.h and .cpp is set
+		this->distPath = distPth;  // Other kbserver-related functions can now
+				// grab a valid distPath from the app class - it won't change
+				// it's value in any session of AI or AI in development folders
+	}
+	if (execExists && distExists)
+	{
+		int i = noDatFile; // must initialize, before using
+		while (i >= noDatFile && i < blanksEnd)
+		{
+			switch (i)
+			{
+			case noDatFile: // do nothing, = 0
+			{
+				break;
+			}
+			case credentials_for_user: // = 1
+			{
+				MakeCredentialsForUser(credentials_for_user, execPth, distPth);
+				break;
+			}
+			case lookup_user: // = 2
+			{
+				MakeLookupUser(lookup_user, execPath, distPath);
+				break;
+			}
+
+
+			// Add additional cases here, as our solution matures
+
+			case blanksEnd:
+			default:  
+			{
+				break;// do nothing
+			}
+			}
+			i++;
+		}
+	} // end of TRUE block for test: if (execExists && distExists)
+	else
+	{
+		// tell the developer it failed
+		wxString msg = _T("CreateInputDatBlanks() failed because execPath or distPath could not be found");
+		wxString caption = _T("CreateInputDatBlanks path error");
+		LogUserAction(msg);
+#if defined (_DEBUG)
+		wxMessageBox(msg, caption); // for developers to see, tasol
+#endif
+	}
+}
+
+bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
+{
+	wxString distFolderPath = this->distPath;
+	wxString execFolderPath = this->execPath;
+	bool execExists = wxDirExists(execFolderPath);
+	bool distExists = wxDirExists(distFolderPath);
+	if (execExists && distExists)
+	{
+		switch (funcNumber)
+		{
+		case noDatFile:
+		{
+			break;
+		}
+		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
+		{
+			wxString filename = _T("credentials_for_user.dat");
+			DeleteOldDATfile(filename, execFolderPath);
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath);
+			ConfigureMovedDatFile(funcNumber, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_add_KBUsers.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_add_KBUser.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_add_KBUsers.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case lookup_user: // funcNumber is 2 in AI.h lines 854++
+		{
+			m_bUser1IsUser2 = FALSE; // initialize
+			// The above boolean makes it possible for us to establish authentication
+			// as 'user' or as 'for manager', with storage options agreeing, by 
+			// whether it is TRUE, or FALSE. When ConfigureMovedDatFile() is called
+			// to put in the actual parametres for the wxExecute() call, we check for
+			// user2 == m_strUserID (ie. user1), and if TRUE, then set this bool to
+			// TRUE, and move change m_bUserIsAuthenticating from FALSE to TRUE plus
+			// other changes (e.g. copy 'ForManager' vars across to 'Normal' vars
+			// and so forth.
+			wxString filename = _T("lookup_user.dat");
+			DeleteOldDATfile(filename, execFolderPath);
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath);
+			ConfigureMovedDatFile(lookup_user, filename, execFolderPath); // <<-- does the test user1 == user2
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_user_lookup.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_user_lookup.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_user_lookup.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case blanksEnd:
+		// TODO -- insert other cases as our solution matures, and blanksEnd will get larger
+			
+		default:
+		{
+			break; // do nothing
+		}
+		}
+		
+	} // end of TRUE block for test: if (execExists && distExists)
+	else
+	{
+		// tell the developer it failed
+		wxString msg = _T("ConfigureDatFile() failed because execFolderPath or distFolderPath could not be found");
+		wxString caption = _T("ConfigureDatFile path error");
+		LogUserAction(msg);
+#if defined (_DEBUG)
+		wxMessageBox(msg, caption); // for developers to see, tasol
+#endif
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
+{
+	wxString filePath = execFolderPath + filename;
+	bool bExists = ::wxFileExists(filePath);
+	if (bExists)
+	{
+		::DeleteFile(filePath); // ignore returned bool
+	}
+}
+
+void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString distFolderPath, wxString execFolderPath)
+{
+	wxString f1 = distFolderPath + filename; // absolute path to filename's file
+	wxString f2 = execFolderPath + filename; // destination for the move, absolute path -
+						// that is, to the parent folder which is execFolderPath
+	wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
+						// configure it in execPath folder, to have needed data values
+}
+
+void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename,
+										wxString& execFolderPath)
+{
+	wxString filePath = execFolderPath + filename;
+	if (funcNumber == 0) // beginning of const int's set, a do-nothing value
+		return;
+	if (funcNumber == blanksEnd)  // end of const int's set, a do-nothing value
+		return; 
+	wxString comma = _T(","); wxString one = _T("1"); wxString zero = _T("0");
+	CMainFrame* pFrame = GetMainFrame();
+	wxString commandLine;
+
+	switch (funcNumber)
+	{
+	case noDatFile:
+	{
+		break;
+	}
+	case credentials_for_user:
+	{
+		m_bUseForeignOption = FALSE; // restore default, local user is in focus
+
+		commandLine = this->m_chosenIpAddr + comma;
+		commandLine += m_strUserID + comma;
+		commandLine += m_strUsername + comma;
+		wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
+		commandLine += pwd + comma;
+		bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted();
+		this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
+		commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+		// That finishes the commandLine to be put into the input .dat file.
+
+		// Set AI.h variables to preserve parameters used, for 'normal' scenario
+		UpdateNormalIpAddr(this->m_chosenIpAddr);
+		UpdateCurNormalUsername(m_strUserID);
+		UpdateCurNormalFullname(m_strUsername);
+		UpdateCurNormalPassword(pwd);
+		UpdatebcurUseradmin(bCanAddUsers);
+		UpdatebcurKbadmin(); // always TRUE
+		UpdateCurSrcLangName(m_sourceName);
+		UpdateCurTgtLangName(m_targetName);
+		UpdateCurGlossLangName(m_glossesName);
+		UpdateCurFreeTransLangName(m_freeTransName);		
+
+		// Now in the caller the file has been moved to the parent folder 
+		// of the dist folder; so use wxTextFile to make the changes in
+		// the file copy within thee parent folder: "credentials_for_user.dat" 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out off builerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: credentials_for_user.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() which will
+				// implement the adding of the user to the user table
+				// If the adding does not happen, Leon's .exe will drop a .dat
+				// file with an appropriate error message. This .dat file is
+				// moved to the execPath folder, ready for use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case lookup_user: // = 2
+	{
+		m_bUseForeignOption = TRUE; // do we need this??
+		m_bUserAuthenticating = FALSE; // <<-- always enter the Authenticate2 dlg with FALSE
+		commandLine = this->m_chosenIpAddr + comma;
+		this->UpdateIpAddr(m_chosenIpAddr);
+
+		wxString saveIpAddr = m_chosenIpAddr; // if user cancels, need this and next three
+		wxString saveUsername = m_curAuthUsername;
+		wxString saveUsername2 = m_Username2; // for the "look for this username" 2nd box
+		wxString savePwd = m_curAuthPassword;
+
+		bool bAuthenticationOK = TRUE;
+		Authenticate2Dlg* pDlg = new Authenticate2Dlg(GetMainFrame(), m_bUserAuthenticating);
+		pDlg->Center();
+		int dlgReturnCode;
+		dlgReturnCode = pDlg->ShowModal();
+		if (dlgReturnCode == wxID_OK)
+		{
+			// successful run of the dialog. The app variables should have new or same
+			// values for m_strForManagerIpAddr, m_strForManagerUsername, m_strForManagerPassword,
+			// and if the password was left empty, the class will make a guess based on previously
+			// stored passwords - it could be wrong of course, and the user shown it in a form
+			// like  "Cl******93" for example, or xx**, or x* where x is some wxChar value
+			UpdateCurAuthUsername(pDlg->m_strForManagerUsername);
+			commandLine += pDlg->m_strForManagerUsername + comma; // for authenticating
+
+			UpdateCurAuthPassword(pDlg->m_strForManagerPassword);
+			commandLine += pDlg->m_strForManagerPassword + comma;
+
+			// Now the second username, the one to search for
+			UpdateUsername2(pDlg->m_strForManagerUsername2);
+			commandLine += pDlg->m_strForManagerUsername2 + comma; // commandLine is finished
+
+#if defined (_DEBUG)
+			wxLogDebug(_T("%s() Line %d, m_Username2: %s , command: %s"),
+				__FUNCTION__,__LINE__, m_Username2.c_str(), commandLine.c_str());
+#endif
+			// Now set or clear the app boolean, m_bUser1IsUser2
+			if (!m_bUserAuthenticating)
+			{
+				// Work out if we need to make m_bUserAuthenticating TRUE
+				// because we determined here that m_bUser1IsUser2 is TRUE
+				m_bUser1IsUser2 = FALSE; //default for not 'Normal' situation
+				if ((m_curAuthUsername == m_Username2) && (m_curAuthUsername == m_strUserID))
+				{
+					// User is looking up him in his adaptation (defined) project.
+					// So copy the 'for manager' values over to the 'Normal' vars, 
+					// so they can persist while the user works
+					m_bUserAuthenticating = TRUE;
+					m_curNormalUsername = m_curAuthUsername;
+					m_curNormalUsername2 = m_Username2;
+					m_curNormalPassword = m_curAuthPassword; // keep but don't show to user
+					m_bcurNormalKbadmin = TRUE; 
+					// The next two are not known until wxExecute() returns successfully,
+					// with "username2, fullname, useradmin" values in the returned file
+					// lookup_user_return_results_file.dat - so do that in CallExecute()
+
+					// The password stored in app's m_possibleNormalPassword should be
+					//  sent to the frame's password store - may be needed subsequently
+					CMainFrame* pMF = GetMainFrame();
+					pMF->SetKBSvrPassword(m_possibleNormalPassword);
+				}
+			}
+		}
+		else
+		{
+			// User cancelled. The authentication must fail.
+			bAuthenticationOK = FALSE;
+		}
+		delete pDlg;
+		// That finishes the commandLine to be put into the input .dat file.
+
+		// Set AI.h variables to preserve parameters used, in case Manager wants them
+		if (!bAuthenticationOK)
+		{
+			// Restore earlier values
+			UpdateIpAddr(saveIpAddr);
+			UpdateCurAuthUsername(saveUsername);
+			UpdateCurAuthPassword(savePwd);
+		}
+
+		// Set these ones from the KB Sharing Manager, because a third party
+		// may be adding users and their associated srcLang/tgtLang KB may
+		// differ from what is currently in effect for the current machine
+		/*
+		UpdateCurSrcLangName(m_sourceName);
+		UpdateCurTgtLangName(m_targetName);
+		UpdateCurGlossLangName(m_glossesName);
+		UpdateCurFreeTransLangName(m_freeTransName);
+		*/
+		// Now in the caller the file has been moved to the parent folder 
+		// of the dist folder; so use wxTextFile to make the changes in
+		// the file copy within the parent folder: "lookup_user.dat" 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out off builerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: lookup_user.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case blanksEnd:
+	default:
+	{
+		break; // do nothing
+	}
+	} // end of switch:  switch (funcNumber)
+}
+
+void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("credentials_for_user.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,fullname,password,useradmin,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: credentials_for_user.dat");
+			f.AddLine(line);
+			line = _T("# After login, if username does not exist, adds to");
+			f.AddLine(line);
+			line = _T("# kbserver's user table the username, with");
+			f.AddLine(line);
+			line = _T("# permission level (0 or 1) specified by useradmin");
+			f.AddLine(line);
+			line = _T("# e.g: 192.168.1.9,bruce@unit2,bruce edwin,Clouds2093,1,");
+			f.AddLine(line);
+			line = _T("# Use this .dat file for adding new users to the user table");
+			f.AddLine(line);
+			line = _T("ipAddress,username,fullname,password,useradmin,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+#endif
+	}
+}
+
+// ::wxExecute() fails for either a long absolute path prefixed, or some other reason. Workaround
+// is to use no path, and call the exec's name, after setting the current working directory
+// temporarily to the AI executable's folder's path (this path can be absolute though)
+bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
+	wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult)  // last param is default FALSE
+{
+	wxArrayString output;
+	wxArrayString errors;
+	bool bSuccess = TRUE;
+	wxFileName fn(execPath, execFileName);
+	wxString currCwd = wxFileName::GetCwd();
+	bool bTempCwd = fn.SetCwd(execPath);
+	if (bTempCwd)
+	{
+
+		long rv = ::wxExecute(execFileName, output, errors);
+		// restore old current working directory
+		bool bRestored = fn.SetCwd(currCwd);
+		wxUnusedVar(bRestored);
+		// check for success and advise user with a 1.3 second 'created successfully' message
+		if (rv == 0)
+		{
+			// Any value other than zero means something failed in the call
+			int offset = wxNOT_FOUND;
+			wxString pathToResults = execPath + resultFile;
+			bool bResultsFileExists = ::FileExists(pathToResults);
+			if (bResultsFileExists)
+			{
+				// The existence of the results file does not guarantee success,
+				// but if first line has "success" then the wxExecute() call succeeded
+				wxString comma = _T(",");
+				wxTextFile f(pathToResults);
+				bool bOpened = f.Open();
+				wxString firstLineStr = wxEmptyString;
+				if (bOpened)
+				{
+					firstLineStr = f.GetFirstLine();
+					f.Close();
+				}
+				wxString srchStr = _T("success"); // handles variants like 'successfully' etc
+				offset = firstLineStr.Find(srchStr);
+				if (offset != wxNOT_FOUND)
+				{
+					// Found the srchStr, so we have success
+					bSuccess = TRUE;
+					if (m_bUserAuthenticating) // has been forced to TRUE
+					{
+						// we will want success when authenticating to be reported to user
+						bReportResult = TRUE; // force TRUE because authenticating, 
+											  // to show 1.5 sec msg
+					}
+
+				} // end of TRUE block for test: if (offset != wxNOT_FOUND)
+
+				// BEW 9Sep20, in the case: const int lookup_user = 2; we want the
+				// fullname and useradmin values for the user2 that was looked up. We
+				// can't get these except from the returned .dat file - so code here
+				// for that. Refactor to give CallExecute an initial param funcNumber,
+				// and internal switch, so allow post-wxExecute() processing as needed
+
+				// Do post-execute processing...
+				bOpened = f.Open();
+				wxString dataStr = wxEmptyString;
+				bool bMoreThanOneLine = TRUE;
+				if (bOpened)
+				{
+					int lineCount = (int)f.GetLineCount();
+					if (lineCount > 1)
+					{
+						dataStr = f.GetLine(1);
+						f.Close();
+					}
+					else
+					{
+						bMoreThanOneLine = FALSE;
+					}
+				}
+				// Error message will have just a single line, so don't
+				// do the stuff below if the line count was just 1
+				if (bMoreThanOneLine)
+				{
+					if (funcNumber == 0) // beginning of const int's set, a do-nothing value
+					{
+						int fNum = funcNumber; wxUnusedVar(fNum);
+					}
+					if (funcNumber == blanksEnd)  // end of const int's set, a do-nothing value
+					{
+						int fNum = funcNumber; wxUnusedVar(fNum);
+					}
+					switch (funcNumber)
+					{
+					case noDatFile:
+					{
+						break;
+					}
+					case credentials_for_user: // = 1
+					{
+						break;
+					}
+					case lookup_user: // = 2
+					{
+						// results file is lookup_user_report_results.dat
+						// containing: username,fullname,useradmin, 
+						// where username is user2, in the input .dat file
+						if (!dataStr.IsEmpty())
+						{
+							offset = dataStr.Find(comma);
+							wxString username2 = dataStr.Left(offset); // << username2 value determined
+
+							wxString shorter = dataStr.Mid(offset + 1);
+							offset = shorter.Find(comma);
+							wxString fullname = shorter.Left(offset);
+
+							shorter = shorter.Mid(offset + 1);
+							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 'i'
+							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
+
+							// Now store them... (Authenticating, if ConfigureMovedDATfile()
+							// has just done the test user1 == user2 and found it TRUE, so that
+							// m_bUserUserAuthentication has been forced to TRUE)
+							if (m_bUserAuthenticating)
+							{
+								wxASSERT(m_bUser1IsUser2 == TRUE);
+								m_bUserLoggedIn = FALSE; // initialise
+								if (m_bUser1IsUser2)
+								{
+									// Report to the app that the authentication was successful
+									m_bUserLoggedIn = TRUE;
+								}
+								m_curNormalUsername2 = username2;
+								m_curNormalFullname = fullname;
+								m_bcurNormalUseradmin = bUseradminValue;
+
+								// The user may have changed to a different AI project,
+								// so reset the language names to whatever is current.
+								// But don't do this when m_bUserAuthenticating is FALSE
+								m_sourceLanguageName = m_sourceName; // this tracks the project
+								m_curNormalSrcLangName = m_sourceLanguageName; // secondary storage
+
+								m_targetLanguageName = m_targetName; // this tracks the project
+								m_curNormalTgtLangName = m_targetLanguageName;
+
+								m_glossesLanguageName = m_glossesName; // this tracks glossing lang of project
+								m_curNormalGlossLangName = m_glossesLanguageName;
+
+								m_freeTransLanguageName = m_freeTransName;
+								m_curNormalFreeTransLangName = m_freeTransLanguageName;
+								// For the above names, see AI.h around lines 3294 to 3298
+#if defined (_DEBUG)
+								wxLogDebug(_T("%s() line %d , src= %s , tgt= %s , glo= %s , fre= %s"),
+									__FUNCTION__, __LINE__, m_sourceName.c_str(), m_targetName.c_str(),
+									m_glossesName.c_str(), m_freeTransName.c_str());
+#endif
+								if (bReportResult)
+								{
+#if defined(__WXMSW__)
+									CMainFrame* pFrame = this->GetMainFrame();
+									CWaitDlg waitDlg(pFrame);
+									waitDlg.m_nWaitMsgNum = waitSuccess;	// 32 has  _("Authentiction succeeded")
+									waitDlg.Centre();
+									waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+									waitDlg.Update();
+									// the wait dialog is automatically destroyed when it goes out of scope below
+									// or after the number of hundredths of a second has expired in the delay func
+									DoMessageDelay(150); // 1.5 secs should be enough
+#else
+									// Linux and OSX don't support the WaitDlg 
+									wxUnusedVar(waitSuccess);
+									wxUnusedVar(waitFailure);
+#endif
+								} // end of TRUE block for test: if (bReportResult)
+							}
+							else
+							{
+								m_Username2 = username2;
+								m_curFullname = fullname;
+								m_bcurUseradmin = bUseradminValue;
+							}
+						}
+						break;
+					}
+					} // end of switch
+				} // end of TRUE block for test: if (bMoreThanOneLine)
+				
+			} // end of the TRUE block for test: if (bResultsFileExists)
+			else
+			{
+				// Failure - tell the user
+				bSuccess = FALSE;
+				if (bReportResult)
+				{
+#if defined(__WXMSW__)
+					CMainFrame* pFrame = this->GetMainFrame();
+					CWaitDlg waitDlg(pFrame);
+					waitDlg.m_nWaitMsgNum = waitFailure;	// 33 has  _("Authentication failed")
+					waitDlg.Centre();
+					waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+					waitDlg.Update();
+					// the wait dialog is automatically destroyed when it goes out of scope below
+
+#else
+					// Linux and OSX don't support the WaitDlg 
+					wxUnusedVar(waitSuccess);
+					wxUnusedVar(waitFailure);
+#endif		
+				} // end of TRUE block for test: if (bReportResult)
+			} // end of the else block for test: if (bResultsFileExists)
+		} // end of TRUE block for test: if (rv == 0)
+		else
+		{
+			wxBell();
+			bSuccess = FALSE;
+			wxString msg = _T("::wxExecute() failed for %s called in folder %s");
+			msg = msg.Format(msg, execFileName.c_str(), execPath.c_str());
+			LogUserAction(msg);
+			return FALSE;
+		}
+	} // end of the TRUE block for test: if (bTempCwd)
+	return bSuccess;
+}
+
+void CAdapt_ItApp::UpdateCurAuthUsername(wxString str)
+{
+	if (m_curAuthUsername != str)
+	{
+		m_curAuthUsername = str;
+	}
+}
+void CAdapt_ItApp::UpdateUsername2(wxString str)
+{
+	if (m_Username2 != str)
+	{
+		m_Username2 = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurAuthPassword(wxString str)
+{
+	if (m_curAuthPassword != str)
+	{
+		m_curAuthPassword = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurFullname(wxString str)
+{
+	if (m_curFullname != str)
+	{
+		m_curFullname = str;
+	}
+}
+void CAdapt_ItApp::UpdatebcurUseradmin(bool bUseradmin)
+{
+	if (m_bcurUseradmin != bUseradmin)
+	{
+		m_bcurUseradmin = bUseradmin;
+	}
+}
+void CAdapt_ItApp::UpdatebcurKbadmin()
+{
+	m_bcurKbadmin = TRUE; // always TRUE now
+}
+void CAdapt_ItApp::UpdateIpAddr(wxString str)
+{
+	if (m_curIpAddr != str)
+	{
+		m_curIpAddr = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurSrcLangName(wxString str)
+{
+	if (m_curSrcLangName != str)
+	{
+		m_curSrcLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurTgtLangName(wxString str)
+{
+	if (m_curTgtLangName != str)
+	{
+		m_curTgtLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurGlossLangName(wxString str)
+{
+	if (m_curGlossLangName != str)
+	{
+		m_curGlossLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurFreeTransLangName(wxString str)
+{
+	if (m_curFreeTransLangName != str)
+	{
+		m_curFreeTransLangName = str;
+	}
+}
+// BEW 5Sep20 - the parallel set of updaters for the 'normal' 
+// scenario (not 'for manager')
+
+void CAdapt_ItApp::UpdateCurNormalUsername(wxString str)
+{
+	if (m_curNormalUsername != str)
+	{
+		m_curNormalUsername = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalPassword(wxString str)
+{
+	if (m_curNormalPassword != str)
+	{
+		m_curNormalPassword = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalFullname(wxString str)
+{
+	if (m_curNormalFullname != str)
+	{
+		m_curNormalFullname = str;
+	}
+}
+void CAdapt_ItApp::UpdatebcurNormalUseradmin(bool bNormalUseradmin)
+{
+	if (m_bcurNormalUseradmin != bNormalUseradmin)
+	{
+		m_bcurNormalUseradmin = bNormalUseradmin;
+	}
+}
+void CAdapt_ItApp::UpdatebcurNormalKbadmin()
+{
+	m_bcurNormalKbadmin = TRUE; // always TRUE now
+}
+void CAdapt_ItApp::UpdateNormalIpAddr(wxString str)
+{
+	if (m_curNormalIpAddr != str)
+	{
+		m_curNormalIpAddr = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalSrcLangName(wxString str)
+{
+	if (m_curNormalSrcLangName != str)
+	{
+		m_curNormalSrcLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalTgtLangName(wxString str)
+{
+	if (m_curNormalTgtLangName != str)
+	{
+		m_curNormalTgtLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalGlossLangName(wxString str)
+{
+	if (m_curNormalGlossLangName != str)
+	{
+		m_curNormalGlossLangName = str;
+	}
+}
+void CAdapt_ItApp::UpdateCurNormalFreeTransLangName(wxString str)
+{
+	if (m_curNormalFreeTransLangName != str)
+	{
+		m_curNormalFreeTransLangName = str;
+	}
 }
 
 #endif // for _KBSERVER
@@ -20033,6 +20874,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #if defined(_KBSERVER)
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
 	m_bDiscoverKBservers = TRUE;
+	m_bUseForeignOption = FALSE; // normal local kbserver user stuff is in focus
 
 	m_SD_Message_For_Connect = _("Select the ipAddress you wish to connect to, then click OK.  If none is selected, a connection will not be tried. The listed ipAddresses are stored for use in this work session.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.  Note - connection requires that the correct KBserver database has been set up already for your adaptation project.");
 	m_SD_Message_For_Discovery = _("KBserver discovery works only for KBservers connected to the Local Area Network (LAN), or to a private local network (PAN).  Your LAN, or PAN, can be connected to the web, or not, because the internet will be ignored. The KBservers running on the LAN or PAN are shown.  Connecting to a listed KBserver is not done immediately, even if you select one; but those listed are stored for possible use later.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.");
@@ -20072,7 +20914,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
                        // the message & restores NULL, use NULL as a flag in OnIdle()
     m_pKbServer_Persistent = NULL; // initialize
-    m_pKbServer_Occasional = NULL; // initialize
+    m_pKbServer_ForManager = NULL; // initialize
     m_bUserAuthenticating = TRUE; // initialize (set TRUE or FALSE prior to calling
                                   // KBSharingAuthenticationDlg, only FALSE when the
                                   // latter is used for authenticating to the KB
@@ -20109,7 +20951,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 #if defined(_KBSERVER)
     //m_pServDisc = NULL; // initialize to 0  <- deprecated 18Apr16, & moved to Thread_ServiceDiscovery
-    m_strKbServerURL.Empty(); // assume none ever set, Basic config file may restore a value
+    m_strKbServerIpAddr.Empty(); // assume none ever set, Basic config file may restore a value
                               // to this variable further down in OnInit()
 #endif
 
@@ -20259,7 +21101,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // constitutes 'minimal' privilege level for access to the KB sharing remote database;
     // these values may be overridden by ascertaining the username has increased privileges
     // when a CheckForValidUsernameForKbServer() call is done. see helpers.cpp)
-    m_kbserver_kbadmin = FALSE;
+    m_kbserver_kbadmin = TRUE; //BEW 28Aug20 always TRUE, we now allow anyone to create a new KB
     m_kbserver_useradmin = FALSE;
 
     m_bWizardIsRunning = FALSE;
@@ -21010,7 +21852,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_curGlossingKBPath = _T("");
 
     // whm 22Apr2019 added following two members for email Report and Feedback settings for AI-BasicConfiguration.aic
-    // TODO: Change default server URL to correct one when supplied by Michael J.
+    // Change default server U R L to the correct one
     m_serverURL = _T("https://adapt-it.org/"); // default value - may be changed if basic config file changes it.
     m_phpFileName = _T("feedback.php"); // default value - may be changed if basic config file changes it.
 
@@ -24432,6 +25274,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
+
     // Bibledit testing below
     /*
     wxString beProjPath = GetBibleditProjectsDirPath();
@@ -26329,6 +27172,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Note: curl leaks this small heap block; and openssl also leaks a small heap block.
     // BEW 29Apr16 curl_global_cleanup() cleans up - see OnExit()
 #if defined (_KBSERVER)
+
 #if defined(__WXMSW__)
     curl_global_init(CURL_GLOBAL_ALL);
 #else
@@ -26340,6 +27184,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #else
     curl_global_init(CURL_GLOBAL_SSL);
 #endif
+
 #endif
 
     // **** test code fragments here ****
@@ -26966,16 +27811,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //ShortWait(24);  shows "Connected to KBserver successfully" (and no title in titlebar)
 
     // Test message
-    /*
-    wxString curURL_T = _T("https://192.168.2.11");
-    wxString aUrl_first_T = _T("https://192.168.2.12");
-    wxString messageT;
-    messageT = messageT.Format(_(
-    "The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
-    curURL_T.c_str(), aUrl_first_T.c_str());
-    int value = wxMessageBox(messageT, _("The URL Has Changed"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-
-    */
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
@@ -27009,12 +27844,55 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
 #if defined(_KBSERVER)
+
+	execPath = PathToExecFolder(); // app removed from end, ends now in separator
+	distPath = MakeDistFolder();  // set the path to dist folder, for this session
+	CreateInputDatBlanks(execPath); // executablePath set above at 22,258
+
     wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 #endif // _KBSERVER
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }
+
+#if defined (_KBSERVER)
+
+wxString CAdapt_ItApp::PathToExecFolder()
+{
+	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
+	wxString separator = PathSeparator;
+	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
+	wxString execPath = wxStandardPaths::Get().GetExecutablePath();
+	// Remove the executable from execPath, so it ends in the separator
+	wxString revStr = MakeReverse(execPath);
+	int offset = revStr.Find(separator);
+	revStr = revStr.Mid(offset);
+	execPath = MakeReverse(revStr); 
+	wxLogDebug(_T("%s() line %d: path called 'execPath' = %s"), __FILE__, __LINE__, execPath.c_str());
+
+	return execPath;
+}
+
+wxString CAdapt_ItApp::MakeDistFolder()
+{
+	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
+	wxString separator = PathSeparator;
+	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
+	wxString distFolder = _T("dist");
+	wxString execPath = wxStandardPaths::Get().GetExecutablePath();
+	// Remove the executable from execPath, so it ends in the separator
+	wxString revStr = MakeReverse(execPath);
+	int offset = revStr.Find(separator);
+	revStr = revStr.Mid(offset);
+	execPath = MakeReverse(revStr);
+	wxString distPath = execPath + distFolder + separator; // store .dat files here
+	wxLogDebug(_T("%s() line %d: path to 'dist' folder = %s"), __FILE__, __LINE__, distPath.c_str());
+
+	return distPath;
+}
+
+#endif
 
 
 // BEW added 11Mar20 for making m_finalSrcPuncts string for use in ParseInlineEndMarker()
@@ -27143,20 +28021,54 @@ int CAdapt_ItApp::GetMaxIndex()
 ///////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::OnExit(void)
 {
-    // OnExit() "is called when the application exits, but before wxWidgets cleans up its
-    // internal structures. All wxWidgets' objects that the program creates should be
-    // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
-    // application class destructor!"
+	// OnExit() "is called when the application exits, but before wxWidgets cleans up its
+	// internal structures. All wxWidgets' objects that the program creates should be
+	// deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
+	// application class destructor!"
 
 
 #if defined (_KBSERVER)
-    // Cleanups
+	// Cleanups
 
 
 #endif
-
-    // Remove any files lurking there, they don't need to persist
-    EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
+	// BEW 16Sep20, remove any .txt temporary source text files imported from Paratext
+	// or Bibledit, now that they are not needed in this session. Leave any which are
+	// not there due to a collaboration session having been active
+	bool bIsEmpty = m_arrFilePathsToRemove.IsEmpty();
+	if (!bIsEmpty)
+	{
+		int count = m_arrFilePathsToRemove.GetCount();
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d Count of m_arrFilePathsToRemove, src files to remove = %d"),
+			__FILE__,__FUNCTION__,__LINE__, count);
+#endif
+		if (count > 0)
+		{
+			int index;
+			for (index = 0; index < count; index++)
+			{
+				wxString pathtofile = m_arrFilePathsToRemove.Item(index);
+				if (pathtofile.IsEmpty())
+					continue;
+				else
+				{
+					// Does the file exist?
+					bool bExists = ::wxFileExists(pathtofile);
+					if (bExists)
+					{
+						BOOL bDeleted = ::DeleteFileW(pathtofile);
+						if (!bDeleted)
+						{
+							wxBell();
+						}
+					}
+				}
+			} // end of the for loop
+		}
+	}
+	// Remove any files lurking there, they don't need to persist
+	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
 	// BEW 2Apr18 The refactored (for persistence) Clipboard Adapt feature allows the
 	// user to exit the app while the feature is still running. So we need to test
@@ -27190,316 +28102,316 @@ int CAdapt_ItApp::OnExit(void)
 	// instances in it before deleting the list instance; no mutex protection needed here
 	// because DoAutoSaveDoc() does not look at the contents of m_pSavedDocForClipboardAdapt
 	if (m_pSavedDocForClipboardAdapt->size() > 0)
-    {
-        GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means
-                                                     // 'don't try delete partner piles too'
-    }
-    delete m_pSavedDocForClipboardAdapt;
+	{
+		GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means
+													 // 'don't try delete partner piles too'
+	}
+	delete m_pSavedDocForClipboardAdapt;
 
 	// BEW 30Sep19  Ensure the cache in doc, m_pCachedSourcePhrase is NULL, not xCDCDCDCD
 	//GetDocument()->m_pCachedSourcePhrase = NULL;
 
-    // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
-    // this point, and so the call to PopEventHandler() can't be made here. Bill found out
-    // that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
-    // popped - he did it at lines 1316 to 1319 of the CMainFrame destructor, ~MainFrame().
-    // What's there are just four lines which each are: PopEventHandler(FALSE); So that
-    // does the job, it only requires that we have one pop for each push that we did in
-    // OnInit(). The classes themselves, and others besides, are deleted immediately below.
-    //  (The following is the legacy comment)
-    // Our "new" classes need to have their event tables popped off the stack of windows
-    // event handlers - so do them in reverse order in which they were pushed.
-    // (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
-    // do the class instance deletion from the heap for us. Do that if we ever suspect the
-    // order below is not correct, and remove our explicit delete statements, and add the
-    // appropriate casts on the RHS and the appropriate class pointer on the left.)
-    //
-    // The push order is so far:
-    // 1. CFreeTrans
-    // 2. CNotes
-    // 3. CRetranslation
-    // 4. CPlaceholder
-    //wxEvtHandler* pHdlr = NULL;
+	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
+	// this point, and so the call to PopEventHandler() can't be made here. Bill found out
+	// that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
+	// popped - he did it at lines 1316 to 1319 of the CMainFrame destructor, ~MainFrame().
+	// What's there are just four lines which each are: PopEventHandler(FALSE); So that
+	// does the job, it only requires that we have one pop for each push that we did in
+	// OnInit(). The classes themselves, and others besides, are deleted immediately below.
+	//  (The following is the legacy comment)
+	// Our "new" classes need to have their event tables popped off the stack of windows
+	// event handlers - so do them in reverse order in which they were pushed.
+	// (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
+	// do the class instance deletion from the heap for us. Do that if we ever suspect the
+	// order below is not correct, and remove our explicit delete statements, and add the
+	// appropriate casts on the RHS and the appropriate class pointer on the left.)
+	//
+	// The push order is so far:
+	// 1. CFreeTrans
+	// 2. CNotes
+	// 3. CRetranslation
+	// 4. CPlaceholder
+	//wxEvtHandler* pHdlr = NULL;
 
-    ClobberGuesser();
-    // delete the Guesser objects
-    if (m_pAdaptationsGuesser != NULL)
-        delete m_pAdaptationsGuesser;
-    if (m_pGlossesGuesser != NULL)
-        delete m_pGlossesGuesser;
+	ClobberGuesser();
+	// delete the Guesser objects
+	if (m_pAdaptationsGuesser != NULL)
+		delete m_pAdaptationsGuesser;
+	if (m_pGlossesGuesser != NULL)
+		delete m_pGlossesGuesser;
 
-    // BEW removed 15Jun11 until we support OXES
-    // BEW reinstated 19May12, for OXES v1 support
-    //delete m_pOxes;
-    if (m_pXhtml != NULL) // whm 23Jun12 added NULL test
-        delete m_pXhtml; // BEW 9Jun12
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 19May12, for OXES v1 support
+	//delete m_pOxes;
+	if (m_pXhtml != NULL) // whm 23Jun12 added NULL test
+		delete m_pXhtml; // BEW 9Jun12
 
-                         // delete the CNotes object
-    if (m_pNotes != NULL) // whm 11Jun12 added NULL test
-        delete m_pNotes;
+						 // delete the CNotes object
+	if (m_pNotes != NULL) // whm 11Jun12 added NULL test
+		delete m_pNotes;
 
-    // delete the CRetranslation object
-    if (m_pRetranslation != NULL) // whm 11Jun12 added NULL test
-        delete m_pRetranslation;
+	// delete the CRetranslation object
+	if (m_pRetranslation != NULL) // whm 11Jun12 added NULL test
+		delete m_pRetranslation;
 
-    // delete the CPlaceholder object
-    if (m_pPlaceholder != NULL) // whm 11Jun12 added NULL test
-        delete m_pPlaceholder;
+	// delete the CPlaceholder object
+	if (m_pPlaceholder != NULL) // whm 11Jun12 added NULL test
+		delete m_pPlaceholder;
 
-    //GDLC Added 2010-02-12
-    // Delete the CFreeTrans manager after popping its event table off the stack of
-    // windows event handlers
-    //pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE
-    // (meaning that we'll do the deleting ourselves)
-    if (m_pFreeTrans != NULL) // whm 11Jun12 added NULL test
-        delete m_pFreeTrans;
+	//GDLC Added 2010-02-12
+	// Delete the CFreeTrans manager after popping its event table off the stack of
+	// windows event handlers
+	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE
+	// (meaning that we'll do the deleting ourselves)
+	if (m_pFreeTrans != NULL) // whm 11Jun12 added NULL test
+		delete m_pFreeTrans;
 
-    if (m_pROP != NULL) // whm 11Jun12 added NULL test
-        delete m_pROP; // delete the ReadOnlyProtection class's only instance
-    m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
-    if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
-        delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
-                             // open read-only protection file of form
-                             // ~AIRIOP-machinename-username.lock while the owning user
-                             // has a project folder open (on this or a remote machine)
+	if (m_pROP != NULL) // whm 11Jun12 added NULL test
+		delete m_pROP; // delete the ReadOnlyProtection class's only instance
+	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
+	if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
+		delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
+							 // open read-only protection file of form
+							 // ~AIRIOP-machinename-username.lock while the owning user
+							 // has a project folder open (on this or a remote machine)
 
-                             //m_pDocManager->FileHistorySave(* m_pConfig); // whm 1Oct12 removed
+							 //m_pDocManager->FileHistorySave(* m_pConfig); // whm 1Oct12 removed
 
-                             // whm 31Jan12 initialized bOK to TRUE and added else if test for content in
-                             // m_curProjectPath. If on first run of the app, user cancels out of wizard and
-                             // immediately exits the app, there will not be any m_curProjectPath established.
-                             // Without these modifications the wxCHECK_MSG would trip and give a cryptic
-                             // message to the user.
-    bool bOK = TRUE; // we won't care whether it succeeds or not, since the later
-                     // Get... can use defaults
-                     // WriteConfigurationFile projectConfigFile forces write of project config info
-    if (!m_bAutoExport)
-    {
-        // only write the project config file if we are not doing a command line export
-        if (m_bUseCustomWorkFolderPath && !m_customWorkFolderPath.IsEmpty())
-        {
-            // whm 10Mar10, must save using what paths are current, but when the custom
-            // location has been locked in, the filename lacks "Admin" in it, so that it
-            // becomes a "normal" project configuration file in m_curProjectPath at the
-            // custom location.
-            if (m_bLockedCustomWorkFolderPath)
-                bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
-            else
-                bOK = WriteConfigurationFile(szAdminProjectConfiguration, m_curProjectPath, projectConfigFile);
-        }
-        else if (!m_curProjectPath.IsEmpty()) // whm added 31Jan12 test for empty m_curProjectPath
-        {
-            bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
-        }
-        wxCHECK_MSG(bOK, 0, _T("OnExit(): WriteConfigurationFile() returned FALSE, either project one or admin project one"));
-        // below is original
-        //if (::wxDirExists(m_curProjectPath))
-        //{
-        //	bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
-        //}
-    }
-    // clean up the help system
-    if (m_pHelpController != NULL) // whm 11Jun12 added NULL test
-        delete m_pHelpController;
-    m_pHelpController = (wxHtmlHelpController*)NULL;
-    delete wxHelpProvider::Set(NULL);
+							 // whm 31Jan12 initialized bOK to TRUE and added else if test for content in
+							 // m_curProjectPath. If on first run of the app, user cancels out of wizard and
+							 // immediately exits the app, there will not be any m_curProjectPath established.
+							 // Without these modifications the wxCHECK_MSG would trip and give a cryptic
+							 // message to the user.
+	bool bOK = TRUE; // we won't care whether it succeeds or not, since the later
+					 // Get... can use defaults
+					 // WriteConfigurationFile projectConfigFile forces write of project config info
+	if (!m_bAutoExport)
+	{
+		// only write the project config file if we are not doing a command line export
+		if (m_bUseCustomWorkFolderPath && !m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the
+			// custom location.
+			if (m_bLockedCustomWorkFolderPath)
+				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
+			else
+				bOK = WriteConfigurationFile(szAdminProjectConfiguration, m_curProjectPath, projectConfigFile);
+		}
+		else if (!m_curProjectPath.IsEmpty()) // whm added 31Jan12 test for empty m_curProjectPath
+		{
+			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
+		}
+		wxCHECK_MSG(bOK, 0, _T("OnExit(): WriteConfigurationFile() returned FALSE, either project one or admin project one"));
+		// below is original
+		//if (::wxDirExists(m_curProjectPath))
+		//{
+		//	bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
+		//}
+	}
+	// clean up the help system
+	if (m_pHelpController != NULL) // whm 11Jun12 added NULL test
+		delete m_pHelpController;
+	m_pHelpController = (wxHtmlHelpController*)NULL;
+	delete wxHelpProvider::Set(NULL);
 
-    // call Terminate to get the app level 1 basic configuration file updated
-    if (!m_bAutoExport)
-    {
-        // only write the basic config file if we are not doing a command line export
-        Terminate();
-    }
+	// call Terminate to get the app level 1 basic configuration file updated
+	if (!m_bAutoExport)
+	{
+		// only write the basic config file if we are not doing a command line export
+		Terminate();
+	}
 
-    // WX Note: Our TargetBox is now a child of the view's canvas (which itself is derived
-    // from wxScrolledWindow). As a child of the canvas window, m_pTargetBox will be
-    // automatically destroyed when pView->canvas is destroyed during doc/view's normal
-    // cleanup. That is, when our View is destroyed, all child windows (including our
-    // target box) are automatically destroyed too. Therefore, the target box must not be
-    // deleted again in the App's OnExit() method, when the App terminates.
-    //delete m_pTargetBox;
-    //m_pTargetBox = (CPhraseBox*)NULL;
+	// WX Note: Our TargetBox is now a child of the view's canvas (which itself is derived
+	// from wxScrolledWindow). As a child of the canvas window, m_pTargetBox will be
+	// automatically destroyed when pView->canvas is destroyed during doc/view's normal
+	// cleanup. That is, when our View is destroyed, all child windows (including our
+	// target box) are automatically destroyed too. Therefore, the target box must not be
+	// deleted again in the App's OnExit() method, when the App terminates.
+	//delete m_pTargetBox;
+	//m_pTargetBox = (CPhraseBox*)NULL;
 
-    if (m_pConfig != NULL) // whm 11Jun12 added NULL test
-        delete m_pConfig;
-    m_pConfig = (wxFileConfig*)NULL;
+	if (m_pConfig != NULL) // whm 11Jun12 added NULL test
+		delete m_pConfig;
+	m_pConfig = (wxFileConfig*)NULL;
 
-    if (m_pChecker != NULL)
-    {
-        delete m_pChecker;
-        m_pChecker = (wxSingleInstanceChecker*)NULL;
-    }
-    if (m_pServer != NULL)
-    {
-        delete m_pServer;
-        m_pServer = (AI_Server*)NULL;
-    }
+	if (m_pChecker != NULL)
+	{
+		delete m_pChecker;
+		m_pChecker = (wxSingleInstanceChecker*)NULL;
+	}
+	if (m_pServer != NULL)
+	{
+		delete m_pServer;
+		m_pServer = (AI_Server*)NULL;
+	}
 
-    if (m_pParser != NULL) // whm 11Jun12 added NULL test
-        delete m_pParser;
-    m_pParser = (wxCmdLineParser*)NULL;
-    //delete m_pParser2; // BEW added 11Nov09
-    //m_pParser2 = (wxCmdLineParser*)NULL;
+	if (m_pParser != NULL) // whm 11Jun12 added NULL test
+		delete m_pParser;
+	m_pParser = (wxCmdLineParser*)NULL;
+	//delete m_pParser2; // BEW added 11Nov09
+	//m_pParser2 = (wxCmdLineParser*)NULL;
 
-    if (m_pSourceFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pSourceFont;
-    m_pSourceFont = (wxFont*)NULL;
-    if (m_pTargetFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pTargetFont;
-    m_pTargetFont = (wxFont*)NULL;
-    if (m_pNavTextFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pNavTextFont;
-    m_pNavTextFont = (wxFont*)NULL;
-    if (m_pDlgSrcFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pDlgSrcFont;
-    m_pDlgSrcFont = (wxFont*)NULL;
-    if (m_pDlgTgtFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pDlgTgtFont;
-    m_pDlgTgtFont = (wxFont*)NULL;
-    if (m_pComposeFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pComposeFont;
-    m_pComposeFont = (wxFont*)NULL;
-    if (m_pDlgGlossFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pDlgGlossFont;
-    m_pDlgGlossFont = (wxFont*)NULL;
-    if (m_pRemovalsFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pRemovalsFont;
-    m_pRemovalsFont = (wxFont*)NULL;
-    if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
-        delete m_pVertEditFont;
-    m_pVertEditFont = (wxFont*)NULL;
+	if (m_pSourceFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pSourceFont;
+	m_pSourceFont = (wxFont*)NULL;
+	if (m_pTargetFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pTargetFont;
+	m_pTargetFont = (wxFont*)NULL;
+	if (m_pNavTextFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pNavTextFont;
+	m_pNavTextFont = (wxFont*)NULL;
+	if (m_pDlgSrcFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgSrcFont;
+	m_pDlgSrcFont = (wxFont*)NULL;
+	if (m_pDlgTgtFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgTgtFont;
+	m_pDlgTgtFont = (wxFont*)NULL;
+	if (m_pComposeFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pComposeFont;
+	m_pComposeFont = (wxFont*)NULL;
+	if (m_pDlgGlossFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgGlossFont;
+	m_pDlgGlossFont = (wxFont*)NULL;
+	if (m_pRemovalsFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pRemovalsFont;
+	m_pRemovalsFont = (wxFont*)NULL;
+	if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pVertEditFont;
+	m_pVertEditFont = (wxFont*)NULL;
 
-    if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
-        delete m_pSrcFontData;
-    m_pSrcFontData = (wxFontData*)NULL;
-    if (m_pTgtFontData != NULL) // whm 11Jun12 added NULL test
-        delete m_pTgtFontData;
-    m_pTgtFontData = (wxFontData*)NULL;
-    if (m_pNavFontData != NULL) // whm 11Jun12 added NULL test
-        delete m_pNavFontData;
-    m_pNavFontData = (wxFontData*)NULL;
+	if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pSrcFontData;
+	m_pSrcFontData = (wxFontData*)NULL;
+	if (m_pTgtFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pTgtFontData;
+	m_pTgtFontData = (wxFontData*)NULL;
+	if (m_pNavFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pNavFontData;
+	m_pNavFontData = (wxFontData*)NULL;
 
-    if (pPgSetupDlgData != NULL) // whm 11Jun12 added NULL test
-        delete pPgSetupDlgData;
-    pPgSetupDlgData = (wxPageSetupDialogData*)NULL;
-    if (pPrintData != NULL) // whm 11Jun12 added NULL test
-        delete pPrintData;
-    pPrintData = (wxPrintData*)NULL;
+	if (pPgSetupDlgData != NULL) // whm 11Jun12 added NULL test
+		delete pPgSetupDlgData;
+	pPgSetupDlgData = (wxPageSetupDialogData*)NULL;
+	if (pPrintData != NULL) // whm 11Jun12 added NULL test
+		delete pPrintData;
+	pPrintData = (wxPrintData*)NULL;
 
-    if (gpDocList != NULL)
-    {
+	if (gpDocList != NULL)
+	{
 		s_AutoSaveMutex.Lock();
-        // delete the object, it's contents should already have been removed
-        delete gpDocList;
-        gpDocList = (SPList*)NULL;
+		// delete the object, it's contents should already have been removed
+		delete gpDocList;
+		gpDocList = (SPList*)NULL;
 		s_AutoSaveMutex.Unlock();
-    }
+	}
 
-    // In wxWidgets we've moved all the doc's data members to the App
-    // The following is from the MFC's CAdapt_ItDoc::~CAdapt_ItDoc() destructor:
-    if (m_pSourcePhrases != NULL)
-    {
+	// In wxWidgets we've moved all the doc's data members to the App
+	// The following is from the MFC's CAdapt_ItDoc::~CAdapt_ItDoc() destructor:
+	if (m_pSourcePhrases != NULL)
+	{
 		s_AutoSaveMutex.Lock();
-        delete m_pSourcePhrases;
-        m_pSourcePhrases = (SPList*)NULL;
+		delete m_pSourcePhrases;
+		m_pSourcePhrases = (SPList*)NULL;
 		s_AutoSaveMutex.Unlock();
-    }
+	}
 
-    if (m_pBuffer != NULL)
-    {
-        delete m_pBuffer;
-        m_pBuffer = (wxString*)NULL;
-    }
+	if (m_pBuffer != NULL)
+	{
+		delete m_pBuffer;
+		m_pBuffer = (wxString*)NULL;
+	}
 
-    // wxWidgets docs say not to do cleanup in the App class destructor
-    // The following from the MFC's CAdapt_ItApp::~CAdapt_ItApp() destructor:
-    m_nTotalBooks = m_pBibleBooks->GetCount(); //m_nTotalBooks = m_pBibleBooks->GetSize();
-    if (m_nTotalBooks == 0L)
-    {
-        if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
-            delete m_pBibleBooks;
-    }
-    else
-    {
-        for (int i = 0; i < m_nTotalBooks; i++)
-        {
-            BookNamePair* pPair = (BookNamePair*)(*m_pBibleBooks)[i];
-            if (pPair != NULL)
-                delete pPair;
-        }
-        if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
-            delete m_pBibleBooks;
-    }
+	// wxWidgets docs say not to do cleanup in the App class destructor
+	// The following from the MFC's CAdapt_ItApp::~CAdapt_ItApp() destructor:
+	m_nTotalBooks = m_pBibleBooks->GetCount(); //m_nTotalBooks = m_pBibleBooks->GetSize();
+	if (m_nTotalBooks == 0L)
+	{
+		if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+			delete m_pBibleBooks;
+	}
+	else
+	{
+		for (int i = 0; i < m_nTotalBooks; i++)
+		{
+			BookNamePair* pPair = (BookNamePair*)(*m_pBibleBooks)[i];
+			if (pPair != NULL)
+				delete pPair;
+		}
+		if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+			delete m_pBibleBooks;
+	}
 
-    // whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
-    wxString key;
-    USFMAnalysis* pSfm;
-    // destroy all USFMAnalysis objects and the CPtrArray pointing to them
-    if (m_pMappedObjectPointers->GetCount() > 0)
-    {
-        // destroy the USFMAnalysis objects on the heap
-        for (int upos = 0; upos < (int)m_pMappedObjectPointers->GetCount(); upos++)
-        {
-            pSfm = (USFMAnalysis*)m_pMappedObjectPointers->Item(upos);
-            if (pSfm != NULL)
-                delete pSfm;
-        }
-        // destroy all keys from CPtrArray
-        m_pMappedObjectPointers->Clear();
-        // destroy the CPtrArray itself
-    }
-    if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
-        delete m_pMappedObjectPointers;
+	// whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
+	wxString key;
+	USFMAnalysis* pSfm;
+	// destroy all USFMAnalysis objects and the CPtrArray pointing to them
+	if (m_pMappedObjectPointers->GetCount() > 0)
+	{
+		// destroy the USFMAnalysis objects on the heap
+		for (int upos = 0; upos < (int)m_pMappedObjectPointers->GetCount(); upos++)
+		{
+			pSfm = (USFMAnalysis*)m_pMappedObjectPointers->Item(upos);
+			if (pSfm != NULL)
+				delete pSfm;
+		}
+		// destroy all keys from CPtrArray
+		m_pMappedObjectPointers->Clear();
+		// destroy the CPtrArray itself
+	}
+	if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
+		delete m_pMappedObjectPointers;
 
-    // USFMAnalysis objects are destroyed, now destroy the map keys and
-    // maps themselves
-    if (m_pUsfmStylesMap->size() > 0) //if (m_pUsfmStylesMap->GetCount() > 0)
-    {
-        // destroy all Usfm key/object associations
-        m_pUsfmStylesMap->clear(); //m_pUsfmStylesMap->Clear();
-    }
-    // destroy the Usfm map itself
-    if (m_pUsfmStylesMap != NULL) // whm 11Jun12 added NULL test
-        delete m_pUsfmStylesMap;
+	// USFMAnalysis objects are destroyed, now destroy the map keys and
+	// maps themselves
+	if (m_pUsfmStylesMap->size() > 0) //if (m_pUsfmStylesMap->GetCount() > 0)
+	{
+		// destroy all Usfm key/object associations
+		m_pUsfmStylesMap->clear(); //m_pUsfmStylesMap->Clear();
+	}
+	// destroy the Usfm map itself
+	if (m_pUsfmStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pUsfmStylesMap;
 
-    if (m_pPngStylesMap->size() > 0)
-    {
-        // destroy all Png key/object associations
-        m_pPngStylesMap->clear();
-    }
-    // destroy the Png map itself
-    if (m_pPngStylesMap != NULL) // whm 11Jun12 added NULL test
-        delete m_pPngStylesMap;
+	if (m_pPngStylesMap->size() > 0)
+	{
+		// destroy all Png key/object associations
+		m_pPngStylesMap->clear();
+	}
+	// destroy the Png map itself
+	if (m_pPngStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pPngStylesMap;
 
-    if (m_pUsfmAndPngStylesMap->size() > 0)
-    {
-        // destroy all UsfmAndPng key/object associations
-        m_pUsfmAndPngStylesMap->clear();
-    }
-    // destroy the UsfmAndPng map itself
-    if (m_pUsfmAndPngStylesMap != NULL) // whm 11Jun12 added NULL test
-        delete m_pUsfmAndPngStylesMap;
+	if (m_pUsfmAndPngStylesMap->size() > 0)
+	{
+		// destroy all UsfmAndPng key/object associations
+		m_pUsfmAndPngStylesMap->clear();
+	}
+	// destroy the UsfmAndPng map itself
+	if (m_pUsfmAndPngStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pUsfmAndPngStylesMap;
 
-    // destroy the allocated memory in m_pUserProfiles. This is a single
-    // instance of the UserProfiles struct that was allocated on the heap. Note
-    // that m_pUserProfiles also contains a list of pointers in its
-    // profileItemList member that point to UserProfileItem instances on the
-    // heap.
-    DestroyUserProfiles(m_pUserProfiles);
-    // also destroy the allocated memory in m_pFactoryUserProfiles. This is a single
-    // instance of the UserProfiles struct that was allocated on the heap. Note
-    // that m_pFactoryUserProfiles also contains a list of pointers in its
-    // profileItemList member that point to UserProfileItem instances on the
-    // heap.
-    DestroyUserProfiles(m_pFactoryUserProfiles);
+	// destroy the allocated memory in m_pUserProfiles. This is a single
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pUserProfiles also contains a list of pointers in its
+	// profileItemList member that point to UserProfileItem instances on the
+	// heap.
+	DestroyUserProfiles(m_pUserProfiles);
+	// also destroy the allocated memory in m_pFactoryUserProfiles. This is a single
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pFactoryUserProfiles also contains a list of pointers in its
+	// profileItemList member that point to UserProfileItem instances on the
+	// heap.
+	DestroyUserProfiles(m_pFactoryUserProfiles);
 
-    if (m_pEmailReportData != NULL)
-        delete m_pEmailReportData;
+	if (m_pEmailReportData != NULL)
+		delete m_pEmailReportData;
 
-    // whm 13Oct12 moved from EmailReportDlg.cpp and KbServer.cpp here
-    // to OnExit() where it must be called now due to the fact that
-    // curl_global_init() was moved to the App's OnInit(). If not
-    // called here over 2,900 memory leaks occur at program shut down.
+	// whm 13Oct12 moved from EmailReportDlg.cpp and KbServer.cpp here
+	// to OnExit() where it must be called now due to the fact that
+	// curl_global_init() was moved to the App's OnInit(). If not
+	// called here over 2,900 memory leaks occur at program shut down.
     curl_global_cleanup();
 
     DestroyMenuStructure(m_pAI_MenuStructure);
@@ -34200,6 +35112,56 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 #if defined (_KBSERVER)
 
+void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
+{
+	//wxMenuBar* pMenuBar = GetMainFrame()->GetMenuBar();
+	//wxMenuItem* pAddUsersToKBserver = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
+
+	// Prepare the .dat input dependency: "credentials_for_user.dat" file, into
+	// the execPath folder, ready for the ::wxExecute() call below
+	// BEW 24Aug20 NOTE - calling _T("do_add_KBUsers.exe") with an absolute path prefix
+	// DOES NOT WORK! As in: wxString command = execPath + _T("do_add_KBUsers.exe")
+	// ::wxExecute() returns the error string:  Failed to execute script do_add_KBUsers
+	// The workaround is to temporarily set the current working directory (cwd) to the
+	// AI executable's folder, do the wxExecute() call on just the script filename, and
+	// restore the cwd after it returns.
+	// I've encapsulated the needed code in a function: 
+	// bool CallExecute(execFileName,execPath,add_KBUsers_return_result_file.dat)
+	// and I'll check add_KBUsers_return_result_file.dat for "created successfully" substring,
+	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
+	bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_add_KBusers.exe
+		wxString execFileName = _T("do_add_KBUsers.exe"); 
+		wxString resultFile = _T("add_KBUsers_return_result_file.dat");
+		bool bExecutedOK = CallExecute(credentials_for_user, execFileName, execPath, resultFile, 30, 31, TRUE);
+		wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
+		// In above call, TRUE is non-default value for bReportResult
+	}
+}
+
+void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)
+{
+	// Disable when in read-only mode.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -34212,22 +35174,16 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// vertically editing).
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
-/// The authentication dialog (KBSharingAuthenticationDlg) produces a stateless KbServer
+/// The authentication dialog (KBSharingAuthenticationDlg) produces a 'ForManager' KbServer
 /// instance which the KB Sharing Manager GUI uses; it is produced on the heap, and deleted
 /// by the destructor of KBSharingAuthenticationDlg when this handler function returns.
 /// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with three tabs- one for
 /// adding, editing or removing users from the mysql user table; the second for adding,
 /// editing or removing shared knowledge bases from the kbs table - and since a kb
-/// definition owns entries in the entry table, removing a kb requires a lengthy prior
+/// definition owns entries in the entry table, removing a kb requires a prior
 /// removal of all owned kb entries from the database before the definition (the
 /// src/nonsrc code pair) can be removed; and the third is to create custom language codes
 /// compliant with the protocols in the RFC5646 standard.
-/// Because the removals need to be done by a detached thread, and due to network latency
-/// might take anything from hours to days to complete, the thread doing the job can't
-/// assume this Manager GUI will remain open until the thread completes. It's permissible
-/// to shut Adapt It, or the machine, down before the thread completes. If so, another
-/// removal (of fewer entries) will be required to remove them all so that the definition
-/// can be removed as the last step.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -34238,7 +35194,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
     m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked
     pApp->m_bUserLoggedIn = FALSE;
 #if defined (ERR_DUPLICATE)
-    wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: 28,535 in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+    wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: Line %d in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), __LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 #endif
     // The one using the manager has to first be given the option for how to get the url for
     // the KBserver which is being targetted for being setup for kb sharing or whatever other
@@ -34277,54 +35233,54 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // affect any of the user's KB sharing settings which may have been in place
         // while the login person had control of this computer for using the Manager
         CMainFrame* pFrame = GetMainFrame();
-        m_saveOldURLStr = m_strKbServerURL;
+        m_saveOldIpAddrStr = m_strKbServerIpAddr;
         m_saveOldUsernameStr = m_strUserID;
         m_savePassword = pFrame->GetKBSvrPassword();
         m_saveSharingAdaptationsFlag = m_bIsKBServerProject;
         m_saveSharingGlossesFlag = m_bIsGlossingKBServerProject;
 
         // Service discovery, if wanted, goes here
-        wxString currentURL = m_strKbServerURL; // m_bServiceDiscoveryWanted == FALSE will use this
-        wxString chosenURL = wxEmptyString;
+        wxString currentIpAddr = m_strKbServerIpAddr; // m_bServiceDiscoveryWanted == FALSE will use this
+        wxString chosenIpAddr = wxEmptyString;
         wxString chosenHostname = wxEmptyString;
         if (m_bServiceDiscoveryWanted)
         {
             enum ServDiscDetail returnedValue = SD_NoResultsYet;
 
-            bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
+            bool bOK = ConnectUsingDiscoveryResults(currentIpAddr, chosenIpAddr, chosenHostname, returnedValue);
             if (bOK)
             {
-                // Got a URL to connect to
+                // Got an ipAddress to connect to
                 wxASSERT((returnedValue != SD_NoKBserverFound) && (returnedValue != SD_ServiceDiscoveryError) && (
-                    returnedValue == SD_SameUrlAsInConfigFile ||
-                    returnedValue == SD_UrlDiffers_UserAcceptedIt ||
-                    returnedValue == SD_SingleUrl_UserAcceptedIt ||
-                    returnedValue == SD_MultipleUrls_UserChoseOne));
+                    returnedValue == SD_SameIpAddrAsInConfigFile ||
+                    returnedValue == SD_IpAddrDiffers_UserAcceptedIt ||
+                    returnedValue == SD_SingleIpAddr_UserAcceptedIt ||
+                    returnedValue == SD_MultipleIpAddr_UserChoseOne));
 
-                // Make the chosen URL accessible to authentication
-                m_strKbServerURL = chosenURL;
+                // Make the chosen ipAddress accessible to authentication
+                m_strKbServerIpAddr = chosenIpAddr;
                 m_strKbServerHostname = chosenHostname;
 
                 // test I got the logic right - if I have, I'll see this bogus url
                 // shown in the Authenticate dialog
-                //m_strKbServerURL = _T("https://kbserver.gobbledegook.org"); <<-- yep, it got shown
+                //m_strKbServerIpAddr = _T("kbserver.gobbledegook.org"); <<-- yep, it got shown
             }
             else
             {
                 // Something is wrong, or no KBserver has yet been set running, etc
                 wxASSERT(returnedValue == SD_NoResultsYet ||
                     returnedValue == SD_NoKBserverFound ||
-                    returnedValue == SD_SingleUrl_UserCancelled ||
+                    returnedValue == SD_SingleIpAddr_UserCancelled ||
                     returnedValue == SD_ServiceDiscoveryError ||
                     returnedValue == SD_NoResultsAndUserCancelled ||
-                    returnedValue == SD_SingleUrl_ButNotChosen ||
-                    returnedValue == SD_MultipleUrls_UserCancelled ||
-                    returnedValue == SD_MultipleUrls_UserChoseNone ||
+                    returnedValue == SD_SingleIpAddr_ButNotChosen ||
+                    returnedValue == SD_MultipleIpAddr_UserCancelled ||
+                    returnedValue == SD_MultipleIpAddr_UserChoseNone ||
                     returnedValue == SD_ValueIsIrrelevant
                     );
                 // The login person should have seen an error message, so just
                 // restore the user settings and return without opening the Manager
-                m_strKbServerURL = m_saveOldURLStr;
+                m_strKbServerIpAddr = m_saveOldIpAddrStr;
                 m_strKbServerHostname = m_saveOldHostnameStr;
                 m_strUserID = m_saveOldUsernameStr;
                 pFrame->SetKBSvrPassword(m_savePassword);
@@ -34335,11 +35291,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         }
 
         // The administrator or login person must authenticate to whichever KBserver he
-        // wants to adjust or view. Note: the next line sets up a "stateless" instance of
+        // wants to adjust or view. Note: the next line sets up an instance of
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
         // machine's owner, or either of the glossing or adapting local KBs. It only uses
         // the KbServer class for the services it provides for the KB Sharing Manager gui
-        // The instance is pointed at by an app member: m_pKbServer_Occasional, which is
+        // The instance is pointed at by an app member: m_pKbServer_ForManager, which is
         // created on demand in the heap, used, and then deleted, and its pointer returned
         // to being NULL. We must always dispose and set the ptr to NULL after every use,
         // in case the user or administrator changes which project is active (which changes
@@ -34354,9 +35310,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         {
             if (dlg.m_bError)
             {
-                wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, url or password; or maybe no KBserver running, or a network error");
+                wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, ipAddress or password; or maybe no KBserver running, or a network error");
                 wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
-                gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure; or maybe no KBserver running, logging in to the KB Sharing Manager"));
+                gpApp->LogUserAction(_T("Authentication error. Bad ipAddress or username lookup failure; or maybe no KBserver running, logging in to the KB Sharing Manager"));
                 return;
             }
             gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
@@ -34397,29 +35353,10 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		pApp->m_pKBSharingMgrTabbedDlg->Show();
 		// restore settings when disposed of, do the restoration in the destructor
 
-        /*
-		// not here - Bill warned me that this would instantly destroy the Mgr and restore the
-		// settings, accomplishing nothing; so I put this stuff in the Mgr's destructor
-        // When done, remove from the heap, and set the ptr to NULL
-        // (It's owned KbServer instance, the Persistent one, is deleted at the
-        // end of OnCancel() or OnOK() already)
-        delete pApp->m_pKBSharingMgrTabbedDlg;
-        pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
-
-        // Restore the user's KBserver-related settings
-        m_strKbServerURL = m_saveOldURLStr;
-        m_strKbServerHostname = m_saveOldHostnameStr;
-        m_strUserID = m_saveOldUsernameStr;
-        pFrame->SetKBSvrPassword(m_savePassword);
-        m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-        m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
-		*/
-
     } // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
       // There is no need to give a message saying there was a cancellation, as a
       // cancellation is volitional and the user would expect nothing to happen
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -36274,9 +37211,23 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 #if defined (_KBSERVER)
 
-    // whm 30Oct13 moved the KbServerURL value storage here from the project config file
+    // whm 30Oct13 moved the KbServerU R L value storage here to the
+	// basic config file, it used to be in the project config file
+	// BEW 28Jul20 keep the U R L in the name (to avoid having to bump
+	// the docVersion value), but now the variable stores an ipAddress;
+	// and store m_chosenIpAddr is the other is empty, or each is different.
     data.Empty();
-    data << szKbServerURL << tab << m_strKbServerURL;
+	if (m_strKbServerIpAddr.IsEmpty() && !m_chosenIpAddr.IsEmpty())
+	{
+		// set the former from the latter
+		m_strKbServerIpAddr = m_chosenIpAddr;
+	}
+	else if (m_strKbServerIpAddr != m_chosenIpAddr)
+	{
+		// Give preference to the 'chosen' one
+		m_strKbServerIpAddr = m_chosenIpAddr;
+	}
+    data << szKbServerURL << tab << m_strKbServerIpAddr;
     pf->AddLine(data);
 
     data.Empty();
@@ -37514,18 +38465,22 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 
 #if defined (_KBSERVER)
         // whm 30Oct13 moved the KbServerURL value handling here to the basic
-        // config file
+        // config file. BEW 28Jul20 Note, so we avoid bumping docVersion, the
+		// 'URL' substring is retained in the name, but now stores an ipAddress
         if (name == szKbServerURL)
         {
-            m_strKbServerURL = strValue;
-            if (m_strKbServerURL.IsEmpty())
+            m_strKbServerIpAddr = strValue;
+            if (m_strKbServerIpAddr.IsEmpty())
             {
-                m_sd_InitialDetail = SDInit_NoStoredUrl;
+                m_sd_InitialDetail = SDInit_NoStoredIpAddr; // an enum value
+				// BEW 30Jul20 added, to support m_chosenIpAddr
+				m_chosenIpAddr.Empty();
             }
             else
             {
-                m_sd_InitialDetail = SDInit_StoredUrl;
-
+                m_sd_InitialDetail = SDInit_StoredIpAddr; // an enum value
+				// BEW 30Jul20 added, to support m_chosenIpAddr
+				m_chosenIpAddr = strValue;
             }
         }
 		else if (name == szKbServerHostname)
@@ -37672,7 +38627,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 // config files, so we here just ignore any value from old config files.
                 ; //m_lastRtfOutputPath = strValue;
             }
-            // whm 22Apr2019 added next two for email Report and Feedback settings
+            // whm 22Apr2019 added next two for email Report and Feedback settings (url to https://adapt-it.org/)
             else if (name == szServerURL)
             {
                 m_serverURL = strValue;
@@ -38906,6 +39861,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                     wxMessageBox(error, _T("Developer Debug Message"), wxICON_INFORMATION | wxOK);
 #endif
                     this->LogUserAction(error); // always log the warning
+					continue;
                 }
             }
     } while (!pf->Eof());
@@ -40125,11 +41081,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 #endif
 
 #if defined (_KBSERVER)
-    // whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
-    // it makes more sense to be there
-    //data.Empty();
-    //data << szKbServerURL << tab << m_strKbServerURL;
-    //pf->AddLine(data);
 
     data.Empty();
     data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
@@ -40821,11 +41772,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         }
 #endif
 #if defined (_KBSERVER)
-        // whm 30Oct13 moved the KbServerURL value handling to the basic config file
-        //else if (name == szKbServerURL)
-        //{
-        //	m_strKbServerURL = strValue;
-        //}
         else if (name == szKbServerDownloadInterval)
         {
             num = wxAtoi(strValue);
@@ -40833,6 +41779,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 num = 5; // if out of range default to 5
             m_nKbServerIncrementalDownloadInterval = num;
         }
+		else if (name == szKbServerURL)
+			;	// do nothing
 #else		// mrh - avoid warning if we're switching from a KBserver to non-KBserver build
         else if (name == szIsKBServerProject)
             ;	// do nothing
@@ -56637,7 +57585,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// Initializations
 	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 	m_bShownFromServiceDiscoveryAttempt = TRUE;
-	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
+	m_theIpAddrs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
 					   // accumulates composites from service discovery
 	m_theHostnames.Clear(); // ditto
 
@@ -56906,7 +57854,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			bool bGotAll = ffile.ReadAll(&resultsStr);
 
 			wxUnusedVar(bGotAll); // avoid gcc warning
-			wxLogDebug(_T("Found ththese results: %s"), resultsStr.c_str()); // for logging window
+			wxLogDebug(_T("Found these results: %s"), resultsStr.c_str()); // for logging window
 
 			ffile.Close();
 		}
@@ -57122,53 +58070,39 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
-		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
+		gpApp->m_theIpAddrs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
 								  // accumulates composites from service discovery
 		gpApp->m_theHostnames.Clear(); // ditto
-									   // deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
-									   // the individual arrays m_theURLs and m_theHostnames so these can be
-									   // displayed to the user
-									   //  In the next call, 1st param is the array of ip@@hostname lines, params
-									   // 2 and  3 are for returning the individual ipaddresses and associated host
-									   // for each (Dummy data is below, commented out, if testing was wanted)
-		int counter = pFrame->GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
+		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
+		// the individual arrays m_theIpAddrs and m_theHostnames so these can be
+		// displayed to the user
+		//  In the next call, 1st param is the array of ipAddr@@hostname lines, params
+		// 2 and  3 are for returning the individual ipAddresses and associated host
+		// for each (Dummy data is below, commented out, if testing was wanted)
+		int counter = pFrame->GetIpAddrAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
+								gpApp->m_theIpAddrs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
-		/*
-		#if defined(_DEBUG)
-		// Create some dummy data for display, for testing purposes
-		gpApp->m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
-		gpApp->m_theHostnames.Add(_T("Jonathans_kbserver"));
-		gpApp->m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
-		gpApp->m_theHostnames.Add(_T("AI-Team-KBserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.171"));
-		gpApp->m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.234"));
-		gpApp->m_theHostnames.Add(_T("Dell-Mini9"));
-		gpApp->m_theURLs.Add(_T("192.168.3.94"));
-		gpApp->m_theHostnames.Add(_T("kbserver-X1-Carbon"));
-		#endif
-		*/
-		// Set the app variables for chosen url and hostname, initializing
+		// Set the app variables for chosen ipAddr and hostname, initializing
 		// to the empty string first
-		gpApp->m_chosenUrl.Empty();
+		gpApp->m_chosenIpAddr.Empty();
 		gpApp->m_chosenHostname.Empty();
-		CServDisc_KBserversDlg dlg(pFrame, &gpApp->m_theURLs, &gpApp->m_theHostnames);
+		CServDisc_KBserversDlg dlg(pFrame, &gpApp->m_theIpAddrs, &gpApp->m_theHostnames);
 		dlg.Center();
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			gpApp->m_chosenUrl = dlg.m_urlSelected;
+			gpApp->m_chosenIpAddr = dlg.m_ipAddrSelected;
 			gpApp->m_chosenHostname = dlg.m_hostnameSelected;
 
-			if (gpApp->m_chosenUrl.IsEmpty())
+			if (gpApp->m_chosenIpAddr.IsEmpty())
 			{
 				// The user made no choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseNone;
+				result = SD_MultipleIpAddr_UserChoseNone;
 			}
 			else
 			{
 				// This is the user's choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseOne;
+				result = SD_MultipleIpAddr_UserChoseOne;
 			}
 		}
 		else
@@ -57176,9 +58110,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			// Cancelled
 			if (dlg.m_bUserCancelled)
 			{
-				gpApp->m_chosenUrl.Empty();
+				gpApp->m_chosenIpAddr.Empty();
 				gpApp->m_chosenHostname.Empty();
-				result = SD_MultipleUrls_UserCancelled;
+				result = SD_MultipleIpAddr_UserCancelled;
 
 				// Since the user has deliberately chosen to Cancel, and the dialog
 				// has explained what will happen, no further message is needed here
@@ -57191,7 +58125,8 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
 		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
 		{
-			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
+			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), 
+				wxEmptyString, wxICON_INFORMATION | wxOK);
 		}
 	} // end of TRUE block for test: if (gpApp->m_bServDiscSingleRunIsCurrent)
 }
@@ -57326,6 +58261,81 @@ SD_MultipleUrls_UserChoseNone,
 SD_SD_ValueIsIrrelevant
 };
 */
+
+void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("lookup_user.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,password,username,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: lookup_user.dat");
+			f.AddLine(line);
+			line = _T("# AI executable's folder, output file: lookup_user_return_results_file.dat");
+			f.AddLine(line);
+			line = _T("# (A) Login uses first 3 fields, and ignores the 2nd username");
+			f.AddLine(line);
+			line = _T("# (B) If login succeeds, search for 2nd username in the user table.");
+			f.AddLine(line);
+			line = _T("# (A) and (B) together form the parameters for the .exe function required");
+			f.AddLine(line);
+			line = _T("# Purpose for this .dat input file:");
+			f.AddLine(line);
+			line = _T("# 1. determine if the 2nd user field is in the user table or not.");
+			f.AddLine(line);
+			line = _T("# 2. If in the user table, return the useradmin flag value");
+			f.AddLine(line);
+			line = _T("#    together with the 2nd username value itself & fullname too, in the order:");
+			f.AddLine(line);
+			line = _T("# username,fullname,useradmin,");
+			f.AddLine(line);
+			line = _T("# If the 2nd username is not in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should include this phrase in its first line's text: \"not in user table\"");
+			f.AddLine(line);
+			line = _T("# If the username is indeed in the usertable, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should contain 2 lines, top line a comment saying \"success\" and");
+			f.AddLine(line);
+			line = _T("# the 2nd line having the values for: username,fullname,useradmin,");
+			f.AddLine(line);
+			line = _T("# e.g: Input .dat file:   192.168.1.9,kbadmin,kbauth,glenys@unit2,");
+			f.AddLine(line);
+			line = _T("# and Output .dat file for the above should return: glenys@unit2,Glenys Waters,0,");
+			f.AddLine(line);
+			line = _T("ipAddress,username,password,username,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+#endif
+	}
+}
+
 
 #endif // _KBSERVER
 

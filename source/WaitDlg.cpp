@@ -239,6 +239,18 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
         case 29:
             WaitMsg = _("Please wait while creating a new document - and creating a diagnostic log file in folder _LOGS_EMAIL_REPORTS...");
             break;
+		case 30:
+			WaitMsg = _("Adding a user to kbserver succeeded.");
+			break;
+		case 31:
+			WaitMsg = _("Adding a user to kbserver failed.");
+			break;
+		case 32:
+			WaitMsg = _("Authentication succeeded.");
+			break;
+		case 33:
+			WaitMsg = _("Authentication failed.");
+			break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}

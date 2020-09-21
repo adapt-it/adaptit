@@ -4427,10 +4427,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
 		// app if none is running
 // GDLC 20JUL16
-        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
+        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && 
+			!m_bGlossingKB && m_pApp->KbServerRunning(1))
 //      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
             ||
-            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
+            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && 
+				m_bGlossingKB && m_pApp->KbServerRunning(2)))
 //          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
@@ -4751,10 +4753,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
 // GDLC 20JUL16
-                        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
+                        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+							!m_bGlossingKB && m_pApp->KbServerRunning(1))
 //                      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                             ||
-                            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
+                            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+								m_bGlossingKB && m_pApp->KbServerRunning(2)))
 //                          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
@@ -4905,10 +4909,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
 // GDLC 20JUL16
-                    if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
+                    if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+						!m_bGlossingKB && m_pApp->KbServerRunning(1))
 //                  if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                         ||
-                        (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
+                        (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+							m_bGlossingKB && m_pApp->KbServerRunning(2)))
 //                      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
@@ -4962,7 +4968,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	return TRUE;
 }
 
-//Llike StoreText(), but with different assumptions since we need to be able to move back
+//Like StoreText(), but with different assumptions since we need to be able to move back
 // when either there is nothing in the current phraseBox (in which case no store need be
 // done), or when the user has finished typing the current srcPhrase's adaption (since it
 // will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE

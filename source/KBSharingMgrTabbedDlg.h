@@ -37,7 +37,7 @@ public:
 	virtual ~KBSharingMgrTabbedDlg(void); // destructor
 
 	KbServer* GetKbServer(); // gets whatever m_pKbServer is pointing at
-	KbServer* m_pKbServer;   // we'll assign the stateless one to this pointer
+	KbServer* m_pKbServer;   // we'll assign the 'foreign' one to this pointer
 
 
 protected:
@@ -50,11 +50,11 @@ protected:
 	wxTextCtrl*    m_pEditPersonalPassword;
 	wxTextCtrl*    m_pEditPasswordTwo;
 	wxCheckBox*    m_pCheckUserAdmin;
-	wxCheckBox*    m_pCheckKbAdmin;
+	//wxCheckBox*    m_pCheckKbAdmin; // BEW 27Aug20 removed
 
 	wxButton*      m_pBtnUsersClearControls;
 	wxButton*      m_pBtnUsersAddUser;
-	wxButton*      m_pBtnUsersEditUser;
+	wxButton*      m_pBtnUsersChangePermission; // BEW 27Aug20 new button (toggles useradmin)
 	wxButton*      m_pBtnUsersRemoveUser;
 
 
@@ -66,33 +66,38 @@ protected:
 	wxStaticText*  m_pNonSrcLabel;
 	wxStaticText*  m_pAboveListBoxLabel;
 
-	wxTextCtrl*    m_pEditSourceCode;
-	wxTextCtrl*    m_pEditNonSourceCode;
+	wxTextCtrl*    m_pEditSourceCode; // BEW 27Aug20 'Code' is now to be the 'Language Name'
+	wxTextCtrl*    m_pEditNonSourceCode;// BEW 27Aug20 'Code' is now to be the 'Language Name'
+
 	wxTextCtrl*    m_pKbDefinitionCreator; // this one is read-only
-	wxButton*	   m_pBtnUsingRFC5646Codes;
+	//wxButton*	   m_pBtnUsingRFC5646Codes; // BEW 27Aug20 reemoved
 	wxButton*      m_pBtnAddKbDefinition;
-	wxButton*      m_pBtnClearBothLangCodeBoxes;
-	wxButton*      m_pBtnLookupLanguageCodes;
+	wxButton*      m_pBtnClearBothLangCodeBoxes;// BEW 27Aug20 'Code' is now to be the 'Language Name'
+	//wxButton*      m_pBtnLookupLanguageCodes;// BEW 27Aug20 removed
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
 	wxButton*	   m_pBtnClearListSelection;
-
+	/* BEW 27Aug20 remove this entire page from the manager
 	// For Create or Delete Custom Codes page
 	wxListBox*     m_pCustomCodesListBox;
 	wxTextCtrl*    m_pEditCustomCode;
 	wxTextCtrl*    m_pEditDescription;
-	wxTextCtrl*    m_pCustomCodeDefinitionCreator; // this one is read-only
+	*/
+	//wxTextCtrl*    m_pCustomCodeDefinitionCreator; // this one is read-only
+	/*
 	wxButton*	   m_pBtnUsingRFC5646CustomCodes;
 	wxButton*      m_pBtnCreateCustomCode;
 	wxButton*      m_pBtnDeleteCustomCode;
 	wxButton*      m_pBtnClearBothBoxes;
 	wxButton*      m_pBtnLookupISO639Code;
 	wxButton*	   m_pBtnRemoveListSelection;
-
+	*/
 	// local copies of globals on the App, for the person using the Manager dialog
-	bool           m_bKbAdmin;   // for m_kbserver_kbadmin
+	bool           m_bKbAdmin;   // for m_kbserver_kbadmin - BEW 27Aug20, retain, 
+								 // and set TRUE always so anyone entering manager
+								 // can make a new KB
 	bool		   m_bUserAdmin; // for m_kbserver_useradmin
 
-	wxString rfc5654guidelines; // read in from "RFC56554_guidelines.txt in adaptit\docs\ folder,
+	//wxString rfc5654guidelines; // read in from "RFC56554_guidelines.txt in adaptit\docs\ folder,
 								// & is a versioned file
 	int m_nCurPage;
 #ifdef __WXGTK__
@@ -108,50 +113,55 @@ protected:
 public:
 	void			LoadDataForPage(int pageNumSelected);
 protected:
-	void			DisplayRFC5646Message();
+	//void			DisplayRFC5646Message();
 	void			OnTabPageChanged(wxNotebookEvent& event);
 
 
 	// Functions needed by the Users page
-	KbServerUser*	GetUserStructFromList(UsersList* pUsersList, size_t index);
-	void			LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);
-	void			CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
-	KbServerUser*	CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct);
-	void			DeleteClonedKbServerUserStruct();
-	bool			CheckThatPasswordsMatch(wxString password1, wxString password2);
-	bool			AreBothPasswordsEmpty(wxString password1, wxString password2);
-	wxString		GetEarliestUseradmin(UsersList* pUsersList);
-	KbServerUser*	GetThisUsersStructPtr(wxString& username, UsersList* pUsersList);
-	KbServerLanguage* GetLanguageStructFromList(LanguagesList* pLanguagesList, size_t index);
+	KbServerUserForeign* GetUserStructFromList(UsersListForeign* pUsersListForeign, size_t index); // BEW 28Aug20 updated
+	void			LoadUsersListBox(wxListBox* pListBox, size_t count, UsersListForeign* pUsersListForeign);  // BEW 28Aug20 updated
+	void			CopyUsersList(UsersListForeign* pSrcList, UsersListForeign* pDestList); // BEW 28Aug20 updated
+	KbServerUserForeign*	CloneACopyOfKbServerUserStruct(KbServerUserForeign* pExistingStruct); // BEW 28Aug20 updated
+	void			DeleteClonedKbServerUserStruct(); // BEW 29Aug20 no change needed
+	bool			CheckThatPasswordsMatch(wxString password1, wxString password2); // BEW 29Aug20 no change needed
+	bool			AreBothPasswordsEmpty(wxString password1, wxString password2); // BEW 29Aug20 no change needed
+	wxString		GetEarliestUseradmin(UsersListForeign* pUsersListForeign); // BEW 29Aug20 updated, returns two names, comma-sep
+	KbServerUserForeign*	GetThisUsersStructPtr(wxString& username2, UsersListForeign* pUsersListForeign); // BEW 28Aug updated
+	//KbServerLanguage* GetLanguageStructFromList(LanguagesList* pLanguagesList, size_t index);
 
 	// event handlers - Users page
-	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20 updated
+
+	// BEW 29Aug20 updated -- TODO, legacy code commented out  -- see 1372 .cpp
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(event));
-	void		  OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event));
-	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
-	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
+
+	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));  // BEW 29Aug20 changes pending
+	void		  OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20, pending, empty
+
+	//void		  OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(event));
+	void		  OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20  updated - no kbserver accesses
+	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20  updated, with wxMessage() to
+																		// click the 'Change Permission' button
+	//void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
 
 	// Functions needed by the Kb Definitions page
-	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);
-	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList);
-	void		  DeleteClonedKbServerKbStruct();
-	bool		  IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList);
-	void		  LoadLanguageCodePairsInListBox_KbsPage(bool bKBTypeIsSrcTgt,
-							KbsList* pSrcTgtKbsList, KbsList* pSrcGlsKbsList,
-							wxListBox* pListBox);
+	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);  // BEW 28Aug20 updated
+	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList); // BEW 31Aug20 updated
+	void		  DeleteClonedKbServerKbStruct(); // BEW 31Aug20, no change needed
+	bool		  IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList); // BEW 31Aug20 updated
+	void		  LoadLanguageNamePairsInListBox_KbsPage(bool bKBTypeIsSrcTgt, KbsList* pSrcTgtKbsList,
+							 KbsList* pSrcGlsKbsList, wxListBox* pListBox); // BEW 31Aug20 updated
 	bool		  MatchExistingKBDefinition(wxListBox* pKbsList,
-							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr);
+							wxString& srcLangNameStr, wxString& nonsrcLangNameStr);  // BEW 31Aug20 minor updated
 	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList,
-							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
-	bool		  IsAKbDefinitionAltered(wxArrayString* pBeforeArr, wxArrayString* pAfterArr);
+							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList); // BEW 31Aug20 no changes needed
+	bool		  IsAKbDefinitionAltered(wxArrayString* pBeforeArr, wxArrayString* pAfterArr); // BEW 31Aug20 no changes
 
-	// event handlers - Create KB Definitions page
-	void		  OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event));
-	void		  OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
+	// event handlers - Create KB Definitions page (for name/name kb table entries)
+	void		  OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20 updated (minor tweaks)
+	void		  OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20 updated (minor tweaks)
+	//void		  OnBtnKbsPageLookupLanguageCodes(wxCommandEvent& WXUNUSED(event));// BEW 31Aug20 remove from app, unneeded
+	//void		  OnBtnKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageClearListSelection(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
@@ -159,26 +169,28 @@ protected:
 	void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
 
 	// Functions needed by the Create or Delete Custom Codes (3rd) page
-	void          LoadLanguagesListBox(wxListBox* pListBox, LanguagesList* pLanguagesList);
-	KbServerLanguage* GetThisLanguageStructPtr(wxString& customCode, LanguagesList* pLanguagesList);
+	//void          LoadLanguagesListBox(wxListBox* pListBox, LanguagesList* pLanguagesList);
+	//KbServerLanguage* GetThisLanguageStructPtr(wxString& customCode, LanguagesList* pLanguagesList);
 
 	// event handlers - Create or Delete Custom Codes page
-	void		  OnBtnLanguagesPageLookupCode(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnLanguagesPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonLanguagesPageClearBoxes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonLanguagesPageClearListSelection(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonLanguagesPageCreateCustomCode(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event));
-	void		  OnSelchangeLanguagesList(wxCommandEvent& WXUNUSED(event));
+	//void		  OnBtnLanguagesPageLookupCode(wxCommandEvent& WXUNUSED(event));
+	//void		  OnBtnLanguagesPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
+	//void		  OnButtonLanguagesPageClearBoxes(wxCommandEvent& WXUNUSED(event));
+	//void		  OnButtonLanguagesPageClearListSelection(wxCommandEvent& WXUNUSED(event));
+	//void		  OnButtonLanguagesPageCreateCustomCode(wxCommandEvent& WXUNUSED(event));
+	//void		  OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event));
+	//void		  OnSelchangeLanguagesList(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// All the lists, users, kbs and custom language definitions, are SORTED.
 	CAdapt_ItApp*     m_pApp;
 	int				  m_nSel; // index value (0 based) for selection in the the listbox of one
 							  // of the pages, and has value wxNOT_FOUND when nothing is selected
-	wxString		  m_earliestUseradmin; // this person cannot be deleted or demoted
-	UsersList*        m_pUsersList; // initialize in InitDialog() as the KbServer instance has the list
-	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at
+	wxString		  m_earliestUseradmin; // these two username records cannot be deleted or 
+										   // their privilege level changed (they are comma separated)
+	UsersListForeign* m_pUsersListForeign; // initialize in InitDialog() as the KbServer 
+										   // instance has the list
+	UsersListForeign* m_pOriginalUsersList; // store copies of KbServerUser structs at
 									        // entry, for comparison with final list
 											// after the edits, removals and additions
 											// are done
@@ -194,44 +206,44 @@ private:
 	KbsList*		  m_pKbsList_Tgt;
 	KbsList*		  m_pKbsList_Gls;
 
-	CodesList*		  m_pCustomCodesList; // initialize in InitDialog() as the KbServer instance has the list
-	CodesList*		  m_pOriginalCustomCodesList; // store copies of KbServerLanguage structs at entry,
+	//CodesList*		  m_pCustomCodesList; // initialize in InitDialog() as the KbServer instance has the list
+	//CodesList*		  m_pOriginalCustomCodesList; // store copies of KbServerLanguage structs at entry,
 										// for comparison with final list after edits or additions are done
-	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values
+	KbServerUserForeign*     m_pUserStructForeign; // scratch variable to get at returned values
 								     // for a user entry's fields
-	KbServerUser*     m_pOriginalUserStruct; // scratch variable to get at returned values
+	KbServerUserForeign*     m_pOriginalUserStruct; // scratch variable to get at returned values
 								     // for a user entry's fields, this one stores the
 								     // struct immediately after the user's click on the
 									 // user item in the listbox, freeing up the
-									 // m_pUserStruct to be given values as edited by
+									 // m_pUserStructForeign to be given values as edited by
 									 // the user
 	KbServerKb*		  m_pKbStruct; // scratch variable to hold returned values for
-								   // a kb entry's pair of language codes, etc
+								   // a kb entry's pair of language names, etc
 	KbServerKb*		  m_pOriginalKbStruct; // performs the same service for m_pKbStruct that
 									 // m_pOriginalUserStruct does for m_pUserStruct
 
-	KbServerLanguage* m_pLanguageStruct; // scratch variable to hold a returned value for
+	//KbServerLanguage* m_pLanguageStruct; // scratch variable to hold a returned value for
 										 // a custom code etc
-	KbServerLanguage* m_pOriginalLanguageStruct; // performs the same service for m_pLanguageStruct
+	//KbServerLanguage* m_pOriginalLanguageStruct; // performs the same service for m_pLanguageStruct
 										 // that m_pOriginalUserStruct does for m_pUserStruct
-	LanguagesList*	  m_pLanguagesList;
-	FilteredList*	  m_pFilteredList;
+	//LanguagesList*	  m_pLanguagesList;
+	//FilteredList*	  m_pFilteredList;
 
 	// Next members are additional ones needed for the kbs page
 	bool		m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
-	wxString	m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
-	wxString	m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"
+	wxString	m_tgtLanguageNameLabel; // InitDialog() sets it to "Target language name:"
+	wxString	m_glossesLanguageNameLabel; // InitDialog() sets it to "Glossing language names:"
 	wxString	m_tgtListLabel; // InitDialog() sets it to
-					// "Existing shared databases (as   source,target   comma delimited code pairs):"
+					// "Existing shared databases (as   source,target   comma delimited language name pairs):"
 	wxString	m_glsListLabel; // InitDialog() sets it to
-					// "Existing shared databases (as   source,glossing   comma delimited code pairs):"
-	wxString	m_sourceLangCode;
-	wxString	m_targetLangCode;
-	wxString	m_glossLangCode;
+					// "Existing shared databases (as   source,glossing   comma delimited language name pairs):"
+	wxString	m_sourceLangName;
+	wxString	m_targetLangName;
+	wxString	m_glossLangName;
 	// Next members are additional ones needed for the custom language codes page
-	wxString	m_customLangCode;
-	wxString	m_description;
-	wxString	m_creator;
+	//wxString	m_customLangCode;
+	//wxString	m_description;
+	//wxString	m_creator;
 
 
 	// Support for showing informative message when user attempts to alter one or both
@@ -254,8 +266,8 @@ private:
 	//  which preserve the code values which a deletion is in progress, so we can ensure
 	//  that nonone sets up a sharing to the old kb definition while the removal is in
 	//  progress.)
-	wxString		m_srcLangCodeOfDeletion;
-	wxString		m_nonsrcLangCodeOfDeletion;
+	wxString		m_srcLangNameOfDeletion;
+	wxString		m_nonsrcLangNameOfDeletion;
 	int				m_kbTypeOfDeletion; //1, 2, or undefined (-1)
 
 	DECLARE_EVENT_TABLE()
