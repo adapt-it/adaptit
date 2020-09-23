@@ -856,7 +856,7 @@ enum ServDiscDetail
 	const int lookup_user = 2;
 	const int list_users = 3;
 // add more here, as our solution matures
-	const int blanksEnd = 3; // this one changes as we add more above
+	const int blanksEnd = 4; // this one changes as we add more above
 
 
 #endif
@@ -2318,7 +2318,8 @@ class CAdapt_ItApp : public wxApp
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
-
+	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
+								   // into CallExecute() function
 
 	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
 	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module

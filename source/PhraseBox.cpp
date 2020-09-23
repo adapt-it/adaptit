@@ -6884,7 +6884,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         || keycode == WXK_NUMPAD_ENTER // NUMPAD_ENTER
         || keycode == WXK_NUMPAD_TAB)  // NUMPAD_TAB  //whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
-        // whm 16May2020 moved the code for handling bogus Enter key presses causeing
+        // whm 16May2020 moved the code for handling bogus Enter key presses causing
         // phrasebox run-on situation, from where BEW placed it below, up here to the beginning 
         // of the block detecting ENTER and TAB key presses. The Reason: To avoid executing the
         // auto-merging code below and the pView->RemoveSelection() call below that can cause
@@ -6903,7 +6903,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         }
         if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
         {
-            // set both global flags badk to FALSE so next legit ENTER will get processed.
+            // set both global flags back to FALSE so next legit ENTER will get processed.
             pApp->m_bUserDlgOrMessageRequested = FALSE; 
             pApp->m_bUserHitEnterOrTab = FALSE;
         	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation

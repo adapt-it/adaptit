@@ -1960,6 +1960,17 @@ int KbServer::ListKbs(wxString username, wxString password)
 // the app's m_pKbServer[two] pointers have been instantiated
 int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername)
 {
+	// BEW 21Sep20 redo, we have to determine if username == whichusername right here, 
+	// and set the app's m_bUser1IsUser2 true or false, an then set m_bUserAuthenticating
+	// accordingly - so that default values get into the Athenticate2Dlg when called
+	m_pApp->m_bUser1IsUser2 = FALSE; // initialise FALSE
+	m_pApp->m_bUserAuthenticating = FALSE; // initialise, as if foreign user doing things in Manager
+	if (username == whichusername)
+	{
+		m_pApp->m_bUser1IsUser2 = TRUE;
+		m_pApp->m_bUserAuthenticating = TRUE;
+	}
+
 	// Prepare the .dat input dependency: "lookup_user.dat" file, into
 	// the execPath folder, ready for the ::wxExecute() call below
 	// BEW 24Aug20 NOTE - calling _T("do_user_lookup.exe") with an absolute path prefix
@@ -1968,8 +1979,6 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 	// The workaround is to temporarily set the current working directory (cwd) to the
 	// AI executable's folder, do the wxExecute() call on just the script filename, and
 	// restore the cwd after it returns.
-	// I've encapsulated the needed code in a function: 
-	// bool CallExecute(execFileName,execPath,do_user_lookup_return_result_file.dat)
 	bool bReady = m_pApp->ConfigureDATfile(lookup_user); // arg is const int, value 2
 	if (bReady)
 	{
@@ -1977,8 +1986,9 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 		wxString execFileName = _T("do_user_lookup.exe");
 		wxString execPath = m_pApp->execPath;
 		wxString resultFile = _T("lookup_user_return_results.dat");
-		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 99, 99);
-		// In above call, last param, bReportResult, is default FALSE therefore omitted
+		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
+		// In above call, last param, bReportResult, is default FALSE therefore omitted;
+		// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
 
 		if (bExecutedOK)
 		{

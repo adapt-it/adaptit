@@ -20005,19 +20005,16 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case lookup_user: // funcNumber is 2 in AI.h lines 854++
 		{
-			m_bUser1IsUser2 = FALSE; // initialize
-			// The above boolean makes it possible for us to establish authentication
-			// as 'user' or as 'for manager', with storage options agreeing, by 
+			// App's m_bUser1IsUser2 boolean it possible for us to establish authentication
+			// as 'user' or as a 'foreign' user, with storage options agreeing, by 
 			// whether it is TRUE, or FALSE. When ConfigureMovedDatFile() is called
-			// to put in the actual parametres for the wxExecute() call, we check for
-			// user2 == m_strUserID (ie. user1), and if TRUE, then set this bool to
-			// TRUE, and move change m_bUserIsAuthenticating from FALSE to TRUE plus
-			// other changes (e.g. copy 'ForManager' vars across to 'Normal' vars
-			// and so forth.
+			// to put in the actual paramaters for the wxExecute() call, we check for
+			// TRUE, and then m_bUserIsAuthenticating will also be TRUE, and set storage
+			// values accordingly, otherwise, 'For Manager' variables get set instead
 			wxString filename = _T("lookup_user.dat");
-			DeleteOldDATfile(filename, execFolderPath);
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath);
-			ConfigureMovedDatFile(lookup_user, filename, execFolderPath); // <<-- does the test user1 == user2
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(lookup_user, filename, execFolderPath); // <<-- looks up app bools
 			// The .exe with the python code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
 			// the dist folder
@@ -20171,16 +20168,22 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case lookup_user: // = 2
 	{
-		m_bUseForeignOption = TRUE; // do we need this??
-		m_bUserAuthenticating = FALSE; // <<-- always enter the Authenticate2 dlg with FALSE
-		commandLine = this->m_chosenIpAddr + comma;
-		this->UpdateIpAddr(m_chosenIpAddr);
+		m_resultDatFileName = _T("lookup_user_return_results.dat");
+		if (m_bUser1IsUser2)
+		{
+			wxASSERT(m_bUserAuthenticating == TRUE);
+			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
+			UpdateNormalIpAddr(this->m_chosenIpAddr);
+		} // end of TRUE block for test: if (m_bUser1IsUser2)
+		else
+		{
+			m_bUseForeignOption = TRUE; // do we need this?? Probably
+			m_bUserAuthenticating = FALSE;
+			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
+			UpdateIpAddr(m_chosenIpAddr);
+		} // end of else block for test: if (m_bUser1IsUser2)
 
-		wxString saveIpAddr = m_chosenIpAddr; // if user cancels, need this and next three
-		wxString saveUsername = m_curAuthUsername;
-		wxString saveUsername2 = m_Username2; // for the "look for this username" 2nd box
-		wxString savePwd = m_curAuthPassword;
-
+		// Call the Authentication dialog, the newer one with two username fields
 		bool bAuthenticationOK = TRUE;
 		Authenticate2Dlg* pDlg = new Authenticate2Dlg(GetMainFrame(), m_bUserAuthenticating);
 		pDlg->Center();
@@ -20188,78 +20191,95 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		dlgReturnCode = pDlg->ShowModal();
 		if (dlgReturnCode == wxID_OK)
 		{
-			// successful run of the dialog. The app variables should have new or same
-			// values for m_strForManagerIpAddr, m_strForManagerUsername, m_strForManagerPassword,
-			// and if the password was left empty, the class will make a guess based on previously
-			// stored passwords - it could be wrong of course, and the user shown it in a form
-			// like  "Cl******93" for example, or xx**, or x* where x is some wxChar value
-			UpdateCurAuthUsername(pDlg->m_strForManagerUsername);
-			commandLine += pDlg->m_strForManagerUsername + comma; // for authenticating
-
-			UpdateCurAuthPassword(pDlg->m_strForManagerPassword);
-			commandLine += pDlg->m_strForManagerPassword + comma;
-
-			// Now the second username, the one to search for
-			UpdateUsername2(pDlg->m_strForManagerUsername2);
-			commandLine += pDlg->m_strForManagerUsername2 + comma; // commandLine is finished
-
-#if defined (_DEBUG)
-			wxLogDebug(_T("%s() Line %d, m_Username2: %s , command: %s"),
-				__FUNCTION__,__LINE__, m_Username2.c_str(), commandLine.c_str());
-#endif
-			// Now set or clear the app boolean, m_bUser1IsUser2
-			if (!m_bUserAuthenticating)
+			// First, get the latest
+			// successful run of the dialog. 
+			if (m_bUserAuthenticating)
 			{
-				// Work out if we need to make m_bUserAuthenticating TRUE
-				// because we determined here that m_bUser1IsUser2 is TRUE
-				m_bUser1IsUser2 = FALSE; //default for not 'Normal' situation
-				if ((m_curAuthUsername == m_Username2) && (m_curAuthUsername == m_strUserID))
-				{
-					// User is looking up him in his adaptation (defined) project.
-					// So copy the 'for manager' values over to the 'Normal' vars, 
-					// so they can persist while the user works
-					m_bUserAuthenticating = TRUE;
-					m_curNormalUsername = m_curAuthUsername;
-					m_curNormalUsername2 = m_Username2;
-					m_curNormalPassword = m_curAuthPassword; // keep but don't show to user
-					m_bcurNormalKbadmin = TRUE; 
-					// The next two are not known until wxExecute() returns successfully,
-					// with "username2, fullname, useradmin" values in the returned file
-					// lookup_user_return_results_file.dat - so do that in CallExecute()
+				wxString user1 = pDlg->m_strNormalUsername;
+				wxString user2 = pDlg->m_strNormalUsername;
+				wxString pwd   = pDlg->m_strNormalPassword;
+				wxString ipAddress = pDlg->m_strNormalIpAddr;
 
-					// The password stored in app's m_possibleNormalPassword should be
-					//  sent to the frame's password store - may be needed subsequently
-					CMainFrame* pMF = GetMainFrame();
-					pMF->SetKBSvrPassword(m_possibleNormalPassword);
-				}
-			}
-		}
+				// useradmin value?? Authenticate2Dlg does not pick
+				// that up, but that should be available in the
+				// returned lookup_user_return_results.dat file
+				commandLine += user1 + comma + pwd + comma + user2 + comma;
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s"),
+					__FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str());
+#endif			
+			} // end of TRUE block for test: if (m_bUserAuthenticating)
+			else
+			{
+				// The app variables should have new or same values for
+				// m_strForManagerIpAddr, m_strForManagerUsername, m_strForManagerPassword,
+				// and if the password was left empty, the class will make a guess based
+				// on previously stored passwords - it could be wrong of course, and the 
+				// user shown it in a form like  "Cl******93" for example, or xx**, 
+				// or x* where x is some wxChar value
+				UpdateCurAuthUsername(pDlg->m_strForManagerUsername);
+				commandLine += pDlg->m_strForManagerUsername + comma; // for authenticating
+
+				UpdateCurAuthPassword(pDlg->m_strForManagerPassword);
+				commandLine += pDlg->m_strForManagerPassword + comma;
+
+				// Now the second username, the one to search for
+				UpdateUsername2(pDlg->m_strForManagerUsername2);
+				commandLine += pDlg->m_strForManagerUsername2 + comma; // commandLine is finished
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s() Line %d, m_Username2: %s , command: %s"),
+					__FUNCTION__,__LINE__, pDlg->m_strForManagerUsername2.c_str(), commandLine.c_str());
+#endif
+			} // end of else block for the test: if (m_bUserAuthenticating)
+		} // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
 		else
 		{
 			// User cancelled. The authentication must fail.
 			bAuthenticationOK = FALSE;
-		}
-		delete pDlg;
+		} // end of else block for test: if (dlgReturnCode == wxID_OK)
+
 		// That finishes the commandLine to be put into the input .dat file.
 
-		// Set AI.h variables to preserve parameters used, in case Manager wants them
+		// Restore saved values if the authentication failed
 		if (!bAuthenticationOK)
 		{
 			// Restore earlier values
-			UpdateIpAddr(saveIpAddr);
-			UpdateCurAuthUsername(saveUsername);
-			UpdateCurAuthPassword(savePwd);
-		}
+			if (m_bUser1IsUser2)
+			{
+				UpdateNormalIpAddr(pDlg->m_saveOldNormalIpAddrStr);
+				UpdateCurNormalUsername(pDlg->m_saveOldNormalUsernameStr);
+				UpdateCurNormalPassword(pDlg->m_saveNormalPassword);
+				m_curNormalUsername2 = pDlg->m_saveOldNormalIpAddrStr;
+			}
+			else
+			{
+				UpdateIpAddr(pDlg->m_saveOldIpAddrStr);
+				UpdateCurAuthUsername(pDlg->m_saveOldUsernameStr);
+				UpdateCurAuthPassword(pDlg->m_savePassword);
+				UpdateUsername2(pDlg->m_saveOldUsername2Str);
+			}
+		} // end of TRUE block for test: if (!bAuthenticationOK)
 
-		// Set these ones from the KB Sharing Manager, because a third party
-		// may be adding users and their associated srcLang/tgtLang KB may
-		// differ from what is currently in effect for the current machine
-		/*
-		UpdateCurSrcLangName(m_sourceName);
-		UpdateCurTgtLangName(m_targetName);
-		UpdateCurGlossLangName(m_glossesName);
-		UpdateCurFreeTransLangName(m_freeTransName);
-		*/
+		// Finished with the dialog, so now delete it
+		delete pDlg;
+
+		// Set or update the source and target etc, language names as these
+		// may now differ from what was in effect for the current machine.
+		// (The user or someone foreign may have switched to a different AI project.)
+		if (m_bUserAuthenticating)
+		{
+			UpdateCurNormalSrcLangName(m_sourceName);
+			UpdateCurNormalTgtLangName(m_targetName);
+			UpdateCurNormalGlossLangName(m_glossesName);
+			UpdateCurNormalFreeTransLangName(m_freeTransName);
+		}
+		else
+		{
+			UpdateCurSrcLangName(m_sourceName);
+			UpdateCurTgtLangName(m_targetName);
+			UpdateCurGlossLangName(m_glossesName);
+			UpdateCurFreeTransLangName(m_freeTransName);
+		}
 		// Now in the caller the file has been moved to the parent folder 
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "lookup_user.dat" 
@@ -20272,7 +20292,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out off builerplate content
+				// Clear out the boilerplate content
 				f.Clear();
 				// Now add commandLine as the only line
 				f.AddLine(commandLine);
@@ -20288,9 +20308,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
+	} // end of case:  lookup_user
+	case list_users: // = 3
+	{
+		// TODO later....?
+		break;
 	}
 	case blanksEnd:
-	default:
 	{
 		break; // do nothing
 	}
@@ -20355,6 +20379,36 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString execPat
 bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 	wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult)  // last param is default FALSE
 {
+	/*
+	// Don't use an enum, int values are simpler
+	const int noDatFile = 0;
+	const int credentials_for_user = 1;
+	const int lookup_user = 2;
+	const int list_users = 3;
+	// add more here, as our solution matures
+	const int blanksEnd = 4; // this one changes as we add more above
+	*/
+	switch (funcNumber)
+	{
+	case noDatFile:
+		break;
+	case credentials_for_user:
+		break;
+	case lookup_user:
+	{
+		if (m_bUserAuthenticating)
+		{
+			wxASSERT(resultFile == m_resultDatFileName);
+		}
+		break;
+	}
+	case list_users:
+		break;
+	case blanksEnd:
+	{
+		break;
+	}
+	};
 	wxArrayString output;
 	wxArrayString errors;
 	bool bSuccess = TRUE;
@@ -20364,7 +20418,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	if (bTempCwd)
 	{
 
-		long rv = ::wxExecute(execFileName, output, errors);
+		long rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful
 		// restore old current working directory
 		bool bRestored = fn.SetCwd(currCwd);
 		wxUnusedVar(bRestored);
@@ -20463,7 +20517,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 							wxString fullname = shorter.Left(offset);
 
 							shorter = shorter.Mid(offset + 1);
-							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 'i'
+							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 '1'
 							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
 
 							// Now store them... (Authenticating, if ConfigureMovedDATfile()
@@ -20477,6 +20531,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 								{
 									// Report to the app that the authentication was successful
 									m_bUserLoggedIn = TRUE;
+									m_resultDatFileName.Empty(); // no longer need it
 								}
 								m_curNormalUsername2 = username2;
 								m_curNormalFullname = fullname;
@@ -20520,13 +20575,14 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 									wxUnusedVar(waitFailure);
 #endif
 								} // end of TRUE block for test: if (bReportResult)
-							}
+							} // end of TRUE block for test: if (m_bUserAuthenticating)
 							else
 							{
+								// These are the 'for manager' storage, for 'foreign' access
 								m_Username2 = username2;
 								m_curFullname = fullname;
 								m_bcurUseradmin = bUseradminValue;
-							}
+							} // end of else block for test: if (m_bUserAuthenticating)
 						}
 						break;
 					}
@@ -20561,12 +20617,23 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		{
 			wxBell();
 			bSuccess = FALSE;
-			wxString msg = _T("::wxExecute() failed for %s called in folder %s");
+			wxString msg = _("::wxExecute() failed for %s called in folder %s");
 			msg = msg.Format(msg, execFileName.c_str(), execPath.c_str());
 			LogUserAction(msg);
 			return FALSE;
 		}
 	} // end of the TRUE block for test: if (bTempCwd)
+	else
+	{
+		// failure to set a current working directory (an unlikely error)
+		wxBell();
+		bSuccess = FALSE;
+		wxString msg = _("Setting a temporary current working directory failed for %s called in folder %s");
+		msg = msg.Format(msg, execFileName.c_str(), execPath.c_str());
+		LogUserAction(msg);
+		return FALSE;
+
+	}
 	return bSuccess;
 }
 
