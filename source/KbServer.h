@@ -63,29 +63,34 @@ struct KbServerUser;  // ditto, for this one
 struct KbServerKb;	  // ditto again
 struct KbServerLanguage;
 
+struct KbServerUserForeign;
+
 // BEW note: the following declarations are only declarations. We get a 2001 linker error
 // if the implementation file does not have the needed definitions macros. They are located
 // KbServer.cpp at line 73 and following. E.g. WX_DEFINE_LIST(LanguagesList); etc
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
 		// because KBserver upload threads may not all be finished when the two KBserver
-		// instances are released, and if they are not finished, then the KbServerEntry 
+		// instances are released, and if they are not finished, then the KbServerEntry
 		// structs they store will need to live on as long as possible
-WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for 
+WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for
 										  // the ListUsers() client
-WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for 
+WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for
 										  // the ListKbs() client
-WX_DECLARE_LIST(KbServerLanguage, LanguagesList); // stores pointers to KbServerLanguage structs for 
-// the ListLanguages() client (the latter's handler filters out ISO639 codes, leaving only custom codes)
+//WX_DECLARE_LIST(KbServerLanguage, LanguagesList); // stores pointers to KbServerLanguage structs for
+//// the ListLanguages() client (the latter's handler filters out ISO639 codes, leaving only custom codes)
 
-WX_DECLARE_LIST(KbServerLanguage, FilteredList); // stores pointers to KbServerLanguage structs 
+WX_DECLARE_LIST(KbServerLanguage, FilteredList); // stores pointers to KbServerLanguage structs
 //  filtered from LanguagesList, so that only the structs for custom codes are in filteredList
+
+WX_DECLARE_LIST(KbServerUserForeign, UsersListForeign); // stores pointers to KbServerUserForeign 
+		// structs for the ListUsers() client call - Leon solution
 
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
 // pairs which already have a presence in the remote server; used when doing a full KB upload
-WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap); 
-													   
+WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap);
+
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
 struct KbServerEntry {
@@ -109,6 +114,16 @@ struct KbServerUser {
 	wxString	timestamp;
 };
 
+// BEW 26Aug20 modified legacy structs can have "Foreign" added to their name, 
+// to keep compilation well behaved while Leon and I develop our kbserver solution
+struct KbServerUserForeign {
+	wxString	username;  // the unique one, (but it doesn't have to be)
+	wxString	fullname;  // the informal name
+	bool		useradmin; // permission to change user table _T('1') or _T('0')
+	bool		kbadmin;   // always TRUE as of 28Aug20
+};
+
+
 struct KbServerLanguage {
 	wxString	code; // the 2- or 3-letter code, or a RFC5646 code <<-- primary key, since each code is unique
 	wxString	username; // which user is creating or has created this language code
@@ -117,16 +132,16 @@ struct KbServerLanguage {
 };
 
 struct KbServerKb {
-	long		id; // 1-based, from the kb table
-	wxString	sourceLanguageCode;
-	wxString	targetLanguageCode;
+	//long		id; // from the kb table  (BEW changed 28Aug20, not needed )
+	wxString	sourceLanguageName; // BEW 28/Aug/20 changed 'Code' to 'Name'
+	wxString	targetLanguageName; // ditto
 	int			kbType; // 1 for adapting KB, 2 for a glossing KB
-	wxString	username; // the unique one, or we would like it to be unique (but it doesn't have to be)
-	wxString	timestamp;
-	int			deleted; // 0 if not deleted, 1 if deleted (i.e. 'not in use, until deleted status is changed')
-						// BEW 10Jul13, Currently we do not support deleted = 1. We don't want
-						// either pseudo-deletion, or real deletion of a KB at present, and
-						// perhaps permanently. So deleted will always be 0.
+	wxString	username; // definer, the unique one, (but it doesn't have to be)
+	//wxString	timestamp; // BEW 28Aug20 deprecated, has no useful function
+	//int		deleted; // 0 if not deleted, 1 if deleted (i.e. 'not in use, until deleted status is changed')
+				// BEW 10Jul13, Currently we do not support deleted = 1. We don't want
+				// either pseudo-deletion, or real deletion of a KB at present, and
+				// perhaps permanently. So deleted will always be 0. BEW 28Aug20 never used, now irrelevant
 };
 
 enum ClientAction {
@@ -159,7 +174,7 @@ public:
 	// creation & destruction
 
 	KbServer(void); // default constructor
-	KbServer(int whichType, bool bStateless); // the constructor we'll use for the KB Sharing Manager's use
+	KbServer(int whichType, bool bForManager); // the constructor we'll use for the KB Sharing Manager's use
 	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
@@ -167,19 +182,19 @@ public:
 	// attributes
 public:
 
-	bool m_bStateless; // TRUE when this instance is needed for the KB Sharing Manager's use
+	bool m_bForManager; // TRUE when this instance is needed for the KB Sharing Manager's use
 					   // otherwise FALSE
 	// ///////// The API which we expose ////////////////////////////////////////////
 	// (note:  srcPhrase & tgtPhrase are often each just a single word)
-	
+
     // By passing in a copy of the required strings, we avoid mutex problems that would
     // happen because the internal code would otherwise need to make calls to the KbServer
 	// instance to get needed params; these API kbserver functions are setup within the
 	// main thread before the containing thread is fired, and so the parameter accesses
 	// are synchronous and no mutex is required
-	
+
 	// The functions in this next block do the actual calls to the remote KBserver, they are
-	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
+	// public access because KBSharingAuthenticationDlg will need to use several of them, as
 	// do other classes
 	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
@@ -188,30 +203,37 @@ public:
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
-						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
-	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword,
+						bool bKbadmin, bool bUseradmin, bool bLanguageadmin); // Keep - TODO
+	int		 CreateKb(wxString ipAddr, wxString username, wxString password, 
+						wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt); // Keep - TODO
+	bool	 DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
+	void	 ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersList);
+
+	int		 ChangedSince_Queued(KbServer* pKbSvr);
+
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
-	int		 ListKbs(wxString username, wxString password);
-	int		 ListUsers(wxString username, wxString password);
-	int		 ListLanguages(wxString username, wxString password);
+	int		 ListKbs(wxString username, wxString password); // BEW 5Sep20 needed
+	int		 ListUsers(wxString username, wxString password); // BEW 5Sep20  needed
+	//int	 ListLanguages(wxString username, wxString password);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
-	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
-							wxString tgtLangCode, int kbType, bool& bMatchedKB);
-	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
+	// BEW 24Sep20 deprecated, we no longer have a kb table
+	//int		 LookupSingleKb(wxString ipAddr, wxString username, wxString password, wxString srcLangName,
+	//						wxString nonsrcLangName, int kbType, bool& bMatchedKB); 
+	int		 LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 DeleteSingleKbEntry(int entryID);
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);
 	int		 RemoveCustomLanguage(wxString langID);
-	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
-						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
-						KbServerUser* pEditedUserStruct, wxString password);
+	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
+						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
+						KbServerUser* pEditedUserStruct, wxString password); // Do we need this as is or modified?
 	void	 UploadToKbServer();
 	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
-	
+
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
 	void	DoChangedSince();
@@ -227,27 +249,35 @@ public:
 	// Functions for synchronous access to the remote server - to check if they leak memory too
 	// They don't leak, hooray. We have to use these instead of detached threads, because the
 	// latter incurs openssl leaks of about 1KB per KBserver access
-	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
-	int		Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
-	int		Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
+	int		CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		ChangedSince_Timed(KbServer* pKbSvr);
+	int		DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
 	void	 SetKBServerType(int type);
-	void	 SetKBServerURL(wxString url);
+	void	 SetKBServerIpAddr(wxString ipAddr);
 	void	 SetKBServerUsername(wxString username);
 	void	 SetKBServerPassword(wxString pw);
 	void	 SetKBServerLastSync(wxString lastSyncDateTime);
-	void	 SetSourceLanguageCode(wxString sourceCode);
-	void	 SetTargetLanguageCode(wxString targetCode);
-	void	 SetGlossLanguageCode(wxString glossCode);
 	void	 SetPathToPersistentDataStore(wxString metadataPath);
 	void	 SetPathSeparator(wxString separatorStr);
 	void	 SetCredentialsFilename(wxString credentialsFName);
 	void	 SetLastSyncFilename(wxString lastSyncFName);
+	// BEW 7Sep20 legacy setters, for 'Code' strings ("tpi" etc)
+	void	 SetSourceLanguageCode(wxString sourceCode);
+	void	 SetTargetLanguageCode(wxString targetCode);
+	void	 SetGlossLanguageCode(wxString glossCode);
+	// BEW 7Sep20 new setters, for 'Name' strings ("Wangurri" etc)
+	void	 SetSourceLanguageName(wxString sourceLangName);
+	void	 SetTargetLanguageName(wxString targetLangName);
+	void	 SetGlossLanguageName(wxString glossLangName);
+
+
+
 	// public getters
 	DownloadsQueue* GetDownloadsQueue();
 
@@ -291,7 +321,7 @@ protected:
 	// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
 	// s_DoGetAllMutex)
 	void PopulateUploadsMap(KbServer* pKbSvr);
-	
+
 	// Populate the m_uploadsList - either with the help of the remote DB's data in the
 	// hashmap, or without (the latter when the remote DB has no content yet for this
 	// particular language pair) - pass in a flag to handle these two options
@@ -303,11 +333,11 @@ private:
 	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
-	wxString    m_httpStatusText; 
+	wxString    m_httpStatusText;
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// KBserver for a given KB type (their getters are further below)
-	wxString	m_kbServerURLBase;
+	wxString	m_kbServerIpAddrBase;
 	wxString	m_kbServerUsername; // typically the email address of the user, or other unique identifier
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
@@ -317,11 +347,19 @@ private:
 							// two variables (m_kbServerLastSync might be needed for more than one
 							// GET request before success is achieved)
 	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
-	wxString	m_kbSourceLanguageCode;
-	wxString	m_kbTargetLanguageCode;
-	wxString	m_kbGlossLanguageCode;
+	wxString	m_kbSourceLanguageCode; // cull later?
+	wxString	m_kbTargetLanguageCode; // cull later?
+	wxString	m_kbGlossLanguageCode;  // cull later?
 	wxString	m_pathToPersistentDataStore; // should be m_curProjectPath
 	wxString	m_pathSeparator;
+	// BEW 7Sep20 since m_kbSourceLanguageCode, m_kbTargetLanguageCode, and
+	// m_kbGlossLanguageCode may perhaps also be associated with Lift code and xhtml
+	// exporting, I'll provide equivalents here with 'Name' rather than 'Code' so
+	// that we use these 'Name' ones for 
+	wxString	m_kbSourceLanguageName;
+	wxString	m_kbTargetLanguageName;
+	wxString	m_kbGlossLanguageName;
+
 
 	wxString	m_credentialsFilename;
 	wxString	m_lastSyncFilename;
@@ -336,26 +374,34 @@ public:
 	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
-	// unlikely); or from the "Authenticate" dialog (KBSharingStatelessSetupDlg.cpp & .h).
-	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
-	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
-	// password and username - and those will get stored in the relevant places in the ptr to the
-	// "stateless" KbServer ptr instance which, for example, the Manager points at with its
-	// m_pKbServer member. So then the getters below will get the stateless strings, and that means
-	// any user settings for access to a KBserver instance, whether same one or not, won't get 
+	// unlikely); or from the "Authenticate" dialog (KBSharingAuthenticationDlg.cpp & .h).
+	// Note, when setting a 'for Manager' KbServer instance (eg. as when using the Manager), if the
+	// bForManager flag is TRUE in the creator for the CKbServer instance, then 'ForManager' 
+	// temporary storage strings are used for the ipAddress, password and username - and 
+	// those will get stored in the relevant places in the ptr to the "ForManager" KbServer 
+	// ptr instance which the Manager points at with its internal m_pKbServer member. 
+	// So then the getters below will get the 'for Manager' strings, and that means
+	// any user settings for access to a KBserver instance, whether same one or not, won't get
 	// clobbered by some administrator person accessing the KB Sharing Manager from the user's machine.
-	wxString	GetKBServerURL();
+	// Accessors list...
+	wxString	GetKBServerIpAddr();
 	wxString	GetKBServerUsername();
 	wxString	GetKBServerPassword();
 	wxString	GetKBServerLastSync();
-	wxString	GetSourceLanguageCode();
-	wxString	GetTargetLanguageCode();
-	wxString	GetGlossLanguageCode();
 	int			GetKBServerType();
 	wxString	GetPathToPersistentDataStore();
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
+	// BEW 7Sep20 legacy getters for the language codes (LIFT or xhtml may need these)
+	wxString	GetSourceLanguageCode();
+	wxString	GetTargetLanguageCode();
+	wxString	GetGlossLanguageCode();
+	// BEW 7Sep20 new getters for the language names (KB Shared Manager Tabbed Dlg needs these)
+	wxString	GetSourceLanguageName();
+	wxString	GetTargetLanguageName();
+	wxString	GetGlossLanguageName();
+
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for bulk entry data returned from the server synchonously.. Access to
@@ -381,19 +427,21 @@ private:
 
 	// the templated list which holds KbServerEntry structs, created on the heap, one such
 	// for each KB server DB line -- for uploading the src/tgt data in each to the remote
-	// DB in Thread_UploadMulti 
+	// DB in Thread_UploadMulti
 	UploadsList		m_uploadsList;
 
 	// For use in full KB uploads
 	UploadsMap		m_uploadsMap;
 
 	// For use when listing all the user definitions in the KBserver
-	UsersList       m_usersList;
+	//UsersListForeign       m_usersListForeign;
+	// BEW 27Aug20 For Leon's solution
+	UsersListForeign m_usersListForeign;
+
 	// For use when listing all the kb definitions in the KBserver
 	KbsList         m_kbsList;
-	// For use when listing all the custom language definitions in the KBserver
-	LanguagesList   m_languagesList;
-
+	// For use when listing all the lang codes definitions in the KBserver ??
+	//LanguagesList   m_languagesList;
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
@@ -447,16 +495,18 @@ public:
 	KbServerLanguage GetLanguageStruct();
 	void			 ClearLanguageStruct();
 
-	UsersList*		GetUsersList();
-	void			ClearUsersList(UsersList* pUsrList); // deletes from the heap all KbServerUser struct ptrs within
+	//UsersList*		GetUsersList();
+	UsersListForeign*		GetUsersListForeign(); // Keep this
+	// Keep next
+	void			ClearUsersListForeign(UsersListForeign* pUsrListForeign); // deletes from the heap all KbServerUser struct ptrs within
 
 	KbsList*		GetKbsList();
 	void			ClearKbsList(KbsList* pKbsList); // deletes from the heap all KbServerKb struct ptrs within
 
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 
-	LanguagesList*  GetLanguagesList();
-	void			ClearLanguagesList(LanguagesList* pLanguagesList);
+//	LanguagesList*  GetLanguagesList();
+//	void			ClearLanguagesList(LanguagesList* pLanguagesList);
 
 protected:
 

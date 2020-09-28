@@ -48,7 +48,7 @@
 #include "MainFrm.h"
 #include "helpers.h"
 #include "KbServer.h"
-#include "KBSharingStatelessSetupDlg.h" //  misnamed, it's actually just an authentication class
+#include "KBSharingAuthenticationDlg.h" //  misnamed, it's actually just an authentication class
 #include "KbSharingSetup.h"
 
 // event handler table
@@ -60,7 +60,7 @@ BEGIN_EVENT_TABLE(KbSharingSetup, AIModalDialog)
 	EVT_CHECKBOX(ID_CHECKBOX_SHARE_MY_GLOSS_KB, KbSharingSetup::OnCheckBoxShareGlosses)
 END_EVENT_TABLE()
 
-// The non-stateless contructor (internally sets m_bStateless to FALSE)
+// The non-stateless contructor (internally sets m_bForManager to FALSE)
 KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Setup Or Remove Knowledge Base Sharing"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -93,6 +93,8 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
+	pFrame = m_pApp->GetMainFrame();
+	bAuthenticated = FALSE; // initialise
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -139,6 +141,116 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			m_pGlossingCheckBox->SetValue(FALSE);
 		}
 	}
+	// BEW 15Sep20 additions
+
+	// Determine if the ipAddress is known or not. If not, we need to 
+	// programmatically call discovery and choose the correct kbserver	
+	chosenIpAddr = m_pApp->m_chosenIpAddr; // initialize
+	// Prepare to setup the ipAddresses (in m_theIpAddrs) and 
+	// hostnames (in m_theHostnames)
+	m_pApp->m_theIpAddrs.Clear(); // wxArrayString
+	m_pApp->m_theHostnames.Clear(); // wxArrayString
+	wxString aComposite; // for <ipaddr>@@@<hostname> string
+	int count;
+	int i;
+	// Default the chosenHostname to <unknown>
+	chosenHostname = _("<unknown>");
+	// Has Discover KBservers menu item been called, and an ipAddress chosen?
+	if (chosenIpAddr.IsEmpty())
+	{
+		// Get service discovery done
+		wxCommandEvent discoveryEvent; // a dummy event, discovery doesn't use it
+		pFrame->OnDiscoverKBservers(discoveryEvent);
+		if (m_pApp->m_bServDiscSingleRunIsCurrent)
+		{
+			wxString title = _("Scanner busy error");
+			wxString msg = _("Scanning for KBservers has not yet finished. Please wait, then try again.");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			return;
+		}
+		chosenIpAddr = m_pApp->m_chosenIpAddr;
+	}
+
+	// Next, get the kbservers found, and for the chosen one, separate
+	// the composite string into the ipAddr and associated hostname str
+
+	// The list of composites is updated. Decompose each string into the ipAddress and
+	// hostname parts, and store in parallel in arrays m_theIpArrs, and m_theHostnames -
+	wxString anIpAddress;
+	wxString aHostname;
+	count = (int)m_pApp->m_ipAddrs_Hostnames.GetCount();
+	for (i = 0; i < count; i++)
+	{
+		anIpAddress = wxEmptyString;
+		aHostname = wxEmptyString;
+		aComposite = m_pApp->m_ipAddrs_Hostnames.Item(i);
+#if defined(_DEBUG)
+		if (!aComposite.IsEmpty())
+		{
+			wxLogDebug(_T("%s::%s() line= %d aComposite : %s , Extracting parts"),
+				__FILE__, __FUNCTION__, __LINE__, aComposite.c_str());
+		}
+#endif
+		m_pApp->ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
+		wxUnusedVar(anIpAddress);
+		m_pApp->m_theIpAddrs.Add(anIpAddress);
+		m_pApp->m_theHostnames.Add(aHostname);
+	} // end for loop
+	// Find which was chosen, and get the matchine hostname, and store these
+	// ready for later kbserver calls
+	if (m_pApp->m_theIpAddrs.IsEmpty())
+	{
+		wxString title = _("No ipAddresses found");
+		wxString msg = _("Extracting ipAddresses and their hostnames failed. The array was empty.");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		m_pApp->LogUserAction(msg);
+		return;
+	}
+	else
+	{
+		wxString strItem;
+		wxString itsHostname = wxEmptyString;
+		for (i = 0; i < count; i++)
+		{
+			strItem = m_pApp->m_theIpAddrs.Item(i);
+			if (strItem == chosenIpAddr)
+			{
+				// This is the one the user chose, so get its accompanying
+				// hostname
+				itsHostname = m_pApp->m_theHostnames.Item(i);
+
+				// Store these in the 'chosen' variables
+				m_pApp->m_chosenHostname = itsHostname;
+				m_pApp->m_chosenIpAddr = chosenIpAddr;
+				m_pApp->m_strKbServerIpAddr = chosenIpAddr; // normal storage loc'n
+				break;
+			}
+		}
+	} // end of else block for test: if (m_pApp->m_theIpAddrs.IsEmpty())
+
+	// We want now to call Authenticate2Dlg, which is part of the KbServer LookupUser()
+	// function, so we need to have an instance of KbServer running on the heap, so
+	// we can call its LookupUser().
+	wxString execPath = m_pApp->execPath;
+	wxString distPath = m_pApp->distPath;
+	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager, but this
+							// will be changed to FALSE internally because the
+							// user1 and user2 values match
+	wxString pwd = m_pApp->m_curNormalPassword; // probably empty, 
+							// that's okay, LookupUser will set it
+	// If this call succeeds as an authentication attempt, it will set app's
+	// boolean m_bUserLoggedIn to TRUE  (and app's m_bUser1IsUser2 will also be
+	// TRUE, it's the latter which is tested and if TRUE, then m_bUserLoggedIn
+	// gets set to TRUE, otherwise it is FALSE)
+	pKbSvr->LookupUser(chosenIpAddr, m_pApp->m_strUserID, pwd, m_pApp->m_strUserID);
+	delete pKbSvr;
+	bAuthenticated = m_pApp->m_bUserLoggedIn ;
+	// What follows in OnOK() can only be done if there was successful authentication
+
+
+#ifdef _DEBUG
+//	int halt_here = 1;
+#endif
 }
 
 void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
@@ -198,6 +310,8 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		// it is opened from CMainFrame::OnIdle() when one or both of the booleans are TRUE
 		pFrame->m_bKbSvrAdaptationsTicked = bAdaptationsTicked;
 		pFrame->m_bKbSvrGlossesTicked = bGlossesTicked;
+		m_bSharingAdaptations = bAdaptationsTicked; // need the local value too
+		m_bSharingGlosses = bGlossesTicked; // need the local value too
 	}
 	else
 	{
@@ -218,6 +332,67 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		m_pApp->m_bIsGlossingKBServerProject = FALSE;
 
 		ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+		myevent.Skip(); // close the KbSharingSetup dialog
+		return;
+	}
+	// Now we need to check if the nominated Kbserver type, or types, is/are running;
+	// if so, leave it/them running. If not, get them running
+	bool bSetupAdaptations = FALSE;
+	bool bSetupGlosses = FALSE;
+	if (bAuthenticated)
+	{
+		bool bAdaptRunning = m_pApp->KbAdaptRunning();
+		if (m_bSharingAdaptations)
+		{
+			if (bAdaptRunning)
+			{
+				// Shut it down BEW 24Sep20 ?? no, leave it run
+				bSetupAdaptations = TRUE;
+				// m_pApp->ReleaseKBServer(1); // the adaptations one
+			}
+			else
+			{
+				// not running
+
+				// Get the adaptations KbServer class instantiated
+				bSetupAdaptations = m_pApp->SetupForKBServer(1);
+				//KbServer* pKbServer = m_pApp->GetKbServer(1);
+			}
+		} // end of TRUE block for test: if (m_bSharingAdaptations)
+		bool bGlossesRunning = m_pApp->KbGlossRunning();
+		if (m_bSharingGlosses)
+		{
+			if (bGlossesRunning)
+			{
+				// Shut it down BEW 24Sep20 ?? no, leave it run
+				bSetupGlosses = TRUE;
+				; // m_pApp->ReleaseKBServer(2); // the adaptations one
+			}
+			else
+			{
+				// not running
+
+				// Get the adaptations KbServer class instantiated
+				bSetupGlosses = m_pApp->SetupForKBServer(2);
+				//KbServer* pKbServer = m_pApp->GetKbServer(2);
+			}
+		} // end of TRUE block for test: if (m_bSharingGlosses)
+
+		  // Do the feedback to the user with the special wait dialogs here
+		if (!bAuthenticated || (!bSetupAdaptations && !bSetupGlosses))
+		{
+			// There was an error, and sharing was turned off
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+			m_pApp->m_bUserLoggedIn = FALSE;
+		}
+		else
+		{
+			// No error, authentication and setup succeeded
+			m_pApp->m_bUserLoggedIn = TRUE;
+			ShortWait();  // shows "Connected to KBserver successfully"
+						  // for 1.3 secs (and no title in titlebar)
+		}
+		// TODO? -- what else? I think we are done here
 	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }

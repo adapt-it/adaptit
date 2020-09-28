@@ -85,7 +85,7 @@
 
 #if defined(_KBSERVER)
 #include "KbServer.h"
-#include "KBSharingStatelessSetupDlg.h"
+#include "KBSharingAuthenticationDlg.h"
 #include "KbSvrHowGetUrl.h"
 #endif
 // globals
@@ -1620,54 +1620,6 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 			{
 				// BEW 28Apr16 cause OnIdle() to get authentication done, after wizard completes
 				pApp->m_bEnteringKBserverProject = TRUE;
-
-/* 
-// BEW 28Apr16 don't do this here, it interferes with the visual smoothness of progress thru the wizard; 
-// also we don't want a delaying service discovery done while the wizard works - instead we want saved
-// config file url and hostname to provide the data for a connection attempt delayed to happen after wiz finishes
-				// We need to try re-establish a connection to the KBserver if one is running
-				// Show the dialog which allows the user to set the boolean:
-				// m_bServiceDiscoveryWanted, for the following 
-				// AuthenticateCheckAndSetupKBSharing() call to use
-				bool bUserCancelled = FALSE; // initialize
-				KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
-				pHowGetUrl->Center();
-				int dlgReturnCode;
-				dlgReturnCode = pHowGetUrl->ShowModal();
-				if (dlgReturnCode == wxID_OK)
-				{ 
-					// m_bServiceDiscoveryWanted will have been set or cleared in
-					// the OnOK() handler of the above dialog
-					wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
-				}
-				else
-				{
-					// User cancelled. This clobbers the sharing setup - that clobbering is
-					// already done in the OnCancel() handler
-					wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
-				}
-				bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-				pHowGetUrl->Destroy();
-				//delete pHowGetUrl; // We don't want the dlg showing any longer
-
-				// If the user didn't cancel, then call Authenticate....()
-				if (!bUserCancelled) // if user did not cancel...
-				{
-					// Do service discovery of KBserver, authentication, checking, and KB Sharing
-					// setup. Internally app's bool m_bUserAuthenticating set to TRUE.
-					// The function will internally show either the connection message, or the OFF
-					// message, depending on the result of the call
-					bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_bServiceDiscoveryWanted);
-					wxUnusedVar(bSuccess);
-				}
-				else
-				{
-					// User canceled before Authentication could be attempted - so tell him
-					// that sharing is OFF
-					ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
-				}
-				pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-				*/
 			}
 #endif
 

@@ -351,6 +351,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\AIPrintout.cpp" />
     <ClCompile Include="..\..\source\AIPrintPreviewFrame.cpp" />
     <ClCompile Include="..\..\source\AssignLocationsForInputsAndOutputs.cpp" />
+    <ClCompile Include="..\..\source\Authenticate2Dlg.cpp" />
     <ClCompile Include="..\..\source\AutoSavingPage.cpp" />
     <ClCompile Include="..\..\source\base64.cpp" />
     <ClCompile Include="..\..\source\BookNameDlg.cpp" />
@@ -418,9 +419,9 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\KBPage.cpp" />
     <ClCompile Include="..\..\source\KbServer.cpp" />
     <ClCompile Include="..\..\source\KBSharing.cpp" />
+    <ClCompile Include="..\..\source\KBSharingAuthenticationDlg.cpp" />
     <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
     <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
-    <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
     <ClCompile Include="..\..\source\KbSvrHowGetUrl.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg_Single.cpp" />
@@ -508,6 +509,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\AIPrintout.h" />
     <ClInclude Include="..\..\source\AIPrintPreviewFrame.h" />
     <ClInclude Include="..\..\source\AssignLocationsForInputsAndOutputs.h" />
+    <ClInclude Include="..\..\source\Authenticate2Dlg.h" />
     <ClInclude Include="..\..\source\AutoSavingPage.h" />
     <ClInclude Include="..\..\source\base64.h" />
     <ClInclude Include="..\..\source\BookNameDlg.h" />
@@ -552,9 +554,9 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\GuesserAffix.h" />
     <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
     <ClInclude Include="..\..\source\InstallGitOptionsDlg.h" />
+    <ClInclude Include="..\..\source\KBSharingAuthenticationDlg.h" />
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
-    <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
     <ClInclude Include="..\..\source\KbSvrHowGetUrl.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
@@ -649,6 +651,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\Xhtml.h" />
     <ClInclude Include="..\..\source\XML.h" />
     <ClInclude Include="..\..\source\XMLErrorDlg.h" />
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\source\NewClassHeaderTemplate.txt" />

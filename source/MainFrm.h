@@ -82,7 +82,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 #if defined(_KBSERVER)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
-DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1) BEW25Sep20 deprecated, no longer needed
 DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 DECLARE_EVENT_TYPE(wxEVT_HowGetURL, -1)
 
@@ -255,8 +255,8 @@ public:
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 	void OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
-	int  GetUrlAndHostnameInventory(wxArrayString& compositesArray, 
-			wxArrayString& urlsArray, wxArrayString& namesArray);
+	int  GetIpAddrAndHostnameInventory(wxArrayString& compositesArray, 
+			wxArrayString& ipAddrsArray, wxArrayString& namesArray);
 
 private:
 	wxString m_kbserverPassword;
@@ -266,7 +266,7 @@ public:
 	void	 SetKBSvrPassword(wxString pwd);
 	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
-	wxString GetKBSvrPasswordFromUser(wxString& url, wxString& hostname);
+	wxString GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostname);
 	// BEW 24May16 The next two booleans are for getting the KbSvrHowGetUrl dialog open
 	// from the OnIdle() handler. Formerly it was opened from within the OnOK() handler
 	// of the KBSharingSetup handler class - which worked fine on Windows and Linux,
@@ -304,7 +304,7 @@ public:
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
+	//void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event)); BEW 25Sep20 removed
 	void OnCustomEventEndServiceDiscovery(wxCommandEvent& event);
 #endif
 

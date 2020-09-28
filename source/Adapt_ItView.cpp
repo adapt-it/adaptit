@@ -33354,8 +33354,42 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(_T("G'day. Call your new code in this handler: View's OnHiddenMenuItem."), _T("Develop & Test Code"));
 
 // TODO -- whatever
+	wxString execPath = pApp->execPath;
+	wxString distPath = pApp->distPath;
+/*
+	wxString saveCwd = ::wxGetCwd();
+	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
+	KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
+	wxString comma = _T(",");
+	wxString ipAddr = _T("192.168.1.9");
+	wxString user = _T("bruce@unit2");
+	wxString pwd = _T("Clouds2093");
+	wxString user2 = _T("bruce@unit2");
+	wxString cmdLine = ipAddr + comma + user + comma + pwd + comma + user2 + comma;
+	wxTextFile f;
+	bool bOpened = f.Open(execPath + _T("lookup_user.dat"));
+	if (bOpened)
+	{
+		f.Clear();
+		f.AddLine(cmdLine);
+		f.Write();
+		f.Close();
+	}
+*/
+	wxString ipAddr = pApp->m_chosenIpAddr; //_T("192.168.1.9");
+	wxString user = pApp->m_strUserID; // _T("bruce@unit2");
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxString pwd = _T("Clouds2093");
+	pFrame->SetKBSvrPassword(pwd);
+	wxString user2 = user;
+	KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
 
-
+	pKbSvr->LookupUser(ipAddr, user, pwd, user2);
+//	if (bChangedCWD)
+//	{
+//		bChangedCWD = ::wxSetWorkingDirectory(saveCwd);
+//	}
+	delete pKbSvr;
 }
 
 void CAdapt_ItView::OnUpdateHiddenMenuItem(wxUpdateUIEvent& event)

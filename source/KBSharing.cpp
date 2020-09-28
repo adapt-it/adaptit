@@ -324,7 +324,7 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// which is being attempted to be inserted into the remote DB by one of the up to 50 
 	// threads - if so, then when the thread with that same entry tries to have it entered
 	// into the remote DB, it will generate a http 401 error in the BulkEntry() call. We
-	// return all >= 400 errors as CURLE_HTTP_RETURNED_ERROR, (not that that has any special
+	// return all >= 400 errors as CU-R-LE_HTTP_RETURNED_ERROR, (not that that has any special
 	// significance) but m_returnedCurlCodes[] array will store it. We check for there being
 	// at least one such error - if there is at least one, we call UploadToKbServer() a second
 	// time (there should be far fewer entries to upload on the second try, and the probability
@@ -340,7 +340,7 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// For example, my most recent out-of-kb-sharing-mode adaptations resulted in 145 new
 	// pairs waiting for upload. When I uploaded them, there were 4 duplicates. However,
 	// my code is done in such a way that this type of HTTP error, 400 Bad Request, returns
-	// a CURLcode value of 0, because we don't want the user to have to see such occasional
+	// a CU-R-Lcode value of 0, because we don't want the user to have to see such occasional
 	// errors - they do no harm to the remote kb, and no harm to to the client either, so
 	// we simply ignore them. The bulk upload, similarly, therefore ignores them. Hence
 	// this type of error will not cause a repeat try of the UploadToKbServer() call.

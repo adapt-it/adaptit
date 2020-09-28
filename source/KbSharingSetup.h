@@ -40,6 +40,10 @@ public:
 
 	bool m_bSharingAdaptations;
 	bool m_bSharingGlosses;
+	wxString chosenIpAddr;
+	wxString chosenHostname;
+	CMainFrame* pFrame;
+	bool bAuthenticated;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

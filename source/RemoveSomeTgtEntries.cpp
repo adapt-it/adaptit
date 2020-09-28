@@ -523,7 +523,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 
 			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
 			{
-				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, src, nonsrc);
+				int rv = pKbSvr->PseudoDelete(pKbSvr, src, nonsrc);
 				wxUnusedVar(rv);
 			}
 
