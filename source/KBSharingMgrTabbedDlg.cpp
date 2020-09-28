@@ -524,7 +524,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		wxString password = m_pKbServer->GetKBServerPassword();
 		CURLcode result = CURLE_OK;
 
-		// Tell the app's status variables what page we are on -- Synchronous_DoEntireKbDeletion
+		// Tell the app's status variables what page we are on -- DoEntireKbDeletion
 		// may need this, if a KB deletion is later asked for
 		m_pApp->m_bKbPageIsCurrent = FALSE;
 
@@ -627,7 +627,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
 		CURLcode result = CURLE_OK;
 
-		// Tell the app's status variables what page we are on -- Synchronous_DoEntireKbDeletion
+		// Tell the app's status variables what page we are on -- DoEntireKbDeletion
 		// may need this, if a KB deletion is later asked for; and track what kb type we
 		// are currently listing - tell the app that too, for same reason
 		m_pApp->m_bKbPageIsCurrent = TRUE;
@@ -2359,7 +2359,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					pStatusBar->StartProgress(_("Delete KB"), _("Deleting..."), m_pApp->m_nQueueSize);
 
 //BEW 7Sep20 --> change, it's a simple SQL pair of commands	// Do the deletions synchronously
-//					int rv = m_pApp->m_pKbServer_Persistent->Synchronous_DoEntireKbDeletion(
+//					int rv = m_pApp->m_pKbServer_Persistent->DoEntireKbDeletion(
 //																m_pApp->m_pKbServer_Persistent, nID);
 					wxUnusedVar(rv);
 

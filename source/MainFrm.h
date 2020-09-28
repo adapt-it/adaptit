@@ -82,7 +82,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 #if defined(_KBSERVER)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
-DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1) BEW25Sep20 deprecated, no longer needed
 DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 DECLARE_EVENT_TYPE(wxEVT_HowGetURL, -1)
 
@@ -304,7 +304,7 @@ public:
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
+	//void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event)); BEW 25Sep20 removed
 	void OnCustomEventEndServiceDiscovery(wxCommandEvent& event);
 #endif
 

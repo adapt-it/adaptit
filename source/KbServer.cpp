@@ -53,7 +53,7 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 
 #define _WANT_DEBUGLOG //  comment out to suppress entry id logging when deleting a whole KB from KBserver
 #define _BULK_UPLOAD   // comment out to suppress logging for the <= 50 groups of bulk upload
-// Comment out the SYNC_LOGS #define to suppress the debug logging from the Synchronous_XXXX functions
+// Comment out the SYNC_LOGS #define to suppress the debug logging from the XXXX functions
 #define SYNC_LOGS
 
 
@@ -436,6 +436,7 @@ void KbServer::SetKBServerLastSync(wxString lastSyncDateTime)
 	m_kbServerLastSync = lastSyncDateTime;
 }
 
+// Legacy setters, which may still be viable for LIFT & xhtml
 void KbServer::SetSourceLanguageCode(wxString sourceCode)
 {
 	m_kbSourceLanguageCode = sourceCode;
@@ -451,7 +452,7 @@ void KbServer::SetGlossLanguageCode(wxString glossCode)
 	m_kbGlossLanguageCode = glossCode;
 }
 
-// BEW 7Sep20 new setters, for 'Name' strings ("Wangurri" etc)
+// BEW 7Sep20 new setters, for 'Name' strings ("Wangurri" etc) Normal adapting
 void KbServer::SetSourceLanguageName(wxString sourceLangName)
 {
 	m_kbSourceLanguageName = sourceLangName;
@@ -2164,7 +2165,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 */
 	return 0;
 }
-
+/* BEW 24Sep20 deprecated, we no longer have a kb table
 // Note: I have coded LookupSingleKb() so that it does return a curlCode value, but
 // actually, failure to find what we look up can happen in several ways -- there may be a
 // curl error, a http error, a json data error, or none of those but rather the KB is not
@@ -2178,11 +2179,6 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 int KbServer::LookupSingleKb(wxString ipAddr, wxString username, wxString password,
 					wxString srcLangName, wxString nonsrcLangName, int kbType, bool& bMatchedKB)
 {
-
-	// TODO  Leon's stuff,  
-
-
-	/*
 	bMatchedKB = FALSE; // initialize
 	CURL *curl;
 	CURLcode result;
@@ -2429,10 +2425,10 @@ int KbServer::LookupSingleKb(wxString ipAddr, wxString username, wxString passwo
 		// headers are cleared
 		str_CURLheaders.clear();
 	} // end of else block for test: if (!str_CURLbuffer.empty())
-*/
 
 	return 0;
 }
+*/
 
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
@@ -3468,7 +3464,7 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 // on a thread there is no leak. Joinable threads are no solution because even if they
 // didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
 // to finish. So that's no different than a synchronous call such as this one.
-int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
 {
 
 // TODO leon's way
@@ -3488,7 +3484,7 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 		KbServerEntry e = pKbSvr->GetEntryStruct();
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: id = %d , source = %s , translation = %s , username = %s , deleted = %d"),
+		wxLogDebug(_T("LookupEntryFields in CreateEntry: id = %d , source = %s , translation = %s , username = %s , deleted = %d"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.username.c_str(), e.deleted);
 #endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
@@ -3496,7 +3492,7 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 #if defined(SYNC_LOGS)
 			wxBell(); // we don't expect any error
 #endif
-			wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: there was an error: %d"), rv2);
+			wxLogDebug(_T("LookupEntryFields in CreateEntry: there was an error: %d"), rv2);
 		}
 		else
 		{
@@ -3507,14 +3503,14 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 				//  here, not even to tell the user anything)
 				rv2 = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
 
-				wxLogDebug(_T("PseudoDeleteOrUndeleteEntry, was called with doUndelete enum; in Synchronous_CreateEntry: for entryID: %d"), entryID);
+				wxLogDebug(_T("PseudoDeleteOrUndeleteEntry, was called with doUndelete enum; in CreateEntry: for entryID: %d"), entryID);
 			}
 		}
 	}
 	s_BulkDeleteMutex.Unlock();
 
 	wxUnusedVar(rv);
-	wxLogDebug(_T("Synchronous_CreateEntry(): On return from CreateEntry(): rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
+	wxLogDebug(_T("CreateEntry(): On return from CreateEntry(): rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
 */
 	return rv;
 }
@@ -4645,7 +4641,7 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 // on a thread there is no leak. Joinable threads are no solution because even if they
 // didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
 // to finish. So that's no different than a synchronous call such as this one.
-int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
 {
 	/*
 	int rv;
@@ -4670,7 +4666,7 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoUndelete(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+		wxLogDebug(_T("LookupEntryFields in PseudoUndelete(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 1 for the deleted flag's value, then go ahead and
@@ -4685,14 +4681,14 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 
 	wxUnusedVar(rv);
 #if defined(SYNC_LOGS)
-	wxLogDebug(_T("Synchronous_PseudoUndelete(): returning: rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
+	wxLogDebug(_T("PseudoUndelete(): returning: rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
 #endif
 	return rv;
 	*/
 	return 0;
 }
 
-int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
 {
 
 /*
@@ -4709,7 +4705,7 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 		// (ie. HTTP 404 was returned) - in which case we will do no more
 		// The alternative would be the following, which is much too much to be
 		// worth the bother....
-		// 1. create a normal entry using Synchronous_CreateEntry()
+		// 1. create a normal entry using CreateEntry()
 		// 2. look it up using LookupEntryFields() to get the entry's ID
 		// 3. pseudo-delete the new entry using PseudoDeleteOrUndeleteEntry(), passing in 
 		// doDelete enum value -- a total of 4 latency-laden calls. No way! (The chance of
@@ -4724,7 +4720,7 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // an delete of a normal entry will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+		wxLogDebug(_T("LookupEntryFields in PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 0 for the deleted flag's value, then go ahead and
@@ -4743,7 +4739,7 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 }
 
 
-int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecate?, is it too slow
+int KbServer::ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecate?, is it too slow
 {
 	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
 	// where an entry (in the form of a pointer to struct) is being added to the end of
@@ -4759,7 +4755,7 @@ int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecat
 	return rv;
 }
 
-int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
+int KbServer::ChangedSince_Timed(KbServer* pKbSvr)
 {
 	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
 	// where an entry (in the form of a pointer to struct) is being added to the end of
@@ -4776,7 +4772,7 @@ int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
 	return rv;
 }
 
-int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText)
+int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText)
 {
 	int rv = 0;
 	long entryID = 0; // initialize (it might not be used)
@@ -4800,7 +4796,7 @@ int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, w
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // a pseudo-delete will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_KbEditorUpdateButton(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+		wxLogDebug(_T("LookupEntryFields in KbEditorUpdateButton(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 0 for the deleted flag's value (which is what we expect),
@@ -4831,7 +4827,7 @@ int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, w
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // a pseudo-delete will need this value
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in Synchronous_KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+		wxLogDebug(_T("LookupEntryFields in KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 0 for the deleted flag's value - then the remote DB
@@ -4849,7 +4845,7 @@ int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, w
 	return rv;
 }
 
-int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable)
+int KbServer::DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable)
 {
 	CURLcode rv = (CURLcode)0;
 	KbServer* pKbSvr = pKbSvr_Persistent;
@@ -4908,7 +4904,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		counter++;
 		rv = (CURLcode)pKbSvr->DeleteSingleKbEntry(id);
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-//		wxLogDebug(_T("Synchronous_DoEntireKbDeletion: Deleting entry with ID = %d  of total = %d"),
+//		wxLogDebug(_T("DoEntireKbDeletion: Deleting entry with ID = %d  of total = %d"),
 //						id, m_TotalEntriesToDelete);
 #endif
 
@@ -4931,7 +4927,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 			successCount++;
 #if defined(SYNC_LOGS)
 			// track what we delete and it's ID
-//			wxLogDebug(_T("TSynchronous_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
+//			wxLogDebug(_T("TDoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
 //				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
 #endif
 			// Copy it to the app member ready for display in main window at bottom
@@ -4965,7 +4961,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		// There were some failures... (and the Manager GUI may not be open -- see comment
 		// in the else block for details)
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("Synchronous_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
+		wxLogDebug(_T("DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
 			nonsuccessCount);
 #endif
 		// We want to make the wxStatusBar (actually, our subclass CStatusBar), go back to 

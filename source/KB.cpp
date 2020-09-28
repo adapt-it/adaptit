@@ -896,7 +896,7 @@ void CKB::DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString)
         //      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
+		int rv = pKbSvr->CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
 }
@@ -912,7 +912,7 @@ void CKB::DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString)
         //      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, srcStr, pRefString->m_translation);
+		int rv = pKbSvr->PseudoUndelete(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
 }
@@ -927,7 +927,7 @@ void CKB::DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString)
         //      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, srcStr, pRefString->m_translation);
+		int rv = pKbSvr->PseudoDelete(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
 }

@@ -536,10 +536,12 @@ bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr);
 
 bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password); // BEW 6Jun13
 
-bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType);
-CBString MakeDigestPassword(const wxString& user, const wxString& password);
+// BEW 24Sep20 deprecated, we no longer have a kb table
+//bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
+//					wxString srcLangCode, wxString tgtLangCode, int kbType);
 
+CBString MakeDigestPassword(const wxString& user, const wxString& password);
+/* BEW 25Sep20 deprecated, these are no longer called
 void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag, 
 		bool& saveSharingGlossesFlag, bool bJustRestore = FALSE);
@@ -547,7 +549,7 @@ void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHost
 void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
 		bool& saveSharingGlossesFlag);
-
+*/
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,
 // and calls to an appropriate KbServer instance, with error checking and error messages as

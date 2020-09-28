@@ -818,7 +818,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
+				int rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
 				wxUnusedVar(rv);
 			}
 		}
@@ -935,7 +935,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// create the thread and fire it off
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
+			int rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
 			wxUnusedVar(rv);
 		}
 	}
@@ -1032,9 +1032,9 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				int rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
 				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): CreateEntry returned  %d for src = %s  &  tgt = %s"),
 					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
@@ -1202,9 +1202,9 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				int rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
 				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): CreateEntry returned  %d for src = %s  &  tgt = %s"),
 					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
@@ -1727,7 +1727,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_currentKey, pRefString->m_translation);
+			int rv = pKbSvr->PseudoDelete(pKbSvr, m_currentKey, pRefString->m_translation);
 			wxUnusedVar(rv);
 		}
 

@@ -210,15 +210,16 @@ public:
 	bool	 DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 	void	 ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersList);
 
-	int		 Synchronous_ChangedSince_Queued(KbServer* pKbSvr);
+	int		 ChangedSince_Queued(KbServer* pKbSvr);
 
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListKbs(wxString username, wxString password); // BEW 5Sep20 needed
 	int		 ListUsers(wxString username, wxString password); // BEW 5Sep20  needed
 	//int	 ListLanguages(wxString username, wxString password);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
-	int		 LookupSingleKb(wxString ipAddr, wxString username, wxString password, wxString srcLangName,
-							wxString nonsrcLangName, int kbType, bool& bMatchedKB); // BEW 5Sep20 needed, but NAMES
+	// BEW 24Sep20 deprecated, we no longer have a kb table
+	//int		 LookupSingleKb(wxString ipAddr, wxString username, wxString password, wxString srcLangName,
+	//						wxString nonsrcLangName, int kbType, bool& bMatchedKB); 
 	int		 LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 DeleteSingleKbEntry(int entryID);
@@ -248,12 +249,12 @@ public:
 	// Functions for synchronous access to the remote server - to check if they leak memory too
 	// They don't leak, hooray. We have to use these instead of detached threads, because the
 	// latter incurs openssl leaks of about 1KB per KBserver access
-	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
-	int		Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
-	int		Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
+	int		CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		ChangedSince_Timed(KbServer* pKbSvr);
+	int		DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
@@ -354,7 +355,7 @@ private:
 	// BEW 7Sep20 since m_kbSourceLanguageCode, m_kbTargetLanguageCode, and
 	// m_kbGlossLanguageCode may perhaps also be associated with Lift code and xhtml
 	// exporting, I'll provide equivalents here with 'Name' rather than 'Code' so
-	// that the Manager's tabbed dlg uses  these 'Name' ones
+	// that we use these 'Name' ones for 
 	wxString	m_kbSourceLanguageName;
 	wxString	m_kbTargetLanguageName;
 	wxString	m_kbGlossLanguageName;

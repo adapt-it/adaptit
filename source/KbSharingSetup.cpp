@@ -222,8 +222,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 				// Store these in the 'chosen' variables
 				m_pApp->m_chosenHostname = itsHostname;
 				m_pApp->m_chosenIpAddr = chosenIpAddr;
-
-				m_pApp->m_curNormalIpAddr = chosenIpAddr; // extra storage location
+				m_pApp->m_strKbServerIpAddr = chosenIpAddr; // normal storage loc'n
 				break;
 			}
 		}
@@ -237,7 +236,8 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager, but this
 							// will be changed to FALSE internally because the
 							// user1 and user2 values match
-	wxString pwd = wxEmptyString;
+	wxString pwd = m_pApp->m_curNormalPassword; // probably empty, 
+							// that's okay, LookupUser will set it
 	// If this call succeeds as an authentication attempt, it will set app's
 	// boolean m_bUserLoggedIn to TRUE  (and app's m_bUser1IsUser2 will also be
 	// TRUE, it's the latter which is tested and if TRUE, then m_bUserLoggedIn
@@ -310,6 +310,8 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		// it is opened from CMainFrame::OnIdle() when one or both of the booleans are TRUE
 		pFrame->m_bKbSvrAdaptationsTicked = bAdaptationsTicked;
 		pFrame->m_bKbSvrGlossesTicked = bGlossesTicked;
+		m_bSharingAdaptations = bAdaptationsTicked; // need the local value too
+		m_bSharingGlosses = bGlossesTicked; // need the local value too
 	}
 	else
 	{
@@ -335,6 +337,8 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	}
 	// Now we need to check if the nominated Kbserver type, or types, is/are running;
 	// if so, leave it/them running. If not, get them running
+	bool bSetupAdaptations = FALSE;
+	bool bSetupGlosses = FALSE;
 	if (bAuthenticated)
 	{
 		bool bAdaptRunning = m_pApp->KbAdaptRunning();
@@ -342,32 +346,53 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		{
 			if (bAdaptRunning)
 			{
-				// Shut it down
-				m_pApp->ReleaseKBServer(1); // the adaptations one
+				// Shut it down BEW 24Sep20 ?? no, leave it run
+				bSetupAdaptations = TRUE;
+				// m_pApp->ReleaseKBServer(1); // the adaptations one
 			}
 			else
 			{
 				// not running
 
 				// Get the adaptations KbServer class instantiated
-				//KbServer* pKbServer = m_pApp->GetKbServer(1);  no, use SetupForKBServer(type);
-
+				bSetupAdaptations = m_pApp->SetupForKBServer(1);
+				//KbServer* pKbServer = m_pApp->GetKbServer(1);
 			}
-		}
+		} // end of TRUE block for test: if (m_bSharingAdaptations)
 		bool bGlossesRunning = m_pApp->KbGlossRunning();
+		if (m_bSharingGlosses)
+		{
+			if (bGlossesRunning)
+			{
+				// Shut it down BEW 24Sep20 ?? no, leave it run
+				bSetupGlosses = TRUE;
+				; // m_pApp->ReleaseKBServer(2); // the adaptations one
+			}
+			else
+			{
+				// not running
 
+				// Get the adaptations KbServer class instantiated
+				bSetupGlosses = m_pApp->SetupForKBServer(2);
+				//KbServer* pKbServer = m_pApp->GetKbServer(2);
+			}
+		} // end of TRUE block for test: if (m_bSharingGlosses)
 
-
-
-
-// TODO
-
-
-
-
-
-
-
+		  // Do the feedback to the user with the special wait dialogs here
+		if (!bAuthenticated || (!bSetupAdaptations && !bSetupGlosses))
+		{
+			// There was an error, and sharing was turned off
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+			m_pApp->m_bUserLoggedIn = FALSE;
+		}
+		else
+		{
+			// No error, authentication and setup succeeded
+			m_pApp->m_bUserLoggedIn = TRUE;
+			ShortWait();  // shows "Connected to KBserver successfully"
+						  // for 1.3 secs (and no title in titlebar)
+		}
+		// TODO? -- what else? I think we are done here
 	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }

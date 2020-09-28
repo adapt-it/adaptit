@@ -2256,7 +2256,7 @@ class CAdapt_ItApp : public wxApp
 	bool m_bcurNormalUseradmin;   // TRUE if user table table has m_curNormalUsername's 
 						   // useradmin value = 1, FALSE otherwise
 	bool m_bcurNormalKbadmin;    // *ALWAYS* TRUE now, and no longer in user table's schema
-	wxString m_curNormalIpAddr; // the ipaddr used for authenticating with m_curNormalUsername etc
+	//wxString m_curNormalIpAddr; // BEW 24Sep20 nah, legacy m_strKbServerIpAddr is what we want
 	wxString m_curNormalSrcLangName; // source language name from current "src to tgt adaptations" str
 	wxString m_curNormalTgtLangName; // target .... ditto
 	wxString m_curNormalGlossLangName; // if user elects to have glossing enabled
@@ -3514,7 +3514,7 @@ public:
 	bool m_bPseudoUndelete_For_KBserver;
 	bool m_bCreateEntry_For_KBserver;
 	// There isn't one for LookupEntryFields() because that is used only internally in
-	// the Synchronous_XXXX() functions, never by itself
+	// the XXXX() functions, never by itself
 
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a

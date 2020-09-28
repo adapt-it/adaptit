@@ -597,7 +597,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
-	EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg)
+	//EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg) BEW 25Sep20 now unneeded
 	EVT_END_SERVICEDISCOVERY(-1, CMainFrame::OnCustomEventEndServiceDiscovery)
 #endif
 
@@ -2752,7 +2752,7 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 	// Enable if both KBs of the project are ready for work
 	//event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
-
+/* BEW 25Sep20 deprecated, LookupUser() now does not need to call this,
 void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event))
 {
 	// this delays getting the Authenticate dialog open until after the
@@ -2766,7 +2766,7 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
 	wxUnusedVar(bSuccess);
 }
-
+*/
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
 	int nWhichOne = (int)event.GetExtraLong();
@@ -4368,6 +4368,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// restore the flag's default ('not ON') value
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
+/* BEW 25Sep20 deprecated legacy calls - don't want OnIdle() doing deferred calls in Leon's solution
 
 #if defined (_KBSERVER)
 	// Speed critical GUI support, when a KBserver doing sharing is operational
@@ -4375,14 +4376,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bCreateEntry_For_KBserver)
 	{
 		pApp->m_bCreateEntry_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_CreateEntry(
+		int rv = pApp->m_pKbServer_For_OnIdle->CreateEntry(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
 		wxUnusedVar(rv);
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc: Synchronous_CreateEntry() returned  %d for src = %s  &  tgt = %s"),
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() returned  %d for src = %s  &  tgt = %s"),
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
@@ -4390,14 +4391,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bPseudoUndelete_For_KBserver)
 	{
 		pApp->m_bPseudoUndelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoUndelete(
+		int rv = pApp->m_pKbServer_For_OnIdle->PseudoUndelete(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
 		wxUnusedVar(rv);
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc  Synchronous_PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
+		wxLogDebug(_T("OnIdle(), from StoreText() etc  PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
@@ -4405,14 +4406,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bPseudoDelete_For_KBserver)
 	{
 		pApp->m_bPseudoDelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoDelete(
+		int rv = pApp->m_pKbServer_For_OnIdle->PseudoDelete(
 			pApp->m_pKbServer_For_OnIdle, 
 			pApp->m_strSrc_For_KBserver, 
 			pApp->m_strNonsrc_For_KBserver);
 		wxUnusedVar(rv);
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from RemoveRefString() Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
+		wxLogDebug(_T("OnIdle(), from RemoveRefString() PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
@@ -4511,7 +4512,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
 #endif // _KBSERVER
-
+*/ 
 	if (pApp->m_bSingleStep)
 	{
 		pApp->m_bAutoInsert = FALSE;
@@ -4968,7 +4969,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
 				// or fewer is about what we'd expect for a timer interval of 5 minutes per shot
-				int rv = pKbSvr->Synchronous_ChangedSince_Timed(pKbSvr);
+				int rv = pKbSvr->ChangedSince_Timed(pKbSvr);
 				wxUnusedVar(rv);
 
 				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls

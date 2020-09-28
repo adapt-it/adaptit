@@ -10853,6 +10853,13 @@ wxMemorySize MacGetFreeMemory()
 /// elects to retain one or more NOCODE values, we accept them.
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
 {
+	// use these next line, and returning TRUE is best for caller ignoring
+	wxUnusedVar(bSrc);
+	wxUnusedVar(bTgt);
+	wxUnusedVar(bGloss);
+	wxUnusedVar(bFreeTrans);
+	wxUnusedVar(bUserCancelled);
+	return TRUE; 
 	/* BEW 5Sep20, no longer needed, remove
 	bUserCancelled = FALSE; // default
 	// The next test tests yields TRUE if a wanted code has its app storage member for it
@@ -10968,8 +10975,8 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 		gpApp->m_glossesLanguageCode = glossCode;
 		gpApp->m_freeTransLanguageCode = freeTransCode;
 	}
-*/
 	return TRUE;
+*/
 }
 
 // returns TRUE if all's well, FALSE if user hit Cancel button in the internal dialog
@@ -11061,6 +11068,7 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password)
 	return digestPassword;
 }
 
+/* BEW 24Sep20 deprecated, we no longer have a kb table
 bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
 					wxString srcLangCode, wxString tgtLangCode, int kbType)
 {
@@ -11121,6 +11129,7 @@ bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString pas
 	delete pKbSvr;
 	return FALSE;
 }
+*/
 
 // checks app's string member m_strUserID is in entry table of kbserver
 bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password)
@@ -11198,7 +11207,7 @@ bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxStri
 	delete pKbSvr;
 	return FALSE;
 }
-
+/* BEW 25Sep20, deprecated, these are no longer called
 void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
 		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
 		bool& saveSharingGlossesFlag, bool bJustRestore)
@@ -11254,7 +11263,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& sav
 	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
 	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
 }
-
+*/
 bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 {
 	// Prepare an error message in case it is needed
@@ -11302,9 +11311,6 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 		if (!pApp->m_strKbServerIpAddr.IsEmpty())
 		{
 			wxString ipAddress = pApp->m_strKbServerIpAddr;
-
-			wxLogDebug(_T("helpers.cpp line= %s: app's m_ipAdds_Hostnames entry count = %d"), 
-				__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 
 			// Don't proceed to store it if the same ipAddr is already stored within the array
 			if (IsIpAddrStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerIpAddr))
@@ -11412,8 +11418,8 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	pApp->m_saveOldIpAddrStr = pApp->m_chosenIpAddr; // should have valid ipAddr if manual discovery just done
 	if (!pApp->m_chosenIpAddr.IsEmpty())
 	{
-		pApp->m_curNormalIpAddr = pApp->m_chosenIpAddr; // make sure these have it too
-		pApp->m_curIpAddr = pApp->m_chosenIpAddr;
+		pApp->m_strKbServerIpAddr = pApp->m_chosenIpAddr; // gets used often & stored in config file
+		pApp->m_curIpAddr = pApp->m_chosenIpAddr; // a second place, just in case
 	}
 	pApp->m_saveOldHostnameStr = pApp->m_strKbServerHostname;
 	pApp->m_saveOldUsernameStr = pApp->m_strUserID;
@@ -11546,10 +11552,12 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
+						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
 						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
 							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
+						*/
 						bSimulateUserCancellation = TRUE;
 					}  // 3
 				} // 2
@@ -11562,11 +11570,13 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
+						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
 						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr, 
 							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
 							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
 							pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
+						*/
 						bSimulateUserCancellation = TRUE;
 					} // 3
 				} // 2
@@ -11684,10 +11694,12 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// flag values. TRUE param is bJustRestore (the ipAddr, username and
 				// password). The function always sets m_bIsKBServerProject and
 				// m_bIsGlossingKBServerProject to FALSE
-bad2:			HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
+				/* BEW 25Sep20 deprecated, we no longer investigate lang codes
+				   HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
 					pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
-				bSetupKBserverFailed = TRUE;
+				*/
+bad2:			bSetupKBserverFailed = TRUE;
 				pApp->m_bAuthenticationCancellation = TRUE;
 				pApp->m_bUserLoggedIn = FALSE;
 			} // 1
@@ -11882,10 +11894,12 @@ here:				dlgReturnCode = dlg.ShowModal();
 							{
 								// We must assume the src/tgt codes are wrong or incomplete, or that the
 								// user has changed his mind about KB Sharing being on - so turn it off
+								/* BEW 25Sep20 deprecated, we no longer call this
 								HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 									pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
 									pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
+								*/
 								bSimulateUserCancellation = TRUE;
 							}
 						}
@@ -11898,11 +11912,13 @@ here:				dlgReturnCode = dlg.ShowModal();
 							{
 								// We must assume the src/gloss codes are wrong or incomplete, or that the
 								// user has changed his mind about KB Sharing being on - so turn it off
+								/* BEW 25Sep20 deprecated, we no longer call this
 								HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr,
 									pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
 									pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
 									pApp->m_saveSharingGlossesFlag);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
+								*/
 								bSimulateUserCancellation = TRUE;
 							}
 						}
@@ -11985,10 +12001,12 @@ here:				dlgReturnCode = dlg.ShowModal();
 						// flag values. TRUE param is bJustRestore (the ipAddr, username and
 						// password). The function always sets m_bIsKBServerProject and
 						// m_bIsGlossingKBServerProject to FALSE
-bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
-							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
-							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
-						bSetupKBserverFailed = TRUE;
+						/* BEW 25Sep20 deprecated, we no longer call this
+						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
+						pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+						pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
+						*/
+bad:					bSetupKBserverFailed = TRUE;
 						pApp->m_bAuthenticationCancellation = TRUE;
 						pApp->m_bUserLoggedIn = FALSE;
 					}
@@ -12076,10 +12094,12 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHost
 							// that the user has changed his mind about KB Sharing being on
 							// - so turn it off. The function clears m_bIsKBServerProject
 							// and m_bIsGlossingKBServerProject to FALSE
+							/* BEW 25Sep20 deprecated, we no longer call this
 							HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 								pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 							pApp->m_bLoginFailureErrorSeen = TRUE;
+							*/
 							bSimulateUserCancellation = TRUE;
 							pApp->m_bUserLoggedIn = FALSE;
 						}
@@ -12093,10 +12113,12 @@ bad:					HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHost
 						{
 							// We must assume the src/gloss codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
+							/* BEW 25Sep20 deprecated, we no longer call this
 							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 								pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 							pApp->m_bLoginFailureErrorSeen = TRUE;
+							*/
 							bSimulateUserCancellation = TRUE;
 							pApp->m_bUserLoggedIn = FALSE;
 						}

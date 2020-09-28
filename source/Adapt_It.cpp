@@ -19233,17 +19233,25 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     ipAddr = m_strKbServerIpAddr;
     username = m_strUserID;
     password = GetMainFrame()->GetKBSvrPassword();
-    wxASSERT(!password.IsEmpty());
-
+	wxString hostname = m_strKbServerHostname; // basic config file stores it,
+				// from a Discover KBservers menu choice
+	if (hostname.IsEmpty())
+	{
+		m_strKbServerHostname = _("Unknown"); // localizable string
+	}
     if (whichType == 1)
     {
-        GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
-        GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
+		m_sourceLanguageName = m_sourceName; // RHS from project setting
+        GetKbServer(whichType)->SetSourceLanguageName(m_sourceLanguageName);
+		m_targetLanguageName = m_targetName; // RHS from project setting
+        GetKbServer(whichType)->SetTargetLanguageName(m_targetLanguageName);
     }
     else
     {
-        GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
-        GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+		m_sourceLanguageName = m_sourceName; // RHS from project setting
+        GetKbServer(whichType)->SetSourceLanguageName(m_sourceLanguageName);
+		m_glossesLanguageName = m_glossesName;  // RHS from project setting
+        GetKbServer(whichType)->SetGlossLanguageName(m_glossesLanguageName);
     }
     GetKbServer(whichType)->SetKBServerIpAddr(ipAddr);
     GetKbServer(whichType)->SetKBServerUsername(username);
@@ -19253,6 +19261,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
     GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
+	/* BEW 24Sep20 deprecated, we no longer have a kb table to check, just an entry table - Leon's solution
     // BEW 12Jun13, the last test is to make sure that in the kb table of the remote
     // server, there is an appropriate kb line for this particular Adapt It project. If
     // there isn't, then we must tell the user and say what to do, and remove the
@@ -19325,6 +19334,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             return FALSE;
         }
     }
+*/
     // all's well
     if (whichType == 1)
     {
@@ -19618,6 +19628,9 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
         {
             chosenIpAddr = m_chosenIpAddr;
             chosenHostname = m_chosenHostname;
+			// BEW 26Sep20 m_strKbServerHostname gets stored in basic config file,
+			// so make sure it's set
+			m_strKbServerHostname = m_chosenHostname;
             if ((m_sd_InitialDetail == SDInit_StoredIpAddr) && chosenIpAddr == curIpAddr && !m_strUserID.IsEmpty())
             {
                 result = SD_SameIpAddrAsInConfigFile;
@@ -19647,7 +19660,10 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
             {
                 chosenIpAddr = dlg.m_ipAddrSelected;
                 chosenHostname = dlg.m_hostnameSelected;
-                if (chosenIpAddr.IsEmpty())
+				// BEW 26Sep20 m_strKbServerHostname gets stored in basic config file,
+				// so make sure it's set
+				m_strKbServerHostname = dlg.m_hostnameSelected;
+				if (chosenIpAddr.IsEmpty())
                 {
                     // No choice at this point, his last chance to make one, dooms
                     // the connection attempt, so treat it as a cancellation
@@ -19697,6 +19713,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
             if ((m_sd_InitialDetail == SDInit_StoredIpAddr) && (chosenIpAddr == curIpAddr) && !m_strUserID.IsEmpty())
             {
                 result = SD_SameIpAddrAsInConfigFile;
+				m_strKbServerHostname = chosenHostname; // basic config file stores LHSide
                 return TRUE;
             }
             else
@@ -20748,9 +20765,9 @@ void CAdapt_ItApp::UpdatebcurNormalKbadmin()
 }
 void CAdapt_ItApp::UpdateNormalIpAddr(wxString str)
 {
-	if (m_curNormalIpAddr != str)
+	if (m_strKbServerIpAddr != str)
 	{
-		m_curNormalIpAddr = str;
+		m_strKbServerIpAddr = str;
 	}
 }
 void CAdapt_ItApp::UpdateCurNormalSrcLangName(wxString str)
@@ -20949,7 +20966,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
     // for a gui action by the user causes a TRUE value to be set for one of them, so that
     // the OnIdle() handler will then call one of the 3 Synchronous functions,
-    // Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
+    // CreateEntry(), PseudoDelete(), or PseudoUndelete()
     // to hide the server access to the maximum possible extent, to keep the GUI responsive
     m_bUserDecisionMadeAtDiscovery = FALSE;
     m_bPseudoDelete_For_KBserver = FALSE;
@@ -48318,7 +48335,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
 /// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
-/// OnRadioReviewing(),OnRadioDrafting(), Synchronous_DoEntireKbDeletion, UploadToKbServer()
+/// OnRadioReviewing(),OnRadioDrafting(), DoEntireKbDeletion, UploadToKbServer()
 /// Updates the status bar message to reflect the current activity.
 /// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////

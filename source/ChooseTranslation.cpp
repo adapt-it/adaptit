@@ -989,7 +989,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 		if (!gpApp->pCurTargetUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
+			int rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
 			wxUnusedVar(rv);
 		}
 	}
