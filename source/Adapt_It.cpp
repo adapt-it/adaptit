@@ -19189,6 +19189,27 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
         }
         return FALSE;
     }
+	// BEW 1Oct20 added counter
+	if (whichType == 1)
+	{
+		// adapting type...
+		m_nCreateAdaptionCount = 0; // first adaptation entry to entry table will be a tad slower
+		m_nPseudoDeleteAdaptionCount = 0;
+		m_nPseudoUndeleteAdaptionCount = 0;
+		m_nLookupEntryAdaptationCount = 0;;
+		m_nChangedSinceTypedAdaptationCount = 0;
+
+	}
+	else if (whichType == 2)
+	{
+		// glossing type...
+		m_nCreateGlossCount = 0; // first gloss entry to entry table will be a tad slower
+		m_nPseudoDeleteGlossCount = 0;
+		m_nPseudoUndeleteGlossCount = 0;
+		m_nLookupUserGlossCount = 0;
+		m_nChangedSinceTypedGlossCount = 0;
+	}
+
     // Store it for the user's adapting or glossing session in this project
     SetKbServer(whichType, pKbSvr);
 
@@ -19822,15 +19843,22 @@ bool CAdapt_ItApp::KbGlossRunning()
 // shut down.
 bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 {
-    if (whichType == 1)
-    {
-        m_bAdaptationsKBserverReady = FALSE;
-    }
-    else
-    {
-        m_bGlossesKBserverReady = FALSE;
-    }
-    wxASSERT(whichType == 1 || whichType == 2);
+	wxASSERT(whichType == 1 || whichType == 2);
+	if (whichType == 1)
+	{
+		// adapting type...
+		m_nCreateAdaptionCount = 0; // first adaptation entry to entry table will be a tad slower
+		m_nPseudoDeleteAdaptionCount = 0;
+		m_nPseudoUndeleteAdaptionCount = 0;
+	}
+	else if (whichType == 2)
+	{
+		// glossing type...
+		m_nCreateGlossCount = 0; // first gloss entry to entry table will be a tad slower
+		m_nPseudoDeleteGlossCount = 0;
+		m_nPseudoUndeleteGlossCount = 0;
+	}
+
     KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
     if (pKbSvr == NULL)
         return TRUE; // not currently defined
@@ -19944,7 +19972,36 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 				MakeLookupUser(lookup_user, execPath, distPath);
 				break;
 			}
-
+			case list_users: // = 3
+			{
+		// TODO
+				break;
+			}
+			case create_entry: // = 4
+			{
+				MakeCreateEntry(create_entry, execPath, distPath);
+				break;
+			}
+			case pseudo_delete: // = 5
+			{
+				MakePseudoDelete(pseudo_delete, execPath, distPath);
+				break;
+			}
+			case pseudo_undelete: // = 6
+			{
+				MakePseudoUndelete(pseudo_undelete, execPath, distPath);
+				break;
+			}
+			case lookup_entry: // = 7
+			{
+				MakeLookupEntry(lookup_entry, execPath, distPath);
+				break;
+			}
+			case changed_since_timed: // = 8
+			{
+				MakeChangedSinceTimed(changed_since_timed, execPath, distPath);
+				break;
+			}
 
 			// Add additional cases here, as our solution matures
 
@@ -20063,6 +20120,164 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			}
 			break;
 		}
+		case list_users: // = 3
+		{
+			// TODO later....?
+			break;
+		}
+		case create_entry: // = 4
+		{
+			// For getting a new entry added to the entry table, with an
+			// internal check of the DB to ensure it is not a duplicate
+			wxString filename = _T("create_entry.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(create_entry, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_create_entry.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_create_entry.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_create_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case pseudo_delete: // = 5
+		{
+			// For pseudo-deleting an entry line of the entry table
+			wxString filename = _T("pseudo_delete.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(pseudo_delete, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_pseudo_delete.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_pseudo_delete.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_pseudo_delete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case pseudo_undelete: // =6
+		{
+			// For undeleting a pseudo-deleted line of the entry table
+			wxString filename = _T("pseudo_undelete.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(pseudo_undelete, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_pseudo_undelete.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_pseudo_undelete.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_pseudo_undelete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case lookup_entry: // =7
+		{
+			// For looking up a row of the entry table
+			wxString filename = _T("lookup_entry.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(lookup_entry, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_lookup_entry.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_lookup_entry.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_lookup_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
 		case blanksEnd:
 		// TODO -- insert other cases as our solution matures, and blanksEnd will get larger
 			
@@ -20109,6 +20324,10 @@ void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString distFolderPath
 void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename,
 										wxString& execFolderPath)
 {
+	// Put a copy of execFolderPath into app's m_curExecPath member, so that
+	// CallExecute() can grab it when needed
+	m_curExecPath = execFolderPath;
+
 	wxString filePath = execFolderPath + filename;
 	if (funcNumber == 0) // beginning of const int's set, a do-nothing value
 		return;
@@ -20174,7 +20393,17 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				// If the adding does not happen, Leon's .exe will drop a .dat
 				// file with an appropriate error message. This .dat file is
 				// moved to the execPath folder, ready for use
+
+				// Store a copy of path to it on app, for CallExecute() to use
+				m_datPath = datPath;
 			}
+			// put a copy of the comand line on the app, so that LogUserAction() 
+			// can grab it if the the wxExecute() call in CallExecute() fails
+			m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+			wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+				__LINE__, commandLine.c_str());
+#endif
 		}
 		else
 		{
@@ -20331,6 +20560,387 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// TODO later....?
 		break;
 	}
+	case create_entry: // = 4
+	{
+		// Build the create_entry.dat file for input, making the commandLine for 
+		// wxExecute() to call
+		m_resultDatFileName = _T("create_entry_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+		// Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword + comma;
+
+		// Then the source and target language names, which define the AI project that is current
+		if (m_curNormalSrcLangName.IsEmpty())
+		{
+			m_curNormalSrcLangName = m_sourceName;
+		}
+		commandLine += m_curNormalSrcLangName + comma;
+		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing
+		if (this->m_curNormalTgtLangName.IsEmpty())
+		{
+			this->m_curNormalTgtLangName = m_targetName;
+		}
+		commandLine += this->m_curNormalTgtLangName + comma;
+		wxASSERT(m_curNormalTgtLangName == m_targetName);
+		commandLine += this->m_curNormalSource + comma; // originating from signature of CreateEntry()
+		if (gbIsGlossing)
+		{
+			commandLine += this->m_curNormalGloss + comma; // originating from signature of CreateEntry()
+		}
+		else
+		{
+			commandLine += this->m_curNormalTarget + comma; // originating from signature of CreateEntry()
+		}
+		// Finally, the kbType and the deleted flag value
+		wxChar kbType = _T('1'); // default, using the adaptations KB
+		if (gbIsGlossing)
+		{
+			// We are using the glosses KB
+			kbType = _T('2');
+		}
+		commandLine += kbType + comma;
+		// CreateEntry() always creates with deleted flag _T('0')
+		commandLine += _T('0');
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "create_entry.dat", within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: create_entry.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case pseudo_delete: // = 5
+	{
+		// Build the pseudo_delete.dat file for input, making the commandLine for 
+		// wxExecute() to call
+		m_resultDatFileName = _T("pseudo_delete_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+		// Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword + comma;
+
+		// Then the source and target language names, which define the AI project that is current
+		if (m_curNormalSrcLangName.IsEmpty())
+		{
+			m_curNormalSrcLangName = m_sourceName;
+		}
+		commandLine += m_curNormalSrcLangName + comma;
+		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing
+		if (this->m_curNormalTgtLangName.IsEmpty())
+		{
+			this->m_curNormalTgtLangName = m_targetName;
+		}
+		commandLine += this->m_curNormalTgtLangName + comma;
+		wxASSERT(m_curNormalTgtLangName == m_targetName);
+
+		commandLine += this->m_curNormalSource + comma; // from signature of PseudoDelete()
+		if (gbIsGlossing)
+		{
+			commandLine += this->m_curNormalGloss + comma; // from signature of PseudoDelete()
+		}
+		else
+		{
+			commandLine += this->m_curNormalTarget + comma; // from signature of PseudoDelete()
+		}
+		// Finally, the kbType and the deleted flag value
+		wxChar kbType = _T('1'); // default, using the adaptations KB
+		if (gbIsGlossing)
+		{
+			// We are using the glosses KB
+			kbType = _T('2');
+		}
+		commandLine += kbType + comma;
+		// PseudoDelete() always creates entry or updates entry to have deleted flag = _T('1')
+		commandLine += _T('0'); // it isn't deleted yet, so pass in '0' so that
+			// the python can test for '0' with a known variable; so that if then does the
+			// replacement of '0' with '1', effecting the pseudo-deletion
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "pseudo_delete.dat",  within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: pseudo_delete.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case pseudo_undelete: // = 6
+	{
+		// Build the pseudo_undelete.dat file for input, making the commandLine for 
+		// wxExecute() to call
+		m_resultDatFileName = _T("pseudo_undelete_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+														 // Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword + comma;
+
+		// Then the source and target language names, which define the AI project that is current
+		if (m_curNormalSrcLangName.IsEmpty())
+		{
+			m_curNormalSrcLangName = m_sourceName;
+		}
+		commandLine += m_curNormalSrcLangName + comma;
+		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing
+		if (this->m_curNormalTgtLangName.IsEmpty())
+		{
+			this->m_curNormalTgtLangName = m_targetName;
+		}
+		commandLine += this->m_curNormalTgtLangName + comma;
+		wxASSERT(m_curNormalTgtLangName == m_targetName);
+
+		commandLine += this->m_curNormalSource + comma; // from signature of PseudoUndelete()
+		if (gbIsGlossing)
+		{
+			commandLine += this->m_curNormalGloss + comma; // from signature of PseudoUndelete()
+		}
+		else
+		{
+			commandLine += this->m_curNormalTarget + comma; // from signature of PseudoUndelete()
+		}
+		// Finally, the kbType and the deleted flag value
+		wxChar kbType = _T('1'); // default, using the adaptations KB
+		if (gbIsGlossing)
+		{
+			// We are using the glosses KB
+			kbType = _T('2');
+		}
+		commandLine += kbType + comma;
+		// PseudoUndelete() updates entry with deleted = '1' to have deleted flag = _T('0')
+		commandLine += _T('1'); // it will become a pseudo-undeleted entry
+								// That completes the commandLine string; now put it into
+								// the moved .dat input file, ready for CallExecute() to get
+								// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "pseudo_undelete.dat",  within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: pseudo_undelete.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case lookup_entry: // = 7
+	{
+		// Build the lookup_entry.dat file for input, making the commandLine for 
+		// wxExecute() to call
+		m_resultDatFileName = _T("lookup_entry_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+														 // Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword + comma;
+
+		// Then the source and target language names, which define the AI project that is current
+		if (m_curNormalSrcLangName.IsEmpty())
+		{
+			m_curNormalSrcLangName = m_sourceName;
+		}
+		commandLine += m_curNormalSrcLangName + comma;
+		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing
+		if (this->m_curNormalTgtLangName.IsEmpty())
+		{
+			this->m_curNormalTgtLangName = m_targetName;
+		}
+		commandLine += this->m_curNormalTgtLangName + comma;
+		wxASSERT(m_curNormalTgtLangName == m_targetName);
+
+		commandLine += this->m_curNormalSource + comma; // from signature of LookupEntry()
+		if (gbIsGlossing)
+		{
+			commandLine += this->m_curNormalGloss + comma;  // from signature of LookupEntry()
+		}
+		else
+		{
+			commandLine += this->m_curNormalTarget + comma; // from signature of LookupEntry()
+		}
+
+		// Finally, the kbType and omit the deleted flag - it's value is wanted for the returned
+		// .dat file, but not for the lookup
+		wxChar kbType = _T('1'); // default, using the adaptations KB
+		if (gbIsGlossing)
+		{
+			// We are using the glosses KB
+			kbType = _T('2');
+		}
+		commandLine += kbType + comma;
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "lookup_entry.dat", within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: lookup_entry.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
 	case blanksEnd:
 	{
 		break; // do nothing
@@ -20402,8 +21012,13 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	const int credentials_for_user = 1;
 	const int lookup_user = 2;
 	const int list_users = 3;
+	const int create_entry = 4;
+	const int pseudo_delete = 5;
+	const int pseudo_undelete = 6;
+	const int lookup_entry = 7;
+	const int changed_since_timed = 8;
 	// add more here, as our solution matures
-	const int blanksEnd = 4; // this one changes as we add more above
+	const int blanksEnd = 9; // this one changes as we add more above
 	*/
 	switch (funcNumber)
 	{
@@ -20419,8 +21034,38 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		}
 		break;
 	}
-	case list_users:
+	case list_users: // = 3
+	{
 		break;
+	}
+	case create_entry: // = 4
+	{
+		// Force bReportResults to FALSE, common repetetive operations
+		// should not give time-delaying GUI messages to disturb user's work
+		bReportResult = FALSE;
+		break;
+	}
+	case pseudo_delete: // = 5
+	{
+		// Force bReportResults to FALSE, common repetetive operations
+		// should not give time-delaying GUI messages to disturb user's work
+		bReportResult = FALSE;
+		break;
+	}
+	case pseudo_undelete: // = 6
+	{
+		// Force bReportResults to FALSE, common repetetive operations
+		// should not give time-delaying GUI messages to disturb user's work
+		bReportResult = FALSE;
+		break;
+	}
+	case lookup_entry: // = 7
+	{
+		// Force bReportResults to FALSE, common repetetive operations
+		// should not give time-delaying GUI messages to disturb user's work
+		bReportResult = FALSE;
+		break;
+	}
 	case blanksEnd:
 	{
 		break;
@@ -20428,18 +21073,65 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	};
 	wxArrayString output;
 	wxArrayString errors;
-	bool bSuccess = TRUE;
+	bool bSuccess = FALSE; // initialise
 	wxFileName fn(execPath, execFileName);
 	wxString currCwd = wxFileName::GetCwd();
 	bool bTempCwd = fn.SetCwd(execPath);
 	if (bTempCwd)
 	{
-
+		// BEW 10Oct20, if the commandLine does not succeed in the underlying python,
+		// this is not a failure of wxExecute, provided the python runs without error.
+		// The *_return_results.dat will from the python will provide values that our
+		// AI code can interrogate to see if the desired mariaDB access worked. So
+		// rv == 0  does not mean wxExecute() error, but if it did fail, errors array
+		// can be checked for what went wrong with it.
 		long rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful
+
+		if (!errors.IsEmpty() && rv != 0)
+		{
+			// Get the error lines, and the commandLine, into LogUserAction() so
+			// as to make debugging easy
+			wxString errFirst = wxEmptyString;
+			wxString errSecond = wxEmptyString;
+			wxString errThird = wxEmptyString;
+			int limit = wxMin(3, errors.GetCount());
+			int i;
+			for (i = 0; i < limit; i++)
+			{
+				if (i == 0)
+				{
+					errFirst = errors.Item(0) + _T("\n");
+				}
+				
+				if (i == 1 && limit == 1)
+				{
+					break;
+				}
+				else
+				{
+					errSecond = errors.Item(1) + _T("\n");
+				}
+
+				if (i == 2 && limit == 2)
+				{
+					break;
+				}
+				else
+				{
+					errThird = errors.Item(2) + _T("\n");
+				}
+			}
+			wxString msg = _("line %d, after ::wxExecute(), errors array: first= %s second= %s third= %s, cmdLine= %s");
+			msg = msg.Format(msg, __LINE__, errFirst.c_str(), errSecond.c_str(), errThird.c_str(), m_curCommandLine.c_str());
+			wxLogDebug(msg);
+			LogUserAction(msg);
+		} // end of TRUE block for test: if (!errors.IsEmpty() && rv != 0)
+
 		// restore old current working directory
 		bool bRestored = fn.SetCwd(currCwd);
 		wxUnusedVar(bRestored);
-		// check for success and advise user with a 1.3 second 'created successfully' message
+		// check for success and advise user with a 1.3 second 'created successfully' 
+		// message if authenticating, but suppress messages if funcNumber is 3 or more
 		if (rv == 0)
 		{
 			// Any value other than zero means something failed in the call
@@ -20465,31 +21157,32 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 				{
 					// Found the srchStr, so we have success
 					bSuccess = TRUE;
-					if (m_bUserAuthenticating) // has been forced to TRUE
+					// Only put up a message if authenticating
+					if (funcNumber < 3)
 					{
-						// we will want success when authenticating to be reported to user
-						bReportResult = TRUE; // force TRUE because authenticating, 
-											  // to show 1.5 sec msg
+						if (m_bUserAuthenticating) // has been forced to TRUE
+						{
+							// we will want success when authenticating to be reported to user
+							bReportResult = TRUE; // force TRUE because authenticating, 
+												  // to show 1.5 sec msg
+						}
 					}
-
 				} // end of TRUE block for test: if (offset != wxNOT_FOUND)
 
-				// BEW 9Sep20, in the case: const int lookup_user = 2; we want the
-				// fullname and useradmin values for the user2 that was looked up. We
-				// can't get these except from the returned .dat file - so code here
-				// for that. Refactor to give CallExecute an initial param funcNumber,
-				// and internal switch, so allow post-wxExecute() processing as needed
+				// BEW 9Sep20, give CallExecute an initial param funcNumber, and
+				// internal switch, so allow post-wxExecute() processing as needed
 
 				// Do post-execute processing...
 				bOpened = f.Open();
 				wxString dataStr = wxEmptyString;
-				bool bMoreThanOneLine = TRUE;
+				bool bMoreThanOneLine = FALSE;
 				if (bOpened)
 				{
 					int lineCount = (int)f.GetLineCount();
 					if (lineCount > 1)
 					{
 						dataStr = f.GetLine(1);
+						bMoreThanOneLine = TRUE;
 						f.Close();
 					}
 					else
@@ -20497,9 +21190,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						bMoreThanOneLine = FALSE;
 					}
 				}
-				// Error message will have just a single line, so don't
-				// do the stuff below if the line count was just 1
-				if (bMoreThanOneLine)
+				//bool bOkay = FALSE; // initialise
+				// A failure to achieve the desired mariaDB action,in the python, will return
+				// a message with just a single line without the string "success" in it, 
+				// so don't do the stuff below if the line count was just 1 (or zero - but 
+				// our python code tries to avoid this, as it's not helpful to the user).
+				if (bMoreThanOneLine && bSuccess)
 				{
 					if (funcNumber == 0) // beginning of const int's set, a do-nothing value
 					{
@@ -20563,7 +21259,13 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 								m_targetLanguageName = m_targetName; // this tracks the project
 								m_curNormalTgtLangName = m_targetLanguageName;
 
-								m_glossesLanguageName = m_glossesName; // this tracks glossing lang of project
+								m_glossesLanguageName = m_glossesName; // this tracks glossing lang
+									// of project; but it's got different status -  projects are
+									// defined only by their src and tgt language names; if
+									// a glossing language name is used, it's an internal matter
+									// and would apply only for gbIsGlossing == TRUE. I doubt
+									// this tracking of the gloss lang name is of any significance
+									// anywhere in the app, as yet at least
 								m_curNormalGlossLangName = m_glossesLanguageName;
 
 								m_freeTransLanguageName = m_freeTransName;
@@ -20603,8 +21305,68 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						}
 						break;
 					}
+					case list_users: // = 3
+					{
+						// TODO 
+						break;
+					}
+					case create_entry: // = 4
+					{
+						// Nothing to do, results file has info if I want to grab it,
+						// or a message saying duplicate entry - a warning only
+						// we want create entry to be silent, at it is done often
+						break;
+					}
+					case pseudo_delete: // = 5
+					{
+						// Nothing to do, results file has info if I want to grab it
+						break;
+					}
+					case pseudo_undelete: // = 6
+					{
+						// Nothing to do, results file has info if I want to grab it
+						break;
+					}
+					case lookup_entry: // = 7
+					{
+						// Get the fields in the returned .dat file into the KbServer.cpp's
+						// m_entryStruct member, an instance of KbServerEntry
+						bool bGotFields = FALSE; // initialise
+						KbServer* pKbSvr = NULL; // initialise
+						if (gbIsGlossing)
+						{
+							// glossing is current
+							if (m_bGlossesKBserverReady)
+							{
+								pKbSvr = m_pKbServer[1];
+								m_bGlossesLookupSucceeded = FALSE; // initialise
+							}
+						}
+						else
+						{
+							// adapting is current
+							if (m_bAdaptationsKBserverReady)
+							{
+								pKbSvr = m_pKbServer[0];
+								m_bAdaptationsLookupSucceeded = FALSE; // initialise
+							}
+						}
+						bGotFields = pKbSvr->FileToEntryStruct(execPath, resultFile);
+						wxASSERT(bGotFields == TRUE);
+						// Set a bool on app, for tracking the result of FileToEntryStruct()
+						if (gbIsGlossing && bGotFields)
+						{
+							m_bGlossesLookupSucceeded = TRUE; // pKbSvr's m_entryStruct is populated
+						}
+						else
+						{
+							m_bAdaptationsLookupSucceeded = TRUE; // pKbSvr's m_entryStruct is populated
+						}
+						// If the relevant bool is not TRUE, then m_entryStruct will have been cleared
+						break;
+					}
 					} // end of switch
-				} // end of TRUE block for test: if (bMoreThanOneLine)
+				} // end of TRUE block for test: if (bMoreThanOneLine && bSuccess)
 				
 			} // end of the TRUE block for test: if (bResultsFileExists)
 			else
@@ -20616,9 +21378,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 #if defined(__WXMSW__)
 					CMainFrame* pFrame = this->GetMainFrame();
 					CWaitDlg waitDlg(pFrame);
-					waitDlg.m_nWaitMsgNum = waitFailure;	// 33 has  _("Authentication failed")
+					waitDlg.m_nWaitMsgNum = waitFailure; // 99 defaults to generic short msg
 					waitDlg.Centre();
-					waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+					waitDlg.Show(TRUE);// On Linux, the dialog frame appears, 
+							// but the text in it is not displayed (need ShowModal() for that)
 					waitDlg.Update();
 					// the wait dialog is automatically destroyed when it goes out of scope below
 
@@ -20634,8 +21397,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		{
 			wxBell();
 			bSuccess = FALSE;
-			wxString msg = _("::wxExecute() failed for %s called in folder %s");
-			msg = msg.Format(msg, execFileName.c_str(), execPath.c_str());
+			wxString msg = _("line %d, in CallExecute() ::wxExecute() failed for %s called in folder %s");
+			msg = msg.Format(msg, __LINE__, execFileName.c_str(), execPath.c_str());
 			LogUserAction(msg);
 			return FALSE;
 		}
@@ -27932,6 +28695,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	execPath = PathToExecFolder(); // app removed from end, ends now in separator
 	distPath = MakeDistFolder();  // set the path to dist folder, for this session
 	CreateInputDatBlanks(execPath); // executablePath set above at 22,258
+	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
+	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
+										   // called in CallExecute()'s post-wxExecute() switch
 
     wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 #endif // _KBSERVER
@@ -33296,32 +34062,32 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
-    m_bWizardIsRunning = TRUE; // OnIdle() uses TRUE to suppress an idle event, while the
-                               // wizard is running, from causing the KBserver connection
-                               // request dialog from being shown to the user
+    m_bWizardIsRunning = TRUE; // OnIdle() uses TRUE to suppress an idle event,
+    // while the wizard is running, from causing the KBserver connection
+    // request dialog from being shown to the user
 
-                               // Note: This version of DoStartWorkingWizard() is
-                               // structured quite differently from the MFC version.
-                               // WX Notes:
-                               // 1. The CPropertySheet and CPropertyPage classes in MFC are designed
-                               //    to double as tabbed property sheet pages in a single preferences dialog,
-                               //    or, when CPropertySheet::SetWizardMode() is called, the property sheet
-                               //    turns into a wizard with more or less linear traversal of the pages.
-                               //    In WX we don't have a single CPropertySheet class for both functions,
-                               //    instead, we can define individual pages as in MFC, but we then use them
-                               //    in two separate built-in WX classes: wxNotebook (for tabbed preferences
-                               //    dialog), and wxWizard for the Start Working wizard.
-                               // 2. I originally tried to structure the operation of the wizard using all
-                               //    wxWizardSimple page classes. That design, however, resulted in problems
-                               //    because I destroyed the wizard and called RunWizard again each time
-                               //    I wanted the wizard to change the page ordering/sequencing. Eventually
-                               //    I decided to use the more advanced wxWizardPage class for all the wizard
-                               //    pages.
+    // Note: This version of DoStartWorkingWizard() is
+    // structured quite differently from the MFC version.
+    // WX Notes:
+    // 1. The CPropertySheet and CPropertyPage classes in MFC are designed
+    //    to double as tabbed property sheet pages in a single preferences dialog,
+    //    or, when CPropertySheet::SetWizardMode() is called, the property sheet
+    //    turns into a wizard with more or less linear traversal of the pages.
+    //    In WX we don't have a single CPropertySheet class for both functions,
+    //    instead, we can define individual pages as in MFC, but we then use them
+    //    in two separate built-in WX classes: wxNotebook (for tabbed preferences
+    //    dialog), and wxWizard for the Start Working wizard.
+    // 2. I originally tried to structure the operation of the wizard using all
+    //    wxWizardSimple page classes. That design, however, resulted in problems
+    //    because I destroyed the wizard and called RunWizard again each time
+    //    I wanted the wizard to change the page ordering/sequencing. Eventually
+    //    I decided to use the more advanced wxWizardPage class for all the wizard
+    //    pages.
 
-                               // whm added 9Mar12. DoStartWorkingWizard() can be summoned while a document
-                               // is open. We should ensure that any open document is closed and unsaved
-                               // changes are saved before proceeding to either the wizard or the
-                               // GetSourceTextFromEditorDlg dialog get a pointer to the currently being used KB
+    // whm added 9Mar12. DoStartWorkingWizard() can be summoned while a document
+    // is open. We should ensure that any open document is closed and unsaved
+    // changes are saved before proceeding to either the wizard or the
+    // GetSourceTextFromEditorDlg dialog get a pointer to the currently being used KB
     CKB* pKB;
     if (gbIsGlossing)
         pKB = m_pGlossingKB;
@@ -35213,6 +35979,9 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 	// bool CallExecute(execFileName,execPath,add_KBUsers_return_result_file.dat)
 	// and I'll check add_KBUsers_return_result_file.dat for "created successfully" substring,
 	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
+	m_nAddUsersCount = 0; // gotta protect, as number of fields may differ
+// replace the above with a function...
+
 	bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
 	if (bReady)
 	{
@@ -58346,6 +59115,179 @@ SD_SD_ValueIsIrrelevant
 };
 */
 
+void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("pseudo_delete.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: insert an entry into the kbserver's entry table if entry is absent - with deleted flag = 1,");
+			f.AddLine(line);
+			line = _T("# or UPDATE to SET deleted flag to 1 if the entry is present in the table");
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file:   pseudo_delete.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file in exec folder: pseudo_delete_return_results.dat");
+			f.AddLine(line);
+			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
+			f.AddLine(line);
+			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+			f.AddLine(line);
+			line = _T("# timestamp created in the internal python, and added between type and deleted fields.");
+			f.AddLine(line);
+			line = _T("# login credentials: ipaddr, username, password");
+			f.AddLine(line);
+			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,");
+			f.AddLine(line);
+			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+			f.AddLine(line);
+			line = _T("# and for success, on 2nd line: source,target,sourcelanguage,targetlanguage,type,deleted,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
+void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("pseudo_undelete.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: insert an entry into the kbserver's entry table if entry is absent - with deleted flag = 0,");
+			f.AddLine(line);
+			line = _T("# or UPDATE to SET deleted flag to 0 if the entry is present in the table with deleted = 1");
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file:   pseudo_undelete.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file in exec folder: pseudo_undelete_return_results.dat");
+			f.AddLine(line);
+			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
+			f.AddLine(line);
+			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+			f.AddLine(line);
+			line = _T("# timestamp created in the internal python, and added between type and deleted fields.");
+			f.AddLine(line);
+			line = _T("# login credentials: ipaddr, username, password");
+			f.AddLine(line);
+			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,");
+			f.AddLine(line);
+			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+			f.AddLine(line);
+			line = _T("# and for success, on 2nd line: source,target,sourcelanguage,targetlanguage,type,deleted,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
+void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("create_entry.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: insert an entry into the kbserver's entry table");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file:   create_entry.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file in exec folder: create_entry_return_results.dat");
+			f.AddLine(line);
+			line = _T("# The row's fields, in order (initial id automatic):");
+			f.AddLine(line);
+			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+			f.AddLine(line);
+			line = _T("# timestamp is between username & type, provided by function call");
+			f.AddLine(line);
+			line = _T("# login credentials: ipaddr, username, password");
+			f.AddLine(line);
+			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,");
+			f.AddLine(line);
+			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+			f.AddLine(line);
+			line = _T("# and for success, on 2nd line: source,target,sourcelanguage,targetlanguage,type,deleted,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
 void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath)
 {
 	wxASSERT(!execPath.IsEmpty());
@@ -58416,11 +59358,128 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxStr
 		// Check it's there now
 		bDataFileExists = wxFileExists(datFilePath);
 		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
 #endif
 	}
 }
 
+void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("lookup_entry.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: lookup a row's entry in the kbserver's entry table.");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file:   lookup_entry.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file in exec folder: lookup_entry_return_results.dat");
+			f.AddLine(line);
+			line = _T("# The row's fields, in order (initial id automatic):");
+			f.AddLine(line);
+			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted");
+			f.AddLine(line);
+			line = _T("# login credentials: ipaddr, username, password");
+			f.AddLine(line);
+			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type");
+			f.AddLine(line);
+			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+			f.AddLine(line);
+			line = _T("# and for success, on 2nd line: id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
 
+void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("changed_since_timed.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: bulk download all 7 fields for the current AI project,");
+			f.AddLine(line);
+			line = _T("# storing them in 7 parallel arrays(6 wxArrayStr and 1 wxArrayInt for deleted flag");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file:   changed_since_timed.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file in exec folder: changed_since_timed_return_results.dat");
+			f.AddLine(line);
+			line = _T("# The row's fields, in order (initial id automatic):");
+			f.AddLine(line);
+			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted");
+			f.AddLine(line);
+			line = _T("# login credentials: ipaddr, username, password");
+			f.AddLine(line);
+			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,type");
+			f.AddLine(line);
+			line = _T("# Output .dat: \"success\" followed by comma followed by now()'s timestamp,");
+			f.AddLine(line);
+			line = _T("# on the 1st line, or a 1-line error message lacking \"success\" substring;");
+			f.AddLine(line);
+			line = _T("# and for \"success\", on each non-first line the following, comma separated:");
+			f.AddLine(line);
+			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
+// TODO -- add more as needed
 #endif // _KBSERVER
 
 // EnsureProperCapitalization() checks the "following punctuatation" of the CSourcePhrase

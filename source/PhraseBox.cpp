@@ -25,7 +25,7 @@
 #endif
 
 // defines for debugging purposes
-#define _FIND_DELAY
+//#define _FIND_DELAY
 //#define _AUTO_INS_BUG
 //#define LOOKUP_FEEDBACK
 //#define DROPDOWN
@@ -3567,7 +3567,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// gets the contents of the phrasebox including the just typed character.
 		thePhrase = this->GetTextCtrl()->GetValue(); // current box text (including the character just typed)
 
-        wxLogDebug(_T("     ***%s() called - thePhrase is now:[%s]"),__FUNCTION__, thePhrase.c_str());
+//        wxLogDebug(_T("  ***%s(), line %d, called - thePhrase is now:[%s]"),__FUNCTION__, 
+//					__LINE__, thePhrase.c_str());
 
 		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
 		if (gbAutoCaps && pApp->m_pActivePile != NULL)
@@ -4141,7 +4142,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
-    wxLogDebug(_T("In CPhraseBox::OnChar() key code: %d"),event.GetKeyCode());
+//    wxLogDebug(_T("In CPhraseBox::OnChar() key code: %d"),event.GetKeyCode());
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -5424,7 +5425,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 {
-    wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
+    //wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
 
     // wx Note: This routine handles Adapt It's AltDown key events
 	// and CmdDown events (= ControlDown on PCs; Apple Command key events on Macs).
@@ -7261,7 +7262,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
-    wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
+    //wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
 
     // refactored 2Apr09
 	//wxLogDebug(_T("OnKeyDown() %d called from PhraseBox"),event.GetKeyCode());

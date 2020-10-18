@@ -33356,6 +33356,13 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 // TODO -- whatever
 	wxString execPath = pApp->execPath;
 	wxString distPath = pApp->distPath;
+	wxString src = _T("tokim");
+	wxString nonSrc = _T("am telling");
+	KbServer* pKbSvr = pApp->GetKbServer(1);
+	int rv = pKbSvr->LookupEntryFields(src, nonSrc);
+	rv = rv;
+
+
 /*
 	wxString saveCwd = ::wxGetCwd();
 	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
@@ -33375,7 +33382,7 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 		f.Write();
 		f.Close();
 	}
-*/
+
 	wxString ipAddr = pApp->m_chosenIpAddr; //_T("192.168.1.9");
 	wxString user = pApp->m_strUserID; // _T("bruce@unit2");
 	CMainFrame* pFrame = pApp->GetMainFrame();
@@ -33390,6 +33397,8 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 //		bChangedCWD = ::wxSetWorkingDirectory(saveCwd);
 //	}
 	delete pKbSvr;
+*/
+
 }
 
 void CAdapt_ItView::OnUpdateHiddenMenuItem(wxUpdateUIEvent& event)

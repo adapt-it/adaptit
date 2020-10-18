@@ -1653,8 +1653,9 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			wxString ipAddr = m_pApp->m_curIpAddr;
 			wxString username = m_pApp->m_strUserID;
 			wxString pwd = m_pApp->GetMainFrame()->GetKBSvrPassword();
-			result = (int)m_pKbServer->CreateKb(ipAddr, username, pwd,
-				textCtrl_SrcLangName, textCtrl_NonSrcLangName, m_bKBisType1);
+
+//			result = (int)m_pKbServer->CreateKb(ipAddr, username, pwd,
+//				textCtrl_SrcLangName, textCtrl_NonSrcLangName, m_bKBisType1);
 
 			// Update the page if we had success, if no success, just clear the controls
 			if (result == 0)

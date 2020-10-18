@@ -4368,7 +4368,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// restore the flag's default ('not ON') value
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
-/* BEW 25Sep20 deprecated legacy calls - don't want OnIdle() doing deferred calls in Leon's solution
 
 #if defined (_KBSERVER)
 	// Speed critical GUI support, when a KBserver doing sharing is operational
@@ -4376,15 +4375,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bCreateEntry_For_KBserver)
 	{
 		pApp->m_bCreateEntry_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->CreateEntry(
+		pApp->m_pKbServer_For_OnIdle->CreateEntry(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
-		wxUnusedVar(rv);
+
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() returned  %d for src = %s  &  tgt = %s"),
-			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() for src = %s  &  tgt = %s"),
+			pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
 
@@ -4417,7 +4416,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
+#endif // for _KBSERVER
 
+/* BEW 2Sep10 deprecated tentatively, for Leon's solution - might not be needed now
 	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
 	// booleans, or both, will have been set TRUE in the OnOK() function of
 	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the
@@ -4704,9 +4705,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(
-			_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-			_T(""), wxICON_INFORMATION | wxOK);
+			wxString title = _("Finished");
+			wxString msg = _("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file.");
+            wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}
 
@@ -4958,7 +4959,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// Do an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
 // GDLC 20JUL16 Temporary comment out while investigating logic
-            bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			//bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
 			if (bIsEnabled && bIsPending && bTimerIsRunning)

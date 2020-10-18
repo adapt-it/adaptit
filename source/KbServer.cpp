@@ -989,6 +989,11 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 // storage. (Of course, the next successful ChangedSince() call will update what is stored
 // in persistent storage; and the timeStamp value used for that call is whatever is
 // currently within the variable m_kbServerLastSync).
+
+// BEW 17Oct20, I will keep the overall structure, as it has important calls, progress dialog
+// support, and depositing of data in 7 parallel arrays. I'll just comment out or change as
+// appropriate for Leon's solution. The legacy code is preseved in C:\_Debug Data folder, in
+// a file called DlownloadToKB - legacy code.txt
 int KbServer::ChangedSince(wxString timeStamp)
 {
 	CStatusBar* pStatusBar = NULL;
@@ -2013,7 +2018,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 
 
 #if defined (_DEBUG)
-	int halt_here = 1;
+//	int halt_here = 1;
 #endif
 
 /* deprecated - this is legacy code
@@ -2439,10 +2444,69 @@ int KbServer::LookupSingleKb(wxString ipAddr, wxString username, wxString passwo
 // HTTP error - such as no matching entry, or a badly formed request
 // BEW 3Oct13, modified to use a url-encoded url string (to lookup phrases properly,
 // otherwise it looks up only the first word of the phrase)
-int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
+int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 {
+	wxString execFileName = _T("do_lookup_entry.exe");
+	wxString resultFile = _T("lookup_entry_return_results.dat");
+	wxString datFileName = _T("lookup_entry.dat");
+	wxString execPath;
+	if (m_pApp->m_curExecPath.IsEmpty())
+	{
+		m_pApp->m_curExecPath = m_pApp->execPath;
+	}
+	execPath = m_pApp->m_curExecPath;
 
-	// TODO Leon's solution
+	int* pWhichCounter = NULL; // initialise
+	int rv = -1; // initialise
+
+	// First, store src and nonSrc on the relevant app variables, 
+	// so ConfigureDATfile(create_entry)'s ConfigureMovedDatFile() can grab them;
+	// or if in glossing mode, store gloss on m_curNormalGloss
+	m_pApp->m_curNormalSource = src;
+	if (gbIsGlossing)
+	{
+		m_pApp->m_curNormalGloss = nonSrc;
+		pWhichCounter = &m_pApp->m_nLookupUserGlossCount;
+	}
+	else
+	{
+		m_pApp->m_curNormalTarget = nonSrc;
+		pWhichCounter = &m_pApp->m_nLookupEntryAdaptationCount;
+	}
+	// BEW NOTE. Currently, the counters are disabled, and stay at zero ( 0 )
+
+
+	// Use the counters, app's m_nCreateAdaptionCount, or if currently glossing and
+	// therefore nonSrc contains glosses to go into the glossing entry table as kbType = 2,
+	// then use m_nCreateGlossCount. These counters, if zero, provide a processing path
+	// which take the input .dat file from the dist folder, moving it to the execPath's
+	// folder, clearing the contents, and replacing with the relevant data to form
+	// the commandLine to be submitted to wxExecute() - and that protocol deletes the
+	// old .dat input file so moved, before those steps create a replacement so filled out.
+	// But if the counter is greater than zero, an alternative speedier path is followed.
+	// Because the .dat file has 9 fields, and only two need new values - the src and nonSrc.
+	// In this circumstance it's silly to waste time by recreating by the protocol above.
+	// Instead, don't delete the old input .dat file in the exec folder, but refill just
+	// the two fields that need refilling with the values pasted in from the signature.
+	// That's far speedier, and important here because CreateEntry() will be called 
+	// maybe tens of thousands of times over the life of the AI project. So keeping this
+	// call fast will pay off in user satisfaction.
+
+	bool bOkay = MoveOrInPlace(lookup_entry, m_pApp, *pWhichCounter, execPath,
+		src, nonSrc, 6, 7, 8); // last 3 are locations of 
+							   // src field, nonSrc field, kbType field
+	wxUnusedVar(bOkay);
+	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
+	// currently in action is '1' or '2' respectively, the same code handles either in
+	// the following blocks. However, we should check that the kbType value is set correctly.
+
+	// The create_entry.dat input file is now ready for grabbing the command
+	// line (its first line) for the ::wxExecute() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(lookup_entry, execFileName, execPath,
+		resultFile, 99, 99, FALSE); // FALSE is bReportResult
+
+	return (rv = bOK == TRUE ? 0 : -1);
+
 	/*
 	CURL *curl;
 	CURLcode result;
@@ -2643,8 +2707,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
-	*/
 	return 0;
+	*/
 }
 
 // public accessor
@@ -2679,6 +2743,10 @@ DownloadsQueue* KbServer::GetQueue()
 // want to delete a whole KB from the remote KBserver, the queue is useful, so retain this
 int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 {
+//	m_pApp->m_nChangeQueuedAdaptionCount = 0; // gotta protect, as number of fields may differ
+//	m_pApp->m_nChangeQueuedGlossCount = 0; // gotta protect, as number of fields may differ
+//*** add test to set to non zero if .dat file is in exec folder
+
 
 	//  TODO leon's way
 /*
@@ -2977,6 +3045,8 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 // configuration file at present, but in a small file in the project folder.
 int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 {
+	//m_pApp->m_nCreateAdaptionCount = 0; // gotta protect, as number of fields may differ
+	//m_pApp->m_nCreateGlossCount = 0; // gotta protect, as number of fields may differ
 
 	// TODO Leon's way
 /*
@@ -3295,11 +3365,15 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 void KbServer::ClearEntryStruct()
 {
-	m_entryStruct.id = 0;
+	m_entryStruct.id.Empty(); // long was python-converted by str() to string
+	m_entryStruct.srcLangName.Empty();
+	m_entryStruct.tgtLangName.Empty();
 	m_entryStruct.source.Empty();
-	m_entryStruct.translation.Empty();
+	m_entryStruct.nonSource.Empty();
 	m_entryStruct.username.Empty();
-	m_entryStruct.deleted = 0;
+	m_entryStruct.timestamp.Empty(); // python will see the next two as strings
+	m_entryStruct.type = _T('1'); // assume adapting type
+	m_entryStruct.deleted = _T('0'); //assume not-deleted
 }
 
 //void KbServer::SetEntryStruct(KbServerEntry entryStruct)
@@ -3459,18 +3533,185 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 	pKbsList->clear();
 }
 
+wxString KbServer::ReplaceFieldWithin(wxString cmdLine, int commaCount, wxString strReplacement)
+{
+	wxString comma = _T(",");
+	int offset = wxNOT_FOUND;
+	int lastPos = 0;
+	// Find the comma preceding the commaCount's field (1-based counting)
+	int i;
+	int max = commaCount - 1;
+	for (i = 0; i < max; i++)
+	{
+		offset = cmdLine.find(comma, lastPos);
+		lastPos = offset + 1; // get past the matched comma, no field is empty
+	}
+	// For max == 5, when i gets to 4, lastPos will be pointing at the
+	// start of the contents for source field, and offset will be 1 less,
+	// so an extra Find() is needed to advance offset to the comma at the 
+	// comma at the end of source field's contents.
+	
+	wxString leftPart = cmdLine.Left(lastPos);
+	leftPart += strReplacement; // it's replaced - now join the bits to reform cmdLine
+	// Now get offset to the next comma
+	offset = cmdLine.find(comma, lastPos);
+	wxString lastPart = cmdLine.Mid(offset); // everything from the comma on, inclusive
+	cmdLine = leftPart + lastPart;
+	return cmdLine;
+}
+
 // BEW 7May16, we are forced to synchronous calls that use openssl, because the latter
 // (if put on a detached thread) leak about a kilobyte per KBserver access, but if not
 // on a thread there is no leak. Joinable threads are no solution because even if they
 // didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
 // to finish. So that's no different than a synchronous call such as this one.
-int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 {
+	wxString execFileName = _T("do_create_entry.exe");
+	wxString resultFile = _T("create_entry_return_results.dat");
+	wxString datFileName = _T("create_entry.dat");
+	wxString execPath;
+	if (m_pApp->m_curExecPath.IsEmpty())
+	{
+		m_pApp->m_curExecPath = m_pApp->execPath;
+	}
+	execPath = m_pApp->m_curExecPath;
 
-// TODO leon's way
-	
-	int rv =0;
-	/*
+	int* pWhichCounter = NULL; // initialise
+	int rv = -1; // initialise
+
+	// First, store src and nonSrc on the relevant app variables, 
+	// so ConfigureDATfile(create_entry)'s ConfigureMovedDatFile() can grab them;
+	// or if in glossing mode, store gloss on m_curNormalGloss
+	m_pApp->m_curNormalSource = src;
+	if (gbIsGlossing)
+	{
+		m_pApp->m_curNormalGloss = nonSrc;
+		pWhichCounter = &m_pApp->m_nCreateGlossCount;
+	}
+	else
+	{
+		m_pApp->m_curNormalTarget = nonSrc;
+		pWhichCounter = &m_pApp->m_nCreateAdaptionCount;
+	}
+
+	// Use the counters, app's m_nCreateAdaptionCount, or if currently glossing and
+	// therefore nonSrc contains glosses to go into the glossing entry table as kbType = 2,
+	// then use m_nCreateGlossCount. These counters, if zero, provide a processing path
+	// which take the input .dat file from the dist folder, moving it to the execPath's
+	// folder, clearing the contents, and replacing with the relevant data to form
+	// the commandLine to be submitted to wxExecute() - and that protocol deletes the
+	// old .dat input file so moved, before those steps create a replacement so filled out.
+	// But if the counter is greater than zero, an alternative speedier path is followed.
+	// Because the .dat file has 9 fields, and only two need new values - the src and nonSrc.
+	// In this circumstance it's silly to waste time by recreating by the protocol above.
+	// Instead, don't delete the old input .dat file in the exec folder, but refill just
+	// the two fields that need refilling with the values pasted in from the signature.
+	// That's far speedier, and important here because CreateEntry() will be called 
+	// maybe tens of thousands of times over the life of the AI project. So keeping this
+	// call fast will pay off in user satisfaction.
+
+	bool bOkay = MoveOrInPlace(create_entry, m_pApp, *pWhichCounter, execPath,
+								src, nonSrc, 6, 7, 8); // last 3 are locations of 
+								// src field, nonSrc field, kbType field
+	wxUnusedVar(bOkay);
+	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
+	// currently in action is '1' or '2' respectively, the same code handles either in
+	// the following blocks. However, we should check that the kbType value is set correctly.
+
+	/* BEW 6Oct20 The MoveOrInPlace() call replaces this commented out block
+	if (m_pApp->m_nCreateAdaptionCount == 0)
+	{
+		// Setting up m_pKbSvr for adaptations has just been done, so take
+		// the longer processing path for the first entry to be added to the
+		// entry table in this adapting sesson
+		m_pApp->ConfigureDATfile(create_entry); // grabs m_curNormalSource & ...Target from m_pApp
+		//m_pApp->m_nCreateAdaptionCount++; // subsequent entry table additions use the faster route
+	}
+	else
+	{
+		// Process quicker - just replace the src and tgt field in
+		// create_entry.dat, fields 6 and 7 (1-based counting), with the
+		// values passed in from the signature
+		wxString datPath = execPath + m_pApp->PathSeparator + datFileName;
+		bool bPresent = ::FileExists(datPath);
+		if (bPresent)
+		{
+			wxTextFile f;
+			bool bIsOpened = FALSE;
+			f.Create(datPath);
+			bIsOpened = f.Open();
+			if (bIsOpened)
+			{
+				wxString cmdLine = f.GetFirstLine();
+				cmdLine = ReplaceFieldWithin(cmdLine, 6, src); // 6 is 1-based
+				if (gbIsGlossing)
+				{
+					wxString kbType = _T("2");
+					cmdLine = ReplaceFieldWithin(cmdLine, 8, kbType); // 8 is 1-based
+				}
+				else
+				{
+					wxString kbType = _T("1");
+					cmdLine = ReplaceFieldWithin(cmdLine, 8, kbType); // 8 is 1-based
+				}
+				f.RemoveLine(0);
+				f.AddLine(cmdLine);
+				bool bWroteOK = f.Write();
+				f.Close();
+
+				if (!bWroteOK)
+				{
+					wxString msg = _T("CreateEntry() failed to write cmdLine with replacement src & nonSrc fields");
+					m_pApp->LogUserAction(msg);
+					// Unlike, so a beep will do
+					wxBell();
+					return;
+				}
+			}
+			bIsOpened = FALSE;
+			f.Create(datPath);
+			bIsOpened = f.Open();
+			if (bIsOpened)
+			{
+				wxString cmdLine = f.GetFirstLine();
+				cmdLine = ReplaceFieldWithin(cmdLine, 7, nonSrc); // target, or gloss
+				f.RemoveLine(0);
+				f.AddLine(cmdLine);
+				bool bWroteOK = f.Write();
+				f.Close();
+
+				if (!bWroteOK)
+				{
+					wxString msg = _T("CreateEntry() failed to write cmdLine with replacement src & nonSrc fields");
+					m_pApp->LogUserAction(msg);
+					// Unlike, so a beep will do
+					wxBell();
+					return;
+				}
+			}
+		}
+		else
+		{
+			// file is absent from the execPath folder - tell user etc
+			wxString msg;
+			msg = msg.Format(_("The %s file is absent from the folder %s. Inserting the values: %s and  %s into the entry table failed. Adapting work can continue."),
+				datFileName.c_str(), execPath.c_str(), src.c_str(), nonSrc.c_str());
+			wxMessageBox(msg, _("Error - absent file"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			return;
+		}
+		//m_pApp->m_nCreateAdaptionCount++; // bump the counter value
+	} // end of else block for test: if (m_pApp->m_nCreateAdaptionCount == 0)
+	*/
+	// The create_entry.dat input file is now ready for grabbing the command
+	// line (its first line) for the ::wxExecute() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(create_entry, execFileName, execPath,
+			resultFile, 99, 99, FALSE); // FALSE is bReportResult
+
+	return (rv = bOK == TRUE ? 0 : -1);
+
+	/* JM's way, legacy - deprecated - retain in case we sometime build something this way
 	long entryID = 0;
 
 	s_BulkDeleteMutex.Lock();
@@ -3511,13 +3752,16 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
 
 	wxUnusedVar(rv);
 	wxLogDebug(_T("CreateEntry(): On return from CreateEntry(): rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
-*/
+
 	return rv;
+	*/
 }
 
 
 int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 {
+
+	/* BEW 30Sep20 this variant, can be chucked away, 
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
@@ -3651,6 +3895,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
         // scenario.
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+	*/
 	return 0;
 }
 
@@ -3659,6 +3904,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 // temporary access to clobber the normal user's KBserver access credentials
 int	KbServer::CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description)
 {
+	/* remove, no longer needed
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
 	struct curl_slist* headers = NULL;
@@ -3765,12 +4011,17 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 		// scenario.
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+	*/
 	return 0; // no error
 }
 
-int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, 
-						 bool bKbadmin, bool bUseradmin, bool bLanguageadmin)
+int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bUseradmin)
 {
+	//m_pApp->m_nCreateAdaptionCount = 0; // gotta protect, as number of fields may differ
+	//m_pApp->m_nCreateGlossCount = 0; // gotta protect, as number of fields may differ
+
+
+
 	// TODO - Leon's way
 
 /*	CURL *curl;
@@ -4045,14 +4296,11 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 	}
 	return 0; // CURLE_OK
 }
-
+/*
 int KbServer::CreateKb(wxString ipAddr, wxString username, wxString password, 
 			wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt)
 {
-
-	// TODO - Leon's way
-
-/*
+ // no longer needed 12Oct20
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	wxASSERT(!srcLangCode.IsEmpty() && !nonsrcLangCode.IsEmpty());
 	CURL *curl;
@@ -4154,9 +4402,11 @@ int KbServer::CreateKb(wxString ipAddr, wxString username, wxString password,
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-*/
+
 	return 0;
 }
+*/
+
 
 int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
@@ -4641,8 +4891,53 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 // on a thread there is no leak. Joinable threads are no solution because even if they
 // didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
 // to finish. So that's no different than a synchronous call such as this one.
-int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 {
+	int rv = 0; //initialise
+	wxString execFileName = _T("do_pseudo_undelete.exe");
+	wxString resultFile = _T("pseudo_undelete_return_results.dat");
+	wxString datFileName = _T("pseudo_undelete.dat");
+	wxString execPath;
+	if (m_pApp->m_curExecPath.IsEmpty())
+	{
+		m_pApp->m_curExecPath = m_pApp->execPath;
+	}
+	execPath = m_pApp->m_curExecPath;
+
+	int* pWhichCounter = NULL; // initialise
+
+	// First, store src and nonSrc on the relevant app variables, (m_curNormalAdaption),
+	// so ConfigureDATfile(pseudo_undelete.dat)'s ConfigureMovedDatFile() can grab them;
+	// or if in glossing mode, store gloss on m_curNormalGloss
+	m_pApp->m_curNormalSource = src;
+
+	if (gbIsGlossing)
+	{
+		m_pApp->m_curNormalGloss = nonSrc;
+		pWhichCounter = &m_pApp->m_nPseudoUndeleteGlossCount;
+	}
+	else
+	{
+		m_pApp->m_curNormalTarget = nonSrc;
+		pWhichCounter = &m_pApp->m_nPseudoUndeleteAdaptionCount;
+	}
+	bool bOkay = MoveOrInPlace(pseudo_undelete, m_pApp, *pWhichCounter, execPath,
+		src, nonSrc, 6, 7, 8); // last 3 are locations of 
+							   // src field, nonSrc field, kbType field
+	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
+	// currently in action is '1' or '2' respectively, the same code handles either in
+	// the following blocks. However, we should check that the kbType value is set correctly.
+
+	// The pseudo_undelete.dat input file is now ready for grabbing the command
+	// line (its first line) for the ::wxExecute() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(pseudo_undelete, execFileName, execPath,
+		resultFile, 99, 99, FALSE); // FALSE is bReportResult
+	if (!bOK)
+	{
+		rv = -1;
+	}
+	return rv;
+
 	/*
 	int rv;
 	long entryID = 0;
@@ -4685,13 +4980,56 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
 #endif
 	return rv;
 	*/
-	return 0;
 }
 
-int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
+int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 {
+	int rv = 0; //initialise
+	wxString execFileName = _T("do_pseudo_delete.exe");
+	wxString resultFile = _T("pseudo_delete_return_results.dat");
+	wxString datFileName = _T("pseudo_delete.dat");
+	wxString execPath;
+	if (m_pApp->m_curExecPath.IsEmpty())
+	{
+		m_pApp->m_curExecPath = m_pApp->execPath;
+	}
+	execPath = m_pApp->m_curExecPath;
 
-/*
+	int* pWhichCounter = NULL; // initialise
+
+	// First, store src and nonSrc on the relevant app variables, (m_curNormalAdaption),
+	// so ConfigureDATfile(pseudo_delete.dat)'s ConfigureMovedDatFile() can grab them;
+	// or if in glossing mode, store gloss on m_curNormalGloss
+	m_pApp->m_curNormalSource = src;
+
+	if (gbIsGlossing)
+	{
+		m_pApp->m_curNormalGloss = nonSrc;
+		pWhichCounter = &m_pApp->m_nPseudoDeleteGlossCount;
+	}
+	else
+	{
+		m_pApp->m_curNormalTarget = nonSrc;
+		pWhichCounter = &m_pApp->m_nPseudoDeleteAdaptionCount;
+	}
+	bool bOkay = MoveOrInPlace(pseudo_delete, m_pApp, *pWhichCounter, execPath,
+		src, nonSrc, 6, 7, 8); // last 3 are locations of 
+							   // src field, nonSrc field, kbType field
+	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
+	// currently in action is '1' or '2' respectively, the same code handles either in
+	// the following blocks. However, we should check that the kbType value is set correctly.
+
+	// The pseudo_delete.dat input file is now ready for grabbing the command
+	// line (its first line) for the ::wxExecute() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(pseudo_delete, execFileName, execPath,
+		resultFile, 99, 99, FALSE); // FALSE is bReportResult
+	if (!bOK)
+	{
+		rv = -1;
+	}
+	return rv;
+
+/* Legacy JM solution - remove later
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
 	int rv;
@@ -4734,8 +5072,8 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
 	}
 
 	s_BulkDeleteMutex.Unlock();
-*/
 	return 0;
+	*/
 }
 
 
@@ -4774,70 +5112,92 @@ int KbServer::ChangedSince_Timed(KbServer* pKbSvr)
 
 int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText)
 {
+	// BEW 14Oct20, refactor this handler for the _KBSERVER part of the KBEditor 
+	// Update button's handler. There is a protocol to be observed, and it is in 
+	// the code below. Tweaking it for Leon's python-based calls is pretty much 
+	// all of significance that needs fixing.
+	// The protocol is in two parts. 
+	// First part deals with removal of the oldText (nonSrc) and handling deletion flag
+	// issues arising from the entry table having the deleted flag = 0, if 0, a 
+	// pseudo-deletion is needed as well to get rid of it from the GUI. 
+	// Second part deals with substituting the newTxt, it requires another 
+	// LookupEntryFields()call using src/newText, and then we can work out what 
+	// to do.  If newText is not in an entry of the entry table, then we call
+	// CreateEntry() to insert it there; if it's already there, then we look at 
+	// the deleted flag value - if its deleted flag is 0, then it's already 
+	// undeleted (matching what the GUI shows) and so nothing further to do; 
+	// but if it's deleted flag is 1, it's pseudo-deleted and so a call of the
+	// PseudoUndelete() function is needed so that it becomes visible again.
+
 	int rv = 0;
-	long entryID = 0; // initialize (it might not be used)
+
 	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
 
 	s_BulkDeleteMutex.Lock();
 
 	rv = pKbSvr->LookupEntryFields(src, oldText);
-	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	wxASSERT(rv == 0);
+	if (m_entryStruct.id == _T('0')) // lookup failure, valid id's will be != '0'
 	{
 		// If the lookup failed, we must assume it was because there was no matching entry
-		// (ie. HTTP 404 was returned) - in which case none of the collaborating clients
-		// has seen this entry yet, and so the simplest thing is just not to bother
-		// creating it here and then immediately pseudo-deleting it. That won't mess with
-		// any of the other client's KBs needlessly.
+		// - in which case none of the collaborating clients has seen this entry yet, 
+		// and so the simplest thing is just not to bother creating it here and then 
+		// immediately pseudo-deleting it.
 		;
 	}
 	else
 	{
 		// No error from the lookup, so get the entry ID, and the value of the deleted flag
-		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
-		entryID = e.id; // a pseudo-delete will need this value
-#if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in KbEditorUpdateButton(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
-#endif
-		// If the remote entry has 0 for the deleted flag's value (which is what we expect),
+		
+		// If the remote entry has '0' for the deleted flag's value (which is what we expect),
 		// then go ahead and pseudo-delete it; but if it has 1 already, there is nothing to 
 		// do with this src-oldTgt pair, the pseudo-deletion is already in the remote DB
-		if (e.deleted == 0)
+		wxChar chUndeleted = _T('0');
+		if (m_entryStruct.deleted == chUndeleted)
 		{
-			// do a pseudo-delete here, use the entryID value from above
-			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
+			// do a pseudo-delete here, the oldText is visible and not pseudo-deleted
+			// rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete); legacy call
+			rv = PseudoDelete(pKbSvr, src, oldText);
+			wxASSERT(rv == 0);
 		}
 	}
 	//                          ***** part 2 *****
-	// That takes care of the m_oldTranslation that was updated; now deal with the 
-	// scr-m_newTranslation pair -- another lookup is needed...
+	// That removes the oldText that was to be updated; now deal with the 
+	// scr/newText pair -- another lookup is needed...
 	rv = pKbSvr->LookupEntryFields(src, newText);
-	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	if (rv != 0) // this lookup failed - meaning the entry does not yet exist in the table	
 	{
 		// If the lookup failed, we must assume it was because there was no matching entry
-		// (ie. HTTP 404 was returned) - in which case none of the collaborating clients
-		// has seen this entry yet, and so we should now create it in the remote DB now
-		rv = pKbSvr->CreateEntry(src, newText);
+		// - in which case none of the collaborating clients has seen this entry yet, and 
+		// so we can now create it in the remote DB
+		rv = pKbSvr->CreateEntry(pKbSvr, src, newText);  // *** I can later remove the 2-field override for this function
+		wxASSERT(rv == 0);
 		// Ignore errors, if it didn't succeed, no big deal - someone else will sooner or
-		// later succeed in adding this one to the remote DB.
+		// later succeed in adding this one to the remote DB. Internally it checks that there
+		// is no duplication happening, before doing the creation and adding to entry table
 	}
 	else
 	{
-		// No error from the lookup, so get the entry ID, and the value of the deleted flag
-		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
-		entryID = e.id; // a pseudo-delete will need this value
+		// No error from the lookup, so get the value of the deleted flag, etc
+		wxChar deletedFlag = m_entryStruct.deleted;
+		int nDeleted = wxAtoi(deletedFlag);
+		int theID = wxAtoi(m_entryStruct.id); 
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("LookupEntryFields in KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+		wxLogDebug(_T("2nd LookupEntryFields in KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			theID, (m_entryStruct.source).c_str(), (m_entryStruct.nonSource).c_str(), 
+			nDeleted, (m_entryStruct.username).c_str());
 #endif
-		// If the remote entry has 0 for the deleted flag's value - then the remote DB
+		// If the remote entry has '0' for the deleted flag's value - then the remote DB
 		// already has this as a normal entry, so we've nothing to do here. On the other
-		// hand, if the flag's value is 1 (it's currently pseudo-deleted in the remote DB)
+		// hand, if the flag's value is '1' (it's currently pseudo-deleted in the remote DB)
 		// then go ahead and undo the pseudo-deletion, making a normal entry
-		if (e.deleted == 1)
+		if (deletedFlag == _T('1'));
 		{
-			// do an undelete of the pseudo-deletion, use the entryID value from above
-			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
+			// It exists in the entry table, but as a pseudo-deleted entry, so
+			// do an undelete of it, so it becomes visible in the GUI
+			//rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete); legacy call
+			rv = PseudoUndelete(pKbSvr, src, newText);
+			wxASSERT(rv == 0);
 		}
 		// Ignore errors, for the same reason as above (i.e. it's no big deal)
 	}
@@ -4900,7 +5260,7 @@ int KbServer::DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable
 	for (iter = pQueue->begin(); iter != pQueue->end(); iter++)
 	{
 		pKbSvrEntry = *iter;
-		int id = (int)pKbSvrEntry->id;
+		int id = (int)wxAtoi(pKbSvrEntry->id);
 		counter++;
 		rv = (CURLcode)pKbSvr->DeleteSingleKbEntry(id);
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
@@ -5090,6 +5450,7 @@ int KbServer::DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
 {
+	// BEW remove this, no longer needed
 	/*
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
@@ -5403,7 +5764,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 								// this pair should be uploaded to the remote DB
 								reference = new KbServerEntry;
 								reference->source = srcPhrase;
-								reference->translation = tgtPhrase;
+								reference->nonSource = tgtPhrase;
 								// store the new struct
 								m_uploadsList.Append(reference);
 							}
@@ -5451,7 +5812,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 									}
 									reference = new KbServerEntry;
 									reference->source = srcPhrase;
-									reference->translation = tgtPhrase;
+									reference->nonSource = tgtPhrase;
 									// store the new struct
 									m_uploadsList.Append(reference);
 								}
@@ -5475,7 +5836,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 								delete reference; // don't leak it
 								continue; // skip this iteration
 							}
-							reference->translation = pRefString->m_translation;
+							reference->nonSource = pRefString->m_translation;
 							// store the new struct
 							m_uploadsList.Append(reference);
 						}
@@ -5638,6 +5999,11 @@ bool KbServer::AllEntriesGotEnteredInDB()
 // (we don't upload any pseudo-deleted ones).
 void KbServer::UploadToKbServer()
 {
+
+// TODO  Leon's way
+
+
+	/* legacy code for JM solution, deprecated,  for a Bulk Upload
 #if defined(SYNC_LOGS)
 	wxDateTime now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
@@ -5714,7 +6080,7 @@ void KbServer::UploadToKbServer()
 				iter2 = m_uploadsList.Item((size_t)anIndex);
 				KbServerEntry* pEntry = iter2->GetData();
 				wxLogDebug(_T("UploadToKbServer() %d. uploadable pair =  %s / %s"),
-					anIndex + 1, pEntry->source.c_str(), pEntry->translation.c_str());
+					anIndex + 1, pEntry->source.c_str(), pEntry->nonSource.c_str());
 			}
 		}
 #endif
@@ -5808,11 +6174,11 @@ void KbServer::UploadToKbServer()
 
 			// Collect the entries for one JSON chunk (this many: numEntriesPerChunk)
 
-			// Get the KbServerEntry struct & extract the src and transln strings
+			// Get the KbServerEntry struct & extract the src and nonSource strings
 			anIter = m_uploadsList.Item((size_t)entryIndex);
 			pEntryStruct = anIter->GetData();
 			source = pEntryStruct->source;
-			transln = pEntryStruct->translation; // an adaptation, or gloss,
+			transln = pEntryStruct->nonSource; // an adaptation, or gloss,
 			// depending on kbserver type
 			// Build the next array of the JSON object
 			int i = entryCount - 1;
@@ -5907,6 +6273,7 @@ void KbServer::UploadToKbServer()
 	now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() end time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
+*/
 }
 
 void KbServer::DeleteUploadEntries()
@@ -6065,6 +6432,8 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 	return 0;
 }
 
+// BEW 10Oct20, take a results file (multiline, or just 2 lines - "success" and one entry's row)
+// and convert to string array, throwing away the "success" top line
 bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines)
 {
 	arrLines.Empty(); // clear contents
@@ -6159,6 +6528,384 @@ void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForei
 			pStruct->fullname.c_str(), pStruct->useradmin, pStruct->kbadmin);
 		// Append each filled out KbServerUserForeign to the pUsersListForeign (for Leon's sol'n)
 		pUsersListForeign->Append(pStruct);
+	}
+}
+
+// BEW 3Oct20, The following function decides, using funcNumber's switch, whichCounter to
+// use in deciding whether to process slower, by starting from the appropriate boilerplate
+// input .dat file in the dist folder [a child of execPath's folder]; or alternatively, to
+// go for speed by changing the file as lodged in execPath's folder after the initial
+// slower way has been used once in the session, doing the changes in-place with different
+// code; because each input .dat file stays in the execPath's folder forever - unless the
+// user goes in and removes it, but our implementation caters for that possibility.
+// If whichCounter is input as 0, the longer move up way is done and the counter incremented,
+// if >= 1 is input, then the quicker edit-in-place way is used; in the calling function.
+bool KbServer::MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whichCounter,
+			wxString execPath, wxString src, wxString nonSrc,
+			int nFieldSrc, int nFieldNonSrc, int nFieldKbType)
+{
+	wxString datFileName;
+	if (funcNumber == 0) // beginning of const int's set, a do-nothing value
+		return FALSE;
+	if (funcNumber == blanksEnd)  // end of const int's set, a do-nothing value
+		return FALSE;
+	//CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxString whichDATfile = wxEmptyString;
+	switch (funcNumber)
+	{
+	case noDatFile:
+	{
+		break;
+	}
+	case credentials_for_user: // = 1
+	{
+		datFileName = _T("credentials_for_user.dat");
+		whichDATfile = datFileName;
+		pApp->m_nAddUsersCount = 0; // always 0
+		break;
+	}
+	case lookup_user: // = 2
+	{
+		pApp->m_nLookupUserCount = 0; // always 0
+		datFileName = _T("lookup_user.dat");
+		whichDATfile = datFileName;
+		break;
+	}
+	case list_users: // = 3
+	{
+		pApp->m_nListUsersCount = 0; // aways 0
+		datFileName = _T("list_users.dat");
+		break;
+	}
+	case create_entry: // = 4
+	{
+		datFileName = _T("create_entry.dat");
+		whichDATfile = datFileName;
+		// signature points at the relevant counter
+		break;
+	}
+	case pseudo_delete: // = 5
+	{
+		datFileName = _T("pseudo_delete.dat");
+		whichDATfile = datFileName;
+		// signature points at the relevant counter
+		break;
+	}
+	case pseudo_undelete: // = 6
+	{
+		datFileName = _T("pseudo_undelete.dat");
+		whichDATfile = datFileName;
+		// signature points at the relevant counter
+		break;
+	}
+	case blanksEnd:
+	{
+		break; // do nothing
+	}
+	} // end of switch:  switch (funcNumber)
+
+	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
+	// currently in action is '1' or '2' respectively, the same code handles either in
+	// the following blocks. However, we should check that the kbType value is set correctly.
+	if (whichCounter == 0)
+	{
+		// Setting up m_pKbSvr for adaptations has just been done, so take
+		// the longer processing path for the first entry to be added to the
+		// entry table in this adapting sesson
+		pApp->ConfigureDATfile(funcNumber); // grabs m_curNormalSource & ...Target from m_pApp
+		if (funcNumber > (int)list_users) // list_users == 3
+		{
+			// First 3 cases are not speed critical, so leave the counter for those at zero
+//			whichCounter++; // subsequent entry table additions use the faster route
+		}
+	}
+	else
+	{
+		// Process quicker - just replace the src and tgt field in
+		// create_entry.dat, fields 6 and 7 (1-based counting), with the
+		// values passed in from the signature; use 0 for any which
+		// are not wanted for changing
+		wxString datPath = execPath + m_pApp->PathSeparator + datFileName;
+		bool bPresent = ::FileExists(datPath);
+		if (bPresent)
+		{
+/*
+			wxTextFile f;
+			bool bIsOpened = FALSE;
+			f.Create(datPath);
+			bIsOpened = f.Open();
+			if (bIsOpened)
+			{
+				wxString cmdLine = f.GetFirstLine();
+				if (nFieldSrc != 0)
+				{
+					cmdLine = ReplaceFieldWithin(cmdLine, nFieldSrc, src);
+				}
+				if (gbIsGlossing)
+				{
+					wxString kbType = _T("2");
+					if (nFieldKbType != 0)
+					{
+						cmdLine = ReplaceFieldWithin(cmdLine, nFieldKbType, kbType);
+					}
+				}
+				else
+				{
+					wxString kbType = _T("1");
+					if (nFieldKbType != 0)
+					{
+						cmdLine = ReplaceFieldWithin(cmdLine, nFieldKbType, kbType);
+					}
+				}
+				f.RemoveLine(0);
+				f.AddLine(cmdLine);
+				bool bWroteOK = f.Write();
+				f.Close();
+
+				if (!bWroteOK)
+				{
+					wxString msg = _T("%s failed to write cmdLine with replacement src & nonSrc fields");
+					msg = msg.Format(msg, whichDATfile.c_str());
+					m_pApp->LogUserAction(msg);
+					// Unlike, so a beep will do
+					wxBell();
+					return FALSE;
+				}
+			}
+			bIsOpened = FALSE;
+			f.Create(datPath);
+			bIsOpened = f.Open();
+			if (bIsOpened)
+			{
+				wxString cmdLine = f.GetFirstLine();
+				if (nFieldNonSrc != 0)
+				{
+					cmdLine = ReplaceFieldWithin(cmdLine, nFieldNonSrc, nonSrc); // target, or gloss
+				}
+				f.RemoveLine(0);
+				f.AddLine(cmdLine);
+				bool bWroteOK = f.Write();
+				f.Close();
+
+				if (!bWroteOK)
+				{
+					wxString msg = _T("%s failed to write cmdLine with replacement src & nonSrc fields");
+					msg = msg.Format(msg, whichDATfile.c_str());
+					m_pApp->LogUserAction(msg);
+					// Unlike, so a beep will do
+					wxBell();
+					return FALSE;
+				}
+				// put a copy on the app, so that LogUserAction() can grab it if the
+				// the wxExecute() in CallExecute() fails
+				m_pApp->m_curCommandLine = cmdLine;
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+					__LINE__, cmdLine.c_str());
+#endif
+			}
+*/
+		}
+		else
+		{
+			// file is absent from the execPath folder - tell user etc
+			wxString msg;
+			msg = msg.Format(_("The %s file is absent from the folder %s. Inserting the values: %s and  %s into the entry table failed. Adapting work can continue."),
+				datFileName.c_str(), execPath.c_str(), src.c_str(), nonSrc.c_str());
+			wxMessageBox(msg, _("Error - absent file"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			return FALSE;
+		}
+		if (funcNumber > 3)
+		{
+//			whichCounter++; // bump the counter value
+#if defined (_DEBUG)
+			wxLogDebug(_T("%s::%s() line %d, whichCounter value = %d"), __FILE__,
+				__FUNCTION__, __LINE__, whichCounter);
+#endif
+		}
+	} // end of else block for test: if (m_pApp->m_nCreateAdaptionCount == 0)
+	return TRUE;
+}
+
+// pass in execFolderPath with final PathSeparator; datFileName is a *_return_results.dat file
+bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
+{
+	if (m_pApp->m_bAdaptationsKBserverReady || m_pApp->m_bGlossesKBserverReady)
+	{
+		wxASSERT(!execFolderPath.IsEmpty());
+		wxASSERT(!datFileName.IsEmpty());
+		ClearEntryStruct();
+		wxString filePath = execFolderPath + datFileName; // path to the datFileName
+		wxString comma = _T(",");
+		wxString strSuccess = _T("success"); // this should be somewhere in the file's top line
+		int offset = wxNOT_FOUND;
+		int count = 0; // initialise
+		bool bExists = ::FileExists(filePath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(filePath);
+			if (bOpened)
+			{
+				wxString TopLine = f.GetLine((size_t)0);
+				offset = TopLine.Find(strSuccess);
+				wxString left;
+				int anID = 0; // initialise
+				if (offset >= 0)
+				{
+					wxString resultLine = f.GetLine((size_t)1); // comma separated, in entry table LTR order
+					int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
+					for (count = 1; count <= fieldCount; count++)
+					{
+						// Progressively shorten the resultLine as we extract each field
+						// (the final field should have a terminating comma, so number of
+						// commas should equal number of fields)
+						offset = resultLine.Find(comma);
+						if (offset >= 0)
+						{
+							if (count == 1)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.id = left; // python converted id as int, with str(), to string
+								//anID = wxAtoi(left);
+								//m_entryStruct.id = (long)anID;
+								resultLine = resultLine.Mid(offset + 1); // extracted id field
+							}
+							else if (count == 2)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.srcLangName = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted srcLangName field
+							}
+							else if (count == 3)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.tgtLangName = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted tgtLangName field
+							}
+							else if (count == 4)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.source = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted source field
+							}
+							else if (count == 5)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.nonSource = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted nonSource field
+							}
+							else if (count == 6)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.username = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted username field
+							}
+							else if (count == 7)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.timestamp = left;
+								resultLine = resultLine.Mid(offset + 1); // extracted timestamp field
+							}
+							else if (count == 8)
+							{
+								left = resultLine.Left(offset);
+								m_entryStruct.type = left[0];
+								resultLine = resultLine.Mid(offset + 1); // extracted type field
+							}
+							else
+							{
+								// This block is for the deleted flag. Just in case there is no
+								// final comma, do it differently
+								int length = resultLine.Len();
+								wxChar lastChar = resultLine[length - 1];
+								if (lastChar == comma)
+								{
+									resultLine = resultLine.Left(length - 1);
+								}
+								m_entryStruct.deleted = resultLine[0]; // extracted deleted field
+							}
+
+						} // end of TRUE block for test: if (offset >= 0)
+					} // end of for loop
+					// tell the app class what happened, so that KbServer's functions can be used
+					if (gbIsGlossing)
+					{
+						m_pApp->m_bGlossesLookupSucceeded = TRUE;
+					}
+					else
+					{
+						m_pApp->m_bAdaptationsLookupSucceeded = TRUE;
+					}
+				} // end of TRUE block for test: if (offset >= 0) i.e. "success" in top line
+				else
+				{
+					// This failure may indicate that I did not put the substring
+					// "success" somewhere in the top line of the returned .dat file
+					// (an error on my part in the .py python code)
+					// OR (much more likely)
+					// The src/nonSrc pair are not in the user table - assume the latter
+					if (gbIsGlossing)
+					{
+						m_pApp->m_bGlossesLookupSucceeded = FALSE;
+					}
+					else
+					{
+						m_pApp->m_bAdaptationsLookupSucceeded = FALSE;
+					}
+
+					//wxBell(); deprecate - LookupEntry() may fail often due to the src/nonSrc not being in the entry table yet
+					//wxString msg = _T(" FileToEntryStruct(), did not find 'success' string in top line. Probably missing entry.");
+					//m_pApp->LogUserAction(msg);
+				}
+			} // end of TRUE block for test: if (bOpened)
+			else
+			{
+				// unlikely to fail
+				wxBell();
+				wxString msg = _T("Line %s,failed to open results file, KbServer.cpp");
+				msg = msg.Format(msg, __LINE__);
+				m_pApp->LogUserAction(msg);
+				return FALSE;
+			}
+		} // end of TRUE block for test: if (bExists)
+		else
+		{
+			// the results file does not exist in the execFolderPath's folder
+			wxString msg = _("The results file, %s , is missing from the executable's folder");
+			msg = msg.Format(msg, datFileName.c_str());
+			wxString title = _("Results file is missing");
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			return FALSE;
+		}
+#if defined( _DEBUG )
+		wxString myType = m_entryStruct.type;
+		wxString delFlag = m_entryStruct.deleted;
+		wxLogDebug(_T("%s() line= %d , m_entryStruct: id= %d, srcLang= %s, tgtLang= %s, src= %s, nonSrc= %s, user= %s, time= %s, type= %s, deleted= %s"),
+			__FUNCTION__, __LINE__, (int)wxAtoi(m_entryStruct.id), m_entryStruct.srcLangName.c_str(), m_entryStruct.tgtLangName.c_str(),
+			m_entryStruct.source.c_str(), m_entryStruct.nonSource.c_str(), m_entryStruct.username.c_str(),
+			m_entryStruct.timestamp.c_str(), myType.c_str(), delFlag.c_str());
+#endif
+		return TRUE;
+	} // end of TRUE block for test:
+	  // if (m_pApp->m_bAdaptationsKBserverReady || m_pApp->m_bGlossesKBserverReady)
+	else
+	{
+		// The KbServer adaptations and glosses instantions have not been done,
+		// so clear relevant things pending instatiation or one or both
+		// of app's pointers m_pKbServer[0] and m_pKbServer[1]
+		ClearEntryStruct();
+		if (gbIsGlossing)
+		{
+			m_pApp->m_bGlossesLookupSucceeded = FALSE;
+		}
+		else
+		{
+			m_pApp->m_bAdaptationsLookupSucceeded = FALSE;
+		}
+		return FALSE;
 	}
 }
 

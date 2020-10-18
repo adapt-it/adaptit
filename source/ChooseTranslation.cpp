@@ -1040,45 +1040,6 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pMyListBox->SetFocus();
 }
 
-
-
-// whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
-//void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)
-//{
-//	CAdapt_ItApp* pApp = &wxGetApp();
-//	wxASSERT(pApp != NULL);
-//	//m_bCancelAndSelect = TRUE; // alter behaviour when Cancel is wanted (assume user wants instead
-//								// to create a merge of the source words at the selection location)
-//	pApp->m_curDirection = toright; // make sure any left-direction earlier drag selection
-//									// is cancelled; & BEW 2Oct13 changed from right to toright 
-//									// due to ambiguity
-//	OnCancel(event);
-//}
-
-// whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
-//void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
-//// applies only when adapting; when glossing, just immediately exit
-//{
-//	if (gbIsGlossing) return; // glossing being ON must not allow this shortcut to work
-//	if (event.AltDown())
-//	{
-//		// ALT key is down, so if right arrow key pressed, interpret the ALT key press as
-//		// a click on "Cancel And Select" button
-//		if (event.GetKeyCode() == WXK_RIGHT)
-//		{
-//			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
-//			if (pButton->IsShown())
-//			{
-//				wxCommandEvent evt = wxID_CANCEL;
-//				OnButtonCancelAndSelect(evt);
-//				return;
-//			}
-//			else
-//				return; // ignore the keypress when the button is invisible
-//		}
-//	}
-//}
-
 void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	// don't need to do anything except

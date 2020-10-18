@@ -896,11 +896,9 @@ void CKB::DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString)
         //      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		int rv = pKbSvr->CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
-		wxUnusedVar(rv);
+		pKbSvr->CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
 	}
 }
-
 
 void CKB::DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
@@ -1651,7 +1649,7 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 /// NOTE: json requires, for x-platform apps, that we use long or short, not int. So far,
 /// json is confined to the KbServer class; and only entryIDs are stored and retrieved as
 /// longs, for example using .AsLong(). The deleted flag currently is handled okay by
-/// wxArrayInt. The latter is seen by CKB class; but our custom array of longs,
+/// wxArrayInt. The latter is seen by CKB class; but our custom array of lo
 /// Array_of_long (defined near the top of KbServer.h) is not yet exposed to CKB class. If
 /// that situation changes, then KB.h will need a similar Array_of_long defined in KB.h
 void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
@@ -4429,11 +4427,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 // GDLC 20JUL16
         if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && 
 			!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
             ||
             (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && 
 				m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
 			// don't send to KBserver if it's a <Not In KB> entry
@@ -4597,10 +4593,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// for the first letter) are defined.
 // GDLC 20JUL16
             if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
-//          if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                 ||
                 (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//              (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
 				// don't send to KBserver if it's a <Not In KB> entry
@@ -4755,11 +4749,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 // GDLC 20JUL16
                         if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 							!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//                      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                             ||
                             (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
 								m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//                          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
@@ -4911,11 +4903,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 // GDLC 20JUL16
                     if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 						!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//                  if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                         ||
                         (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
 							m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//                      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
 						// don't send a <Not In KB> entry to KBserver
