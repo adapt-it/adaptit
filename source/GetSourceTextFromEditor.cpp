@@ -742,7 +742,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			if (bAllowed)
 			{
 				wxString gotten = ::wxGetCwd();
-				int yay = TRUE;
+				//int yay = TRUE; // whm 4Nov2020 removed to prevent gcc 'var not used' warning
 			}
 
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
