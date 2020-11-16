@@ -570,7 +570,10 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pU
 
 void DoMessageDelay(int hundredths); // to enable waitDlg to persist long enough for user to read
 
-
+wxString DoEscapeSingleQuote(wxString& str);
+wxString DoUnescapeSingleQuote(wxString& str);
+void DoEscapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
+void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
 
 #endif // _KBSERVER
 
@@ -628,5 +631,6 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 //#endif
 
 wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
+
 
 #endif	// helpers_h

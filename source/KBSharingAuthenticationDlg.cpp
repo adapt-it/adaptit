@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(KBSharingAuthenticationDlg, AIModalDialog)
 	EVT_BUTTON(wxID_CANCEL, KBSharingAuthenticationDlg::OnCancel)
 END_EVENT_TABLE()
 
-// The 'ForManager' contructor if bUserAuthenticating is FALSE, the normal user
+// The 'ForManager' constructor if bUserAuthenticating is FALSE, the normal user
 // constructor instead if bUserAuthenticating is TRUE(default, internally sets 
 // m_bForManager to TRUE)
 // BEW 3Sep20 heavily refactored simpler. Need it for Leon's LookupUser() but the legacy

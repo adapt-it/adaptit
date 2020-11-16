@@ -11295,14 +11295,16 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	// function from CMainFrame's OnIdle() handler - providing it's an adaptations
 	// or glosses sharing project. Its dialog will appear just after the document
 	// is laid out
+	bool bNeedDiscovery = FALSE;
 	if (pApp->m_strKbServerIpAddr.IsEmpty())
 	{
-		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-		pApp->m_bUserLoggedIn = FALSE;
-		return FALSE;
+		//wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		//pApp->m_bUserLoggedIn = FALSE;
+		//return FALSE;
+		bNeedDiscovery = TRUE;
 	}
 	// In next call, FALSE is: bool bServiceDiscoveryWanted
-	bool bSucceeded = AuthenticateCheckAndSetupKBSharing(pApp, FALSE);
+	bool bSucceeded = AuthenticateCheckAndSetupKBSharing(pApp, bNeedDiscovery);
 	wxString ipaddress = wxEmptyString;
 	if (bSucceeded)
 	{
@@ -12546,14 +12548,323 @@ bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUser
 }
 */
 
+// BEW 30Oct20 created. A utility function, which takes str and
+// internally processes to turn every single quote found, ( ' )
+// into an escaped single quote (  \'  ). This is to facilitate
+// inserting strings into mariaDB/kbserver mysql entry table, or
+// user table, which contain internal single quotes in words,
+// phrases, or names, or language names, or whatever. Our data
+// for sending to a kbserver table never has a single quoted 
+// string, so any single quotes must be escaped to keep SQL
+// requests from failing - since ' is a key-character in SQL
+// requests. MySQL will take the \' escaped strings "as is",
+// and so requiring un-escaping these when they are output
+// back to the AI code. I'll provide functions for that too.
+// The approach here goes like this. Adding the backslashes
+// will change the str's buffer length if done 'in place' so
+// this is not an option, because Pacific languages can have
+// huge numbers of glottal stops as single quote ( ' ). Instead
+// I'll make a read-only buffer, and scan forward with a pointer
+// to wxChar, and provide an empty temporary wxString to accept
+// the changes. When done, the passed in str is then deleted,
+// and the temp wxString is returned TO THE SAME NAMED wxString
+// AS WAS PASSED IN. The returned string then is safe for all
+// SQL commands. (I'll also provide an override for dealing with
+// a whole file of data, using this function internally.)
+wxString DoEscapeSingleQuote(wxString& str)
+{
+	size_t len = (size_t)str.Len();
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	wxChar quote = _T('\'');
+	wxChar* ptr = NULL; // initialise
+	wxStringBuffer pBuffer(str, len + 1); // probably the +1 is unnecessary
+	wxChar* pBufStart = pBuffer;
+	wxChar* pEnd = pBufStart + len;
+	wxASSERT(*pEnd == _T('\0'));
+	wxChar bkslash = _T('\\');
+	ptr = pBuffer;
+
+	wxString tempStr;
+	size_t longer = len + len / 5; // allow generous growth without auto lengthening
+	tempStr.Alloc(longer);
+	while (ptr < pEnd)
+	{
+		if ((*ptr != bkslash) && (*ptr != quote))
+		{
+			// it's neither, so send it to tempStr
+			tempStr << *ptr;
+			ptr++; // point at next char
+		}
+		else
+		{
+			// it's either a back slash or a single quote character
+			// bleed out the combination of \ followed by ', as that is already escaped
+			if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+			{
+				tempStr << *ptr; ptr++;
+				tempStr << *ptr; ptr++;
+			}
+			else
+			{
+				// backslash before anything which is not a quote -
+				// just send it to tempStr as is, and iterate
+				if (*ptr == bkslash)
+				{
+					tempStr << bkslash;
+					ptr++;
+				}
+				else
+				{
+					// It's not a backslash, but it could be a quote - in
+					// which case, we must escape it; or could be some other
+					// wxChar, in which case we just send it to tempStr
+					if (*ptr == quote)
+					{
+						tempStr << bkslash;
+						tempStr << quote;
+						// we've escaped it
+						ptr++;
+					}
+					else
+					{
+						// It's not a quote, so just send it to tempStr
+						tempStr << *ptr;
+						ptr++;
+					}
+				} //end of else block for test: if (*ptr == bkslash)
+			} // end of else block for test: if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+		} // end of else block for test: if ((*ptr != bkslash) && (*ptr != quote))
+	} // end of while loop: while (ptr < pEnd)
+
+	// Clean up, returning tempStr back to the string passed in
+
+	return tempStr;
+}
+
+// BEW 2Nov20 created. A utility function, which takes str and
+// internally processes to turn every escaped single quote, ( \' )
+// into an un-escaped single quote ( ' ). This is to reverse what
+// DoEscapeSingleQuote() does. (see above)
+wxString DoUnescapeSingleQuote(wxString& str)
+{
+	wxString escaped_quote = _T("\\'");
+	wxString only_quote = _T("'");
+	wxString tempStr = str;
+	int length = (int)tempStr.Replace(escaped_quote, only_quote);
+	wxUnusedVar(length);
+	return tempStr;
+	/*
+	// BEW 2Nov20 the commented code below will work, but wxString
+	// class has a Replace() function that will do it for us, so
+	// I'll keep this stuff below, and use Replace() instead
+
+	size_t len = (size_t)str.Len();
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	wxChar quote = _T('\'');
+	wxChar* ptr = NULL; // initialise
+	wxStringBuffer pBuffer(str, len + 1); // probably the +1 is unnecessary
+	wxChar* pBufStart = pBuffer;
+	wxChar* pEnd = pBufStart + len;
+	wxASSERT(*pEnd == _T('\0'));
+	wxChar bkslash = _T('\\');
+	ptr = pBuffer;
+
+	wxString tempStr;
+	//	No lengthening of the buffer is needed, because the resulting length
+	// will be <= the original passed in string's length
+	while (ptr < pEnd)
+	{
+		if ((*ptr != bkslash) && (*ptr != quote))
+		{
+			// it's neither, so send it to tempStr
+			tempStr << *ptr;
+			ptr++; // point at next char
+		}
+		else
+		{
+			// it's either a back slash or a single quote character
+			// If it's  \ followed by ', then unescape it
+			if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+			{
+				ptr++; // skip over the backslash
+				tempStr << *ptr; ptr++; // add the quote and update ptr
+			}
+			else
+			{
+				// backslash before anything which is not a quote -
+				// just send it to tempStr as is, and iterate
+				if (*ptr == bkslash)
+				{
+					tempStr << bkslash;
+					ptr++;
+				}
+				else
+				{
+					// It's not a backslash, but it could be an unescaped quote
+					// - in which case, we append it as is; or could be some other
+					// wxChar, in which case we just send it to tempStr
+					if (*ptr == quote)
+					{
+						tempStr << quote;
+						// it didn't need un-escaping
+						ptr++;
+					}
+					else
+					{
+						// It's not a quote, so just send it to tempStr
+						tempStr << *ptr;
+						ptr++;
+					}
+				} //end of else block for test: if (*ptr == bkslash)
+			} // end of else block for test: if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+		} // end of else block for test: if ((*ptr != bkslash) && (*ptr != quote))
+	} // end of while loop: while (ptr < pEnd)
+
+	  // Clean up, returning tempStr back to the string passed in
+	return tempStr;
+*/
+}
 
 
+// Code for this was taken from Bill's test code in OnInit() at 28,360++. Thanks Bill
+// Returns nothing. If the file did not get processed, the file is unchanged. If it
+// did get processed, it is restored with same name, but with contents having
+// single quotes escaped.
+void DoEscapeSingleQuote(wxString pathToFolder, wxString filename)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString separator = pApp->PathSeparator;
+	int pathLen = pathToFolder.Len();
+	wxChar last = pathToFolder.GetChar(pathLen - 1);
+	if (last != separator)
+	{
+		// add the separator string
+		pathToFolder += separator;
+	}
+	wxString fileAndPath = pathToFolder + filename;
+	wxString fileBuffer = wxEmptyString;
+	// now read the file into a char buffer on the heap
+	//wxFileOffset fileLen;
+	size_t fileLen;
+	wxFile f(fileAndPath, wxFile::read);
+	if (f.IsOpened())
+	{
+		fileLen = (size_t)f.Length(); // get the number of bytes wanted
+		size_t numReadIn = 0; // initialise
 
+		// read the raw byte data into pByteBuf (char buffer on the heap)
+		char* pByteBuf = (char*)malloc(fileLen + 1); // + 1 for a null terminator
+		memset(pByteBuf, 0, fileLen + 1); // fill with nulls
+		numReadIn = f.Read(pByteBuf, fileLen); // get it all, but it may get less than expected
+		wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
+		wxASSERT(numReadIn == fileLen); // they should agree, if not, we want to diagnose why
+		f.Close();
 
+		// Next, turn the heap's buffer of read in data into a wxString
+		fileBuffer = wxString(pByteBuf, wxConvUTF8, fileLen);
+		// free the malloc buffer, don't need it, fileBuffer has the data now
+		free((void*)pByteBuf);
+		// Now call the string form of the DoEscapeSingleQuote(wxString& str)
+		// to get all single quotes in the file's contents, escaped to  \\'
+		// (if any are already escaped, they are left as is & returned)
+		fileBuffer = DoEscapeSingleQuote(fileBuffer);
+	}
+	else
+	{
+		return; // nothing was done
+	}
+	//Now we must re-open ff for writing,and write it out
+	wxFile ff(fileAndPath, wxFile::write);
+	if (ff.IsOpened())
+	{
+		// Overwrite original contents
+		ff.Seek((wxFileOffset)0); // 2nd arg, wxSeekMode, is default wxFromStart
+		bool bReadOutOK = ff.Write(fileBuffer, wxConvUTF8);
+		ff.Flush();
+		if (bReadOutOK)
+		{
+			ff.Close();
+		}
+		else
+		{
+			wxString title = _("Possible loss of data");
+			wxString msg = _("Writing out the file of escaped single quotes detected an error. Check your file's data is not truncated.");
+			wxMessageBox(msg, title);
+			pApp->LogUserAction(msg);
+		}
+	}
+	fileBuffer.Empty();
+}
 
+// Returns nothing. If the file did not get processed, the file is unchanged. If it
+// did get processed, it is restored with same name, but with contents having
+// single escaped quotes un-escaped.
+void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString separator = pApp->PathSeparator;
+	int pathLen = pathToFolder.Len();
+	wxChar last = pathToFolder.GetChar(pathLen - 1);
+	if (last != separator)
+	{
+		// add the separator string
+		pathToFolder += separator;
+	}
+	wxString fileAndPath = pathToFolder + filename;
+	wxString fileBuffer = wxEmptyString;
+	// now read the file into a char buffer on the heap
+	//wxFileOffset fileLen;
+	size_t fileLen;
+	wxFile f(fileAndPath, wxFile::read);
+	if (f.IsOpened())
+	{
+		fileLen = (size_t)f.Length(); // get the number of bytes wanted
+		size_t numReadIn = 0; // initialise
 
+		// read the raw byte data into pByteBuf (char buffer on the heap)
+		char* pByteBuf = (char*)malloc(fileLen + 1); // + 1 for a null terminator
+		memset(pByteBuf, 0, fileLen + 1); // fill with nulls
+		numReadIn = f.Read(pByteBuf, fileLen); // get it all, but it may get less than expected
+		wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
+		wxASSERT(numReadIn == fileLen); // they should agree, if not, we want to diagnose why
+		f.Close();
 
-
+		// Next, turn the heap's buffer of read in data into a wxString
+		fileBuffer = wxString(pByteBuf, wxConvUTF8, fileLen);
+		// free the malloc buffer, don't need it, fileBuffer has the data now
+		free((void*)pByteBuf);
+		// Now call the string form of the DoUnescapeSingleQuote(wxString& str)
+		// to get all escaped single quotes ( \' ) in the file's contents, 
+		// un-escaped to ( ' )
+		// (if any are already un-escaped, they are left as is & returned)
+		fileBuffer = DoUnescapeSingleQuote(fileBuffer);
+	}
+	else
+	{
+		return; // nothing was done
+	}
+	//Now we must re-open ff for writing,and write it out
+	wxFile ff(fileAndPath, wxFile::write);
+	if (ff.IsOpened())
+	{
+		// Overwrite original contents
+		ff.Seek((wxFileOffset)0); // 2nd arg, wxSeekMode, is default wxFromStart
+		bool bReadOutOK = ff.Write(fileBuffer, wxConvUTF8);
+		ff.Flush();
+		if (bReadOutOK)
+		{
+			ff.Close();
+		}
+		else
+		{
+			wxString title = _("Possible loss of data");
+			wxString msg = _("Writing out the file of un-escaped single quotes detected an error. Check your file's data is not truncated.");
+			wxMessageBox(msg, title);
+			pApp->LogUserAction(msg);
+		}
+	}
+	fileBuffer.Empty();
+}
 
 #endif // _KBSERVER
 

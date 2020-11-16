@@ -135,7 +135,7 @@ protected:
 	// BEW 29Aug20 updated -- TODO, legacy code commented out  -- see 1372 .cpp
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
 
-	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));  // BEW 29Aug20 changes pending
+	//void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));  // BEW 16Nov20 too dangerous
 	void		  OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20, pending, empty
 
 	//void		  OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(event));
@@ -147,7 +147,7 @@ protected:
 	// Functions needed by the Kb Definitions page
 	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);  // BEW 28Aug20 updated
 	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList); // BEW 31Aug20 updated
-	void		  DeleteClonedKbServerKbStruct(); // BEW 31Aug20, no change needed
+	//void		  DeleteClonedKbServerKbStruct(); // BEW 31Aug20, no change needed
 	bool		  IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList); // BEW 31Aug20 updated
 	void		  LoadLanguageNamePairsInListBox_KbsPage(bool bKBTypeIsSrcTgt, KbsList* pSrcTgtKbsList,
 							 KbsList* pSrcGlsKbsList, wxListBox* pListBox); // BEW 31Aug20 updated
@@ -166,7 +166,7 @@ protected:
 	void		  OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
+	//void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
 
 	// Functions needed by the Create or Delete Custom Codes (3rd) page
 	//void          LoadLanguagesListBox(wxListBox* pListBox, LanguagesList* pLanguagesList);

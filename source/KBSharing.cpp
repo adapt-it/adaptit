@@ -64,6 +64,8 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_SPINCTRL(ID_SPINCTRL_RECEIVE, KBSharing::OnSpinCtrlReceiving)
 END_EVENT_TABLE()
 
+// NOTE: The update handler for "Controls For Knowledge Base Sharing"
+// is OnUpdateKBSharingDlg() at line 554 of MainFrame.cpp line 2668
 
 KBSharing::KBSharing(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Controls For Knowledge Base Sharing"),
@@ -98,9 +100,10 @@ void KBSharing::OnOK(wxCommandEvent& myevent)
 	// currently instantiated and is running (KB sharing might be temporarily disabled, or
 	// enabled, we don't care which - and it doesn't matter as far as setting the interval
 	// is concerned)
-	if (receiveInterval != oldReceiveInterval && 
-		m_pApp->m_pKbServerDownloadTimer != NULL &&
-		m_pApp->m_pKbServerDownloadTimer->IsRunning())
+	receiveInterval = m_pSpinReceiving->GetValue();
+
+	if (receiveInterval != oldReceiveInterval && m_pApp->m_pKbServerDownloadTimer != NULL 
+		&& m_pApp->m_pKbServerDownloadTimer->IsRunning())
 	{
 		// The user has changed the interval setting (minutes), so store the new value
 		m_pApp->m_nKbServerIncrementalDownloadInterval = receiveInterval;
@@ -121,6 +124,8 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pBtnGetAll = (wxButton*)FindWindowById(ID_GET_ALL);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
 	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
+	// BEW 22Oct20 need to set min and max range, otherwise max defaults to 20
+	m_pSpinReceiving->SetRange(1, 120); // values are minutes
 
 	// initialize this; it applies to whatever KBserver(s) are open for business -
 	// but only one at a time can be active, since glossing is a different mode
@@ -128,17 +133,37 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bKBSharingEnabled = TRUE;
 
 	// get the current state of the two radio buttons
-	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
-	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
+	KbServer* pKbSvr = NULL; //initialise
+	if (gbIsGlossing)
+	{
+		pKbSvr = m_pApp->GetKbServer(2);
+		if (pKbSvr == NULL)
+		{
+			// Setup a running KbSrvr instance ptr, of glossing type
+
+
+
+		}
+	}
+	else
+	{
+		pKbSvr = m_pApp->GetKbServer(1);
+		{
+			// Setup a running KbSrvr instance ptr, of adapting type
+
+
+		}
+	}
+	m_nRadioBoxSelection = pKbSvr->IsKBSharingEnabled() ? 0 : 1;
 	m_pRadioBox->SetSelection(m_nRadioBoxSelection);
 
-	// update the 'save' boolean to whatever is the current state (user may Cancel and
-	// we would need to restore the initial state)
+	// update the 'save' boolean to whatever is the current state (user may 
+	// Cancel and we would need to restore the initial state)
 	bSaveKBSharingEnabled = m_nRadioBoxSelection == 0 ? TRUE: FALSE;
 	bKBSharingEnabled = bSaveKBSharingEnabled;
 
-	// initialize the spin control to the current value (from project config file, or as
-	// recently changed by the user)
+	// initialize the spin control to the current value (from project config
+	// file, or as recently changed by the user)
 	receiveInterval = m_pApp->m_nKbServerIncrementalDownloadInterval;
 	// put the value in the box
 	if (m_pSpinReceiving != NULL)
@@ -179,7 +204,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
         // sharing
 		if (m_nRadioBoxSelection == 0)
 		{
-			// This is the first button, the one for sharing to be ON
+			// This is the first radio button, the one for sharing to be ON
 			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
 			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
 			if (pAdaptingSvr != NULL)
@@ -194,7 +219,8 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 		}
 		else
 		{
-			// This is the second button, the one for sharing to be OFF
+			// This is the second radio button, the one for sharing to 
+			// be (temporarily) OFF
 			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
 			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
 			if (pAdaptingSvr != NULL)
@@ -212,6 +238,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 
 void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->m_bUserRequestsTimedDownload = TRUE;
 	KbServer* pKbServer;
 	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
@@ -252,12 +279,14 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(msg);
 		}
 	}
+	m_pApp->m_bUserRequestsTimedDownload = FALSE;
 	// make the dialog close
 	EndModal(wxID_OK);
 }
 
 void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->m_bUserRequestsTimedDownload = TRUE;
 	KbServer* pKbServer;
 	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
@@ -298,6 +327,7 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(msg);
 		}
 	}
+	m_pApp->m_bUserRequestsTimedDownload = FALSE;
 	// make the dialog close
 	EndModal(wxID_OK);
 }
@@ -351,35 +381,9 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// my debug build (Release build would be quicker); most of the time is taken in the
 	// bulk download and comparison of local versus remote data to find out what to upload.
 	// I was uploading to a KBserver in VBox VM on the same computer - my XPS Win7 machine.
-	pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
+	//pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 
-	// Check for an error, if there was one, redo the upload
-	if (!pKbServer->AllEntriesGotEnteredInDB())
-	{
-#if defined(_DEBUG)
-		wxLogDebug(_T("\nOnBtnSendAll(): UploadToKbServer() had one or more chunk errors. Calling it second time to upload any not sent.\n%s"),
-			(pKbServer->ShowReturnedCurlCodes()).c_str());
-#endif
-		// Have a second try - far fewer entries should be involved in a second try
-		pKbServer->ClearReturnedCurlCodes();
-		pKbServer->UploadToKbServer();
-
-		// Have a third and last try if necessary if the last call still generated an error, 
-		// if there was one, redo the upload
-		if (!pKbServer->AllEntriesGotEnteredInDB())
-		{
-#if defined(_DEBUG)
-			wxLogDebug(_T("\n\nOnBtnSendAll(): UploadToKbServer() second try had one or more chunk errors. Calling it a third and last time to upload any not sent.\n%s"),
-				(pKbServer->ShowReturnedCurlCodes()).c_str());
-#endif
-			// A third try - even fewer entries should be involved this time
-			pKbServer->ClearReturnedCurlCodes();
-			pKbServer->UploadToKbServer();
-		}
-	}
-	pKbServer->ClearReturnedCurlCodes();
-	
 	// make the dialog close (a good way to say, "it's been done")
 	EndModal(wxID_OK);
 }

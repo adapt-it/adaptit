@@ -1032,10 +1032,9 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, m_srcKeyStr.c_str(), newText.c_str());
+				pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				wxLogDebug(_T("KBEditor.cpp (1036) OnAddNoAdaptation(): CreateEntry for src = %s  &  tgt = %s"),
+					m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
 #endif
@@ -1191,10 +1190,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	{
 		// BEW added 26Oct12 for KBserver support
 #if defined(_KBSERVER)
-// GDLC 20JUL16
-//		if ((pApp->m_bIsKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-//          ||
-//			(pApp->m_bIsGlossingKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+		bool bCreatedOK = FALSE; // initialise
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
             (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
@@ -1203,9 +1199,18 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
 				int rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, m_srcKeyStr.c_str(), newText.c_str());
+				if (rv == 0)
+				{
+					bCreatedOK = TRUE;
+					wxLogDebug(_T("KBEditor.cpp line= %d , OnButtonAdd() Succeeded: CreateEntry for src = %s  &  tgt = %s"),
+						__LINE__, m_srcKeyStr.c_str(), newText.c_str());
+				}
+				else // rv == -1
+				{
+					wxLogDebug(_T("KBEditor.cpp line= %d , OnButtonAdd() Failed: CreateEntry for src = %s  &  tgt = %s"),
+						__LINE__, m_srcKeyStr.c_str(), newText.c_str());
+
+				}
 			}
 		}
 #endif
@@ -1719,9 +1724,6 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
         ||
         (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
-        //	if ((pApp->m_bIsKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-        //      ||
-        //		(pApp->m_bIsGlossingKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 	
@@ -1792,7 +1794,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		{
 			nNewKeySel--;
 		}
-	}
+	} // end of TRUE block for test: if (numNotDeleted == 0)
 	LoadDataForPage(m_nCurPage,nNewKeySel);
 	m_pTypeSourceBox->SetSelection(0,0); // sets selection to beginning of type
 										 // source edit box following MFC
@@ -1912,26 +1914,6 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			wxASSERT(FALSE);
 		}
-		/* legacy code
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
-		wxASSERT(pRefString != NULL);
-		pCurTgtUnit->m_pTranslations->DeleteNode(pos);
-		pos = pCurTgtUnit->m_pTranslations->Item(nSel);
-		wxASSERT(pos != NULL);
-        // Note: wxList::Insert places the item before the given item and the inserted item
-        // then has the insertPos node position.
-		TranslationsList::Node* newPos = pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
-		if (newPos == NULL)
-		{
-			// a rough & ready error message, unlikely to ever be called
-			wxMessageBox(_T(
-			"Error: MoveUp button failed to reinsert the translation being moved\n"),
-			_T(""), wxICON_EXCLAMATION | wxOK);
-			wxASSERT(FALSE);
-		}
-		*/
 	}
 
 	m_pEditRefCount->SetValue(m_refCountStr);
@@ -2205,8 +2187,6 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		m_nWordsSelected = -1;
 		m_TheSelectedKey = _T("");
 	}
-
-
     // Determine which tab page needs to be pre-selected.
     //
     // The m_nCurPage is set as follows depending on what the circumstances are when the 

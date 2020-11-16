@@ -55,6 +55,7 @@ public:
 	void			SetModifiedDateTime(wxString modifiedDT);
 	void			SetDeletedDateTime(wxString deletedDT);
 	void			SetWhoCreated(wxString whoCreated);
+	wxString		GetWhoCreated();
 
 private:
 

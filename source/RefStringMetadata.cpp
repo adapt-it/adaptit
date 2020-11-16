@@ -118,3 +118,8 @@ void CRefStringMetadata::SetWhoCreated(wxString whoCreated)
 	m_whoCreated = whoCreated;
 }
 
+wxString CRefStringMetadata::GetWhoCreated()
+{
+	return m_whoCreated;
+}
+

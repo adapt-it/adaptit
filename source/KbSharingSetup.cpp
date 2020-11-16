@@ -198,6 +198,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	} // end for loop
 	// Find which was chosen, and get the matchine hostname, and store these
 	// ready for later kbserver calls
+	/* BEW 6Nov20 deprecate this test, the return prevents authentication from being done in OnInit()
 	if (m_pApp->m_theIpAddrs.IsEmpty())
 	{
 		wxString title = _("No ipAddresses found");
@@ -206,7 +207,9 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pApp->LogUserAction(msg);
 		return;
 	}
-	else
+	//else
+	*/
+	if (!m_pApp->m_theIpAddrs.IsEmpty()) // BEW 6Nov20 changed, doesn't matter if empty when in this dialog
 	{
 		wxString strItem;
 		wxString itsHostname = wxEmptyString;
@@ -339,42 +342,49 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	// if so, leave it/them running. If not, get them running
 	bool bSetupAdaptations = FALSE;
 	bool bSetupGlosses = FALSE;
-	if (bAuthenticated)
+	if (bAuthenticated)  // BEW 6Nov20 InitDialog() does the authentication
 	{
 		bool bAdaptRunning = m_pApp->KbAdaptRunning();
 		if (m_bSharingAdaptations)
 		{
 			if (bAdaptRunning)
 			{
-				// Shut it down BEW 24Sep20 ?? no, leave it run
-				bSetupAdaptations = TRUE;
-				// m_pApp->ReleaseKBServer(1); // the adaptations one
+				// Shut it down
+				bSetupAdaptations = FALSE;
+				m_pApp->ReleaseKBServer(1); // the adaptations one
+				bAdaptRunning = FALSE;
 			}
-			else
+			// Now it's not running, set it up again
+			if (!bAdaptRunning)
 			{
-				// not running
-
 				// Get the adaptations KbServer class instantiated
 				bSetupAdaptations = m_pApp->SetupForKBServer(1);
-				//KbServer* pKbServer = m_pApp->GetKbServer(1);
+				if (bSetupAdaptations)
+				{
+					m_pApp->m_bAdaptationsKBserverReady = TRUE;
+				}
 			}
 		} // end of TRUE block for test: if (m_bSharingAdaptations)
+
 		bool bGlossesRunning = m_pApp->KbGlossRunning();
 		if (m_bSharingGlosses)
 		{
 			if (bGlossesRunning)
 			{
-				// Shut it down BEW 24Sep20 ?? no, leave it run
-				bSetupGlosses = TRUE;
-				; // m_pApp->ReleaseKBServer(2); // the adaptations one
+				// Shut it down 
+				bSetupGlosses = FALSE;
+				m_pApp->ReleaseKBServer(2); // the glosses one
+				bGlossesRunning = FALSE;
 			}
-			else
+			// Now glossing KB is not running, set it up again
+			if (!bGlossesRunning)
 			{
-				// not running
-
-				// Get the adaptations KbServer class instantiated
+				// Get the glosses KbServer class instantiated
 				bSetupGlosses = m_pApp->SetupForKBServer(2);
-				//KbServer* pKbServer = m_pApp->GetKbServer(2);
+				if (bSetupGlosses)
+				{
+					m_pApp->m_bGlossesKBserverReady = TRUE;
+				}
 			}
 		} // end of TRUE block for test: if (m_bSharingGlosses)
 

@@ -91,18 +91,17 @@ WX_DECLARE_LIST(KbServerUserForeign, UsersListForeign); // stores pointers to Kb
 // pairs which already have a presence in the remote server; used when doing a full KB upload
 WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap);
 
-// Not all values are needed from each entry, so I've commented out those the KB isn't
-// interested in
+// BEW 12Oct20 reinstated, with some name changes, for Leon's solution
 struct KbServerEntry {
-	long		id; // needed, because pseudo-delete or undelete are based on the record ID
-	//wxString	srcLangCode;
-	//wxString	tgtLangCode;
+	wxString 	id; //python: str(id) converts int to string, and atoi(id) converts back to int
+	wxString	srcLangName;
+	wxString	tgtLangName;
 	wxString	source;
-	wxString	translation; // for gloss, or tgt text, according to mode
+	wxString	nonSource; // for gloss, or tgt text, according to mode
 	wxString	username;
-	//wxString	timestamp;
-	//int		type; // the only values allowed are 1 (adapting) or 2 (glossing)
-	int			deleted; // the only values allowed are 0 (not pseudo-deleted) or 1 (pseudo-deleted)
+	wxString	timestamp;
+	wxChar		type;    //  values allowed are '1' (adapting) or '2' (glossing)
+	wxChar		deleted; // values allowed are '0' (not pseudo-deleted) or '1' (pseudo-deleted)
 };
 
 struct KbServerUser {
@@ -119,8 +118,8 @@ struct KbServerUser {
 struct KbServerUserForeign {
 	wxString	username;  // the unique one, (but it doesn't have to be)
 	wxString	fullname;  // the informal name
+	wxString	password;
 	bool		useradmin; // permission to change user table _T('1') or _T('0')
-	bool		kbadmin;   // always TRUE as of 28Aug20
 };
 
 
@@ -196,47 +195,71 @@ public:
 	// The functions in this next block do the actual calls to the remote KBserver, they are
 	// public access because KBSharingAuthenticationDlg will need to use several of them, as
 	// do other classes
-	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
-					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
-	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE); // needed for KB Sharing Mgr delete whole kb button
+	//int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
+	//				wxString url, wxString username, wxString password, CBString jsonUtf8Str); deprecated BEW 2Nov20
+	//int		 ChangedSince(wxString timeStamp); BEW 21Oct20 no longer want this one
+	//int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE); // needed for KB Sharing Mgr delete whole kb button
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
-	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword,
-						bool bKbadmin, bool bUseradmin, bool bLanguageadmin); // Keep - TODO
-	int		 CreateKb(wxString ipAddr, wxString username, wxString password, 
-						wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt); // Keep - TODO
+	//int	 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bUseradmin); // Keep - TODO
+	//int	 CreateKb(wxString ipAddr, wxString username, wxString password, 
+	//			wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt); now unneeded
+	// BEW 10Oct20, take a results file (multiline, or just 2 lines - "success" and one entry's row)
+	// and convert to string array, throwing away the "success" top line
 	bool	 DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 	void	 ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersList);
+	bool     PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp, wxString& execPath,
+		wxString& datFilename, wxString& sourceLanguage, wxString nonSourceLanguage); // BEW 26Oct20, 
+				// created. Populate local_kb_lines.dat from local KB
 
-	int		 ChangedSince_Queued(KbServer* pKbSvr);
+	//int	 ChangedSince_Queued(KbServer* pKbSvr); BEW 21Oct20 unneeded
 
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
-	int		 ListKbs(wxString username, wxString password); // BEW 5Sep20 needed
-	int		 ListUsers(wxString username, wxString password); // BEW 5Sep20  needed
+	int		 ListKbs(wxString username, wxString password); // BEW 5Sep20 unneeded
+	int		 ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername); // BEW
+					// 5Sep20  needed, given same signature as LookupUser() on 11Nov20
 	//int	 ListLanguages(wxString username, wxString password);
-	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
+	int		 LookupEntryFields(wxString src, wxString nonSrc); // BEW 13Oct20 refactored
+	wxString ExtractTimestamp(wxString firstLine); // BEW 21Oct20, extract timestamp from
+					// .dat result file for ChangedSince_Timed(), first line of form
+					// "success,<timestamp string>"
 	// BEW 24Sep20 deprecated, we no longer have a kb table
 	//int		 LookupSingleKb(wxString ipAddr, wxString username, wxString password, wxString srcLangName,
 	//						wxString nonsrcLangName, int kbType, bool& bMatchedKB); 
 	int		 LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername);
-	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
-	int		 DeleteSingleKbEntry(int entryID);
+	//int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	//int		 DeleteSingleKbEntry(int entryID); BEW 2Nov20 deprecated - we don't use JM's slow way
 	int		 RemoveUser(int userID);
-	int		 RemoveKb(int kbID);
+	//int		 RemoveKb(int kbID);
 	int		 RemoveCustomLanguage(wxString langID);
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
 						KbServerUser* pEditedUserStruct, wxString password); // Do we need this as is or modified?
 	void	 UploadToKbServer();
-	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
+	//int	 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode); 2Nov20 deprecated
+	// BEW 01Oct20, a function for replacing a subfield in a comma-separated set of params
+	wxString ReplaceFieldWithin(wxString cmdLine, int commaCount, wxString strReplacement);
+	// BEW 3Oct20, The following function decides, using funcNumber's switch, whichCounter to
+	// use in deciding whether to process slower, by starting from the appropriate boilerplate
+	// input .dat file in the dist folder [a child of execPath's folder]; or alternatively, to
+	// go for speed by changing the file as lodged in execPath's folder after the initial
+	// slower way has been used once in the session, doing the changes in-place with different
+	// code; because each input .dat file stays in the execPath's folder forever - unless the
+	// user goes in and removes it, but our implementation caters for that possibility.
+	// If whichCounter is input as 0, the longer move up way is done and the counter incremented,
+	// if >= 1 is input, then the quicker edit-in-place way is used; in the calling function.
+	bool	MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whichCounter,
+				wxString execPath, wxString src, wxString nonSrc,
+				int nFieldSrc, int nFieldNonSrc, int nFieldKbType);
+				// nFieldxxx is 1-based, so field for index 0 is nFieldxxx 1
+
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
 
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
-	void	DoChangedSince();
+	//void	DoChangedSince(); deprecated, BEW 2Nov20
 	void	DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
 	void	ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
 	bool	AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
@@ -246,14 +269,14 @@ public:
 						// it was because it tried to upload an already entered db entry)
 	void	 DeleteUploadEntries();
 
-	// Functions for synchronous access to the remote server - to check if they leak memory too
-	// They don't leak, hooray. We have to use these instead of detached threads, because the
+	// Functions for access to the remote server - to check if they leak memory too
+	// They don't leak. We have to use these instead of detached threads, because the
 	// latter incurs openssl leaks of about 1KB per KBserver access
-	int		CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	int		ChangedSince_Timed(KbServer* pKbSvr);
-	int		DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc);
+	int		PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc);
+	int		PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc);
+	//int	ChangedSince_Timed(KbServer* pKbSvr);  BEW 21Oct20 removed
+	//int	DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable); // BEW 2Nov20 deprecated
 	int		KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
@@ -314,7 +337,7 @@ protected:
 	void ExtractTimestamp(std::string s, wxString& timestamp);
 
 	// a utility for getting the HTTP status code, and human-readable result string
-	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext);
+	//void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext);
 
 	// Extract the source and translation strings, and use the source string as key, and
 	// the translation string as value, to populate the m_uploadsMap from the downloaded
@@ -443,17 +466,18 @@ private:
 	// For use when listing all the lang codes definitions in the KBserver ??
 	//LanguagesList   m_languagesList;
 
-	// a KbServerEntry struct, for use in downloading or uploading (via json) a
-	// single entry
-	KbServerEntry	m_entryStruct;
-	// Ditto, but for a single entry from the user table
-	KbServerUser	m_userStruct;
 	// Ditto, but for a single entry from the kb table
 	KbServerKb	m_kbStruct;
 	// Ditto, but for a single entry from the language table
 	KbServerLanguage	m_languageStruct;
 
 public:
+
+	// BEW 12Oct20, a KbServerEntry struct, to hold field values from a 
+	// LookupEntryFields() call, to determine what call is then needed after that
+	KbServerEntry	m_entryStruct;
+	// Ditto, but for a single entry from the user table
+	KbServerUser	m_userStruct;
 
     // public accessors for the private arrays (these are for bulk uploading and
     // downloading; UploadToKbServer() uses DoGetAll(), and the downloaders are
@@ -478,9 +502,16 @@ public:
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
-	void			DeleteDownloadsQueueEntries();
+	//void			DeleteDownloadsQueueEntries(); // BEW 3Nov20 deprecated
 	DownloadsQueue* GetQueue();
 
+	// BEW 12Oct20 FileToEntryStruct() takes the returned .dat
+	// file from a LookupEntryFields() call, and after clearing
+	// m_entryStruct, copies each field, in order, to it.
+	bool FileToEntryStruct(wxString execFolderPath, wxString datFileName);
+	// This version for when in a loop the lines are being obtained from 
+	// the arrLines wxArrayString
+	bool Line2EntryStruct(wxString& aLine);
 	//void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();
 	void			ClearEntryStruct();
@@ -495,13 +526,13 @@ public:
 	KbServerLanguage GetLanguageStruct();
 	void			 ClearLanguageStruct();
 
-	//UsersList*		GetUsersList();
+	UsersList*		GetUsersList();
 	UsersListForeign*		GetUsersListForeign(); // Keep this
 	// Keep next
 	void			ClearUsersListForeign(UsersListForeign* pUsrListForeign); // deletes from the heap all KbServerUser struct ptrs within
 
-	KbsList*		GetKbsList();
-	void			ClearKbsList(KbsList* pKbsList); // deletes from the heap all KbServerKb struct ptrs within
+	//KbsList*		GetKbsList(); BEW 3Nov20 deprecated
+	//void			ClearKbsList(KbsList* pKbsList); // BEW 3Nov deprecated
 
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 

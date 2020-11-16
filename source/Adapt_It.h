@@ -855,8 +855,14 @@ enum ServDiscDetail
 	const int credentials_for_user = 1;
 	const int lookup_user = 2;
 	const int list_users = 3;
+	const int create_entry = 4;
+	const int pseudo_delete = 5;
+	const int pseudo_undelete = 6;
+	const int lookup_entry = 7;
+	const int changed_since_timed = 8;
+	const int upload_local_kb = 9;
 // add more here, as our solution matures
-	const int blanksEnd = 4; // this one changes as we add more above
+	const int blanksEnd = 10; // this one changes as we add more above
 
 
 #endif
@@ -2259,11 +2265,12 @@ class CAdapt_ItApp : public wxApp
 	//wxString m_curNormalIpAddr; // BEW 24Sep20 nah, legacy m_strKbServerIpAddr is what we want
 	wxString m_curNormalSrcLangName; // source language name from current "src to tgt adaptations" str
 	wxString m_curNormalTgtLangName; // target .... ditto
-	wxString m_curNormalGlossLangName; // if user elects to have glossing enabled
+	wxString m_curNormalGlossLangName; // if glossing enabled; but projects defined only by src & tgt
+									   // language names; so this may not be important
 	wxString m_curNormalFreeTransLangName; // user may want to send free trans to collaborating
 								// Paratext in a language different from all the preceding ones
 
-									 // BEW 2Sep20 public Updaters for the above public variables.
+	// BEW 2Sep20 public Updaters for the above public variables.
 	void UpdateCurNormalUsername(wxString str);
 	void UpdateCurNormalPassword(wxString str);
 	void UpdateCurNormalFullname(wxString str);
@@ -2275,6 +2282,14 @@ class CAdapt_ItApp : public wxApp
 	void UpdateCurNormalGlossLangName(wxString str);
 	void UpdateCurNormalFreeTransLangName(wxString str);
 
+	bool m_bHasUseradminPermission; // governs whether user can access the KB Sharing Manager
+	bool m_bKBSharingMgrEntered; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
+
+	wxArrayString m_arrLines; // For use by the ListUsers() call - which we want the Sharing
+							  // Manager to be able to access, as well as AI's CallExecute()
+
+	// BEW 14Nov20 cloned this from KbServer.cpp - I need it in CallExecute() for ListUsers() support
+	bool DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 
 	// BEW 20Jul20 added, for scanning for active mariaDB-service (mysql)
 //	Ctest_system_call* pCtest_system_call = Cnew test_system_call();
@@ -2284,6 +2299,8 @@ class CAdapt_ItApp : public wxApp
 	// and the minutes value will be stored in the project config file
 	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
 											// download of entries from the KBserver
+	// If ::wxExecute() fails, we want the commandLine it used to be in LogUserAction()
+	wxString m_curCommandLine;
 
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
@@ -2308,6 +2325,7 @@ class CAdapt_ItApp : public wxApp
 	// the appropriate function which configures a .DAT file, locating it in the app's
 	// folder, and populating it with the comma separated commandLine for that .DAT file
 	bool ConfigureDATfile(const int funcNumber);
+
 	// BEW 18Aug20 next three calls are used in sequence to (a) delete the old
 	// .dat file from the execPath, (b) move the 'blank' .dat file up from the dist folder
 	// to the parent folder, the execPath folder, and (c) configure the moved up .dat
@@ -2320,6 +2338,36 @@ class CAdapt_ItApp : public wxApp
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
 	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
 								   // into CallExecute() function
+	// The following ones are for use in adapting - using the refactored KbServer class's signatures' values
+	// These are not permanently stored, except in the entry table of kbserver; in AI they are scratch variables
+	wxString m_curNormalSource;   // CSourcePhrase's m_key value
+	wxString m_curNormalTarget;   // CSourcePhrase's m_adaption value
+	wxString m_curNormalGloss;    // CSourcePhrase's m_gloss value, when in glossing mode
+	wxString m_curExecPath; // transferred from ConfigureMovedDatFile() so that CallExecute() can pick it up
+
+	// variables for speeding up the adapting/glossing workflow, by keeping count
+	// and reusing the .dat file without deletion but by field value substitution
+	int m_nCreateAdaptionCount; // if 0, move .dat up, clear, and fill with values; if >0 keep & refill fields
+	int m_nCreateGlossCount;    // if 0, move .dat up, clear, and fill with values; if >0 keep & refill fields
+	int m_nPseudoDeleteAdaptionCount; // as above
+	int m_nPseudoDeleteGlossCount;    // as above
+	int m_nPseudoUndeleteAdaptionCount; // as above
+	int m_nPseudoUndeleteGlossCount;    // as above, etc
+	//int m_nChangeQueuedAdaptionCount; // dont need these, ChangedSince_Queued() is no longer needed
+	//int m_nChangeQueuedGlossCount;
+	int m_nLookupEntryAdaptationCount;
+	int m_nLookupEntryGlossCount;
+	int m_nChangedSinceTypedGlossCount;
+	int m_nChangedSinceTypedAdaptationCount;
+
+	// Next ones are independent of the adaptation versus glossing choice
+	// not speed critical, so make these always 0 (zero), to use move up way
+	int m_nAddUsersCount;
+	int m_nLookupUserCount;
+	int m_nListUsersCount;
+
+
+
 
 	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
 	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
@@ -2329,12 +2377,12 @@ class CAdapt_ItApp : public wxApp
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
 
-	wxString				m_SD_Message_For_Connect; // set near start of OnInit()
-	wxString				m_SD_Message_For_Discovery; // ditto
-	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog is shown from
-								// Discover KBservers; FALSE if shown from ConnectUsingServiceDiscoverResults()
-								// The boolean governs which message is displayed in the dialog
-								// and consequently what the Cancel button does
+	wxString			m_SD_Message_For_Connect; // set near start of OnInit()
+	wxString			m_SD_Message_For_Discovery; // ditto
+	bool				m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog is shown from
+							// Discover KBservers; FALSE if shown from ConnectUsingServiceDiscoverResults()
+							// The boolean governs which message is displayed in the dialog
+							// and consequently what the Cancel button does
 	ServDiscDetail			m_sd_Detail;
 	ServDiscInitialDetail	m_sd_InitialDetail;
 	bool m_bUserDecisionMadeAtDiscovery; // TRUE if at the OK click there was a user
@@ -2700,7 +2748,7 @@ public:
                                         // approves it
     wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
 										// we'll use m_strUserID; kbserver will also use
-										// this as an "informal human-readable username"
+										// this as an "informal human-readable username" 'fullname' in user table
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
@@ -3371,7 +3419,25 @@ public:
 	// with the needed parameters for the call by an .exe file using ::wxExecute(...exe); 
 	void CreateInputDatBlanks(wxString& execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
-	void MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath);
+	void MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath); // =2
+	void MakeListUsers(const int funcNumber, wxString execPath, wxString distPath); // = 3
+	void MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath); // =4
+	void MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath); // =5
+	void MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath); // =6
+	void MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath); // = 7
+	void MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath); // = 8
+	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
+
+	void CheckForDefinedGlossLangName();
+
+	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that
+						// CallExecute() can pick it up to delete it from the execPath folder
+						// after the wxExecute() call has finished. This way makes sure old
+						// input .dat files don't linger to be a potential source of error
+	wxString m_ChangedSinceTimed_Timestamp;
+	bool m_bUserRequestsTimedDownload; // set True if user uses GUI to ask for a bulk
+						// download, or ChangedSince (ie. incremental) download. If
+						// TRUE, skip the OnIdle() ChangedSince_Timed request
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -3433,9 +3499,26 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
-    // GDLC 20JUL16
+    // GDLC 20JUL16, BEW 7Nov20 added 3rd test - for m_bUserLoggedIn, to next two
     bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
     bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
+	// BEW 7Nov20 made next one to call whichever of the above two is appropriate for
+	// the current running mode, as determined by gbIsGlossing (this is not called everywhere
+	// because some calls are for authentication or some other purpose)
+	bool	  AllowSvrAccess(bool bIsGlossingMode);
+	// BEW 10Nov20 created, a function to encapsulate the complexities of lookup,
+	// checking useradmin value, the 2-user dialog for Authenticate, after instantiating
+	// KbSvrHowGetUrl() class (it's internally changed for ipAddr, but Url can stay in
+	// its name) to set the pKbSrv_>m_bForManager member of KbServer.h to TRUE for a
+	// Sharing Manager access attempt. The user2 of the 2-user Authenticate dialog is
+	// the checkUser that will be checked for useradamin == 1, and if it is not that
+	// high a permission level, then access to the Manager will be blocked. The first
+	// username of the 2-user dialog can be any user with credentials sufficient for
+	// login to kbserver; typically the current user for the sharing of adaptations or
+	// glosses.
+	bool	  PrepareForListUsers(wxString& ipAddr, wxString& username, wxString& pwd, 
+									wxString& checkUser, bool bForManager = TRUE);
+
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& chosenIpAddress,
 								 wxString& chosenHostname, enum ServDiscDetail &result);
@@ -3485,6 +3568,8 @@ public:
 	bool m_bAdaptationsKBserverReady; // TRUE if a connection is current, to an adaptations KBserver
 	bool m_bGlossesKBserverReady; // TRUE if a connection is current, to a glosses KBserver
 	// The above didn't make it into the Linux code on git, so this will line force an update
+	bool m_bAdaptationsLookupSucceeded; // if FileToEntryStruct() got filled successfully, TRUE
+	bool m_bGlossesLookupSucceeded; // if FileToEntryStruct() got filled successfully, TRUE, glossing mode on
 
 	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
 	// file, can be cleared to FALSE at initialization of a setup, losing the values from the
@@ -3514,8 +3599,10 @@ public:
 	bool m_bPseudoUndelete_For_KBserver;
 	bool m_bCreateEntry_For_KBserver;
 	// There isn't one for LookupEntryFields() because that is used only internally in
-	// the XXXX() functions, never by itself
-
+	// the old 'synchronised' XXXX() functions, never by itself.
+	// BEW 1Oct20 the above comment no longer applies, CreateEntry() has an internal
+	// lookup embedded in it, and so it will replace the combination of legacy lookup
+	// followed by create entry when lookup failed.
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing

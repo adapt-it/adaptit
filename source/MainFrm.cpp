@@ -2665,6 +2665,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	}
 }
 
+// BEW 6Nov20 changed, to reflect refactorings for Leon's solution
 void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 {
 	// Disable when in read-only mode.
@@ -2673,13 +2674,14 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// Disable if there are no stored KBserver urls (and their hostnames too,
-	// but it is the urls which are important for login etc)
-	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	// BEW 6Nov20 changed -- irrelevant for whether the "Controls For Knowledge Base Sharing"
+	// menu item should be enabled or not. We allow empty arrs now.
+	// Disable if there are no stored KBserver ipAddresses <<-- no longer do this
+	//if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	// If there is no user logged in, it must be disabled
 	if (gpApp->m_bUserLoggedIn == FALSE)
 	{
@@ -2694,7 +2696,13 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Enable if both KBs of the project are ready for work
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	event.Enable(gpApp->m_bAdaptationsKBserverReady && gpApp->m_bGlossesKBserverReady);
+
+	// Enable if just one is ready for work - adaptations one
+	event.Enable(gpApp->m_bAdaptationsKBserverReady);
+
+	// Enable if just one is ready for work - glossing one
+	event.Enable(gpApp->m_bGlossesKBserverReady);
 }
 
 #endif
@@ -4368,7 +4376,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// restore the flag's default ('not ON') value
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
-/* BEW 25Sep20 deprecated legacy calls - don't want OnIdle() doing deferred calls in Leon's solution
 
 #if defined (_KBSERVER)
 	// Speed critical GUI support, when a KBserver doing sharing is operational
@@ -4376,15 +4383,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bCreateEntry_For_KBserver)
 	{
 		pApp->m_bCreateEntry_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->CreateEntry(
+		pApp->m_pKbServer_For_OnIdle->CreateEntry(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
-		wxUnusedVar(rv);
+
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() returned  %d for src = %s  &  tgt = %s"),
-			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() for src = %s  &  tgt = %s"),
+			pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
 
@@ -4417,7 +4424,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
+#endif // for _KBSERVER
 
+/* BEW 2Sep10 deprecated tentatively, for Leon's solution - might not be needed now
 	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
 	// booleans, or both, will have been set TRUE in the OnOK() function of
 	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the
@@ -4704,9 +4713,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(
-			_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-			_T(""), wxICON_INFORMATION | wxOK);
+			wxString title = _("Finished");
+			wxString msg = _("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file.");
+            wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}
 
@@ -4958,10 +4967,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// Do an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
 // GDLC 20JUL16 Temporary comment out while investigating logic
-            bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			//bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
-			if (bIsEnabled && bIsPending && bTimerIsRunning)
+			if (bIsEnabled && bIsPending && bTimerIsRunning && !gpApp->m_bUserRequestsTimedDownload)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
 
@@ -4969,7 +4979,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
 				// or fewer is about what we'd expect for a timer interval of 5 minutes per shot
-				int rv = pKbSvr->ChangedSince_Timed(pKbSvr);
+				wxString timestamp = pKbSvr->GetKBServerLastSync();
+				int rv = pKbSvr->ChangedSince_Timed(timestamp,TRUE);
 				wxUnusedVar(rv);
 
 				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls

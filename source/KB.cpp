@@ -896,11 +896,9 @@ void CKB::DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString)
         //      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		int rv = pKbSvr->CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
-		wxUnusedVar(rv);
+		pKbSvr->CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
 	}
 }
-
 
 void CKB::DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
@@ -931,6 +929,35 @@ void CKB::DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString)
 		wxUnusedVar(rv);
 	}
 }
+
+// BEW 26Oct20, return a count of the number of entries (including deleted ones)
+// in the local Adapt It knowledge base for the currently running AI project, 
+// provided it is a running a connection to a remote kbserver somewhere. Use this
+// for a bulk upload - where the needed entry lines are in a file: local_kb_lines.dat
+// when PopulateLocalKbLines() function has done it's work.
+/* thought I'd need this, but turns out I don't - so comment out until it is needed
+size_t CKB::CountAllKBEntries(CKB* pKB)
+{
+	CTargetUnit* pTU;
+	size_t numMapsInUse = pKB->m_nMaxWords; // <= 10
+	size_t index;
+	size_t total = 0;
+	size_t subtotal = 0;
+	for (index = 0; index < numMapsInUse; index++)
+	{
+		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[index];
+		MapKeyStringToTgtUnit::iterator iter;
+		for (iter = pMap->begin(); iter != pMap->end(); ++iter)
+		{
+			// ignore src text keys here, but if we wanted them, it's iter->first;
+			pTU = iter->second;
+			subtotal = pTU->CountAllRefStringInstances(); // including deleted ==  TRUE ones
+			total += subtotal;
+		}
+	}
+	return total;
+}
+*/
 
 #endif // _KBSERVER
 
@@ -1456,7 +1483,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 /// the remote server. It is similar to StoreEntriesFromKbServer(), differing in respect
 /// to the following: the latter loops over potentially many entries in the JSON
 /// downloaded string; the latter has progress bar support; and the latter uses a set
-/// of arrays for accessing entries data whereas StoreOneENtryFromKbServer() gets, in the
+/// of arrays for accessing entries data whereas StoreOneEntryFromKbServer() gets, in the
 /// caller, the information from a struct on a queue. The mechanics of storing to the KB
 /// instance in both functions are identical.
 void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
@@ -1651,7 +1678,7 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 /// NOTE: json requires, for x-platform apps, that we use long or short, not int. So far,
 /// json is confined to the KbServer class; and only entryIDs are stored and retrieved as
 /// longs, for example using .AsLong(). The deleted flag currently is handled okay by
-/// wxArrayInt. The latter is seen by CKB class; but our custom array of longs,
+/// wxArrayInt. The latter is seen by CKB class; but our custom array of lo
 /// Array_of_long (defined near the top of KbServer.h) is not yet exposed to CKB class. If
 /// that situation changes, then KB.h will need a similar Array_of_long defined in KB.h
 void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
@@ -1902,27 +1929,44 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 // of m_pKbServer[0] or [1] is to be associated with the current CKB instance.
 // Return NULL if, for any reason, a pointer to the appropriate instantiated KbServer
 // instance cannot be obtained
+// BEW 9Nov20 refactored, because legacy code here assumes that if the user does
+// glossing, there will be a running KB server for adapting available. And in the
+// Leon protocols, this is not enough separation. We want to suppress adding an
+// entry in entry table only if the running kbserver does not match with the
+// current mode, given by gbIsGlossing. So we need different code here; pMyKbSrv
+// MUST return a non-NULL result, when caller's test of this function is done
 KbServer* CKB::GetMyKbServer()
 {
 	KbServer* pMyKbSvr = NULL;
+	int type = 1; // initialize, for error message below
 	if (m_pApp->m_bIsKBServerProject)
 	{
+		// it's a project for adapting and sending results to entry table
+		if (m_pApp->GetKbServer(1) != NULL)
+		{
+			return m_pApp->GetKbServer(1);
+		}
+	}
+	else if (m_pApp->m_bIsGlossingKBServerProject)
+	{
+		type = 2;
 		if (this->m_bGlossingKB)
 		{
 			// it's a a glossing KB
+
 			if (m_pApp->GetKbServer(2) != NULL)
 			{
 				return m_pApp->GetKbServer(2);
 			}
 		}
-		else
-		{
-			// it's an adapting KB
-			if (m_pApp->GetKbServer(1) != NULL)
-			{
-				return m_pApp->GetKbServer(1);
-			}
-		}
+	}
+	else
+	{
+		wxString msg = _T("%s() line %d ptr to KbSvr of type %d got set, NULL returned");
+		msg = msg.Format(msg, __FUNCTION__, __LINE__, type);
+		m_pApp->LogUserAction(msg);
+		wxBell(); // hint to user that there was an error
+		return NULL;
 	}
 	// for debugging
 //#if defined(_DEBUG)
@@ -4427,25 +4471,28 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
 		// app if none is running
 // GDLC 20JUL16
-        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && 
-			!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-            ||
-            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && 
-				m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+
+		if (m_pApp->AllowSvrAccess(gbIsGlossing))
 		{
-			KbServer* pKbSvr = GetMyKbServer();
-			// don't send to KBserver if it's a <Not In KB> entry
-			if (!bStoringNotInKB)
+			if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+				!m_bGlossingKB)  
+				||
+				(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+					m_bGlossingKB)
+			  )
 			{
-				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-				// effect on GUI responsiveness
-				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-				m_pApp->m_strSrc_For_KBserver = key;
-				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-				m_pApp->m_bCreateEntry_For_KBserver = TRUE; // set this true, rather than a synchronous call here
+				KbServer* pKbSvr = GetMyKbServer();
+				// don't send to KBserver if it's a <Not In KB> entry
+				if (!bStoringNotInKB)
+				{
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE; // set this true, rather than a synchronous call here
+				}
 			}
 		}
 
@@ -4584,35 +4631,36 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pRefString->m_translation = tgtPhrase;
 			}
 			// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
-#if defined(_DEBUG)
-//			if (m_bGlossingKB)
-//				m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
-//			else
-//				m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
-#endif
+
 
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
 // GDLC 20JUL16
-            if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
-//          if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-                ||
-                (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//              (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			if (m_pApp->AllowSvrAccess(gbIsGlossing))
 			{
-				KbServer* pKbSvr = GetMyKbServer();
-				// don't send to KBserver if it's a <Not In KB> entry
-				if (!bStoringNotInKB)
+				if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+					!m_bGlossingKB)
+					||
+					(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+						m_bGlossingKB)
+					)
 				{
-					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-					// effect on GUI responsiveness
-					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-					m_pApp->m_strSrc_For_KBserver = key;
-					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					{
+						KbServer* pKbSvr = GetMyKbServer();
+						// don't send to KBserver if it's a <Not In KB> entry
+						if (!bStoringNotInKB)
+						{
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+						}
+					}
 				}
 			}
 #endif
@@ -4727,13 +4775,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
-						// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
-#if defined(_DEBUG)
-//						if (m_bGlossingKB)
-//							m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
-//						else
-//							m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
-#endif
 #if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
@@ -4753,24 +4794,27 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
 // GDLC 20JUL16
-                        if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
-							!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//                      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-                            ||
-                            (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
-								m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//                          (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+						if (m_pApp->AllowSvrAccess(gbIsGlossing))
 						{
-							KbServer* pKbSvr = GetMyKbServer();
-							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+								!m_bGlossingKB)
+								||
+								(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+									m_bGlossingKB)
+								)
 							{
-								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-								// effect on GUI responsiveness
-								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-								m_pApp->m_strSrc_For_KBserver = key;
-								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+
+								KbServer* pKbSvr = GetMyKbServer();
+								if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+								{
+									// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+									// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+									// effect on GUI responsiveness
+									m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+									m_pApp->m_strSrc_For_KBserver = key;
+									m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+									m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								}
 							}
 						}
 #endif
@@ -4864,7 +4908,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// of FALSE, but if TRUE then we skip this block so that we can
 						// store an empty string as a valid KB "adaptation" or "gloss" -
 						// depending on which KB is active here
-						if(!bSupportNoAdaptationButton)
+						if (!bSupportNoAdaptationButton)
 						{
 							if (!m_bGlossingKB)
 							{
@@ -4890,44 +4934,39 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// whatever is in the phrase box (unchanged)
 					if (gbAutoCaps)
 					{
-						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
 					}
 					else
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
 
-					// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
-#if defined(_DEBUG)
-//					if (m_bGlossingKB)
-//						m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
-//					else
-//						m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
-#endif
 #if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
 // GDLC 20JUL16
-                    if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
-						!m_bGlossingKB && m_pApp->KbServerRunning(1))
-//                  if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-                        ||
-                        (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
-							m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//                      (m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+					if (m_pApp->AllowSvrAccess(gbIsGlossing))
 					{
-						KbServer* pKbSvr = GetMyKbServer();
-						// don't send a <Not In KB> entry to KBserver
-						if (!bStoringNotInKB)
+						if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+							!m_bGlossingKB)
+							||
+							(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+								m_bGlossingKB)
+							)
 						{
-							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-							// effect on GUI responsiveness
-							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-							m_pApp->m_strSrc_For_KBserver = key;
-							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							KbServer* pKbSvr = GetMyKbServer();
+							// don't send a <Not In KB> entry to KBserver
+							if (!bStoringNotInKB)
+							{
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							}
 						}
 					}
 #endif

@@ -415,6 +415,8 @@ public:
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
 	bool			IsMarker(wxChar* pChar);
 	bool			IsMarker(wxString& mkr); // overloaded version
+	bool			IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): ).<space>(<space>nxtwrd 
+	bool			IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): .<space>(<space>nxtwrd 
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn,

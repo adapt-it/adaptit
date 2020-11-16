@@ -606,6 +606,28 @@ int CTargetUnit::CountNonDeletedRefStringInstances()
 	return counter;
 }
 
+// BEW 26Oct20 counts the number of CRefString instances stored in 
+// this CTargetUnit instance, the count includes deleted == TRUE ones
+int CTargetUnit::CountAllRefStringInstances()
+{
+	if (m_pTranslations->IsEmpty())
+	{
+		return 0;
+	}
+	int counter = 0;
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		counter++;
+	}
+	return counter;
+}
+
+
 // BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it
 // didn't work for the xml LIFT parser for example)
 //void CTargetUnit::DeleteTargetUnit(CTargetUnit* pTU)

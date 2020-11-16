@@ -187,6 +187,8 @@ public:
 	// of m_pKbServer[0] or [1] is to be associated with the current CKB instance
 	KbServer*	GetMyKbServer();
 
+	//size_t	CountAllKBEntries(CKB* pKB); // BEW 26Oct20 created, num of entries in local KB -- but not needed
+
 	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
 	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
