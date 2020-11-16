@@ -860,8 +860,9 @@ enum ServDiscDetail
 	const int pseudo_undelete = 6;
 	const int lookup_entry = 7;
 	const int changed_since_timed = 8;
+	const int upload_local_kb = 9;
 // add more here, as our solution matures
-	const int blanksEnd = 9; // this one changes as we add more above
+	const int blanksEnd = 10; // this one changes as we add more above
 
 
 #endif
@@ -2269,7 +2270,7 @@ class CAdapt_ItApp : public wxApp
 	wxString m_curNormalFreeTransLangName; // user may want to send free trans to collaborating
 								// Paratext in a language different from all the preceding ones
 
-									 // BEW 2Sep20 public Updaters for the above public variables.
+	// BEW 2Sep20 public Updaters for the above public variables.
 	void UpdateCurNormalUsername(wxString str);
 	void UpdateCurNormalPassword(wxString str);
 	void UpdateCurNormalFullname(wxString str);
@@ -2281,6 +2282,14 @@ class CAdapt_ItApp : public wxApp
 	void UpdateCurNormalGlossLangName(wxString str);
 	void UpdateCurNormalFreeTransLangName(wxString str);
 
+	bool m_bHasUseradminPermission; // governs whether user can access the KB Sharing Manager
+	bool m_bKBSharingMgrEntered; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
+
+	wxArrayString m_arrLines; // For use by the ListUsers() call - which we want the Sharing
+							  // Manager to be able to access, as well as AI's CallExecute()
+
+	// BEW 14Nov20 cloned this from KbServer.cpp - I need it in CallExecute() for ListUsers() support
+	bool DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 
 	// BEW 20Jul20 added, for scanning for active mariaDB-service (mysql)
 //	Ctest_system_call* pCtest_system_call = Cnew test_system_call();
@@ -2344,10 +2353,10 @@ class CAdapt_ItApp : public wxApp
 	int m_nPseudoDeleteGlossCount;    // as above
 	int m_nPseudoUndeleteAdaptionCount; // as above
 	int m_nPseudoUndeleteGlossCount;    // as above, etc
-	int m_nChangeQueuedAdaptionCount;
-	int m_nChangeQueuedGlossCount;
+	//int m_nChangeQueuedAdaptionCount; // dont need these, ChangedSince_Queued() is no longer needed
+	//int m_nChangeQueuedGlossCount;
 	int m_nLookupEntryAdaptationCount;
-	int m_nLookupUserGlossCount;
+	int m_nLookupEntryGlossCount;
 	int m_nChangedSinceTypedGlossCount;
 	int m_nChangedSinceTypedAdaptationCount;
 
@@ -2739,7 +2748,7 @@ public:
                                         // approves it
     wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
 										// we'll use m_strUserID; kbserver will also use
-										// this as an "informal human-readable username"
+										// this as an "informal human-readable username" 'fullname' in user table
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
@@ -3411,15 +3420,24 @@ public:
 	void CreateInputDatBlanks(wxString& execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
 	void MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath); // =2
+	void MakeListUsers(const int funcNumber, wxString execPath, wxString distPath); // = 3
 	void MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath); // =4
 	void MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath); // =5
 	void MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath); // =6
 	void MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath); // = 7
 	void MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath); // = 8
+	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
+
+	void CheckForDefinedGlossLangName();
+
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that
 						// CallExecute() can pick it up to delete it from the execPath folder
 						// after the wxExecute() call has finished. This way makes sure old
 						// input .dat files don't linger to be a potential source of error
+	wxString m_ChangedSinceTimed_Timestamp;
+	bool m_bUserRequestsTimedDownload; // set True if user uses GUI to ask for a bulk
+						// download, or ChangedSince (ie. incremental) download. If
+						// TRUE, skip the OnIdle() ChangedSince_Timed request
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -3481,9 +3499,26 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
-    // GDLC 20JUL16
+    // GDLC 20JUL16, BEW 7Nov20 added 3rd test - for m_bUserLoggedIn, to next two
     bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
     bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
+	// BEW 7Nov20 made next one to call whichever of the above two is appropriate for
+	// the current running mode, as determined by gbIsGlossing (this is not called everywhere
+	// because some calls are for authentication or some other purpose)
+	bool	  AllowSvrAccess(bool bIsGlossingMode);
+	// BEW 10Nov20 created, a function to encapsulate the complexities of lookup,
+	// checking useradmin value, the 2-user dialog for Authenticate, after instantiating
+	// KbSvrHowGetUrl() class (it's internally changed for ipAddr, but Url can stay in
+	// its name) to set the pKbSrv_>m_bForManager member of KbServer.h to TRUE for a
+	// Sharing Manager access attempt. The user2 of the 2-user Authenticate dialog is
+	// the checkUser that will be checked for useradamin == 1, and if it is not that
+	// high a permission level, then access to the Manager will be blocked. The first
+	// username of the 2-user dialog can be any user with credentials sufficient for
+	// login to kbserver; typically the current user for the sharing of adaptations or
+	// glosses.
+	bool	  PrepareForListUsers(wxString& ipAddr, wxString& username, wxString& pwd, 
+									wxString& checkUser, bool bForManager = TRUE);
+
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& chosenIpAddress,
 								 wxString& chosenHostname, enum ServDiscDetail &result);

@@ -2665,6 +2665,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	}
 }
 
+// BEW 6Nov20 changed, to reflect refactorings for Leon's solution
 void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 {
 	// Disable when in read-only mode.
@@ -2673,13 +2674,14 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// Disable if there are no stored KBserver urls (and their hostnames too,
-	// but it is the urls which are important for login etc)
-	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	// BEW 6Nov20 changed -- irrelevant for whether the "Controls For Knowledge Base Sharing"
+	// menu item should be enabled or not. We allow empty arrs now.
+	// Disable if there are no stored KBserver ipAddresses <<-- no longer do this
+	//if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	// If there is no user logged in, it must be disabled
 	if (gpApp->m_bUserLoggedIn == FALSE)
 	{
@@ -2694,7 +2696,13 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Enable if both KBs of the project are ready for work
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	event.Enable(gpApp->m_bAdaptationsKBserverReady && gpApp->m_bGlossesKBserverReady);
+
+	// Enable if just one is ready for work - adaptations one
+	event.Enable(gpApp->m_bAdaptationsKBserverReady);
+
+	// Enable if just one is ready for work - glossing one
+	event.Enable(gpApp->m_bGlossesKBserverReady);
 }
 
 #endif
@@ -4963,7 +4971,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
-			if (bIsEnabled && bIsPending && bTimerIsRunning)
+			if (bIsEnabled && bIsPending && bTimerIsRunning && !gpApp->m_bUserRequestsTimedDownload)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
 
@@ -4971,7 +4979,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
 				// or fewer is about what we'd expect for a timer interval of 5 minutes per shot
-				int rv = pKbSvr->ChangedSince_Timed(pKbSvr);
+				wxString timestamp = pKbSvr->GetKBServerLastSync();
+				int rv = pKbSvr->ChangedSince_Timed(timestamp,TRUE);
 				wxUnusedVar(rv);
 
 				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls

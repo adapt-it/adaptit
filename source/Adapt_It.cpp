@@ -10683,9 +10683,9 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
     pMainFrame->Freeze(); // to avoid flicker
     pMainFrame->m_pControlBar->Destroy(); // removes the existing mode bar which may not be showing all items in the current profile
 
-                                          // Create the new control bar using a wxPanel (see similar code in CMainFrame's constructor)
-                                          // whm note: putting the control bar on a panel could have been done in wxDesigner
-                                          // TODO: Make sure this works whether or not the toolbar and/or composebar are currently visible
+    // Create the new control bar using a wxPanel (see similar code in CMainFrame's constructor)
+    // whm note: putting the control bar on a panel could have been done in wxDesigner
+    // TODO: Make sure this works whether or not the toolbar and/or composebar are currently visible
     wxPanel *controlBar = new wxPanel(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, 0);
     wxASSERT(controlBar != NULL);
 
@@ -19136,13 +19136,6 @@ void CAdapt_ItApp::SetKbServer(int whichType, KbServer* pKbSvr)
     m_pKbServer[whichType - 1] = pKbSvr;
 }
 
-// getter for m_pKbServer; pass in 1 for the adaptations KbServer instance, and 2 for the
-// glossing one
-KbServer* CAdapt_ItApp::GetKbServer(int whichType)
-{
-    wxASSERT(whichType == 1 || whichType == 2);
-    return m_pKbServer[whichType - 1]; // remember, it may be NULL, so caller should test
-}
 
 // deletes the instantiated KbServer class, and sets the pointer to its instance to NULL
 void CAdapt_ItApp::DeleteKbServer(int whichType)
@@ -19153,6 +19146,31 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
         delete m_pKbServer[whichType - 1];
     }
     m_pKbServer[whichType - 1] = NULL;
+}
+
+// getter for m_pKbServer; pass in 1 for the adaptations KbServer instance,
+// and 2 for the glossing one
+// BEW 6Nov20 refactored, the code was yuck if glossing CKB was chosen;
+// This refactor just returns the relevant pointer, it does not set the pointer;
+// Setting the pointer(s) is the job of SetupFOrKBServer()
+KbServer* CAdapt_ItApp::GetKbServer(int whichType)
+{
+	KbServer* pKBS = NULL;
+	wxASSERT(whichType == 1 || whichType == 2);
+	// The user can only be working with either local glossing kb,
+	// or the local adaptations kb, at any one time; so return whichever
+	// is needed according to whichType's value, 2 for glossing, 1 for adapting
+	if (whichType == 1)
+	{
+		// Adapting KB is wanted
+		pKBS = m_pKbServer[0]; // it might be NULL, caller should test
+	}
+	if (whichType == 2)
+	{
+		// Glossing KB is wanted
+		pKBS = m_pKbServer[1]; // it might be NULL, caller should test
+	}
+	return pKBS;
 }
 
 // Call SetupForKBServer() once or twice (once for an adapting KB, the second for a
@@ -19166,30 +19184,81 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 // BEW 27Feb13, added instantiating a single timer for BOTH instances of KbServer to use
 bool CAdapt_ItApp::SetupForKBServer(int whichType)
 {
-    // instantiate the KbServer class
-    KbServer* pKbSvr = GetKbServer(whichType); // get the pointer
-    wxASSERT(pKbSvr == NULL);
-    pKbSvr = new KbServer(whichType);
+	// Make sure there is an ipAddress ready for use. And assert will trip
+	// further down if m_strKbServerIpAddr is empty still.
+	if (m_strKbServerIpAddr.IsEmpty())
+	{
+		// BEW 16Nov20  force discovery if the basic config file has no ipAddr set
+		DoDiscoverKBservers();
 
-    // If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-    if (pKbSvr == NULL)
-    {
-        // warn developer, message does not need to be localizable
-        wxString msg;
-        msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
-            whichType);
-        wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
-        if (whichType == 1)
-        {
-            m_bAdaptationsKBserverReady = FALSE;
-        }
-        else
-        {
-            m_bGlossesKBserverReady = FALSE;
-        }
-        return FALSE;
-    }
-	// BEW 1Oct20 added counter
+		m_strKbServerIpAddr = m_chosenIpAddr;
+	}
+    // instantiate the KbServer class, for dealing with the local KB type as
+	// indicated by the whichType value passed in, 1 or 2.  If the pointer is already
+	// instantiated on the heap, delete it, and reinstantiate (there may have been
+	// a change of project)
+	KbServer* pKbSvr = NULL; // initialise
+	if (whichType == 1)
+	{
+		if (m_pKbServer[0] != NULL)
+		{
+			delete m_pKbServer[0];
+			m_pKbServer[0] = NULL;
+		}
+		// Now it's safe to recreate
+		pKbSvr = new KbServer(whichType);
+		// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+		if (pKbSvr == NULL)
+		{
+			// warn developer, message does not need to be localizable
+			wxString msg;
+			msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - instantiation failed; setup aborted"),
+				whichType);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
+			LogUserAction(msg);
+			m_bAdaptationsKBserverReady = FALSE;
+			return FALSE;
+		}
+		m_pKbServer[0] = pKbSvr;
+	} // end of TRUE block for test: if (whichType == 1)
+
+	if (whichType == 2)
+	{
+		if (m_pKbServer[1] != NULL)
+		{
+			delete m_pKbServer[1];
+			m_pKbServer[1] = NULL;
+		}
+		// Message the user about m_glossesName being empty. Default it to English
+		// if that is the case; and tell the user where to change the glossing language
+		// name (in Prefs > Backups & Misc page) if it is not what s/he wants.
+		// This popup will happen at any time the user ticks the checkbox for making
+		// the current project want to access the local glossing KB; because 
+		// m_glossesName has to be set to something for mysql's entry table having
+		// a non-empty name in the 3rd column, when kbType is 2, for gbIsGlossing TRUE
+		// mode. If m_glossesName is non-empty, or empty, it still pops up, and shows
+		// the name of the current glossing language in the Title bar of the message.
+		CheckForDefinedGlossLangName(); 
+
+		// Now it's safe to recreate
+		pKbSvr = new KbServer(whichType);
+		// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+		if (pKbSvr == NULL)
+		{
+			// warn developer, message does not need to be localizable
+			wxString msg;
+			msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - instantiation failed; setup aborted"),
+				whichType);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
+			LogUserAction(msg);
+			m_bGlossesKBserverReady = FALSE;
+			return FALSE;
+		}
+		m_pKbServer[1] = pKbSvr;
+	} // end of TRUE block for test: if (whichType == 1)
+
+	// BEW 1Oct20 added counters -- setup should re-initialise these
+	// because the adapting / glossing project may have changed
 	if (whichType == 1)
 	{
 		// adapting type...
@@ -19206,7 +19275,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		m_nCreateGlossCount = 0; // first gloss entry to entry table will be a tad slower
 		m_nPseudoDeleteGlossCount = 0;
 		m_nPseudoUndeleteGlossCount = 0;
-		m_nLookupUserGlossCount = 0;
+		m_nLookupEntryGlossCount = 0;
 		m_nChangedSinceTypedGlossCount = 0;
 	}
 
@@ -19269,6 +19338,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     }
     else
     {
+		// Glossing...
 		m_sourceLanguageName = m_sourceName; // RHS from project setting
         GetKbServer(whichType)->SetSourceLanguageName(m_sourceLanguageName);
 		m_glossesLanguageName = m_glossesName;  // RHS from project setting
@@ -19282,88 +19352,20 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
     GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
     GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
-	/* BEW 24Sep20 deprecated, we no longer have a kb table to check, just an entry table - Leon's solution
-    // BEW 12Jun13, the last test is to make sure that in the kb table of the remote
-    // server, there is an appropriate kb line for this particular Adapt It project. If
-    // there isn't, then we must tell the user and say what to do, and remove the
-    // instantiations of the adapting and glossing KbServer classes, and set the app's
-    // pointers m_pKbServer[0] and m_pKbServer[1] to NULL -- the latter two tasks are done
-    // by two calls of DeleteKbServer(int whichType). The following function is in helpers.cpp
-    if (whichType == 1)
-    {
-        // Testing for the adapting kb being in the table.
-        bool bSharedAdaptingKbExists = CheckForSharedKbInKbServer(ipAddr, username, password,
-            m_sourceLanguageCode, m_targetLanguageCode, 1); // 1 is kbtype
-        if (!bSharedAdaptingKbExists)
-        {
-            // Remove our installation -- return FALSE, and clear to FALSE the
-            // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
-            // message first though.
-            wxString msg;
-            msg = msg.Format(_("A bad password was used, or an adaptations KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create an adaptations KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-                this->m_sourceLanguageCode.c_str(), this->m_targetLanguageCode.c_str(), ipAddr.c_str(), ipAddr.c_str());
-            wxString title = _("Bad password or adaptations database lacking");
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-            DeleteKbServer(1);
-            m_bIsKBServerProject = FALSE;
-            // Ensure the session's stored password is cleared, so this error will not
-            // reoccur if the user retries
-            GetMainFrame()->SetKBSvrPassword(_T(""));
-            if (whichType == 1)
-            {
-                m_bAdaptationsKBserverReady = FALSE;
-            }
-            else
-            {
-                m_bGlossesKBserverReady = FALSE;
-            }
-            return FALSE;
-        }
-    }
-    else
-    {
-        //We must be testing for a glossing kb being in the table
-        bool bSharedGlossingKbExists = CheckForSharedKbInKbServer(ipAddr, username, password,
-            m_sourceLanguageCode, m_glossesLanguageCode, 2); // 2 is kbtype
-        if (!bSharedGlossingKbExists)
-        {
-            // Remove our installation -- return FALSE, and clear to FALSE the
-            // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
-            // helpful message first though.
-            wxString msg;
-            msg = msg.Format(_("A bad password was used, or a glosses KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create a glosses KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-                m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), ipAddr.c_str(), ipAddr.c_str());
-            wxString title = _("Bad password or glosses database lacking");
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-            DeleteKbServer(2);
-            m_bIsGlossingKBServerProject = FALSE;
-            // Ensure the session's stored password is cleared, so this error will not
-            // reoccur if the user retries
-            GetMainFrame()->SetKBSvrPassword(_T(""));
-            if (whichType == 1)
-            {
-                m_bAdaptationsKBserverReady = FALSE;
-            }
-            else
-            {
-                m_bGlossesKBserverReady = FALSE;
-            }
-            return FALSE;
-        }
-    }
-*/
     // all's well
     if (whichType == 1)
     {
-        m_bAdaptationsKBserverReady = TRUE;
+		if (!m_bAdaptationsKBserverReady)
+		{
+			m_bAdaptationsKBserverReady = TRUE;
+		}
     }
-    else
+    else // which Type == 2 (glosses KB)
     {
-        m_bGlossesKBserverReady = TRUE;
+		if (!m_bGlossesKBserverReady)
+		{
+			m_bGlossesKBserverReady = TRUE;
+		}
     }
     return TRUE;
 }
@@ -19825,7 +19827,7 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
 
 bool CAdapt_ItApp::KbAdaptRunning()
 {
-    return (!gbIsGlossing && KbServerRunning(1));
+    return (!gbIsGlossing && KbServerRunning(1) && m_bUserLoggedIn);
 }
 
 //  KbGlossRunning(void)
@@ -19834,7 +19836,20 @@ bool CAdapt_ItApp::KbAdaptRunning()
 
 bool CAdapt_ItApp::KbGlossRunning()
 {
-    return (gbIsGlossing && gpApp->KbServerRunning(2));
+    return (gbIsGlossing && gpApp->KbServerRunning(2) && m_bUserLoggedIn);
+}
+
+// BEW 7Nov20 made next one to call whichever of the above two is appropriate for
+// the current running mode, as determined by gbIsGlossing (this is not called everywhere
+// because some calls are for authentication or some other purpose)
+bool CAdapt_ItApp::AllowSvrAccess(bool bIsGlossingMode)
+{
+	if (bIsGlossingMode)
+	{
+		return KbGlossRunning();
+	}
+	// Must be adapting mode...
+	return KbAdaptRunning();
 }
 
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
@@ -19974,7 +19989,7 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 			}
 			case list_users: // = 3
 			{
-		// TODO
+				MakeListUsers(list_users, execPath, distPath); // = 3
 				break;
 			}
 			case create_entry: // = 4
@@ -20000,6 +20015,11 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 			case changed_since_timed: // = 8
 			{
 				MakeChangedSinceTimed(changed_since_timed, execPath, distPath);
+				break;
+			}
+			case upload_local_kb: //= 9;
+			{
+				MakeUploadLocalKb(upload_local_kb, execPath, distPath);
 				break;
 			}
 
@@ -20122,7 +20142,39 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case list_users: // = 3
 		{
-			// TODO later....?
+			wxString filename = _T("list_users.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(list_users, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_users_list.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_users_list.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_users_list.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
 			break;
 		}
 		case create_entry: // = 4
@@ -20278,6 +20330,90 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			}
 			break;
 		}
+		case changed_since_timed: // =8
+		{
+			// For bulk-downloading all rows of the entry table (from 1920 passed in), or for
+			// a more limited download of rows from the last sync time passed in. The results
+			// file will contain one row per line for however many are received
+			wxString filename = _T("changed_since_timed.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(changed_since_timed, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_changed_since_timed.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_lookup_entry.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_changed_since_timed.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case upload_local_kb: // = 9;
+		{
+			// For bulk-uploading all non-placeholder rows of the local KB to
+			// the entry table. Relies on a file called local_kb_lines.dat having
+			// been created prior to the wxExecute() call in CallExecute(), but a
+			// KbServer.cpp file called PopulateLocalKbLines( ). The results
+			// file will contain just a single line with "success", or a single
+			// line with an error message which lackes "success" within it.
+			wxString filename = _T("upload_local_kb.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(upload_local_kb, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_upload_local_kb.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_lookup_entry.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_upload_local_kb.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+
+			break;
+		}
 		case blanksEnd:
 		// TODO -- insert other cases as our solution matures, and blanksEnd will get larger
 			
@@ -20346,27 +20482,47 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	case credentials_for_user:
 	{
 		m_bUseForeignOption = FALSE; // restore default, local user is in focus
+		wxString tempStr;
 
 		commandLine = this->m_chosenIpAddr + comma;
-		commandLine += m_strUserID + comma;
-		commandLine += m_strUsername + comma;
+
+		tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+		UpdateCurNormalUsername(tempStr); // in case it has single quote/s, to mess up mysql parsing
+
+		tempStr = m_strUsername;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+		UpdateCurNormalFullname(tempStr);
+
 		wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
 		commandLine += pwd + comma;
+
 		bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted();
 		this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
 		commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
 		// That finishes the commandLine to be put into the input .dat file.
 
-		// Set AI.h variables to preserve parameters used, for 'normal' scenario
+		// Set other AI.h variables to preserve parameters used, for 'normal' scenario
 		UpdateNormalIpAddr(this->m_chosenIpAddr);
-		UpdateCurNormalUsername(m_strUserID);
-		UpdateCurNormalFullname(m_strUsername);
 		UpdateCurNormalPassword(pwd);
 		UpdatebcurUseradmin(bCanAddUsers);
 		UpdatebcurKbadmin(); // always TRUE
-		UpdateCurSrcLangName(m_sourceName);
-		UpdateCurTgtLangName(m_targetName);
-		UpdateCurGlossLangName(m_glossesName);
+
+		tempStr = m_sourceName; // source language names can have an embedded '
+		tempStr = DoEscapeSingleQuote(tempStr);
+		UpdateCurSrcLangName(tempStr);
+
+		tempStr = m_targetName; // target language names can have an embedded '
+		tempStr = DoEscapeSingleQuote(tempStr);
+		UpdateCurTgtLangName(tempStr);
+
+		tempStr = m_glossesName; // gloss language names can have an embedded '
+		tempStr = DoEscapeSingleQuote(tempStr);
+		UpdateCurGlossLangName(tempStr);
+
+		// free translations don't go in kbserver, so no need to check for embedded '
 		UpdateCurFreeTransLangName(m_freeTransName);		
 
 		// Now in the caller the file has been moved to the parent folder 
@@ -20417,13 +20573,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("lookup_user_return_results.dat");
 		if (m_bUser1IsUser2)
 		{
-			wxASSERT(m_bUserAuthenticating == TRUE);
+			m_bUseForeignOption = FALSE;
 			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
 			UpdateNormalIpAddr(this->m_chosenIpAddr);
 		} // end of TRUE block for test: if (m_bUser1IsUser2)
-		else
+		else if (m_bUseForeignOption)
 		{
-			m_bUseForeignOption = TRUE; // do we need this?? Probably
+			//m_bUseForeignOption = TRUE; // do we need this?? Yes, when doing list_users
 			m_bUserAuthenticating = FALSE;
 			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
 			UpdateIpAddr(m_chosenIpAddr);
@@ -20431,20 +20587,39 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// Call the Authentication dialog, the newer one with two username fields
 		bool bAuthenticationOK = TRUE;
-		Authenticate2Dlg* pDlg = new Authenticate2Dlg(GetMainFrame(), m_bUserAuthenticating);
+		bool bAllow = m_bUserAuthenticating || m_bUseForeignOption;
+		Authenticate2Dlg* pDlg = new Authenticate2Dlg(GetMainFrame(), bAllow);
 		pDlg->Center();
 		int dlgReturnCode;
 		dlgReturnCode = pDlg->ShowModal();
 		if (dlgReturnCode == wxID_OK)
 		{
+			wxString user1;
+			wxString user2;
+			wxString tempStr;
+			wxString tempStr2;
 			// First, get the latest
 			// successful run of the dialog. 
-			if (m_bUserAuthenticating)
+			if (m_bUserAuthenticating || m_bUseForeignOption)
 			{
-				wxString user1 = pDlg->m_strNormalUsername;
-				wxString user2 = pDlg->m_strNormalUsername;
-				wxString pwd   = pDlg->m_strNormalPassword;
-				wxString ipAddress = pDlg->m_strNormalIpAddr;
+				tempStr = pDlg->m_strNormalUsername;
+				tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
+				tempStr2 = pDlg->m_strNormalUsername2;
+				tempStr2 = DoEscapeSingleQuote(tempStr2);
+				if (tempStr == tempStr2)
+				{
+					user1 = tempStr;
+					user2 = tempStr;
+					m_bUser1IsUser2 = TRUE;
+				}
+				else
+				{
+					m_bUser1IsUser2 = FALSE;
+					user1 = tempStr;
+					user2 = tempStr2;
+				}
+				wxString pwd   = pDlg->m_strNormalPassword; // no ' in this
+				wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
 
 				// useradmin value?? Authenticate2Dlg does not pick
 				// that up, but that should be available in the
@@ -20454,15 +20629,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s"),
 					__FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str());
 #endif			
-			} // end of TRUE block for test: if (m_bUserAuthenticating)
-			else
+			} // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
+/* bad code, deprecate it
+			else // it was Manager access, m_bUseForeignOption was TRUE
 			{
-				// The app variables should have new or same values for
-				// m_strForManagerIpAddr, m_strForManagerUsername, m_strForManagerPassword,
-				// and if the password was left empty, the class will make a guess based
-				// on previously stored passwords - it could be wrong of course, and the 
-				// user shown it in a form like  "Cl******93" for example, or xx**, 
-				// or x* where x is some wxChar value
+				// Grab the "Normal" values
 				UpdateCurAuthUsername(pDlg->m_strForManagerUsername);
 				commandLine += pDlg->m_strForManagerUsername + comma; // for authenticating
 
@@ -20477,6 +20648,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 					__FUNCTION__,__LINE__, pDlg->m_strForManagerUsername2.c_str(), commandLine.c_str());
 #endif
 			} // end of else block for the test: if (m_bUserAuthenticating)
+*/
 		} // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
 		else
 		{
@@ -20490,13 +20662,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		if (!bAuthenticationOK)
 		{
 			// Restore earlier values
-			if (m_bUser1IsUser2)
-			{
-				UpdateNormalIpAddr(pDlg->m_saveOldNormalIpAddrStr);
-				UpdateCurNormalUsername(pDlg->m_saveOldNormalUsernameStr);
-				UpdateCurNormalPassword(pDlg->m_saveNormalPassword);
-				m_curNormalUsername2 = pDlg->m_saveOldNormalIpAddrStr;
-			}
+			UpdateNormalIpAddr(pDlg->m_saveOldNormalIpAddrStr);
+			UpdateCurNormalUsername(pDlg->m_saveOldNormalUsernameStr);
+			UpdateCurNormalPassword(pDlg->m_saveNormalPassword);
+			m_curNormalUsername2 = pDlg->m_saveOldNormalIpAddrStr;		
+/* BEW 12Nov20 deprecated
 			else
 			{
 				UpdateIpAddr(pDlg->m_saveOldIpAddrStr);
@@ -20504,6 +20674,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				UpdateCurAuthPassword(pDlg->m_savePassword);
 				UpdateUsername2(pDlg->m_saveOldUsername2Str);
 			}
+*/
 		} // end of TRUE block for test: if (!bAuthenticationOK)
 
 		// Finished with the dialog, so now delete it
@@ -20519,8 +20690,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			UpdateCurNormalGlossLangName(m_glossesName);
 			UpdateCurNormalFreeTransLangName(m_freeTransName);
 		}
-		else
+		else // the m_bUseForeignOption - for Manager access
 		{
+			// When accessing the manager, the project involved doesn't matter,
+			// but no harm in updating these as they do not wipe curr project's 
+			// settings for these language names
 			UpdateCurSrcLangName(m_sourceName);
 			UpdateCurTgtLangName(m_targetName);
 			UpdateCurGlossLangName(m_glossesName);
@@ -20557,7 +20731,91 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of case:  lookup_user
 	case list_users: // = 3
 	{
-		// TODO later....?
+		// Build the list_users.dat file for input, making the commandLine for 
+		// wxExecute() to call
+		m_resultDatFileName = _T("list_users_return_results.dat");
+		//m_bUserAuthenticating = TRUE; // for KB Sharing Mgr, we don't want this starting TRUE
+		// be cause accessing the manager clears it to FALSE when starting the manager
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+		// Next are the username and the password...
+		// The 2-user dialog should have been seen and used, it's the user2 that we are
+		// interested in, and it's associated password. We'll check for empty values, and
+		// try get the right ones
+		wxString tempStr;
+		wxString tryPwd;
+		bool btryUseradmin;
+		tempStr = tempStr = m_strUserID;
+		tryPwd = pFrame->GetKBSvrPassword();
+		tempStr = DoEscapeSingleQuote(tempStr); // username may have ' needing to be escaped
+		commandLine += tempStr + comma; // has any embedded ' escaped
+		// password we won't escape - documentation should tell user not to use ' as part of password
+		if (m_curNormalPassword.IsEmpty())
+		{
+			UpdateCurNormalPassword(tryPwd); // hopefully, its correct pwd
+		}
+		commandLine += tryPwd + comma;
+
+		/* deprecated for do_list_users.exe
+		if (btryUseradmin == FALSE)
+		{
+			// Insufficient permission level, has to be '1'
+			UpdatebcurUseradmin(FALSE);
+			wxString strUseradmin = _T("0");
+			commandLine += strUseradmin + comma;
+
+			// Should not have entered this block, LookupUser() should
+			// have caused rejection of entry with useradmin == '0' before
+			// this function is called
+			wxBell();
+			m_curCommandLine.Empty();
+			return;
+		}
+		else
+		{
+			UpdatebcurUseradmin(TRUE);
+			wxString strUseradmin = _T("1");
+			commandLine += strUseradmin + comma;
+		}
+		*/
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "create_entry.dat", within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: create_entry.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
 		break;
 	}
 	case create_entry: // = 4
@@ -20568,11 +20826,16 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 		// Next are the username and the password...
+		wxString tempStr;
+		tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr); // username may have ' needing to be escaped
 		if (m_curNormalUsername.IsEmpty())
 		{
-			m_curNormalUsername = m_strUserID;
+			m_curNormalUsername = tempStr;
 		}
-		commandLine += m_curNormalUsername + comma;
+		commandLine += tempStr + comma; // has any embedded ' escaped
+
+		// password we won't escape - documentation should tell user not to use ' as part of password
 		if (m_curNormalPassword.IsEmpty())
 		{
 			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
@@ -20580,28 +20843,42 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += m_curNormalPassword + comma;
 
 		// Then the source and target language names, which define the AI project that is current
+		tempStr = m_sourceName;
+		tempStr = DoEscapeSingleQuote(tempStr); // a language name may have a ' within it
 		if (m_curNormalSrcLangName.IsEmpty())
 		{
-			m_curNormalSrcLangName = m_sourceName;
+			m_curNormalSrcLangName = tempStr;
 		}
-		commandLine += m_curNormalSrcLangName + comma;
-		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalSrcLangName == m_sourceName); <- may differ now, one with ' the other with \'
+
 		// Language name for target text applies to the project, and so is the same for
 		// both adapting and glossing
-		if (this->m_curNormalTgtLangName.IsEmpty())
+		tempStr = m_targetName;
+		tempStr = DoEscapeSingleQuote(tempStr); // a language name may have a ' within it
+		if (m_curNormalTgtLangName.IsEmpty())
 		{
-			this->m_curNormalTgtLangName = m_targetName;
+			m_curNormalTgtLangName = tempStr;
 		}
-		commandLine += this->m_curNormalTgtLangName + comma;
-		wxASSERT(m_curNormalTgtLangName == m_targetName);
-		commandLine += this->m_curNormalSource + comma; // originating from signature of CreateEntry()
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalTgtLangName == m_targetName); <<-- may differ, ' versus \' within
+
+
+		tempStr = m_curNormalSource;
+		tempStr = DoEscapeSingleQuote(tempStr); // source text may have a ' within it
+		commandLine += tempStr + comma; // originating from signature of CreateEntry()
+
 		if (gbIsGlossing)
 		{
-			commandLine += this->m_curNormalGloss + comma; // originating from signature of CreateEntry()
+			tempStr = m_curNormalGloss;
+			tempStr = DoEscapeSingleQuote(tempStr); // may have ' within it to be escaped
+			commandLine += tempStr + comma; // originating from signature of CreateEntry()
 		}
 		else
 		{
-			commandLine += this->m_curNormalTarget + comma; // originating from signature of CreateEntry()
+			tempStr = m_curNormalTarget;
+			tempStr = DoEscapeSingleQuote(tempStr); // may have ' within it to be escaped
+			commandLine += tempStr + comma; // originating from signature of CreateEntry()
 		}
 		// Finally, the kbType and the deleted flag value
 		wxChar kbType = _T('1'); // default, using the adaptations KB
@@ -20660,12 +20937,17 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("pseudo_delete_return_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+
 		// Next are the username and the password...
+		wxString tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr); // may have contained unescaped '
 		if (m_curNormalUsername.IsEmpty())
 		{
-			m_curNormalUsername = m_strUserID;
+			m_curNormalUsername = tempStr;
 		}
-		commandLine += m_curNormalUsername + comma;
+		commandLine += tempStr + comma;
+
+		// Password should not contain a ' character
 		if (m_curNormalPassword.IsEmpty())
 		{
 			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
@@ -20673,29 +20955,45 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += m_curNormalPassword + comma;
 
 		// Then the source and target language names, which define the AI project that is current
+		// These could contain a ' so we must escape that to \' if present in either or both
+		tempStr = m_sourceName;
+		tempStr = DoEscapeSingleQuote(tempStr);
 		if (m_curNormalSrcLangName.IsEmpty())
 		{
-			m_curNormalSrcLangName = m_sourceName;
+			m_curNormalSrcLangName = tempStr;
 		}
-		commandLine += m_curNormalSrcLangName + comma;
-		wxASSERT(m_curNormalSrcLangName == m_sourceName);
-		// Language name for target text applies to the project, and so is the same for
-		// both adapting and glossing
-		if (this->m_curNormalTgtLangName.IsEmpty())
-		{
-			this->m_curNormalTgtLangName = m_targetName;
-		}
-		commandLine += this->m_curNormalTgtLangName + comma;
-		wxASSERT(m_curNormalTgtLangName == m_targetName);
+		commandLine += tempStr + comma;
 
-		commandLine += this->m_curNormalSource + comma; // from signature of PseudoDelete()
+		// wxASSERT(m_curNormalSrcLangName == m_sourceName); may now differ, ' in one, \' in the other
+
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing; escape any ' within
+		tempStr = m_targetName;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		if (m_curNormalTgtLangName.IsEmpty())
+		{
+			m_curNormalTgtLangName = tempStr;
+		}
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalTgtLangName == m_targetName); may differ by ' versus \'
+
+		tempStr = m_curNormalSource;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma; // from signature of PseudoDelete()
+
+		
+
 		if (gbIsGlossing)
 		{
-			commandLine += this->m_curNormalGloss + comma; // from signature of PseudoDelete()
+			tempStr = m_curNormalGloss;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma; // from signature of PseudoDelete()
 		}
 		else
 		{
-			commandLine += this->m_curNormalTarget + comma; // from signature of PseudoDelete()
+			tempStr = m_curNormalTarget;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma; // from signature of PseudoDelete()
 		}
 		// Finally, the kbType and the deleted flag value
 		wxChar kbType = _T('1'); // default, using the adaptations KB
@@ -20759,11 +21057,15 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 														 // Next are the username and the password...
+		wxString tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
 		if (m_curNormalUsername.IsEmpty())
 		{
-			m_curNormalUsername = m_strUserID;
+			m_curNormalUsername = tempStr;
 		}
-		commandLine += m_curNormalUsername + comma;
+		commandLine += tempStr + comma;
+
+		// password should not have embedded ' , say so in gui & documentation
 		if (m_curNormalPassword.IsEmpty())
 		{
 			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
@@ -20771,29 +21073,42 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += m_curNormalPassword + comma;
 
 		// Then the source and target language names, which define the AI project that is current
+		// These may contain ', so we must escape it if present
+		tempStr = m_sourceName;
+		tempStr = DoEscapeSingleQuote(tempStr);
 		if (m_curNormalSrcLangName.IsEmpty())
 		{
-			m_curNormalSrcLangName = m_sourceName;
+			m_curNormalSrcLangName = tempStr;
 		}
-		commandLine += m_curNormalSrcLangName + comma;
-		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalSrcLangName == m_sourceName); may differ by ' versus \'
+
 		// Language name for target text applies to the project, and so is the same for
 		// both adapting and glossing
-		if (this->m_curNormalTgtLangName.IsEmpty())
+		tempStr = m_targetName;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		if (m_curNormalTgtLangName.IsEmpty())
 		{
-			this->m_curNormalTgtLangName = m_targetName;
+			m_curNormalTgtLangName = tempStr;
 		}
-		commandLine += this->m_curNormalTgtLangName + comma;
-		wxASSERT(m_curNormalTgtLangName == m_targetName);
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalTgtLangName == m_targetName); may differ by ' versus \'
 
-		commandLine += this->m_curNormalSource + comma; // from signature of PseudoUndelete()
+		tempStr = m_curNormalSource;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma; // from signature of PseudoUndelete()
+
 		if (gbIsGlossing)
 		{
-			commandLine += this->m_curNormalGloss + comma; // from signature of PseudoUndelete()
+			tempStr = m_curNormalGloss;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma; // from signature of PseudoUndelete()
 		}
 		else
 		{
-			commandLine += this->m_curNormalTarget + comma; // from signature of PseudoUndelete()
+			tempStr = m_curNormalTarget;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma; // from signature of PseudoUndelete()
 		}
 		// Finally, the kbType and the deleted flag value
 		wxChar kbType = _T('1'); // default, using the adaptations KB
@@ -20853,12 +21168,18 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("lookup_entry_return_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
-														 // Next are the username and the password...
+
+		// Next are the username and the password...
+		// The username may have ' which needs to be escaped
+		wxString tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
 		if (m_curNormalUsername.IsEmpty())
 		{
-			m_curNormalUsername = m_strUserID;
+			m_curNormalUsername = tempStr;
 		}
-		commandLine += m_curNormalUsername + comma;
+		commandLine += tempStr + comma;
+
+		// Tell user not to put ' into password (in documentation, and gui)
 		if (m_curNormalPassword.IsEmpty())
 		{
 			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
@@ -20866,29 +21187,43 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += m_curNormalPassword + comma;
 
 		// Then the source and target language names, which define the AI project that is current
+		// These may contain ' which we need to escape to be \'
+		tempStr = m_sourceName;
+		tempStr = DoEscapeSingleQuote(tempStr);
 		if (m_curNormalSrcLangName.IsEmpty())
 		{
-			m_curNormalSrcLangName = m_sourceName;
+			m_curNormalSrcLangName = tempStr;
 		}
-		commandLine += m_curNormalSrcLangName + comma;
-		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+		commandLine += tempStr + comma;
+		//wxASSERT(m_curNormalSrcLangName == m_sourceName); may now differ by ' versus \'
+
 		// Language name for target text applies to the project, and so is the same for
 		// both adapting and glossing
-		if (this->m_curNormalTgtLangName.IsEmpty())
+		tempStr = m_targetName;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		if (m_curNormalTgtLangName.IsEmpty())
 		{
-			this->m_curNormalTgtLangName = m_targetName;
+			m_curNormalTgtLangName = tempStr;
 		}
-		commandLine += this->m_curNormalTgtLangName + comma;
-		wxASSERT(m_curNormalTgtLangName == m_targetName);
+		commandLine += tempStr + comma;
+		// wxASSERT(m_curNormalTgtLangName == m_targetName); may differ by ' versus \'
 
-		commandLine += this->m_curNormalSource + comma; // from signature of LookupEntry()
+		// Now source, and target strings
+		tempStr = m_curNormalSource;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma; // from signature of LookupEntry()
+
 		if (gbIsGlossing)
 		{
-			commandLine += this->m_curNormalGloss + comma;  // from signature of LookupEntry()
+			tempStr = m_curNormalGloss;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma;  // from signature of LookupEntry()
 		}
 		else
 		{
-			commandLine += this->m_curNormalTarget + comma; // from signature of LookupEntry()
+			tempStr = m_curNormalTarget;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma; // from signature of LookupEntry()
 		}
 
 		// Finally, the kbType and omit the deleted flag - it's value is wanted for the returned
@@ -20932,6 +21267,163 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				f.Close();
 				// File: lookup_entry.dat now just has the relevant data 
 				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case changed_since_timed: // = 8
+	{
+		// Build the changed_since_timed.dat file for input, making the commandLine for 
+		// wxExecute() to call. Note, the ipAddress can change from one session to another
+		// without warning (most likely after a CHKDISK update), so if the config file's
+		// value results in a commandLine which fails, the do Discover KBservers again,
+		// select the wanted one, click O. Then setup the project fpr KBserver support again.
+		m_resultDatFileName = _T("changed_since_timed_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+				// (could be wrong, see comment above) Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword + comma;
+
+		// Then the source and target language names, which define the AI project that is current
+		if (m_curNormalSrcLangName.IsEmpty())
+		{
+			m_curNormalSrcLangName = m_sourceName;
+		}
+		commandLine += m_curNormalSrcLangName + comma;
+		wxASSERT(m_curNormalSrcLangName == m_sourceName);
+
+		// Language name for target text applies to the project, and so is the same for
+		// both adapting and glossing
+		if (this->m_curNormalTgtLangName.IsEmpty())
+		{
+			this->m_curNormalTgtLangName = m_targetName;
+		}
+		commandLine += this->m_curNormalTgtLangName + comma;
+		wxASSERT(m_curNormalTgtLangName == m_targetName);
+
+		// Finally, the kbType and omit the deleted flag - it's value at each downloaded
+		// line is compared in the python for being greater than a passed in timestap, so
+		// is in the results line in the returned.dat file, but not used otherwise
+		wxChar kbType = _T('1'); // default, using the adaptations KB
+		if (gbIsGlossing)
+		{
+			// We are using the glosses KB
+			kbType = _T('2');
+		}
+		commandLine += kbType + comma;
+
+		// Finally, we need the timestamp to pass in last
+		commandLine += m_ChangedSinceTimed_Timestamp; // don't need final comma
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "changed_since_timed.dat", within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: changed_since_timed.dat now just has the relevant data 
+				// fields for the subsequent .exe in wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case upload_local_kb: // = 9
+	{
+		// Build the upload_local_kb.dat file for input, making the commandLine for 
+		// wxExecute() to call.
+		m_resultDatFileName = _T("upload_local_kb_return_results.dat");
+		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
+		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+														 // (could be wrong, see comment above) 
+		// Next are the username and the password...
+		if (m_curNormalUsername.IsEmpty())
+		{
+			m_curNormalUsername = m_strUserID;
+		}
+		commandLine += m_curNormalUsername + comma;
+
+		if (m_curNormalPassword.IsEmpty())
+		{
+			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+		}
+		commandLine += m_curNormalPassword; // BEW 29Oct20 removed, it might be causing authentication failure: +comma;
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
+
+		// put a copy on the app, so that LogUserAction() can grab it if the
+		// the wxExecute() in CallExecute() fails
+		m_curCommandLine = commandLine;
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+			__LINE__, commandLine.c_str());
+#endif
+		// Now that the calling file has been moved to the parent folder 
+		// of the dist folder; use wxTextFile to make the changes in
+		// that file copy: "upload_local_kb.dat", within the parent folder, 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: upload_local_kb.dat now is ready for authenticating a
+				// connection. Using the data lines in local_kb_lines.dat is
+				// the job of the python3 code in do_upload_local_kb.exe (which
+				// wraps do_upload_local_kb.py)
 			}
 		}
 		else
@@ -21007,7 +21499,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult)  // last param is default FALSE
 {
 	/*
-	// Don't use an enum, int values are simpler
+	// Don't use an enum, const int values are simpler, from AI.h 
 	const int noDatFile = 0;
 	const int credentials_for_user = 1;
 	const int lookup_user = 2;
@@ -21017,8 +21509,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	const int pseudo_undelete = 6;
 	const int lookup_entry = 7;
 	const int changed_since_timed = 8;
+	const int upload_kb_lines = 9;
 	// add more here, as our solution matures
-	const int blanksEnd = 9; // this one changes as we add more above
+	const int blanksEnd = 10; // this one changes as we add more above
 	*/
 	switch (funcNumber)
 	{
@@ -21028,14 +21521,17 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		break;
 	case lookup_user:
 	{
-		if (m_bUserAuthenticating)
-		{
-			wxASSERT(resultFile == m_resultDatFileName);
-		}
+		// A bit of stuff that does nothing much
+		wxASSERT(resultFile == m_resultDatFileName);
+		bool bSame = resultFile == m_resultDatFileName;
+		wxUnusedVar(bSame);
 		break;
 	}
 	case list_users: // = 3
 	{
+		wxASSERT(resultFile == m_resultDatFileName);
+		bool bSame = resultFile == m_resultDatFileName;
+		wxUnusedVar(bSame);
 		break;
 	}
 	case create_entry: // = 4
@@ -21066,6 +21562,52 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		bReportResult = FALSE;
 		break;
 	}
+	case changed_since_timed: // = 8
+	{
+		// Force bReportResults to FALSE, common repetetive operations
+		// should not give time-delaying GUI messages to disturb user's work
+
+		// This one has a progress gauge
+		bReportResult = FALSE;
+		break;
+	}
+	case upload_local_kb: // = 9;
+	{
+		wxString datFilename = _T("local_kb_lines.dat");
+		KbServer* pKbSvr = NULL;
+		bool bPopulated = FALSE;
+		if (gbIsGlossing)
+		{
+			pKbSvr = GetKbServer(2);
+			bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
+				datFilename, m_sourceName, m_glossesName);
+		}
+		else
+		{
+			pKbSvr = GetKbServer(1);
+			bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
+				datFilename, m_sourceName, m_targetName);
+		}
+		
+		//*
+		if (bPopulated)
+		{
+			// The presence of a straight single quote (Leon calls it an apostrophe) in
+			// any field that is to be sent into the kbserver entry table (or a user table
+			// for that matter), will be taken by the internal python as belonging to a
+			// quoted substring - which it would not be, we don't have any such in our
+			// data for kbserver, and that would mess with the SQL parsing, creating a
+			// parsing error it can't fix, and it would give up. The result then is that
+			// the do....function.exe reports the named internal python function as being
+			// in error. So we must escape all such single quotes in our data, whether src,
+			// tgt, username, language name for src or tgt languages - that's it; other fields
+			// never have a single quote character in them.
+			DoEscapeSingleQuote(execPath, datFilename); // helpers.cpp
+		}
+		wxASSERT(bPopulated == TRUE);
+		//*/
+		break;
+	}
 	case blanksEnd:
 	{
 		break;
@@ -21085,8 +21627,11 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		// AI code can interrogate to see if the desired mariaDB access worked. So
 		// rv == 0  does not mean wxExecute() error, but if it did fail, errors array
 		// can be checked for what went wrong with it.
+// **************************************************************************************
+
 		long rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful
 
+// **************************************************************************************
 		if (!errors.IsEmpty() && rv != 0)
 		{
 			// Get the error lines, and the commandLine, into LogUserAction() so
@@ -21165,6 +21710,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 							// we will want success when authenticating to be reported to user
 							bReportResult = TRUE; // force TRUE because authenticating, 
 												  // to show 1.5 sec msg
+							// For bulk operations, funcNumber >= 8, a progress indicator
+							// will (or should be) used
 						}
 					}
 				} // end of TRUE block for test: if (offset != wxNOT_FOUND)
@@ -21182,6 +21729,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					if (lineCount > 1)
 					{
 						dataStr = f.GetLine(1);
+						dataStr = DoUnescapeSingleQuote(dataStr); // in case 
+											// there was an escaped ' in dataStr
 						bMoreThanOneLine = TRUE;
 						f.Close();
 					}
@@ -21233,10 +21782,15 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 '1'
 							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
 
+							// BEW 12Nov20 Put the useradmin value in the public member of 
+							// the app class, so that ListUsers() and the KB Sharing Manager
+							// can check it - to permit or disallow the user's access
+							m_bHasUseradminPermission = bUseradminValue; // a bool is easier to work with
+
 							// Now store them... (Authenticating, if ConfigureMovedDATfile()
 							// has just done the test user1 == user2 and found it TRUE, so that
 							// m_bUserUserAuthentication has been forced to TRUE)
-							if (m_bUserAuthenticating)
+							if (!m_bUseForeignOption)
 							{
 								wxASSERT(m_bUser1IsUser2 == TRUE);
 								m_bUserLoggedIn = FALSE; // initialise
@@ -21246,6 +21800,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 									m_bUserLoggedIn = TRUE;
 									m_resultDatFileName.Empty(); // no longer need it
 								}
+								// Unescaping any escaped ' has been done above
 								m_curNormalUsername2 = username2;
 								m_curNormalFullname = fullname;
 								m_bcurNormalUseradmin = bUseradminValue;
@@ -21253,13 +21808,22 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 								// The user may have changed to a different AI project,
 								// so reset the language names to whatever is current.
 								// But don't do this when m_bUserAuthenticating is FALSE
-								m_sourceLanguageName = m_sourceName; // this tracks the project
+
+								// Need unescaping of any escaped ' in these names
+								wxString tempStr = m_sourceName;
+								tempStr = DoUnescapeSingleQuote(tempStr);
+								m_sourceLanguageName = tempStr; // this tracks the project
+
 								m_curNormalSrcLangName = m_sourceLanguageName; // secondary storage
 
-								m_targetLanguageName = m_targetName; // this tracks the project
+								tempStr = m_targetName;
+								tempStr = DoUnescapeSingleQuote(tempStr);
+								m_targetLanguageName = tempStr; // this tracks the project
 								m_curNormalTgtLangName = m_targetLanguageName;
 
-								m_glossesLanguageName = m_glossesName; // this tracks glossing lang
+								tempStr = m_glossesName;
+								tempStr = DoUnescapeSingleQuote(tempStr);
+								m_glossesLanguageName = tempStr; // this tracks glossing lang
 									// of project; but it's got different status -  projects are
 									// defined only by their src and tgt language names; if
 									// a glossing language name is used, it's an internal matter
@@ -21268,6 +21832,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 									// anywhere in the app, as yet at least
 								m_curNormalGlossLangName = m_glossesLanguageName;
 
+								// no need to unescape these next two
 								m_freeTransLanguageName = m_freeTransName;
 								m_curNormalFreeTransLangName = m_freeTransLanguageName;
 								// For the above names, see AI.h around lines 3294 to 3298
@@ -21281,7 +21846,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 #if defined(__WXMSW__)
 									CMainFrame* pFrame = this->GetMainFrame();
 									CWaitDlg waitDlg(pFrame);
-									waitDlg.m_nWaitMsgNum = waitSuccess;	// 32 has  _("Authentiction succeeded")
+									waitDlg.m_nWaitMsgNum = waitSuccess;	// 32 has _("Authentication succeeded")
 									waitDlg.Centre();
 									waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
 									waitDlg.Update();
@@ -21294,21 +21859,60 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 									wxUnusedVar(waitFailure);
 #endif
 								} // end of TRUE block for test: if (bReportResult)
-							} // end of TRUE block for test: if (m_bUserAuthenticating)
+							} // end of TRUE block for test: if (!m_bUseForeignOption)
 							else
 							{
 								// These are the 'for manager' storage, for 'foreign' access
+								m_bUserLoggedIn = TRUE;
+
 								m_Username2 = username2;
 								m_curFullname = fullname;
 								m_bcurUseradmin = bUseradminValue;
-							} // end of else block for test: if (m_bUserAuthenticating)
+							} // end of else block for test: if (!m_bUseForeignOption)
 						}
 						break;
 					}
 					case list_users: // = 3
 					{
-						// TODO 
-						break;
+						// results file is list_users_report_results.dat
+						// containing: username,fullname,password,useradmin, 
+						// (not wanted are id, and timestamp)
+						// if (bMoreThanOneLine && bSuccess) are both TRUE,
+						// so here we handle multiple lines.
+						// m_arrLines is a public wxArrayString, for DatFile2StringArray()
+						// to use, and then ListUsers() in KbServer.cpp provides
+						// ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersListForeign)
+						// to turn the m_arrLines entries (which know nothing of the contents of each line)
+						// into a list of UsersListForeign structs (unordered), whic LoadDataForPage()
+						// can then use.
+						//wxString resultFile = _T("list_users_report_results.dat");
+						bool bArrOK = DatFile2StringArray(execPath, resultFile, m_arrLines); // cloned in AI.h
+						wxUnusedVar(bArrOK);
+
+						// Now dependence on the returned .dat file is removed, m_arrLines has
+						// what the Manager code now needs for setting up the page 0 of it.
+
+						/*
+						if (!dataStr.IsEmpty())
+						{
+							offset = dataStr.Find(comma);
+							wxString username = dataStr.Left(offset); // << username value determined
+
+							wxString shorter = dataStr.Mid(offset + 1);
+							offset = shorter.Find(comma);
+							wxString fullname = shorter.Left(offset);
+
+							shorter = dataStr.Mid(offset + 1);
+							offset = shorter.Find(comma);
+							wxString password = shorter.Left(offset);
+
+							shorter = shorter.Mid(offset + 1);
+							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's '1' or '0'
+							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
+
+							// We have the required 4 fields per line
+						*/
+					break;
 					}
 					case create_entry: // = 4
 					{
@@ -21365,7 +21969,20 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// If the relevant bool is not TRUE, then m_entryStruct will have been cleared
 						break;
 					}
+					case changed_since_timed: // = 8
+					{
+						// TODO? -- line 0 has "success,<timestamp string>, and the rest is
+						// multiple lines, FileToEntryStruct() in loop is needed - maybe 
+						// better to do it in ChangedSince_Timed() itself
+						break;
+					}
+					case upload_local_kb: // = 9
+					{
+						// no post-wxExecute() things to do here
+						break;
+					}
 					} // end of switch
+			
 				} // end of TRUE block for test: if (bMoreThanOneLine && bSuccess)
 				
 			} // end of the TRUE block for test: if (bResultsFileExists)
@@ -21416,6 +22033,41 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	}
 	return bSuccess;
 }
+
+bool CAdapt_ItApp::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines)
+{
+	arrLines.Empty(); // clear contents
+	wxString pathToResults = execPath + resultFile;
+	bool bResultsFileExists = ::FileExists(pathToResults);
+	if (bResultsFileExists)
+	{
+		wxTextFile f(pathToResults);
+		bool bOpened = f.Open();
+		int lineIndex = 0; // ignore this one, it has "success in it" etc
+		int lineCount = f.GetLineCount();
+
+		wxString strCurLine = wxEmptyString;
+		if (bOpened)
+		{
+			for (lineIndex = 1; lineIndex < lineCount; lineIndex++)
+			{
+				strCurLine = f.GetLine(lineIndex);
+				arrLines.Add(strCurLine);
+			}
+		}
+	}
+	else
+	{
+		// results file does not exist, log the error
+		wxBell();
+		wxString msg = _T("DatFile2StringArray() does not exist in the executable's folder: %s");
+		msg = msg.Format(msg, execPath.c_str());
+		LogUserAction(msg);
+		return FALSE;
+	}
+	return TRUE;
+}
+
 
 void CAdapt_ItApp::UpdateCurAuthUsername(wxString str)
 {
@@ -21621,6 +22273,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     } // end of special scope for wxLogNull
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
+
+#if defined (_KBSERVER)
+	// incremental download default interval (5 seconds) - but will be overridden
+	// by whatever is in the project config file, or defaulted to 5 there if out of
+	// range (range is: 1-120 minutes) BEW 22Oct20, move here from line 22,145 in
+	// case being near end caused a larger project settings value to be reset to 
+	// default, which is 5 
+	m_nKbServerIncrementalDownloadInterval = 5;
+
+	m_bHasUseradminPermission = FALSE; // governs whether user can access the KB Sharing Manager
+	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
+#endif
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
 
@@ -21938,11 +22602,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // flag initializations
     m_bKbServerIncrementalDownloadPending = FALSE;
-
-    // incremental download default interval (5 seconds) - but will be overridden
-    // by whatever is in the project config file, or defaulted to 5 there if out of
-    // range (range is: 1-120 minutes)
-    m_nKbServerIncrementalDownloadInterval = 5;
 
     // initialize kbadmin and useradmin flags associated with username (both being false
     // constitutes 'minimal' privilege level for access to the KB sharing remote database;
@@ -28698,6 +29357,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
 	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
 										   // called in CallExecute()'s post-wxExecute() switch
+	m_bUserRequestsTimedDownload = FALSE;  // set True if user uses GUI to ask for a bulk
+						// download, or ChangedSince (ie. incremental) download. If
+						// TRUE, skip the OnIdle() ChangedSince_Timed request
 
     wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 #endif // _KBSERVER
@@ -36015,6 +36677,29 @@ void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
+
+// BEW 10Nov20 created, a function to encapsulate the complexities of lookup,
+// checking useradmin value, the 2-user dialog for Authenticate, after instantiating
+// KbSvrHowGetUrl() class (it's internally changed for ipAddr, but Url can stay in
+// its name) to set the pKbSrv_>m_bForManager member of KbServer.h to TRUE for a
+// Sharing Manager access attempt. The user2 of the 2-user Authenticate dialog is
+// the checkUser that will be checked for useradamin == 1, and if it is not that
+// high a permission level, then access to the Manager will be blocked. The first
+// username of the 2-user dialog can be any user with credentials sufficient for
+// login to kbserver; typically the current user for the sharing of adaptations or
+// glosses.
+bool CAdapt_ItApp::PrepareForListUsers(wxString& ipAddr, wxString& username, wxString& pwd,
+	wxString& checkUser, bool bForManager)
+{
+
+// TODO
+
+
+
+	return TRUE;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -36040,22 +36725,24 @@ void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
-    // define and load one or more consistent change tables
     CAdapt_ItApp* pApp = &wxGetApp();
+	CMainFrame* pFrame = pApp->GetMainFrame();
     wxASSERT(pApp != NULL);
     LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
     m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked
-    pApp->m_bUserLoggedIn = FALSE;
+    // pApp->m_bUserLoggedIn = FALSE; // BEW 9Nov20 don't clear this one, we let 3rd party in
 #if defined (ERR_DUPLICATE)
     wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: Line %d in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), __LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 #endif
-    // The one using the manager has to first be given the option for how to get the url for
+    // The one using the manager has to first be given the option for how to get the ipAddr for
     // the KBserver which is being targetted for being setup for kb sharing or whatever other
-    // reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
+    // reason (such as adding or removing a user, etc). Call the dialog
     // for this step - on exit from it, app's m_bServiceDiscoveryWanted will have been set
-    // to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
-    // url he knows (which could be on the LAN, that posibility is not precluded)
+    // to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type an
+    // ipAddress he knows (which could be on the LAN, that posibility is not precluded)
     bool bLoginPersonCancelled = FALSE; // initialize
+
+	/* deprecate use of this kb_ask_how_get_url_func dialog
 	{
 		KbSvrHowGetUrl modalHowGetUrl(pApp->GetMainFrame());
 		modalHowGetUrl.Center();
@@ -36077,7 +36764,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		// The app's value for m_bServiceDiscoveryWanted will have been set within
 		// the OnOK() handler of the above dialog
 	} // scope ends, we don't want the dlg showing any longer
-
+	*/
     // If the user didn't cancel, then call Authenticate....()
     if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
     {
@@ -36085,15 +36772,21 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // closed down, so that anything the login person does does not permanently
         // affect any of the user's KB sharing settings which may have been in place
         // while the login person had control of this computer for using the Manager
-        CMainFrame* pFrame = GetMainFrame();
+        //CMainFrame* pFrame = GetMainFrame();
+
+		/* BEW 11Nov20 don't need these , same in the destructor
         m_saveOldIpAddrStr = m_strKbServerIpAddr;
         m_saveOldUsernameStr = m_strUserID;
         m_savePassword = pFrame->GetKBSvrPassword();
         m_saveSharingAdaptationsFlag = m_bIsKBServerProject;
         m_saveSharingGlossesFlag = m_bIsGlossingKBServerProject;
-
+		*/
         // Service discovery, if wanted, goes here
         wxString currentIpAddr = m_strKbServerIpAddr; // m_bServiceDiscoveryWanted == FALSE will use this
+		if (currentIpAddr.IsEmpty())
+		{
+			m_bServiceDiscoveryWanted = TRUE;
+		}
         wxString chosenIpAddr = wxEmptyString;
         wxString chosenHostname = wxEmptyString;
         if (m_bServiceDiscoveryWanted)
@@ -36113,10 +36806,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
                 // Make the chosen ipAddress accessible to authentication
                 m_strKbServerIpAddr = chosenIpAddr;
                 m_strKbServerHostname = chosenHostname;
-
-                // test I got the logic right - if I have, I'll see this bogus url
-                // shown in the Authenticate dialog
-                //m_strKbServerIpAddr = _T("kbserver.gobbledegook.org"); <<-- yep, it got shown
+				UpdateIpAddr(chosenIpAddr); // ie. m_curIpAddr on app.h
             }
             else
             {
@@ -36133,12 +36823,15 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
                     );
                 // The login person should have seen an error message, so just
                 // restore the user settings and return without opening the Manager
+				/* BEW 11Nov20 deprecate saving these; irrelevant to the Manager
                 m_strKbServerIpAddr = m_saveOldIpAddrStr;
                 m_strKbServerHostname = m_saveOldHostnameStr;
                 m_strUserID = m_saveOldUsernameStr;
                 pFrame->SetKBSvrPassword(m_savePassword);
                 m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
                 m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
+				*/
+				wxBell();
                 return;
             }
         }
@@ -36146,7 +36839,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // The administrator or login person must authenticate to whichever KBserver he
         // wants to adjust or view. Note: the next line sets up an instance of
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
-        // machine's owner, or either of the glossing or adapting local KBs. It only uses
+        // machine's owner, or either of the glossing or adapting local KBs, or which project. 
+		// It only uses
         // the KbServer class for the services it provides for the KB Sharing Manager gui
         // The instance is pointed at by an app member: m_pKbServer_ForManager, which is
         // created on demand in the heap, used, and then deleted, and its pointer returned
@@ -36157,7 +36851,14 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // that deals with a remotely stored knowledge base, the codes for that remote kb are
         // identical for the local CKB instances. (The Manager checks internally for
         // violations and takes appropriate action, with warning messages)
-        KBSharingAuthenticationDlg dlg(GetMainFrame(), m_bUserAuthenticating);
+
+		// BEW 11Nov20, change code here to use Authenticate2Dlg()
+		// m_bUserAuthenticating set FALSE above
+/*
+		// BEW 12Nov20 deprecated having this Authenticate2Dlg call here in the handler,
+		// better to have it at the instantiatiation of the KB Sharing Manager - so did so
+
+        Authenticate2Dlg dlg(pFrame, m_bUserAuthenticating);
         dlg.Center();
         if (dlg.ShowModal() == wxID_OK)
         {
@@ -36165,33 +36866,25 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
             {
                 wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, ipAddress or password; or maybe no KBserver running, or a network error");
                 wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
-                gpApp->LogUserAction(_T("Authentication error. Bad ipAddress or username lookup failure; or maybe no KBserver running, logging in to the KB Sharing Manager"));
+                gpApp->LogUserAction(msg);
                 return;
             }
             gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
+
+			// TODO --- never got to doing more here before deprecating this block
         }
         else
         {
             gpApp->LogUserAction(_T("Cancelled authenticating for KB Sharing Manager dlg"));
             return;
         }
+*/
+		// put on the heap, it's to be a modeless dialog
+        m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pFrame); 
 
-        m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame()); // on the heap is for modeless dialogs
-
-        // BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
-        // Oops, nope! It then receives command events when the object is instantiated it
-        // never displays because wx gets into an infinite loop of focus event handling which
-        // continues until the stack is full and the app crashes. The only way I think I can
-        // get what I want is to use the fact that the app class is tried last in the event
-        // loop, so send a custom event from the thread, have it trapped in CAdapt_ItApp
-        // instance, and the handler then checks for pApp->m_pKBSharingMgrTabbedDlg being
-        // non-NULL, and if so, uses other state-preserving variable on the app to determine
-        // which page is active (change to kb page if user page is active), which radio button
-        // is active (change to the one matching the kb type just removed, if necesary), and
-        // then get the page update done to show that the kb definition is no longer in the list)
-        //CMainFrame* pFrame = GetMainFrame();
-        //pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg); <<-- must NOT do this (see
-        //                                                             comment immediately above)
+        // BEW 14Sept12. Push this object on to the event queue?
+        // Oops, nope! Creates an infinite loop of focus event handling. So don't do the
+        // following: pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg);
 
         // make the font show only 12 point size in the dialog
         CopyFontBaseProperties(m_pSourceFont, m_pDlgSrcFont);
@@ -37901,9 +38594,9 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
     // and 3 lines at end of the function to restore the old system encoding value
     data.Empty();
     data << szHeight << tab << fi.fHeight; //data = szHeight + tab + number + end;
-                                           // Note: On 15Mar04 Bruce changed all of the m_systemEncoding params in ConvertAndWrite
-                                           // to eUTF8 but I don't expect I'll need to use ConvertAndWrite, so I'll keep his
-                                           // changes as commented out lines below the earlier commented out lines.
+    // Note: On 15Mar04 Bruce changed all of the m_systemEncoding params in ConvertAndWrite
+    // to eUTF8 but I don't expect I'll need to use ConvertAndWrite, so I'll keep his
+    // changes as commented out lines below the earlier commented out lines.
     pf->AddLine(data);
 
     data.Empty();
@@ -38857,16 +39550,16 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
     wxString strValue;
     int		num; // for the string converted to a number
 
-                 // The first call of GetFontConfiguration reads the Source Font data, and exits at the
-                 // first blank line at end of Source Font data; then the second call of the routine
-                 // continues reading the Target Font data, exiting at the next blank line (at end of
-                 // Target Font data), and the third call of the routine continues reading the Nav Font
-                 // data, exiting at the blank line just before the "Settings" (or "ProjectSettings")
-                 // heading. Here we'll not use GetFirstLine() since this current function is designed
-                 // to be entered three times (once each for source, target and nav fonts) while the
-                 // config file is open with the pointer continuing through the file, rather than being
-                 // reset to the beginning like GetFirstLine would do. Hence, we'll check to see if we
-                 // are at line zero or not and only use GetNextLine when we're not at line zero.
+    // The first call of GetFontConfiguration reads the Source Font data, and exits at the
+    // first blank line at end of Source Font data; then the second call of the routine
+    // continues reading the Target Font data, exiting at the next blank line (at end of
+    // Target Font data), and the third call of the routine continues reading the Nav Font
+    // data, exiting at the blank line just before the "Settings" (or "ProjectSettings")
+    // heading. Here we'll not use GetFirstLine() since this current function is designed
+    // to be entered three times (once each for source, target and nav fonts) while the
+    // config file is open with the pointer continuing through the file, rather than being
+    // reset to the beginning like GetFirstLine would do. Hence, we'll check to see if we
+    // are at line zero or not and only use GetNextLine when we're not at line zero.
     size_t curLine = pf->GetCurrentLine();
     data = pf->GetLine(curLine);
     // don't use GetNextLine if we've just opened the file, otherwise we would skip
@@ -39249,13 +39942,12 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
     wxString strTwoPunctPairsTgtSet;
 #endif
 
-    nLastActiveSequNum = 0;		// mrh Oct12 -- this field is going west, so for now we ensure it's zero
-                                //  unless changed
-
-                                // Too much nesting of if ... else if ... else if .... etc; so handle the first ten
-                                // lines in a separate loop. The compiler won't handle too much nesting - fails
-                                // fatally. So a couple of loops will ease the problem, at the cost of 'fixing'
-                                // the content of the first ten lines - but their order could be varied if we wish
+    nLastActiveSequNum = 0;		// mrh Oct12 -- this field is going west, so for now we
+                                // ensure it's zero unless changed
+    // Too much nesting of if ... else if ... else if .... etc; so handle the first ten
+    // lines in a separate loop. The compiler won't handle too much nesting - fails
+    // fatally. So a couple of loops will ease the problem, at the cost of 'fixing'
+    // the content of the first ten lines - but their order could be varied if we wish
     int i;
     for (i = 0; i < 10; i++)
     {
@@ -42511,12 +43203,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
     int num; // for the string converted to a number
     bool bExistsUsfmSettingInConfig = FALSE; // whm added 2Feb05
 
-                                             // BEW added 10Aug09, for detecting when the project config file is from a "foreign"
-                                             // profile, and therefore would give an error if a path from that profile was used
-                                             // herein as a path valid in the current user's profile; when the profile name part of
-                                             // paths differ, set the following boolean TRUE, default is FALSE (meaning the config
-                                             // file is not of foreign source and the path is the user's own)
-                                             //bool bForeignConfigFile = FALSE; // whm 7Aug11 removed as unnecessary
+    // BEW added 10Aug09, for detecting when the project config file is from a "foreign"
+    // profile, and therefore would give an error if a path from that profile was used
+    // herein as a path valid in the current user's profile; when the profile name part of
+    // paths differ, set the following boolean TRUE, default is FALSE (meaning the config
+    // file is not of foreign source and the path is the user's own)
+    //bool bForeignConfigFile = FALSE; // whm 7Aug11 removed as unnecessary
 
 #ifdef _UNICODE
     wxString strPunctPairsSrcSet;
@@ -59477,6 +60169,191 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath
 		wxUnusedVar(bDataFileExists);
 #endif
 	}
+}
+
+void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("upload_local_kb.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# goal: prepare and do, for bulk upload of local KB contents to kbserver entry table.");
+			f.AddLine(line);
+			line = _T("# Uses two input .dat files. First, for authenticating access, second, having the data lines.");
+			f.AddLine(line);
+			line = _T("# Internally, in the python code, the second input .dat file is: local_kb_lines.dat");
+			f.AddLine(line);
+			line = _T("# local_kb_lines.dat is constructed by calling PopulateLocalKbLines(const int funcNumber,");
+			f.AddLine(line);
+			line = _T("#   CAdapt_ItApp* pApp, wxString& execPath, wxString& datFilename, wxString& sourceLanguage,");
+			f.AddLine(line);
+			line = _T("#   wxString nonSourceLanguage)");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's first 'input' file:   upload_local_kb.dat");
+			f.AddLine(line);
+			line = _T("# 'output' file for that, in exec folder: upload_local_kb_return_results.dat");
+			f.AddLine(line);
+			line = _T("# Do not pass in a timestamp in upload_local_kb.dat; and in local_kb_lines.dat");
+			f.AddLine(line);
+			line = _T("# exclude the local KB's creation datetime for any being-sent src/nonSrc pairs.");
+			f.AddLine(line);
+			line = _T("# Python exec's name:  do_upload_local_kb.py");
+			f.AddLine(line);
+			line = _T("# Adapt It must create the file \"local_kb_lines.dat\" before do_upload_local_kb.py is called.");
+			f.AddLine(line);
+			line = _T("# Each line of local_kb_lines.dat has fields, comma separated, as follows:");
+			f.AddLine(line);
+			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted");
+			f.AddLine(line);
+			line = _T("# with these values taken from an Adapt It looping over the whole local KB, by calling");
+			f.AddLine(line);
+			line = _T("# PopulateLocalKbLines(...) prior to calling wxExecute() within CallExecute() function.");
+			f.AddLine(line);
+			line = _T("# login credentials for do_upload_local_kb.py or .exe:  ipaddr,username,password");
+			f.AddLine(line);
+			line = _T("# Output results for do_upload_local_kb.py .dat:");
+			f.AddLine(line);
+			line = _T("# \"success\", followed by the starting timestamp, then the ending timestamp, comma separated");
+			f.AddLine(line);
+			line = _T("# on the 1st and only line, or a single line error message lacking \"success\" substring.");
+			f.AddLine(line);
+
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
+void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("list_users.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,password,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: list_users.dat");
+			f.AddLine(line);
+			line = _T("# Results file: list_users_return_results.dat");
+			f.AddLine(line);
+			line = _T("# After login, checks if username has useradmin value equalling 1");
+			f.AddLine(line);
+			line = _T("# If that check fails, return list_users_return_results_file.dat");
+			f.AddLine(line);
+			line = _T("# \"this user does not have permission to access the DB user's table: <name>\"");
+			f.AddLine(line);
+			line = _T("# If the check succeeds, return the list_users_return_results_file.dat file");
+			f.AddLine(line);
+			line = _T("# with first line having \"success\" findable in it.");
+			f.AddLine(line);
+			line = _T("# And following lines containing, for each line, the 3 values for:");
+			f.AddLine(line);
+			line = _T("# username,fullname,useradmin,");
+			f.AddLine(line);
+			line = _T("# Use this .dat file for listing all usernames and each's fullname and");
+			f.AddLine(line);
+			line = _T("# useradmin values, comma-separated.");
+			f.AddLine(line);
+			line = _T("# The executable will be:  do_users_list.exe based on do_users_list.py");
+			f.AddLine(line);
+			line = _T("ipAddress,username,password,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
+
+// BEW 6Nov20 This function is needed for the following reason.
+// The Preferences... > Backups & Misc page has 4 text boxes,
+// for source language name, target language name, gloss language
+// name, and free translation name. Two are always filled, the first
+// two, because they define the project. But Adapt It has a glossing
+// KB locally, and while users normally ignore glossing, some may not.
+// If the gloss language name is unset, m_glossesName is an empty
+// string.
+// But it is possible for a user to ask for KB Sharing support for the
+// local glossing KB. If he does so and does not realise that m_glossesName
+// is an empty string, then the attempt to setup sharing using
+// SetupForKBServer(2) will want a value in m_glossesName, so that the
+// entry table in mariaDB/kbserver will have a non-empty name in the 
+// third column of each entry.
+// We have to prevent such a mess. Mostly glossing might be for
+// consultant-related information, or some other language (e.g. a language
+// of wider communication for the region. So for the present, if m_glossesName
+// is empty, I'll code for defaulting it to English; and give wxMessageBox()
+// message to state this, and tell where it can be changed. Similarly, if
+// a value is already set, then I think another wxMessageBox should appear
+// to state what value it has, and tell where to change if necessary.
+
+void CAdapt_ItApp::CheckForDefinedGlossLangName()
+{
+	wxString english = _T("English"); // cannot localise to something else
+	wxString glossLangName = m_glossesName; // get current value - as in basic 
+											// and project config files
+	if (glossLangName.IsEmpty())
+	{
+		m_glossesName = english; // this LHS is the primary one, to/from config files
+		m_glossesLanguageName = english;
+	}
+	// make the text of the message & title be localizable, but not the lang names
+	wxString title = _("Language name for \'glossing mode\': %s");
+	title = title.Format(title, m_glossesName.c_str());
+	wxString adaptingLang = m_targetName;
+	wxString msg = _("The language for adapting mode is: %s\nThe language for glossing is: %s\nDo not confuse these two. Usually they are different.\nFor adapting, the language used is your project's target text language.\nFor glossing, any language of the world can be used.\n\nThis message is about the glossing language.\nIf it is not the language you want for glossing, you can change it at:\nEdit > Preferences... > Backups & Misc page.");
+	msg = msg.Format(msg, adaptingLang.c_str(), m_glossesName.c_str());
+	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 }
 
 // TODO -- add more as needed

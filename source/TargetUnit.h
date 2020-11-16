@@ -86,6 +86,7 @@ public:
 	int			FindRefString(wxString& translationStr);
 	int			FindDeletedRefString(wxString& translationStr); // only tests deleted ones for a match
 	int			CountNonDeletedRefStringInstances();
+	int			CountAllRefStringInstances(); // BEW 26Oct20 the count includes deleted == TRUE ones
 	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str); // str is either gloss or adaption
 	bool		IsItNotInKB();
 	bool		IsDeletedNotInKB();

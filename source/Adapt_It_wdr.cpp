@@ -7737,16 +7737,16 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("ID     Users") );
+    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("              Users") );
     wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
 
     wxString *strs6 = (wxString*) NULL;
     wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(220,-1), 0, strs6, wxLB_SINGLE );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item4, 0, wxGROW|wxALL, 0 );
+    item3->Add( item4, 0, wxGROW|wxALL, 5 );
 
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("User Names and Password") );
+    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Change Permission, Password, or  Fullname") );
     wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
 
     wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Username (should be unique):"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -7782,16 +7782,16 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     item3->Add( item7, 1, wxALL, 5 );
 
-    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("User Permissions") );
+    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("User Permission and Password") );
     wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
 
-    item17->Add( 20, 1, 0, wxALIGN_CENTER, 5 );
+    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
 
-    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxSize(140,-1), 0 );
     item19->SetToolTip( _("Tick this box to allow this user the permission to add, remove, or edit other users of this server") );
     item17->Add( item19, 0, wxALL, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("(can add, edit or remove other users)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("(can add users, or edit some user options)"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item20, 0, wxLEFT, 15 );
 
     item17->Add( 20, 4, 0, wxALIGN_CENTER, 5 );
@@ -7799,36 +7799,46 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxButton *item21 = new wxButton( parent, ID_BUTTON_CHANGE_PERMISSION, _("Change Permission"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    item17->Add( 20, 24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Selected User's Password") );
+    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
+
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SEL_USER_PWD, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( item22, 0, wxALL, 5 );
+
     item3->Add( item17, 0, wxALL, 5 );
 
     item2->Add( item3, 1, wxGROW|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    item22->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item23 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
-    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Remove this user from the list, provided this is allowed") );
-    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item28 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("View the password for the selected user; it can be changed") );
+    item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( 6, 20, 0, wxALIGN_CENTER, 5 );
+    item25->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Note: Some users cannot be removed."), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item22, 0, wxALL, 0 );
+    item2->Add( item25, 0, wxALL, 0 );
 
     item0->Add( item2, 1, wxGROW|wxLEFT|wxBOTTOM, 5 );
 
@@ -7846,12 +7856,14 @@ wxSizer *SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Use this dialog to create, modify or remove users, or knowledge bases, on the connected server"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item1, 0, wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Create extra users, or edit some settings for a selected user, on the connected server"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->SetFont( wxFont( 14, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
+    item0->Add( item1, 0, wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_CONNECTED_TO, _("You are currently connected to the server with this ipAddress: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_CONNECTED_TO, _("You are connected to the KBserver at ipAddress: "), wxDefaultPosition, wxSize(-1,26), 0 );
+    item3->SetFont( wxFont( 14, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
     item2->Add( item3, 0, wxALIGN_CENTER|wxLEFT, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_SERVER_URL, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
@@ -7866,23 +7878,15 @@ wxWindow *item5 = item6;
     SharedKBManagerUsersPageFunc2( item7, FALSE );
     item6->AddPage( item7, _("Users of the shared databases") );
 
-    wxPanel *item8 = new wxPanel( item6, -1 );
-    SharedKBManager_CreateKbsPageFunc2( item8, FALSE );
-    item6->AddPage( item8, _("Create, modify or delete shared databases") );
-
-    wxPanel *item9 = new wxPanel( item6, -1 );
-    SharedKBManager_CreateCodesPageFunc( item9, FALSE );
-    item6->AddPage( item9, _("Create or delete custom language codes") );
-
     item0->Add( item5, 1, wxGROW|wxALL, 0 );
 
-    wxStdDialogButtonSizer *item10 = new wxStdDialogButtonSizer;
+    wxStdDialogButtonSizer *item8 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item10->AddButton( button ); }
-    item10->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item10->Realize();
-    item0->Add( item10, 0, wxGROW|wxALL, 5 );
+      item8->AddButton( button ); }
+    item8->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item8->Realize();
+    item0->Add( item8, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9750,7 +9754,7 @@ wxSizer *user1_user2_lookup_func( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("This dialog is for the Lookup User functionality. It has text boxes for two usernames. The higher username box is for authenticating. The lower one, is for the username to be looked up. Those two usernames can be the same, or different. If you enter the same username in each, then Lookup User becomes a test for doing work in the discovered KBserver you selected for working in.  If the usernames are different, you are just asking for information about the username in the lower box.  Make sure you keep a written record of the first username, and its password."), wxDefaultPosition, wxSize(560,106), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("LookupUser and ListUsers use this dialog. It has text boxes for two usernames. The higher username box is for authenticating. The lower one, is for the username to be looked up. Those two usernames can be the same, or different. If you enter the same username in each, then LookupUser is intended, for doing normal adapting or glossing work in your project.  If the usernames are different, you are wanting access to the Knowledge Base Manager, and you are asking if the username in the lower box has permission to see the list of all known users.  Make sure you keep a written record of the first username, and its password."), wxDefaultPosition, wxSize(560,120), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("This is your chosen  ipAddress for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );

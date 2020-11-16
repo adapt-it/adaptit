@@ -33354,6 +33354,33 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(_T("G'day. Call your new code in this handler: View's OnHiddenMenuItem."), _T("Develop & Test Code"));
 
 // TODO -- whatever
+
+	pApp->CheckForDefinedGlossLangName();
+
+	/*
+	wxString pathToFolder = pApp->execPath;
+	wxString filename = _T("local_kb_linesCopy.dat");
+	DoEscapeSingleQuote(pathToFolder, filename);
+	int stophereforalook = 1;
+	wxUnusedVar(stophereforalook);
+	*/
+	/*
+	wxString test = _T("it's,Dhay'yi,God's,b'long,here's how,you've,gam',yuwalk'thina,already\\'done");
+	test = DoEscapeSingleQuote(test);
+	int stophereforalook = 1; // works well
+	wxUnusedVar(stophereforalook);
+	*/
+/*
+	KbServer* pKbSvr = pApp->GetKbServer(1);
+	wxString execPath = pApp->execPath;
+	wxString datFilename = _T("local_kb_lines.dat");
+	wxString sourceLanguage = pApp->m_sourceName;
+	wxString nonSourceLanguage = pApp->m_targetName;
+	bool bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, pApp, execPath,
+						datFilename, sourceLanguage, nonSourceLanguage);
+	wxUnusedVar(bPopulated);
+*/
+/*
 	wxString execPath = pApp->execPath;
 	wxString distPath = pApp->distPath;
 	wxString src = _T("tokim");
@@ -33361,20 +33388,22 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	KbServer* pKbSvr = pApp->GetKbServer(1);
 	int rv = pKbSvr->LookupEntryFields(src, nonSrc);
 	rv = rv;
-
-
-/*
+*/
+//*
+	wxString execPath = pApp->execPath;
 	wxString saveCwd = ::wxGetCwd();
 	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
-	KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
+	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 	wxString comma = _T(",");
 	wxString ipAddr = _T("192.168.1.9");
 	wxString user = _T("bruce@unit2");
 	wxString pwd = _T("Clouds2093");
-	wxString user2 = _T("bruce@unit2");
-	wxString cmdLine = ipAddr + comma + user + comma + pwd + comma + user2 + comma;
+	wxString user2 = _T("bobbie");
+	//wxString cmdLine = ipAddr + comma + user + comma + pwd + comma +user2 + comma;
+	wxString cmdLine = ipAddr + comma + user + comma + pwd + comma; // +user2 + comma;
 	wxTextFile f;
-	bool bOpened = f.Open(execPath + _T("lookup_user.dat"));
+	//bool bOpened = f.Open(execPath + _T("lookup_user.dat"));
+	bool bOpened = f.Open(execPath + _T("list_users.dat"));
 	if (bOpened)
 	{
 		f.Clear();
@@ -33383,21 +33412,24 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 		f.Close();
 	}
 
-	wxString ipAddr = pApp->m_chosenIpAddr; //_T("192.168.1.9");
-	wxString user = pApp->m_strUserID; // _T("bruce@unit2");
-	CMainFrame* pFrame = pApp->GetMainFrame();
-	wxString pwd = _T("Clouds2093");
-	pFrame->SetKBSvrPassword(pwd);
-	wxString user2 = user;
-	KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
+	//wxString ipAddr = pApp->m_chosenIpAddr; //_T("192.168.1.9");
+	//wxString user = pApp->m_strUserID; // _T("bruce@unit2");
+	//wxString user2 = _T("bobbie"); // _T("bruce@unit2");
+	//CMainFrame* pFrame = pApp->GetMainFrame();
+	//wxString pwd = _T("Clouds2093");
+	//pFrame->SetKBSvrPassword(pwd);
+	//wxString user2 = user;
+	//KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
+	//KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 
-	pKbSvr->LookupUser(ipAddr, user, pwd, user2);
-//	if (bChangedCWD)
+	//pKbSvr->LookupUser(ipAddr, user, pwd, user2);
+	pKbSvr->ListUsers(ipAddr, user, pwd, user2);
+	//	if (bChangedCWD)
 //	{
 //		bChangedCWD = ::wxSetWorkingDirectory(saveCwd);
 //	}
 	delete pKbSvr;
-*/
+//*/
 
 }
 

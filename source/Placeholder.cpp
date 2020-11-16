@@ -3089,17 +3089,45 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	bool bCanInsert = FALSE;
+	bool bCanInsert = TRUE; // initialise
 	if (m_pApp->m_pTargetBox != NULL)
 	{
 		// BEW changed 24Jan13, to make the test more robust
 		// BEW added more, 9Apr20, to disable if active location is within a span
-		// of footnote, extended footnote, or cross-reference
-		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1 ) || 
-			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() == wxWindow::FindFocus()))) // whm 12Jul2018 added ->GetTextCtrl() part
+		// of footnote (\f ... \f*), extended footnote (\ef .... \ef*), 
+		// cross-reference (\x ... \x*) or extended cross-reference (\ex ... \ex*)
+		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+		bool bWithin = 
+		pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+		if (bWithin)
 		{
-			bCanInsert = TRUE;
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
+		// Next, if the target box is shown, but the window with focus is not that one,
+		// then disable
+		if ((m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() != wxWindow::FindFocus())))
+		{
+			// whm 12Jul2018 added ->GetTextCtrl() part
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
+		
+		// If there is a selection that is not well formed, disable
+		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine == -1) || 
+			(m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1))
+		{
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
 
+		// Finally, check iF PlacePhraseBox() has requested disabled 
+		// insert null src phrase buttons
+		if (bCanInsert)
+		{
 			if (m_pApp->m_bDisablePlaceholderInsertionButtons)
 			{
 				// BEW addition 9Apr20 handler is called on leaving and on landing - we

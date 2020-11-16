@@ -14541,6 +14541,243 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 	return FALSE;
 }
 
+// BEW 5Nov20 added for ParseWord(): ptr-> points at ).<space>(<space>nxtwrd, 
+// after parsing in TokeniseText() before dealing with following punctuations
+// Without a block dedicated to identifying the first space as the word separator,
+// the punctuation ").<space>(" wrongly ends up as following punctuation
+bool CAdapt_ItDoc::IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar; // initialise
+	wxChar closeParen = _T(')');
+	wxChar openParen = _T('(');
+	wxChar space = _T(' ');
+	// If ptr is not pointing at ) then return FALSE
+	if (*ptr != closeParen)
+	{
+		return FALSE;
+	}
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++; // point past the ) character
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// We allow for a ( character to be as far as 3 characters further; if
+	// it isn't found by then, return FALSE; if it is found then return TRUE,
+	// but only provided intervening characters are each either a punctuation
+	// character or a space.
+	int offset = wxNOT_FOUND;
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		if (*ptr != space)
+		{
+			// ptr is not pointing at a punctuation character, nor space
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Found a punctuation character, is it an open parenthesis?
+		if (*ptr == openParen)
+		{
+			// Yes, there is one ahead of the passed in location
+			return TRUE;
+		}
+	}
+	
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say, ). (two characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say,<space> ). (three characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// One last shot... What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation [and ( is a punct char]
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space, nor (
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+	// look no further - we assume there's no point in having a 
+	// parse of )....( in a block, because we can't be sure that
+	// there is an opening parenthesis ahead which makes certain
+	// that the parser must call a halt to parsing between the
+	// ) and following ( somewhere.
+	// This function will be in the caller's test, and if it fails
+	// then the block is skipped and legacy code will operate to
+	// determine what's punctuation and where the word break will be	
+	return FALSE;
+}
+
+// BEW 5Nov20 added for ParseWord(): ptr-> points at ).<space>(<space>nxtwrd, 
+// after parsing in TokeniseText() before dealing with following punctuations
+// Without a block dedicated to identifying the first space as the word separator,
+// the punctuation ").<space>(" wrongly ends up as following punctuation
+bool CAdapt_ItDoc::IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar; // initialise
+	wxChar closeParen = _T(')');
+	wxChar openParen = _T('(');
+	wxChar space = _T(' ');
+	// If ptr is not pointing at ) then return FALSE
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++; // point past the ) character
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// We allow for a ( character to be as far as 3 characters further; if
+	// it isn't found by then, return FALSE; if it is found then return TRUE,
+	// but only provided intervening characters are each either a punctuation
+	// character or a space.
+	int offset = wxNOT_FOUND;
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		if (*ptr != space)
+		{
+			// ptr is not pointing at a punctuation character, nor space
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Found a punctuation character, is it an open parenthesis?
+		if (*ptr == openParen)
+		{
+			// Yes, there is one ahead of the passed in location
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say, ). (two characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say,<space> ). (three characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// One last shot... What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation [and ( is a punct char]
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space, nor (
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+	// look no further - we assume there's no point in having a 
+	// parse of )....( in a block, because we can't be sure that
+	// there is an opening parenthesis ahead which makes certain
+	// that the parser must call a halt to parsing between the
+	// ) and following ( somewhere.
+	// This function will be in the caller's test, and if it fails
+	// then the block is skipped and legacy code will operate to
+	// determine what's punctuation and where the word break will be	
+	return FALSE;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
 /// \param		pChar		-> a pointer to a character in a buffer
@@ -16923,13 +17160,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 3Sep19 added next line, for support of USFM3
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
-#if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 2)
-		{
-			int halt_here = 1;
-			wxUnusedVar(halt_here);
-        }
-#endif
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
@@ -18719,6 +18949,12 @@ parsing:
 			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Entering ParseWord()"),
 				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
+//#if defined (_DEBUG)
+//			if (pSrcPhrase->m_nSequNumber == 224)
+//			{
+//				int halt_here = 1;
+//			}
+//#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
@@ -30936,6 +31172,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 //		wxString inlineBindingEndMkrBeforeFixedSpace;  // moved to be earlier
 //		wxString inlineBindingMkrAfterFixedSpace;      // moved to be earlier
 		wxChar* savePtr = ptr;
+
 		// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
 		// if ~ is not found, then ptr returns pointing at whatever pEndWordProper points at
 		// (which is usually space, or endmarker, or punctuation)
@@ -31090,11 +31327,161 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
-
 				return len;
-
 			}
+/*			#if defined (_DEBUG)
+						if (pSrcPhrase->m_nSequNumber == 307)
+						{
+							int halt_here = 1;
+						}
+			#endif
+*/
+			// set pEndWordProper to where ptr currently is
 			pEndWordProper = ptr;
+
+			// BEW 4Nov20 the word proper has been parsed over, and the above tests done,
+			// but there are other tests we should make here, to smarten our parser.
+			// There could be, at ptr, a sequence like "). (" before the next word, and
+			// our parser currently parses that whole sequence as following punctuation -
+			// which is clearly wrong as between ) and ( there is an obvious place there
+			// somewhere where we should end of the parse by and return - the ( would
+			// then belong to the next pSrcPhrase. So a number of tests can be made here to
+			// give extra smarts. Another glitch from Scorza's data, is  word1.(<space>word2
+			// which we need to divide before the ( rather than after it. User may edit it
+			// in source text to be word1.<sp>(word2, so handle that too
+			// a testing block for it.
+			wxChar closeParen = _T(')');
+			wxChar openParen = _T('(');
+			wxString someFinalPuncts = _T("");
+			int offset3 = wxNOT_FOUND;
+			offset3 = spacelessPuncts.Find(*ptr);
+			int nCountFinals = 0;
+			bool bDivideAtParen = FALSE;
+			bool bDivideAtParen2 = FALSE;
+			if ((offset3 >= 0) && (*ptr != closeParen) && IsOpenParenthesisAhead2(ptr, pEnd))
+			{
+				// Punctuation character, but that one is not (, is followed by <space>, 
+				// or by a ( character. Handle these options
+				someFinalPuncts += *ptr; // store whatever the non-( punct is
+				ptr++; // for example, now ptr -> "("  of ".(" OR "<sp>(" 
+				nCountFinals++;
+				// That stores the punctuation character. If <space> comes next, then
+				// we want to divide off at the space. 
+				if (*ptr == _T(' '))
+				{
+					// at space, so check for ( after it
+					if (*(ptr + 1) == openParen)
+					{
+						// Where ptr is, at space, is what we want
+						bDivideAtParen2 = TRUE;
+					}
+				} // end of TRUE block for test: if (*ptr == _T(' '))
+				else
+				{
+					// ptr is not at space, check it's pointing at (
+					if (*ptr == openParen)
+					{
+						bDivideAtParen2 = TRUE; // we'll divide the words at (
+					}
+				} // end of else block for test: if (*ptr == _T(' '))
+
+				if (bDivideAtParen2)
+				{
+					len += nCountFinals;
+					if (nCountFinals > 0)
+					{
+						pSrcPhrase->m_follPunct += someFinalPuncts;
+					}
+					wxString theWord(pWordProper, pEndWordProper);
+					pSrcPhrase->m_key = theWord;
+					if (!pSrcPhrase->m_precPunct.IsEmpty())
+					{
+						pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+					}
+					pSrcPhrase->m_srcPhrase += theWord;
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+
+					return len;
+				} // end of TRUE block for test: if (bDivideAtParen2)
+			} // end of TRUE block for test: if ((offset3 == 0) && (*(ptr + 1) == openParen))
+			else
+			{
+				if (*ptr == closeParen && IsOpenParenthesisAhead(ptr, pEnd))
+				{
+					bDivideAtParen = TRUE;  // it's determined that this block 
+											// will complete this word's parse
+					// There is a closing parenthesis, it belongs in following
+					// punct if it is in the spaceless puncts string
+					int offset = wxNOT_FOUND;
+					offset = spacelessPuncts.Find(closeParen);
+					if (offset != wxNOT_FOUND)
+					{
+						// ) character is indeed a punctuation character, so put
+						// it in someFinalPuncts, and then go hunting for the (
+						someFinalPuncts += closeParen;
+						ptr++; // for example, now ptr -> ".<sp>("  of ")<sp>("
+						nCountFinals++;
+
+						// Now we'll use ptr to make a series of tests
+						// so as to divide the words of the parse preceding a
+						// space or before a '(' if there is no intervening space
+						int offset2 = wxNOT_FOUND;
+						offset2 = spacelessPuncts.Find(*ptr); // whatever ptr now points at, eg. a period
+						if ((offset2 >= 0) //  ptr is pointing at a non-space punctuation char
+							&& (*(ptr + 1) == _T(' ')) // tests that next char is a space
+							&& (*(ptr + 2) == openParen) // tests that following the space is (
+							)
+						{
+							// ptr is pointing a punctuation char, followed by space and an
+							// opening parenthesis - we'll assume it's a legit final punct
+							// and accept it, then return at the space which follows
+							someFinalPuncts += *ptr; // the period, or whatever punct it was
+							ptr++; // now pointing at the space -- and we know where ( is,
+								   // so before it is the word division location of the parse
+							nCountFinals++;
+						}
+						// Now, if the above did not succeed, try these shorter tests
+						// - for space followed by opening parenthesis; or a )( combination
+						// where the word dividing location falls between the ) and (
+						else
+							if ((*ptr == _T(' ')) && (*(ptr + 1) == openParen)
+								||
+								(*ptr == openParen)
+								)
+							{
+								// End the parse 
+								bDivideAtParen = TRUE; // need something here, even if already TRUE
+							}
+					} // end of TRUE block for test: if (offset != wxNOT_FOUND)
+
+					// Okay, the divide location is determinate, so we have to build
+					// the contents of pSrcPhrase's fields here, otherwise it will be
+					// invalid in the layout (and empty). So pull up code from below
+					// do this, and return with len appropriately augmented
+					if (bDivideAtParen)
+					{
+						len += nCountFinals;
+						if (nCountFinals > 0)
+						{
+							pSrcPhrase->m_follPunct += someFinalPuncts;
+						}
+						wxString theWord(pWordProper, pEndWordProper);
+						pSrcPhrase->m_key = theWord;
+						if (!pSrcPhrase->m_precPunct.IsEmpty())
+						{
+							pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+						}
+						pSrcPhrase->m_srcPhrase += theWord;
+						pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+
+						return len;
+					} // end of TRUE block for test: if (bDivideAtParen)
+
+				} // end of TRUE block for test: if (*ptr == closeParen && IsOpenParenthesisAhead(ptr, pEnd))
+
+			} // end of else block for test: if ((offset3 == 0) && (*(ptr + 1) == openParen))
+			// If the above blocks were not entered, then continue with legacy parsing code
+
 			// Note, we may still have exited IsFixedSpaceAhead() because we came to a ]
 			// bracket, but having parsed one or more following punctuation characters first.
 			// In this case we returned with ptr pointing at word end (i.e. the start of the
