@@ -1860,7 +1860,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 			if (!bExecutedOK)
 			{
 				// error in the call, inform user, and put entry in LogUserAction() - English will do
-				wxString msg = _T("Line %s: CallExecute for enum: list_users, failed - reason unknown; Adapt It will continue working ");
+				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - reason unknown; Adapt It will continue working ");
 				msg = msg.Format(msg, __LINE__);
 				wxString title = _T("Probable do_list_users.exe error");
 				wxMessageBox(msg,title,wxICON_WARNING | wxOK);

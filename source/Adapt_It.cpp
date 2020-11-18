@@ -19787,7 +19787,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
     {
         // Nothing available, inform the user of what might be the problem or problems
         wxString message;  message = message.Format(_(
-            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to get a KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nThe unique username for logging in may be different than what is expected. Check Edit > Change Username..."));
+            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to get a KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nEither the unique Username for logging in, and or the Informal Name, or both, may be different from what is in kbserver's user table. Check Edit > Change Username..."));
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
