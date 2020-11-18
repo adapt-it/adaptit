@@ -53169,7 +53169,10 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
     {
         // whm Note: for the following block we use the App's m_collaborationEditor value instead of
         // our local m_TempCollaborationEditor which below this block is initialized to a null string.
-        wxASSERT(!m_collaborationEditor.IsEmpty());
+        // whm 13Jun2020 commented out the following wxASSERT since it tripped on the Linux version when
+        // that did not yet have Paratext for Linux installed. It did not cause a crash, but was a 
+        // nuisance since it would probably also appear in a release version.
+        //wxASSERT(!m_collaborationEditor.IsEmpty());
         CAdapt_ItView* pView = GetView();
         if (pView != NULL)
         {
