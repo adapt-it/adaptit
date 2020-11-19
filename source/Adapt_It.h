@@ -861,8 +861,9 @@ enum ServDiscDetail
 	const int lookup_entry = 7;
 	const int changed_since_timed = 8;
 	const int upload_local_kb = 9;
-// add more here, as our solution matures
-	const int blanksEnd = 10; // this one changes as we add more above
+	const int change_permission = 10;
+	// add more here, as our solution matures
+	const int blanksEnd = 11; // this one changes as we add more above
 
 
 #endif
@@ -3409,6 +3410,11 @@ public:
 	wxString    m_strForManagerUsername2; // for LookupUser()
 	wxString	m_strForManagerIpAddr;
 	wxString	m_strForManagerPassword;
+	// Next one is for the ChangePermission feature in the KB Sharing Manager,
+	// where ConfigureMovedDatFile(), when building commandLine, needs to know
+	// what the manager's looked up "selected_user" (ie. user2) is, so it can
+	// be added to the commandLine being built (as the last param)
+	wxString	m_strChangePermission_User2;
 
 	bool		m_bUserAuthenticating;
 	bool		m_bUser1IsUser2; // default FALSE - needed in LookupUser()
@@ -3427,7 +3433,7 @@ public:
 	void MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath); // = 7
 	void MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath); // = 8
 	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
-
+	void MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath); // = 10
 	void CheckForDefinedGlossLangName();
 
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that

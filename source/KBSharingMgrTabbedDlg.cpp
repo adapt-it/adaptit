@@ -1105,9 +1105,28 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event))
 {
-	//wxButton* pButton = NULL; // initialize
+	bool bReady = m_pApp->ConfigureDATfile(change_permission); // arg is const int, value 10
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_change_permission.exe
+		wxString execFileName = _T("do_change_permission.exe"); 
+		wxString execPath = m_pApp->execPath;
+		wxString resultFile = _T("change_permission_return_results.dat");
+		bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 99, 99);
+		if (!bExecutedOK)
+		{
+			// error in the call, inform user, and put entry in LogUserAction() - English will do
+			wxString msg = _T("Line %d: CallExecute for enum: change_permission, failed - perhaps input parameters (and/or password) did not match any entry in the user table; Adapt It will continue working ");
+			msg = msg.Format(msg, __LINE__);
+			wxString title = _T("Probable do_change_permission.exe error");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			m_pApp->LogUserAction(msg);
+		}
+	}
 
-	// TODO  --  a .dat exe from leon, to effect the change in the mariaDB
+	// At this point, the user table is altered, so it just remains to
+	// call LoadDataForPage(int pageNumSelected)
+	LoadDataForPage(0);
 }
 
 /*
@@ -3039,6 +3058,15 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 #endif
 	// check they match
 	wxASSERT(theUsername == m_pUserStructForeign->username);
+
+	// BEW 20Nov20 every time a user is clicked on in the list, we need that user
+	// to be stored on the app in the member variable m_strChangePermission_User2
+	// because if a change of the user permission is wanted, the ConfigureMovedDatFile()
+	// app function will need that user as it's user2 value (user1 is for authenticating
+	// to mariaDB/kbserver so is not appropriate). The aforementioned function needs to
+	// create the correct comandLine for the ::wxExecute() call in app function CallExecute()
+	// and it can't do so without getting the user name selected in the Manager user list
+	m_pApp->m_strChangePermission_User2 = m_pUserStructForeign->username;
 
 	// Put a copy in m_pOriginalUserStruct. The Remove User button uses the struct in 
 	// m_pOriginalUserStruct to get at the user to be removed

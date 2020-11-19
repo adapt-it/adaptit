@@ -140,18 +140,20 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		if (pKbSvr == NULL)
 		{
 			// Setup a running KbSrvr instance ptr, of glossing type
-
-
-
+			bool bSetupForGlossing = m_pApp->SetupForKBServer(2);
+			wxUnusedVar(bSetupForGlossing);
 		}
 	}
 	else
 	{
 		pKbSvr = m_pApp->GetKbServer(1);
 		{
-			// Setup a running KbSrvr instance ptr, of adapting type
-
-
+			if (pKbSvr == NULL)
+			{
+				// Setup a running KbSrvr instance ptr, of adapting type
+				bool bSetupForAdapting = m_pApp->SetupForKBServer(1);
+				wxUnusedVar(bSetupForAdapting);
+			}
 		}
 	}
 	m_nRadioBoxSelection = pKbSvr->IsKBSharingEnabled() ? 0 : 1;

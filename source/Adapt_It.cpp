@@ -20022,6 +20022,11 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 				MakeUploadLocalKb(upload_local_kb, execPath, distPath);
 				break;
 			}
+			case change_permission: // = 10
+			{
+				MakeChangePermission(change_permission, execPath, distPath);
+				break;
+			}
 
 			// Add additional cases here, as our solution matures
 
@@ -20412,6 +20417,43 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				return FALSE;
 			}
 
+			break;
+		}
+		case change_permission: // = 10
+		{
+			wxString filename = _T("change_permission.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(change_permission, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_change_permission.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_change_permission.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_permission.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
 			break;
 		}
 		case blanksEnd:
@@ -21433,6 +21475,62 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		break;
 	}
+	case change_permission: // = 10
+	{
+		m_resultDatFileName = _T("change_permission_return_results.dat");
+		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
+		m_bUserAuthenticating = FALSE;
+		wxString tempStr;
+		commandLine = m_chosenIpAddr + comma;
+		UpdateIpAddr(m_chosenIpAddr);
+		// in case of embedded single quotes, escape them with
+		// tempStr = DoEscapeSingleQuote(tempStr);
+		tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+
+		// And the password should be the one associated by the above line,
+		// as stored in m_curNormalPassword;
+		wxASSERT(!m_curNormalPassword.IsEmpty());
+		commandLine += m_curNormalPassword + comma;
+
+		// The username2 has to come from the Sharing Manager, to
+		// complete the commandLine
+		tempStr = m_strChangePermission_User2;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr;
+		// That finishes the commandLine to be put into the input .dat file.
+
+		// Now in the caller the file has been moved to the parent folder 
+		// of the dist folder; so use wxTextFile to make the changes in
+		// the file copy within the parent folder: "change_permission.dat" 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: change_permission.dat now just has the relevant data 
+				// fields for the subsequent do_change_permission.exe in 
+				// wxExecute() to use
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}		// TODO  clone lookup_user case's code and call it change_permission here
+		break;
+	}
 	case blanksEnd:
 	{
 		break; // do nothing
@@ -21510,8 +21608,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	const int lookup_entry = 7;
 	const int changed_since_timed = 8;
 	const int upload_kb_lines = 9;
+	const int change_permission = 10;
 	// add more here, as our solution matures
-	const int blanksEnd = 10; // this one changes as we add more above
+	const int blanksEnd = 11; // this one changes as we add more above
 	*/
 	switch (funcNumber)
 	{
@@ -21606,6 +21705,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		}
 		wxASSERT(bPopulated == TRUE);
 		//*/
+		break;
+	}
+	case change_permission: // = 10
+	{
+		// This is a KB Sharing Manager case, so no report wanted
+		bReportResult = FALSE;
 		break;
 	}
 	case blanksEnd:
@@ -21979,6 +22084,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					case upload_local_kb: // = 9
 					{
 						// no post-wxExecute() things to do here
+						break;
+					}
+					case change_permission: // = 10
+					{
+
+// TODO  clone lookup_user case's code and call it change_permission here
 						break;
 					}
 					} // end of switch
@@ -60317,6 +60428,76 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxStri
 	}
 }
 
+void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("change_permission.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,password,selected_username,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: change_permission.dat");
+			f.AddLine(line);
+			line = _T("# AI executable's folder, output file: change_permission_return_results.dat");
+			f.AddLine(line);
+			line = _T("# (A) Login uses first 3 fields, and ignores selected_username");
+			f.AddLine(line);
+			line = _T("# (B) If login succeeds, search for selected_username in the user table.");
+			f.AddLine(line);
+			line = _T("# Purpose for this .dat input file:");
+			f.AddLine(line);
+			line = _T("# 1. get the current useradmin value of selected_username.");
+			f.AddLine(line);
+			line = _T("# 2. then flip the value from 0 to 1, or 1 to 0, in the user table.");
+			f.AddLine(line);
+			line = _T("# If selected_username is not in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should include a message like: \"not in user table\" and lacking \"success\".");
+			f.AddLine(line);
+			line = _T("# If selected_username is indeed in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should contain just one line with \"success\" as the first word. Either,");
+			f.AddLine(line);
+			line = _T("# \"success doing change to 0, \" or \"success doing change to 1, \"");
+			f.AddLine(line);
+			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,glenys@unit2,");
+			f.AddLine(line);
+			line = _T("# and Output .dat file, change_permission_return_results.dat, having one");
+			f.AddLine(line);
+			line = _T("# of the \"success\" lines mentioned above, when changing permission for glenys@unit2.");
+			f.AddLine(line);
+			line = _T("ipAddress,username,password,selected_username,");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
 
 // BEW 6Nov20 This function is needed for the following reason.
 // The Preferences... > Backups & Misc page has 4 text boxes,
@@ -60358,6 +60539,8 @@ void CAdapt_ItApp::CheckForDefinedGlossLangName()
 	msg = msg.Format(msg, adaptingLang.c_str(), m_glossesName.c_str());
 	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 }
+
+
 
 // TODO -- add more as needed
 #endif // _KBSERVER
