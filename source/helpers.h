@@ -565,8 +565,8 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
 
 bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername, 
 							wxString* pPassword, wxString datFilename);
-//bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername,  <<-- BEW 3Sep20 remove
-//	wxString* pPassword, wxString datFilename);
+bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
+		wxString* pPassword, bool bCanAddUsers, wxString datFilename); // BEW 23Nov20 call from Manager
 
 void DoMessageDelay(int hundredths); // to enable waitDlg to persist long enough for user to read
 

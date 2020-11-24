@@ -2214,6 +2214,16 @@ class CAdapt_ItApp : public wxApp
 							   // TRUE means 'other-user' focus, such as accessing the
 							   // kbserver with kbadmin username, kbauth pwd, etc
 	wxString m_strForeignPassword; // store the non-local-user one here
+	// BEW 23Nov20 temp string vars for support of adding new users to user table, since
+	// it can be done from a menu item in view class, or from settings typed into the
+	// relevant fields of the KB Sharing Manager's user page. Adding a new user can
+	// only be done by one handler or the other, so lodging the input strings here
+	// enables me to have one implementation once these values are set up right.
+	// Distinguishing which handler is setting them is m_bUseForeignOption's job.
+	wxString m_temp_username;
+	wxString m_temp_fullname;
+	wxString m_temp_password;
+	wxString m_temp_useradmin_flag;
 
 	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on discovering
 	// one or more KBservers which are publishing, in a single session.

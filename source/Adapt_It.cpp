@@ -20523,49 +20523,72 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case credentials_for_user:
 	{
-		m_bUseForeignOption = FALSE; // restore default, local user is in focus
 		wxString tempStr;
+		if (!m_bUseForeignOption)
+		{
+			//m_bUseForeignOption = FALSE; // restore default, local user is in focus
 
-		commandLine = this->m_chosenIpAddr + comma;
+			commandLine = this->m_chosenIpAddr + comma;
 
-		tempStr = m_strUserID;
-		tempStr = DoEscapeSingleQuote(tempStr);
-		commandLine += tempStr + comma;
-		UpdateCurNormalUsername(tempStr); // in case it has single quote/s, to mess up mysql parsing
+			tempStr = m_strUserID;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma;
+			UpdateCurNormalUsername(tempStr); // in case it has single quote/s, to mess up mysql parsing
 
-		tempStr = m_strUsername;
-		tempStr = DoEscapeSingleQuote(tempStr);
-		commandLine += tempStr + comma;
-		UpdateCurNormalFullname(tempStr);
+			tempStr = m_strUsername; // the 'fullname'
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma;
+			UpdateCurNormalFullname(tempStr); // in case it has single quote/s, to mess up mysql parsing
 
-		wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
-		commandLine += pwd + comma;
+			wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
+			commandLine += pwd + comma;
 
-		bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted();
-		this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
-		commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
-		// That finishes the commandLine to be put into the input .dat file.
+			bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted();
+			this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
+			commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+			// That finishes the commandLine to be put into the input .dat file.
 
-		// Set other AI.h variables to preserve parameters used, for 'normal' scenario
-		UpdateNormalIpAddr(this->m_chosenIpAddr);
-		UpdateCurNormalPassword(pwd);
-		UpdatebcurUseradmin(bCanAddUsers);
-		UpdatebcurKbadmin(); // always TRUE
+			// Set other AI.h variables to preserve parameters used, for 'normal' scenario
+			UpdateNormalIpAddr(this->m_chosenIpAddr);
+			UpdateCurNormalPassword(pwd);
+			UpdatebcurUseradmin(bCanAddUsers);
+			UpdatebcurKbadmin(); // always TRUE
 
-		tempStr = m_sourceName; // source language names can have an embedded '
-		tempStr = DoEscapeSingleQuote(tempStr);
-		UpdateCurSrcLangName(tempStr);
+			tempStr = m_sourceName; // source language names can have an embedded '
+			tempStr = DoEscapeSingleQuote(tempStr);
+			UpdateCurSrcLangName(tempStr);
 
-		tempStr = m_targetName; // target language names can have an embedded '
-		tempStr = DoEscapeSingleQuote(tempStr);
-		UpdateCurTgtLangName(tempStr);
+			tempStr = m_targetName; // target language names can have an embedded '
+			tempStr = DoEscapeSingleQuote(tempStr);
+			UpdateCurTgtLangName(tempStr);
 
-		tempStr = m_glossesName; // gloss language names can have an embedded '
-		tempStr = DoEscapeSingleQuote(tempStr);
-		UpdateCurGlossLangName(tempStr);
+			tempStr = m_glossesName; // gloss language names can have an embedded '
+			tempStr = DoEscapeSingleQuote(tempStr);
+			UpdateCurGlossLangName(tempStr);
 
-		// free translations don't go in kbserver, so no need to check for embedded '
-		UpdateCurFreeTransLangName(m_freeTransName);		
+			// free translations don't go in kbserver, so no need to check for embedded '
+			UpdateCurFreeTransLangName(m_freeTransName);
+
+		} //end of TRUE block for test: if (!m_bUseForeignOption)
+		else
+		{
+			// Configuring for values coming from the KB Sharing Manager
+			commandLine = this->m_chosenIpAddr + comma;
+
+			tempStr = m_temp_username;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma;
+
+			tempStr = m_temp_fullname;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr + comma;
+
+			commandLine += m_temp_password + comma;
+
+			commandLine += m_temp_useradmin_flag + comma;
+			// That finishes the commandLine to be put into the input .dat file,
+			// when the user addition is sourced from the user page of KB Sharing Mgr
+		}
 
 		// Now in the caller the file has been moved to the parent folder 
 		// of the dist folder; so use wxTextFile to make the changes in
@@ -36737,8 +36760,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMenuBar* pMenuBar = GetMainFrame()->GetMenuBar();
-	//wxMenuItem* pAddUsersToKBserver = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
+	m_bUseForeignOption = FALSE; // restore default, local user is in focus
 
 	// Prepare the .dat input dependency: "credentials_for_user.dat" file, into
 	// the execPath folder, ready for the ::wxExecute() call below

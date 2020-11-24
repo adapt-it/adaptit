@@ -77,7 +77,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_CLEAR_CONTROLS, KBSharingMgrTabbedDlg::OnButtonUserPageClearControls)
 	EVT_LISTBOX(ID_LISTBOX_CUR_USERS, KBSharingMgrTabbedDlg::OnSelchangeUsersList)
 	EVT_BUTTON(ID_BUTTON_ADD_USER, KBSharingMgrTabbedDlg::OnButtonUserPageAddUser)
-	//EVT_BUTTON(ID_BUTTON_REMOVE_USER, KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser)
+	EVT_BUTTON(ID_BUTTON_SHOW_PASSWORD, KBSharingMgrTabbedDlg::OnButtonShowPassword)
 	//EVT_BUTTON(ID_BUTTON_EDIT_USER, KBSharingMgrTabbedDlg::OnButtonUserPageEditUser)
 	EVT_CHECKBOX(ID_CHECKBOX_USERADMIN, KBSharingMgrTabbedDlg::OnCheckboxUseradmin)
 	//EVT_CHECKBOX(ID_CHECKBOX_KBADMIN, KBSharingMgrTabbedDlg::OnCheckboxKbadmin)
@@ -242,6 +242,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pEditPersonalPassword != NULL);
 	m_pEditPasswordTwo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD_TWO);
 	wxASSERT(m_pEditPasswordTwo != NULL);
+	m_pEditShowPasswordBox = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SEL_USER_PWD);
+	wxASSERT(m_pEditShowPasswordBox != NULL);
 
 	// Kbs page text boxes
 	//m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC); // src lang name on Create Kbs page
@@ -646,7 +648,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				if (m_pUsersListForeign->IsEmpty())
 				{
 					// Don't expect an empty list, so an English message will suffice
-					wxString msg = _T("KB Sharing Manager, LoadDataForPage() line %s : Error, the returned list of user structs was empty. Fix this.");
+					wxString msg = _T("KB Sharing Manager, LoadDataForPage() line %d : Error, user structs list is empty. Check: did you forget to get the KBserver running?");
 					msg = msg.Format(msg, __LINE__);
 					m_pApp->LogUserAction(msg);
 					wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
@@ -1509,16 +1511,56 @@ bool KBSharingMgrTabbedDlg::CheckThatPasswordsMatch(wxString password1, wxString
 		return TRUE;
 }
 
+void KBSharingMgrTabbedDlg::OnButtonShowPassword(wxCommandEvent& WXUNUSED(event))
+{
+	ClearCurPwdBox();
+	// Sanity checks
+	if (m_pUsersListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pUsersListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	// The GetSelection() call returns -1 if there is no selection current, so check for
+	// this and return (with a beep) if that's what got returned
+	m_nSel = m_pUsersListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		return;
+	}
+	// now get the user struct, which has the pwd, for the selected user
+	m_pUserStructForeign = (KbServerUserForeign*)m_pUsersListBox->GetClientData(m_nSel);
+	if (m_pUserStructForeign != NULL)
+	{
+		// get the password
+		wxString password = m_pUserStructForeign->password;
+		// show it in the box
+		m_pEditShowPasswordBox->ChangeValue(password);
+	}
+}
+void KBSharingMgrTabbedDlg::ClearCurPwdBox()
+{
+	m_pEditShowPasswordBox->Clear();
+}
+
 // BEW 29Aug20 updated -- TODO, legacy code commented out
 void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->m_bUseForeignOption = TRUE;
 
-// TODO - Leon's code,   this legacy handler calls CreateUser()
+	// mediating AI.cpp wxString variables to be set: m_temp_username, m_temp_fullname,
+	// m_temp_password, m_temp_useradmin_flag. Set these from within this handler.
+	// Then our ConfigureMovedDatFile() can grab it's needed data from these.
 
-
-/*
+	// Legacy comments - still relevant...
 	// Username box with a value, informal username box with a value, password box with a
-	// value, are mandatory. Test for these and if one is not set, abort the button press
+	// value, and the checkbox for useradmin flag, with or without a tick, are mandatory. 
+	// Test for these and if one is not set, abort the button press
 	// and inform the user why. Also, a selection in the list is irrelevant, and it may
 	// mean that the logged in person is about to try to add the selected user a second
 	// time - which is illegal, so test for this and if so, warn, and remove the
@@ -1527,13 +1569,13 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
-	bool bKbadmin = FALSE; // initialize to default value
-	bool bUseradmin = FALSE; // initialize to default value
+	bool bUseradmin = m_pCheckUserAdmin->GetValue();
+	wxString strUseradmin = bUseradmin ? _T("1") : _T("0");
 
 	// First, test all the textboxes that should have a value in them, actually have something
 	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty() || strPasswordTwo.IsEmpty())
 	{
-		wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want to give this new user more than minimal privileges, use the checkboxes also.");
+		wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want this new user to have the privilege to add other users, tick the checkbox also.");
 		wxString title = _("Warning: Incomplete user definition");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
@@ -1556,7 +1598,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 				wxBell();
 				wxString title = _("Warning: this user already exists");
 				wxString msg = _(
-"You are trying to add a username which already exists in the server. This is illegal, each username must be unique.\n To add a new user, no selection in the list is needed; just use the text boxes.\nIf he new user is to have privileges higher than the minimum then tick one or both checkboxes, then click Add User.");
+				"You are trying to add a username which already exists in the user table. This is illegal.");
 				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 				wxCommandEvent dummy;
 				OnButtonUserPageClearControls(dummy);
@@ -1573,32 +1615,50 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 			return;
 		}
 
-		// Get the checkbox values
-		bKbadmin = m_pCheckKbAdmin->GetValue();
-		bUseradmin = m_pCheckUserAdmin->GetValue();
-		bool bLanguageadmin = bKbadmin ? TRUE : FALSE; // a user can't be a languageadmin but not a kbadmin
-
 		// Create the new entry in the KBserver's user table
-		CURLcode result = CURLE_OK;
-		result = (CURLcode)m_pKbServer->CreateUser(strUsername, strFullname, strPassword, 
-													bKbadmin, bUseradmin, bLanguageadmin);
-		// Update the page if we had success, if no success, just clear the controls
-		if (result == CURLE_OK)
+		int result = -1; // initialize
+
+		// First, copy the strings needed to the temp variables above
+		m_pApp->m_temp_username = strUsername;
+		m_pApp->m_temp_fullname = strFullname;
+		m_pApp->m_temp_password = strPassword;
+		m_pApp->m_temp_useradmin_flag = strUseradmin;
+		wxString ipAddr = m_pApp->m_chosenIpAddr;
+		wxString datFilename = _T("credentials_for_user.dat");
+
+		bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname,
+			&strPassword, bUseradmin, datFilename);
+		if (bCredsOK)
 		{
-			LoadDataForPage(m_nCurPage);
+			bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
+			if (bOK)
+			{
+				wxString execFileName = _T("do_add_KBUsers.exe");
+				wxString resultFile = _T("credentials_for_user_return_results.dat");
+				result = m_pApp->CallExecute(credentials_for_user, execFileName,
+						m_pApp->m_curExecPath, resultFile, 99, 99);
+			}
+		}
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == 0)
+		{
+			LoadDataForPage(0);
 		}
 		else
 		{
 			// The creation did not succeed -- an error message will have been shown
 			// from within the above CreateUser() call
-			wxString msg = _T("KB Sharing Manager: OnButtonUserPageAddUser() failed at the CreateUser() call.");
+			wxString msg = _T("KB Sharing Manager, line %d: OnButtonUserPageAddUser() failed.");
+			msg = msg.Format(msg, __LINE__);
 			m_pApp->LogUserAction(msg);
 			wxCommandEvent dummy;
 			OnButtonUserPageClearControls(dummy);
 		}
 	}
-	DeleteClonedKbServerUserStruct();
-*/
+	DeleteClonedKbServerUserStruct(); // ***** THIS CAN BE REMOVED - no longer need it
+
+	// restore default for following flag
+	m_pApp->m_bUseForeignOption = FALSE;
 }
 
 void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event))
@@ -2594,28 +2654,30 @@ tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 // The box state will have already been changed by the time control enters the handler's body
 void KBSharingMgrTabbedDlg::OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event))
 {
-	// THe value in the checkbox has toggled by the time control
+	// The value in the checkbox has toggled by the time control
 	// enters this handler, so code accordingly
 	bool bCurrentUseradminValue = m_pCheckUserAdmin->GetValue();
     // kbadmin value is auto-set to 1 (TRUE) always, because users have to be 
 	// able to create entries in kb table
 
-	// Also, we must avoid having useradmin TRUE but kbadmin FALSE, for any one username.
+	wxString title = _("Permission level: Set or Change");
+	wxString msg = _("Tick the box, but after that do not click 'Change Permission',\nif you are giving the permission 'Can add other users'\n to a new user you are creating.\nTick the box and then click the 'Change Permission' button,\nif you want to change the permission level for an existing user.\nUn-tick the box to give a new user no permission to add other users,\nor to remove an existing user's permission to add new users.");
+	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+
 	if (bCurrentUseradminValue)
 	{
 		// This click was to promote the user administrator privilege level, so that
 		// the user can add other users. The box is now ticked, but the kbserver
 		// knows nothing of this change. So after this handler exits, the button
 		// "Change Permission" needs to be clicked.
-		wxString title = _("Legal permission change");
-		wxString msg = _("Please click the button 'Change Permission' now,\nso that KBserver updates this change of permission");
-		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		// But if adding a new user is being done, tick the box but do not click
+		// the Change Permission button below it
+		;
 	}
 	else
 	{
 		// The click was to demote from user administrator privilege level...
 		//
-        // But it's not permitted to demote the user who is kbadmin, or in app's m_strUserID member.
 		// So test, to make sure this constrait is not violated.
 		wxString strNonChangeablePair = GetEarliestUseradmin(m_pUsersListForeign); // signature var is private
 		wxString strFirst = m_pApp->m_strUserID;
@@ -3067,6 +3129,10 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// create the correct comandLine for the ::wxExecute() call in app function CallExecute()
 	// and it can't do so without getting the user name selected in the Manager user list
 	m_pApp->m_strChangePermission_User2 = m_pUserStructForeign->username;
+
+	// BEW 20Nov20 a click to select some other user must clear the curr password box
+	// so that it does not display the pwd for any user other than the selected user
+	ClearCurPwdBox();
 
 	// Put a copy in m_pOriginalUserStruct. The Remove User button uses the struct in 
 	// m_pOriginalUserStruct to get at the user to be removed

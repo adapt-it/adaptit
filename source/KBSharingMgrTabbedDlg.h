@@ -50,6 +50,7 @@ protected:
 	wxTextCtrl*    m_pEditPersonalPassword;
 	wxTextCtrl*    m_pEditPasswordTwo;
 	wxCheckBox*    m_pCheckUserAdmin;
+	wxTextCtrl*	   m_pEditShowPasswordBox;
 	//wxCheckBox*    m_pCheckKbAdmin; // BEW 27Aug20 removed
 
 	wxButton*      m_pBtnUsersClearControls;
@@ -134,7 +135,8 @@ protected:
 
 	// BEW 29Aug20 updated -- TODO, legacy code commented out  -- see 1372 .cpp
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
-
+	void		  OnButtonShowPassword(wxCommandEvent& WXUNUSED(event)); // BEW added 20Nov20
+	void		  ClearCurPwdBox();
 	//void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));  // BEW 16Nov20 too dangerous
 	void		  OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20, pending, empty
 

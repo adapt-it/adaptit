@@ -12466,18 +12466,28 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	}
 	return TRUE;
 }
-/* remove, this one is not needed
-bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername,
-	wxString* pPassword, wxString datFilename)
+
+// BEW 23Nov20, use this one from the KB Sharing Manager, so set app's 
+// m_bUseForeignOption to TRUE, so that the case 1, with "credentials_for_user.dat
+// as the input .dat file, can be filled from an alternative path using KB Sharing
+// Manager supplied values.
+bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
+	wxString* pPassword, bool bCanAddUsers, wxString datFilename)
 {
+	gpApp->m_bUseForeignOption = TRUE; // ConfigureMovedDatFile() will therefore
+			// get its values from the open users Page in KBSharingManagerTabbedDlg()
+
 	// Using absolute paths...
-	wxString separator = pApp->PathSeparator;
-	wxString ipaddr, username, pwd;
+	wxString separator = gpApp->PathSeparator;
+	wxString ipaddr, username, fullname, pwd;
 	ipaddr = *pIpAddr;
 	username = *pUsername;
+	fullname = *pFullname;
 	pwd = *pPassword;
+	wxString useradmin = bCanAddUsers ? _T("1") : _T("0");
+
 	wxString comma = _T(",");
-	wxString distFolderPath = pApp->distPath; // store .dat 'input' file here
+	wxString distFolderPath = gpApp->distPath; // store .dat 'input' file here
 	wxString datPath = distFolderPath + datFilename;
 
 	// Check that the file already exists, if not, create it
@@ -12487,15 +12497,16 @@ bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUser
 
 	// Create the lines to be added. Last is comma-separated credentials 
 	// Comment lines start with # (hash)
-	wxString comment1 = _T("# Usage: ipAddress,username,password,");
+	wxString comment1 = _T("# Usage: ipAddress,username,password,bCanAddUsers");
 	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
-	wxString comment3 = _T("# dist folder's 'input' file: ");
-	comment3 += datFilename;
-	wxString credentials = ipaddr + comma + username + comma + pwd + comma;
-
+	wxString comment3 = _T("# dist folder's 'input' file: credentials_for_user.dat");
+	wxString comment4 = _T("# Default useradmin value is to be TRUE");
+	wxString credentials = ipaddr + comma + username + comma + fullname + comma 
+							+ pwd + comma + useradmin + comma;
+	// BEWARE, don't try escaping any ' in credentials above, the pwd may contain one
+	// and should not be changed. Do each field separately, if the field needs it
 	if (!bFileExists)
 	{
-		// Create() must only be called when the file doesn't already exist
 		textFile.Create(datPath);
 		// Note textFile is empty at this point							   
 		textFile.Open();
@@ -12506,6 +12517,21 @@ bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUser
 			textFile.AddLine(comment2);
 			textFile.AddLine(comment3);
 			textFile.AddLine(credentials);
+
+			// Put the input data parameters where ConfigureMovedDatFile() can
+			// grab them, from AI.cpp & .h instantiation
+			wxString temp = username;
+			temp = DoEscapeSingleQuote(temp); // may need escaping any '
+			wxString m_temp_username = temp;
+
+			temp = fullname;
+			temp = DoEscapeSingleQuote(temp); // may need escaping any '
+			wxString m_temp_fullname = temp;
+
+			wxString m_temp_password = pwd;
+
+			wxString m_temp_useradmin_flag = useradmin;
+
 
 			// Write it to the dist buffer
 			bool bGoodWrite = textFile.Write();
@@ -12523,13 +12549,13 @@ bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUser
 	else
 	{
 		// file exists
-		textFile.Open();
+		textFile.Open(datPath);
 		bool bIsOpened = textFile.IsOpened();
 		if (bIsOpened)
 		{
 			// Line numbering is 0-based
-			textFile.RemoveLine(3);
-			textFile.AddLine(credentials);
+			textFile.Clear();
+			textFile.AddLine(credentials); // we only need this line
 
 			// Write it to the dist buffer
 			bool bGoodWrite = textFile.Write();
@@ -12546,7 +12572,6 @@ bool Credentials_For_User(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUser
 	}
 	return TRUE;
 }
-*/
 
 // BEW 30Oct20 created. A utility function, which takes str and
 // internally processes to turn every single quote found, ( ' )
