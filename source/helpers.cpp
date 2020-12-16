@@ -10985,18 +10985,18 @@ bool CheckUsername()
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// Save current values, in case the user cancels
 	wxString saveUserID = pApp->m_strUserID;
-	wxString saveInformalUsername = pApp->m_strUsername;
+	wxString saveInformalUsername = pApp->m_strFullname;
 
 	// Don't permit control to return to the caller unless there is a value for each of
 	// these three, if the user exits with an OK button click
-	if (pApp->m_strUserID == NOOWNER || pApp->m_strUsername == NOOWNER )
+	if (pApp->m_strUserID == NOOWNER || pApp->m_strFullname == NOOWNER )
 	{
 		UsernameInputDlg dlg((wxWindow*)pApp->GetMainFrame());
 		dlg.Center();
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			pApp->m_strUserID = dlg.m_finalUsername;
-			pApp->m_strUsername = dlg.m_finalInformalUsername;
+			pApp->m_strFullname = dlg.m_finalInformalUsername;
 
 			// whm added 24Oct13. Save the UniqueUsername and InformalUsername
 			// Note: This code block below should be the same as the block in
@@ -11016,10 +11016,10 @@ bool CheckUsername()
 				{
 					wxMessageBox(_T("CheckUsername() m_pConfig->Write() of m_strUserID returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
 				}
-				bWriteOK = pApp->m_pConfig->Write(_T("informal_user_name"), pApp->m_strUsername);
+				bWriteOK = pApp->m_pConfig->Write(_T("informal_user_name"), pApp->m_strFullname);
 				if (!bWriteOK)
 				{
-					wxMessageBox(_T("CheckUsername() m_pConfig->Write() of m_strUsername returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+					wxMessageBox(_T("CheckUsername() m_pConfig->Write() of m_strFullname returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
 				}
 				pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			}
@@ -11030,7 +11030,7 @@ bool CheckUsername()
 		{
 			// user cancelled, so restore the saved original values & return FALSE
 			pApp->m_strUserID = saveUserID;
-			pApp->m_strUsername = saveInformalUsername;
+			pApp->m_strFullname = saveInformalUsername;
 			return FALSE;
 		}
 	}

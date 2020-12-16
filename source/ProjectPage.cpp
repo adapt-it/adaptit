@@ -523,8 +523,8 @@ void CProjectPage::OnWizardPageChanged(wxWizardEvent& event)
 		// following is deprecated, now handled in UsernameInputDlg handler
 		// BEW 20May13, also restore the m_strUserID to its textctrl box
 		//pUsernameTextCtrl->ChangeValue(gpApp->m_strUserID);
-		// BEW 24May13, also restore the m_strUsername to its textctrl box
-		//pInformalUsernameTextCtrl->ChangeValue(gpApp->m_strUsername);
+		// BEW 24May13, also restore the m_strFullname to its textctrl box
+		//pInformalUsernameTextCtrl->ChangeValue(gpApp->m_strFullname);
 	}
 }
 

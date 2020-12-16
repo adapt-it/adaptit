@@ -40,6 +40,7 @@
 //#include <wx/dir.h> // for wxDir
 //#include <wx/choicdlg.h> // for wxGetSingleChoiceIndex
 #include <wx/html/htmlwin.h> // for display of the "Help for Administrators.htm" file from the Administrator menu
+#include <wx/textfile.h>
 
 #if defined(_KBSERVER)
 
@@ -82,6 +83,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_CHECKBOX(ID_CHECKBOX_USERADMIN, KBSharingMgrTabbedDlg::OnCheckboxUseradmin)
 	//EVT_CHECKBOX(ID_CHECKBOX_KBADMIN, KBSharingMgrTabbedDlg::OnCheckboxKbadmin)
 	EVT_BUTTON(ID_BUTTON_CHANGE_PERMISSION, KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission)
+	EVT_BUTTON(ID_BUTTON_CHANGE_FULLNAME, KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname)
 	EVT_BUTTON(wxID_OK, KBSharingMgrTabbedDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, KBSharingMgrTabbedDlg::OnCancel)
 	// For page 2: KB Shared database (definitions) page
@@ -93,35 +95,49 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_CLEAR_BOXES, KBSharingMgrTabbedDlg::OnButtonKbsPageClearBoxes)
 	EVT_BUTTON(ID_BUTTON_ADD_DEFINITION, KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition)
 	EVT_LISTBOX(ID_LISTBOX_KB_CODE_PAIRS, KBSharingMgrTabbedDlg::OnSelchangeKBsList)
-	//EVT_BUTTON(ID_BUTTON_REMOVE_SELECTED_DEFINITION, KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb)
-	//EVT_BUTTON(ID_BUTTON_UPDATE_LANG_CODES, KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition) // BEW 15Apr15 removed
-	// For page 3: Custom Codes creation and deletion page
-	//EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODE, KBSharingMgrTabbedDlg::OnBtnLanguagesPageLookupCode)
-	//EVT_BUTTON(ID_BUTTON_ISO639, KBSharingMgrTabbedDlg::OnBtnLanguagesPageRFC5646Codes)
-	//EVT_BUTTON(ID_BUTTON_CLEAR_BOXES2, KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearBoxes)
-	//EVT_BUTTON(ID_BUTTON_CLEAR_LIST_SELECTION2, KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearListSelection)
-	//EVT_BUTTON(ID_BUTTON_CREATE_CUSTOM_CODE, KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode)
-	//EVT_BUTTON(ID_BUTTON_DELETE_CUSTOM_CODE, KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode)
-	//EVT_LISTBOX(ID_LISTBOX_CUSTOM_CODES, KBSharingMgrTabbedDlg::OnSelchangeLanguagesList)
 	END_EVENT_TABLE()
 
 KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Shared Database Server Manager"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
+#if defined  (_DEBUG)
+	wxLogDebug(_T("\n\n********  KBSharingMgrTabbedDlg() line %d: ENTERING  **********"),__LINE__);
+#endif
+
 	m_pApp = &wxGetApp();
-	m_pApp->m_bUseForeignOption = TRUE;
-	// default the m_bUser1IsUser2 boolean to FALSE, as we cannot assume identity yet
-	m_pApp->m_bUser1IsUser2 = FALSE;
+	m_pApp->m_bDoingChangeFullname = FALSE; // initialize
+	m_pApp->m_bUseForeignOption = TRUE; // we use this to say "The KB Sharing Mgr is where control is"
+	m_pApp->m_bWithinMgr = FALSE; // control is not inside yet, InitDialog() will set it TRUE
+								  // if the access is granted to the user page
+
+	// Entry was happened, use the TRUE value in ConfigureMovedDatFile() for case lookup_user
+	// to ensure the constraint, user1 == user2 == m_strUserID is satisfied for the lookup_user
+	// case just a bit below, as refactoring I've removed the need to have Authenticate2Dlg
+	// called in order to open the Mgr. Looking at other usernames than m_strUserID from the
+	// currently open shared project, is a job for the internals of the Mgr, once opened
+	m_pApp->m_bKBSharingMgrEntered = TRUE;
+
+	// set the m_bUser1IsUser2 boolean to TRUE, because we are contraining entry to a
+	// lookup_user case ( = 2) in which user1 == user2 == app's m_strUserID (the project's user)
+	m_pApp->m_bUser1IsUser2 = TRUE;
 	bool bExecutedOK = FALSE;
 	if (!m_pApp->m_bKBSharingMgrEntered)
 	{
-		// Two accesses of the user table are needed. The first, here, LookupUser() 
+		// BEW 16Dec20 Two accesses of the user table are needed. The first, here, LookupUser() 
 		// determines whether or not user2 exists in the user table, and what that user's 
 		// useradmin permission level is. This check is not needed again if the user has gained 
 		// access to the manager, since within the manager the list of users may be altered
 		// and require a new call of ListUsers() be made from there.
+		// (Only call LoadDataForPage(0) once. When entering to the manager. Thereafter,
+		// keep the kbserver user table in sync with the user page by a function, which reads 
+		// the results file of do_list_users.exe and updates the m_pOriginalUsersList and 
+		// m_pUsersListForeign 'in place' with an Update....() function
 
+#if defined  (_DEBUG)
+		wxLogDebug(_T("ConfigureDATfile(lookup_user = %d) line %d: entering, in Mgr creator"), 
+			lookup_user, __LINE__);
+#endif
 		bool bReady = m_pApp->ConfigureDATfile(lookup_user); // case = 2
 		if (bReady)
 		{
@@ -129,6 +145,10 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 			wxString execFileName = _T("do_user_lookup.exe");
 			wxString execPath = m_pApp->execPath;
 			wxString resultFile = _T("lookup_user_return_results.dat");
+#if defined  (_DEBUG)
+			wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
+				lookup_user, __LINE__);
+#endif
 			bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
 			// In above call, last param, bReportResult, is default FALSE therefore omitted;
 			// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
@@ -152,10 +172,6 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 		wxMessageBox(msg, title, wxICON_WARNING & wxOK);
 		return;
 	}
-	// Entry was allowed, so tell app class instance that control is inside the manager
-	// (this means that ListUsers() will not need to make a call of LookupUser() for every
-	// time that the former is called from within the manager
-	m_pApp->m_bKBSharingMgrEntered = TRUE;
 
 	// wx Note: Since InsertPage also calls SetSelection (which in turn activates our OnTabSelChange
 	// handler, we need to initialize some variables before CCTabbedNotebookFunc is called below.
@@ -183,41 +199,25 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 
 KBSharingMgrTabbedDlg::~KBSharingMgrTabbedDlg()
 {
-	// restore defaults
-	//m_pApp->m_bKbPageIsCurrent = FALSE;
-	//m_pApp->m_bAdaptingKbIsCurrent = TRUE;
-
-	// When done, remove from the heap, and set the ptr to NULL
-	// (It's owned KbServer instance, the Persistent one, is deleted at the
-	// end of OnCancel() or OnOK() already)
-	m_pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
-	m_pApp->m_bKBSharingMgrEntered = FALSE; // reset default
-	m_pApp->m_bHasUseradminPermission = FALSE; // reset default
-	m_pApp->m_bUseForeignOption = FALSE; // reset default
-
-	// Restore the user's KBserver-related settings
-	//m_pApp->m_strKbServerIpAddr = m_pApp->m_saveOldIpAddrStr;
-	//m_pApp->m_strKbServerHostname = m_pApp->m_saveOldHostnameStr;
-	//m_pApp->m_strUserID = m_pApp->m_saveOldUsernameStr;
-	// BEW 27Aug20 added if / else
-	/* BEW 11Nov20 may not need these
-	if (m_pApp->m_bUseForeignOption)
-	{
-		m_pApp->m_strForeignPassword = m_pApp->m_savePassword;
-	}
-	else
-	{
-		m_pApp->GetMainFrame()->SetKBSvrPassword(m_pApp->m_savePassword);
-	}
-	*/
-	//m_pApp->m_bIsKBServerProject = m_pApp->m_saveSharingAdaptationsFlag;
-	//m_pApp->m_bIsGlossingKBServerProject = m_pApp->m_saveSharingGlossesFlag;
 }
 
 void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
+	wxASSERT(m_pApp->m_bKBSharingEnabled);
+	// Entry has been effected, but once in, we need user1 to be different from
+	// user2, so here set app's m_bWithinMgr to TRUE.
+	m_pApp->m_bWithinMgr = TRUE;
+
+#if defined  (_DEBUG)
+	wxLogDebug(_T("Init_Dialog(for Sharing Mgr) line %d: entering"), __LINE__);
+#endif
+
 	// Initdialog is called once before the dialog is shown.
 	m_bUpdateTried = FALSE;
+	// In the KB Sharing Manager, m_bUserAuthenticating should be FALSE,
+	// because it should be TRUE only when using the Authenticate2Dlg.cpp
+	// outside of the KB Sharing Manager - and in that circumstance, "Normal"
+	// storage variables apply; but different ones for the Manager.
 
 	// Get pointers to the controls created in the two pages, using FindWindowById(),
 	// which is acceptable because the controls on each page have different id values
@@ -225,13 +225,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pUsersListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_CUR_USERS);
 	wxASSERT(m_pUsersListBox != NULL);
 
-
-	//m_pKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_KB_CODE_PAIRS);
-	//wxASSERT(m_pKbsListBox != NULL);
-	//m_pCustomCodesListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_CUSTOM_CODES);
-	//wxASSERT(m_pCustomCodesListBox != NULL);
-
-	// wxTextCtrls
 	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
 	wxASSERT(m_pConnectedTo != NULL);
 	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
@@ -245,74 +238,15 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pEditShowPasswordBox = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SEL_USER_PWD);
 	wxASSERT(m_pEditShowPasswordBox != NULL);
 
-	// Kbs page text boxes
-	//m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC); // src lang name on Create Kbs page
-	//wxASSERT(m_pEditSourceCode != NULL);
-	//m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_NONSRC); // non-src lang name on Create Kbs page
-	//wxASSERT(m_pEditNonSourceCode != NULL);
-	//m_pKbDefinitionCreator = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CREATED_BY);
-	//wxASSERT(m_pKbDefinitionCreator != NULL);
-
-	// Custom languages code page text boxes
-	//m_pEditCustomCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CUSTOM_CODE); // custom code on languages page
-	//wxASSERT(m_pEditCustomCode != NULL);
-	//m_pEditDescription = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_DESCRIPTION); // definition of custom code on languages page
-	//wxASSERT(m_pEditDescription != NULL);
-	//m_pCustomCodeDefinitionCreator = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CREATOR);
-	//wxASSERT(m_pCustomCodeDefinitionCreator != NULL);
-
 	// Checkboxes (only the users page has them)
 	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_USERADMIN);
 	wxASSERT(m_pCheckUserAdmin != NULL);
-	//m_pCheckKbAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_KBADMIN);
-	//wxASSERT(m_pCheckKbAdmin != NULL);
 
 	// Buttons
 	m_pBtnUsersClearControls = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_CONTROLS);
 	wxASSERT(m_pBtnUsersClearControls != NULL);
 	m_pBtnUsersAddUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_USER);
 	wxASSERT(m_pBtnUsersAddUser != NULL);
-	//m_pBtnUsersEditUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_EDIT_USER);
-	//wxASSERT(m_pBtnUsersEditUser != NULL);
-//	m_pBtnUsersRemoveUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_USER);
-//	wxASSERT(m_pBtnUsersRemoveUser != NULL);
-
-	// Kbs page buttons
-	//m_pBtnUsingRFC5646Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5646);
-	//wxASSERT(m_pBtnUsingRFC5646Codes != NULL);
-	//m_pBtnAddKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_DEFINITION);
-	//wxASSERT(m_pBtnAddKbDefinition != NULL);
-	//m_pBtnClearBothLangCodeBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES);
-	//wxASSERT(m_pBtnClearBothLangCodeBoxes != NULL);
-	//m_pBtnLookupLanguageCodes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_LOOKUP_THE_CODES);
-	//wxASSERT(m_pBtnLookupLanguageCodes != NULL);
-	//m_pBtnClearListSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_LIST_SELECTION);
-	//wxASSERT(m_pBtnClearListSelection != NULL);
-
-	//m_pBtnClearBothLangCodeBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES);
-	//wxASSERT(m_pBtnClearBothLangCodeBoxes != NULL);
-	//m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
-	//wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
-
-	// Radiobuttons & wxStaticText
-	//m_pRadioKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
-	//m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
-	//m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
-	//m_pAboveListBoxLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_EXISTING_KB_CODE_PAIRS);
-
-	// Custom language codes page's buttons
-	//m_pBtnUsingRFC5646CustomCodes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ISO639);
-	//wxASSERT(m_pBtnUsingRFC5646CustomCodes != NULL); // this is the one for "Help for Adding Dialect Subtags"
-	//m_pBtnCreateCustomCode = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CREATE_CUSTOM_CODE);
-	//wxASSERT(m_pBtnCreateCustomCode != NULL);
-	//m_pBtnDeleteCustomCode = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_DELETE_CUSTOM_CODE);
-	//wxASSERT(m_pBtnDeleteCustomCode != NULL);
-	//m_pBtnLookupISO639Code = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_LOOKUP_THE_CODE);
-	//wxASSERT(m_pBtnLookupISO639Code != NULL);
-	//m_pBtnClearBothBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES2);
-	//wxASSERT(m_pBtnClearBothBoxes != NULL);
-	//m_pBtnRemoveListSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_LIST_SELECTION2);
-	//wxASSERT(m_pBtnRemoveListSelection != NULL);
 
 	// Set an appropriate 'ForManager' KbServer instance which we'll need for the
 	// services it provides regarding access to the KBserver
@@ -348,22 +282,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
         m_pKbServer->SetKB(m_pApp->m_pKB); // set ptr to local target text CKB* for local 
 										   // KB access as needed
 	}
-	// Prior authentication in the app's handler for the user's choice to open the Manager
-	// has provided an ipAddr, username, and password - so grab these from their storage on the
-	// app in the special "ForManager" member strings, and put them in the current 
-	// m_pKbServer_ForManager instance
-	//m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_strForManagerPassword);
-	//m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_strForManagerUsername);
-	//m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_strForManagerIpAddr);
-
+	// These are reasonable defaults for initialization purposes
 	m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_strKbServerIpAddr);
 	m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_curNormalUsername);
 	m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_curNormalPassword);
-
-#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("KBSharingMgrTabbedDlg::InitDialog(): m_pKbServer = %p (a copy of app's m_pKbServer_ForManager; m_bForManager = %d"),
-		m_pKbServer, (int)m_pKbServer->m_bForManager ? 1 : 0);
-#endif
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -371,11 +293,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	// Hook up to the m_usersList member of the KbServer instance
 	m_pUsersListForeign = m_pKbServer->GetUsersListForeign(); // an accessor for m_usersListForeign
-
-	// Hook up to the m_kbsList member of the stateless KbServer instance
-	//m_pKbsList = m_pKbServer->GetKbsList(); // this list contains both Type1 and Type2 KB definitions
-	// ditto for m_languagesList and m_filteredList
-	//m_pLanguagesList = m_pKbServer->GetLanguagesList();
 
 	// Add the kbserver's ipAddr to the static text 2nd from top of the tabbed dialog
 	wxString myStaticText = m_pConnectedTo->GetLabel();
@@ -389,19 +306,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// Create the 2nd UsersList to store original copies before user's edits etc
 	// (destroy it in OnOK() and OnCancel())
 	m_pOriginalUsersList = new UsersListForeign;
-
-/* BEW 13Nov20 deprecated, these are no longer part of the app	
-	// Ditto, for the KbsList
-	m_pOriginalKbsList = new KbsList;  // destroy it in OnOK() and OnCancel()
-	// We also need two more lists, for the KbServerKb struct clones, separated by type
-	// (i.e. adapting KB versus glossing KB definitions)
-	m_pKbsList_Tgt = new KbsList; // destroy it in OnOK() and OnCancel()
-	m_pKbsList_Gls = new KbsList; // destroy it in OnOK() and OnCancel()
-	m_pKbsAddedInSession = new KbsList; // destroy it in OnOK() and OnCancel()
-*/
-	// Get the administrator's kbadmin and useradmin values from the app members for same;
-	// these app members are set by the login/authentication call (see KbSharingSetupDlg.h
-	// & .cpp, and which uses CheckForValidUsernameForKbServer() in helpers.cpp to set them)
 
 	// BEW 13Nov20 changed, 
 	m_bKbAdmin = TRUE;  // was m_pApp->m_kbserver_kbadmin; // BEW always TRUE now as of 28Aug20
@@ -421,22 +325,20 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_bKBisType1 = TRUE; // initialize, and the m_pRadioKBType1 button on kbs page is
 						 // preset (in wxDesigner) to be ON on first entry to that page
 						 // so it isn't necessary to do anything more here
-	/* // BEW deprecated 13Nov20
-	m_tgtLanguageNameLabel = _("Target language name:");
-	m_glossesLanguageNameLabel = _("Glossing language name:");
-	m_tgtListLabel = _("Existing shared databases (as  source,target  comma delimited language name pairs):");
-	m_glsListLabel = _("Existing shared databases (as  source,glossing  comma delimited language name pairs):");
-
-	m_sourceLangName.Empty();
-	m_targetLangName.Empty();
-	m_glossLangName.Empty();
-	m_pBtnRemoveSelectedKBDefinition->Enable(FALSE); // Enable it by selecting a kb definition
-	*/
 	// Start by showing Users page
 	m_nCurPage = 0;
+#if defined  (_DEBUG)
+	wxLogDebug(_T("LoadDataForPage(for Sharing Mgr) line %d: entering"), __LINE__);
+#endif
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
-
+#if defined  (_DEBUG)
+	wxLogDebug(_T("LoadDataForPage(for Sharing Mgr) line %d: just exited"), __LINE__);
+#endif
 	m_pApp->GetView()->PositionDlgNearTop(this);
+
+#if defined  (_DEBUG)
+	wxLogDebug(_T("Init_Dialog(for Sharing Mgr) line %d: exiting"), __LINE__);
+#endif
 }
 
 KbServer*KBSharingMgrTabbedDlg::GetKbServer()
@@ -548,13 +450,6 @@ wxString KBSharingMgrTabbedDlg::GetEarliestUseradmin(UsersListForeign* pUsersLis
 				strBoth += comma + user2;
 			}
 		}
-
-		//anID = pUserStruct->id;
-		//if (anID < nEarliestID)
-		//{
-		//	nEarliestID = anID;
-		//	earliestUseradmin = aUser;
-		//}
 	}
 	if (counter == 0)
 	{
@@ -570,9 +465,7 @@ wxString KBSharingMgrTabbedDlg::GetEarliestUseradmin(UsersListForeign* pUsersLis
 	return strBoth;
 }
 
-// This is called each time the page to be viewed is switched to; note: removed user
-// entries are really removed/deleted, their deleted field is not used & their line
-// in the database becomes empty (and unusable)
+// This is called each time the page to be viewed is switched to
 void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 {
 	if (pageNumSelected == 0) // Users page
@@ -595,11 +488,83 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		m_pKbServer, (int)m_pKbServer->m_bForManager ? 1 : 0);
 #endif
 		// The following values come from Authenticate2Dlg() where Manager access
-		// was requested, and checking user2 for existing in the 
-		wxString username = m_pApp->m_strUserID;
-		wxString password = m_pApp->GetMainFrame()->GetKBSvrPassword();
+		// was requested, and checking user2 for existing in the user table
+		
+		wxString password = _T(""); // initialize
+		wxString username = m_pApp->m_curNormalUsername; // most likely correct one
+		wxString user2 = m_pApp->m_Username2; // most likely correct one
+
+		if (m_pApp->m_Username2 != m_pApp->m_strUserID)
+		{
+			// authenticating user1 is not same user as user2, so we
+			// need to authenticate using user1's password
+			password = m_pApp->m_curNormalPassword;
+		}
+		else
+		{
+			// user1 and user2 are same
+			// These could be project's user, or some other listed user being
+			// used for authenticating in
+			if (m_pApp->m_Username2 == m_pApp->m_strUserID)
+			{
+				// identical, and the current project's user so use user1's
+				password = m_pApp->m_curNormalPassword;
+			}
+			else
+			{
+				password = m_pApp->m_curAuthPassword; // the Mgr one, hopefully it's been set
+			}
+		}
+
 		wxString ipAddr = m_pApp->m_curIpAddr;
-		wxString user2 = m_pApp->m_Username2;
+		if (m_pApp->m_bDoingChangeFullname)
+		{
+			// Is changing the fullname associated with m_strUserID? Or with
+			// some other listed user which is not the one for the running project?
+
+			if (m_pApp->m_curAuthUsername == m_pApp->m_strUserID)
+			{
+				// we can use m_curNormalUsername
+				username = m_pApp->m_curNormalUsername;
+			}
+			else
+			{
+				username = m_pApp->m_curAuthUsername;
+			}
+
+
+
+		wxASSERT(!m_pApp->m_strChangeFullname_User2.IsEmpty());
+			username = m_pApp->m_strChangeFullname_User2;
+			m_pApp->m_Username2 = m_pApp->m_strChangeFullname_User2;
+			// insurance for next two ?? 
+			if (!m_pApp->m_strChangeFullname.IsEmpty())
+			{
+				m_pApp->m_curNormalFullname = m_pApp->m_strChangeFullname;
+				m_pApp->UpdateCurFullname(m_pApp->m_strChangeFullname);
+			}
+			
+		}
+		else
+		{
+			// If m_curAuthUsername has a value, test to see if it or
+			// or m_curNormalUsername should be used to set username,
+			// if username was not set to something above
+			if (!m_pApp->m_curAuthUsername.IsEmpty() && username.IsEmpty())
+			{
+				if (m_pApp->m_curAuthUsername == m_pApp->m_strUserID)
+				{
+					// we can use m_curNormalUsername
+					username = m_pApp->m_curNormalUsername;
+				}
+				else
+				{
+					username = m_pApp->m_curAuthUsername;
+				}
+			}
+			// now user2
+			user2 = m_pApp->m_Username2;
+		}
 
 		int result = 0;
 
@@ -609,10 +574,18 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
-
-// TODO  LoadDataForPage has to look at list_users_return_results.dat file, to construct the list
-
-
+			// LoadDataForPage has to look at list_users_return_results.dat file, 
+			// to construct the list; and for a 2nd or subsequent run, check the
+			// input .dat file has correct values
+			/* BEW 14Dec20 removed, 
+			// I couldn't get access to the textctrl - but SOMEWHERE 1st run does
+			// get access and shows it, its in SharedKBManagerNotebookFunc2
+			wxString shownIpAddr = m_pTheConnectedIpAddr->GetValue();
+			if (shownIpAddr.IsEmpty())
+			{
+				m_pTheConnectedIpAddr->ChangeValue(m_pApp->m_strKbServerIpAddr);
+			}
+			*/
 			result = m_pKbServer->ListUsers(ipAddr,username,password,user2);
 			if (result == 0)
 			{
@@ -622,7 +595,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				// calling app's member DatFile2StringArray(execPath, resultFile, m_arrLines).
 				// (KbServer.cpp also has an identical DatFile2StringArray() function,
 				// from which the app one was cloned. I need both. Bit ugly, but easier.
-				
 
 				// Since app's m_arrLines wxArrayString is populated with comma-separated
 				// lines from the do_list_user.exe functions returned list_users_return_results.dat
@@ -642,37 +614,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): line = %d:  number of user struct lines = %d"),
 					__LINE__, m_pUsersListForeign->GetCount());
 				#endif
-
-				// Return if there's nothing in the list of user structs. mariaDB/kbserver will
-				// always have some, so if empty, there's been an error
-				if (m_pUsersListForeign->IsEmpty())
-				{
-					// Don't expect an empty list, so an English message will suffice
-					wxString msg = _T("KB Sharing Manager, LoadDataForPage() line %d : Error, user structs list is empty. Check: did you forget to get the KBserver running?");
-					msg = msg.Format(msg, __LINE__);
-					m_pApp->LogUserAction(msg);
-					wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
-					m_pKbServer->ClearUsersListForeign(m_pUsersListForeign);
-					return;
-				}
-/* BEW 16Nov20 no longer to be used, replace with code to select user2 at Show() call
-
-				// BEW 21Jul13, find the user who is useradmin = 1, and has the lowest ID.
-				// This user must then have his username stored in m_earliestUseradmin,
-				// and the Delete User button must disallow deleting this one, and the
-				// Edit User button must disallow demoting this user's privileges. This is
-				// so there is always at least one user who is able to add, edit or remove
-				// users.
-				// BEW 29Aug20 keep the above protocol, but now there are two names, comma-separated,
-				// which are not to be removed - either when deleting a user, or any attempt to change
-				// the privileges of one of these are to be disallowed. This protects from user error
-				// removing access to the user table due to ignorance.
-				m_earliestUseradmin = GetEarliestUseradmin(m_pUsersListForeign);
-#if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-				wxLogDebug(_T("LoadUsersListBox(): these usernames are not to be removed = %s"),
-				m_earliestUseradmin.c_str());
-#endif
-*/ 
 				// Copy the list, before user gets a chance to modify anything
 				// param 1 is src list, param2 is dest list
 				CopyUsersList(m_pUsersListForeign, m_pOriginalUsersList); 
@@ -681,6 +622,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
                 // Note: the client data for each username string added to the list box is
                 // the ptr to the KbServerUser struct itself which supplied the username
                 // string, the struct coming from m_pUsersList
+
 				LoadUsersListBox(m_pUsersListBox, m_pUsersListForeign->size(), m_pUsersListForeign);
 			}
 			else
@@ -698,205 +640,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			m_pApp->LogUserAction(msg);
 		}
 	}
-
-/*
-	else if (pageNumSelected == 1)// Kbs page -- the one for creating new KB definitions
-	{
-		// To keep the code simpler, we'll call LoadDataForPage() for this page, every
-		// time the radio button choice is changed. Strictly speaking, one listing of the
-		// KB definitions gets all the adapting ones, and all the glossing ones, in one
-		// hit - so once called for, say, to see the adapting KB definitions, we don't
-		// need to make another call of ListKbs() to the KBserver to get the glossing ones
-		// - we already have those in a separate list. But it convolutes the code if we
-		// want to inhibit a second ListKbs() call when, say, the glossing KB definitions
-		// radio button is clicked. Much easier just to recall it, and separate into
-		// types, and show the wanted set of KB definitions (ignoring the ones not
-		// requested).
-
-		// Clear out anything from a previous button press done on this page
-		// ==================================================================
-		//m_pKbsListBox->Clear();
-		wxCommandEvent dummy;
-		//OnButtonKbsPageClearListSelection(dummy);
-		//OnButtonKbsPageClearBoxes(dummy);
-		//DeleteClonedKbServerKbStruct(); // ensure it's freed & ptr is NULL
-		//m_pKbServer->ClearKbsList(m_pOriginalKbsList);
-		//if (!m_pKbsList_Tgt->empty())
-		//{
-		//	m_pKbsList_Tgt->clear(); // remove the ptr copies
-		//}
-		//if (!m_pKbsList_Gls->empty())
-		//{
-		//	m_pKbsList_Gls->clear(); // remove the ptr copies
-		//}
-		// The m_pKbsList will be cleared within the ListKbs() call done below, so it
-		// is unnecessary to do it here now
-		// ==================================================================
-
-		// Get the kbs data from the server, store in the list of KbServerKb structs,
-		// the call will clear the list first before storing what the server returns;
-		// then separate the structs into two lists, by type (adapting versus glossing)
-#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %p , m_bForManager = %d, page (1-based) = %d"),
-		m_pKbServer, (int)m_pKbServer->m_bForManager, pageNumSelected + 1);
-#endif
-		wxString username = m_pKbServer->GetKBServerUsername(); // for authentication, and for the username
-																// field in the KB definition
-		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
-		CURLcode result = CURLE_OK;
-
-		// Tell the app's status variables what page we are on -- DoEntireKbDeletion
-		// may need this, if a KB deletion is later asked for; and track what kb type we
-		// are currently listing - tell the app that too, for same reason
-		m_pApp->m_bKbPageIsCurrent = TRUE;
-		if (m_bKBisType1)
-			m_pApp->m_bAdaptingKbIsCurrent = TRUE;
-		else
-			m_pApp->m_bAdaptingKbIsCurrent = FALSE;
-
-		if (!username.IsEmpty() && !password.IsEmpty())
-		{
-			result = (CURLcode)m_pKbServer->ListKbs(username, password);
-			if (result == CURLE_OK)
-			{
-				if (m_pKbsList->empty())
-				{
-					// Don't expect an empty list, so an English message will suffice
-					wxString msg = _T("LoadDataForPage() error, create KBs page, the returned list of KBs was empty. Fix this.");
-					wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
-					m_pApp->LogUserAction(msg);
-					//m_pKbServer->ClearKbsList(m_pKbsList);
-					return;
-				}
-
-				// Copy the list, before user gets a chance to modify anything
-				CopyKbsList(m_pKbsList, m_pOriginalKbsList); // param 1 is src list, param2 is dest list
-
-				// Separate into lists of adapting versus glossing KB definition structs
-				SeparateKbServerKbStructsByType(m_pKbsList, m_pKbsList_Tgt, m_pKbsList_Gls);
-
-				// Load according to the page's state: either adapting KB definitions, or
-				// glossing KB definitions - as determined by the state of the radio
-				// buttons.
-                // Load the source code strings into m_pKbsList. This listbox is not
-                // defined in wxDesigner as sorted, so we set the sorted style before we
-                // start populating the list. We show each database definition as a comma
-                // delimited pair of language codes. This enables us to easily keep the
-                // correspondences between src-tgt, or src-gloss pairs for any given
-                // definition.
-                // Note 1: the client data for each pair in the list box is the ptr to the
-                // KbServerKb struct itself which supplied the strings for the code pair,
-                // the struct coming from m_pKbsList.
-                // Note 2: the first param, m_bKBisType1 selects which of the following
-                // params are used internally: if TRUE is passed in, then the listbox is
-                // populated using the contents of m_pKbsList_Tgt list. If FALSE is passed
-                // in, then instead the listbox is populated by the m_pKbsList_Gls list
-				LoadLanguageNamePairsInListBox_KbsPage(m_bKBisType1, m_pKbsList_Tgt,
-														m_pKbsList_Gls, m_pKbsListBox);
-			}
-			else
-			{
-				// If there was a cURL error, it will have been generated from within
-				// ListUsers() already, so that will suffice
-				;
-			}
-		}
-		else
-		{
-			// Don't expect this error, so an English message will do
-			wxString msg = _T("LoadDataForPage() unable to call ListKbs(), for KB definitions page, because password or username is empty, or both. This Manager page won't work properly until this is fixed.");
-			wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
-			m_pApp->LogUserAction(msg);
-		}
-		// Give feedback about a failed "Update Selected Language Codes" attempt
-		if (m_bUpdateTried)
-		{
-			// get the list contents as it is after the update attempt
-			m_listAfterUpdate.Clear();
-			m_listAfterUpdate = m_pKbsListBox->GetStrings();
-			if (!IsAKbDefinitionAltered(&m_listBeforeUpdate, &m_listAfterUpdate))
-			{
-				// If control enters this block, then both "before" and "after" update
-				// listbox contents are identical and in unchanged order - which means the
-				// update attempt failed. Tell the user something meaningful here...
-				wxString msg;
-				wxString title = _("Language name pair: update failed");
-				msg = msg.Format(
-				_("Warning: your attempt to update one, or both, of the selected database's language name pair, failed.\nThe reason for this is probably because that particular name pair's database still contains some knowledge base entries.\n(Either or both of the names can only be successfully updated for a database which is empty.)\nThis message is advisory only. No damage has been done and you may continue working."));
-				wxMessageBox(msg, title, wxICON_ERROR | wxOK);
-			}
-			// If the two lists are identical, then nothing was changed
-			m_bUpdateTried = FALSE; // restore default value
-			m_listBeforeUpdate.Clear();
-			m_listAfterUpdate.Clear();
-		}
-	}
-	else // must be Custom Language Definitions page, we display only custom ones (those with substring -x- )
-	{
-		// BEW 31Aug20: we no longer have a third page for language codes
-		// Clear out anything from a previous button press done on this page
-		// ==================================================================
-		m_pCustomCodesListBox->Clear();
-		wxCommandEvent dummy;
-		OnButtonLanguagesPageClearBoxes(dummy);
-		m_pKbServer->ClearLanguagesList(m_pLanguagesList);
-		// The m_pLanguagesList will be cleared within the ListLanguages() call done below,
-		// so it is unnecessary to do it here now
-		// ==================================================================
-		// Get the users data from the server, store in the list of KbServerUser structs,
-		// the call will clear the list first before storing what the server returns
-#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-		wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %p , m_bForManager = %d  , page is Languages page"),
-			m_pKbServer, (int)m_pKbServer->m_bForManager ? 1 : 0);
-#endif
-		wxString username = m_pKbServer->GetKBServerUsername();
-		wxString password = m_pKbServer->GetKBServerPassword();
-		CURLcode result = CURLE_OK;
-		m_pKbServer->ClearStrCURLbuffer(); // clear the standard string used in the callback
-
-		if (!username.IsEmpty() && !password.IsEmpty())
-		{
-			// Ultimately we want to get a list only of the custom ones, those with -x- within their
-			// code; but the call necessarily gets them all (there are about 8000+ of the fixed ISO639
-			// codes we need to filter out). So we'll filter the unwanted ones out after the call returns
-			result = (CURLcode)m_pKbServer->ListLanguages(username, password);
-			if (result == CURLE_OK)
-			{
-				// Return if there's nothing yet, user can continue working
-				if (m_pLanguagesList->empty())
-				{
-					// There may be no custom language codes defined yet, if empty, tell user
-					wxMessageBox(_("No custom language code definitions exist yet."),
-						_T("None yet"), wxICON_INFORMATION | wxOK);
-					m_pKbServer->ClearLanguagesList(m_pLanguagesList);
-					return;
-				}
-				// Load the username strings into m_pCustomCodesListBox, the ListBox is not sorted type;
-				// but the data will be sorted internally in the call below and shown in the list as sorted
-				// Note: the client data for each code string added to the list box is the ptr to the KbServerList
-				// struct itself which supplied the code string, the struct coming from m_pLanguagesList, Internally
-				// the only surviving KbServerLanguage struct pointers are those that contain a custom code; and
-				// these are stored in the FilteredList instance.
-				LoadLanguagesListBox(m_pCustomCodesListBox,  m_pLanguagesList);
-				// after this, when clearing out the remaining KbServerLanguage structs, only
-				// ClearFilteredList() need be called, as all the ones for ISO639 codes have already been deleted
-			}
-			else
-			{
-				// If there was a cURL error, it will have been generated from within
-				// ListUsers() already, so that will suffice
-				;
-			}
-		}
-		else
-		{
-			// Don't expect this error, so an English message will do
-			wxString msg = _T("LoadDataForPage() unable to call ListLanguages() because password or username is empty, or both. The Manager won't work until this is fixed.");
-			wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
-			m_pApp->LogUserAction(msg);
-		}
-	}
-*/
 }
 
 // Return TRUE if at least one KB definition differs from what it was earlier, or if the
@@ -959,7 +702,7 @@ KbServerUserForeign* KBSharingMgrTabbedDlg::GetThisUsersStructPtr(wxString& user
 {
 	wxASSERT(pUsersListForeign);
 	KbServerUserForeign* pEntry = NULL;
-	if (pUsersListForeign->empty())
+	if (pUsersListForeign->IsEmpty())
 		return (KbServerUserForeign*)NULL;
 	UsersListForeign::iterator iter;
 	for (iter = pUsersListForeign->begin(); iter != pUsersListForeign->end(); ++iter)
@@ -1016,72 +759,12 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	wxSortedArrayString sorted_arrUsernames;
 
 	UsersListForeign::iterator iter;
-
-	/* deprecated
-	//#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	//	int anIndex = -1;
-	//#endif
-	//int maxID = 0;
-	//wxString strID;
-	//wxString tab = _T('\t');
-	wxString username;
-	for (iter = pUsersListForeign->begin(); iter != pUsersListForeign->end(); ++iter)
-	{
-		// Get the max ID value
-		KbServerUserForeign* pEntry = *iter;
-		#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-		anIndex++;
-		// Check if there are any NULL ptrs here
-		wxString aUsername = _T("null pointer"); // use this if pEntry is NULL
-		if (pEntry != NULL)
-		{
-			aUsername = pEntry->username;
-		}
-		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %p , username = %s"),
-				anIndex, pEntry, aUsername.c_str());
-		#endif
-		//if (pEntry->id > maxID)
-		//{
-		//	maxID = pEntry->id;
-		//}
-	}
-	int maxChars = 0;
-	if (maxID <= 9)           {maxChars = 1;}
-	else if (maxID <= 99)     {maxChars = 2;}
-	else if (maxID <= 999)    {maxChars = 3;}
-	else if (maxID <= 9999)   {maxChars = 4;}
-	else if (maxID <= 99999)  {maxChars = 5;}
-	else if (maxID <= 999999) {maxChars = 6;}
-	else if (maxID <= 9999999){maxChars = 7;}
-	else                      {maxChars = 8;}
-	*/
 	wxString username;
 	for (iter = pUsersListForeign->begin(); iter != pUsersListForeign->end(); ++iter)
 	{
 		KbServerUserForeign* pEntry = *iter;
 		username = pEntry->username;
 		sorted_arrUsernames.Add(username);
-		/* deprecated
-		username += tab;
-		wxItoa(pEntry->id, strID);
-        // Add preceding spaces, so that there are a const number, maxChars, of characters
-        // up to the end of each ID, and then 3 spaces following each (assume IDs can go up
-        // to any ID value, actually, < 99,999,999)
-		int idLen = strID.Len();
-		int spacesToAdd = maxChars - idLen;
-		wxString spaces = _T("");
-		if (spacesToAdd > 0)
-		{
-			int i;
-			for (i = 0; i<spacesToAdd; i++) { spaces += _T(' ');}
-			strID = spaces + strID;
-		}
-		username += strID;
-		username += _T("   "); // 3 spaces (will be the delimiter between the
-							   // ID and the username which follows
-		// Now add the string to the sorted array
-		sorted_arrUsernames.Add(username);
-		*/
 	}
 	// Now match the original struct to the username and store the struct in
 	// the list's client data member
@@ -1089,19 +772,9 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	for (index = 0; index < (int)count; index++)
 	{
 		wxString username2 = sorted_arrUsernames.Item(index);
-		/*
-		int offset = usernamePlusID.Find(tab);
-		wxASSERT(offset != wxNOT_FOUND);
-		username = usernamePlusID.Left(offset);
-		wxString prefix = usernamePlusID.Mid(offset + 1);
-		KbServerUser* pClientData = GetThisUsersStructPtr(username, pUsersList);
-		wxASSERT(pClientData != NULL);
-		pListBox->Append(prefix + username, pClientData);
-		*/
 		KbServerUserForeign* pClientData = GetThisUsersStructPtr(username2, pUsersListForeign);
 		wxASSERT(pClientData != NULL);
 		pListBox->Append(username2, pClientData);
-
 	}
 }
 
@@ -1129,6 +802,51 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 	// At this point, the user table is altered, so it just remains to
 	// call LoadDataForPage(int pageNumSelected)
 	LoadDataForPage(0);
+}
+
+void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNUSED(event))
+{
+	// Get the new fullname value, not the one in the m_pUserStructForeign - the latter is old one
+	wxString newFullname = m_pEditInformalUsername->GetValue();
+	m_pApp->m_bDoingChangeFullname = TRUE;
+	m_pApp->m_strChangeFullname = newFullname; // make sure app knows it
+	m_pApp->m_strChangeFullname_User2 = m_pApp->m_Username2; // so LoadDataForPage(0) can grab it
+
+	bool bReady = m_pApp->ConfigureDATfile(change_fullname); // arg is const int, value 11
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_change_fullname.exe
+		wxString execFileName = _T("do_change_fullname.exe");
+		wxString execPath = m_pApp->execPath;
+		wxString resultFile = _T("change_fullname_return_results.dat");
+
+
+		bool bExecutedOK = FALSE;
+		bExecutedOK = m_pApp->CallExecute(change_fullname, execFileName, execPath, resultFile, 99, 99);
+		if (!bExecutedOK)
+		{
+			// error in the call, inform user, and put entry in LogUserAction() - English will do
+			wxString msg = _T("Line %d: CallExecute for enum: change_fullname, failed - perhaps input parameters (and/or password) did not match any entry in the user table; Adapt It will continue working ");
+			msg = msg.Format(msg, __LINE__);
+			wxString title = _T("Probable do_change_fullname.exe error");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			m_pApp->LogUserAction(msg);
+			m_pApp->m_bDoingChangeFullname = FALSE; // restore default value
+		}
+	}
+
+	// At this point, the user table is altered, so it just remains to
+	// call LoadDataForPage(int pageNumSelected)
+	LoadDataForPage(0);
+
+	if (m_pApp->m_bDoingChangeFullname)
+	{
+		// Turn it off, to default FALSE
+		m_pApp->m_bDoingChangeFullname = FALSE;
+		// And clear these, until such time as another change of fullname is done
+		m_pApp->m_strChangeFullname.Clear();
+		m_pApp->m_strChangeFullname_User2.Clear();
+	}
 }
 
 /*
@@ -1333,11 +1051,6 @@ void KBSharingMgrTabbedDlg::OnTabPageChanged(wxNotebookEvent& event)
 // if the dialog is modeless.
 void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 {
-    // This is a stateless dialog - nothing we did is communicated back to the application
-	// (It's the remote KBserver instance that has whatever we did, if in fact we did
-	// something more than just inspect what is on the KBserver's user, kb or
-	// language definition tables)
-
 	// Tidy up
 	m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList); // this one is local to this
 	delete m_pOriginalUsersList;
@@ -1345,42 +1058,19 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
-	// Tidy up for the Create KB Definitions page and/or the Edit KB Definitions page -
-	// the same storage is used for either, so the last one used is what we are cleaning up
-	//m_pKbServer->ClearKbsList(m_pOriginalKbsList); // this one is local to this
-	//delete m_pOriginalKbsList;
-	//if (!m_pKbsList_Tgt->empty())
-	//{
-	//	m_pKbsList_Tgt->clear();
-	//}
-	//delete m_pKbsList_Tgt;
-	//if (!m_pKbsList_Gls->empty())
-	//{
-	//	m_pKbsList_Gls->clear();
-	//}
-	//delete m_pKbsList_Gls;
-	//m_pKbServer->ClearKbsList(m_pKbsList); // this one is local to the stateless
-									// KbServer instance, so don't delete this one
-	//DeleteClonedKbServerKbStruct();
-
-	// Remove from the heap any KB shared database definitions added in this session
-	// of the dialog
-	//m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
-	// and also delete their storage list from the heap (created in InitDialog())
-	//delete m_pKbsAddedInSession;
-
-	// The 3rd tab has LanguagesList. ISO639 codes are filtered & don't make it to
-	// that list, and so just the custom codes are there, so cleanup for the 3rd tab
-	// only requires clearing the m_languagesList
-	//m_pKbServer->ClearLanguagesList(m_pLanguagesList);
-
-	// Delete the stateless KbServer instance we've been using, (it will be the app's
+	// Delete the KbServer instance we've been using, (it will be the app's
 	// m_pKbServer_ForManager instance, a stateless one for authentications, and most
 	// of the Manager's functionalities) & then set the ptr to NULL
 	delete m_pKbServer;
 	m_pApp->m_pKbServer_ForManager = NULL; // we could use m_pKbServer = NULL, but
 				// this way it reminds the app maintainer what is happening here
-	m_pApp->m_pKbServer_Persistent = NULL; 
+	m_pApp->m_pKbServer_Persistent = NULL;
+
+	m_pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+	m_pApp->m_bKBSharingMgrEntered = FALSE; // reset default
+	m_pApp->m_bHasUseradminPermission = FALSE; // reset default
+	m_pApp->m_bUseForeignOption = FALSE; // reset default
+	m_pApp->m_bWithinMgr = FALSE; // control is no longer within the Mgr
 
 	event.Skip();
 	// Remember, the Manager is closing, but there may still be a running detached
@@ -1393,43 +1083,22 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 {
 	// Tidy up
-	m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList); // this one is local to this
+	m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList); // this one is local to ptr 'this'
 	delete m_pOriginalUsersList;
 	m_pKbServer->ClearUsersListForeign(m_pUsersListForeign); // this one is in the adaptations
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
-	// Tidy up for the Create KB Definitions page or Edit KB Definitions page
-	//m_pKbServer->ClearKbsList(m_pOriginalKbsList); // this one is local to this
-	//delete m_pOriginalKbsList;
-	//if (!m_pKbsList_Tgt->empty())
-	//{
-	//	m_pKbsList_Tgt->clear();
-	//}
-	//delete m_pKbsList_Tgt;
-	//if (!m_pKbsList_Gls->empty())
-	//{
-	//	m_pKbsList_Gls->clear();
-	//}
-	//delete m_pKbsList_Gls;
-	//m_pKbServer->ClearKbsList(m_pKbsList); // this one is in the stateless
-									// KbServer instance & don't delete this one
-	//DeleteClonedKbServerKbStruct();
-
-	// Remove from the heap any KB definitions added in this session of the dialog
-	//m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
-	// and also delete their storage list from the heap (created in InitDialog())
-	//delete m_pKbsAddedInSession;
-
-	// The 3rd tab has LanguagesList. ISO639 codes are filtered & don't make it to
-	// that list, and so just the custom codes are there, so cleanup for the 3rd tab
-	// only requires clearing the m_languagesList
-	//m_pKbServer->ClearLanguagesList(m_pLanguagesList);
-
 	// Delete the stateless KbServer instance we've been using
 	delete m_pKbServer;
 	m_pApp->m_pKbServer_ForManager = NULL; // see OnOK() for additional 
 										   // explatory comments that apply here
+	m_pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+	m_pApp->m_bKBSharingMgrEntered = FALSE; // reset default
+	m_pApp->m_bHasUseradminPermission = FALSE; // reset default
+	m_pApp->m_bUseForeignOption = FALSE; // reset default
+	m_pApp->m_bWithinMgr = FALSE; // control is no longer within the Mgr
+
 	event.Skip();
 }
 
@@ -1606,8 +1275,9 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 			}
 		}
 
-		// Test the passwords match (if they don't match, or a box is empty, then the call
-		// will show an exclamation message from within it, and clear both password text boxes)
+		// Test the passwords match in the two boxes for them,(if they don't match, 
+		// or a box is empty, then the call will show an exclamation message from 
+		// within it, and clear both password text boxes)
 		bool bMatchedPasswords = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
 		if (!bMatchedPasswords)
 		{
@@ -3129,6 +2799,10 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// create the correct comandLine for the ::wxExecute() call in app function CallExecute()
 	// and it can't do so without getting the user name selected in the Manager user list
 	m_pApp->m_strChangePermission_User2 = m_pUserStructForeign->username;
+	// BEW 9Dec20 fullname changing needs it's own app storage wxStrings for commandLine building
+	m_pApp->m_strChangeFullname_User2 = m_pUserStructForeign->username;
+	m_pApp->m_strChangeFullname = m_pUserStructForeign->fullname;
+	wxASSERT(!m_pUserStructForeign->fullname.IsEmpty()); // make sure it's not empty
 
 	// BEW 20Nov20 a click to select some other user must clear the curr password box
 	// so that it does not display the pwd for any user other than the selected user
@@ -3151,6 +2825,12 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
     wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
 	m_pTheUsername->ChangeValue(theUsername);
+	// BEW 16Dec20 also put the value into app's m_Username2 string using
+	// it's Update function UpdateUsername2(wxString str), so that
+	// user page buttons which work with whatever is the selected user,
+	// can grab its value and use for building commandLine for
+	// ConfigureMovedDatFile() - so the correct sql change can be effected
+	m_pApp->UpdateUsername2(theUsername);
 
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pTheUsername->GetValue().c_str());
@@ -3158,10 +2838,10 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 
 	m_pEditInformalUsername->ChangeValue(m_pUserStructForeign->fullname);
 	m_pEditPersonalPassword->ChangeValue(_T("")); // we can't recover it, so user must
-					// look up his records if he can't remember what it was, too bad if he
-					// didn't make any records! In that case, he has to set a new password
-					// and inform the user of that new one about the change, after removing
-					// the user and the recreating with a new password
+			// look up his records if he can't remember what it was, too bad if he
+			// didn't make any records! In that case, he has to set a new password
+			// and inform the user of that new one about the change, after removing
+			// the user and the recreating with a new password
 	m_pCheckUserAdmin->SetValue(m_pUserStructForeign->useradmin);
 	//m_pCheckKbAdmin->SetValue(m_pUserStruct->kbadmin);
 
@@ -3176,6 +2856,76 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// entry table alone - removing entries clobbers other people's work; and instead, 
 	// just create a similar user with a new password and use that from then on.)
 }
+
+// BEW 16Dec20 next one, to get the m_pUsersListForeign and m_pOriginalUsersList arrays of
+// UserListForeign pointers updated to match changes made by the button handlers after a
+// new state for the user2 has been produced by the do_list_users.exe call after configuring
+// for the commandLine for list_users case ( = 3), to achieve syncing without resort to
+// another call of LoadDataForPage(0) -- internally it reads the returned results file from
+// the kbserver's user table, and borrows existing calls to get the syncing done
+void KBSharingMgrTabbedDlg::UpdateUserPage(CAdapt_ItApp* appPtr, wxString execPath, 
+								wxString resultFile, wxArrayString* pArrLines)
+{
+	CAdapt_ItApp* pApp = appPtr;
+
+	wxArrayString arrLines = *pArrLines;
+		
+	arrLines.Empty(); // empty contents, leaving it ready for reuse of a new set of line strings
+	wxString pathToResults = execPath + resultFile; // absolute path to the Adapt It executable
+	bool bResultsFileExists = ::FileExists(pathToResults);
+	if (bResultsFileExists)
+	{
+		wxTextFile f(pathToResults);
+		bool bOpened = f.Open();
+		int lineIndex = 0; // ignore this one, it has "success in it" etc
+		int lineCount = f.GetLineCount();
+
+		wxString strCurLine = wxEmptyString;
+		if (bOpened)
+		{
+			for (lineIndex = 1; lineIndex < lineCount; lineIndex++)
+			{
+				strCurLine = f.GetLine(lineIndex);
+				arrLines.Add(strCurLine);
+			}
+		}
+	}
+	else
+	{
+		// results file does not exist, log the error
+		wxBell();
+		wxString msg = _T("UpdateUserPage(): .dat resultFile does not exist in the executable's folder: %s");
+		msg = msg.Format(msg, execPath.c_str());
+		pApp->LogUserAction(msg);
+		return;
+	}
+	// Okay, the rows from the user table are in arrLines, as wxString vars.
+	// Now clobber the contents of m_UsersListForeign to prepare for refilling
+	// with altered contents after the user table was altered in some way
+	pApp->m_pKbServer_ForManager->ClearUsersListForeign(m_pUsersListForeign); // empties
+			// the contents, and frees their memory, but leaves m_pUsersListForeign
+			// existing ready for new content to be added
+	pApp->m_pKbServer_ForManager->ClearUsersListForeign(m_pOriginalUsersList); // empties
+			// the contents, and frees their memory, but leaves m_pUsersListForeign
+			// existing ready for new content to be added (m_pOriginalUsersList is on
+			// the heap. OnOK() or OnCancel() will clear and delete it.
+	// Now access the lines in arrLines above, turning them into a list of foreign user structs
+	pApp->m_pKbServer_ForManager->ConvertLinesToUserStructs(arrLines, m_pUsersListForeign);
+	// Copy the list, before user gets a chance to modify anything
+	// param 1 is src list, param2 is dest list
+	CopyUsersList(m_pUsersListForeign, m_pOriginalUsersList); // comparisons are tested against
+					// whatever is in m_pOriginalUsersList after user does something in the
+					// users page GUI of the KB Sharing Manager
+	// Load the username strings into m_pUsersListBox, the ListBox is sorted;
+	// Note: the client data for each username string added to the list box is
+	// the ptr to the KbServerUser struct itself which supplied the username
+	// string, the struct coming from m_pUsersList
+	LoadUsersListBox(m_pUsersListBox, m_pUsersListForeign->size(), m_pUsersListForeign);
+
+	// Finished. The users list in the GUI for the users page, should now be
+	// in sync with what m_pUsersListForeign is now containing
+}
+
 
 // BEW 31Aug20 updated
 void KBSharingMgrTabbedDlg::OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event))

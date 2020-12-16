@@ -33393,6 +33393,7 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	wxString execPath = pApp->execPath;
 	wxString saveCwd = ::wxGetCwd();
 	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
+	wxUnusedVar(bChangedCWD);
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 	wxString comma = _T(",");
 	wxString ipAddr = _T("192.168.1.9");

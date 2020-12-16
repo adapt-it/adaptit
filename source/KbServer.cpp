@@ -3083,7 +3083,11 @@ void KbServer::ClearLanguagesList(LanguagesList* pLanguagesList)
 // deletes from the heap all KbServerUser struct ptrs within m_usersListForeign
 void KbServer::ClearUsersListForeign(UsersListForeign* pUsrListForeign)
 {
-	if (pUsrListForeign ==NULL || pUsrListForeign->empty())
+#if defined (_DEBUG)
+	size_t listLen = pUsrListForeign->GetCount();
+	wxLogDebug(_T("%s::%s(), line %d: entry count : %d"),__FILE__,__FUNCTION__,__LINE__, listLen);
+#endif
+	if (pUsrListForeign ==NULL || pUsrListForeign->IsEmpty())
 		return;
 	UsersListForeign::iterator iter;
 	UsersListForeign::compatibility_iterator c_iter;
@@ -3099,7 +3103,7 @@ void KbServer::ClearUsersListForeign(UsersListForeign* pUsrListForeign)
 		}
 	}
 	// The list's stored pointers are now hanging, so clear them
-	pUsrListForeign->clear();
+	pUsrListForeign->Clear();
 }
 
 /* BEW 3Nov20 deprecated
@@ -3653,13 +3657,12 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 	return 0; // no error
 }
 */
+/* BEW 9Dec20 removed, we do it a bit differently with Leon's solution
 int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bUseradmin)
 {
+	// TODO? - Leon's way  -- probably when I get to work on the simpler KB Sharing Manager
 
-
-	// TODO - Leon's way  -- probably when I get to work on the simpler KB Sharing Manager
-
-/*	CURL *curl;
+	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
 	struct curl_slist* headers = NULL;
 	wxString slash(_T('/'));
@@ -3782,9 +3785,10 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
         // scenario.
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-*/
+
 	return 0; // no error
 }
+*/
 /*
 // Note: url, username and password are passed in, because this request can be made before
 // the app's m_pKbServer[2] pointers have been instantiated
@@ -4044,14 +4048,13 @@ int KbServer::CreateKb(wxString ipAddr, wxString username, wxString password,
 }
 */
 
-
+/* BEW 10Dec20 deprecated
 int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
 						KbServerUser* pEditedUserStruct, wxString password)
 {
 
 	// TODO ?? need it?  --- probably when I get to refactor the simpler KB Sharing Manager
-/*
 	CURLcode result = CURLE_OK;
 	wxString userIDStr;
 	wxItoa(userID, userIDStr);
@@ -4178,9 +4181,11 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-*/
+
 	return 0;
 }
+*/
+
 /* deprecated JM's way, BEW 2Nov20
 // This one is like RemoveUser() and RemoveKb(), and http errors need to be checked for,
 // as it is the only way to know when the deletion loop has deleted all that need to be
@@ -4270,11 +4275,13 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	return (CURLcode)0;
 }
 */
+
+/* BEW 10Dec20 deprecated, we don't allow this any more
 int KbServer::RemoveUser(int userID)
 {
 
 	// TODO  Leon's way  --- probably when I get to refactor the KB Sharing Manager
-/*
+
 	wxString userIDStr;
 	wxItoa(userID, userIDStr);
 	CURL *curl;
@@ -4353,9 +4360,10 @@ int KbServer::RemoveUser(int userID)
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-*/
 	return (CURLcode)0; // no error
 }
+*/
+
 /* BEW 2Nov20 deprecated
 int KbServer::RemoveKb(int kbID)
 {
@@ -5932,6 +5940,8 @@ void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForei
 				// Shorten
 				str = str.Mid(offset + 1);
 				field.Empty();
+				wxLogDebug(_T("%s::%s(), line %d : lookup_user = %d"),
+					__FILE__, __FUNCTION__, __LINE__, lookup_user);
 				break;
 			case 3:
 				offset = str.Find(comma);
@@ -5947,15 +5957,20 @@ void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForei
 					pStruct->useradmin = TRUE;
 				}
 				// We are done
+				wxLogDebug(_T("%s::%s(), line %d : list_users = %d"),
+							__FILE__, __FUNCTION__, __LINE__, list_users);
 				break;
 			};
 		}
-		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d"),
-			__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str(),
-			pStruct->fullname.c_str(), pStruct->password.c_str(), pStruct->useradmin == TRUE?1:0);
+//		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d"),
+//			__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str(),
+//			pStruct->fullname.c_str(), pStruct->password.c_str(), pStruct->useradmin == TRUE?1:0);
 
 		// Append each filled out KbServerUserForeign to the pUsersListForeign (for Leon's sol'n)
 		pUsersListForeign->Append(pStruct);
+
+		wxLogDebug(_T("%s::%s(), line %d : appended struct for username = %s"),
+					__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str());
 	}
 }
 
@@ -6040,6 +6055,25 @@ bool KbServer::MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whic
 		// signature points at the relevant counter - leave at 0
 		break;
 	}
+	case upload_local_kb: // = 9;
+	{
+		datFileName = _T("upload_local_kb.dat");
+		whichDATfile = datFileName;
+		break;
+	}
+	case change_permission: // = 10
+	{
+		datFileName = _T("change_permission.dat");
+		whichDATfile = datFileName;
+		break;
+	}
+	case change_fullname: // = 11
+	{
+		datFileName = _T("change_fullname.dat");
+		whichDATfile = datFileName;
+		break;
+	}
+
 	case blanksEnd:
 	{
 		break; // do nothing

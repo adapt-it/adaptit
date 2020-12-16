@@ -862,9 +862,9 @@ enum ServDiscDetail
 	const int changed_since_timed = 8;
 	const int upload_local_kb = 9;
 	const int change_permission = 10;
+	const int change_fullname = 11;
 	// add more here, as our solution matures
-	const int blanksEnd = 11; // this one changes as we add more above
-
+	const int blanksEnd = 12; // this one changes as we add more above
 
 #endif
 
@@ -2196,6 +2196,8 @@ class CAdapt_ItApp : public wxApp
 	wxString MakeDistFolder(); // ending in the path separator
 	wxString PathToExecFolder(); // ending in the path separator
 
+	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
+
 	// Handler files for the cases in the KBserverDAT_Blanks switch
 	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
 
@@ -2210,10 +2212,10 @@ class CAdapt_ItApp : public wxApp
 	// A techie going to the kbserver to enter a bunch of usernames for various people
 	// in a translation team, the code would use a .dat file like "add_foreign_user.dat"
 	bool m_bUseForeignOption;  // FALSE (default) means "normal local user stuff used,
-							   // such as m_strUserId and m_strUsername, etc
+							   // such as m_strUserId and m_strFullname, etc
 							   // TRUE means 'other-user' focus, such as accessing the
 							   // kbserver with kbadmin username, kbauth pwd, etc
-	wxString m_strForeignPassword; // store the non-local-user one here
+	//wxString m_strForeignPassword; // store the non-local-user one here
 	// BEW 23Nov20 temp string vars for support of adding new users to user table, since
 	// it can be done from a menu item in view class, or from settings typed into the
 	// relevant fields of the KB Sharing Manager's user page. Adding a new user can
@@ -2266,10 +2268,6 @@ class CAdapt_ItApp : public wxApp
 	wxString m_curNormalPassword; // The password that goes with curAuthUsername
 	wxString m_curNormalFullname; // may not need it, but it's here for the'fullname'
 								  // field's value if we want it.
-	wxString m_possibleNormalPassword; // BEW 10Sep20, if the 'for manager' password stored
-		// here, and LookupUser() call with user1==user2 given, then m_bUserAuthenticating
-		// gets changed to TRUE; if so, then whats in m_possibleNormalPassword should be
-		// restored in frame's stored password, so that subsequent calls can pick it up from there
 	bool m_bcurNormalUseradmin;   // TRUE if user table table has m_curNormalUsername's 
 						   // useradmin value = 1, FALSE otherwise
 	bool m_bcurNormalKbadmin;    // *ALWAYS* TRUE now, and no longer in user table's schema
@@ -2295,6 +2293,19 @@ class CAdapt_ItApp : public wxApp
 
 	bool m_bHasUseradminPermission; // governs whether user can access the KB Sharing Manager
 	bool m_bKBSharingMgrEntered; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
+	bool m_bWithinMgr; // TRUE when successfully within the KB Sharing Manager where the
+					   // possibility exists for user1 (for kbserver authenticating) to
+					   // be different than user2 (the  selected user when operating within
+					   // the Mgr, if FALSE, m_bKBSharingMgrEntered should be FALSE too
+
+	//BEW 10Dec20 next three are for roaming the list of users in the KB Sharing Manager
+	// they are public, and I won't bother with Update...() functions
+	// By having these, the manager's local set of string variables, etc, can stay local
+	// and I achieve access outside the manager to those values provided these three are
+	// set from within the manager, as they become known
+	wxString m_curSelectedUsername;
+	wxString m_curSelectedFullname;
+	wxString m_curSelectedUseradmin;
 
 	wxArrayString m_arrLines; // For use by the ListUsers() call - which we want the Sharing
 							  // Manager to be able to access, as well as AI's CallExecute()
@@ -2757,7 +2768,7 @@ public:
                                         // the user's email address if he has one, if not, any
                                         // unique string will do provided the server administrator
                                         // approves it
-    wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
+    wxString    m_strFullname;          // needed by git (DVCS), as well as "email address" for which
 										// we'll use m_strUserID; kbserver will also use
 										// this as an "informal human-readable username" 'fullname' in user table
 
@@ -3423,8 +3434,11 @@ public:
 	// Next one is for the ChangePermission feature in the KB Sharing Manager,
 	// where ConfigureMovedDatFile(), when building commandLine, needs to know
 	// what the manager's looked up "selected_user" (ie. user2) is, so it can
-	// be added to the commandLine being built (as the last param)
+	// be added to the commandLine being built (as the last param) And ditto
+	// for change_fullname, at lines 3430-1
 	wxString	m_strChangePermission_User2;
+	wxString	m_strChangeFullname_User2; // BEW added 9Dec20
+	wxString	m_strChangeFullname; // BEW added 9Dec20
 
 	bool		m_bUserAuthenticating;
 	bool		m_bUser1IsUser2; // default FALSE - needed in LookupUser()
@@ -3444,6 +3458,7 @@ public:
 	void MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath); // = 8
 	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
 	void MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath); // = 10
+	void MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath); // = 11
 	void CheckForDefinedGlossLangName();
 
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that

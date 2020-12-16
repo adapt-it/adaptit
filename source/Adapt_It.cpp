@@ -11680,17 +11680,17 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 // This menu item, Change Username, on the Edit menu, lets the user edit or type afresh a
 // (hopepfully unique) username for use by the DVCS and / or KB Sharing features (and
 // anything else which later may require a username within secure data or secure data
-// transfers), and in a second text control, a human-friendly informal name (which can be a
+// transfers), and in a second text control, a human-friendly fullname (which can be a
 // pseudonom) to enable easy identification of the human contributing the data. These are
-// stored on the app as m_strUserID for the former, and m_strUsername for the latter.
-// If m_strUserID or m_strUsername is empty when the user tries to use DVCS or KB Sharing,
+// stored on the app as m_strUserID for the former, and m_strFullname for the latter.
+// If m_strUserID or m_strFullname is empty when the user tries to use DVCS or KB Sharing,
 // the utility function in helpers.cpp, CheckUsername() will detect the problem and force
 // the UsernameInputDlg open so the user can type in whatever is appropriate - the dialog
 // won't allow itself to be dismissed until there is something in both checkboxes. But if
 // both names are defined, and the user wants to change one, it's not possible to do so
 // without a GUI widget that acts to get the UsernameInputDlg open; so that's what this
 // menu command is for. It's the only place to change the names, other than directly
-// editing the basic config file.
+// editing the basic config file. (Or changing m_strFullname from the KB Sharing Mgr)
 void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
 {
     UsernameInputDlg dlg((wxWindow*)GetMainFrame());
@@ -11698,7 +11698,7 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
     if (dlg.ShowModal() == wxID_OK)
     {
         m_strUserID = dlg.m_finalUsername;
-        m_strUsername = dlg.m_finalInformalUsername;
+        m_strFullname = dlg.m_finalInformalUsername;
 
         // whm added 24Oct13. Save the UniqueUsername and InformalUsername
         // Note: The code block here should be the same as in helpers.cpp's
@@ -11718,10 +11718,10 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
             {
                 wxMessageBox(_T("OnEditChangeUsername() m_pConfig->Write() of m_strUserID returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
             }
-            bWriteOK = m_pConfig->Write(_T("informal_user_name"), m_strUsername);
+            bWriteOK = m_pConfig->Write(_T("informal_user_name"), m_strFullname);
             if (!bWriteOK)
             {
-                wxMessageBox(_T("OnEditChangeUsername() m_pConfig->Write() of m_strUsername returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+                wxMessageBox(_T("OnEditChangeUsername() m_pConfig->Write() of m_strFullname returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
             }
             m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
         }
@@ -20027,6 +20027,11 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 				MakeChangePermission(change_permission, execPath, distPath);
 				break;
 			}
+			case change_fullname: // = 11
+			{
+				MakeChangeFullname(change_fullname, execPath, distPath);
+				break;
+			}
 
 			// Add additional cases here, as our solution matures
 
@@ -20456,9 +20461,45 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			}
 			break;
 		}
+		case change_fullname: // = 11
+		{
+			wxString filename = _T("change_fullname.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(change_fullname, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_change_fullname.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_change_fullname.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_fullname.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
 		case blanksEnd:
-		// TODO -- insert other cases as our solution matures, and blanksEnd will get larger
-			
+		// insert other cases preceding blanksEnd, as our solution matures - blanksEnd will increase	
 		default:
 		{
 			break; // do nothing
@@ -20535,7 +20576,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			commandLine += tempStr + comma;
 			UpdateCurNormalUsername(tempStr); // in case it has single quote/s, to mess up mysql parsing
 
-			tempStr = m_strUsername; // the 'fullname'
+			tempStr = m_strFullname; // the 'fullname'
 			tempStr = DoEscapeSingleQuote(tempStr);
 			commandLine += tempStr + comma;
 			UpdateCurNormalFullname(tempStr); // in case it has single quote/s, to mess up mysql parsing
@@ -20636,114 +20677,159 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	case lookup_user: // = 2
 	{
 		m_resultDatFileName = _T("lookup_user_return_results.dat");
-		if (m_bUser1IsUser2)
-		{
-			m_bUseForeignOption = FALSE;
-			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
-			UpdateNormalIpAddr(this->m_chosenIpAddr);
-		} // end of TRUE block for test: if (m_bUser1IsUser2)
-		else if (m_bUseForeignOption)
-		{
-			//m_bUseForeignOption = TRUE; // do we need this?? Yes, when doing list_users
-			m_bUserAuthenticating = FALSE;
-			commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
-			UpdateIpAddr(m_chosenIpAddr);
-		} // end of else block for test: if (m_bUser1IsUser2)
+		bool bAuthenticationOK = FALSE; // initialise
+		bool bAllow = FALSE; // initialise
 
-		// Call the Authentication dialog, the newer one with two username fields
-		bool bAuthenticationOK = TRUE;
-		bool bAllow = m_bUserAuthenticating || m_bUseForeignOption;
-		Authenticate2Dlg* pDlg = new Authenticate2Dlg(GetMainFrame(), bAllow);
-		pDlg->Center();
-		int dlgReturnCode;
-		dlgReturnCode = pDlg->ShowModal();
-		if (dlgReturnCode == wxID_OK)
+		if (m_bKBSharingMgrEntered)
 		{
-			wxString user1;
-			wxString user2;
-			wxString tempStr;
-			wxString tempStr2;
-			// First, get the latest
-			// successful run of the dialog. 
-			if (m_bUserAuthenticating || m_bUseForeignOption)
+			if (!m_bWithinMgr)
 			{
-				tempStr = pDlg->m_strNormalUsername;
-				tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
-				tempStr2 = pDlg->m_strNormalUsername2;
-				tempStr2 = DoEscapeSingleQuote(tempStr2);
-				if (tempStr == tempStr2)
-				{
-					user1 = tempStr;
-					user2 = tempStr;
-					m_bUser1IsUser2 = TRUE;
-				}
-				else
-				{
-					m_bUser1IsUser2 = FALSE;
-					user1 = tempStr;
-					user2 = tempStr2;
-				}
-				wxString pwd   = pDlg->m_strNormalPassword; // no ' in this
-				wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
-
-				// useradmin value?? Authenticate2Dlg does not pick
-				// that up, but that should be available in the
-				// returned lookup_user_return_results.dat file
-				commandLine += user1 + comma + pwd + comma + user2 + comma;
-#if defined (_DEBUG)
-				wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s"),
-					__FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str());
-#endif			
-			} // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
-/* bad code, deprecate it
-			else // it was Manager access, m_bUseForeignOption was TRUE
-			{
-				// Grab the "Normal" values
-				UpdateCurAuthUsername(pDlg->m_strForManagerUsername);
-				commandLine += pDlg->m_strForManagerUsername + comma; // for authenticating
-
-				UpdateCurAuthPassword(pDlg->m_strForManagerPassword);
-				commandLine += pDlg->m_strForManagerPassword + comma;
-
-				// Now the second username, the one to search for
-				UpdateUsername2(pDlg->m_strForManagerUsername2);
-				commandLine += pDlg->m_strForManagerUsername2 + comma; // commandLine is finished
-#if defined (_DEBUG)
-				wxLogDebug(_T("%s() Line %d, m_Username2: %s , command: %s"),
-					__FUNCTION__,__LINE__, pDlg->m_strForManagerUsername2.c_str(), commandLine.c_str());
-#endif
-			} // end of else block for the test: if (m_bUserAuthenticating)
-*/
-		} // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
-		else
-		{
-			// User cancelled. The authentication must fail.
-			bAuthenticationOK = FALSE;
-		} // end of else block for test: if (dlgReturnCode == wxID_OK)
-
-		// That finishes the commandLine to be put into the input .dat file.
-
-		// Restore saved values if the authentication failed
-		if (!bAuthenticationOK)
-		{
-			// Restore earlier values
-			UpdateNormalIpAddr(pDlg->m_saveOldNormalIpAddrStr);
-			UpdateCurNormalUsername(pDlg->m_saveOldNormalUsernameStr);
-			UpdateCurNormalPassword(pDlg->m_saveNormalPassword);
-			m_curNormalUsername2 = pDlg->m_saveOldNormalIpAddrStr;		
-/* BEW 12Nov20 deprecated
+				wxASSERT(m_bUser1IsUser2 == TRUE);
+				m_bUseForeignOption = FALSE;
+				commandLine = this->m_chosenIpAddr + comma;
+				UpdateNormalIpAddr(this->m_chosenIpAddr);
+				// The next 3 values are known - m_strUserID for both users
+				// and the password for entry, from the earlier login pwd
+				// for the authenticate dialog for accessing the kbserver
+				// project, in the call of AuthenticateCheckAndSetupKBSharing()
+				// call - stored in: m_curNormalPassword at that time
+				wxString tempStr;
+				wxString user1;
+				wxString user2;
+				tempStr = m_strUserID;
+				tempStr = DoEscapeSingleQuote(tempStr);
+				user1 = tempStr;
+				user2 = user1;
+				wxString pwd = m_curNormalPassword;
+				// Now build the rest of the commandLine
+				commandLine += user1 + comma;
+				commandLine += pwd + comma;
+				commandLine += user2;
+			} // end of TRUE block for test: if (!m_bWithinMgr)
 			else
 			{
-				UpdateIpAddr(pDlg->m_saveOldIpAddrStr);
-				UpdateCurAuthUsername(pDlg->m_saveOldUsernameStr);
-				UpdateCurAuthPassword(pDlg->m_savePassword);
-				UpdateUsername2(pDlg->m_saveOldUsername2Str);
-			}
-*/
-		} // end of TRUE block for test: if (!bAuthenticationOK)
+				// Control is within the KB Sharing Mgr, (the users page) and
+				// once that is the case, there needs to be freedom for user1
+				// (for autenticating to the kbserver) to be different to user2
+				// (selected for doing something with this user's properties);
+				// so here ignore m_bUser1IsUser2 value - doesn't matter whether
+				// true or false, and build the commandLine with user2 set to
+				// whatever was selected by the user in the Mgr
+				m_bUseForeignOption = TRUE;
+				commandLine = this->m_chosenIpAddr + comma;
+				UpdateNormalIpAddr(this->m_chosenIpAddr);
+				// The next 3 values are known - m_strUserID for user1,
+				// and its password for entry, from the earlier login pwd
+				// for the authenticate dialog for accessing the kbserver
+				// project, in the call of AuthenticateCheckAndSetupKBSharing()
+				// call - stored in: m_curNormalPassword at that time
+				// User2 however, needs to be grabbed from the selected user
+				wxString tempStr;
+				wxString user1;
+				wxString user2;
+				tempStr = m_strUserID;
+				tempStr = DoEscapeSingleQuote(tempStr);
+				user1 = tempStr;
+				wxString pwd = m_curNormalPassword;
+				// Now build the rest of the commandLine
+				commandLine += user1 + comma;
+				commandLine += pwd + comma;
+				user2 = m_Username2; // obtained by OnSelChangeUsersList()
+					// having been done beforehand, to update this RHS string
+					// variable with the username selected from the
+					// m_pUsersListBox's list
+				commandLine += user2;
+			} // end of else block for test: if (!m_bWithinMgr)
+		} // end of TRUE block for test: if (m_bKBSharingMgrEntered)
+		else
+		{
+			if (m_bUser1IsUser2)
+			{
+				m_bUseForeignOption = FALSE;
+				commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
+				UpdateNormalIpAddr(this->m_chosenIpAddr);
 
-		// Finished with the dialog, so now delete it
-		delete pDlg;
+			} // end of TRUE block for test: if (m_bUser1IsUser2)
+			else if (m_bUseForeignOption)
+			{
+				//m_bUseForeignOption = TRUE; // do we need this?? Yes, when doing list_users
+				m_bUserAuthenticating = FALSE;
+				commandLine = this->m_chosenIpAddr + comma; // started, gotta finish in OnOK()
+				UpdateIpAddr(m_chosenIpAddr);
+			} // end of else block for test: if (m_bUser1IsUser2)
+		} // end of else block for test: if (m_bKBSharingMgrEntered)
+
+		// The Authenticate2Dlg may be needed for other authentications to
+		// the mariaDB/kbserver tables, so allow for that
+		Authenticate2Dlg* pDlg = NULL; // initialise
+		if (!m_bKBSharingMgrEntered)
+		{
+			// Call the Authenticate2Dlg dialog, the newer one with two username fields
+			bAuthenticationOK = TRUE;
+			bAllow = m_bUserAuthenticating || m_bUseForeignOption;
+
+#if defined (_DEBUG)
+			wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, heap create & now entering Authenticate2Dlg"),
+				__FILE__, __FUNCTION__, __LINE__, funcNumber);
+#endif
+			pDlg = new Authenticate2Dlg(GetMainFrame(), bAllow);
+			pDlg->Center();
+			int dlgReturnCode;
+			dlgReturnCode = pDlg->ShowModal();
+#if defined (_DEBUG)
+			wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, returned from ShowModal for Authenticate2Dlg"),
+				__FILE__, __FUNCTION__, __LINE__, funcNumber);
+#endif
+			if (dlgReturnCode == wxID_OK)
+			{
+				wxString user1;
+				wxString user2;
+				wxString tempStr;
+				wxString tempStr2;
+				// First, get the latest
+				// successful run of the dialog. 
+				if (m_bUserAuthenticating || m_bUseForeignOption)
+				{
+					tempStr = pDlg->m_strNormalUsername;
+					tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
+					tempStr2 = pDlg->m_strNormalUsername2;
+					tempStr2 = DoEscapeSingleQuote(tempStr2);
+					if (tempStr == tempStr2)
+					{
+						user1 = tempStr;
+						user2 = tempStr;
+						m_bUser1IsUser2 = TRUE;
+					}
+					else
+					{
+						m_bUser1IsUser2 = FALSE;
+						user1 = tempStr;
+						user2 = tempStr2;
+					}
+					wxString pwd = pDlg->m_strNormalPassword; // no ' in this
+					wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
+
+					// useradmin value?? that should be available in the
+					// returned lookup_user_return_results.dat file
+					commandLine += user1 + comma + pwd + comma + user2 + comma;
+#if defined (_DEBUG)
+					wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
+						__FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str(), funcNumber);
+#endif			
+				} // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
+
+			} // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
+			else
+			{
+				// User cancelled. The authentication must fail.
+				bAuthenticationOK = FALSE;
+			} // end of else block for test: if (dlgReturnCode == wxID_OK)
+
+			// Finished with the dialog, so now delete it
+			delete pDlg;
+		} // end of the TRUE block for test: if (!m_bKBSharingMgrEntered)
+
+		// That finishes the commandLine to be put into the input .dat file.
 
 		// Set or update the source and target etc, language names as these
 		// may now differ from what was in effect for the current machine.
@@ -20799,49 +20885,32 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// Build the list_users.dat file for input, making the commandLine for 
 		// wxExecute() to call
 		m_resultDatFileName = _T("list_users_return_results.dat");
-		//m_bUserAuthenticating = TRUE; // for KB Sharing Mgr, we don't want this starting TRUE
-		// be cause accessing the manager clears it to FALSE when starting the manager
+
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 		// Next are the username and the password...
 		// The 2-user dialog should have been seen and used, it's the user2 that we are
 		// interested in, and it's associated password. We'll check for empty values, and
 		// try get the right ones
 		wxString tempStr;
-		wxString tryPwd;
 		bool btryUseradmin;
-		tempStr = tempStr = m_strUserID;
-		tryPwd = pFrame->GetKBSvrPassword();
+		wxString strUser1 = m_curNormalUsername; // best, but test in case empty
+		if (strUser1.IsEmpty())
+		{
+			strUser1 = m_strUserID;
+		}
+		tempStr = strUser1;
 		tempStr = DoEscapeSingleQuote(tempStr); // username may have ' needing to be escaped
 		commandLine += tempStr + comma; // has any embedded ' escaped
-		// password we won't escape - documentation should tell user not to use ' as part of password
-		if (m_curNormalPassword.IsEmpty())
-		{
-			UpdateCurNormalPassword(tryPwd); // hopefully, its correct pwd
-		}
-		commandLine += tryPwd + comma;
 
-		/* deprecated for do_list_users.exe
-		if (btryUseradmin == FALSE)
+		// password we won't escape - documentation should tell user not to use
+		// single straight quote / apostrophe ( ' ) as part of password
+		wxString strPwd = m_curNormalPassword; // best guess
+		if (strPwd.IsEmpty())
 		{
-			// Insufficient permission level, has to be '1'
-			UpdatebcurUseradmin(FALSE);
-			wxString strUseradmin = _T("0");
-			commandLine += strUseradmin + comma;
-
-			// Should not have entered this block, LookupUser() should
-			// have caused rejection of entry with useradmin == '0' before
-			// this function is called
-			wxBell();
-			m_curCommandLine.Empty();
-			return;
+			// try this one
+			strPwd = m_curAuthPassword;
 		}
-		else
-		{
-			UpdatebcurUseradmin(TRUE);
-			wxString strUseradmin = _T("1");
-			commandLine += strUseradmin + comma;
-		}
-		*/
+		commandLine += strPwd + comma;
 
 		// That completes the commandLine string; now put it into
 		// the moved .dat input file, ready for CallExecute() to get
@@ -20851,9 +20920,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// the wxExecute() in CallExecute() fails
 		m_curCommandLine = commandLine;
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-			__LINE__, commandLine.c_str());
-#endif
+		wxLogDebug(_T("%s() Line %d, for list_users = %d , commandLine: %s : for INPUT .dat file, funcNumber %d"),
+			__FUNCTION__, __LINE__, list_users, commandLine.c_str(), funcNumber);
+#endif			
+//#if defined (_DEBUG)
+//		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+//			__LINE__, commandLine.c_str());
+//#endif
 		// Now that the calling file has been moved to the parent folder 
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "create_entry.dat", within the parent folder, 
@@ -21403,7 +21476,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// the wxExecute() in CallExecute() fails
 		m_curCommandLine = commandLine;
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+		wxLogDebug(_T("%s::%s() line %d: commandline = %s   for ChangedSince()"), __FILE__, __FUNCTION__,
 			__LINE__, commandLine.c_str());
 #endif
 		// Now that the calling file has been moved to the parent folder 
@@ -21551,7 +21624,79 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		{
 			// Unlikely to fail, a bell ring will do
 			wxBell();
-		}		// TODO  clone lookup_user case's code and call it change_permission here
+		}
+		break;
+	}
+	case change_fullname: // = 11
+	{
+		m_resultDatFileName = _T("change_fullname_return_results.dat");
+		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
+		m_bUserAuthenticating = FALSE;
+		wxString tempStr;
+		commandLine = m_chosenIpAddr + comma;
+		UpdateIpAddr(m_chosenIpAddr);
+		// in case of embedded single quotes, escape them with
+		// tempStr = DoEscapeSingleQuote(tempStr);
+		tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+
+		// And the password should be the one associated by the above line,
+		// as stored in m_curNormalPassword;
+		wxASSERT(!m_curNormalPassword.IsEmpty());
+		commandLine += m_curNormalPassword + comma;
+
+		// The username2 has to come from the Sharing Manager, and fullname also,
+		// to complete the commandLine for a change of fullname done in KB Sharing Mgr
+		tempStr = m_strChangeFullname_User2; // RHS set from m_pUserStructForeign in the
+											 // KB Sharing Mgr's OnSelchangeUsersList()
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+
+		if (m_bDoingChangeFullname)
+		{
+			tempStr = m_strChangeFullname; // RHS set from Handler for 'Change Fullname' button
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr;
+		}
+		else
+		{
+			// if the bool is false, use m_strFullname as a fallback - which
+			// hopefully prevents a crash, but just leaves the fullname unchanged
+			tempStr = m_strFullname;
+			tempStr = DoEscapeSingleQuote(tempStr);
+			commandLine += tempStr;
+		}
+		// That finishes the commandLine to be put into the input .dat file.
+
+		// Now in the caller the file has been moved to the parent folder 
+		// of the dist folder; so use wxTextFile to make the changes in
+		// the file copy within the parent folder: "change_fullname.dat" 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: change_fullname.dat now just has the relevant data 
+				// fields for the subsequent do_change_fullname.exe to use 
+				// as argument in wxExecute()
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
 		break;
 	}
 	case blanksEnd:
@@ -21632,8 +21777,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	const int changed_since_timed = 8;
 	const int upload_kb_lines = 9;
 	const int change_permission = 10;
+	const int change_fullname = 11;
 	// add more here, as our solution matures
-	const int blanksEnd = 11; // this one changes as we add more above
+	const int blanksEnd = 12; // this one changes as we add more above
 	*/
 	switch (funcNumber)
 	{
@@ -21734,6 +21880,15 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	{
 		// This is a KB Sharing Manager case, so no report wanted
 		bReportResult = FALSE;
+		// Escaping single quotes as already been done on the selected username
+		break;
+	}
+	case change_fullname: // = 11
+	{
+		// This is a KB Sharing Manager case, so no report wanted
+		bReportResult = FALSE;
+		// Escaping single quotes as already been done on the selected username
+		// and on the selected fullname
 		break;
 	}
 	case blanksEnd:
@@ -21859,6 +22014,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						dataStr = f.GetLine(1);
 						dataStr = DoUnescapeSingleQuote(dataStr); // in case 
 											// there was an escaped ' in dataStr
+						if (m_bDoingChangeFullname)
+						{
+							// Set m_strChangeFullname to what Line(1) has
+							m_strChangeFullname = dataStr; // for LoadDataForPage(0) to grab
+						}
+
 						bMoreThanOneLine = TRUE;
 						f.Close();
 					}
@@ -22111,8 +22272,27 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case change_permission: // = 10
 					{
-
-// TODO  clone lookup_user case's code and call it change_permission here
+						// no post-wxExecute() things to do here
+						break;
+					}
+					case change_fullname: // = 11
+					{
+						// We must check if app's m_strChangeFullname_User2, which
+						// was the username for which the associated fullname value
+						// has now been changed, is the same username as app's
+						// m_strUserID - the latter is the username for the currently
+						// open kbserver sharing project. If it is, then the change
+						// of the fullname for this m_strUserID has to reset the
+						// app's m_strFullname (ie. it's stored old fullname value)
+						// to m_strChangeFullname, to keep things in sync. We don't
+						// need to do this if the user names don't match, because that
+						// means that the current project's fullname is not being
+						// changed, but rather only the fullname for one of the other
+						// users listed in the KB Sharing Mgr's user list.
+						if (m_strChangeFullname_User2 == m_strUserID)
+						{
+							m_strFullname = m_strChangeFullname; // resets curr project's fullname
+						}
 						break;
 					}
 					} // end of switch
@@ -22214,7 +22394,7 @@ void CAdapt_ItApp::UpdateUsername2(wxString str)
 {
 	if (m_Username2 != str)
 	{
-		m_Username2 = str;
+		m_Username2 = str; // for Manager
 	}
 }
 void CAdapt_ItApp::UpdateCurAuthPassword(wxString str)
@@ -22713,7 +22893,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // then at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
             // anonymous value and simplifies some later tests.
             // NOTE: NOOWNER is #defined as _T("****")
-    m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in KBserver
+    m_strFullname.Empty(); // GIT uses it, also used as a human-readable informal name in KBserver
                            // and is stored in the basic config file as is m_strUserID
 
     m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
@@ -36845,16 +37025,12 @@ bool CAdapt_ItApp::PrepareForListUsers(wxString& ipAddr, wxString& username, wxS
 /// vertically editing).
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
-/// The authentication dialog (KBSharingAuthenticationDlg) produces a 'ForManager' KbServer
+/// The authentication dialog (Authenticate2Dlg) produces a 'm_bForeignOption TRUE' KbServer
 /// instance which the KB Sharing Manager GUI uses; it is produced on the heap, and deleted
-/// by the destructor of KBSharingAuthenticationDlg when this handler function returns.
-/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with three tabs- one for
-/// adding, editing or removing users from the mysql user table; the second for adding,
-/// editing or removing shared knowledge bases from the kbs table - and since a kb
-/// definition owns entries in the entry table, removing a kb requires a prior
-/// removal of all owned kb entries from the database before the definition (the
-/// src/nonsrc code pair) can be removed; and the third is to create custom language codes
-/// compliant with the protocols in the RFC5646 standard.
+/// in OnOK() and OnCancel()'s end when the Manager instance returns.
+/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with one tabs- it's for
+/// adding users, or editing properties of users from the mysql user table. It does not
+/// permit the user to delete a user from the user table - that's too dangerous to allow.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -36863,7 +37039,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
     wxASSERT(pApp != NULL);
     LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
     m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked
-    // pApp->m_bUserLoggedIn = FALSE; // BEW 9Nov20 don't clear this one, we let 3rd party in
+	m_bKBSharingMgrEntered = FALSE; // initialize, it goes TRUE on successful entry
+									// provided login user has useradmin = 1 permission
 #if defined (ERR_DUPLICATE)
     wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: Line %d in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), __LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 #endif
@@ -36875,46 +37052,10 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
     // ipAddress he knows (which could be on the LAN, that posibility is not precluded)
     bool bLoginPersonCancelled = FALSE; // initialize
 
-	/* deprecate use of this kb_ask_how_get_url_func dialog
-	{
-		KbSvrHowGetUrl modalHowGetUrl(pApp->GetMainFrame());
-		modalHowGetUrl.Center();
-		int dlgReturnCode;
-		dlgReturnCode = modalHowGetUrl.ShowModal();
-
-		if (dlgReturnCode == wxID_OK)
-		{
-			// m_bServiceDiscoveryWanted will have been set or cleared in
-			// the OnOK() handler of the above dialog
-			wxASSERT(modalHowGetUrl.m_bUserClickedCancel == FALSE);
-		}
-		else
-		{
-			// User cancelled. This clobbers the Manager access attempt setup
-			wxASSERT(modalHowGetUrl.m_bUserClickedCancel == TRUE);
-		}
-		bLoginPersonCancelled = modalHowGetUrl.m_bUserClickedCancel;
-		// The app's value for m_bServiceDiscoveryWanted will have been set within
-		// the OnOK() handler of the above dialog
-	} // scope ends, we don't want the dlg showing any longer
-	*/
-    // If the user didn't cancel, then call Authenticate....()
+    // If the user didn't cancel, then call Authenticate2Dlg....()
     if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
     {
-        // Save these user-related values, and restore them after the Manager is
-        // closed down, so that anything the login person does does not permanently
-        // affect any of the user's KB sharing settings which may have been in place
-        // while the login person had control of this computer for using the Manager
-        //CMainFrame* pFrame = GetMainFrame();
-
-		/* BEW 11Nov20 don't need these , same in the destructor
-        m_saveOldIpAddrStr = m_strKbServerIpAddr;
-        m_saveOldUsernameStr = m_strUserID;
-        m_savePassword = pFrame->GetKBSvrPassword();
-        m_saveSharingAdaptationsFlag = m_bIsKBServerProject;
-        m_saveSharingGlossesFlag = m_bIsGlossingKBServerProject;
-		*/
-        // Service discovery, if wanted, goes here
+        // Service discovery, if necessary, goes here
         wxString currentIpAddr = m_strKbServerIpAddr; // m_bServiceDiscoveryWanted == FALSE will use this
 		if (currentIpAddr.IsEmpty())
 		{
@@ -36924,8 +37065,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         wxString chosenHostname = wxEmptyString;
         if (m_bServiceDiscoveryWanted)
         {
+			// Gotta have a server instance running, find it/them & select one
             enum ServDiscDetail returnedValue = SD_NoResultsYet;
-
+			// Do the mariaDB/kbserver(s) discovery
             bool bOK = ConnectUsingDiscoveryResults(currentIpAddr, chosenIpAddr, chosenHostname, returnedValue);
             if (bOK)
             {
@@ -36956,81 +37098,39 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
                     );
                 // The login person should have seen an error message, so just
                 // restore the user settings and return without opening the Manager
-				/* BEW 11Nov20 deprecate saving these; irrelevant to the Manager
-                m_strKbServerIpAddr = m_saveOldIpAddrStr;
-                m_strKbServerHostname = m_saveOldHostnameStr;
-                m_strUserID = m_saveOldUsernameStr;
-                pFrame->SetKBSvrPassword(m_savePassword);
-                m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-                m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
-				*/
 				wxBell();
                 return;
             }
         }
-
         // The administrator or login person must authenticate to whichever KBserver he
         // wants to adjust or view. Note: the next line sets up an instance of
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
         // machine's owner, or either of the glossing or adapting local KBs, or which project. 
-		// It only uses
-        // the KbServer class for the services it provides for the KB Sharing Manager gui
+		// It only uses the KbServer class for the services it provides for the 
+		// KB Sharing Manager gui
         // The instance is pointed at by an app member: m_pKbServer_ForManager, which is
         // created on demand in the heap, used, and then deleted, and its pointer returned
         // to being NULL. We must always dispose and set the ptr to NULL after every use,
         // in case the user or administrator changes which project is active (which changes
-        // the source and target and maybe gloss language codes, usually - but not necessarily
-        // so, and the Manager must be opened in the project which, for any Manager business
-        // that deals with a remotely stored knowledge base, the codes for that remote kb are
-        // identical for the local CKB instances. (The Manager checks internally for
-        // violations and takes appropriate action, with warning messages)
+        // the source and target and maybe gloss language names, and the Manager must be 
+		// opened in the project which, for any Manager business that deals with adding
+		// users or altering the propertyies of one or more of them in the list.
 
 		// BEW 11Nov20, change code here to use Authenticate2Dlg()
-		// m_bUserAuthenticating set FALSE above
-/*
-		// BEW 12Nov20 deprecated having this Authenticate2Dlg call here in the handler,
-		// better to have it at the instantiatiation of the KB Sharing Manager - so did so
+		// m_bUserAuthenticating set FALSE above - when the Manager is used, m_bUseForeignOption
+		// is the app boolean which is TRUE, indicating Manager is in operation. (Also
+		// app boolean m_bKBSharingMgrEntered is TRUE while it is running)
 
-        Authenticate2Dlg dlg(pFrame, m_bUserAuthenticating);
-        dlg.Center();
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            if (dlg.m_bError)
-            {
-                wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, ipAddress or password; or maybe no KBserver running, or a network error");
-                wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
-                gpApp->LogUserAction(msg);
-                return;
-            }
-            gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
-
-			// TODO --- never got to doing more here before deprecating this block
-        }
-        else
-        {
-            gpApp->LogUserAction(_T("Cancelled authenticating for KB Sharing Manager dlg"));
-            return;
-        }
-*/
 		// put on the heap, it's to be a modeless dialog
         m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pFrame); 
-
-        // BEW 14Sept12. Push this object on to the event queue?
-        // Oops, nope! Creates an infinite loop of focus event handling. So don't do the
-        // following: pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg);
 
         // make the font show only 12 point size in the dialog
         CopyFontBaseProperties(m_pSourceFont, m_pDlgSrcFont);
         m_pDlgSrcFont->SetPointSize(12);
 
-        // show the property sheet ( we need to access it from two or three places, so make non-modal)
-        // We want it to hang around in case KbServer.cpp's Synchronour_DoEntireKbDeletion() can, if
-		// it succeeds in emptying all the records and removing the KB definition, force the update
-		// of the list of available KBs if the Manager is still open. Getting to that point may take
-		// minutes, hours, or days as the records depopulation is one-by-one, so the Mgr needs to be
-		// able to hang around.
+        // show the property sheet 
 		pApp->m_pKBSharingMgrTabbedDlg->Show();
-		// restore settings when disposed of, do the restoration in the destructor
+		// restore settings when disposed of, in OnOK() and OnCancel()
 
     } // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
       // There is no need to give a message saying there was a cancellation, as a
@@ -38881,11 +38981,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     pf->AddLine(data);
 
     data.Empty();
-    if (m_strUsername == NOOWNER)
+    if (m_strFullname == NOOWNER)
     {
-        m_strUsername.Empty();
+        m_strFullname.Empty();
     }
-    data << szInformalUsername << tab << m_strUsername;
+    data << szInformalUsername << tab << m_strFullname;
     pf->AddLine(data);
 
 #if defined (_KBSERVER)
@@ -40131,8 +40231,8 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
         }
         else if (name == szInformalUsername)
         {
-            m_strUsername = strValue;
-            if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
+            m_strFullname = strValue;
+            if (m_strFullname.IsEmpty())  m_strFullname = NOOWNER;  // ditto
         }
     }
 
@@ -42234,9 +42334,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
     // the SHIFT key to reset the basic settings, these usernames are removed. But,
     // since we want those usernames to continue to be used, a backup copy of them
     // is stored in Adapt_It_WX.ini.
-    // Read the values related to m_strUserID and m_strUsername from the Adapt_It_WX.ini
+    // Read the values related to m_strUserID and m_strFullname from the Adapt_It_WX.ini
     // file, and if they differ from what is stored in the App's m_strUserID and
-    // m_strUsername members (due to SHIFT down restart), restore the value stored in
+    // m_strFullname members (due to SHIFT down restart), restore the value stored in
     // Adapt_It_WX.ini.
     oldPath = m_pConfig->GetPath();
     m_pConfig->SetPath(_T("/Usernames"));
@@ -42251,9 +42351,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
             m_strUserID = tempUniqueUsername;
         }
         bReadOK = m_pConfig->Read(_T("informal_user_name"), &tempInformalUsername);
-        if (bReadOK && tempInformalUsername != m_strUsername)
+        if (bReadOK && tempInformalUsername != m_strFullname)
         {
-            m_strUsername = tempInformalUsername;
+            m_strFullname = tempInformalUsername;
         }
     } // end wxLogNull block
       // restore the oldPath back to "/Recent_File_List"
@@ -60520,6 +60620,78 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath,
 #endif
 	}
 }
+
+void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("change_fullname.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,password,selected_username,selected_fullname,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: change_fullname.dat");
+			f.AddLine(line);
+			line = _T("# AI executable's folder, output file: change_fullname_return_results.dat");
+			f.AddLine(line);
+			line = _T("# (A) Login uses first 3 fields, and ignores selected_username & selected_fullname");
+			f.AddLine(line);
+			line = _T("# (B) If login succeeds, search for selected_username in the user table, and when");
+			f.AddLine(line);
+			line = _T("# it is found, update user table to change the associated fullname to selected_fullname.");
+			f.AddLine(line);
+			line = _T("# Purpose for this .dat input file:");
+			f.AddLine(line);
+			line = _T(" Get the current useradmin value of selected_username, then update the");
+			f.AddLine(line);
+			line = _T("# record in user table to replace fullname value with selected_fullname.");
+			f.AddLine(line);
+			line = _T("# If selected_username is not in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should include a message like: \"not in user table\" and lacking the string \"success\".");
+			f.AddLine(line);
+			line = _T("# If selected_username is indeed in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should contain just two lines with \"success\" as the first word in the first line,");
+			f.AddLine(line);
+			line = _T("# and the value of selected_fullname in the second line");
+			f.AddLine(line);
+			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,glenys@unit2,Glenys Waters");
+			f.AddLine(line);
+			line = _T("and Output .dat file, change_fullname_return_results.dat, 2 lines, contents as above.");
+			f.AddLine(line);
+			line = _T("ipAddress,username,password,selected_username,selected_fullname");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
+
 
 // BEW 6Nov20 This function is needed for the following reason.
 // The Preferences... > Backups & Misc page has 4 text boxes,

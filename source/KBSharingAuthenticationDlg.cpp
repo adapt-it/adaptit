@@ -71,6 +71,7 @@ END_EVENT_TABLE()
 // kb_sharing_stateless_setup_func(this, TRUE, TRUE); so that they can be passed on to
 // my UpdatebcurUseradmin() & similar function calls in AI.cpp
 
+
 KBSharingAuthenticationDlg::KBSharingAuthenticationDlg(wxWindow* parent, bool bUserAuthenticating) // dialog constructor
 	: AIModalDialog(parent, -1, _("Authenticate"),
 	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -88,6 +89,11 @@ KBSharingAuthenticationDlg::KBSharingAuthenticationDlg(wxWindow* parent, bool bU
     // function below.
 	bUsrAuthenticate = bUserAuthenticating;
 	m_pApp = &wxGetApp();
+
+	// This dialog has no user2 field, it's called from OnIdle()
+	// and m_bUseForeignOption will be FALSE
+	wxASSERT(m_pApp->m_bUseForeignOption == FALSE); // check it's so
+
 	if (bUsrAuthenticate)
 	{ 
 		m_bForManager = FALSE;
@@ -96,6 +102,7 @@ KBSharingAuthenticationDlg::KBSharingAuthenticationDlg(wxWindow* parent, bool bU
 		m_strNormalPassword.Empty();
 
 	}
+	/* Since m_bUseForeignOption is false within this dialog, comment out code for TRUE option
 	else
 	{
 		m_bForManager = TRUE;
@@ -103,6 +110,7 @@ KBSharingAuthenticationDlg::KBSharingAuthenticationDlg(wxWindow* parent, bool bU
 		m_strForManagerIpAddr.Empty();
 		m_strForManagerPassword.Empty();
 	}
+	*/
 }
 
 KBSharingAuthenticationDlg::~KBSharingAuthenticationDlg() // destructor
@@ -129,6 +137,7 @@ void KBSharingAuthenticationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_saveNormalPassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty, 
 														// & is reserved as the 'normal' pwd
 	}
+	/*
 	else
 	{
 		m_saveOldUsernameStr.Empty();
@@ -141,11 +150,7 @@ void KBSharingAuthenticationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 														  // (value could be empty) Note, app has a member identically named
 		m_savePassword = m_pApp->m_strForManagerPassword; // might be empty
 	}
-
-	// This "Authenticate" dialog is used for both normal logins, but also when an
-	// administrator grabs the machine to do some setup using the KB Sharing Manager. In
-	// the latter circumstance, we don't want the normal user's setup parameters to be
-	// clobbered, so we store the Manager-related settings elsewhere
+	*/
 
 	// BEW 27Jul20, 'STATELESS' in the following label names come from the wxDesigner
 	// resources, and I won't change those  to 'FORMANAGER' names, since user never sees these
@@ -171,13 +176,14 @@ void KBSharingAuthenticationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			m_pUsernameMsgLabel->SetLabel(otherLabel);
 		}
 	} // end of TRUE block for test: if (m_bUserIsAuthenticating)
+	/*
 	else
 	{
 		// Flag is FALSE, user is probably an administrator who is setting up on behalf of
 		// this computer's owner; so don't claim the username belongs to the project owner
 		m_pUsernameMsgLabel->SetLabel(managerLabel);
 	} // end of else block for test: if (m_bUserIsAuthenticating)
-
+	*/
     // BEW added 14Jul13, When m_bForManager is TRUE, we want anybody (e.g. the user's
 	// administrator or project supervisor) to be able to grab his machine, open the
 	// Knowledge Base Sharing Manager GUI and do things like add users, create kb
@@ -198,12 +204,14 @@ void KBSharingAuthenticationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pUsernameCtrl->SetSelection(0L, -1L); // select it all, as it may be
 			// incorrect so it's a good idea to make it instantly removable
 	}
+	/*
 	else
 	{
 		m_pUsernameCtrl->ChangeValue(m_pApp->m_strForManagerUsername);
 		m_pUsernameCtrl->SetSelection(0L,-1L); // select it all, as it may be
 			// incorrect so it's a good idea to make it instantly removable
 	}
+	*/
 }
 
 void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
@@ -230,11 +238,13 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 		m_strNormalIpAddr = strIpAddr;
 		m_pApp->UpdateNormalIpAddr(strIpAddr); // Leon's .exe will use this
 	}
+	/*
 	else
 	{
 		m_strForManagerIpAddr = strIpAddr;
 		m_pApp->UpdateIpAddr(strIpAddr); // Leon's .exe will use this
 	}
+	*/
 	// Now the username... - from the dialog's box
 	wxString strUsername;
 	strUsername = m_pUsernameCtrl->GetValue();
@@ -258,6 +268,7 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 			m_strNormalUsername.c_str());
 #endif
 	}
+	/*
 	else
 	{
 		m_strForManagerUsername = strUsername; // LHS is local
@@ -267,9 +278,16 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 			m_strForManagerUsername.c_str());
 #endif
 	}
+	*/
 	// Get the server password that was typed. If the password box is left empty, 
 	// then authentication fails
 	wxString pwd = m_pPasswordCtrl->GetValue();
+	// Provide box contents to 'normal' storage m_curNormalPassword, and to
+	// m_curAuthPassword (in case the user wants to enter the KB Sharing Manager
+	// with a valid password from the credentials typed into this Authentication
+	// dialog. (But the user may have left the box empty - handle that below)
+	m_pApp->m_curNormalPassword = pwd;
+	m_pApp->m_curAuthPassword = pwd; /// in case user1 wants to go into KB Sharing Mgr
 	if (pwd.IsEmpty())
 	{
 		// User may have left it empty, so pwd would be an empty string. Empty string
@@ -278,6 +296,7 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 		// a winner. Show it obfuscated a bit. Eg, instead of "Clouds2093", show it
 		// as "Cl******93" - it may prompt user recollection, or explain why it failed
 		wxString testPwd = wxEmptyString;
+		/*
 		if (bUsrAuthenticate == FALSE)
 		{
 			testPwd = m_pApp->m_strForeignPassword;
@@ -293,15 +312,15 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 				pwd = testPwd;
 			}
 		}
-		else // ie. m_bUserAuthenticating was passed in as TRUE
+		*/
+		if (bUsrAuthenticate == TRUE) // was an else block
 		{
-			testPwd = m_saveNormalPassword; // local one set from 
-								// calling frame's GetKBSvrPassword()
+			testPwd = m_pApp->m_curNormalPassword; // try this location 
 			if (testPwd.IsEmpty())
 			{
-				testPwd = m_pApp->m_curNormalPassword; // try this location
+				testPwd = m_pApp->GetMainFrame()->GetKBSvrPassword();
 			}
-		} // end of else block for test: if (bUsrAutenticate == FALSE)
+		} // end of TRUE block for test: if (bUsrAuthenticate == TRUE)
 		if (!testPwd.IsEmpty())
 		{
 			pwd = testPwd; // we've got something to try
@@ -369,6 +388,7 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 			m_strNormalPassword = pwd; // LHS is the local variable
 			m_pApp->UpdateCurNormalPassword(pwd); // Leon's .exe will use this
 		}
+		/*
 		else
 		{
 			m_strForManagerPassword = pwd; // LHS is the local variable
@@ -376,6 +396,7 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 			m_pApp->m_strForeignPassword = pwd; // another storage location
 													// to save in as well
 		}
+		*/
 	}
 	myevent.Skip(); // the dialog will be exited now
 }

@@ -202,7 +202,7 @@ public:
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	//int	 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bUseradmin); // Keep - TODO
+	//int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bUseradmin); BEW 9Dec20 removed
 	//int	 CreateKb(wxString ipAddr, wxString username, wxString password, 
 	//			wxString srcLangName, wxString nonsrcLangName, bool bKbTypeIsScrTgt); now unneeded
 	// BEW 10Oct20, take a results file (multiline, or just 2 lines - "success" and one entry's row)
@@ -230,12 +230,12 @@ public:
 	int		 LookupUser(wxString ipAddr, wxString username, wxString password, wxString whichusername);
 	//int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	//int		 DeleteSingleKbEntry(int entryID); BEW 2Nov20 deprecated - we don't use JM's slow way
-	int		 RemoveUser(int userID);
+	//int		 RemoveUser(int userID); // BEW 10Dec20 deprecated, we don't all Mgr to remove users now
 	//int		 RemoveKb(int kbID);
 	int		 RemoveCustomLanguage(wxString langID);
-	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
-						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
-						KbServerUser* pEditedUserStruct, wxString password); // Do we need this as is or modified?
+	//int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
+	//					bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin,
+	//					KbServerUser* pEditedUserStruct, wxString password); // BEW 10Dec20 deprecated
 	void	 UploadToKbServer();
 	//int	 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode); 2Nov20 deprecated
 	// BEW 01Oct20, a function for replacing a subfield in a comma-separated set of params

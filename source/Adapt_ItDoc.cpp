@@ -1817,7 +1817,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
     gpApp->LogUserAction (_T("OnTakeOwnership() called - m_owner = ") + gpApp->m_owner + _T(" m_strUserID = ") + gpApp->m_strUserID );
 
-    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strUsername.IsEmpty() )   // this can happen if AI is launched with shift down
+    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strFullname.IsEmpty() )   // this can happen if AI is launched with shift down
     {
         wxCommandEvent	dummy;
 

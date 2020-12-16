@@ -72,16 +72,27 @@ Authenticate2Dlg::Authenticate2Dlg(wxWindow* parent, bool bUserAuthenticating) /
 	// whm 5Mar2019 Note: The user1_user2_lookup_func() dialog now uses the
 	// wxStdDialogButtonSizer, and so it need not call the ReverseOkCancelButtonsForMac()
 	// function below.
-	bUsrAuthenticate = bUserAuthenticating;
+	bool bUsrAuthenticate = bUserAuthenticating;
 	m_pApp = &wxGetApp();
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	// initialise the relevant local members, none of these are app ones
 	if (bUsrAuthenticate)
 	{
+		// 4-field dlg was called outside of a KB Sharing Mgr open request
 		m_bForManager = FALSE;
-		m_strNormalUsername.Empty();
-		m_strNormalIpAddr.Empty();
-		m_strNormalPassword.Empty();
-		m_strNormalUsername2.Empty();
-
+		m_strNormalUsername.Empty(); // to be set below
+		m_strNormalIpAddr = m_pApp->m_chosenIpAddr; // known from config file or discovery
+		m_strNormalPassword = pFrame->GetKBSvrPassword(); // could be empty still
+		m_strNormalUsername2.Empty(); // to be set below
+	}
+	else
+	{
+		// 4-field dialog was called for authenticating to enter the Manager
+		m_bForManager = TRUE;
+		m_strForManagerUsername.Empty(); // unknown yet
+		m_strForManagerIpAddr = m_pApp->m_chosenIpAddr; // has to be this
+		m_strForManagerPassword = pFrame->GetKBSvrPassword(); // a first guess, maybe empty
+		m_strForManagerUsername2.Empty(); // unknown yet
 	}
 //#if defined (_DEBUG)
 //	int halt_here = 1;
@@ -104,10 +115,9 @@ void Authenticate2Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// also possible, for example, for the first session for running a KBserver, that no 
 	// ipAddress has yet been stored in the config file.
 	// Don't show the top message box if the user is wanting service discovery done, or if
-	// not wanting service discovery but there is no ipAddress yet to show in the box
-	if (bUsrAuthenticate) // remember bUsrAuthenticate is whichever of m_bUserAuthenticating
-						  // or m_bUseForeignOption is TRUE, the latter is TRUE when
-						  // seeking access to the KB Sharing Manager
+	// not wanting service discovery but there is no ipAddress yet to show in the boxx
+	/* BEW 10Dec20 deprecated
+	if (bUsrAuthenticate) 
 	{
 		// these saved values may be empty
 		m_saveOldNormalIpAddrStr = m_strNormalIpAddr;
@@ -126,9 +136,9 @@ void Authenticate2Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			m_pApp->UpdateCurAuthPassword(m_pApp->GetMainFrame()->GetKBSvrPassword()); // might be empty
 		}
 	}
-
+	*/
 	// BEW 11Nov20, 'STATELESS' in the following label names come from the wxDesigner
-	// resources  -- the 2-user Authenticate uses these too
+	// resources  -- the 2-user Authenticate2Dlg uses these too
 	m_pIpAddrCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SERVER_URL_STATELESS);
 	m_pUsernameCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS); 
 	m_pUsername2Ctrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USER2);
@@ -139,20 +149,19 @@ void Authenticate2Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// Set an appropriate label line in the dialog
 	wxString otherLabel = _("This is your current unique username");
 	wxString managerLabel = _("In the lower box, type a username to be checked for in the list of users");
-	if (!m_pApp->m_bUseForeignOption)
+	if (m_pApp->m_bUseForeignOption)
 	{
-		m_pUsernameMsgLabel->SetLabel(otherLabel);	
+		m_pUsernameMsgLabel->SetLabel(managerLabel);	
 	}
 	else
 	{
-		m_pUsernameMsgLabel->SetLabel(managerLabel);
+		m_pUsernameMsgLabel->SetLabel(otherLabel);
 	}
 
 	  // BEW added 14Jul13, When m_bForManager is TRUE, we want anybody (e.g. the user's
 	  // administrator or project supervisor) to be able to grab his machine, open the
 	  // Knowledge Base Sharing Manager GUI and do things like add users, edit passwords,
-	  // etc, without having to impersonate the settings of the current project's user;
-	  // and without any project yet having become a KB Sharing one
+	  // etc, without having to impersonate the settings of the current project's user
 
 	  // If the app members have values for the ipAddress and username already - from having
 	  // been just set earlier, or from the project config file, then reinstate them so that
@@ -160,25 +169,21 @@ void Authenticate2Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	  // When running for authentication to the KB Sharing Manager, try initialize
 	  // some of these boxes -- but they can start off empty, provided valid contents
 	  // can be typed in.
-	m_pIpAddrCtrl->ChangeValue(m_pApp->m_strKbServerIpAddr); 
+	m_pIpAddrCtrl->ChangeValue(m_pApp->m_strKbServerIpAddr); // applies to both
 
 	if (!m_pApp->m_bUseForeignOption)
 	{
-		// When being used for authentication purposes
+		// When being used for m_bUserAuthenticating = TRUE, use these guesses
 		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID); // for user1
-		m_pUsernameCtrl->SetSelection(0L, -1L); // select it all, as it may be
-			// incorrect so it's a good idea to make it instantly removable
-		m_pUsername2Ctrl->ChangeValue(m_pApp->m_strUserID); // same as user1
-		m_pUsername2Ctrl->SetSelection(0L, -1L); // select it all
-		// We help the user out by pre-filling both username text boxes.
-		// He/she only then needs to supply the right password
+		m_pUsername2Ctrl->ChangeValue(m_pApp->m_strUserID); // user2 set same as user1
+		// We help the user out by pre-filling both username text boxes with defaults.
+		// He/she then can change any if they are wrong
 	}
 	else
 	{
-		// Authenticating for access to the KB Sharing Manager
+		// Authenticating for access to the KB Sharing Manager, m_bUseForeignOption
+		// is TRUE, use these guesses
 		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID); // for user1
-		m_pUsernameCtrl->SetSelection(0L, -1L); // select it all, as it may be
-			// incorrect so it's a good idea to make it instantly removable
 		m_pUsername2Ctrl->ChangeValue(wxEmptyString); // for user2 - needs user
 			// to type it in
 	}
@@ -192,10 +197,10 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 	strIpAddr = m_pIpAddrCtrl->GetValue();
 	if (strIpAddr.IsEmpty())
 	{
-		wxString msg = _("The IpAddress text box at the top is empty, please type the ipAddress of the server if you know it. Otherwise, Cancel and click Discover Kbservers menu item.");
-		wxString title = _("Type IpAddress");
+		wxString msg = _("The IpAddress text box is empty. For example, mine is: 192.168.1.11 Type your ipAddress of the kbserver if you know it. Otherwise, Cancel and click the Discover Kbservers menu item.");
+		wxString title = _("Warning: no IpAddress");
 		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-		this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
+		this->Raise(); // make sure the Authenticate2Dlg dialog will be at the top of the z-order
 		return; // to the dialog window to have another try
 	}
 	// We now have something in the ipAddress box -- it might not be a valid ipAddress,
@@ -203,13 +208,12 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 	// m_pApp->m_pKbServer_ForManager, and the latter we destroy immediately on exit
 	// from this Authentication dialog - so no use trying to store values in any of it's
 	// members. Store its ipAddress locally
-	//if (bUsrAuthenticate)
-	// Hmm, I may be over-engineering the use of this distinction
 	if (!m_pApp->m_bUseForeignOption)
 	{
 		// wanting normal adapting work
 		m_strNormalIpAddr = strIpAddr; // LHS is local
 		m_pApp->UpdateNormalIpAddr(strIpAddr); // Leon's .exe will use this
+				// from AI.h public var, m_strKbServerIpAddr
 	}
 	else
 	{
@@ -217,7 +221,7 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 		m_strForManagerIpAddr = strIpAddr; // LHS is local
 		m_pApp->UpdateIpAddr(strIpAddr); // Leon's .exe will use this, m_curIpAddr
 	}
-	// Now the username... - from the dialog's top username box
+	// Now the username1... - from the dialog's top username box
 	wxString strUsername;
 	strUsername = m_pUsernameCtrl->GetValue();
 	if (strUsername.IsEmpty())
@@ -234,16 +238,18 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 	if (bUsrAuthenticate)
 	{
 		m_strNormalUsername = strUsername;
-		m_pApp->UpdateCurNormalUsername(strUsername); // Leon's .exe will use this
+		m_pApp->UpdateCurNormalUsername(strUsername); // Leon's .exe will use this, m_curNormalUsername
 #if defined(_DEBUG)
 		wxLogDebug(_T("Authenticate2 Dlg username1: %s , in local: m_strNormalUsername"),
 			m_strNormalUsername.c_str());
 #endif
-		// check for a 'look for user2 name', store it for external access
+
+		// Check for a 'user2 name', store it for external access; there's
+		// no Update..() function for this, just set app's m_curNormalUsername2
 		m_strNormalUsername2 = m_pUsername2Ctrl->GetValue();
 		if (!m_strNormalUsername2.IsEmpty())
 		{
-			m_pApp->UpdateUsername2(m_strNormalUsername2); // for app's m_curNormalUsername2 string
+			m_pApp->m_curNormalUsername2 = m_strNormalUsername2; // for app's m_curNormalUsername2 string
 
 #if defined(_DEBUG)
 			wxLogDebug(_T("Authenticate2 Dlg m_strNormalUsername2: %s , in app: m_curNormalUsername2"),
@@ -251,24 +257,7 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 #endif
 		}
 	} // end of TRUE block for test: if (bUsrAuthenticate)
-/*  BEW 13Nov20, don't need this block any more I think
-	else
-	{
-		m_strForManagerUsername = strUsername; // LHS is local
-		m_pApp->UpdateCurAuthUsername(strUsername); // Leon's .exe will use this, m_curAuthUsername
-#if defined(_DEBUG)
-		wxLogDebug(_T("Authenticate2 Dlg  username1: %s , in local: m_strForManagerUsername"),
-			m_strForManagerUsername.c_str());
-#endif
-		// Get the lower 'search for' username (user2)
-		m_strForManagerUsername2 = m_pUsername2Ctrl->GetValue();
-		m_pApp->UpdateUsername2(m_strForManagerUsername2); // overwrites m_Username2
-#if defined(_DEBUG)
-		wxLogDebug(_T("Authenticate2 Dlg m_strForManagerUsername2: %s , in app: m_Username2"),
-			m_strForManagerUsername2.c_str());
-#endif
-	} // end of else block for test: if (bUsrAuthenticate)
-*/
+
 	// Get the server password that was typed. If the password box is left empty, 
 	// then authentication fails. (The password goes with username1)
 	wxString pwd = m_pPasswordCtrl->GetValue();
@@ -282,9 +271,7 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 		wxString testPwd = wxEmptyString;
 		if (m_pApp->m_bUseForeignOption)
 		{
-			testPwd = m_pApp->m_strForeignPassword;
-			wxString anotherPwd = m_pApp->m_strForManagerPassword;   // which do I use here?
-			wxString stillAnotherPwd = m_pApp->m_curAuthPassword;
+			testPwd = m_pApp->m_curNormalPassword;
 
 			if (testPwd.IsEmpty())
 			{
@@ -372,9 +359,6 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 		if (bUsrAuthenticate)
 		{
 			m_strNormalPassword = pwd; // LHS is the local variable
-			// Must also set it on the frame, as setting up the KbServer class will
-			// want it from the stored pwd there
-			m_pApp->GetMainFrame()->SetKBSvrPassword(pwd); // legacy KbServer.cpp code wants this
 			if (!m_pApp->m_bUseForeignOption)
 			{
 				// normal adapting...
@@ -385,14 +369,7 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 				// KB Sharing Mgr access
 				m_strForManagerPassword = pwd; // LHS is the local variable
 				m_pApp->UpdateCurAuthPassword(pwd); // Leon's .exe will use this, m_curAuthPassword
-				m_pApp->m_strForeignPassword = pwd; // another storage location
-													// to save in as well
 			}
-
-			// Also store it in m_possibleNormalPassword, in case ConfigureMovedDatFile() changes
-			// m_bUserAuthenticating to TRUE, if so, the this stored value should be re-stored
-			// in the frame member, so subsequent code can pick it up as needed for 'Normal' actions
-			m_pApp->m_possibleNormalPassword = pwd;
 		}
 	}
 	myevent.Skip(); // the dialog will be exited now

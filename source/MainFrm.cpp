@@ -2614,7 +2614,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
-    // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
+    // BEW added 28May13, check the m_strUserID and m_strFullname strings are setup up,
     // if not, open the dialog to get them set up -- the dialog cannot be closed except
     // by providing non-empty strings for the two text controls in it. Setting the
     // strings once from any project, sets them for all projects forever unless the
@@ -2641,7 +2641,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	}
 	else
 	{
-        // Valid m_strUserID and m_strUsername are in place now, so go ahead with next step
+        // Valid m_strUserID and m_strFullname are in place now, so go ahead with next step
         // which is to ask for setup, or removal, of this current project being one for KB
         // sharing - and find out which KBs are to be shared. We need to get values for
         // m_bIsKBServerProject and m_bIsGlossingKBServerProject so we know which of
@@ -2696,13 +2696,7 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Enable if both KBs of the project are ready for work
-	event.Enable(gpApp->m_bAdaptationsKBserverReady && gpApp->m_bGlossesKBserverReady);
-
-	// Enable if just one is ready for work - adaptations one
-	event.Enable(gpApp->m_bAdaptationsKBserverReady);
-
-	// Enable if just one is ready for work - glossing one
-	event.Enable(gpApp->m_bGlossesKBserverReady);
+	event.Enable(gpApp->m_bAdaptationsKBserverReady || gpApp->m_bGlossesKBserverReady);
 }
 
 #endif
@@ -2908,11 +2902,11 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 	else
 	{
 		msg = _("You are adding yourself ( %s ) to the kbserver's user table.\nYour Username is copied from the Edit menu's Choose Username... dialog.\nYour Informal Username ( %s ), copied from the same place, will also be included.\nChoose for yourself a password, and type it below.\nipAddress and hostname are: %s  &  %s\nYou must type a password - and remember it for later use. Write it down.");
-		msg = msg.Format(msg, gpApp->m_strUserID.c_str(), gpApp->m_strUsername.c_str(), ipAddr.c_str(), hostname.c_str());
+		msg = msg.Format(msg, gpApp->m_strUserID.c_str(), gpApp->m_strFullname.c_str(), ipAddr.c_str(), hostname.c_str());
 		// The following are known at this point, so save them in the 'normal' vars
 		gpApp->UpdateNormalIpAddr(ipAddr);
 		gpApp->UpdateCurNormalUsername(gpApp->m_strUserID);
-		gpApp->UpdateCurNormalFullname(gpApp->m_strUsername);
+		gpApp->UpdateCurNormalFullname(gpApp->m_strFullname);
 	}
 	wxString caption = _("Type a suitable password");
 	wxString default_value = _T("");
@@ -2965,9 +2959,7 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 		if (gpApp->m_bUseForeignOption)
 		{
 			// store the password in app's string, m_strForeignPassword
-			gpApp->m_strForeignPassword = password;
-			// and in the associated updatable string vars
-			gpApp->UpdateCurAuthPassword(password);
+			gpApp->m_curAuthPassword = password;
 		}
 		else
 		{
@@ -4316,7 +4308,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
                 // whm 17May2020 Note: The following call of SetFocusAndSetSelectionAtLanding() gets called
                 // early on AFTER the closure of a modal dialog, AND BEFORE a bogus ENTER key press is passed on
                 // to the CPhraseBox::OnKeyUp() handler.
-                wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
+//BEW 14Dec20 commented out wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
                 pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
         }
