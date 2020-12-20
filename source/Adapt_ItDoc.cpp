@@ -37562,6 +37562,8 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 	bool bGotBeginMkr = FALSE;
 	bool bFoundSpanStart = FALSE;
 
+	//calls many many times, do a caching algorith above, which only re-calls if
+	// the active pile ptr changes in value
 	bGotBeginMkr = FindProhibitiveBeginMarker(pSP->m_markers, m_markersBeginMkr);
 	if (bGotBeginMkr)
 	{
@@ -37573,7 +37575,7 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 #endif
 		return TRUE;
 	}
-	// Else, if the passed in pSrcPhrase does not start such a span, loop
+	// else, if the passed in pSrcPhrase does not start such a span, loop
 	// back to find the first pSP of a candidate prohibited span
 	else
 	{

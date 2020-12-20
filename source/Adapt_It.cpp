@@ -20685,7 +20685,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			if (!m_bWithinMgr)
 			{
 				wxASSERT(m_bUser1IsUser2 == TRUE);
-				m_bUseForeignOption = FALSE;
+				m_bUseForeignOption = TRUE;
 				commandLine = this->m_chosenIpAddr + comma;
 				UpdateNormalIpAddr(this->m_chosenIpAddr);
 				// The next 3 values are known - m_strUserID for both users
@@ -20743,6 +20743,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		} // end of TRUE block for test: if (m_bKBSharingMgrEntered)
 		else
 		{
+			// NOt in the KB Sharing Manager
 			if (m_bUser1IsUser2)
 			{
 				m_bUseForeignOption = FALSE;
@@ -22588,6 +22589,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block above executes      !!!!!!!!!!!!
 
+	m_entryCount_updateHandler = 0; // augment every time the OnUpdateButtonNullSource() func is called
+	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
+	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
+
+
 #if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
 	// by whatever is in the project config file, or defaulted to 5 there if out of
@@ -22595,6 +22601,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// case being near end caused a larger project settings value to be reset to 
 	// default, which is 5 
 	m_nKbServerIncrementalDownloadInterval = 5;
+	m_bConfigMovedDatFileError = FALSE;
 
 	m_bHasUseradminPermission = FALSE; // governs whether user can access the KB Sharing Manager
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
@@ -37005,7 +37012,7 @@ bool CAdapt_ItApp::PrepareForListUsers(wxString& ipAddr, wxString& username, wxS
 	wxString& checkUser, bool bForManager)
 {
 
-// TODO
+// TODO  -- BEW 18Dec20, no, deprecate & remove
 
 
 
@@ -37063,78 +37070,279 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		}
         wxString chosenIpAddr = wxEmptyString;
         wxString chosenHostname = wxEmptyString;
-        if (m_bServiceDiscoveryWanted)
-        {
+		if (m_bServiceDiscoveryWanted)
+		{
 			// Gotta have a server instance running, find it/them & select one
-            enum ServDiscDetail returnedValue = SD_NoResultsYet;
+			enum ServDiscDetail returnedValue = SD_NoResultsYet;
 			// Do the mariaDB/kbserver(s) discovery
-            bool bOK = ConnectUsingDiscoveryResults(currentIpAddr, chosenIpAddr, chosenHostname, returnedValue);
-            if (bOK)
-            {
-                // Got an ipAddress to connect to
-                wxASSERT((returnedValue != SD_NoKBserverFound) && (returnedValue != SD_ServiceDiscoveryError) && (
-                    returnedValue == SD_SameIpAddrAsInConfigFile ||
-                    returnedValue == SD_IpAddrDiffers_UserAcceptedIt ||
-                    returnedValue == SD_SingleIpAddr_UserAcceptedIt ||
-                    returnedValue == SD_MultipleIpAddr_UserChoseOne));
+			bool bOK = ConnectUsingDiscoveryResults(currentIpAddr, chosenIpAddr, chosenHostname, returnedValue);
+			if (bOK)
+			{
+				// Got an ipAddress to connect to
+				wxASSERT((returnedValue != SD_NoKBserverFound) && (returnedValue != SD_ServiceDiscoveryError) && (
+					returnedValue == SD_SameIpAddrAsInConfigFile ||
+					returnedValue == SD_IpAddrDiffers_UserAcceptedIt ||
+					returnedValue == SD_SingleIpAddr_UserAcceptedIt ||
+					returnedValue == SD_MultipleIpAddr_UserChoseOne));
 
-                // Make the chosen ipAddress accessible to authentication
-                m_strKbServerIpAddr = chosenIpAddr;
-                m_strKbServerHostname = chosenHostname;
+				// Make the chosen ipAddress accessible to authentication
+				m_strKbServerIpAddr = chosenIpAddr;
+				m_strKbServerHostname = chosenHostname;
 				UpdateIpAddr(chosenIpAddr); // ie. m_curIpAddr on app.h
-            }
-            else
-            {
-                // Something is wrong, or no KBserver has yet been set running, etc
-                wxASSERT(returnedValue == SD_NoResultsYet ||
-                    returnedValue == SD_NoKBserverFound ||
-                    returnedValue == SD_SingleIpAddr_UserCancelled ||
-                    returnedValue == SD_ServiceDiscoveryError ||
-                    returnedValue == SD_NoResultsAndUserCancelled ||
-                    returnedValue == SD_SingleIpAddr_ButNotChosen ||
-                    returnedValue == SD_MultipleIpAddr_UserCancelled ||
-                    returnedValue == SD_MultipleIpAddr_UserChoseNone ||
-                    returnedValue == SD_ValueIsIrrelevant
-                    );
-                // The login person should have seen an error message, so just
-                // restore the user settings and return without opening the Manager
+			}
+			else
+			{
+				// Something is wrong, or no KBserver has yet been set running, etc
+				wxASSERT(returnedValue == SD_NoResultsYet ||
+					returnedValue == SD_NoKBserverFound ||
+					returnedValue == SD_SingleIpAddr_UserCancelled ||
+					returnedValue == SD_ServiceDiscoveryError ||
+					returnedValue == SD_NoResultsAndUserCancelled ||
+					returnedValue == SD_SingleIpAddr_ButNotChosen ||
+					returnedValue == SD_MultipleIpAddr_UserCancelled ||
+					returnedValue == SD_MultipleIpAddr_UserChoseNone ||
+					returnedValue == SD_ValueIsIrrelevant
+					);
+				// The login person should have seen an error message, so just
+				// restore the user settings and return without opening the Manager
 				wxBell();
-                return;
-            }
-        }
-        // The administrator or login person must authenticate to whichever KBserver he
-        // wants to adjust or view. Note: the next line sets up an instance of
-        // the dialog - it doesn't know or care about the adapting/glossing mode, the
-        // machine's owner, or either of the glossing or adapting local KBs, or which project. 
-		// It only uses the KbServer class for the services it provides for the 
-		// KB Sharing Manager gui
-        // The instance is pointed at by an app member: m_pKbServer_ForManager, which is
-        // created on demand in the heap, used, and then deleted, and its pointer returned
-        // to being NULL. We must always dispose and set the ptr to NULL after every use,
-        // in case the user or administrator changes which project is active (which changes
-        // the source and target and maybe gloss language names, and the Manager must be 
-		// opened in the project which, for any Manager business that deals with adding
-		// users or altering the propertyies of one or more of them in the list.
+				return;
+			}
+		}
+	}
+    // The administrator or login person must authenticate to whichever KBserver he
+    // wants to adjust or view. Note: the next line sets up an instance of
+    // the dialog - it doesn't know or care about the adapting/glossing mode, the
+    // machine's owner, or either of the glossing or adapting local KBs, or which project. 
+	// It only uses the KbServer class for the services it provides for the 
+	// KB Sharing Manager gui
+    // The instance is pointed at by an app member: m_pKbServer_ForManager, which is
+    // created on demand in the heap, used, and then deleted, and its pointer returned
+    // to being NULL. We must always dispose and set the ptr to NULL after every use,
+    // in case the user or administrator changes which project is active (which changes
+    // the source and target and maybe gloss language names, and the Manager must be 
+	// opened in the project which, for any Manager business that deals with adding
+	// users or altering the propertyies of one or more of them in the list.
 
-		// BEW 11Nov20, change code here to use Authenticate2Dlg()
-		// m_bUserAuthenticating set FALSE above - when the Manager is used, m_bUseForeignOption
-		// is the app boolean which is TRUE, indicating Manager is in operation. (Also
-		// app boolean m_bKBSharingMgrEntered is TRUE while it is running)
+	// BEW 11Nov20, change code here to use Authenticate2Dlg()
+	// m_bUserAuthenticating set FALSE above - when the Manager is used, m_bUseForeignOption
+	// is the app boolean which is TRUE, indicating Manager is in operation. (Also
+	// app boolean m_bKBSharingMgrEntered is TRUE while it is running)
 
-		// put on the heap, it's to be a modeless dialog
-        m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pFrame); 
+	// put on the heap, it's to be a modeless dialog
+    m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pFrame); 
 
-        // make the font show only 12 point size in the dialog
-        CopyFontBaseProperties(m_pSourceFont, m_pDlgSrcFont);
-        m_pDlgSrcFont->SetPointSize(12);
+	if (m_bConfigMovedDatFileError == TRUE)
+	{
+		m_bConfigMovedDatFileError = FALSE; // re-initialise, warning message seen
+		delete m_pKBSharingMgrTabbedDlg;
+		return;
+	}
 
-        // show the property sheet 
-		pApp->m_pKBSharingMgrTabbedDlg->Show();
-		// restore settings when disposed of, in OnOK() and OnCancel()
+	if (m_pKBSharingMgrTabbedDlg->m_bAllow == FALSE)
+	{
+		// bail out, the user looked up at InitDialog() does NOT have
+		// useradmin == 1 permission level. A dialog to that effect
+		// will have been seen already
+		delete m_pKBSharingMgrTabbedDlg;
+		return;
+	}
+    // make the font show only 12 point size in the dialog
+    CopyFontBaseProperties(m_pSourceFont, m_pDlgSrcFont);
+    m_pDlgSrcFont->SetPointSize(12);
 
-    } // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
-      // There is no need to give a message saying there was a cancellation, as a
-      // cancellation is volitional and the user would expect nothing to happen
+    // show the property sheet 
+	pApp->m_pKBSharingMgrTabbedDlg->Show();
+	// restore settings when disposed of, in OnOK() and OnCancel()
+
+    // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
+    // There is no need to give a message saying there was a cancellation, as a
+    // cancellation is volitional and the user would expect nothing to happen
+}
+
+void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
+{
+	// BEW 14Nov20 for arrLines, pass in app->m_arrLines, which has been populated
+	// already in the CallExecute(list_users, ..... ) call, in the switch for case 3
+	// which follows the ::wxExecute() call. Handling unescaping of \' is done there. 
+#if defined (_DEBUG)
+	wxString username = wxEmptyString;
+	wxString fullname = wxEmptyString;
+	wxString password = wxEmptyString;
+	int  useradmin = 0; // default
+#endif
+	size_t linesArrayCount = arrLines.GetCount();
+	size_t lineIndex = 0;
+	for (lineIndex = 0; lineIndex < linesArrayCount; lineIndex++)
+	{
+		wxString str = arrLines.Item(lineIndex); // Outer loop, loops over comma separated fields
+		// format: username,fullname,password,useradmin,
+		// where useradmin is a wxChar with value _T('1') or _T('0') presented as TRUE or FALSE
+		// turn the comma-separated fields into items in parallel wxArrayStrings & wxArrayInt
+		int offset = wxNOT_FOUND;
+		int fieldsCount = 4;
+		int pos;
+		wxString field = wxEmptyString;
+		wxString comma = _T(',');
+
+		// Inner loop, extracts each field, and assigns to the appropriate array
+		for (pos = 0; pos <= fieldsCount; pos++)
+		{
+			switch (pos)
+			{
+			case 0:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+#if defined (_DEBUG)
+				username = field;
+#endif
+				m_mgrUsernameArr.Add(field);
+				// Shorten
+				str = str.Mid(offset + 1);
+				field.Empty();
+				break;
+			case 1:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+#if defined (_DEBUG)
+				fullname = field;
+#endif
+				m_mgrFullnameArr.Add(field);
+				// Shorten
+				str = str.Mid(offset + 1);
+				field.Empty();
+				break;
+			case 2:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+#if defined (_DEBUG)
+				password = field;
+#endif
+				m_mgrPasswordArr.Add(field);
+				// Shorten
+				str = str.Mid(offset + 1);
+				field.Empty();
+				break;
+			case 3:
+				offset = str.Find(comma);
+				wxASSERT(offset >= 0);
+				field = wxString(str.Left(offset));
+				if (field == _T("0"))
+				{
+					m_mgrUseradminArr.Add(0);
+#if defined (_DEBUG)
+					useradmin = 0;
+#endif
+				}
+				else
+				{
+					// The only other possibility is useradmin == '1'
+					m_mgrUseradminArr.Add(1);
+#if defined (_DEBUG)
+					useradmin = 1;
+#endif
+				}
+
+				// We are done for inner loop - one user record handled
+				wxLogDebug(_T("%s::%s(), line %d : funcNumber for enum list_users = %d"),
+					__FILE__, __FUNCTION__, __LINE__, list_users);
+				break;
+			};
+		} // end of for loop: for (pos = 0; pos <= fieldsCount; pos++)
+
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d"),
+			__FILE__, __FUNCTION__, __LINE__, username.c_str(),
+			fullname.c_str(), password.c_str(), useradmin == TRUE ? 1 : 0);
+
+#endif
+	}
+}
+// BEW 18Dec20, created for use with the KB Sharing Manager's refactored storage
+void CAdapt_ItApp::EmptyMgrArrays()
+{
+	// Remove the content of each array, but retain each array instance for refilling 
+	// with different values
+	m_mgrUsernameArr.Empty();
+	m_mgrFullnameArr.Empty();
+	m_mgrPasswordArr.Empty();
+	m_mgrUseradminArr.Empty();
+}
+
+wxString CAdapt_ItApp::DumpManagerArray(wxArrayString& arr)
+{
+	wxString strDump = wxEmptyString;
+	wxString str;
+	if (arr.GetCount() == 0)
+	{
+		return strDump;
+	}
+	wxString divider = _T(" , ");
+	int count = arr.GetCount();
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		str = arr.Item(index);
+		if (index == 0)
+		{
+			strDump = str;
+		}
+		else
+		{
+			strDump += divider + str;
+		}
+	}
+	return strDump;
+}
+
+wxString CAdapt_ItApp::DumpManagerUseradmins(wxArrayInt& arr)
+{
+	wxString strDump = wxEmptyString;
+	int i;
+	if (arr.GetCount() == 0)
+	{
+		return strDump;
+	}
+	wxString divider = _T(" , ");
+	wxString allowed = _T("1");
+	wxString notAllowed = _T("0");
+	int count = arr.GetCount();
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		i = arr.Item(index);
+		if (index == 0)
+		{
+			if (i == 1)
+			{
+				// useradmin flag is 1
+				strDump = allowed;
+			}
+			else
+			{
+				// useradmin flag is 0
+				strDump = notAllowed;
+			}
+		}
+		else
+		{
+			// index > 0 
+			if (i == 1)
+			{
+				// useradmin flag is 1
+				strDump += divider + allowed;
+			}
+			else
+			{
+				// useradmin flag is 0
+				strDump += divider + notAllowed;
+			}
+		}
+	}
+	return strDump;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

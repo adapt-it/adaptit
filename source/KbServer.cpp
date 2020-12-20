@@ -1860,7 +1860,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 			if (!bExecutedOK)
 			{
 				// error in the call, inform user, and put entry in LogUserAction() - English will do
-				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - perhaps input parameters (and/or password) did not match any entry in the user table; Adapt It will continue working ");
+				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - no match match in the user table; is kbserver turned on? Adapt It will continue working. ");
 				msg = msg.Format(msg, __LINE__);
 				wxString title = _T("Probable do_list_users.exe error");
 				wxMessageBox(msg,title,wxICON_WARNING | wxOK);
@@ -5888,6 +5888,7 @@ bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxA
 	return TRUE;
 }
 
+// BEW 18Dec20 deprecate the following, I'm using arrays in AI.h for a refactored solution
 // BEW 14Nov20 updated for Leon's solution (includes password now)
 void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersListForeign)
 {
@@ -5961,16 +5962,18 @@ void KbServer::ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForei
 							__FILE__, __FUNCTION__, __LINE__, list_users);
 				break;
 			};
-		}
-//		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d"),
-//			__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str(),
-//			pStruct->fullname.c_str(), pStruct->password.c_str(), pStruct->useradmin == TRUE?1:0);
+		} // end of for loop: for (pos = 0; pos <= fieldsCount; pos++)
+		wxLogDebug(_T("%s::%s(), line %d : for appending to pStruct: username = %s, fullname = %s, password = %s , useradmin = %d"),
+			__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str(),
+			pStruct->fullname.c_str(), pStruct->password.c_str(), pStruct->useradmin == TRUE?1:0);
 
 		// Append each filled out KbServerUserForeign to the pUsersListForeign (for Leon's sol'n)
 		pUsersListForeign->Append(pStruct);
 
 		wxLogDebug(_T("%s::%s(), line %d : appended struct for username = %s"),
 					__FILE__, __FUNCTION__, __LINE__, pStruct->username.c_str());
+
+		// put a copy of the list in Mgr's m_pUsersListForeign
 	}
 }
 

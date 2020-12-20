@@ -38,9 +38,13 @@ public:
 
 	KbServer* GetKbServer(); // gets whatever m_pKbServer is pointing at
 	KbServer* m_pKbServer;   // we'll assign the 'foreign' one to this pointer
+	bool m_bAllow;
 
 
 protected:
+	int	 m_nSel; // index value (0 based) for selection in the the listbox of one
+				 // of the pages, and has value wxNOT_FOUND when nothing is selected
+
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
 	wxListBox*     m_pUsersListBox;
 	//wxTextCtrl*    m_pTheConnectedIpAddr;
@@ -98,6 +102,7 @@ protected:
 	void  OnCancel(wxCommandEvent& event);
 public:
 	void  LoadDataForPage(int pageNumSelected);
+	void  FillUserList(CAdapt_ItApp* pApp);
 
 protected:
 	void  OnTabPageChanged(wxNotebookEvent& event);
@@ -153,20 +158,18 @@ protected:
 	void		  OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
-
-private:
-	// All the lists, users, kbs and custom language definitions, are SORTED.
-	CAdapt_ItApp*  m_pApp;
-	int	 m_nSel; // index value (0 based) for selection in the the listbox of one
-				 // of the pages, and has value wxNOT_FOUND when nothing is selected
-	wxString  m_earliestUseradmin; // these two username records cannot be deleted or 
-										   // their privilege level changed (they are comma separated)
+public:
 	UsersListForeign* m_pUsersListForeign; // initialize in InitDialog() as the KbServer 
 										   // instance has the list
 	UsersListForeign* m_pOriginalUsersList; // store copies of KbServerUser structs at
-									        // entry, for comparison with final list
+											// entry, for comparison with final list
 											// after the edits, removals and additions
 											// are done
+private:
+	// All the lists, users, kbs and custom language definitions, are SORTED.
+	CAdapt_ItApp*  m_pApp;
+	wxString  m_earliestUseradmin; // these two username records cannot be deleted or 
+										   // their privilege level changed (they are comma separated)
 	KbsList*  m_pKbsList; // initialize in InitDialog() as the KbServer instance has the list
 	KbsList*  m_pOriginalKbsList; // store copies of KbServerKb structs at
 										  // entry, for comparison with final list after

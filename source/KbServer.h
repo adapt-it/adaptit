@@ -456,10 +456,6 @@ private:
 	// For use in full KB uploads
 	UploadsMap		m_uploadsMap;
 
-	// For use when listing all the user definitions in the KBserver
-	//UsersListForeign       m_usersListForeign;
-	// BEW 27Aug20 For Leon's solution
-	UsersListForeign m_usersListForeign;
 
 	// For use when listing all the kb definitions in the KBserver
 	KbsList         m_kbsList;
@@ -472,6 +468,10 @@ private:
 	KbServerLanguage	m_languageStruct;
 
 public:
+
+	// For use when listing all the user definitions in the KBserver
+	// BEW 27Aug20 For Leon's solution
+	UsersListForeign m_usersListForeign;
 
 	// BEW 12Oct20, a KbServerEntry struct, to hold field values from a 
 	// LookupEntryFields() call, to determine what call is then needed after that

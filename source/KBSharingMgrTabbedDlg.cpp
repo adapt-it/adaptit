@@ -106,70 +106,12 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 #endif
 
 	m_pApp = &wxGetApp();
-	m_pApp->m_bDoingChangeFullname = FALSE; // initialize
-	m_pApp->m_bUseForeignOption = TRUE; // we use this to say "The KB Sharing Mgr is where control is"
-	m_pApp->m_bWithinMgr = FALSE; // control is not inside yet, InitDialog() will set it TRUE
-								  // if the access is granted to the user page
-
-	// Entry was happened, use the TRUE value in ConfigureMovedDatFile() for case lookup_user
-	// to ensure the constraint, user1 == user2 == m_strUserID is satisfied for the lookup_user
-	// case just a bit below, as refactoring I've removed the need to have Authenticate2Dlg
-	// called in order to open the Mgr. Looking at other usernames than m_strUserID from the
-	// currently open shared project, is a job for the internals of the Mgr, once opened
-	m_pApp->m_bKBSharingMgrEntered = TRUE;
-
-	// set the m_bUser1IsUser2 boolean to TRUE, because we are contraining entry to a
-	// lookup_user case ( = 2) in which user1 == user2 == app's m_strUserID (the project's user)
-	m_pApp->m_bUser1IsUser2 = TRUE;
-	bool bExecutedOK = FALSE;
-	if (!m_pApp->m_bKBSharingMgrEntered)
+	if (m_pApp->m_bConfigMovedDatFileError == TRUE)
 	{
-		// BEW 16Dec20 Two accesses of the user table are needed. The first, here, LookupUser() 
-		// determines whether or not user2 exists in the user table, and what that user's 
-		// useradmin permission level is. This check is not needed again if the user has gained 
-		// access to the manager, since within the manager the list of users may be altered
-		// and require a new call of ListUsers() be made from there.
-		// (Only call LoadDataForPage(0) once. When entering to the manager. Thereafter,
-		// keep the kbserver user table in sync with the user page by a function, which reads 
-		// the results file of do_list_users.exe and updates the m_pOriginalUsersList and 
-		// m_pUsersListForeign 'in place' with an Update....() function
-
-#if defined  (_DEBUG)
-		wxLogDebug(_T("ConfigureDATfile(lookup_user = %d) line %d: entering, in Mgr creator"), 
-			lookup_user, __LINE__);
-#endif
-		bool bReady = m_pApp->ConfigureDATfile(lookup_user); // case = 2
-		if (bReady)
-		{
-			// The input .dat file is now set up ready for do_user_lookup.exe
-			wxString execFileName = _T("do_user_lookup.exe");
-			wxString execPath = m_pApp->execPath;
-			wxString resultFile = _T("lookup_user_return_results.dat");
-#if defined  (_DEBUG)
-			wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
-				lookup_user, __LINE__);
-#endif
-			bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
-			// In above call, last param, bReportResult, is default FALSE therefore omitted;
-			// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
-
-			// m_bHasUseradminPermission has now been set, if LookupUser() succeeded, so
-			// get what its access permission level is. TRUE allows access to the manager.
-			// (in the entry table, '1' value for useradmin)
-		}
-		else
-		{
-			// logging is done, so just return -1 if there was a configure error
-			return;
-		}
-	}
-
-	// Disallow entry, if user has insufficient permission level
-	if (bExecutedOK && !m_pApp->m_bHasUseradminPermission)
-	{
-		wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
-		wxString title = _("Warning: permission too low");
-		wxMessageBox(msg, title, wxICON_WARNING & wxOK);
+		wxString msg = _("InitDialog() failed due to a problem creating the commandLine for \'lookup_user\'.\nOpening the KB Sharing Manager will not work until this problem is fixed.");
+		wxString title = _("Looking up user - warning");
+		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		m_pApp->LogUserAction(msg);
 		return;
 	}
 
@@ -177,7 +119,7 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 	// handler, we need to initialize some variables before CCTabbedNotebookFunc is called below.
 	// Specifically m_nCurPage and pKB needs to be initialized - so no harm in putting all vars
 	// here before the dialog controls are created via KBEditorDlgFunc.
-	m_nCurPage = 0; // default to first page (Users)
+	m_nCurPage = 0; // default to first page (i.e. Users page)
 
 	SharedKBManagerNotebookFunc2(this, TRUE, TRUE);
 	// The declaration is: SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set_sizer );
@@ -255,7 +197,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// instance and assign it to our m_pKbServer in-class pointer. So check for the NULL;
 	// if there is an instance currently, we'll delete that and recreate a new one on heap
 	// to do that
-	wxASSERT(m_pApp->m_pKbServer_ForManager == NULL); // catch non-NULL in debug build
+//	wxASSERT(m_pApp->m_pKbServer_ForManager == NULL); // catch non-NULL in debug build
 	// Rather than have a SetKbServer() function which is not self documenting about what
 	// m_pKbServer is pointing at, make the app point explicit in this module
 	if (m_pApp->m_pKbServer_ForManager == NULL)
@@ -282,10 +224,112 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
         m_pKbServer->SetKB(m_pApp->m_pKB); // set ptr to local target text CKB* for local 
 										   // KB access as needed
 	}
+
+	// BEW 17Dec20 Need initial call of ListUsers() so that the m_pUsersListBox can get
+	// populated before the GUI shows the Mgr to the user.
+	// NOTE: InitDialog() is called BEFORE the creator for the Mgr class. So the code
+	// for testing if user2 (the user looked up) has useradmin permision == 1 has to
+	// be here; and the rejection of unauthorized users has to be done here therefore
+
+	//First, set these app booleans, so that ConfigureMovedDatFile() accesses the needed
+	// block for setting commandLine for this situtaion
+	// set the m_bUser1IsUser2 boolean to TRUE, because we are contraining entry to a
+	// lookup_user case ( = 2) in which user1 == user2 == app's m_strUserID (the project's user)
+	m_pApp->m_bUser1IsUser2 = TRUE;	// (ConfigureMovedDatFile() asserts if it is FALSE)
+	m_pApp->m_bWithinMgr = FALSE; // we aren't in the GUI yet
+	m_pApp->m_bKBSharingMgrEntered = TRUE;
+	m_pApp->m_bHasUseradminPermission = TRUE; // must be TRUE, otherwise ListUsers() aborts
+	m_pApp->m_bConfigMovedDatFileError = FALSE; // initialize to "no ConfigureMovedDatFile() error"
+
+	// BEW 16Dec20 Two accesses of the user table are needed. The first, here, LookupUser() 
+	// determines whether or not user2 exists in the user table, and what that user's 
+	// useradmin permission level is. This check is not needed again if the user has gained 
+	// access to the manager, since within the manager the list of users may be altered
+	// and require a new call of ListUsers() be made from there.
+	// (Only call LoadDataForPage(0) once. When entering to the manager. Thereafter,
+	// keep the kbserver user table in sync with the user page by a function, which reads 
+	// the results file of do_list_users.exe and updates the m_pOriginalUsersList and 
+	// m_pUsersListForeign 'in place' with an Update....() function
+
+#if defined  (_DEBUG)
+	wxLogDebug(_T("ConfigureDATfile(lookup_user = %d) line %d: entering, in Mgr InitDialog()"),
+			lookup_user, __LINE__);
+#endif
+	bool bExecutedOK = FALSE;
+	bool bReady = m_pApp->ConfigureDATfile(lookup_user); // case = 2
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_user_lookup.exe
+		wxString execFileName = _T("do_user_lookup.exe");
+		wxString execPath = m_pApp->execPath;
+		wxString resultFile = _T("lookup_user_return_results.dat");
+#if defined  (_DEBUG)
+		wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
+			lookup_user, __LINE__);
+#endif
+		bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
+		// In above call, last param, bReportResult, is default FALSE therefore omitted;
+		// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
+#if defined (_DEBUG)
+		bool bPermission = m_pApp->m_bHasUseradminPermission;
+		wxUnusedVar(bPermission);
+#endif
+		// Disallow entry, if user has insufficient permission level
+		if (bExecutedOK && !m_pApp->m_bHasUseradminPermission)
+		{
+			wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
+			wxString title = _("Warning: permission too low");
+			wxMessageBox(msg, title, wxICON_WARNING & wxOK);
+			m_bAllow = FALSE; // enables caller to case exit of the Mgr handler
+			return;
+		}
+		else
+		{
+			if (bExecutedOK)
+			{
+				m_pApp->m_bHasUseradminPermission = TRUE;
+			}
+		}
+		// m_bHasUseradminPermission has now been set, if LookupUser() succeeded, so
+		// get what its access permission level is. TRUE allows access to the manager.
+		// (in the entry table, '1' value for useradmin)
+		m_pApp->m_bConfigMovedDatFileError = FALSE; // "no error"
+
+	} // end of TRUE block for test: if (bReady)
+	else
+	{
+		// return TRUE for the bool below, caller will warn user, and caller's
+		// handler will abort the attempt to create the mgr
+		m_pApp->m_bConfigMovedDatFileError = TRUE;
+		return;
+	}
+
+	m_pApp->m_bDoingChangeFullname = FALSE; // initialize
+	m_pApp->m_bUseForeignOption = TRUE; // we use this to say "The KB Sharing Mgr is where control is"
+	m_pApp->m_bWithinMgr = FALSE; // control is not inside yet, InitDialog() will set it TRUE
+								  // if the access is granted to the user page
+	// Entry has happened, use the TRUE value in ConfigureMovedDatFile() for case lookup_user
+	// to ensure the constraint, user1 == user2 == m_strUserID is satisfied for the lookup_user
+	// case just a bit below, as refactoring I've removed the need to have Authenticate2Dlg
+	// called in order to open the Mgr. Looking at other usernames than m_strUserID from the
+	// currently open shared project, is a job for the internals of the Mgr, once opened
+	m_pApp->m_bKBSharingMgrEntered = TRUE;
+
 	// These are reasonable defaults for initialization purposes
 	m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_strKbServerIpAddr);
 	m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_curNormalUsername);
 	m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_curNormalPassword);
+
+	// Get the list of users into the returned list_users_return_results.dat file
+	int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr,
+		m_pApp->m_strUserID, m_pApp->m_curNormalPassword, m_pApp->m_strUserID);
+	wxUnusedVar(rv);
+	wxASSERT(rv == 0);
+
+	// Create the 2nd UsersList to store original copies before user's edits etc
+	// (destroy it in OnOK() and OnCancel())
+	m_pOriginalUsersList = new UsersListForeign;
+	m_pUsersListForeign = new UsersListForeign;
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -303,9 +347,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	myStaticText += theIpAddr; // an accessor for m_kbServerIpAddrBase
 	m_pConnectedTo->SetLabel(myStaticText);
 
-	// Create the 2nd UsersList to store original copies before user's edits etc
-	// (destroy it in OnOK() and OnCancel())
-	m_pOriginalUsersList = new UsersListForeign;
 
 	// BEW 13Nov20 changed, 
 	m_bKbAdmin = TRUE;  // was m_pApp->m_kbserver_kbadmin; // BEW always TRUE now as of 28Aug20
@@ -472,11 +513,46 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 	{
 		// Clear out anything from a previous button press done on this page
 		// ==================================================================
-		m_pUsersListBox->Clear();
+		m_pUsersListBox->Clear(); 
 		wxCommandEvent dummy;
-		OnButtonUserPageClearControls(dummy);
-		DeleteClonedKbServerUserStruct(); // ensure it's freed & ptr is NULL
-		m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList);
+		//OnButtonUserPageClearControls(dummy);
+
+		m_pApp->EmptyMgrArrays();
+
+		m_pApp->ConvertLinesToMgrArrays(m_pApp->m_arrLines);
+
+#if defined (_DEBUG)
+		wxString dumpedUsers = m_pApp->DumpManagerArray(m_pApp->m_mgrUsernameArr);
+		wxString dumpedFullnames = m_pApp->DumpManagerArray(m_pApp->m_mgrFullnameArr);
+		wxString dumpedPasswords = m_pApp->DumpManagerArray(m_pApp->m_mgrPasswordArr);
+		wxString dumpedUseradmins = m_pApp->DumpManagerUseradmins(m_pApp->m_mgrUseradminArr);
+
+		wxLogDebug(_T("%s::%s(), line %d  usernames: %s"), __FILE__,__FUNCTION__,__LINE__,dumpedUsers.c_str());
+		wxLogDebug(_T("%s::%s(), line %d  fullnames: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedFullnames.c_str());
+		wxLogDebug(_T("%s::%s(), line %d  passwords: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedPasswords.c_str());
+		wxLogDebug(_T("%s::%s(), line %d  useradmins: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedUseradmins.c_str());
+#endif
+		m_nSel = wxNOT_FOUND; // initialise -- no selected user yet
+
+		FillUserList(m_pApp);
+
+		/* these calls achieve nothing
+		m_pUsersListBox->Update();
+		m_pUsersListBox->Refresh();
+		m_pUsersListBox->Update();
+		*/
+
+
+
+
+
+
+
+/*
+// LEGACY code below - to be deprecated...
+
+		//DeleteClonedKbServerUserStruct(); // ensure it's freed & ptr is NULL
+		//m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList);
 		// The m_pUsersList will be cleared within the ListUsers() call done below, so it
 		// is unnecessary to do it here now
 		// ==================================================================
@@ -564,6 +640,10 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			}
 			// now user2
 			user2 = m_pApp->m_Username2;
+			if (user2.IsEmpty() && m_pApp->m_bWithinMgr)
+			{
+				user2 = m_pApp->m_curNormalUsername;
+			}
 		}
 
 		int result = 0;
@@ -577,15 +657,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			// LoadDataForPage has to look at list_users_return_results.dat file, 
 			// to construct the list; and for a 2nd or subsequent run, check the
 			// input .dat file has correct values
-			/* BEW 14Dec20 removed, 
-			// I couldn't get access to the textctrl - but SOMEWHERE 1st run does
-			// get access and shows it, its in SharedKBManagerNotebookFunc2
-			wxString shownIpAddr = m_pTheConnectedIpAddr->GetValue();
-			if (shownIpAddr.IsEmpty())
-			{
-				m_pTheConnectedIpAddr->ChangeValue(m_pApp->m_strKbServerIpAddr);
-			}
-			*/
 			result = m_pKbServer->ListUsers(ipAddr,username,password,user2);
 			if (result == 0)
 			{
@@ -608,15 +679,17 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 						// Now it's empty and ready for new set of foreign user structs
 					}
 				}
-				m_pKbServer->ConvertLinesToUserStructs(m_pApp->m_arrLines, m_pUsersListForeign);
-
+				m_pKbServer->ConvertLinesToUserStructs(m_pApp->m_arrLines, &m_pKbServer->m_usersListForeign);
+				
 				#if defined (_DEBUG)
 				wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): line = %d:  number of user struct lines = %d"),
 					__LINE__, m_pUsersListForeign->GetCount());
 				#endif
 				// Copy the list, before user gets a chance to modify anything
 				// param 1 is src list, param2 is dest list
-				CopyUsersList(m_pUsersListForeign, m_pOriginalUsersList); 
+				//CopyUsersList(m_pUsersListForeign, m_pOriginalUsersList);
+//	both fail	CopyUsersList(&m_pKbServer->m_usersListForeign, m_pOriginalUsersList);
+// 1st works, 2nd entry - no data in usere page	CopyUsersList(&m_pKbServer->m_usersListForeign, m_pUsersListForeign);
 
                 // Load the username strings into m_pUsersListBox, the ListBox is sorted;
                 // Note: the client data for each username string added to the list box is
@@ -624,6 +697,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
                 // string, the struct coming from m_pUsersList
 
 				LoadUsersListBox(m_pUsersListBox, m_pUsersListForeign->size(), m_pUsersListForeign);
+				//LoadUsersListBox(m_pUsersListBox, (&m_pKbServer->m_usersListForeign)->size(), &m_pKbServer->m_usersListForeign);
 			}
 			else
 			{
@@ -639,6 +713,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
 			m_pApp->LogUserAction(msg);
 		}
+*/
 	}
 }
 
@@ -784,7 +859,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 	if (bReady)
 	{
 		// The input .dat file is now set up ready for do_change_permission.exe
-		wxString execFileName = _T("do_change_permission.exe"); 
+		wxString execFileName = _T("do_change_permission.exe");
 		wxString execPath = m_pApp->execPath;
 		wxString resultFile = _T("change_permission_return_results.dat");
 		bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 99, 99);
@@ -797,11 +872,12 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			m_pApp->LogUserAction(msg);
 		}
-	}
 
-	// At this point, the user table is altered, so it just remains to
-	// call LoadDataForPage(int pageNumSelected)
-	LoadDataForPage(0);
+		// At this point, the user table is altered, so it just remains to
+		// Update...() the two lists of structs to achieve synced state
+		// and load in the new state to the m_pUsersListBox
+		UpdateUserPage(m_pApp, m_pApp->execPath, resultFile, &m_pApp->m_arrLines);
+	}
 }
 
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNUSED(event))
@@ -833,20 +909,21 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 			m_pApp->LogUserAction(msg);
 			m_pApp->m_bDoingChangeFullname = FALSE; // restore default value
 		}
-	}
 
-	// At this point, the user table is altered, so it just remains to
-	// call LoadDataForPage(int pageNumSelected)
-	LoadDataForPage(0);
+		// At this point, the user table is altered, so it just remains to
+		// Update...() the two lists of structs to achieve synced state
+		// and load in the new state to the m_pUsersListBox
+		UpdateUserPage(m_pApp, m_pApp->execPath, resultFile, &m_pApp->m_arrLines);
 
-	if (m_pApp->m_bDoingChangeFullname)
-	{
-		// Turn it off, to default FALSE
-		m_pApp->m_bDoingChangeFullname = FALSE;
-		// And clear these, until such time as another change of fullname is done
-		m_pApp->m_strChangeFullname.Clear();
-		m_pApp->m_strChangeFullname_User2.Clear();
-	}
+		if (m_pApp->m_bDoingChangeFullname)
+		{
+			// Turn it off, to default FALSE
+			m_pApp->m_bDoingChangeFullname = FALSE;
+			// And clear these, until such time as another change of fullname is done
+			m_pApp->m_strChangeFullname.Clear();
+			m_pApp->m_strChangeFullname_User2.Clear();
+		}
+	} // end of TRUE block for test: if (bReady)
 }
 
 /*
@@ -1051,11 +1128,16 @@ void KBSharingMgrTabbedDlg::OnTabPageChanged(wxNotebookEvent& event)
 // if the dialog is modeless.
 void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 {
+	/*
 	// Tidy up
 	m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList); // this one is local to this
 	delete m_pOriginalUsersList;
-	m_pKbServer->ClearUsersListForeign(m_pUsersListForeign); // this one is in the stateless
-									// KbServer instance & don't delete this one
+	m_pKbServer->ClearUsersListForeign(m_pUsersListForeign); // delete too
+	if (m_pUsersListForeign->IsEmpty())
+	{
+		//delete m_pUsersListForeign;
+		m_pUsersListForeign = NULL;
+	}
 	DeleteClonedKbServerUserStruct();
 
 	// Delete the KbServer instance we've been using, (it will be the app's
@@ -1070,23 +1152,30 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_bKBSharingMgrEntered = FALSE; // reset default
 	m_pApp->m_bHasUseradminPermission = FALSE; // reset default
 	m_pApp->m_bUseForeignOption = FALSE; // reset default
-	m_pApp->m_bWithinMgr = FALSE; // control is no longer within the Mgr
-
+	m_pApp->m_bWithinMgr = FALSE; // control is no longer within the Mgr 
+*/
+	m_pUsersListBox->Clear();
 	event.Skip();
 	// Remember, the Manager is closing, but there may still be a running detached
 	// thread working to delete a kb definition from the kb table in KBserver (it first
 	// has to delete all entries for this definition from the entry table before the
 	// kb definition can itself be removed); and the KbServer instance supplying 
 	// resources for that deletion task is the app's m_pKbServer_Persistent instance
+	delete m_pKBSharingMgrTabbedDlg;
 }
 
 void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 {
+	/*
 	// Tidy up
 	m_pKbServer->ClearUsersListForeign(m_pOriginalUsersList); // this one is local to ptr 'this'
 	delete m_pOriginalUsersList;
-	m_pKbServer->ClearUsersListForeign(m_pUsersListForeign); // this one is in the adaptations
-									// KbServer instance & don't delete this one
+	m_pKbServer->ClearUsersListForeign(m_pUsersListForeign); // delete too
+	if (m_pUsersListForeign->IsEmpty())
+	{
+		//delete m_pUsersListForeign;
+		m_pUsersListForeign = NULL;
+	}
 	DeleteClonedKbServerUserStruct();
 
 	// Delete the stateless KbServer instance we've been using
@@ -1098,8 +1187,11 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	m_pApp->m_bHasUseradminPermission = FALSE; // reset default
 	m_pApp->m_bUseForeignOption = FALSE; // reset default
 	m_pApp->m_bWithinMgr = FALSE; // control is no longer within the Mgr
-
+*/
+	m_pUsersListBox->Clear();
 	event.Skip();
+
+	delete m_pKBSharingMgrTabbedDlg;
 }
 
 // BEW 29Aug20 updated
@@ -1148,6 +1240,34 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearBoxes(wxCommandEvent& WXUN
 	m_pCustomCodeDefinitionCreator->ChangeValue(emptyStr);
 }
 */
+
+// BEW 19Dec20 uses the mgr arrays defined in AI.h at 2217 to 2225 to
+// extract values from these arrays for use in the users page of the GUI.
+// This function takes (the already filled arrays) and extracts the
+// usernames, unsorted, and adds them to the m_pUsersListBox for viewing
+void KBSharingMgrTabbedDlg::FillUserList(CAdapt_ItApp* pApp)
+{
+	// Sanity check - make sure the m_mgrUsernameArr is not empty
+	if (pApp->m_mgrUsernameArr.IsEmpty())
+	{
+		wxBell();
+		return;
+	}
+	int locn = -1;
+	int count = pApp->m_mgrUsernameArr.GetCount();
+	wxString aUsername;
+	int i;
+	for (i = 0; i < count; i++)
+	{
+		aUsername = pApp->m_mgrUsernameArr.Item(i);
+		locn = m_pUsersListBox->Append(aUsername);
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s(), line %d: list location - where appended = %d"), 
+			__FILE__, __FUNCTION__, __LINE__, locn);
+#endif
+	}
+}
+
 bool KBSharingMgrTabbedDlg::AreBothPasswordsEmpty(wxString password1, wxString password2)
 {
 	if (password1.IsEmpty() && password2.IsEmpty())
@@ -1295,6 +1415,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		m_pApp->m_temp_useradmin_flag = strUseradmin;
 		wxString ipAddr = m_pApp->m_chosenIpAddr;
 		wxString datFilename = _T("credentials_for_user.dat");
+		wxString resultFile = _T("credentials_for_user_return_results.dat");
 
 		bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname,
 			&strPassword, bUseradmin, datFilename);
@@ -1303,8 +1424,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 			bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
 			if (bOK)
 			{
-				wxString execFileName = _T("do_add_KBUsers.exe");
-				wxString resultFile = _T("credentials_for_user_return_results.dat");
+				wxString execFileName = _T("do_add_KBUsers.exe");				
 				result = m_pApp->CallExecute(credentials_for_user, execFileName,
 						m_pApp->m_curExecPath, resultFile, 99, 99);
 			}
@@ -2905,12 +3025,17 @@ void KBSharingMgrTabbedDlg::UpdateUserPage(CAdapt_ItApp* appPtr, wxString execPa
 	pApp->m_pKbServer_ForManager->ClearUsersListForeign(m_pUsersListForeign); // empties
 			// the contents, and frees their memory, but leaves m_pUsersListForeign
 			// existing ready for new content to be added
+
 	pApp->m_pKbServer_ForManager->ClearUsersListForeign(m_pOriginalUsersList); // empties
 			// the contents, and frees their memory, but leaves m_pUsersListForeign
 			// existing ready for new content to be added (m_pOriginalUsersList is on
 			// the heap. OnOK() or OnCancel() will clear and delete it.
+
 	// Now access the lines in arrLines above, turning them into a list of foreign user structs
-	pApp->m_pKbServer_ForManager->ConvertLinesToUserStructs(arrLines, m_pUsersListForeign);
+	//pApp->m_pKbServer_ForManager->ConvertLinesToUserStructs(arrLines, m_pUsersListForeign);
+	pApp->m_pKbServer_ForManager->ConvertLinesToUserStructs(arrLines, &pApp->m_pKbServer_ForManager->m_usersListForeign);
+	CopyUsersList(&pApp->m_pKbServer_ForManager->m_usersListForeign, m_pUsersListForeign);
+
 	// Copy the list, before user gets a chance to modify anything
 	// param 1 is src list, param2 is dest list
 	CopyUsersList(m_pUsersListForeign, m_pOriginalUsersList); // comparisons are tested against

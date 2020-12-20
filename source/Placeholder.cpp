@@ -3097,8 +3097,43 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 		// of footnote (\f ... \f*), extended footnote (\ef .... \ef*), 
 		// cross-reference (\x ... \x*) or extended cross-reference (\ex ... \ex*)
 		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-		bool bWithin = 
-		pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+		bool bWithin = FALSE; // initialise
+		
+		// TODO try caching soln that repeatedly provides the bWithin value until
+		// the phrasebox moves
+		if (m_pApp->m_entryCount_updateHandler == 0)
+		{
+			// call the function, and cache it's return value, augment entry count
+			bWithin = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+			m_pApp->m_bIsWithin_ProhibSpan = bWithin; // cached now
+			// cache the active pile's ptr
+			m_pApp->m_pCachedActivePile = m_pApp->m_pActivePile; // what we compare against
+			m_pApp->m_entryCount_updateHandler++; // augment entry counter
+		}
+		else
+		{
+			// counter is > 0, so check for movement of the active pile
+			if (m_pApp->m_pActivePile != m_pApp->m_pCachedActivePile)
+			{
+				// There was movement of the active location, so gotta make
+				// the function call again, and re-cache the values, and
+				// reset entry count to zero
+				m_pApp->m_entryCount_updateHandler = 0;
+				bWithin = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+				m_pApp->m_bIsWithin_ProhibSpan = bWithin; // cached now
+				// cache the active pile's ptr
+				m_pApp->m_pCachedActivePile = m_pApp->m_pActivePile; // what we compare against
+			}
+			else
+			{
+				// Active pile location has not changed, so set bWithin
+				// to the cached value
+				bWithin = m_pApp->m_bIsWithin_ProhibSpan; // saves a time-consuming func call
+				// Well... we don't really need to augment the counter here because
+				// it will stay at 1 until the active location moves again - so I'll
+				// refrain from augmenting entry counter here
+			}
+		}
 		if (bWithin)
 		{
 			bCanInsert = FALSE;

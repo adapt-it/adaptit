@@ -2180,6 +2180,13 @@ class CAdapt_ItApp : public wxApp
 	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
 	bool m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
 
+	// For suppressing repeated timeconsuming function calls in the OnUpdateButtonNullSource() call;
+	// when the active pile address changes, reset counter to zero & do a new func call; when it
+	// does not change, grab the cached value in m_bIsWithin_Prohib & supply to OnUpdateButtonNullSource()
+	int m_entryCount_updateHandler; // augment every time the OnUpdateButtonNullSource() func is called
+	bool m_bIsWithin_ProhibSpan; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
+	CPile* m_pCachedActivePile; // compare m_pActivePile with this, if different, call the
+								// doc's IsWithinSpanProhibitingPlaceholderInsertion(pSrcPhrase) func
 
 #if defined(_KBSERVER)
 
@@ -2201,6 +2208,26 @@ class CAdapt_ItApp : public wxApp
 	// Handler files for the cases in the KBserverDAT_Blanks switch
 	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
 
+	// BEW 18Dec20 I've tried for a bit over two weeks to fix the issue that 1st run
+	// of the KB Sharing Mgr works fine, but closing that, and retrying with exactly
+	// the same parameters and flag settings, results in the Mgr opening with empty fields.
+	// So I'm refactoring to use wxArrayString instances and wxArrayInt for useradmin value
+	// declared here, so I can have better control and checking of the code. I've given
+	// up sorting the user's list - too hard to support with this new solution.
+	wxArrayString m_mgrUsernameArr;
+	wxArrayString m_mgrFullnameArr;
+	wxArrayString m_mgrPasswordArr;
+	wxArrayInt m_mgrUseradminArr;
+	// This set of 4 for copies of the above 4, made before the user has a chance to do any mgr changes
+	wxArrayString m_mgrOriginalUsernameArr;
+	wxArrayString m_mgrOriginalFullnameArr;
+	wxArrayString m_mgrOriginalPasswordArr;
+	wxArrayInt m_mgrOriginalUseradminArr;
+
+	void ConvertLinesToMgrArrays(wxArrayString& arrLines); // def'n at .cpp 37,163
+	void EmptyMgrArrays(); // def'n at .cpp 37,264
+	wxString DumpManagerArray(wxArrayString& arr);
+	wxString DumpManagerUseradmins(wxArrayInt& arr);
 
 	// BEW 20Au20 deprecation of the total KBSharingManager is pending, 'ForManager'
 	// variables, and anything managerish, will be weeded out. Our simpler system has
@@ -2297,6 +2324,7 @@ class CAdapt_ItApp : public wxApp
 					   // possibility exists for user1 (for kbserver authenticating) to
 					   // be different than user2 (the  selected user when operating within
 					   // the Mgr, if FALSE, m_bKBSharingMgrEntered should be FALSE too
+	bool m_bConfigMovedDatFileError; //TRUE for error, FALSE for no error (Sharing Mgr)
 
 	//BEW 10Dec20 next three are for roaming the list of users in the KB Sharing Manager
 	// they are public, and I won't bother with Update...() functions
