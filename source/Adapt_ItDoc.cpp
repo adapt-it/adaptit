@@ -14668,7 +14668,7 @@ bool CAdapt_ItDoc::IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd)
 bool CAdapt_ItDoc::IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd)
 {
 	wxChar* ptr = pChar; // initialise
-	wxChar closeParen = _T(')');
+	//wxChar closeParen = _T(')');
 	wxChar openParen = _T('(');
 	wxChar space = _T(' ');
 	// If ptr is not pointing at ) then return FALSE

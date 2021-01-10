@@ -39,12 +39,10 @@ public:
 	KbServer* GetKbServer(); // gets whatever m_pKbServer is pointing at
 	KbServer* m_pKbServer;   // we'll assign the 'foreign' one to this pointer
 	bool m_bAllow;
-
-
 protected:
-	int	 m_nSel; // index value (0 based) for selection in the the listbox of one
-				 // of the pages, and has value wxNOT_FOUND when nothing is selected
-
+	bool		   m_bLegacyEntry; // Set this TRUE for a re-entry, or when within
+						// the current Mgr session and normal entry to the legagu TRUE
+						// block for the test at line 546 is wanted
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
 	wxListBox*     m_pUsersListBox;
 	//wxTextCtrl*    m_pTheConnectedIpAddr;
@@ -104,18 +102,21 @@ public:
 	void  LoadDataForPage(int pageNumSelected);
 	void  FillUserList(CAdapt_ItApp* pApp);
 
+	// BEW Created 21Dec20 - extract a field (wxString value) from the matrix
+	//wxString GetFieldAtIndex(wxArrayString& arr, int index);
+
 protected:
 	void  OnTabPageChanged(wxNotebookEvent& event);
 
 	// Functions needed by the Users page
 	KbServerUserForeign* GetUserStructFromList(UsersListForeign* pUsersListForeign, size_t index); // BEW 28Aug20 updated
-	void  LoadUsersListBox(wxListBox* pListBox, size_t count, UsersListForeign* pUsersListForeign);  // BEW 28Aug20 updated
+	//void  LoadUsersListBox(wxListBox* pListBox, size_t count, UsersListForeign* pUsersListForeign);  // BEW 28Aug20 updated
 	void  CopyUsersList(UsersListForeign* pSrcList, UsersListForeign* pDestList); // BEW 28Aug20 updated
 	KbServerUserForeign* CloneACopyOfKbServerUserStruct(KbServerUserForeign* pExistingStruct); // BEW 28Aug20 updated
 	void  DeleteClonedKbServerUserStruct(); // BEW 29Aug20 no change needed
 	bool  CheckThatPasswordsMatch(wxString password1, wxString password2); // BEW 29Aug20 no change needed
 	bool  AreBothPasswordsEmpty(wxString password1, wxString password2); // BEW 29Aug20 no change needed
-	wxString GetEarliestUseradmin(UsersListForeign* pUsersListForeign); // BEW 29Aug20 updated, returns two names, comma-sep
+	//wxString GetEarliestUseradmin(UsersListForeign* pUsersListForeign); // BEW 5Jan21 removed
 	KbServerUserForeign* GetThisUsersStructPtr(wxString& username2, UsersListForeign* pUsersListForeign); // BEW 28Aug updated
 	// BEW 16Dec20 next one, to get the m_pUsersListForeign and m_pOriginalUsersList arrays of
 	// UserListForeign pointers updated to match changes made by the button handlers after a
@@ -123,7 +124,7 @@ protected:
 	// for the commandLine for list_users case ( = 3), to achieve syncing without resort to
 	// another call of LoadDataForPage(0) -- internally it reads the returned results file from
 	// the kbserver's user table, and borrows existing calls to get the syncing done
-	void  UpdateUserPage(CAdapt_ItApp* appPtr, wxString execPath, wxString resultFile, wxArrayString* pArrLines);
+	//void  UpdateUserPage(CAdapt_ItApp* appPtr, wxString execPath, wxString resultFile, wxArrayString* pArrLines);
 
 	// event handlers - Users page
 	void  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20 updated
@@ -156,8 +157,8 @@ protected:
 	void		  OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20 updated (minor tweaks)
 	void		  OnButtonKbsPageClearListSelection(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
-	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
+//	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
+//	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
 public:
 	UsersListForeign* m_pUsersListForeign; // initialize in InitDialog() as the KbServer 
 										   // instance has the list
@@ -168,8 +169,8 @@ public:
 private:
 	// All the lists, users, kbs and custom language definitions, are SORTED.
 	CAdapt_ItApp*  m_pApp;
-	wxString  m_earliestUseradmin; // these two username records cannot be deleted or 
-										   // their privilege level changed (they are comma separated)
+//	wxString  m_earliestUseradmin; // these two username records cannot be deleted or 
+					// their privilege level changed (they are comma separated)
 	KbsList*  m_pKbsList; // initialize in InitDialog() as the KbServer instance has the list
 	KbsList*  m_pOriginalKbsList; // store copies of KbServerKb structs at
 										  // entry, for comparison with final list after

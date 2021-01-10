@@ -7799,7 +7799,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxButton *item21 = new wxButton( parent, ID_BUTTON_CHANGE_PERMISSION, _("Change Permission"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item17->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
 
     wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Selected User's Password") );
     wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
@@ -7807,41 +7807,50 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SEL_USER_PWD, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
     item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    item25->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_CHANGE_PASSWORD, _("Change Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item17->Add( item22, 0, wxALL, 5 );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_CHANGE_FULLNAME, _("Change Fullname"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_CHANGE_FULLNAME, _("Change Fullname"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item27, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
     item3->Add( item17, 0, wxALL, 5 );
 
     item2->Add( item3, 1, wxGROW|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    item26->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
-    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item28 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item30 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("View the password for the selected user; it can be changed") );
-    item26->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("View the password for the selected user; it can be changed") );
+    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
+    item28->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item26, 0, wxALL, 0 );
+    item2->Add( item28, 0, wxALL, 0 );
 
     item0->Add( item2, 1, wxGROW|wxLEFT|wxBOTTOM, 5 );
 

@@ -865,7 +865,6 @@ enum ServDiscDetail
 	const int change_fullname = 11;
 	// add more here, as our solution matures
 	const int blanksEnd = 12; // this one changes as we add more above
-
 #endif
 
 
@@ -2208,9 +2207,7 @@ class CAdapt_ItApp : public wxApp
 	// Handler files for the cases in the KBserverDAT_Blanks switch
 	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
 
-	// BEW 18Dec20 I've tried for a bit over two weeks to fix the issue that 1st run
-	// of the KB Sharing Mgr works fine, but closing that, and retrying with exactly
-	// the same parameters and flag settings, results in the Mgr opening with empty fields.
+	// BEW 18Dec20 Legacy code for KB Sharing Mgr is too convoluted, use a set of arrays.
 	// So I'm refactoring to use wxArrayString instances and wxArrayInt for useradmin value
 	// declared here, so I can have better control and checking of the code. I've given
 	// up sorting the user's list - too hard to support with this new solution.
@@ -2218,14 +2215,15 @@ class CAdapt_ItApp : public wxApp
 	wxArrayString m_mgrFullnameArr;
 	wxArrayString m_mgrPasswordArr;
 	wxArrayInt m_mgrUseradminArr;
-	// This set of 4 for copies of the above 4, made before the user has a chance to do any mgr changes
-	wxArrayString m_mgrOriginalUsernameArr;
-	wxArrayString m_mgrOriginalFullnameArr;
-	wxArrayString m_mgrOriginalPasswordArr;
-	wxArrayInt m_mgrOriginalUseradminArr;
+	// This set of 4 for copies of the above 4, made before the user has a chance to
+	// do any mgr changes - use these to make comparisons after changes are done
+	wxArrayString m_mgrSavedUsernameArr;
+	wxArrayString m_mgrSavedFullnameArr;
+	wxArrayString m_mgrSavedPasswordArr;
+	wxArrayInt m_mgrSavedUseradminArr;
 
 	void ConvertLinesToMgrArrays(wxArrayString& arrLines); // def'n at .cpp 37,163
-	void EmptyMgrArrays(); // def'n at .cpp 37,264
+	void EmptyMgrArraySet(bool bNormalSet); // def'n at .cpp 37,243
 	wxString DumpManagerArray(wxArrayString& arr);
 	wxString DumpManagerUseradmins(wxArrayInt& arr);
 
@@ -3565,18 +3563,6 @@ public:
 	// the current running mode, as determined by gbIsGlossing (this is not called everywhere
 	// because some calls are for authentication or some other purpose)
 	bool	  AllowSvrAccess(bool bIsGlossingMode);
-	// BEW 10Nov20 created, a function to encapsulate the complexities of lookup,
-	// checking useradmin value, the 2-user dialog for Authenticate, after instantiating
-	// KbSvrHowGetUrl() class (it's internally changed for ipAddr, but Url can stay in
-	// its name) to set the pKbSrv_>m_bForManager member of KbServer.h to TRUE for a
-	// Sharing Manager access attempt. The user2 of the 2-user Authenticate dialog is
-	// the checkUser that will be checked for useradamin == 1, and if it is not that
-	// high a permission level, then access to the Manager will be blocked. The first
-	// username of the 2-user dialog can be any user with credentials sufficient for
-	// login to kbserver; typically the current user for the sharing of adaptations or
-	// glosses.
-	bool	  PrepareForListUsers(wxString& ipAddr, wxString& username, wxString& pwd, 
-									wxString& checkUser, bool bForManager = TRUE);
 
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& chosenIpAddress,
@@ -3601,6 +3587,26 @@ public:
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
+	int		  m_nMgrSel; // (public) index value (0 based) for selection in the the listbox of 
+				 // the manager's user page, and has value wxNOT_FOUND when nothing is selected
+	bool	  m_bChangePermission_DifferentUser; // BEW 5Jan21 moved from Share Mgr .h to here, default FALSE
+	wxString  m_ChangePermission_OldUser;
+	wxString  m_ChangePermission_NewUser;
+	bool	  m_bChangingPermission; // BEW 7Jan21 needed to simplify control in LoadDataForPage(0)
+	wxString  m_strNewUserLine; // for use with adding a new user in KB Sharing Mgr because
+							   // add_KBUsers_return_result_file.dat doesn't have all the
+							   // values needing to be added to the comma-separated arrLines line
+
+
+	wxString  GetFieldAtIndex(wxArrayString& arr, int index); // BEW created 21Dec20
+	int		  GetIntAtIndex(wxArrayInt& arr, int index); // BEW Created 21Dec20
+	void	  SetFieldAtIndex(wxArrayString& arr, int index, wxString field); // BEW created 21Dec20
+	void	  SetIntAtIndex(wxArrayInt& arr, int index, int field); // BEW Created 21Dec20
+	void      CopyMgrArray(wxArrayString& srcArr, wxArrayString& destArr); // BEW created 21Dec20
+	void      CopyMgrArrayInt(wxArrayInt& srcArr, wxArrayInt& destArr); // BEW created 21Dec20
+	void	  MgrCopyFromSet2DestSet(bool bNormalToSaved); // BEW 21Dec20 TRUE copies 'normal set' 
+					// to the 'saved set', FALSE is reverse, 'saved set' to 'normal set'
+
 	// Next two for opening Leon's little dialog for adding new users to user table
 	void	  OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event);

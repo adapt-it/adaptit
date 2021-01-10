@@ -20565,6 +20565,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	case credentials_for_user:
 	{
 		wxString tempStr;
+		m_strNewUserLine.Empty(); // initialise
 		if (!m_bUseForeignOption)
 		{
 			//m_bUseForeignOption = FALSE; // restore default, local user is in focus
@@ -20619,14 +20620,19 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			tempStr = m_temp_username;
 			tempStr = DoEscapeSingleQuote(tempStr);
 			commandLine += tempStr + comma;
+			m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
 
 			tempStr = m_temp_fullname;
 			tempStr = DoEscapeSingleQuote(tempStr);
 			commandLine += tempStr + comma;
+			m_strNewUserLine += m_temp_fullname + comma;  // for the line to be added to arrLines
 
 			commandLine += m_temp_password + comma;
+			m_strNewUserLine += m_temp_password + comma;  // for the line to be added to arrLines
 
 			commandLine += m_temp_useradmin_flag + comma;
+			m_strNewUserLine += m_temp_useradmin_flag + comma;  // for the line to be added to arrLines
+
 			// That finishes the commandLine to be put into the input .dat file,
 			// when the user addition is sourced from the user page of KB Sharing Mgr
 		}
@@ -20893,7 +20899,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// interested in, and it's associated password. We'll check for empty values, and
 		// try get the right ones
 		wxString tempStr;
-		bool btryUseradmin;
 		wxString strUser1 = m_curNormalUsername; // best, but test in case empty
 		if (strUser1.IsEmpty())
 		{
@@ -21575,6 +21580,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	case change_permission: // = 10
 	{
 		m_resultDatFileName = _T("change_permission_return_results.dat");
+		m_bChangingPermission = TRUE;
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
 		wxString tempStr;
@@ -21594,6 +21600,53 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// The username2 has to come from the Sharing Manager, to
 		// complete the commandLine
 		tempStr = m_strChangePermission_User2;
+		m_ChangePermission_NewUser = tempStr; // the user2 value at end of commandLine
+
+		// BEW 5Jan21 AI.h m_ChangePermission_OldUser needs to be set to
+		// whatever is the earlier value for user2, before the python code
+		// gets to toggle the permission value. That user2 value should be
+		// in AI.h m_mgrUsernameArr - the item at index m_nMgrSel, provided
+		// the array is non-empty and m_nMgrSel is not -1. If these are not
+		// satisfied, then change app's m_bDifferentUsername to TRUE, which
+		// will result in safer code being used.
+
+		// Why all this kerfluffle? We need to work out if the call to
+		// change permission is for the current selected user, or for a
+		// different user - the former does not invoke a list selection
+		// change, but either option still requires the .py code to be
+		// invoked to get the permission changed, if the Change Permission
+		// button is clicked. So we need before and after of the user2
+		// values so that LoadDataForPage() can provide different 
+		// processing paths.
+		if ((!m_mgrUsernameArr.IsEmpty()) && (m_nMgrSel != wxNOT_FOUND))
+		{
+			//m_ChangePermission_OldUser = m_strChangePermission_User2; // the name at end of commandLine
+			m_ChangePermission_OldUser = m_mgrUsernameArr.Item(m_nMgrSel);
+#if defined  (_DEBUG)
+			wxLogDebug(_T("%s::%s line %d: user2 = %s , m_ChangePermission_OldUser = %s : in TRUE block"),
+				__FILE__,__FUNCTION__,__LINE__, m_ChangePermission_NewUser.c_str(), 
+				m_ChangePermission_OldUser.c_str());
+#endif
+		}
+		else
+		{
+			// Supply a safety user value, which has the potential to
+			// cause AI to think the username was changed, so as to
+			// invoke the legacy code for LoadDataForPage() if the later test for
+			// different usernames sets TRUE for m_bChangePermission_DifferentUser
+			// The test for differing names is one in the post python call's switch
+			// for enum value 'change_permission' (= 10). The python code is
+			// of course embedded in do_change_permission.exe which is called in
+			// CallExecute()
+			m_ChangePermission_OldUser = m_strUserID; // current logged in user
+#if defined  (_DEBUG)
+			wxLogDebug(_T("%s::%s line %d: user2 = %s , m_ChangePermission_OldUser = %s : in FALSE block"),
+				__FILE__, __FUNCTION__, __LINE__, m_ChangePermission_NewUser.c_str(), 
+				m_ChangePermission_OldUser.c_str());
+#endif
+		}
+		// ... continue handling the user2 username - it may have single-quotes 
+		// which require escaping before submitting to kbserver's sql
 		tempStr = DoEscapeSingleQuote(tempStr);
 		commandLine += tempStr;
 		// That finishes the commandLine to be put into the input .dat file.
@@ -21742,11 +21795,19 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString execPat
 			f.AddLine(line);
 			line = _T("# permission level (0 or 1) specified by useradmin");
 			f.AddLine(line);
-			line = _T("# e.g: 192.168.1.9,bruce@unit2,bruce edwin,Clouds2093,1,");
+			line = _T("# Example: 192.168.1.11,JoeBlogs,AnyBody,anypwd,0,");
 			f.AddLine(line);
 			line = _T("# Use this .dat file for adding new users to the user table");
 			f.AddLine(line);
-			line = _T("ipAddress,username,fullname,password,useradmin,");
+			line = _T("# Results file: add_KBUsers_return_result_file.dat");
+			f.AddLine(line);
+			line = _T("# Function for calling: do_add_KBUsers.exe (from do_add_KBUsers.py)");
+			f.AddLine(line);
+			line = _T("# Call from KB Sharing Mgr, OnButtonUserPageAddUser()");
+			f.AddLine(line);
+			line = _T("# For login, ipaddress, root, and root pwd");
+			f.AddLine(line);
+			line = _T("# Enter the user details in the Manager, middle column, and click Add User");
 			f.AddLine(line);
 			f.Write();
 			f.Close();
@@ -22019,6 +22080,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						{
 							// Set m_strChangeFullname to what Line(1) has
 							m_strChangeFullname = dataStr; // for LoadDataForPage(0) to grab
+							// Need to put this in the app member m_strChangeFullname
 						}
 
 						bMoreThanOneLine = TRUE;
@@ -22034,7 +22096,14 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 				// a message with just a single line without the string "success" in it, 
 				// so don't do the stuff below if the line count was just 1 (or zero - but 
 				// our python code tries to avoid this, as it's not helpful to the user).
-				if (bMoreThanOneLine && bSuccess)
+				// BEW 6Jan21 added subtest: (bMoreThanOneLine || (funcNumber == list_users))
+				// for change_permission success. But note, the wxExecute() call uses
+				// do_list_users.exe, ie. enum list_users (= 3) applies, hence the test 
+				// (funcNumber == list_users) is required, even though the file 
+				// change_permission_return_results.dat is the file interrogated for the
+				// results. Without this extra test, the switch would be skipped, 
+				// and m_bChangePermission_DifferentUser would not get set correctly
+				if (bSuccess && (bMoreThanOneLine || (funcNumber == list_users)) )
 				{
 					if (funcNumber == 0) // beginning of const int's set, a do-nothing value
 					{
@@ -22170,38 +22239,30 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// if (bMoreThanOneLine && bSuccess) are both TRUE,
 						// so here we handle multiple lines.
 						// m_arrLines is a public wxArrayString, for DatFile2StringArray()
-						// to use, and then ListUsers() in KbServer.cpp provides
-						// ConvertLinesToUserStructs(wxArrayString& arrLines, UsersListForeign* pUsersListForeign)
-						// to turn the m_arrLines entries (which know nothing of the contents of each line)
-						// into a list of UsersListForeign structs (unordered), whic LoadDataForPage()
-						// can then use.
+						// to use, and then ListUsers()
 						//wxString resultFile = _T("list_users_report_results.dat");
 						bool bArrOK = DatFile2StringArray(execPath, resultFile, m_arrLines); // cloned in AI.h
 						wxUnusedVar(bArrOK);
 
-						// Now dependence on the returned .dat file is removed, m_arrLines has
-						// what the Manager code now needs for setting up the page 0 of it.
-
-						/*
-						if (!dataStr.IsEmpty())
+						// The only thing remaining to do here is to compare
+						// usernames, to see if a permission change was wanted
+						// for a different user, or for the same one - and to
+						// record the result of this decision in a boolean
+						// member of the app: m_bChangePermission_DifferentUser
+						// as that enables us to provide two processing paths
+						// through the LoadDataForPage(0) call later on. If
+						// this bool is FALSE, the username hasn't changed, so
+						// we have a simpler job to toggle the GUI checkbox
+						// to agree with what the wxExecute() call did.
+						if (m_ChangePermission_NewUser == m_ChangePermission_OldUser)
 						{
-							offset = dataStr.Find(comma);
-							wxString username = dataStr.Left(offset); // << username value determined
+							m_bChangePermission_DifferentUser = FALSE;
+						}
+						else
+						{
+							m_bChangePermission_DifferentUser = TRUE;
+						}
 
-							wxString shorter = dataStr.Mid(offset + 1);
-							offset = shorter.Find(comma);
-							wxString fullname = shorter.Left(offset);
-
-							shorter = dataStr.Mid(offset + 1);
-							offset = shorter.Find(comma);
-							wxString password = shorter.Left(offset);
-
-							shorter = shorter.Mid(offset + 1);
-							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's '1' or '0'
-							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
-
-							// We have the required 4 fields per line
-						*/
 					break;
 					}
 					case create_entry: // = 4
@@ -22273,27 +22334,33 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case change_permission: // = 10
 					{
-						// no post-wxExecute() things to do here
+						/* wxExecute() uses the list_users call - so this code needs to be in case 3 above
+						// The only thing needed here is to compare
+						// usernames, to see if a permission change was wanted
+						// for a different user, or for the same one - and to
+						// record the result of this decision in a boolean
+						// member of the app: m_bChangePermission_DifferentUser
+						// as that enables us to provide two processing paths
+						// through the LoadDataForPage(0) call later on. If
+						// this bool is FALSE, the username hasn't changed, so
+						// we have a simpler job to toggle the GUI checkbox
+						// to agree with what the wxExecute() call did.
+						if (m_ChangePermission_NewUser == m_ChangePermission_OldUser)
+						{
+							m_bChangePermission_DifferentUser = FALSE;
+						}
+						else
+						{
+							m_bChangePermission_DifferentUser = TRUE;
+						}
+						*/
 						break;
 					}
 					case change_fullname: // = 11
 					{
-						// We must check if app's m_strChangeFullname_User2, which
-						// was the username for which the associated fullname value
-						// has now been changed, is the same username as app's
-						// m_strUserID - the latter is the username for the currently
-						// open kbserver sharing project. If it is, then the change
-						// of the fullname for this m_strUserID has to reset the
-						// app's m_strFullname (ie. it's stored old fullname value)
-						// to m_strChangeFullname, to keep things in sync. We don't
-						// need to do this if the user names don't match, because that
-						// means that the current project's fullname is not being
-						// changed, but rather only the fullname for one of the other
-						// users listed in the KB Sharing Mgr's user list.
-						if (m_strChangeFullname_User2 == m_strUserID)
-						{
-							m_strFullname = m_strChangeFullname; // resets curr project's fullname
-						}
+						// The function, in LoadDataForPage(0) for assigning 
+						// a fullname change, assigns it to app's m_mgrFullnameArray,
+						// so go there to get it - at index m_nMgrSel - in LoadDataForPage()
 						break;
 					}
 					} // end of switch
@@ -22602,9 +22669,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// default, which is 5 
 	m_nKbServerIncrementalDownloadInterval = 5;
 	m_bConfigMovedDatFileError = FALSE;
+	m_nMgrSel = -1;
+	m_bChangePermission_DifferentUser = FALSE; // default value
+	m_ChangePermission_OldUser = wxEmptyString; // set it in ConfigureMovedDatFile(), approx 21,595
+	m_ChangePermission_NewUser = wxEmptyString; // also set in ConfigureMovedDatFile()
 
 	m_bHasUseradminPermission = FALSE; // governs whether user can access the KB Sharing Manager
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
+	m_bChangingPermission = FALSE; // initialise
 #endif
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
@@ -36997,29 +37069,6 @@ void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
-
-// BEW 10Nov20 created, a function to encapsulate the complexities of lookup,
-// checking useradmin value, the 2-user dialog for Authenticate, after instantiating
-// KbSvrHowGetUrl() class (it's internally changed for ipAddr, but Url can stay in
-// its name) to set the pKbSrv_>m_bForManager member of KbServer.h to TRUE for a
-// Sharing Manager access attempt. The user2 of the 2-user Authenticate dialog is
-// the checkUser that will be checked for useradamin == 1, and if it is not that
-// high a permission level, then access to the Manager will be blocked. The first
-// username of the 2-user dialog can be any user with credentials sufficient for
-// login to kbserver; typically the current user for the sharing of adaptations or
-// glosses.
-bool CAdapt_ItApp::PrepareForListUsers(wxString& ipAddr, wxString& username, wxString& pwd,
-	wxString& checkUser, bool bForManager)
-{
-
-// TODO  -- BEW 18Dec20, no, deprecate & remove
-
-
-
-	return TRUE;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -37164,7 +37213,21 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 {
 	// BEW 14Nov20 for arrLines, pass in app->m_arrLines, which has been populated
 	// already in the CallExecute(list_users, ..... ) call, in the switch for case 3
-	// which follows the ::wxExecute() call. Handling unescaping of \' is done there. 
+	// which follows the ::wxExecute() call. Handling unescaping of \' is done there.
+	if (arrLines.IsEmpty())
+	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("\n%s::%s(),line %d: arrLines is EMPTY"), __FILE__, __FUNCTION__, __LINE__);
+#endif
+		return;
+	}
+	else
+	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("\n%s::%s(),line %d: arrLines is NOT EMPTY, count = %d"), 
+					__FILE__, __FUNCTION__, __LINE__, arrLines.GetCount());
+#endif
+	}
 #if defined (_DEBUG)
 	wxString username = wxEmptyString;
 	wxString fullname = wxEmptyString;
@@ -37196,6 +37259,8 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 				field = wxString(str.Left(offset));
 #if defined (_DEBUG)
 				username = field;
+				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber list_users = %d, username: %s , for field index: %d"),
+					__FILE__, __FUNCTION__, __LINE__, list_users, username.c_str(), pos);
 #endif
 				m_mgrUsernameArr.Add(field);
 				// Shorten
@@ -37208,6 +37273,8 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 				field = wxString(str.Left(offset));
 #if defined (_DEBUG)
 				fullname = field;
+				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, fullname: %s , for field index: %d"),
+					__FILE__, __FUNCTION__, __LINE__, list_users, fullname.c_str(), pos);
 #endif
 				m_mgrFullnameArr.Add(field);
 				// Shorten
@@ -37220,6 +37287,8 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 				field = wxString(str.Left(offset));
 #if defined (_DEBUG)
 				password = field;
+				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, password: %s , for field index: %d"),
+					__FILE__, __FUNCTION__, __LINE__, list_users, password.c_str(), pos);
 #endif
 				m_mgrPasswordArr.Add(field);
 				// Shorten
@@ -37244,32 +37313,132 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 #if defined (_DEBUG)
 					useradmin = 1;
 #endif
-				}
-
-				// We are done for inner loop - one user record handled
-				wxLogDebug(_T("%s::%s(), line %d : funcNumber for enum list_users = %d"),
-					__FILE__, __FUNCTION__, __LINE__, list_users);
+				}				
+				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, useradmin: %d , for field index: %d"),
+					__FILE__, __FUNCTION__, __LINE__, list_users, useradmin, pos);
 				break;
 			};
 		} // end of for loop: for (pos = 0; pos <= fieldsCount; pos++)
 
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d"),
+		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d , for line index %d"),
 			__FILE__, __FUNCTION__, __LINE__, username.c_str(),
-			fullname.c_str(), password.c_str(), useradmin == TRUE ? 1 : 0);
+			fullname.c_str(), password.c_str(), useradmin == TRUE ? 1 : 0, lineIndex);
 
 #endif
-	}
+	} // end of for loop: for (lineIndex = 0; lineIndex < linesArrayCount; lineIndex++)
 }
 // BEW 18Dec20, created for use with the KB Sharing Manager's refactored storage
-void CAdapt_ItApp::EmptyMgrArrays()
+// If bNormalSet is TRUE, it's the set of arrays for when user details change; if
+// FALSE, it's the "SavedSet" (for comparison purposes) 
+void CAdapt_ItApp::EmptyMgrArraySet(bool bNormalSet)
 {
-	// Remove the content of each array, but retain each array instance for refilling 
-	// with different values
-	m_mgrUsernameArr.Empty();
-	m_mgrFullnameArr.Empty();
-	m_mgrPasswordArr.Empty();
-	m_mgrUseradminArr.Empty();
+	// Remove the content of each array, but retain each array  
+	//instance for refilling with different values
+	if (bNormalSet)
+	{
+		if (m_mgrUsernameArr.IsEmpty())
+		{
+			// All four are already empty
+			return;
+		}
+		// Empty these four
+		m_mgrUsernameArr.Empty();
+		m_mgrFullnameArr.Empty();
+		m_mgrPasswordArr.Empty();
+		m_mgrUseradminArr.Empty();
+	}
+	else
+	{
+		if (m_mgrSavedUsernameArr.IsEmpty())
+		{
+			// All four are already empty
+			return;
+		}
+		// Otherwise empty the Saved Set's four
+		m_mgrSavedUsernameArr.Empty();
+		m_mgrSavedFullnameArr.Empty();
+		m_mgrSavedPasswordArr.Empty();
+		m_mgrSavedUseradminArr.Empty();
+	}
+}
+
+void CAdapt_ItApp::CopyMgrArray(wxArrayString& srcArr, wxArrayString& destArr) // BEW created 21Dec20
+{
+	int count = 0; int destCount = 0;
+	count = srcArr.GetCount();
+	if (count == 0)
+	{
+		return; 
+	}
+	destCount = destArr.GetCount();
+	if (destCount > 0)
+	{
+		// Oops, gotta clear the destination array in caller first
+		return;
+	}
+	// Insanity checks satisfied, continue on
+	wxString s;
+	int i;
+	for (i = 0; i < count; i++)
+	{
+		s = srcArr.Item(i);
+		destArr.Add(s);
+	}
+}
+
+void CAdapt_ItApp::CopyMgrArrayInt(wxArrayInt& srcArr, wxArrayInt& destArr) // BEW created 21Dec20
+{
+	int count = 0; int destCount = 0;
+	count = srcArr.GetCount();
+	if (count == 0)
+	{
+		return;
+	}
+	destCount = destArr.GetCount();
+	if (destCount > 0)
+	{
+		// Oops, gotta clear the destination array in caller first
+		return;
+	}
+	// Insanity checks satisfied, continue on
+	int index;
+	int i;
+	for (i = 0; i < count; i++)
+	{
+		index = srcArr.Item(i);
+		destArr.Add(index);
+	}
+}
+
+// BEW created 21Dec20  copies the array sets, in either direction.
+// TRUE passed in, copies to emptied 'saved set' destination arrays
+// from the 'normal set' source array set
+// FALSE passed in, copies to emptied 'normal set' destination arrays
+// from the source 'saved set' arrays.
+void CAdapt_ItApp::MgrCopyFromSet2DestSet(bool bNormalToSaved)
+{
+	if (bNormalToSaved)
+	{
+		// Empty the destination 'saved set' before refilling the it with 'normal set'
+		EmptyMgrArraySet(!bNormalToSaved); // Empty destination set first
+
+		CopyMgrArray(m_mgrUsernameArr, m_mgrSavedUsernameArr);
+		CopyMgrArray(m_mgrFullnameArr, m_mgrSavedFullnameArr);
+		CopyMgrArray(m_mgrPasswordArr, m_mgrSavedPasswordArr);
+		CopyMgrArrayInt(m_mgrUseradminArr, m_mgrSavedUseradminArr);
+	}
+	else
+	{
+		// Otherwise empty the Saved Set's four
+
+		EmptyMgrArraySet(!bNormalToSaved); // Empty destination set first
+
+		CopyMgrArray(m_mgrSavedUsernameArr, m_mgrUsernameArr);
+		CopyMgrArray(m_mgrSavedFullnameArr, m_mgrFullnameArr);
+		CopyMgrArray(m_mgrSavedPasswordArr, m_mgrPasswordArr);
+		CopyMgrArrayInt(m_mgrSavedUseradminArr, m_mgrUseradminArr);
+	}
 }
 
 wxString CAdapt_ItApp::DumpManagerArray(wxArrayString& arr)
@@ -37344,6 +37513,48 @@ wxString CAdapt_ItApp::DumpManagerUseradmins(wxArrayInt& arr)
 	}
 	return strDump;
 }
+// BEW Created 21Dec20 - extract a field (wxString value) from the matrix
+wxString CAdapt_ItApp::GetFieldAtIndex(wxArrayString& arr, int index)
+{
+	wxString field = wxEmptyString;
+	field = arr.Item(index);
+	return field;
+}
+// BEW Created 21Dec20 - extract a field (int value) from the matrix
+int CAdapt_ItApp::GetIntAtIndex(wxArrayInt& arr, int index)
+{
+	int field = wxNOT_FOUND; // initialise
+	field = arr.Item(index);
+	return field;
+}
+// BEW created 22Dec20
+void CAdapt_ItApp::SetFieldAtIndex(wxArrayString& arr, int index, wxString field)
+{
+	int count = arr.GetCount();
+	if ((index < 0) || (index > count - 1))
+	{
+		// bounds error - do nothing, just beep
+		wxBell();
+		return;
+	}
+	arr.RemoveAt(index, 1); // higher contents slide down by 1
+	arr.Insert(field, index, 1); // inserts 1 copy of field at unchanged index location
+}
+
+// BEW created 22Dec20
+void CAdapt_ItApp::SetIntAtIndex(wxArrayInt& arr, int index, int field)
+{
+	int count = arr.GetCount();
+	if ((index < 0) || (index > count - 1))
+	{
+		// bounds error - do nothing, just beep
+		wxBell();
+		return;
+	}
+	arr.RemoveAt(index, 1); // higher contents slide down by 1
+	arr.Insert(field, index, 1); // inserts 1 copy of field at unchanged index location
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
