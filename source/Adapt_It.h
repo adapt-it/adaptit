@@ -863,8 +863,9 @@ enum ServDiscDetail
 	const int upload_local_kb = 9;
 	const int change_permission = 10;
 	const int change_fullname = 11;
+	const int change_password = 12;
 	// add more here, as our solution matures
-	const int blanksEnd = 12; // this one changes as we add more above
+	const int blanksEnd = 13; // this one changes as we add more above
 #endif
 
 
@@ -2203,6 +2204,7 @@ class CAdapt_ItApp : public wxApp
 	wxString PathToExecFolder(); // ending in the path separator
 
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
+	bool m_bDoingChangePassword; // BEW added, 11Jan21, default FALSE - for KB Sharing Mgr
 
 	// Handler files for the cases in the KBserverDAT_Blanks switch
 	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
@@ -3464,7 +3466,9 @@ public:
 	// for change_fullname, at lines 3430-1
 	wxString	m_strChangePermission_User2;
 	wxString	m_strChangeFullname_User2; // BEW added 9Dec20
-	wxString	m_strChangeFullname; // BEW added 9Dec20
+	wxString	m_strChangeFullname;       // BEW added 9Dec20
+	wxString	m_strChangePassword_User2;    // BEW added 11Jan21
+	wxString	m_ChangePassword_NewPassword; // BEW added 11Jan21
 
 	bool		m_bUserAuthenticating;
 	bool		m_bUser1IsUser2; // default FALSE - needed in LookupUser()
@@ -3485,6 +3489,7 @@ public:
 	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
 	void MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath); // = 10
 	void MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath); // = 11
+	void MakeChangePassword(const int funcNumber, wxString execPath, wxString distPath); // = 12
 	void CheckForDefinedGlossLangName();
 
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that

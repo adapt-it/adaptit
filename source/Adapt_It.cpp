@@ -20032,6 +20032,11 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 				MakeChangeFullname(change_fullname, execPath, distPath);
 				break;
 			}
+			case change_password: // = 12
+			{
+				MakeChangePassword(change_password, execPath, distPath);
+				break;
+			}
 
 			// Add additional cases here, as our solution matures
 
@@ -20491,6 +20496,43 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			{
 				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
 				wxString msg = _("do_change_fullname.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString caption = _("ConfigureDatFile resource absent error");
+				LogUserAction(msg);
+				wxMessageBox(msg, caption); // for user or developer to see
+				return FALSE;
+			}
+			break;
+		}
+		case change_password: // = 12
+		{
+			wxString filename = _T("change_password.dat");
+			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			ConfigureMovedDatFile(change_password, filename, execFolderPath);
+			// The .exe with the python code for doing the SQL etc, has to be
+			// in the execFolderPath's folder as well, do it now - it is in
+			// the dist folder
+			wxString execFilename = _T("do_change_password.exe");
+			wxString execInDist = distFolderPath + execFilename;
+			bool bPresentInDist = ::FileExists(execInDist);
+			if (bPresentInDist)
+			{
+				// Check if do_change_password.exe is already in the AI executable's folder,
+				// if it is - no need to move the dist one to there; otherwise, move it
+				// Once there, it can stay there forever (but manually remove it if
+				// we develop a new version of the file's code contents)
+				wxString destinationPath = execFolderPath + execFilename;
+				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+				if (!bPresentInAIExecFolder)
+				{
+					// Copy it to there
+					wxCopyFile(execInDist, destinationPath);
+				}
+			}
+			else
+			{
+				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_password.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption); // for user or developer to see
@@ -21702,8 +21744,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// The username2 has to come from the Sharing Manager, and fullname also,
 		// to complete the commandLine for a change of fullname done in KB Sharing Mgr
-		tempStr = m_strChangeFullname_User2; // RHS set from m_pUserStructForeign in the
-											 // KB Sharing Mgr's OnSelchangeUsersList()
+		tempStr = m_strChangeFullname_User2; 
 		tempStr = DoEscapeSingleQuote(tempStr);
 		commandLine += tempStr + comma;
 
@@ -21721,6 +21762,64 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			tempStr = DoEscapeSingleQuote(tempStr);
 			commandLine += tempStr;
 		}
+		// That finishes the commandLine to be put into the input .dat file.
+
+		// Now in the caller the file has been moved to the parent folder 
+		// of the dist folder; so use wxTextFile to make the changes in
+		// the file copy within the parent folder: "change_fullname.dat" 
+		// so it has only the above commandLine value stored in it
+		wxString datPath = execPath + filename;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				// Clear out the boilerplate content
+				f.Clear();
+				// Now add commandLine as the only line
+				f.AddLine(commandLine);
+				f.Write();
+				f.Close();
+				// File: change_fullname.dat now just has the relevant data 
+				// fields for the subsequent do_change_fullname.exe to use 
+				// as argument in wxExecute()
+			}
+		}
+		else
+		{
+			// Unlikely to fail, a bell ring will do
+			wxBell();
+		}
+		break;
+	}
+	case change_password: // = 12
+	{
+		m_resultDatFileName = _T("change_password_return_results.dat");
+		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
+		m_bUserAuthenticating = FALSE;
+		wxString tempStr;
+		commandLine = m_chosenIpAddr + comma;
+		UpdateIpAddr(m_chosenIpAddr);
+		// in case of embedded single quotes, escape them with
+		// tempStr = DoEscapeSingleQuote(tempStr);
+		tempStr = m_strUserID;
+		tempStr = DoEscapeSingleQuote(tempStr);
+		commandLine += tempStr + comma;
+
+		// And the password should be the one associated by the above line,
+		// as stored in m_curNormalPassword;
+		wxASSERT(!m_curNormalPassword.IsEmpty());
+		commandLine += m_curNormalPassword + comma;
+
+		// The username2 has to come from the Sharing Manager, and password also,
+		// to complete the commandLine for a change of password done in KB Sharing Mgr
+
+		// RHSides set from Handler for 'Change Password' button
+		commandLine += m_strChangePassword_User2 + comma;
+		commandLine += m_ChangePassword_NewPassword;
+		
 		// That finishes the commandLine to be put into the input .dat file.
 
 		// Now in the caller the file has been moved to the parent folder 
@@ -21840,8 +21939,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	const int upload_kb_lines = 9;
 	const int change_permission = 10;
 	const int change_fullname = 11;
+	const int change_password = 12;
 	// add more here, as our solution matures
-	const int blanksEnd = 12; // this one changes as we add more above
+	const int blanksEnd = 13; // this one changes as we add more above
 	*/
 	switch (funcNumber)
 	{
@@ -21951,6 +22051,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		bReportResult = FALSE;
 		// Escaping single quotes as already been done on the selected username
 		// and on the selected fullname
+		break;
+	}
+	case change_password: // = 12
+	{
+		// This is a KB Sharing Manager case, so no report wanted
+		bReportResult = FALSE;
 		break;
 	}
 	case blanksEnd:
@@ -22363,6 +22469,13 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// so go there to get it - at index m_nMgrSel - in LoadDataForPage()
 						break;
 					}
+					case change_password: // = 12
+					{
+						// The function, in LoadDataForPage(0) for assigning 
+						// a password change, assigns it to app's m_mgrPasswordArray,
+						// so go there to get it - at index m_nMgrSel - in LoadDataForPage()
+						break;
+					}
 					} // end of switch
 			
 				} // end of TRUE block for test: if (bMoreThanOneLine && bSuccess)
@@ -22677,6 +22790,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bHasUseradminPermission = FALSE; // governs whether user can access the KB Sharing Manager
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
 	m_bChangingPermission = FALSE; // initialise
+	m_bDoingChangePassword = FALSE; // initialise
 #endif
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
@@ -61111,6 +61225,76 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, w
 	}
 }
 
+void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString execPath, wxString distPath)
+{
+	wxASSERT(!execPath.IsEmpty());
+	wxASSERT(!distPath.IsEmpty());
+	wxUnusedVar(funcNumber);
+	wxString datFilename = _T("change_password.dat");
+	wxString datFilePath = distPath + datFilename;
+	bool bDataFileExists = wxFileExists(datFilePath);
+	if (bDataFileExists)
+	{
+		// Since it only needs to be created once, and it already exists where we
+		// want it to be, just exit
+		return;
+	}
+	else
+	{
+		// Build it, and drop it in the dist folder
+		wxTextFile f;
+		bool bIsOpened = FALSE;
+		f.Create(datFilePath);
+		bIsOpened = f.Open();
+		if (bIsOpened)
+		{
+			wxString line = _T("# Usage: ipAddress,username,password,selected_username,selected_password,");
+			f.AddLine(line);
+			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+			f.AddLine(line);
+			line = _T("# dist folder's 'input' file: change_password.dat");
+			f.AddLine(line);
+			line = _T("# AI executable's folder, output file: change_password_return_results.dat");
+			f.AddLine(line);
+			line = _T("# (A) Login uses first 3 fields, and ignores selected_username & selected_password");
+			f.AddLine(line);
+			line = _T("# (B) If login succeeds, search for selected_username in the user table, and when");
+			f.AddLine(line);
+			line = _T("# it is found, update user table to change the associated password to selected_password.");
+			f.AddLine(line);
+			line = _T("# Purpose for this .dat input file:");
+			f.AddLine(line);
+			line = _T(" Get the current useradmin value of selected_username, then update the");
+			f.AddLine(line);
+			line = _T("# record in user table to replace password value with selected_password.");
+			f.AddLine(line);
+			line = _T("# If selected_username is not in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should include a message like: \"not in user table\" and lacking the string \"success\".");
+			f.AddLine(line);
+			line = _T("# If selected_username is indeed in the user table, the returned .dat file");
+			f.AddLine(line);
+			line = _T("# should contain just two lines with \"success\" as the first word in the first line,");
+			f.AddLine(line);
+			line = _T("# and the value of selected_password in the second line");
+			f.AddLine(line);
+			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,JoeBloggs,anypwd");
+			f.AddLine(line);
+			line = _T("and Output .dat file, change_password_return_results.dat, 2 lines, contents as above.");
+			f.AddLine(line);
+			line = _T("ipAddress,username,password,selected_username,selected_password");
+			f.AddLine(line);
+			f.Write();
+			f.Close();
+		}
+#if defined (_DEBUG)
+		// Check it's there now
+		bDataFileExists = wxFileExists(datFilePath);
+		wxASSERT(bDataFileExists);
+		wxUnusedVar(bDataFileExists);
+#endif
+	}
+}
 
 // BEW 6Nov20 This function is needed for the following reason.
 // The Preferences... > Backups & Misc page has 4 text boxes,

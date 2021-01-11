@@ -84,6 +84,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	//EVT_CHECKBOX(ID_CHECKBOX_KBADMIN, KBSharingMgrTabbedDlg::OnCheckboxKbadmin)
 	EVT_BUTTON(ID_BUTTON_CHANGE_PERMISSION, KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission)
 	EVT_BUTTON(ID_BUTTON_CHANGE_FULLNAME, KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname)
+	EVT_BUTTON(ID_BUTTON_CHANGE_PASSWORD, KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword)
 
 	EVT_BUTTON(wxID_OK, KBSharingMgrTabbedDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, KBSharingMgrTabbedDlg::OnCancel)
@@ -337,15 +338,15 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	// Create the 2nd UsersList to store original copies before user's edits etc
 	// (destroy it in OnOK() and OnCancel())
-	m_pOriginalUsersList = new UsersListForeign;
-	m_pUsersListForeign = new UsersListForeign;
+	//m_pOriginalUsersList = new UsersListForeign;
+	//m_pUsersListForeign = new UsersListForeign;
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
 	//m_pCheckKbAdmin->SetValue(FALSE);
 
 	// Hook up to the m_usersList member of the KbServer instance
-	m_pUsersListForeign = m_pKbServer->GetUsersListForeign(); // an accessor for m_usersListForeign
+	//m_pUsersListForeign = m_pKbServer->GetUsersListForeign(); // an accessor for m_usersListForeign
 
 	// Add the kbserver's ipAddr to the static text 2nd from top of the tabbed dialog
 	wxString myStaticText = m_pConnectedTo->GetLabel();
@@ -367,7 +368,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// stores it here. When deleted, this pointer should be reset to NULL. And the
 	// OnCancel() and OnOK() functions must check here for a non-null value, and if found,
 	// delete it from the heap before they return (to avoid a memory leak)
-	m_pOriginalUserStruct = NULL;
+//	m_pOriginalUserStruct = NULL;
 	// Ditto for the one for the Create Kbs page and the Edit Kbs page
 	//m_pOriginalKbStruct = NULL; // BEW deprecated 13Nov20
 
@@ -646,7 +647,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 					// Get the wxTextCtrl's updated value
 					wxString strFullname = m_pEditInformalUsername->GetValue();
 					wxASSERT(m_pApp->m_nMgrSel != wxNOT_FOUND);
-					m_pApp->m_mgrFullnameArr.RemoveAt(m_pApp->m_nMgrSel);
+					m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel);
 					m_pApp->m_mgrFullnameArr.Insert(strFullname, m_pApp->m_nMgrSel);
 				}
 				else
@@ -654,6 +655,20 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 					fullname = m_pApp->m_mgrFullnameArr.Item(m_pApp->m_nMgrSel);
 					m_pEditInformalUsername->ChangeValue(fullname);
 				}
+
+				if (m_pApp->m_bDoingChangePassword && (m_pApp->m_nMgrSel != -1))
+				{
+					m_pEditShowPasswordBox->Clear();
+					wxString strPwd = m_pApp->m_ChangePassword_NewPassword; // stored here 
+																// after wxExecute() done
+					// We'll not show it changed, but require a "Show Password" click
+					// to get the new value displayed. But to display it, it first
+					// has to be lodged in the relevant m_mgr....Array of AI.h
+					wxASSERT(m_pApp->m_nMgrSel != wxNOT_FOUND);
+					m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel);
+					m_pApp->m_mgrPasswordArr.Insert(strPwd, m_pApp->m_nMgrSel);
+				}
+
 				// Set the useradmin checkbox's value to what it should be, if
 				// it needs changing
 				if (m_pApp->m_bChangingPermission && m_pApp->m_bChangePermission_DifferentUser)
@@ -727,7 +742,8 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 
 	} // end of TRUE block for test: if (pageNumSelected == 0)
 	m_pApp->m_bDoingChangeFullname = FALSE; // re-initialise pending a new request for fullname change
-	m_pApp->m_bChangingPermission = FALSE; // likewise, restore detault
+	m_pApp->m_bDoingChangePassword = FALSE; // restore default
+	m_pApp->m_bChangingPermission = FALSE; // restore default
 	m_bLegacyEntry = TRUE; // reset default value
 }
 
@@ -941,6 +957,52 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 			m_pApp->m_strChangeFullname.Clear();
 			m_pApp->m_strChangeFullname_User2.Clear();
 		}
+	} // end of TRUE block for test: if (bReady)
+}
+
+void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNUSED(event))
+{
+	m_pApp->m_bDoingChangePassword = TRUE;
+	// Get the new password value
+	wxString newPassword = m_pEditShowPasswordBox->GetValue(); // user should have typed the new one
+	m_pApp->m_ChangePassword_NewPassword = newPassword; // make sure app knows it
+	m_pApp->m_strChangePassword_User2 = m_pApp->m_Username2; // so LoadDataForPage(0) can grab it
+
+	// Test, it's same as what's in gui text ctrl
+	wxString guiUser2 = m_pTheUsername->GetValue(); // use this if the assert trips
+	wxASSERT(guiUser2 == m_pApp->m_Username2); 
+
+#if defined (_DEBUG)
+	wxLogDebug(_T("%s::%s() line %d: before ConfiDATfile(change_password): newPassword: %s (old)m_Username2: %s , guiUser2: %s"),
+		__FILE__, __FUNCTION__, __LINE__, newPassword.c_str(), m_pApp->m_Username2.c_str(), guiUser2.c_str());
+#endif
+	bool bReady = m_pApp->ConfigureDATfile(change_password); // arg is const int, value 12
+	if (bReady)
+	{
+		// The input .dat file is now set up ready for do_change_fullname.exe
+		wxString execFileName = _T("do_change_password.exe");
+		wxString execPath = m_pApp->execPath;
+		wxString resultFile = _T("change_password_return_results.dat");
+
+		bool bExecutedOK = FALSE;
+		bExecutedOK = m_pApp->CallExecute(change_password, execFileName, execPath, resultFile, 99, 99);
+		if (!bExecutedOK)
+		{
+			// error in the call, inform user, and put entry in LogUserAction() - English will do
+			wxString msg = _T("Line %d: CallExecute for enum: change_password, failed - perhaps input parameters (and/or password) did not match any entry in the user table; Adapt It will continue working ");
+			msg = msg.Format(msg, __LINE__);
+			wxString title = _T("Probable do_change_password.exe error");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			m_pApp->LogUserAction(msg);
+		}
+		// At this point, the user table is altered, so it just remains to
+		// load in the new state to the m_pUsersListBox
+		LoadDataForPage(0);
+
+		// Clear these, until such time as another change of fullname is done
+		m_pApp->m_ChangePassword_NewPassword.Clear();
+		m_pApp->m_strChangePassword_User2.Clear();
+		
 	} // end of TRUE block for test: if (bReady)
 }
 

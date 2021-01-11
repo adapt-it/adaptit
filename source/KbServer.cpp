@@ -6076,6 +6076,12 @@ bool KbServer::MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whic
 		whichDATfile = datFileName;
 		break;
 	}
+	case change_password: // = 12
+	{
+		datFileName = _T("change_password.dat");
+		whichDATfile = datFileName;
+		break;
+	}
 
 	case blanksEnd:
 	{
@@ -6268,7 +6274,7 @@ bool KbServer::MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whic
 		}  // end of else block for test: if (bPresent)
 
 #if defined (_DEBUG)
-		// If funcNumber is in range, for augmenting the counter, log its vallue
+		// If funcNumber is in range, for augmenting the counter, log its value
 		if (funcNumber > 3 && funcNumber < 8)
 		{
 			wxLogDebug(_T("%s::%s() line %d, whichCounter value = %d"), __FILE__,

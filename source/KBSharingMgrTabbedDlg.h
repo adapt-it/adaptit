@@ -135,6 +135,7 @@ protected:
 	void  ClearCurPwdBox();
 	void  OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event)); // BEW 31Aug20
 	void  OnButtonUserPageChangeFullname(wxCommandEvent& WXUNUSED(event)); // BEW 9Dec20
+	void  OnButtonUserPageChangePassword(wxCommandEvent& WXUNUSED(event)); // BEW 11Jan21
 
 	void  OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20  updated - no kbserver accesses
 	void  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event)); // BEW 29Aug20  updated, with wxMessage() to
@@ -160,9 +161,9 @@ protected:
 //	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
 //	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
 public:
-	UsersListForeign* m_pUsersListForeign; // initialize in InitDialog() as the KbServer 
+//	UsersListForeign* m_pUsersListForeign; // initialize in InitDialog() as the KbServer 
 										   // instance has the list
-	UsersListForeign* m_pOriginalUsersList; // store copies of KbServerUser structs at
+//	UsersListForeign* m_pOriginalUsersList; // store copies of KbServerUser structs at
 											// entry, for comparison with final list
 											// after the edits, removals and additions
 											// are done
