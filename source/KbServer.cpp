@@ -6285,8 +6285,9 @@ bool KbServer::MoveOrInPlace(const int funcNumber, CAdapt_ItApp* pApp, int& whic
 	return TRUE;
 }
 
-// The array has no top line with "success" & timestamp, so the
+// The array has no top line with "success" & a timestamp, so the
 // loop indexes from 0 to size - 1
+// BEW retain this 11Jan20 -- needed for ChangedSince_Timed()
 bool KbServer::Line2EntryStruct(wxString& aLine)
 {
 	ClearEntryStruct();
