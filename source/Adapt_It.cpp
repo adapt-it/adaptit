@@ -21392,8 +21392,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bUseSuffixExportDateTimeOnFilename = FALSE; // whm added 9Dec11
     m_bUsePrefixExportProjectNameOnFilename = FALSE; // whm added 21Feb12
 
-    //m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
-    m_aiDeveloperEmailAddresses = _T("support@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
+    // whm 15Jan2021 Note: Email sent to both developers@adapt-it.org and support@adapt-it.org get redirected to AID team developers 
+    m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
+    //m_aiDeveloperEmailAddresses = _T("support@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
     m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words
                                                // into phrases for adapting
