@@ -2375,7 +2375,10 @@ class CAdapt_ItApp : public wxApp
 	// the appropriate function which configures a .DAT file, locating it in the app's
 	// folder, and populating it with the comma separated commandLine for that .DAT file
 	bool ConfigureDATfile(const int funcNumber);
-
+	bool m_bKBEditorEntered; // TRUE if View.cpp OnToolKbEditor(unused wxCommandEvent event) is invoked
+							 // FALSE when the handler is exited. Used for invoking the speedier
+							 // CreateEntry function, for enum value create_entry (=4) when user
+							 // is NOT in the KB Editor tabbed dialog
 	// BEW 18Aug20 next three calls are used in sequence to (a) delete the old
 	// .dat file from the execPath, (b) move the 'blank' .dat file up from the dist folder
 	// to the parent folder, the execPath folder, and (c) configure the moved up .dat
@@ -2416,12 +2419,7 @@ class CAdapt_ItApp : public wxApp
 	int m_nLookupUserCount;
 	int m_nListUsersCount;
 
-
-
-
-	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
-	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
-
+	// BEW 18Apr16 CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
 
 	wxArrayString		m_theIpAddrs;      // lines of form <ipAddress> from CServiceDiscovery::m_ipAddrsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr

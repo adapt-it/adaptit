@@ -960,11 +960,20 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // we have to detect that & change it to zero, otherwise bounds checking won't let us
     // exit the box
 	if (m_refCount < 0)
+	{
+		// protection...
 		m_refCount = 0;
+	}
+	// BEW 19Jan21, refactor next bit, so that local KB stores empty string for <no adaptation>
+	// but mysql kbserver entry table stores '<no adaptation>' (without the quotes of course)
+	// because the python code in do_pseudo_undelete.py cannot correctly handle an empty string,
+	// when undeleting, entry table needs to store <no adaptation> so that there's something to grab
+	bool bWasNoAdaptation = FALSE; // initialise
 	if (str == s)
 	{
 		// if str was reset to "<no adaptation>" then make it empty for any kb check below
 		str = _T("");
+		bWasNoAdaptation = TRUE;
 	}
 
 	// in support of removal when autocapitalization might be on - see the OnButtonRemove handler
@@ -986,12 +995,19 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
         (gpApp->m_bIsGlossingKBServerProject && gpApp->KbGlossRunning() ) )
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
-
+		int rv = -1; // initialise to error value
 		if (!gpApp->pCurTargetUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
-			wxUnusedVar(rv);
+			if (bWasNoAdaptation)
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, s);
+			}
+			else
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);				
+			}
 		}
+		wxUnusedVar(rv);
 	}
 #endif
 	// remove the corresponding CRefString instance from the knowledge base...

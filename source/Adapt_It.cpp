@@ -20063,6 +20063,14 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 
 bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 {
+	// Next 3 are for buttons in the KB Sharing Manager, and
+	// we default them all to FALSE here, to ensure code which
+	// checks for TRUE doesn't get invoked for any funcNumber,
+	// until such time that one of the buttons is clicked
+	m_bDoingChangeFullname = FALSE;
+	m_bDoingChangePassword = FALSE;
+	m_bChangingPermission = FALSE;
+
 	wxString distFolderPath = this->distPath;
 	wxString execFolderPath = this->execPath;
 	bool execExists = wxDirExists(execFolderPath);
@@ -20197,8 +20205,20 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For getting a new entry added to the entry table, with an
 			// internal check of the DB to ensure it is not a duplicate
 			wxString filename = _T("create_entry.dat");
-			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			if (m_bKBEditorEntered)
+			{
+				// If the user is in the KB Editor, the slower way can be
+				// used - starting with the boilerplate (blank) file in the
+				// dist folder - a child of the executable's folder. But
+				// if the user is not in the KB Editor, these two calls are
+				// skipped, and the input .dat file is created if not in
+				// existance, directly in the exec folder, and then filled
+				// filled directly then and thereafter with the constructed
+				// commandLine string's .dat file - which is 
+				// ConfigureMovedDatFile()'s job.
+				DeleteOldDATfile(filename, execFolderPath); // clear any previous one
+				MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			}
 			ConfigureMovedDatFile(create_entry, filename, execFolderPath);
 			// The .exe with the python code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -21049,7 +21069,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += tempStr + comma;
 		//wxASSERT(m_curNormalTgtLangName == m_targetName); <<-- may differ, ' versus \' within
 
-
 		tempStr = m_curNormalSource;
 		tempStr = DoEscapeSingleQuote(tempStr); // source text may have a ' within it
 		commandLine += tempStr + comma; // originating from signature of CreateEntry()
@@ -21094,12 +21113,48 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		wxString datPath = execPath + filename;
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
+		if (!m_bKBEditorEntered)
+		{
+			// This is the faster option, the file is opened in the executable's
+			// folder, cleared out, and command line's input .dat file saved. The
+			// first time this is entered, the file will not exist in the
+			// executable folder, so it must be created - then .Open() can be
+			// called on it. The faster option is for when the user is doing his
+			// adapting work - the code avoids grabbing the boilerplate file and
+			// moving it up to the exec folder - thereby saving a little time for
+			// an operation that will occur thousands of times. The parent function
+			// ConfigureDATfile() tests the boolean m_bKBEditorEntered, and if
+			// FALSE, the code which starts with the boilerplace file is skipped.
+			if (!bExists)
+			{
+				bool bCreated = f.Create(datPath);
+				if (bCreated)
+				{
+					bExists = TRUE;
+				}
+				else
+				{
+					// unlikely to fail, but if it did, make sure LogUserAction()
+					// logs a helpful message, and go no further  - failure will
+					// probably happen later, but this will indicate where it all started
+					wxString msg = _T("%s::%s() line %d: could not create TextFile for path: %s");
+					msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__, datPath.c_str());
+					LogUserAction(msg);
+					// Try for a Doc Save, in the hope of not losing work unsaved
+					wxCommandEvent dummy;
+					GetDocument()->OnFileSave(dummy);
+					m_bKBEditorEntered = FALSE;
+					wxBell();
+					return;
+				}
+			}
+		}
 		if (bExists)
 		{
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out the boilerplate content
+				// Clear out the boilerplate content, or former content
 				f.Clear();
 				// Now add commandLine as the only line
 				f.AddLine(commandLine);
@@ -21114,6 +21169,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			// Unlikely to fail, a bell ring will do
 			wxBell();
 		}
+		
 		break;
 	}
 	case pseudo_delete: // = 5
@@ -21167,18 +21223,37 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		tempStr = DoEscapeSingleQuote(tempStr);
 		commandLine += tempStr + comma; // from signature of PseudoDelete()
 
-		
-
+		// BEW 18Jan21 take care to support empty string for <no adaptation> entries.
+		// '' is a python empty string, adding \'\' (successive escaped single quotes)
+		// as NOT a solution; the .py still fails to match such a line. Rather than
+		// fiddle with the working .py code, I'll refactor so that '<no adaptation>'
+		// (localizable) gets stored in the entry table, but still only an empty string
+		// in the Adapt It local KB as before
+		//wxString emptyPyStr = _T("\'\'");
 		if (gbIsGlossing)
 		{
-			tempStr = m_curNormalGloss;
-			tempStr = DoEscapeSingleQuote(tempStr);
+			//if (m_curNormalGloss == emptyPyStr)
+			//{
+			//	tempStr = m_curNormalGloss; // it's already escaped
+			//}
+			//else
+			//{
+				tempStr = m_curNormalGloss;
+				tempStr = DoEscapeSingleQuote(tempStr);
+			//}
 			commandLine += tempStr + comma; // from signature of PseudoDelete()
 		}
 		else
 		{
-			tempStr = m_curNormalTarget;
-			tempStr = DoEscapeSingleQuote(tempStr);
+			//if (m_curNormalTarget == emptyPyStr)
+			//{
+			//	tempStr = m_curNormalTarget; // it's already escaped
+			//}
+			//else
+			//{
+				tempStr = m_curNormalTarget;
+				tempStr = DoEscapeSingleQuote(tempStr);
+			//}
 			commandLine += tempStr + comma; // from signature of PseudoDelete()
 		}
 		// Finally, the kbType and the deleted flag value
@@ -22786,6 +22861,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bChangePermission_DifferentUser = FALSE; // default value
 	m_ChangePermission_OldUser = wxEmptyString; // set it in ConfigureMovedDatFile(), approx 21,595
 	m_ChangePermission_NewUser = wxEmptyString; // also set in ConfigureMovedDatFile()
+	m_bKBEditorEntered = FALSE; // initialise
 
 	m_bHasUseradminPermission = FALSE; // governs whether user can access the KB Sharing Manager
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
@@ -23112,8 +23188,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // initialize kbadmin and useradmin flags associated with username (both being false
     // constitutes 'minimal' privilege level for access to the KB sharing remote database;
-    // these values may be overridden by ascertaining the username has increased privileges
-    // when a CheckForValidUsernameForKbServer() call is done. see helpers.cpp)
     m_kbserver_kbadmin = TRUE; //BEW 28Aug20 always TRUE, we now allow anyone to create a new KB
     m_kbserver_useradmin = FALSE;
 

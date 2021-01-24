@@ -340,50 +340,6 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 
 	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
 
-	// BEW comment 31Jan13
-	// I think that temporally long operations like uploading a whole KB or downloading the
-	// server's contents for a given project should not be done on a work thread. My
-	// reasoning is the following... The dialog will close (or if EndModal() below is
-	// omitted in this handler, the dialog will become responsive again) and the user may
-	// think that the upload or download is completed, when in fact a separate process may
-	// have a few minutes to run before it completes. The user, on closure of the dialog,
-	// may exit the project, or shut down the application - either of which will destroy
-	// the code resources which the thread is relying on to do its work. To avoid this
-	// kind of problem, long operations should be done synchronously, and be tracked by
-	// the progress indicator at least - and they should close the dialog when they complete.
-	// 
-	// BEW 29Jan15 Another kbserver client may happen to succeed in uploading a new entry 
-	// which is being attempted to be inserted into the remote DB by one of the up to 50 
-	// threads - if so, then when the thread with that same entry tries to have it entered
-	// into the remote DB, it will generate a http 401 error in the BulkEntry() call. We
-	// return all >= 400 errors as CU-R-LE_HTTP_RETURNED_ERROR, (not that that has any special
-	// significance) but m_returnedCurlCodes[] array will store it. We check for there being
-	// at least one such error - if there is at least one, we call UploadToKbServer() a second
-	// time (there should be far fewer entries to upload on the second try, and the probability
-	// of the same error happening again almost non-zero; so we check again, and if we find
-	// an error still, we call it a third time. We don't check again, and even if there was still
-	// a failure of one of the bulk upload subsets to get all its entries into the mysql DB, 
-	// we'll not tell the user and not try again. We just assume that the entries not inserted
-	// won't change the adaptation experience in any significant way, and let the dialog be
-	// dismissed (which to the user will be interpretted as full success)
-
-	// BEW Note, 25Jun15. Even though care is taken to avoid uploading an entry which is
-	// already in the remote server, my debug logging indicates that a few such do happen.
-	// For example, my most recent out-of-kb-sharing-mode adaptations resulted in 145 new
-	// pairs waiting for upload. When I uploaded them, there were 4 duplicates. However,
-	// my code is done in such a way that this type of HTTP error, 400 Bad Request, returns
-	// a CU-R-Lcode value of 0, because we don't want the user to have to see such occasional
-	// errors - they do no harm to the remote kb, and no harm to to the client either, so
-	// we simply ignore them. The bulk upload, similarly, therefore ignores them. Hence
-	// this type of error will not cause a repeat try of the UploadToKbServer() call.
-
-	// First iteration - it should succeed in all but rare circumstances - see above
-	//
-	// Timing feedback: the UploadToKbServer() call took 13 seconds, for 145 entries, in
-	// my debug build (Release build would be quicker); most of the time is taken in the
-	// bulk download and comparison of local versus remote data to find out what to upload.
-	// I was uploading to a KBserver in VBox VM on the same computer - my XPS Win7 machine.
-	//pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 
 	// make the dialog close (a good way to say, "it's been done")

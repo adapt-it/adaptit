@@ -18218,6 +18218,13 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->LogUserAction(_T("Initiated OnToolsKbEditor()"));
+
+	pApp->m_bKBEditorEntered = TRUE; // TRUE if View.cpp function
+		// OnToolKbEditor(unused wxCommandEvent event) is invoked.
+		// FALSE when the handler is exited. Used for invoking the speedier
+		// CreateEntry function, for enum value create_entry (=4) when user
+		// is NOT in the KB Editor tabbed dialog.
+
 	// whm 23Jan09 Refactored the CKBEditor class and this handler. Changes to this handler
     // involved moving most of the intitializations of CKBEditor members to the CKBEditor
     // class itself, and eliminating several global variables that were only used in this
@@ -18236,6 +18243,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 		pApp->LogUserAction(_T("KB Editor menu item disabled"));
+		pApp->m_bKBEditorEntered = FALSE; // restore default
 		return;
 	}
 #if defined (_DEBUG)
@@ -18258,7 +18266,6 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			pApp->SaveGlossingKB(FALSE);
 		else
 			pApp->SaveKB(FALSE, TRUE);
-
 	}
 
 	// restore focus to the targetBox
@@ -18336,6 +18343,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		GetDocument()->OnEditConsistencyCheck(dummy);
 	}
 	pApp->m_bForceFullConsistencyCheck = FALSE; // restore default value
+	pApp->m_bKBEditorEntered = FALSE; // restore default
 }
 
 

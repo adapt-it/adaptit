@@ -534,22 +534,11 @@ int CountSpaceDelimitedWords(wxString& str);
 
 bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr);
 
-bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password); // BEW 6Jun13
+//bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password); // BEW 6Jun13
 
-// BEW 24Sep20 deprecated, we no longer have a kb table
-//bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
-//					wxString srcLangCode, wxString tgtLangCode, int kbType);
 
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
-/* BEW 25Sep20 deprecated, these are no longer called
-void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag, 
-		bool& saveSharingGlossesFlag, bool bJustRestore = FALSE);
 
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
-		bool& saveSharingGlossesFlag);
-*/
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,
 // and calls to an appropriate KbServer instance, with error checking and error messages as
@@ -630,7 +619,8 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 		// is TRUE, and CSourcePhrase's  m_srcWordBreak contains a / (solidus, or forward slash)
 //#endif
 
-wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
+// BEW 21Jan21 keep this, but commented out. The 3 places where it was used, are commented out
+//wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
 
 
 #endif	// helpers_h

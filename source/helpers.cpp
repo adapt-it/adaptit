@@ -11037,24 +11037,7 @@ bool CheckUsername()
 	return TRUE;
 }
 
-// Function isn't needed, wxString Replace() can do it simpler
-/*
-wxString RemoveCharFromString(wxString &str, wxChar ch)
-{
-	wxString newStr; newStr.Empty();
-	int offset = wxNOT_FOUND;
-	do {
-		offset = str.Find(ch);
-		if (offset != wxNOT_FOUND)
-		{
-			newStr += str.Left(offset);
-			newStr += str.Mid(offset + 1);
-			str = newStr;
-		}
-	} while (offset != wxNOT_FOUND);
-	return newStr;
-}
-*/
+
 #if defined(_KBSERVER)
 
 CBString MakeDigestPassword(const wxString& user, const wxString& password)
@@ -11068,202 +11051,6 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password)
 	return digestPassword;
 }
 
-/* BEW 24Sep20 deprecated, we no longer have a kb table
-bool CheckForSharedKbInKbServer(wxString ipAddr, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType)
-{
-    // This function can be called before the app member pointers, m_pKbServer[0] and
-    // m_pKbServer[1] are instantiated, so we have to pass in the ipAddress, username, password
-    // and other params in order to be able to call KbServer::LookupSingleKb(). We must
-    // temporarily set up a KbServer instance (type = 1 will do, since a parallel glossing
-    // instance is always created or removed together with the adapting one), use the
-    // LookupSingleKb() member, and pass the result back to the caller after deleting the
-    // temporary KbServer instance; however, we set a boolean bMatchedKB and return it by
-    // the signature from LookupSingleKb(), and that is what really matters. The normal
-    // return is just for the curlcode, so we can do an error check. bMatchedKB will be
-    // TRUE only if there is an adapting shared KB listed in the server's kb table. We
-    // return the value of bMatchedKB.
-	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForSharedKbInKbServer.\nThe existence of the remote shared knowledge base could not be checked for, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\n so KB sharing is OFF.");
-	wxString title = _T("KbServer error");
-	//CAdapt_ItApp* pApp = &wxGetApp();
-
-	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
-	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
-	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-	if (pKbSvr == NULL)
-	{
-		// warn developer, message does not need to be localizable; show it only in
-		// debug mode, because a Release version is unlikely to get this error
-#if defined(_DEBUG)
-		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
-#endif
-		msg = msg; // avoid compiler warning in Release build
-		return FALSE;
-	}
-	bool bMatchedKB = FALSE; // initialize
-	int error = pKbSvr->LookupSingleKb(ipAddr,username,password,srcLangCode,tgtLangCode,kbType,bMatchedKB);
-	if (error > 0)
-	{
-		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should > 0 as TRUE, and the caller can give
-		// the appropriate message for a kb which was not found in the kb table
-#if defined(_DEBUG)
-		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
-#endif
-		msg1 = msg1; // avoid compiler warning in Release build
-		delete pKbSvr;
-		return FALSE;
-	}
-	// Get the bMatchedKB value, return it to the caller, and cleanup
-	if (bMatchedKB)
-	{
-		// The lookup up adaptations KB does have an entry line in the kb table, so we are
-		// good to go
-		delete pKbSvr;
-		return TRUE;
-	}
-    // No matching adaptations KB in the kb table on the server. Actively sharing the local
-    // KB is not possible for this Adapt It project as yet.
-	delete pKbSvr;
-	return FALSE;
-}
-*/
-
-// checks app's string member m_strUserID is in entry table of kbserver
-bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password)
-{
-	// This function can be called before the app member pointers, m_pKbServer[0] and
-	// m_pKbServer[1] are instantiated, so we have to pass in the ipAddr, username and
-	// password in order to be able to call KbServer::LookupUser(). We must temporarily
-	// set up a KbServer instance, use the LookupUser() member, and pass the result back
-	// to the caller after deleting the temporary KbServer instance
-	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForValidUsernameForKbServer .\nThe username could not be checked for validity, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\n so KB sharing is OFF.");
-	wxString title = _T("KbServer error");
-	CAdapt_ItApp* pApp = &wxGetApp();
-
-	// Instantiate an adaptation KbServer instance -- doesn't matter which type we use, but
-    // we'll use the 'adaptations' one, however we use a 'ForManager' constructor which omits
-    // trying to find currently loaded adapting and glossing local KBs, because we can do
-	// the username validation when no project is open (and so no local KB is loaded yet) -
-	// for example, when the administrator is wanting to access the KB Sharing Manager gui
-	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1,TRUE); // 1 is an adaptations one, TRUE is bForManager in signature
-	// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-	if (pKbSvr == NULL)
-	{
-		// warn developer, message does not need to be localizable; show it only in
-		// debug mode, because a Release version is unlikely to get this error
-#if defined(_DEBUG)
-		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
-#endif
-		msg = msg; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 it's now always TRUE
-		pApp->m_kbserver_useradmin = FALSE;
-		return FALSE;
-	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("CheckForValidUsernameForKbServer() ipAddr = %s , username = %s , password = %s"), ipAddr.c_str(), username.c_str(), password.c_str());
-#endif
-
-	int error = pKbSvr->LookupUser(ipAddr,username,password,username);
-	if (error > 0)
-	{
-		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should > 0 as simply a FALSE, and the caller
-		// can give the appropriate message for a username which was not found in the user table
-#if defined(_DEBUG)
-		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
-#endif
-		msg1 = msg1; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 it's now always TRUE
-		pApp->m_kbserver_useradmin = FALSE;
-		pKbSvr->ClearUserStruct();
-		delete pKbSvr;
-		return FALSE;
-	}
-	// Get the entry, and check it matches the m_strUserID passed in as username
-	KbServerUser astruct = pKbSvr->GetUserStruct();
-	wxString theUsername = astruct.username;
-	//wxString theUsername = pKbSvr->GetUserStruct().username;
-	// Store this username's kbadmin and useradmin flag values in the app members:
-	// m_kbserver_kbadmin and m_kbserver_useradmin booleans
-	if (theUsername == username)
-	{
-		pApp->m_kbserver_kbadmin = astruct.kbadmin;  // see AI.h lines 2208 <<-- always TRUE now
-		pApp->m_kbserver_useradmin = astruct.useradmin; // see 2207
-		// cleanup
-		pKbSvr->ClearUserStruct();
-		delete pKbSvr;
-		return TRUE;
-	}
-	// Unmatched username, so set privilege level to safest (i.e. minimal)
-	pApp->m_kbserver_kbadmin = TRUE; // BEW 28Aug20 always TRUE now
-	pApp->m_kbserver_useradmin = FALSE;
-	// cleanup
-	pKbSvr->ClearUserStruct();
-	delete pKbSvr;
-	return FALSE;
-}
-/* BEW 25Sep20, deprecated, these are no longer called
-void HandleBadLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
-		bool& saveSharingGlossesFlag, bool bJustRestore)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (!bJustRestore)
-	{
-		pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() when authenticating()"));
-		wxString title = _("Adaptations language code check failed");
-		wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-	}
-	else
-	{
-		// Don't show an error - the location where the actual error happened should
-		// already have shown one, so just do nothing visible - so this function can
-		// be used as a way to reset the saved original state upon error
-		pApp->LogUserAction(_T("Need to reset original KBserver parameters after error"));
-	}
-	pApp->ReleaseKBServer(1); // the adapting one
-	pApp->ReleaseKBServer(2); // the glossing one
-	pApp->m_bIsKBServerProject = FALSE;
-	pApp->m_bIsGlossingKBServerProject = FALSE;
-
-	// Restore the earlier settings for ipAddr, username & password
-	pApp->m_strKbServerIpAddr = saveOldIpAddrStr;
-	pApp->m_strKbServerHostname = saveOldHostnameStr;
-	pApp->m_strUserID = saveOldUsernameStr;
-	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
-	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
-	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
-}
-
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldIpAddrStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
-		bool& saveSharingGlossesFlag)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() when authenticating"));
-	wxString title = _("Glosses language code check failed");
-	wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-	wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-	pApp->ReleaseKBServer(1); // the adapting one
-	pApp->ReleaseKBServer(2); // the glossing one
-	pApp->m_bIsKBServerProject = FALSE;
-	pApp->m_bIsGlossingKBServerProject = FALSE;
-
-	// Restore the earlier settings for url, username & password
-	pApp->m_strKbServerIpAddr = saveOldIpAddrStr;
-	pApp->m_strKbServerHostname = saveOldHostnameStr;
-	pApp->m_strUserID = saveOldUsernameStr;
-	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
-	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
-	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
-}
-*/
 bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 {
 	// Prepare an error message in case it is needed
@@ -12262,7 +12049,6 @@ void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl)
 	pTextCtrl->SetFocus();
 }
 
-
 // A global function for doing any normalization operations necessary because a major
 // change is about to be done (such as changing doc, changing project, exit from app,
 // something requiring doc to be loaded and in a robust state, etc)
@@ -12678,78 +12464,7 @@ wxString DoUnescapeSingleQuote(wxString& str)
 	int length = (int)tempStr.Replace(escaped_quote, only_quote);
 	wxUnusedVar(length);
 	return tempStr;
-	/*
-	// BEW 2Nov20 the commented code below will work, but wxString
-	// class has a Replace() function that will do it for us, so
-	// I'll keep this stuff below, and use Replace() instead
-
-	size_t len = (size_t)str.Len();
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	wxChar quote = _T('\'');
-	wxChar* ptr = NULL; // initialise
-	wxStringBuffer pBuffer(str, len + 1); // probably the +1 is unnecessary
-	wxChar* pBufStart = pBuffer;
-	wxChar* pEnd = pBufStart + len;
-	wxASSERT(*pEnd == _T('\0'));
-	wxChar bkslash = _T('\\');
-	ptr = pBuffer;
-
-	wxString tempStr;
-	//	No lengthening of the buffer is needed, because the resulting length
-	// will be <= the original passed in string's length
-	while (ptr < pEnd)
-	{
-		if ((*ptr != bkslash) && (*ptr != quote))
-		{
-			// it's neither, so send it to tempStr
-			tempStr << *ptr;
-			ptr++; // point at next char
-		}
-		else
-		{
-			// it's either a back slash or a single quote character
-			// If it's  \ followed by ', then unescape it
-			if ((*ptr == bkslash) && (*(ptr + 1) == quote))
-			{
-				ptr++; // skip over the backslash
-				tempStr << *ptr; ptr++; // add the quote and update ptr
-			}
-			else
-			{
-				// backslash before anything which is not a quote -
-				// just send it to tempStr as is, and iterate
-				if (*ptr == bkslash)
-				{
-					tempStr << bkslash;
-					ptr++;
-				}
-				else
-				{
-					// It's not a backslash, but it could be an unescaped quote
-					// - in which case, we append it as is; or could be some other
-					// wxChar, in which case we just send it to tempStr
-					if (*ptr == quote)
-					{
-						tempStr << quote;
-						// it didn't need un-escaping
-						ptr++;
-					}
-					else
-					{
-						// It's not a quote, so just send it to tempStr
-						tempStr << *ptr;
-						ptr++;
-					}
-				} //end of else block for test: if (*ptr == bkslash)
-			} // end of else block for test: if ((*ptr == bkslash) && (*(ptr + 1) == quote))
-		} // end of else block for test: if ((*ptr != bkslash) && (*ptr != quote))
-	} // end of while loop: while (ptr < pEnd)
-
-	  // Clean up, returning tempStr back to the string passed in
-	return tempStr;
-*/
 }
-
 
 // Code for this was taken from Bill's test code in OnInit() at 28,360++. Thanks Bill
 // Returns nothing. If the file did not get processed, the file is unchanged. If it
@@ -12971,6 +12686,7 @@ wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll)
 // and it would succeed because python is a runnable command, and dLss_win.py will be
 // picked up by the CLI as its file to run under python. (By the way, has to be python3,
 // for a successful run of dLss_win.py; and 3.7 is installed on this Win machine)
+/*
 wxString SafetifyPath(wxString rawpath)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -13009,12 +12725,10 @@ wxString SafetifyPath(wxString rawpath)
 		while (ptr < pEnd)
 		{
 #if defined(_DEBUG)
-/*
 			if ((*ptr == _T('\\')) && (*(ptr+1) == dblQuote))
 			{
 				int break_here = 1;
 			}
-*/
 #endif
 			// Handle already-quoted multi-word folder names here at the top, these
 			// need no quoting insertions, and so we just scan & copy over until the
@@ -13122,24 +12836,6 @@ wxString SafetifyPath(wxString rawpath)
 			}
 			else  // end of TRUE block for test: if (*ptr == charSpace)
 			{
-/* I now handle already-quoted folder names above in an inner loop
-				if (bHasFolderInitialQuote && (*ptr == dblQuote))
-				{
-					// We expect a separator will follow, or end of path
-					wxASSERT(bAfterFolderStart);
-					newPath.Append(*ptr); // copy over the double-quote
-					ptr++; // advance
-					countFromLastSeparator = 0; // don't start counting yet
-					// Next two booleans set to false, because we were not scanning
-					// an unprotected multi-word folder name
-					bAfterFolderStart = FALSE;
-					bScanningToFolderEnd = FALSE;
-					bHasFolderInitialQuote = FALSE;
-				} // end of TRUE block for test: 
-				  // if (bHasFolderInitialQuote && (*ptr == dblQuote))
-*/
-
-				//else if (*ptr == charSeparator)
 				if (*ptr == charSeparator)
 				{
 					// pointing at a backslash or / separator
@@ -13152,16 +12848,6 @@ wxString SafetifyPath(wxString rawpath)
 						bBeginningScan = FALSE;
 
 						bAfterFolderStart = TRUE;
-/* no longer needed, as I handle already quoted folder names in inner loop above
-						// There might be a doublequote already next - check it out
-						if (*ptr == dblQuote)
-						{
-							newPath.Append(*ptr); // copy over the double-quote char
-							ptr++; // advance
-							bHasFolderInitialQuote = TRUE;
-							countFromLastSeparator = 0; // don't count, this folder name is protected
-						}
-*/
 						// iterate
 					} // end of TRUE block for test: if (!bAfterFolderStart && !bScanningToFolderEnd)
 					else
@@ -13172,8 +12858,6 @@ wxString SafetifyPath(wxString rawpath)
 							newPath.Append(*ptr); // copy over the separator
 							ptr++; // advance
 							countFromLastSeparator = 0; // counting is about to begin
-							//bAfterFolderStart = FALSE;
-							//continue;
 						}
 						// We've come to a separator, transferred it and advance over it
 						// but a new folder name may be starting, there may be a space or 
@@ -13312,58 +12996,10 @@ wxString SafetifyPath(wxString rawpath)
 			else
 			{
 				;
-/*
-				// in a folder name which is not initial
-
-				// First, deal with scanning over an already quote-protected
-				// folder name; for this scenario bHasFolderInitialQuote is TRUE;
-				// countFromLastSeparator is zero; bAfterFolderStart is  TRUE
-				if (bHasFolderInitialQuote && (countFromLastSeparator == 0) && bAfterFolderStart)
-				{
-					// What happens if the path is malformed, having a quote
-					// after the separator, but reading the next separator without
-					// a preceding quote? We need to fix that here.
-					if (*ptr == charSeparator)
-					{
-						// Oops, malformed path - fix it.
-						newPath.Append(dblQuote);
-						ptr++;
-						countFromLastSeparator = 0; // don't start counting yet
-						// Next two booleans set to false, because we were not scanning
-						// an unprotected multi-word folder name
-						bAfterFolderStart = FALSE;
-						bScanningToFolderEnd = FALSE;
-						bHasFolderInitialQuote = FALSE;
-						// iterate
-					}
-					else if (*ptr == dblQuote)
-					{
-						// we have reached the " at the end of the folder name
-						newPath.Append(*ptr);
-						ptr++;
-						bAfterFolderStart = FALSE;
-						bScanningToFolderEnd = FALSE;
-						bHasFolderInitialQuote = FALSE;
-						countFromLastSeparator = 0;
-						bFoundSpace = FALSE;
-						// iterate
-					}
-					else
-					{
-						// we have not yet reached the closing " at end of the folder name
-						// so just append the folder name's wxChar, and advance ptr
-						newPath.Append(*ptr);
-						ptr++;
-						// iterate...
-						// When the matching " is reached, a block well above will handle
-						// saving the " and iterating, and changing the state booleans
-					} // end of else block for test: if (*ptr == dblQuote)
-				} // end of TRUE block for test:
-				  // if (bHasFolderInitialQuote && (countFromLastSeparator == 0) && bAfterFolderStart)
-*/
 			} // else block for test: if (bBeginningScan)
 
 		};
 	} // end of the  { // begin scoped block
 	return newPath;
 }
+*/

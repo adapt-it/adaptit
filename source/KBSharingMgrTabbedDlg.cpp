@@ -729,7 +729,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 	} // end of TRUE block for test: if (bReady)
 }
 
-// BEW 11Jan21 leave it, but with no contents as we cannot change the page now
+// BEW 11Jan21 leave it, but with no support for any page but page zero
 void KBSharingMgrTabbedDlg::OnTabPageChanged(wxNotebookEvent& event)
 {
 	// OnTabPageChanged is called whenever any tab is selected
