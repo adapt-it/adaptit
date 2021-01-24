@@ -37420,8 +37420,9 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 	wxString username = wxEmptyString;
 	wxString fullname = wxEmptyString;
 	wxString password = wxEmptyString;
-	int  useradmin = 0; // default
 #endif
+	int  useradmin = 0; // default
+
 	size_t linesArrayCount = arrLines.GetCount();
 	size_t lineIndex = 0;
 	for (lineIndex = 0; lineIndex < linesArrayCount; lineIndex++)
@@ -37501,7 +37502,8 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 #if defined (_DEBUG)
 					useradmin = 1;
 #endif
-				}				
+				}
+
 				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, useradmin: %d , for field index: %d"),
 					__FILE__, __FUNCTION__, __LINE__, list_users, useradmin, pos);
 				break;
