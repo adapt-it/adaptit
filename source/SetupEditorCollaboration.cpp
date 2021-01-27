@@ -2434,12 +2434,17 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 
-	// Check to ensure that the project selected for source text inputs is different
-	// from the project selected for target text exports, unless both are empty
-	// strings, i.e., ("[No Project Selected]" was selected by the administrator).
+    // Note: If we get here, the above two tests ensure that a selection has been made for both source text
+    // and target text projects when the "Accept this setup..." button is pressed.
+	// Check to ensure that ALL the projects selected for collaboration are all different
+	// from one another. Target text project cannot be the same as the source text project.
+    // Also, any free translation project cannot be the same as the target text project, nor
+    // the same as the source text project selected for target text exports. Note: The test below
+    // should be redundant, and could be simply wxASSERT statements.
 	if (!m_TempCollabProjectForSourceInputs.IsEmpty() && !m_TempCollabProjectForTargetExports.IsEmpty())
 	{
-		// If the same project is selected, inform the administrator and abort the Save
+        wxString msgAdd = _("\nNote: A project to receive free translations must be a unique project. It cannot be the same project that is used for getting source texts, and cannot be the same project that is used to receive translation drafts. If you accidentally selected a duplicate project for the transfer of free translations, you can click on the \"Select Free Translation Project from List\" button to change your selection to a unique project. The free translation project assignment will now be removed.");
+		// If the same project is selected for source and target projects, inform the administrator and abort the Save
 		// operation so the administrator can select different projects.
 		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports)
 		{
@@ -2452,18 +2457,44 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
 
-		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports
+        // If we get here, both the source and target projects are assigned and they are different projects.
+        // Ensure that, if any Free Trans project ia selected, it is different from the selected source text project.
+        if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports
 			&& m_bTempCollaborationExpectsFreeTrans)
 		{
 			wxString msg;
 			msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
+            msg += msgAdd;
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             m_pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(msg);
+            wxCommandEvent dummyEvent;
+            // Call the handler to remove the free translation project assignment (empties appropriate vars and clears the free trans project field) 
+            OnNoFreeTrans(dummyEvent);
 			m_pApp->LogUserAction(msg);
 			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
-	}
+        // whm 27Oct2020 added check to ensure that if any Free Trans project is selected, it is different from the target project.
+        // At least one user's failure in collaboration setup was due to having the same PT project assigned for receiving
+        // both target text and free translation text. Like the test to ensure source and free translation projects are different,
+        // the following test ensures that the target text project and any free translation project (when assigned) are different.
+        if (m_TempCollabProjectForTargetExports == m_TempCollabProjectForFreeTransExports
+            && m_bTempCollaborationExpectsFreeTrans)
+        {
+            wxString msg;
+            msg = _("The projects selected for receiving target texts and receiving free translation texts cannot be the same.\nPlease select one project for receiving target texts, and a different project for receiving free translation texts.");
+            msg += msgAdd;
+            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+            wxMessageBox(msg);
+            wxCommandEvent dummyEvent;
+            // Call the handler to remove the free translation project assignment (empties appropriate vars and clears the free trans project field) 
+            OnNoFreeTrans(dummyEvent);
+            m_pApp->LogUserAction(msg);
+            return FALSE; // don't accept any changes - return FALSE to the caller
+        }
+
+    }
 
 	wxASSERT(!m_TempCollabAIProjectName.IsEmpty());
 	GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);

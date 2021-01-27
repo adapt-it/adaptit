@@ -3498,7 +3498,16 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		wxString message = _("Access to Administrator privileges requires that you type a password");
 		wxString caption = _("Type Administrator Password");
 		wxString default_value = _T("");
-		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
+        // whm 23Sep2020 added line below to supress phrasebox run-on due to handling of ENTER in library function wxGetPasswordFromUser().
+        // NOTE: Testing shows that idle processing continues even while the password dialog is open, making the Idle count proceed to 5
+        // in CMainFrame::OnIdle() below, which then sets m_bUserDlgOrMessageRequested back to FALSE before the password dialog below is
+        // dismissed. We have to turn OFF Idle processing in this case to prevent OnIdle() execution until after the dialog is dismissed
+        // Stop all idle processing including processing of UI events while the wxGetPasswordFromUser dialog is displaying.
+        wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
+        wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
+        // Now, with Idle processing temporarily OFF, set the flag and call the wxGetPasswordFromUser() dialog
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
 		if (password == _T("admin") ||
 			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
 		{
@@ -3515,7 +3524,10 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			// item is a toggle menu item. Its toggle state does not need to be
 			// explicitly changed here.
 		}
-	}
+        // Start up idle processing again
+        wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
+        wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
+    }
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
@@ -4220,6 +4232,11 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
+    // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
+    // encountered when this OnUpdateViewComposeBar() update handler was being triggered at idle
+    // time, but before the View object was created
+    if (pView == NULL)
+        return;
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pApp->m_bFreeTranslationMode)
@@ -4261,7 +4278,12 @@ void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+    // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
+    // encountered when UI update handlers were being triggered at idle
+    // time, but before the View object was created
+    if (pView == NULL)
+        return;
+    wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pView != NULL) //if (pView == pAppView)
 	{
