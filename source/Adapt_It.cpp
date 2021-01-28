@@ -30151,8 +30151,11 @@ int CAdapt_ItApp::OnExit(void)
 					bool bExists = ::wxFileExists(pathtofile);
 					if (bExists)
 					{
-						BOOL bDeleted = ::DeleteFileW(pathtofile);
-						if (!bDeleted)
+                        // whm 27Jan2021 modified to use wxWidgets function to remove file. Linux GCC flags BOOL with compile error.
+                        // We should use the wxWidgets wxRemoveFile() function which is used already in many places elsewhere in our code.
+                        // BOOL bDeleted = ::DeleteFileW(pathtofile);
+                        bool bDeleted = wxRemoveFile(pathtofile);
+                        if (!bDeleted)
 						{
 							wxBell();
 						}
