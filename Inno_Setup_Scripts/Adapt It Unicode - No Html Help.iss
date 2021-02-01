@@ -17,6 +17,9 @@
 ; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_18_0_4AI.exe
 ; BEFORE COMPILING THIS SCRIPT
 ; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
+; whm 28 January 2021: Added the Windows *exe utility files for KB sharing
+; whm TODO: Add code to detect if Python 3 for Windows has been installed; if not install it
+; as part of the Installer process
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -99,12 +102,6 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\License_CPLv05.txt"; DestDir: "
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - No Html Help\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode - No Html Help\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
@@ -150,6 +147,21 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\CC\FwdSlashInsertAtPuncts.cct";
 Source: "{#SvnBase}\setup Unicode - No Html Help\CC\FwdSlashRemoveAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode - No Html Help\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode - No Html Help\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
+; added by whm 28 January 2021
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_add_KBUsers.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_fullname.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_password.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_permission.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_changed_since_timed.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_create_entry.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_list_users.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_lookup_entry"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_delete.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_undelete.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_upload_local_kb.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_user_lookup.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_users_list.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
