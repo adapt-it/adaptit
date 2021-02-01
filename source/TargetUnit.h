@@ -93,12 +93,12 @@ public:
 	void		DeleteOnlyNotInKB();
 	void		ValidateNotInKB(); // ensures every CRefString except the one which is <Not In KB>
 								   // has 'deleted' status
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// A variant of the above FindDeletedRefString() function. Returns the matched
 	// (pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
 	CRefString*	FindDeletedRefStringForKbSharing(wxString& translationStr);
 
-#endif
+//#endif
 
 	// A variant of the above FindRefString() function. Returns the matched (not
 	// pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made

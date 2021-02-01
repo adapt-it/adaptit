@@ -29,7 +29,7 @@
     #pragma interface "KbSharingSetup.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class KbSharingSetup : public AIModalDialog
 {
@@ -62,6 +62,6 @@ protected:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif
+//#endif
 
 #endif /* KbSharingSetup_h */

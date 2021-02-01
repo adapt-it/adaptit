@@ -2254,7 +2254,7 @@ b:	pApp->m_bSaveToKB = TRUE;
                     // m_bSuppressStoreForAltBackspaceKeypress flag was TRUE? Then we have
                     // to turn the flag off for a while, but turn it on programmatically
                     // later if we are still in Automatic mode and we come to another <Not
-                    // In KB> entry. We can do this with another BOOL defined for this
+                    // In KB> entry. We can do this with another bool defined for this
                     // purpose
 					m_bTemporarilySuspendAltBKSP = TRUE;
 					m_bSuppressStoreForAltBackspaceKeypress = FALSE;
@@ -4318,7 +4318,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				}
 				else
 				{
-                    pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN used for temporary
+                    pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
 													   // suppression only
 				}
 			}
@@ -7022,7 +7022,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
                     }
                     else
                     {
-                        pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN used for temporary
+                        pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
                                                                    // suppression only
                     }
                 }

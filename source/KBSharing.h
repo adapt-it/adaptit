@@ -20,7 +20,7 @@
     #pragma interface "KBSharing.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class KBSharing : public AIModalDialog
 {
@@ -55,6 +55,6 @@ private:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif
+//#endif
 
 #endif /* KBSharing_h */

@@ -376,10 +376,10 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 // for doing so, we'll also make it possible to do this from the view menu
 bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
 					  // Cancel button in the internal dialog
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 void ShortWait();           // set the wait delay in AdaptitConstants.h MSG_SECONDS and MSG_MILLISECONDS
 void ShortWaitSharingOff(); // ditto
-#endif
+//#endif
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
@@ -530,7 +530,7 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase); // get it from m_srcWor
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr);
 
@@ -564,7 +564,7 @@ wxString DoUnescapeSingleQuote(wxString& str);
 void DoEscapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
 void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)
 void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);

@@ -32,7 +32,7 @@
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #include <curl/curl.h>
 
@@ -1925,7 +1925,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 	if (bFileExists)
 	{
 		// delete the file and recreate
-		BOOL bDeleted = ::DeleteFile(datPath);
+		bool bDeleted = wxRemoveFile(datPath);
 		if (bDeleted)
 		{
 			bFileExists = f.Create(datPath); // for read or write, created empty
@@ -2027,5 +2027,5 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 
 //=============================== end of KbServer class ============================
 
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 

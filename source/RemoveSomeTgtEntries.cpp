@@ -341,7 +341,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 	if (m_bIsGlossingKB)
 	{
 		// Ours is a local glossing KB
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (m_pApp->m_bIsGlossingKBServerProject)
 		{
 			// This project is one for sharing gloss entries to a remote KBserver,
@@ -369,7 +369,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsGlossingKBServerProject)
-#endif
+//#endif
 		// We can go ahead with the present bulk removal
 		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray,
 			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
@@ -380,7 +380,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 	else
 	{
 		// Ours is an local adapting KB
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (m_pApp->m_bIsKBServerProject)
 		{
 			// This project is one for sharing adaptation entries to a remote KBserver,
@@ -404,7 +404,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
-#endif
+//#endif
 		// We can go ahead with the present bulk removal
 		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray,
 			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
@@ -514,7 +514,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 		else
 		{
 			// BEW added 22Oct12 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 			int kbServerType = 1; // default, for an adapting kb (2 is for a glossing one)
 			if (bIsGlossingKB)
 			{
@@ -560,7 +560,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 
 			} // end of TRUE block for test:
 			  // if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
-#endif
+//#endif
 			// pTU points the CTargetUnit instance we want, so next we get the
 			// CRefString instance which stores the adaption (or gloss if in
 			// glossing mode)

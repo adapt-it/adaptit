@@ -77,10 +77,10 @@
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
 #include "KBSharingAuthenticationDlg.h"
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 #include <stdio.h>
 #include <stdlib.h>
-#endif
+//#endif
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -11038,7 +11038,7 @@ bool CheckUsername()
 }
 
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 CBString MakeDigestPassword(const wxString& user, const wxString& password)
 {
@@ -12017,7 +12017,7 @@ bad:					bSetupKBserverFailed = TRUE;
 	return TRUE;
 }
 
-#endif
+//#endif
 
 // Support for ZWSP insertion in any AI wxTextCtrl
 void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl)
@@ -12148,7 +12148,7 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 		return wxString(_T(" "));
 	}
 }
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 void ShortWait()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -12606,7 +12606,7 @@ void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename)
 	fileBuffer.Empty();
 }
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 // Remove the subStr from inputStr and return the resulting string. Remove once
 // only (default, bRemoveAll is FALSE) - the first one found. If bRemoveAll is

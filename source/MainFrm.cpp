@@ -94,7 +94,7 @@
 #include "CollabUtilities.h" // BEW added 15Sep14
 #include "ChooseTranslation.h" // whm added 10Jan2018
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #define SHOWSYNC // comment out to prevent logging for the synchronous curl calls to KBserver from OnIdle()
 
@@ -106,7 +106,7 @@
 #include "WaitDlg.h"
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -388,11 +388,11 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
 DEFINE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg)
 DEFINE_EVENT_TYPE(wxEVT_End_ServiceDiscovery)
-#endif
+//#endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -495,7 +495,7 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObject *) NULL \
 ),
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
@@ -518,7 +518,7 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
-#endif
+//#endif
 
 
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
@@ -547,7 +547,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
 	// support the KB Sharing dialog which is on the Advanced menu, BEW 14Jan13
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_DLG,	CMainFrame::OnKBSharingDlg)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
@@ -556,13 +556,13 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnDiscoverKBservers)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 
-#endif
+//#endif
 // The following ones disable KB Sharing related menu commands, when the build is not a KBserver one
-#if !defined(_KBSERVER)
-	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
-	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
-	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
-#endif
+//#if !defined(_KBSERVER)
+//	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
+//	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
+//	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
+//#endif
 
 	EVT_COMBOBOX(IDC_COMBO_REMOVALS, CMainFrame::OnRemovalsComboSelChange)
 
@@ -595,11 +595,11 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
 	EVT_SPLIT_IT(-1, CMainFrame::OnCustomEventSplitIt)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
 	//EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg) BEW 25Sep20 now unneeded
 	EVT_END_SERVICEDISCOVERY(-1, CMainFrame::OnCustomEventEndServiceDiscovery)
-#endif
+//#endif
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -2024,10 +2024,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_auiMgr.Update();
     m_pPerspective = m_auiMgr.SavePerspective();
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	m_bKbSvrAdaptationsTicked = FALSE;
 	m_bKbSvrGlossesTicked = FALSE;
-#endif
+//#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2290,7 +2290,7 @@ void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
 
 // whm 1Oct12 removed all MRU operations
 /*
-void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRecentFile(UINT nID)
+void CMainFrame::OnMRUFile(wxCommandEvent& event) //bool CAdapt_ItApp::OnOpenRecentFile(UINT nID)
 // wx Note: I renamed this MFC handler OnMRUFile which is its virtual function name in wx's doc/view
 // framework. It also does not return a bool nor does it use the UINT nID parameter, but the usual
 // wxCommandEvent& event parameter.
@@ -2578,7 +2578,7 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 
 
 // BEW added 14Jan13, to support KB Sharing dialog on Advanced menu
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnKBSharingDlg(wxCommandEvent& event)
 {
@@ -2699,27 +2699,27 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 	event.Enable(gpApp->m_bAdaptationsKBserverReady || gpApp->m_bGlossesKBserverReady);
 }
 
-#endif
+//#endif
 
 // The following variants are defined for when the build is not a _KBSERVER one
-#if !defined(_KBSERVER)
+//#if !defined(_KBSERVER)
 
-void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
-{
+//void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
+//{
 	// Disable the "Setup Or Remove Knowledge Base Sharing" command, on Tools menu
 	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
-void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
-{
+//	event.Enable(FALSE);
+//}
+//void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
+//{
 	// Disable the "Controls For Knowledge Base Sharing" command, on Tools menu
 	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
+//	event.Enable(FALSE);
+//}
 
-#endif // end block for when this is not a _KBSERVER build
+//#endif // end block for when this is not a _KBSERVER build
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 {
@@ -2981,9 +2981,9 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 }
 
 
-#endif
+//#endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // BEW 20Jul17 started refactoring to bypass the old zeroconf way, in favour of
 // using Leon's scripted solutions. A new variable, m_bDiscoverKBservers, is
@@ -3023,15 +3023,15 @@ void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 	}
 }
 
-#else
+//#else
 
-void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
-{
+//void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
+//{
 
-	event.Enable(FALSE);
-}
+//	event.Enable(FALSE);
+//}
 
-#endif
+//#endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
@@ -3531,15 +3531,15 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-#if !defined(_KBSERVER)
-	{
+//#if !defined(_KBSERVER)
+//	{
 		// If not a _KBSERVER build, disable the Knowledge Base Sharing Manager menu command
 		// on Administrator menu (at bottom)
-		if (pApp->m_bShowAdministratorMenu)
-		{
+//		if (pApp->m_bShowAdministratorMenu)
+//		{
 			// Don't call this code when the menu has just been hidden - that would crash
 			// the app since the menu is then not available, hence this test
-			wxMenuBar* pMenuBar = GetMenuBar();
+//			wxMenuBar* pMenuBar = GetMenuBar();
             // whm modified 22May2018 to simplify and avoid crash due to FindMenu(_T("Administrator")) returning
             // a -1 value (wxNOT_FOUND) for a non-English localization. Just use the FindItem() method of
             // wxMenuBar which only needs the item's ID value to directly to get a pointer to the 
@@ -3547,20 +3547,20 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			//int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
 			//wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
 			//wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
-            wxMenuItem* pShareMgrMenuItem = pMenuBar->FindItem(ID_MENU_KBSHARINGMGR);
-            if (pShareMgrMenuItem)
-			    pShareMgrMenuItem->Enable(FALSE);
-		}
+//            wxMenuItem* pShareMgrMenuItem = pMenuBar->FindItem(ID_MENU_KBSHARINGMGR);
+//            if (pShareMgrMenuItem)
+//			    pShareMgrMenuItem->Enable(FALSE);
+//		}
 
 		// BEW 3Aug20 and also disable the "Add Users to KBserver" command
-		if (pApp->m_bShowAdministratorMenu)
-		{
-			wxMenuBar* pMenuBar = GetMenuBar();
-			wxMenuItem* pAddUsersMenuItem = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
-			if (pAddUsersMenuItem)
-				pAddUsersMenuItem->Enable(FALSE);
-		}
-#endif
+//		if (pApp->m_bShowAdministratorMenu)
+//		{
+//			wxMenuBar* pMenuBar = GetMenuBar();
+//			wxMenuItem* pAddUsersMenuItem = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
+//			if (pAddUsersMenuItem)
+//				pAddUsersMenuItem->Enable(FALSE);
+//		}
+//#endif
 #if defined(_DEBUG)
 	// BEW 11Oct19, Try dynamically adding the developer's debug-mode only wxMenuItem here,
 	// after MakeMenuInitializationsAndPlatformAdjustments() has been called without it
@@ -4292,7 +4292,7 @@ void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
 	}
 }
 
-//void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) // MFC version
+//void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, bool bMinimized) // MFC version
 // NOTE: wxFrame::OnActivate() is MS Windows only. It is not a virtual function
 // under wxWidgets, and takes a single wxActivateEvent& event parameter.
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -4391,7 +4391,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 	// Speed critical GUI support, when a KBserver doing sharing is operational
 
 	if (pApp->m_bCreateEntry_For_KBserver)
@@ -4438,7 +4438,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
 /* BEW 2Sep10 deprecated tentatively, for Leon's solution - might not be needed now
 	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
@@ -4939,7 +4939,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #endif
 
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
@@ -5035,7 +5035,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 	}
 
-#endif // for _KBSERVER #defined
+//#endif // for _KBSERVER #defined
 
 	// More custom event handlers
 	
@@ -6042,14 +6042,14 @@ void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
 
 //************  KbServer -- some handlers for Custom Events *******************
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->StatusBar_ProgressOfKbDeletion();
 }
 
-#endif
+//#endif
 
 
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent

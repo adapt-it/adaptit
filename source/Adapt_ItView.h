@@ -274,10 +274,10 @@ public:
 										SPList::Node* nextPos, CSourcePhrase* pSrcPhrase);
 	void		AdjustDialogPosition(wxDialog* pDlg);
 	void		AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick);
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	void		PositionDlgNearBottomRight(wxDialog* pDlg);
 	void		PositionDlgNearTop(wxDialog* pDlg);
-#endif
+//#endif
 	void		UnmergePhrase();
 	void		UpdateSequNumbers(int nFirstSequNum);
 	bool		VerticalEdit_CheckForEndRequiringTransition(int nSequNum, ActionSelector select,

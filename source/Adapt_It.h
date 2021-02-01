@@ -108,7 +108,7 @@ class DVCS;         // class of the object giving access to the DVCS operations
 class DVCSNavDlg;   // dialog for navigating through previous versions
 class TranslationsList; // the CTargetUnit's list of CRefString instances
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
@@ -121,7 +121,7 @@ class test_system_call;
 //wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
@@ -150,7 +150,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // adaptation project designated as one which is to support KB sharing
 
 // _KBSERVER has been moved to be a precompilation define (both debug and release builds)
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // forward declaration
 class KbServer;
@@ -167,7 +167,7 @@ class test_system_call;
 // functionality, in the app function OnInit())
 //const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId(), now keep less than 10000
 
-#endif
+//#endif
 
 // This define is to support Dennis Walters request for treating / as a whitespace wordbreak char
 // Code wrapped with this conditional compile directive is to be a user-choosable permanent feature
@@ -367,10 +367,10 @@ wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
 #include "scrollingdialog.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // for wxJson support
 #include "json_defs.h"
-#endif
+//#endif
 
 #include "PhraseBox.h"
 #include "FindReplace.h"
@@ -820,7 +820,7 @@ enum SendBackTextType
 	makeFreeTransText
 };
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 /// Initial possible state after basic config file has first been read in a new session
 enum ServDiscInitialDetail
@@ -866,7 +866,7 @@ enum ServDiscDetail
 	const int change_password = 12;
 	// add more here, as our solution matures
 	const int blanksEnd = 13; // this one changes as we add more above
-#endif
+//#endif
 
 
 // whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
@@ -2005,7 +2005,7 @@ typedef struct
                 // did not include all of the marker's filterable content - so that AI had
                 // to extend the editable span by one or more words to get all that
                 // material into the new source text string (we may not need to use this
-                // BOOL value, but we store it in case it becomes important when I work on
+                // bool value, but we store it in case it becomes important when I work on
                 // the backtracking mechanism for stepping back through steps in the
                 // vertical edit process, and/or bailout recovery)
 
@@ -2119,9 +2119,9 @@ public:
 class wxDynamicLibrary;
 class AI_Server;
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 class Timer_KbServerChangedSince;
-#endif // _KBSRVER
+//#endif // _KBSRVER
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -2188,7 +2188,7 @@ class CAdapt_ItApp : public wxApp
 	CPile* m_pCachedActivePile; // compare m_pActivePile with this, if different, call the
 								// doc's IsWithinSpanProhibitingPlaceholderInsertion(pSrcPhrase) func
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	// BEW 15Jul20 next two used to be local strings in DoDiscoverKBservers(); but now
 	// they are app-wide accessible string vars. Makes connecting up Leon's solution
@@ -2465,7 +2465,7 @@ class CAdapt_ItApp : public wxApp
 	wxDateTime		m_msgShownTime; // set by a call to wxDateTime::Now()
 
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
 							// sub-class the wxProgressDialog which currently has no
@@ -3437,14 +3437,14 @@ public:
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
 	void StatusBar_ProgressOfKbDeletion();
 	void StatusBar_EndProgressOfKbDeletion();
 
-#endif
+//#endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
@@ -3614,11 +3614,11 @@ public:
 	void	  OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event);
 
-#endif
-#if !defined(_KBSERVER)
-	void	  OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
-#endif
-#if defined(_KBSERVER)
+//#endif
+//#if !defined(_KBSERVER)
+//	void	  OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
+//#endif
+//#if defined(_KBSERVER)
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
 								// sharing kb data between clients in the same AI project
@@ -3707,7 +3707,7 @@ public:
 	bool			m_bAdaptingKbIsCurrent; // default is TRUE
 
 
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
 	wxString m_strSentFinalPunctsTriggerCaps; // list of sentence final punctuation characters
 				// that cause capitalization at the start of next sentence (no GUI, just a project

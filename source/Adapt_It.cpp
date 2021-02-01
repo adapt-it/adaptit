@@ -117,10 +117,10 @@
 #include <wx/timer.h> // for wxTimer
 #include <wx/tokenzr.h>
 #include <wx/stockitem.h> // for ::wxGetStockLabel()
-#if defined(_KBSERVER)
-#include <wx/thread.h>
+//#if defined(_KBSERVER)
+//#include <wx/thread.h>
 
-#endif
+//#endif
 
 // libcurl
 #include <curl/curl.h>
@@ -399,7 +399,7 @@ int ID_DROP_DOWN_LIST = 22050;
 //#include "md5.h"
 #include "md5_SB.h"
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 #include "KbServer.h"
 //#include "KBSharingSetupDlg.h"
@@ -411,7 +411,7 @@ int ID_DROP_DOWN_LIST = 22050;
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 // whm added 8Oct12
 #include <curl/curl.h>
@@ -6713,7 +6713,7 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
     EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
     EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
     EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
 	EVT_MENU(ID_MENU_ADMIN_ADD_USERS, CAdapt_ItApp::OnAddUsersToKBserver) // for creating some users to start with
@@ -6722,10 +6722,10 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
 		
 		//    EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
-#endif
-#if !defined(_KBSERVER)
-    EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-#endif
+//#endif
+//#if !defined(_KBSERVER)
+//    EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+//#endif
     EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
     //EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
@@ -19127,7 +19127,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
     return codeToReturn;
 }
 //*
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 //setter for m_pKbServer pointer in CAdapt_ItApp
 void CAdapt_ItApp::SetKbServer(int whichType, KbServer* pKbSvr)
@@ -22784,7 +22784,7 @@ void CAdapt_ItApp::UpdateCurNormalFreeTransLangName(wxString str)
 	}
 }
 
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 void CAdapt_ItApp::SetAdjustScrollPosFlag(bool bDoAdjustment)
@@ -22849,7 +22849,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
 
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
 	// by whatever is in the project config file, or defaulted to 5 there if out of
 	// range (range is: 1-120 minutes) BEW 22Oct20, move here from line 22,145 in
@@ -22867,7 +22867,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
 	m_bChangingPermission = FALSE; // initialise
 	m_bDoingChangePassword = FALSE; // initialise
-#endif
+//#endif
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
 
@@ -22965,7 +22965,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUnfiltering_ef_Filtered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
 	m_bUnfiltering_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
 	m_bDiscoverKBservers = TRUE;
 	m_bUseForeignOption = FALSE; // normal local kbserver user stuff is in focus
@@ -23014,7 +23014,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                   // latter is used for authenticating to the KB
                                   // Sharing Manager tabbed dialog)
 
-#endif
+//#endif
 
     // initialize these collaboration variables, which are relevant to conflict resolution
     m_bRetainPTorBEversion = FALSE;
@@ -23043,13 +23043,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
     m_nInsertCount = 0;
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     //m_pServDisc = NULL; // initialize to 0  <- deprecated 18Apr16, & moved to Thread_ServiceDiscovery
     m_strKbServerIpAddr.Empty(); // assume none ever set, Basic config file may restore a value
                               // to this variable further down in OnInit()
-#endif
+//#endif
 
-                              //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+    //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
         // phrasebox to the active pile's hole when free trans mode is exited. (Because
         // it stubbornly stayed at old anchor location on the screen)
@@ -23103,7 +23103,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
     m_bKBSharingEnabled = TRUE; // default
 
@@ -23118,7 +23118,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 
     m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
-#endif
+//#endif
     // BEW 18Nov13, initialize new boolean - always false except is TRUE just before final
     // RecalcLayout() call at end of printing, in app function DoPrintCleanup()
     m_bSuppressFreeTransRestoreAfterPrint = FALSE;
@@ -23172,7 +23172,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
     m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // initialize to default value, BEW added 23Nov12
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
     m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
     m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
@@ -23193,7 +23193,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bWizardIsRunning = FALSE;
 
-#endif
+//#endif
 
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
@@ -29259,21 +29259,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // curl needs to be initialized just once per run of the application
     // Note: curl leaks this small heap block; and openssl also leaks a small heap block.
     // BEW 29Apr16 curl_global_cleanup() cleans up - see OnExit()
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 #if defined(__WXMSW__)
     curl_global_init(CURL_GLOBAL_ALL);
 #else
     curl_global_init(CURL_GLOBAL_SSL);
 #endif
-#else
-#if defined(__WXMSW__)
-    curl_global_init(CURL_GLOBAL_ALL);
-#else
-    curl_global_init(CURL_GLOBAL_SSL);
-#endif
+//#else
+//#if defined(__WXMSW__)
+//    curl_global_init(CURL_GLOBAL_ALL);
+//#else
+//    curl_global_init(CURL_GLOBAL_SSL);
+//#endif
 
-#endif
+//#endif
 
     // **** test code fragments here ****
     /*
@@ -29519,7 +29519,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     TCHAR* pBuff = str.GetBuffer(len+1);
     TCHAR* ptr = pBuff + len;
     int mkrlen;
-    BOOL bWorked = GetView()->GetPrevMarker(pBuff,ptr,mkrlen);
+    bool bWorked = GetView()->GetPrevMarker(pBuff,ptr,mkrlen);
     str.ReleaseBuffer();
     */
     /*
@@ -29584,7 +29584,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     path += _T("Rebuild Log.txt");
     CFile fout;
     CFileException error;
-    BOOL bOK = fout.Open( path, CFile::modeCreate | CFile::modeWrite | CFile::shareExclusive,&error);
+    bool bOK = fout.Open( path, CFile::modeCreate | CFile::modeWrite | CFile::shareExclusive,&error);
     fout.Write((LPCTSTR)fixesStr,len);
     fout.Close();
     if (len > 1200)
@@ -29822,7 +29822,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     #endif
     */
     /*
-    #if defined(_KBSERVER)
+    //#if defined(_KBSERVER)
     // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
     // the Advanced menu in the _Debug build
     size_t nAdvancedMenuIndex = 5;
@@ -29838,7 +29838,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
 
     // DONT FORGET UPDATE HANDLERS!
-    #endif
+    //#endif
     */
 
     /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
@@ -29903,7 +29903,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Run Service Discovery
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
     // BEW changed 26Apr16, I think I'll confine the 'burst' of runs to
     // user choice made explicitly: (1) the Scan For Running KBservers
@@ -29913,7 +29913,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // call here, I want a more slick GUI than this
     //DoKBserverDiscoveryRuns();
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
@@ -29931,7 +29931,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //		__LINE__, m_szView.x, m_szView.y);
 
     // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	execPath = PathToExecFolder(); // app removed from end, ends now in separator
 	distPath = MakeDistFolder();  // set the path to dist folder, for this session
@@ -29943,14 +29943,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						// download, or ChangedSince (ie. incremental) download. If
 						// TRUE, skip the OnIdle() ChangedSince_Timed request
 
-    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
-#endif // _KBSERVER
+//    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
+//#endif // _KBSERVER
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 wxString CAdapt_ItApp::PathToExecFolder()
 {
@@ -29986,7 +29986,7 @@ wxString CAdapt_ItApp::MakeDistFolder()
 	return distPath;
 }
 
-#endif
+//#endif
 
 
 // BEW added 11Mar20 for making m_finalSrcPuncts string for use in ParseInlineEndMarker()
@@ -30121,11 +30121,11 @@ int CAdapt_ItApp::OnExit(void)
 	// application class destructor!"
 
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 	// Cleanups
 
 
-#endif
+//#endif
 	// BEW 16Sep20, remove any .txt temporary source text files imported from Paratext
 	// or Bibledit, now that they are not needed in this session. Leave any which are
 	// not there due to a collaboration session having been active
@@ -30151,7 +30151,7 @@ int CAdapt_ItApp::OnExit(void)
 					bool bExists = ::wxFileExists(pathtofile);
 					if (bExists)
 					{
-						BOOL bDeleted = ::DeleteFileW(pathtofile);
+						bool bDeleted = wxRemoveFile(pathtofile);
 						if (!bDeleted)
 						{
 							wxBell();
@@ -33488,7 +33488,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
     CAdapt_ItDoc* pDoc = GetDocument();
     wxASSERT(pDoc != NULL);
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     // BEW 28Sep12, the still-open KBs might be for a kb sharing project, so to be safe,
     // we should call ReleaseKBServer() here (this will reset m_bIsKBServerProject to
     // FALSE, but a higher level call, coming after CreateAndLoadKBs() returns, should
@@ -33508,7 +33508,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
             LogUserAction(_T("ReleaseKBServer(2) called in CreateAndLoadKBs()"));
         }
     }
-#endif
+//#endif
 
     if (pDoc != NULL && m_pKB != NULL)
     {
@@ -35943,7 +35943,7 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 
 }
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the GetKBSharingMgrTabbedDlg object instance
 /// \remarks
@@ -35960,7 +35960,7 @@ KBSharingMgrTabbedDlg*	CAdapt_ItApp::GetKBSharingMgrTabbedDlg()
         return (KBSharingMgrTabbedDlg*)NULL;
     }
 }
-#endif
+//#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
@@ -37204,7 +37204,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
         event.Enable(FALSE);
 }
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
@@ -37790,13 +37790,13 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
     event.Enable(TRUE);
 }
 
-#endif // for _KBSERVER
-#if !defined(_KBSERVER)
-void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
-{
-    event.Enable(FALSE);
-}
-#endif
+//#endif // for _KBSERVER
+//#if !defined(_KBSERVER)
+//void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
+//{
+//    event.Enable(FALSE);
+//}
+//#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -38156,7 +38156,7 @@ void CAdapt_ItApp::DoAutoSaveKB()
 // MRU file list default implementation -- copied from MFC folder's appui.cpp
 // in case I want to develop a smarter override based on it sometime
 /*
-BOOL CWinApp::OnOpenRecentFile(UINT nID)
+bool CWinApp::OnOpenRecentFile(UINT nID)
 {
 ASSERT(m_pRecentFileList != NULL);
 
@@ -39598,7 +39598,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     data << szInformalUsername << tab << m_strFullname;
     pf->AddLine(data);
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
     // whm 30Oct13 moved the KbServerU R L value storage here to the
 	// basic config file, it used to be in the project config file
@@ -39623,7 +39623,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     data << szKbServerHostname << tab << m_strKbServerHostname;
     pf->AddLine(data);
 
-#endif
+//#endif
 
     data.Empty();
     data << szAdaptitPath << tab << m_workFolderPath;
@@ -40851,7 +40851,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
         data = pf->GetNextLine();
         GetValue(data, strValue, name);
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
         // whm 30Oct13 moved the KbServerURL value handling here to the basic
         // config file. BEW 28Jul20 Note, so we avoid bumping docVersion, the
 		// 'URL' substring is retained in the name, but now stores an ipAddress
@@ -40876,7 +40876,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			m_strKbServerHostname = strValue;
 		}
         else
-#endif
+//#endif
             if (name == szAdaptitPath)
             {
                 // BEW changed 12Oct09, we come here when reading either the
@@ -43458,7 +43458,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     }
     pf->AddLine(data);
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
     data.Empty();
     data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
     pf->AddLine(data);
@@ -43466,15 +43466,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data.Empty();
     data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
     pf->AddLine(data);
-#endif
+//#endif
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
     data.Empty();
     data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
     pf->AddLine(data);
 
-#endif
+//#endif
 
     // m_last...Path values below
     data.Empty();
@@ -44131,7 +44131,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 gbUCSrcCapitalAnywhere = TRUE;
             }
         }
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
         else if (name == szIsKBServerProject)
         {
             if (strValue == _T("1"))
@@ -44158,8 +44158,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
             }
         }
-#endif
-#if defined (_KBSERVER)
+//#endif
+//#if defined (_KBSERVER)
         else if (name == szKbServerDownloadInterval)
         {
             num = wxAtoi(strValue);
@@ -44169,16 +44169,16 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         }
 		else if (name == szKbServerURL)
 			;	// do nothing
-#else		// mrh - avoid warning if we're switching from a KBserver to non-KBserver build
-        else if (name == szIsKBServerProject)
-            ;	// do nothing
-        else if (name == szIsGlossingKBServerProject)
-            ;	// do nothing
-        else if (name == szKbServerURL)
-            ;	// do nothing
-        else if (name == szKbServerDownloadInterval)
-            ; // do nothing
-#endif
+//#else		// mrh - avoid warning if we're switching from a KBserver to non-KBserver build
+//        else if (name == szIsKBServerProject)
+//            ;	// do nothing
+//        else if (name == szIsGlossingKBServerProject)
+//            ;	// do nothing
+//        else if (name == szKbServerURL)
+//            ;	// do nothing
+//        else if (name == szKbServerDownloadInterval)
+//            ; // do nothing
+//#endif
         else if (name == szKeepPhraseBoxMidscreen)
         {
             if (strValue == _T("1"))
@@ -50738,7 +50738,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
     wxString prefix;
     if (gbIsGlossing)
     {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
         if (m_bKBSharingEnabled && m_bGlossesKBserverReady)
         {
             prefix = _("Glossing & Sharing Glosses KB");
@@ -50747,9 +50747,9 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         {
             prefix = _("Glossing");
         }
-#else
-        prefix = _("Glossing");
-#endif
+//#else
+//        prefix = _("Glossing");
+//#endif
     }
     else
     {
@@ -50760,7 +50760,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         // BEW 20Jun16 added support for indicating when KB sharing is currently on
         if (m_bDrafting)
         {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
             if (m_bKBSharingEnabled && m_bAdaptationsKBserverReady)
             {
                 prefix = _("Adapting & Sharing Adaptations KB");
@@ -50769,16 +50769,16 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
             {
                 prefix = _("Adapting");
             }
-#else
-            prefix = _("Adapting");
-#endif
+//#else
+//            prefix = _("Adapting");
+//#endif
         }
         else
         {
             // review mode - which, for the use of the -frm switch, is also
             // the "back translating 'dumb' mode made persistent for the
             // session
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
             if (m_bKBSharingEnabled && m_bAdaptationsKBserverReady)
             {
                 prefix = _("Reviewing & Sharing Adaptations KB");
@@ -50787,9 +50787,9 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
             {
                 prefix = _("Reviewing");
             }
-#else
-            prefix = _("Reviewing");
-#endif
+//#else
+//            prefix = _("Reviewing");
+//#endif
         }
     }
     message = prefix + _T("  ") + message;
@@ -50887,7 +50887,7 @@ void CAdapt_ItApp::StatusBarMessage(wxString &message)
     }
 }
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 /// \return      void
 /// \remarks
@@ -51040,7 +51040,7 @@ void CAdapt_ItApp::StatusBar_EndProgressOfKbDeletion()
     pStatusBar->Update();
 }
 
-#endif
+//#endif
 
 
 //**************************************************************************************
@@ -59965,7 +59965,7 @@ void CAdapt_ItApp::ClobberGuesser()
     m_numLastEntriesAggregate = 0;
     m_numLastGlossingEntriesAggregate = 0;
 }
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts. Called from MainFrm.cpp
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
@@ -61417,7 +61417,7 @@ void CAdapt_ItApp::CheckForDefinedGlossLangName()
 
 
 // TODO -- add more as needed
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 // EnsureProperCapitalization() checks the "following punctuatation" of the CSourcePhrase
 // instance at nCurrSequNum - 1, providing the active location is not at sn = 0.

@@ -1612,7 +1612,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 			nLeftBound = 0;
 		}
 	}
-	// Now nRightBound, no final BOOL parameter in the next call means 'seach forwards'
+	// Now nRightBound, no final bool parameter in the next call means 'seach forwards'
 	bNoError = FindNote(pSrcPhrases, nEditSpanEndingSN, nRightBound); 
 	if (!bNoError)
 	{

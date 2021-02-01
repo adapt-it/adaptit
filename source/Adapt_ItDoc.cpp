@@ -5994,7 +5994,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 //
 // Here below is the contents of the MFC base class CDocument::OnOpenDocument()
 // method (minus _DEBUG statements):
-//BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
+//bool CDocument::OnOpenDocument(LPCTSTR lpszPathName)
 //{
 //	CFileException fe;
 //	CFile* pFile = GetFile(lpszPathName,
@@ -6770,13 +6770,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// BEW 28Apr16 cause OnIdle() to get authentication done, after wizard completes
 		pApp->m_bEnteringKBserverProject = TRUE;
 	}
-#endif
+//#endif
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
@@ -18468,7 +18468,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 						} // end of TRUE block for test: if (nFound != -1)
 
-						// BEW added 05Oct05; CSourcePhrase class has new BOOL attributes in
+						// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
 						// support of notes, backtranslations and free translations, so we have
 						// to set these at appropriate places in the parse.
 						if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
@@ -20485,7 +20485,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
                                 // put an entry into m_FilterStatusMap to that effect, and
                                 // the caller will later use the fact that that map is not
                                 // empty to call RetokenizeText() with the option for
-                                // filter changes turned on (ie. BOOL parameter 2 in the
+                                // filter changes turned on (ie. bool parameter 2 in the
                                 // call is TRUE), and that will accomplish the required
                                 // filtering.
 								wxString mkr(ptr,itemLen); // construct the wholeMarker
@@ -21139,7 +21139,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 // len is its length in characters (not bytes), determined by ParseMarker() in the caller
 // pUsfmAnalysis is the struct on the heap that a prior call to LookupSFM(ptr) returned,
 // and could be NULL for an unknown marker.
-// The returned BOOL is the value of the m_bSpecialText member of pSrcPhrase.
+// The returned bool is the value of the m_bSpecialText member of pSrcPhrase.
 {
 	CSourcePhrase* pThis = pSrcPhrase;
 	CSourcePhrase* pLast = pLastSrcPhrase;
@@ -21575,9 +21575,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // This note describes the flow of control when the MFC app (CFrameWnd) does OnClose()
 // and the WX app (wxDocParentFrame) does OnCloseWindow():
 // IN MFC:	CFrameWnd::OnClose()
-// - ->		pApp::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
-// - ->		CDocMagager::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
-// - ->		CDocTemplate::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
+// - ->		pApp::CloseAllDocuments(FALSE) // parameter bool bEndSession
+// - ->		CDocMagager::CloseAllDocuments(FALSE) // parameter bool bEndSession
+// - ->		CDocTemplate::CloseAllDocuments(FALSE) // parameter bool bEndSession
 // - ->		CAdapt_ItDoc::OnCloseDocument() [see note following:]
 // - ->		CDocument::OnCloseDocument() // MFC app overrides this and calls it at end of override
 // The MFC AI override calls EraseKB on the adapting and glossing KBs, updates
@@ -21626,7 +21626,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 				//{
 				//	// destroy all frames viewing this document
 				//	// the last destroy may destroy us
-				//	BOOL bAutoDelete = m_bAutoDelete;
+				//	bool bAutoDelete = m_bAutoDelete;
 				//	m_bAutoDelete = FALSE;  // don't destroy document while closing views
 				//	while (!m_viewList.IsEmpty())
 				//	{
@@ -21752,7 +21752,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	if (!m_bReopeningAfterClosing)
 	{
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
 			pApp->ReleaseKBServer(1); // the adaptations one
@@ -21763,7 +21763,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			pApp->ReleaseKBServer(2); // the glossings one
 			pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
 		}
-#endif
+//#endif
 
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
@@ -25385,7 +25385,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		gpApp->LogUserAction(thismsg);
 	}
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
 	// that the one who receives and unpacks the document will also want to share. He may
 	// only want to inspect what was sent. So check if the sender had sharing on, and
@@ -25425,7 +25425,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}
-#endif
+//#endif
 
 	return TRUE;
 }

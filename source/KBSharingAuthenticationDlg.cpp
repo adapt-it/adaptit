@@ -46,7 +46,7 @@
 
 #include <wx/docview.h>
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 #include "Adapt_It.h"
@@ -406,4 +406,4 @@ void KBSharingAuthenticationDlg::OnCancel(wxCommandEvent& myevent)
 	myevent.Skip();
 }
 
-#endif
+//#endif

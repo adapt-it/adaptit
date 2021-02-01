@@ -36,7 +36,7 @@
 #include <wx/wx.h>
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -346,4 +346,4 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	EndModal(wxID_OK);
 }
 
-#endif
+//#endif

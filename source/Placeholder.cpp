@@ -543,7 +543,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	CSourcePhrase* pSrcPhrase = NULL; // whm initialized to NULL
 	CSourcePhrase* pPrevSrcPhrase = NULL; // the sourcephrase which lies before the first 
 	// inserted ellipsis, in a retranslation we have to check this one for an 
-	// m_bEndFreeTrans being TRUE flag and move that BOOL value to the end of the
+	// m_bEndFreeTrans being TRUE flag and move that bool value to the end of the
 	// insertions, and so forth...
 	//CPile* pPrevPile; // set but not used
 	CPile* pPile = pInsertLocPile;
@@ -1243,7 +1243,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
         // 11Oct10 we also have to move what is in m_follOuterPunct.
         // We are inserting to pad out a retranslation, so if the last of the selected
         // source phrases has following punctuation, we need to move it to the last
-        // placeholder inserted (note, the case of moving free-translation-supporting BOOL
+        // placeholder inserted (note, the case of moving free-translation-supporting bool
         // values is done above, as also is the moving of the content of a final non-empty
 		// m_endMarkers member, and m_inlineNonbindingEndMarkers and
 		// m_inlineBindingEndMarkers to the last placeholder, in the insertion loop itself)
@@ -4296,7 +4296,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// 11Oct10 we also have to move what is in m_follOuterPunct.
 			// We are inserting to pad out a retranslation, so if the last of the selected
 			// source phrases has following punctuation, we need to move it to the last
-			// placeholder inserted (note, the case of moving free-translation-supporting BOOL
+			// placeholder inserted (note, the case of moving free-translation-supporting bool
 			// values is done above, as also is the moving of the content of a final non-empty
 			// m_endMarkers member, and m_inlineNonbindingEndMarkers and
 			// m_inlineBindingEndMarkers to the last placeholder, in the insertion loop itself)

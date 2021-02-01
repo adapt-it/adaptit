@@ -544,7 +544,7 @@ void CJoinDialog::InitialiseLists()
 
 	// BEW modified 02Nov05, to only show document files (the FALSE parameter effects this)
 	//FillListBoxWithListOfFilesInPath(pAcceptedFiles, gpApp->GetCurrentDocFolderPath(), FALSE);
-	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, BOOL bShowAllFiles)
+	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, bool bShowAllFiles)
 	// In wx version we're not implementing JF's DialogBase class, but using the code from its function here.
 	pAcceptedFiles->Clear(); // clear out all entries from the listbox
 	wxArrayString files;

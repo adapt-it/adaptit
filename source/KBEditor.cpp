@@ -816,7 +816,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		//pCurRefString->m_refCount = 1; // leave it unchanged, if later undeleted set = 1 then
 		(pCurRefString->GetRefStringMetadata())->SetDeletedDateTime(aTimestamp);
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
 		int rv = -1; // initialise
 		wxUnusedVar(rv);
@@ -843,7 +843,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 				}
 			}
 		}
-#endif
+//#endif
         // Now get the visible listbox contents to comply with what we've done. nFound is
         // still valid, it's the index for the list entry we need to remove; its clientData
         // pointer which is a ptr to the CRefString instance owning the translation is not
@@ -945,7 +945,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 26Oct12 for KBserver support
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
 	int rv = -1;
 	wxUnusedVar(rv);
@@ -967,7 +967,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 	}
-#endif
+//#endif
 
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
@@ -1054,7 +1054,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	if (bOK)
 	{
 		// BEW added 19Feb13 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
@@ -1070,7 +1070,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 					m_srcKeyStr.c_str(), s.c_str());
 			}
 		}
-#endif
+//#endif
 		// Don't add to the list if the AddRefString call did not succeed
 		//m_pListBoxExistingTranslations->Append(newText);
 		m_pListBoxExistingTranslations->Append(s); // BEW 21Jan21 -- user needs to 
@@ -1226,7 +1226,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	if (bOK)
 	{
 		// BEW added 26Oct12 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		bool bCreatedOK = FALSE; // initialise
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
@@ -1257,7 +1257,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				}
 			}
 		}
-#endif
+//#endif
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
@@ -1504,7 +1504,7 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// Disallow the button with a message, if it's a KB sharing project but sharing is
 	// temporarily disabled. (Reason? If allowed in when sharing is disabled, the user may
 	// spend an hour or more working through thousands of entries, ticking hundreds of
@@ -1557,7 +1557,7 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
-#endif
+//#endif
 
 	RemoveSomeTgtEntries dlg((wxWindow*)this);
 	if (dlg.ShowModal() == wxID_OK)
@@ -1770,7 +1770,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// BEW added 22Oct12 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 KbAdaptRunning() and KbGlossRunning() avoid a crash if there is no
 // KB server actually running. This can occur if the project was used with a KB server
 // but the KB server happens to be inaccessible now.
@@ -1795,7 +1795,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		}
 
 	}
-#endif
+//#endif
 	// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
 	// 'remove' in the context of kbVersion 2 just means to retain storage of the
 	// CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata

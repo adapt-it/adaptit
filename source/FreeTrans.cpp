@@ -4709,7 +4709,7 @@ void CFreeTrans::RestoreInterPileGapAfterFreeTranslating()
 
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             TRUE if the sourcephrase's m_bStartFreeTrans BOOL is TRUE,
+/// \return             TRUE if the sourcephrase's m_bStartFreeTrans bool is TRUE,
 ///                     FALSE otherwise
 ///	\param pPile	->	pointer to the pile which stores the pSrcPhrase pointer being
 ///	                    examined
@@ -8586,7 +8586,7 @@ void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 /// \return         nothing
 ///
 ///	\param pileArray	->	pointer to the array of piles which are to have their
-///	                        m_bIsCurrentFreeTransSection BOOL member set to TRUE
+///	                        m_bIsCurrentFreeTransSection bool member set to TRUE
 /// \remarks
 ///	This will turn on light pastel pink colouring of the phrase box line's
 ///	rectangles which lie within the current free translation section, when

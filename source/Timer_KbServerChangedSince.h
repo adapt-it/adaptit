@@ -31,7 +31,7 @@
     #pragma interface "Timer_KbServerChangedSince.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // forward declarations
 class CAdapt_ItApp;
@@ -50,6 +50,6 @@ private:
 
 };
 
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
 #endif

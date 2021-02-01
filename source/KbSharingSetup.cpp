@@ -40,7 +40,7 @@
 
 #include <wx/docview.h>
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -414,4 +414,4 @@ void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
 	myevent.Skip();
 }
 
-#endif
+//#endif

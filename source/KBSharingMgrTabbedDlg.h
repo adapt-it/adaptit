@@ -22,7 +22,7 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "KBSharingMgrTabbedDlg.h"
 #endif
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // needed for the KbServerUser and KbServerKb structures
 #include "KbServer.h"
 
@@ -107,4 +107,4 @@ private:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif /* KBSharingMgrTabbedDlg_h */
+//#endif /* KBSharingMgrTabbedDlg_h */

@@ -887,7 +887,7 @@ void CSplitDialog::ListFiles()
 	// effects this; the default TRUE value would list all files in the folder
 	//this->FillListBoxWithListOfFilesInPath(FileList, FolderPath, FALSE);
 	
-	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, BOOL bShowAllFiles)
+	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, bool bShowAllFiles)
 	// In wx version we're not implementing JF's DialogBase class, but using the code from its function here.
 	//wxString FolderPathAndFilespecWildcards = FolderPath + PathSeparator + _T("*.*");
 	pFileList->Clear(); // clear out all entries from the listbox

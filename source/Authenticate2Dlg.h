@@ -26,7 +26,7 @@
 #pragma interface "Authenticate2Dlg.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class Authenticate2Dlg : public AIModalDialog
 {
@@ -82,6 +82,6 @@ protected:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif
+//#endif
 
 #endif /* Authenticate2_h */

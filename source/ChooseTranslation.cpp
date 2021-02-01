@@ -987,7 +987,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
         pKB->m_bCallerIsRemoveButton = TRUE;
 
 	// BEW added 19Feb13 for kbserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     //  GDLC 20JUL16 Use KbAdaptRunning() and KbGlossRunning()to avoid crashes if a previously
     //  used KB Server happens to be unavailable now
     if ((gpApp->m_bIsKBServerProject && gpApp->KbAdaptRunning() )
@@ -1009,7 +1009,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		}
 		wxUnusedVar(rv);
 	}
-#endif
+//#endif
 	// remove the corresponding CRefString instance from the knowledge base...
 	// BEW 25Jun10, 'remove' now means, set m_bDeleted = TRUE, etc, and hide it in the GUI
 	wxASSERT(pRefString != NULL);

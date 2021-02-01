@@ -37,7 +37,7 @@
 #include <wx/dynarray.h>
 WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // A utility function to do the equivalent of curl's curl_easy_encode(), because the
 // latter seems to be interfering with heap cleanup when our url-encoded API functions
@@ -419,6 +419,6 @@ private:
 	DECLARE_DYNAMIC_CLASS(KbServer)
 
 };
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
 #endif /* KbServer_h */

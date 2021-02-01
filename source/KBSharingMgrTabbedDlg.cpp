@@ -42,7 +42,7 @@
 #include <wx/html/htmlwin.h> // for display of the "Help for Administrators.htm" file from the Administrator menu
 #include <wx/textfile.h>
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -1109,6 +1109,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 
 	// Copy the whole matrix of mgr arrays to the 'saved set' -- only useradmin is unset so get it
 	int useradminReturned = m_pApp->GetIntAtIndex(m_pApp->m_mgrUseradminArr, m_pApp->m_nMgrSel);
+	wxUnusedVar(useradminReturned);
 	bool bNormalToSaved = TRUE; // empty 'saved set' and refill with 'normal set', 
 								// as 'normal set' may change below
 	m_pApp->MgrCopyFromSet2DestSet(bNormalToSaved); // facilitates checking for differences below
@@ -1172,4 +1173,4 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// to change a username - the way to do it is to make a whole new user.
 }
 
-#endif
+//#endif

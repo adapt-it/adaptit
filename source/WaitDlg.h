@@ -37,9 +37,9 @@ class CWaitDlg : public wxDialog
 // Construction
 public:
 	CWaitDlg(wxWindow* parent);   // standard constructor
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	CWaitDlg(wxWindow* parent, bool bNoTitle); // alternate constructor for an empty titlebar
-#endif
+//#endif
 	~CWaitDlg(); // destructor
 // Dialog Data
 	//enum { IDD = IDD_WAIT };

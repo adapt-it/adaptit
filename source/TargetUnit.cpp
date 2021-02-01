@@ -268,7 +268,7 @@ int CTargetUnit::FindDeletedRefString(wxString& translationStr)
 	return (int)wxNOT_FOUND;
 }
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // A variant of the above FindDeletedRefString() function. Returns the matched
 // (pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
 CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationStr)
@@ -296,7 +296,7 @@ CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationS
 	// if control gets to here, we have no match and pRefString is still NULL
 	return pRefString;
 }
-#endif
+//#endif
 
 
 // Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it

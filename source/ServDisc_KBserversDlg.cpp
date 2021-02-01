@@ -35,7 +35,7 @@
 #include <wx/wx.h>
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 #include "Adapt_It.h"
@@ -313,4 +313,4 @@ void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 	event.Skip(); // dismiss the dialog
 }
 
-#endif // _KBSERVER
+//#endif // _KBSERVER

@@ -56,7 +56,7 @@
 //#define VERSION_NUMBER		4 // version 2: from 3rd Jan 2001, flags on CSourcePhrase for start
 							  // and end of a retranslation; from 14th May 2003, capacity to do
 							  // and see a glossing line as well as adapting line is version 3
-							  // From 23 June 2005, five BOOL members added to CSourcePhrase for
+							  // From 23 June 2005, five bool members added to CSourcePhrase for
 							  // support of free translations (3), notes (1) and bookmarks (1).
 							  // whm Note: Since the wx version only reads xml data we are 100%
 							  // compatible with the MFC version number scheme for version 4.
@@ -142,8 +142,8 @@
 #define NUMINSERTS 8
 
 // Next two for how long to leave up the info Wait msg when discovering
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 #define MSG_SECONDS 1
 #define MSG_MILLISECONDS 300
-#endif
+//#endif
 

@@ -40,7 +40,7 @@
 #include <wx/wx.h>
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -132,4 +132,4 @@ void KbSvrHowGetUrl::OnCancel(wxCommandEvent& myevent)
 	myevent.Skip();  // close dialog
 }
 
-#endif
+//#endif

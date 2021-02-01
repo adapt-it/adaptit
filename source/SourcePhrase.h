@@ -60,7 +60,7 @@ enum TextType {
 	secondaryTitle,
 	none, // = 6, BEW added 23May05 for inline marker pairs which don't change the TextType; these
 		  // currently are: ord, bd, it, em, bdit, sc, pro, ior, w, wr, wh, wg, ndx, k, pn, qs, fk, xk
-		  // (this type is used for suppression of the normal TextType and BOOL setting, so that
+		  // (this type is used for suppression of the normal TextType and bool setting, so that
 		  // the application will process alternative code for the special cases,  - especially
 		  // the restoration of the earlier TextType and m_bSpecialText value after an endmarker,
 		  // and the appropriate treatment of m_bFirstOfType & m_bBoundary (on pLast in 

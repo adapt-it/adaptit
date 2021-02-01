@@ -342,7 +342,7 @@ wxJSONWriter::SetDoubleFmtString( const char* fmt )
  \li \c WriteStringValue() for STRING and CSTRING types
  \li \c WriteIntValue for INT types
  \li \c WriteUIntValue for UINT types
- \li \c WriteBoolValue for BOOL types
+ \li \c WriteBoolValue for bool types
  \li \c WriteDoubleValue for DOUBLE types
  \li \c WriteMemoryBuff for MEMORYBUFF types
 
@@ -1047,9 +1047,9 @@ wxJSONWriter::WriteDoubleValue( wxOutputStream& os, const wxJSONValue& value )
     return r;
 }
 
-//! Writes a value of type BOOL.
+//! Writes a value of type bool.
 /*!
- This function is called for every value objects of BOOL type.
+ This function is called for every value objects of bool type.
  This function prints the literals \b true or \b false depending on the
  value in \c value.
  Returns -1 on stream errors or ZERO if no errors.

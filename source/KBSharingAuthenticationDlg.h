@@ -49,7 +49,7 @@
     #pragma interface "KBSharingAuthenticationDlg.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class KBSharingAuthenticationDlg : public AIModalDialog
 {
@@ -134,4 +134,4 @@ protected:
 
 #endif
 
-#endif /* KBSharingAuthenticationDlg_h */
+//#endif /* KBSharingAuthenticationDlg_h */

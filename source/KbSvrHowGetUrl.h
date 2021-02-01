@@ -31,7 +31,7 @@
     #pragma interface "KbSvrHowGetUrl.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class CAdapt_ItApp;
 // BEW 27Jul20 keep the Url in the name, even though new it's dealing only with an ipAddress
@@ -58,6 +58,6 @@ protected:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif
+//#endif
 
 #endif /* KbSvrHowGetUrl_h */

@@ -28,7 +28,7 @@
     #pragma implementation "Timer_KbServerChangedSince.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #include <wx/timer.h>
 #include "Adapt_It.h"
@@ -54,4 +54,4 @@ void Timer_KbServerChangedSince::Notify()
 	}
 }
 
-#endif
+//#endif

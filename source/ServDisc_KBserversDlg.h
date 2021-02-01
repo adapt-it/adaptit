@@ -25,7 +25,7 @@
     #pragma interface "ServDisc_KBserversDlg.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class CServDisc_KBserversDlg : public AIModalDialog
 {
@@ -60,5 +60,5 @@ private:
 	size_t		count; // count of how many items in pIpAddrs wxArrayString* passed in in ctor
 	DECLARE_EVENT_TABLE()
 };
-#endif // _KBSERVER
+//#endif // _KBSERVER
 #endif

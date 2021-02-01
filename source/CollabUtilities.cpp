@@ -2065,7 +2065,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 	// ignore dealing with any unlikely pathCreationErrors at this point
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// We need to try re-establish a connection to the KBserver if one is running
@@ -2078,7 +2078,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 	return TRUE;
 }
@@ -3180,7 +3180,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
     // before the KBs are clobbered; since UnloadKBs is called on every document closure in
     // collaboration mode, and in the wizard, and OnFileClose() and CreateNewAIProject().
@@ -3196,7 +3196,7 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called for  both kbs in UnloadKBs()"));
 	}
-#endif
+//#endif
 	// unload the KBs from memory
 	if (pApp->m_pKB != NULL)
 	{

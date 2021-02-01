@@ -78,7 +78,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 }
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	: wxDialog(parent, -1, _T(""),
 	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -108,12 +108,12 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 }
-#endif
+//#endif
 CWaitDlg::~CWaitDlg()
 {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	m_pApp->m_pWaitDlg = NULL;
-#endif
+//#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -213,7 +213,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 23:  // BEW 4Sep15 this is used in DoGlobalRestoreOfSaveToKB() within view's OnCheckKBSave()
 			WaitMsg = _("This may take a while. Identical changes are being done in all the documents...");
 			break;
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		case 24: // feedback to user that the running KBserver was connected to successfully
 			WaitMsg = _("Connected to KBserver successfully");
 			break;
@@ -223,7 +223,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 26: // a wait message so that the user knows KBserver discovery is taking place
 			WaitMsg = _("Discovery of running KBservers is happening...");
 			break;
-#endif
+//#endif
 		case 27: // a wait message if the user turns on the diagnostic log file creation for a doc parse failure
             //WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
             // whm 6Apr2020 reformulating the wait message below. Previously this message was presented
@@ -259,12 +259,12 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pStaticText->SetLabel(WaitMsg);
 	pStaticText->Update();
 	pWaitDlgSizer->Layout();
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	if (m_bNoTitle)
 	{
 		m_pApp->GetView()->PositionDlgNearBottomRight(this);
 	}
-#endif
+//#endif
 
     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
     m_pApp->m_bUserDlgOrMessageRequested = TRUE;
