@@ -84,6 +84,7 @@ using namespace std;
 //WX_DEFINE_LIST(DownloadsQueue);
 //WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for KBserver support
 							  // (see member m_uploadsList)
+WX_DEFINE_LIST(UsersList);
 WX_DEFINE_LIST(UsersListForeign);    // for use by the ListUsers() client, stores KbServerUserForeign structs
 //WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerKb structs
 //WX_DEFINE_LIST(LanguagesList);    // for use by the ListKbs() client, stores KbServerKb structs ??
