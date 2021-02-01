@@ -149,7 +149,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 #endif
 
 	// get rid of the temporary file _tbt_.cct in the data folder
-	if (!::wxRemoveFile(lpPath))
+	if (!wxRemoveFile(lpPath))
 	{
 		wxString aPath = tablePathName;
 		wxString s;

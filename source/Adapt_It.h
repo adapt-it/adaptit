@@ -4938,7 +4938,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// I'll store them in a wxArrayString dedicated to this task.
 	// Then, at OnExit() from the app, the array can be looked up in a loop, test for
 	// the file's existence in _SOURCE_INPUTS (don't need to worry if that folder is
-	// absent), and if there, use a file deletion function from wx, ::DeleteFile() I
+	// absent), and if there, use a file deletion function from wx, wxRemoveFile() I
 	// presume, to remove them from the folder. There is not reason for accumulating 
 	// them. By doing this when the above flags - one or both is true, I'll only be
 	// deleting the temporary session ones that are no longer wanted. Anything else

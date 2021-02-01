@@ -1549,7 +1549,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 	if (::wxFileExists(tempFilePathName))
 	{
 		bool bRemoved = FALSE;
-		bRemoved = ::wxRemoveFile(tempFilePathName);
+		bRemoved = wxRemoveFile(tempFilePathName);
 		if (!bRemoved)
 		{
 			// Not likely to happen, so an English message will suffice.

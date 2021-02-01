@@ -421,7 +421,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// if applicable, is delete the original file with the original filename.)
 	if (!FirstFileNameIsOriginalFileName && !SecondFileNameIsOriginalFileName) 
 	{
-		if (!::wxRemoveFile(OriginalFilePath))
+		if (!wxRemoveFile(OriginalFilePath))
 		{
 			::wxBell();
 		}
@@ -714,7 +714,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	pSplittingWait->Show(FALSE);
 
 	// Delete the original file.
-	if (!::wxRemoveFile(OriginalFilePath))
+	if (!wxRemoveFile(OriginalFilePath))
 	{
 		::wxBell();
 	}

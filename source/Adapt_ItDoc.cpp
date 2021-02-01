@@ -2197,8 +2197,8 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
         if (!bRemovedSuccessfully)
         {
             // tell developer or user, if the removal failed.  This isn't critical - just a warning.
-            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
-            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
+            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of wxRemoveFile() failed, at line 1709."));
+            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of wxRemoveFile() failed, at line 1709."));
         }
 
     }
@@ -2787,12 +2787,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		if (bOutputFileExists && bCopiedSuccessfully)
 		{
 			// remove the temporary backup, the original was saved successfully
-			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			bRemovedSuccessfully = wxRemoveFile(newFileAbsPath);
 			if (!bRemovedSuccessfully)
 			{
 				// tell developer or user, if the removal failed
-				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
-				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
@@ -2825,14 +2825,14 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 					if (thatSomethingsSize == originalSize)
 					{
 						// we are in luck, the original is still good, so remove the backup
-						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						bRemovedSuccessfully = wxRemoveFile(newFileAbsPath);
 						wxASSERT(bRemovedSuccessfully);
 					}
 					else
 					{
 						// the size is different, therefore the original was truncated, so
 						// restore the document file using the backup renamed
-						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 						wxASSERT(bRemovedSuccessfully);
 						bool bRenamedSuccessfully;
 						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
@@ -2867,11 +2867,11 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 					{
 						// we are out of luck, the original is truncated
 						bOutOfLuck = TRUE;
-						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 						if (!bRemovedSuccessfully)
 						{
 							// tell developer or user, if the removal failed
-							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
 							return TRUE;
 						}
 					}
@@ -2895,7 +2895,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
 			if (bTruncatedFragmentExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 				wxASSERT(bRemovedSuccessfully);
 				// warn user to do a file save now while the doc is still in memory
 				wxString msg;
@@ -4084,7 +4084,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 				}
 				return;
@@ -4109,7 +4109,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(newAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 					bRemovedSuccessfully = bRemovedSuccessfully;  // prevent compiler warning, one of these is enough
 				}
@@ -4117,7 +4117,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 				}
 				return;
@@ -4130,7 +4130,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 				wxString msg = _("Warning: a SaveAs... file with the same name is illegal, so nothing was done.");
 				wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
@@ -4147,7 +4147,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			return;
@@ -4172,14 +4172,14 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(newAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			// and also the temp copy
 			bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			return;
@@ -4817,7 +4817,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	{
 		// this backed up document file is on the disk, so delete it
 		//bOldBackupExists = TRUE;
-		if (!::wxRemoveFile(aFilename))
+		if (!wxRemoveFile(aFilename))
 		{
 			wxString s;
 			s = s.Format(_(
@@ -24807,7 +24807,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 
 	// lastly remove the .aiz temporary file that was used to unpack from
 	// leaving the compressed .aip in the work folder
-	if (!::wxRemoveFile(packedDocPath))
+	if (!wxRemoveFile(packedDocPath))
 	{
 		// if there was an error, we just get no unpack done, but app can continue; and
 		// since we expect no error here, we will use an English message
@@ -25149,7 +25149,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
             // machine might be binary (ie. have .adt extension)
 			if (bItsXML)
 			{
-				if (!::wxRemoveFile(gpApp->m_curOutputPath))
+				if (!wxRemoveFile(gpApp->m_curOutputPath))
 				{
 					wxString thismsg;
 					thismsg = thismsg.Format(_(
@@ -25306,7 +25306,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // it
 	if (bRenamedConfigFile)
 	{
-		if (!::wxRemoveFile(renamedPath))
+		if (!wxRemoveFile(renamedPath))
 		{
 			wxString thismsg;
 			thismsg = _(

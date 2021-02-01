@@ -20589,7 +20589,7 @@ void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 	bool bExists = ::wxFileExists(filePath);
 	if (bExists)
 	{
-		::DeleteFile(filePath); // ignore returned bool
+		wxRemoveFile(filePath); // ignore returned bool
 	}
 }
 
@@ -32014,7 +32014,7 @@ void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
                 size_t index;
                 for (index = 0; index < total; index++)
                 {
-                    ::wxRemoveFile(deleteFileList.Item(index));
+                    wxRemoveFile(deleteFileList.Item(index));
                 }
             }
 
@@ -34993,7 +34993,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bShowWaitDlg, bool bAutoBackup)
         if (::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
         {
             // found a backup, so remove it to make way for new backup
-            if (!::wxRemoveFile(m_curGlossingKBBackupPath))
+            if (!wxRemoveFile(m_curGlossingKBBackupPath))
             {
                 // notify user of error (maybe backup file is protected or in use???)
                 wxMessageBox(_("Removing backup glossing kb file failed."), _T(""), wxICON_EXCLAMATION | wxOK);
@@ -35089,7 +35089,7 @@ bool CAdapt_ItApp::StoreKB(bool bShowWaitDlg, bool bAutoBackup)
         if (::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
         {
             // found a backup, so remove it to make way for new backup
-            if (!::wxRemoveFile(m_curKBBackupPath))
+            if (!wxRemoveFile(m_curKBBackupPath))
             {
                 // notify user of error (maybe backup file is protected or in use???)
                 wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_EXCLAMATION | wxOK);
@@ -35140,7 +35140,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup, bool bShowProgress /* = true */)
         if (::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
         {
             // found a backup, so remove it to make way for new backup
-            if (!::wxRemoveFile(m_curKBBackupPath))
+            if (!wxRemoveFile(m_curKBBackupPath))
             {
                 // notify user of error (maybe backup file is protected or in use???)
                 // The following message did not exist in the MFC version
@@ -35183,7 +35183,7 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
         if (::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
         {
             // found a backup, so remove it to make way for new backup
-            if (!::wxRemoveFile(m_curGlossingKBBackupPath))
+            if (!wxRemoveFile(m_curGlossingKBBackupPath))
             {
                 // notify user of error (maybe backup file is protected or in use???)
                 // The following message did not exist in the MFC version
@@ -36452,7 +36452,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
     wxString message;
     if (bDoOnGlossingKB)
     {
-        if (!::wxRemoveFile(m_curGlossingKBPath))
+        if (!wxRemoveFile(m_curGlossingKBPath))
         {
             message = message.Format(_(
                 "Warning: Did not remove bad knowledge base file %s."),
@@ -36464,7 +36464,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
     }
     else
     {
-        if (!::wxRemoveFile(m_curKBPath))
+        if (!wxRemoveFile(m_curKBPath))
         {
             message = message.Format(_(
                 "Warning: Did not remove bad knowledge base file %s."),
@@ -38432,7 +38432,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
             bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
             if (::wxFileExists(tempKBfilePath))
             {
-                bOK = ::wxRemoveFile(tempKBfilePath);
+                bOK = wxRemoveFile(tempKBfilePath);
                 tempKBfilePath.Empty();
             }
             LogUserAction(_T("...no saved document files yet for this project..."));
@@ -38482,7 +38482,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
             }
         }
         // remove the temporary copy of the KB file or Glossing KB file
-        bOK = ::wxRemoveFile(tempKBfilePath);
+        bOK = wxRemoveFile(tempKBfilePath);
         tempKBfilePath.Empty();
 
         // clean up the list
@@ -38532,7 +38532,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
             m_acceptedFilesList.Clear();
             if (::wxFileExists(tempKBfilePath))
             {
-                bOK = ::wxRemoveFile(tempKBfilePath);
+                bOK = wxRemoveFile(tempKBfilePath);
                 tempKBfilePath.Empty();
             }
             LogUserAction(s3);
@@ -38704,7 +38704,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     }
     if (::wxFileExists(tempKBfilePath))
     {
-        bOK = ::wxRemoveFile(tempKBfilePath);
+        bOK = wxRemoveFile(tempKBfilePath);
         tempKBfilePath.Empty();
     }
 
@@ -43091,7 +43091,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
         // should open ok, if not, tell the developer & abort
         if (bOpenedOK)
         {
-            bOK = ::wxRemoveFile(strRenamedFile);
+            bOK = wxRemoveFile(strRenamedFile);
         }
         else
         {
@@ -43180,7 +43180,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
                 // should open ok, if not, tell the user & abort
                 if (bOpenedOK)
                 {
-                    bOK = ::wxRemoveFile(strRenamedFile);
+                    bOK = wxRemoveFile(strRenamedFile);
                     wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,099 in Adapt_It.cpp"));
                     m_customWorkFolderPath = f.GetFirstLine();
                     f.Close(); // don't bother with the returned boolean
@@ -48490,15 +48490,15 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
         // the  target project, so that KB data is not lost from either one
         //		bool bSuccessful = TRUE;
         m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
-        bSuccess = ::wxRemoveFile(glossesKBExportPath);
-        wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
+        bSuccess = wxRemoveFile(glossesKBExportPath);
+        wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
 
         m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
 
         gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 
-        bSuccess = ::wxRemoveFile(adaptionsKBExportPath);
-        wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 37014 in Adapt_It.cpp"));
+        bSuccess = wxRemoveFile(adaptionsKBExportPath);
+        wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): wxRemoveFile() failed, line 37014 in Adapt_It.cpp"));
         if (nTotal > 0)
         {
             ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
@@ -55415,7 +55415,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& event)
         // this is not done at the new session, then access to this custom location is
         // only available via the Administrator menu and lasts only for the length of the
         // new session.
-        bool bRemovedOK = ::wxRemoveFile(aPath);
+        bool bRemovedOK = wxRemoveFile(aPath);
         if (bRemovedOK)
         {
             // only make the custom location non-persistent provided the
@@ -56550,7 +56550,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName, wxStrin
             if (bRemoveCloneSource)
             {
                 if (::wxFileExists(configPath))
-                    bRemoved = ::wxRemoveFile(configPath);
+                    bRemoved = wxRemoveFile(configPath);
                 bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep this, since we
                                      // treat it as a non-error)
                                      // we don't care if the removal didn't happen, so ignore a FALSE value
@@ -56725,7 +56725,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName, wxStrin
                     if (bRemoveCloneSource)
                     {
                         if (::wxFileExists(configPath_Admin_DefaultLoc))
-                            ::wxRemoveFile(configPath_Admin_DefaultLoc);
+                            wxRemoveFile(configPath_Admin_DefaultLoc);
                         // we don't care if the removal didn't happen, so ignore a FALSE value
                         // returned (we don't expect to ever get FALSE returned here)
                     }
@@ -56996,7 +56996,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName, wxStr
             if (bRemoveCloneSource)
             {
                 if (::wxFileExists(configPath))
-                    bRemoved = ::wxRemoveFile(configPath);
+                    bRemoved = wxRemoveFile(configPath);
                 bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep <- this unchanged)
                                      // we don't care if the removal didn't happen, so ignore a FALSE value
                                      // returned (we don't expect to ever get FALSE returned here)
@@ -61560,7 +61560,7 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 		wxString path = logsPath + PathSeparator + logFilename;
 		if (::wxFileExists(path))
 		{
-			::wxRemoveFile(path); // get rid of any preexisting one
+			wxRemoveFile(path); // get rid of any preexisting one
 		}
 		wxTextFile f(path);
 		if (f.Create())
