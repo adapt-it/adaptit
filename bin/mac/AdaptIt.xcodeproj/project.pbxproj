@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0301411D25C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0301411925C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp */; };
+		0301411E25C8E60900ECC5F0 /* Authenticate2Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0301411B25C8E60900ECC5F0 /* Authenticate2Dlg.cpp */; };
 		0311D9811A72F43D0052BC3E /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0311D9801A72F43D0052BC3E /* Images.xcassets */; };
 		0315C013213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */; };
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
@@ -97,7 +99,6 @@
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
 		C8C8E0CA17883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C8E0C817883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp */; };
-		C8D7E60B183DAF090099C11A /* KBSharingStatelessSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */; };
 		C8D7E610183DAF730099C11A /* KbSharingSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8D7E60E183DAF730099C11A /* KbSharingSetup.cpp */; };
 		C8DC8FF214A3331200EA1D5C /* DVCS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DC8FF114A3331200EA1D5C /* DVCS.cpp */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
@@ -182,6 +183,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0301411925C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingAuthenticationDlg.cpp; path = ../../source/KBSharingAuthenticationDlg.cpp; sourceTree = "<group>"; };
+		0301411A25C8E60900ECC5F0 /* KBSharingAuthenticationDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharingAuthenticationDlg.h; path = ../../source/KBSharingAuthenticationDlg.h; sourceTree = "<group>"; };
+		0301411B25C8E60900ECC5F0 /* Authenticate2Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Authenticate2Dlg.cpp; path = ../../source/Authenticate2Dlg.cpp; sourceTree = "<group>"; };
+		0301411C25C8E60900ECC5F0 /* Authenticate2Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Authenticate2Dlg.h; path = ../../source/Authenticate2Dlg.h; sourceTree = "<group>"; };
 		0311D9801A72F43D0052BC3E /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AdaptIt/Images.xcassets; sourceTree = "<group>"; };
 		0315C011213584C70017F543 /* CollabProtectEditorBulkSettingsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabProtectEditorBulkSettingsDlg.h; path = ../../source/CollabProtectEditorBulkSettingsDlg.h; sourceTree = "<group>"; };
 		0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabProtectEditorBulkSettingsDlg.cpp; path = ../../source/CollabProtectEditorBulkSettingsDlg.cpp; sourceTree = "<group>"; };
@@ -344,8 +349,6 @@
 		C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BookNameDlg.cpp; path = ../../source/BookNameDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8C8E0C817883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingMgrTabbedDlg.cpp; path = ../../source/KBSharingMgrTabbedDlg.cpp; sourceTree = "<group>"; };
 		C8C8E0C917883B6F00ABDFBC /* KBSharingMgrTabbedDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharingMgrTabbedDlg.h; path = ../../source/KBSharingMgrTabbedDlg.h; sourceTree = "<group>"; };
-		C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingStatelessSetupDlg.cpp; path = ../../source/KBSharingStatelessSetupDlg.cpp; sourceTree = "<group>"; };
-		C8D7E607183DAF080099C11A /* KBSharingStatelessSetupDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharingStatelessSetupDlg.h; path = ../../source/KBSharingStatelessSetupDlg.h; sourceTree = "<group>"; };
 		C8D7E60E183DAF730099C11A /* KbSharingSetup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KbSharingSetup.cpp; path = ../../source/KbSharingSetup.cpp; sourceTree = "<group>"; };
 		C8D7E60F183DAF730099C11A /* KbSharingSetup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbSharingSetup.h; path = ../../source/KbSharingSetup.h; sourceTree = "<group>"; };
 		C8DC8FF014A3331200EA1D5C /* DVCS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCS.h; path = ../../source/DVCS.h; sourceTree = SOURCE_ROOT; };
@@ -556,6 +559,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				0301411B25C8E60900ECC5F0 /* Authenticate2Dlg.cpp */,
+				0301411C25C8E60900ECC5F0 /* Authenticate2Dlg.h */,
+				0301411925C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp */,
+				0301411A25C8E60900ECC5F0 /* KBSharingAuthenticationDlg.h */,
 				0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */,
 				0315C011213584C70017F543 /* CollabProtectEditorBulkSettingsDlg.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
@@ -716,8 +723,6 @@
 				C8C8E0C917883B6F00ABDFBC /* KBSharingMgrTabbedDlg.h */,
 				C8D7E60E183DAF730099C11A /* KbSharingSetup.cpp */,
 				C8D7E60F183DAF730099C11A /* KbSharingSetup.h */,
-				C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */,
-				C8D7E607183DAF080099C11A /* KBSharingStatelessSetupDlg.h */,
 				C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */,
 				C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */,
 				03566C651BCD95C0008365C8 /* LanguageCodesDlg_Single.cpp */,
@@ -1108,6 +1113,7 @@
 				C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */,
 				C8F82E9B0F3F9CAB007579B8 /* SplitDialog.cpp in Sources */,
 				C8F82E9C0F3F9CAB007579B8 /* Stack.cpp in Sources */,
+				0301411D25C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp in Sources */,
 				C8F82E9D0F3F9CAB007579B8 /* StartWorkingWizard.cpp in Sources */,
 				C8F82E9E0F3F9CAB007579B8 /* Strip.cpp in Sources */,
 				C8F82E9F0F3F9CAB007579B8 /* TargetUnit.cpp in Sources */,
@@ -1135,6 +1141,7 @@
 				03D7A719112A2601004F6D39 /* Notes.cpp in Sources */,
 				C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */,
 				0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */,
+				0301411E25C8E60900ECC5F0 /* Authenticate2Dlg.cpp in Sources */,
 				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
 				C805DBF011705519006919E2 /* Placeholder.cpp in Sources */,
 				031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */,
@@ -1190,7 +1197,6 @@
 				278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */,
 				C881742C1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp in Sources */,
 				C8F65CFE183DA5D10008546C /* RemoveSomeTgtEntries.cpp in Sources */,
-				C8D7E60B183DAF090099C11A /* KBSharingStatelessSetupDlg.cpp in Sources */,
 				C8D7E610183DAF730099C11A /* KbSharingSetup.cpp in Sources */,
 				274AFAE11931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp in Sources */,
 			);
