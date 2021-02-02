@@ -19953,10 +19953,9 @@ bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
 void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 {
 	bool execExists = wxDirExists(execPth);
-	wxString distPth = this->MakeDistFolder(); // makes path to dist
-			// based on Get().GetExecutablePaths(), and sets it as 
-			// a child of execPth - don't rely on OnInit() having set 
-			// it up already
+	wxString distPth = this->GetDistFolder(); // gets the path to dist folder
+			// based on Get().GetExecutablePaths(), Bill has created it as
+			// a post-build script, so should be in existence
 	// Check that distPth now exists
 	bool distExists = wxDirExists(distPth);
 	if (distExists)
@@ -19966,6 +19965,16 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 				// grab a valid distPath from the app class - it won't change
 				// it's value in any session of AI or AI in development folders
 	}
+	else
+	{
+		// Insurance in case Bill's psost-build script hasn't done its job
+		wxString distName = _T("dist");
+		wxString distPthName = execPath + distName + PathSeparator;
+		this->distPath = distPthName;
+		distExists = wxDirExists(this->distPath);
+		wxASSERT(distExists);
+	}
+
 	if (execExists && distExists)
 	{
 		int i = noDatFile; // must initialize, before using
@@ -29934,7 +29943,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#if defined(_KBSERVER)
 
 	execPath = PathToExecFolder(); // app removed from end, ends now in separator
-	distPath = MakeDistFolder();  // set the path to dist folder, for this session
+	distPath = GetDistFolder();  // set the path to dist folder, for this session
 	CreateInputDatBlanks(execPath); // executablePath set above at 22,258
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
 	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
@@ -29968,7 +29977,7 @@ wxString CAdapt_ItApp::PathToExecFolder()
 	return execPath;
 }
 
-wxString CAdapt_ItApp::MakeDistFolder()
+wxString CAdapt_ItApp::GetDistFolder()
 {
 	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
 	wxString separator = PathSeparator;

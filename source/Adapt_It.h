@@ -2200,7 +2200,7 @@ class CAdapt_ItApp : public wxApp
 		// from resultsPath or execPath
 	wxString distPath; // to Leon's dist folder - always a child of the app's folder
 	wxString execPath; // the "executablePath" with the executable app at end removed
-	wxString MakeDistFolder(); // ending in the path separator
+	wxString GetDistFolder(); // ending in the path separator
 	wxString PathToExecFolder(); // ending in the path separator
 
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
