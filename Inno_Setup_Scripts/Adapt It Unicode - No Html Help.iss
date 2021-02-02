@@ -149,19 +149,19 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\CC\Summary.doc"; DestDir: "{app
 Source: "{#SvnBase}\setup Unicode - No Html Help\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 ; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
 ; added by whm 28 January 2021
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_add_KBUsers.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_fullname.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_password.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_permission.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_changed_since_timed.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_create_entry.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_list_users.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_lookup_entry"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_delete.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_undelete.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_upload_local_kb.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_user_lookup.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode - No Html Help\do_users_list.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_add_KBUsers.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_fullname.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_password.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_change_permission.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_changed_since_timed.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_create_entry.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_list_users.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_lookup_entry"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_delete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_pseudo_undelete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
