@@ -20065,7 +20065,7 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 		wxString caption = _T("CreateInputDatBlanks path error");
 		LogUserAction(msg);
 #if defined (_DEBUG)
-		wxMessageBox(msg, caption); // for developers to see, tasol
+		wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
 #endif
 	}
 }
