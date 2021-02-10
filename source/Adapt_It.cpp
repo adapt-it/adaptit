@@ -20124,7 +20124,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_add_KBUsers.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20167,7 +20167,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_user_lookup.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20204,7 +20204,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_users_list.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20255,7 +20255,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_create_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20293,7 +20293,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_pseudo_delete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20331,7 +20331,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_pseudo_undelete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20369,7 +20369,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_lookup_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20409,7 +20409,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_changed_since_timed.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20452,7 +20452,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_upload_local_kb.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 
@@ -20490,7 +20490,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_change_permission.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20527,7 +20527,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_change_fullname.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20564,7 +20564,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				wxString msg = _("do_change_password.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
-				wxMessageBox(msg, caption); // for user or developer to see
+				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
 			}
 			break;
@@ -20585,7 +20585,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		wxString caption = _T("ConfigureDatFile path error");
 		LogUserAction(msg);
 #if defined (_DEBUG)
-		wxMessageBox(msg, caption); // for developers to see, tasol
+		wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
 #endif
 		return FALSE;
 	}
@@ -25604,7 +25604,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     }
     else
     {
-    wxMessageBox(_("Command line, export command misspelled; parse failed"));
+    wxMessageBox(_("Command line, export command misspelled; parse failed"),_T(""), wxICON_EXCLAMATION | wxOK);
     m_bAutoExport = FALSE;
     }
     }
