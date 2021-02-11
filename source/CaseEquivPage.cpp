@@ -207,7 +207,8 @@ void CCaseEquivPageCommon::DoInit()
 		gbAutoCaps = FALSE;
 		// second checkbox should also be initialized to a hidden state
 		wxCheckBox* pChkBox2 = (wxCheckBox*)FindWindowById(ID_CHECK_USE_AUTO_CAPS);
-		pChkBox2->Hide();
+        // whm 10Feb2021 changed pChkBox2 below from hidden to disabled - to work with sizers better on Mac
+        pChkBox2->Disable(); //pChkBox2->Hide();
 	}
 
 	if (gbAutoCaps)
@@ -428,7 +429,8 @@ void CCaseEquivPageCommon::DoBnCheckedSrcHasCaps() // added by whm 11Aug04
 		// cannot be enabled when source text makes no upper/lower case distinctions.
 		wxCheckBox* pChkBox2 = (wxCheckBox*)FindWindowById(ID_CHECK_USE_AUTO_CAPS);
 		pChkBox2->SetValue(FALSE);
-		pChkBox2->Hide();
+        // whm 10Feb2021 changed pChkBox2 below from hidden to disabled - to work with sizers better on Mac
+        pChkBox2->Disable(); //pChkBox2->Hide();
 		ToggleControlsVisibility(FALSE);
 	}
 	else 
@@ -439,7 +441,8 @@ void CCaseEquivPageCommon::DoBnCheckedSrcHasCaps() // added by whm 11Aug04
 		gbSrcHasUcAndLc = TRUE;
 		// make the second checkbox visible
 		wxCheckBox* pChkBox2 = (wxCheckBox*)FindWindowById(ID_CHECK_USE_AUTO_CAPS);
-		pChkBox2->Show();
+        // whm 10Feb2021 changed pChkBox2 below from Show to enable - to work with sizers better on Mac
+        pChkBox2->Enable(); //pChkBox2->Show();
         pCaseEquivSizer->Layout(); // whm 2Apr2018 added to avoid the sentence level stuff being overwritten
     }
 }
@@ -532,49 +535,51 @@ bool CCaseEquivPageCommon::BuildUcLcStrings(wxString& strList, wxString& lwrCase
 	return bNoError;
 }
 
+// whm 10Feb2021 modified to have elements that previously were hidden, become disabled, 
+// and those the were previously Shown become enabled
 void CCaseEquivPageCommon::ToggleControlsVisibility(bool visible)
 {
 	if (visible == FALSE)
 	{
 		// Hide the other dialog controls
 		wxTextCtrl* pTextCtrlAsStaticText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_CASE_PAGE_STATIC_TEXT);
-		pTextCtrlAsStaticText->Hide();
+        pTextCtrlAsStaticText->Disable(); //pTextCtrlAsStaticText->Hide();
 		wxStaticText* pStatText5 = (wxStaticText*)FindWindowById(ID_TEXT_SL);
-		pStatText5->Hide();
+        pStatText5->Disable(); //pStatText5->Hide();
 		wxStaticText* pStatText6 = (wxStaticText*)FindWindowById(ID_TEXT_TL);
-		pStatText6->Hide();
+        pStatText6->Disable(); //pStatText6->Hide();
 		wxStaticText* pStatText7 = (wxStaticText*)FindWindowById(ID_TEXT_GL);
-		pStatText7->Hide();
+        pStatText7->Disable(); //pStatText7->Hide();
 
 		wxTextCtrl* pEdit1 = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_CASE_EQUIVALENCES);
-		pEdit1->Hide();
+        pEdit1->Disable(); //pEdit1->Hide();
 		wxTextCtrl* pEdit2 = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_CASE_EQUIVALENCES);
-		pEdit2->Hide();
+        pEdit2->Disable(); //pEdit2->Hide();
 		wxTextCtrl* pEdit3 = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLOSS_CASE_EQUIVALENCES);
-		pEdit3->Hide();
+        pEdit3->Disable(); //pEdit3->Hide();
 
 		wxButton* pButton1 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_SRC_LIST);
-		pButton1->Hide();
+        pButton1->Disable(); //pButton1->Hide();
 		wxButton* pButton2 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_SET_ENGLISH);
-		pButton2->Hide();
+        pButton2->Disable(); //pButton2->Hide();
 		wxButton* pButton3 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_COPY_TO_NEXT);
-		pButton3->Hide();
+        pButton3->Disable(); //pButton3->Hide();
 		wxButton* pButton4 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_COPY_TO_GLOSS);
-		pButton4->Hide();
+        pButton4->Disable(); //pButton4->Hide();
 
 		wxButton* pButton5 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_TGT_LIST);
-		pButton5->Hide();
+        pButton5->Disable(); //pButton5->Hide();
 		wxButton* pButton6 = (wxButton*)FindWindowById(IDC_BUTTON_TGT_SET_ENGLISH);
-		pButton6->Hide();
+        pButton6->Disable(); //pButton6->Hide();
 		wxButton* pButton7 = (wxButton*)FindWindowById(IDC_BUTTON_TGT_COPY_TO_NEXT);
-		pButton7->Hide();
+        pButton7->Disable(); //pButton7->Hide();
 
 		wxButton* pButton8 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_GLOSS_LIST);
-		pButton8->Hide();
+        pButton8->Disable(); //pButton8->Hide();
 		wxButton* pButton9 = (wxButton*)FindWindowById(IDC_BUTTON_GLOSS_SET_ENGLISH);
-		pButton9->Hide();
+        pButton9->Disable(); //pButton9->Hide();
 		wxButton* pButton10 = (wxButton*)FindWindowById(IDC_BUTTON_GLOSS_COPY_TO_NEXT);
-		pButton10->Hide();
+        pButton10->Disable(); //pButton10->Hide();
 	}
 	else
 	{
@@ -582,43 +587,43 @@ void CCaseEquivPageCommon::ToggleControlsVisibility(bool visible)
 		wxTextCtrl* pTextCtrlAsStaticText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_CASE_PAGE_STATIC_TEXT);
 		wxColor backgrndColor = this->GetBackgroundColour();
 		pTextCtrlAsStaticText->SetBackgroundColour(backgrndColor);
-		pTextCtrlAsStaticText->Show();
+        pTextCtrlAsStaticText->Enable(); //pTextCtrlAsStaticText->Show();
 		wxStaticText* pStatText5 = (wxStaticText*)FindWindowById(ID_TEXT_SL);
-		pStatText5->Show();
+        pStatText5->Enable(); //pStatText5->Show();
 		wxStaticText* pStatText6 = (wxStaticText*)FindWindowById(ID_TEXT_TL);
-		pStatText6->Show();
+        pStatText6->Enable(); //pStatText6->Show();
 		wxStaticText* pStatText7 = (wxStaticText*)FindWindowById(ID_TEXT_GL);
-		pStatText7->Show();
+        pStatText7->Enable(); //pStatText7->Show();
 
 		wxTextCtrl* pEdit1 = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_CASE_EQUIVALENCES);
-		pEdit1->Show();
+        pEdit1->Enable(); //pEdit1->Show();
 		wxTextCtrl* pEdit2 = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_CASE_EQUIVALENCES);
-		pEdit2->Show();
+        pEdit2->Enable(); //pEdit2->Show();
 		wxTextCtrl* pEdit3 = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLOSS_CASE_EQUIVALENCES);
-		pEdit3->Show();
+        pEdit3->Enable(); //pEdit3->Show();
 
 		wxButton* pButton1 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_SRC_LIST);
-		pButton1->Show();
+        pButton1->Enable(); //pButton1->Show();
 		wxButton* pButton2 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_SET_ENGLISH);
-		pButton2->Show();
+        pButton2->Enable(); //pButton2->Show();
 		wxButton* pButton3 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_COPY_TO_NEXT);
-		pButton3->Show();
+        pButton3->Enable(); //pButton3->Show();
 		wxButton* pButton4 = (wxButton*)FindWindowById(IDC_BUTTON_SRC_COPY_TO_GLOSS);
-		pButton4->Show();
+        pButton4->Enable(); //pButton4->Show();
 
 		wxButton* pButton5 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_TGT_LIST);
-		pButton5->Show();
+        pButton5->Enable(); //pButton5->Show();
 		wxButton* pButton6 = (wxButton*)FindWindowById(IDC_BUTTON_TGT_SET_ENGLISH);
-		pButton6->Show();
+        pButton6->Enable(); //pButton6->Show();
 		wxButton* pButton7 = (wxButton*)FindWindowById(IDC_BUTTON_TGT_COPY_TO_NEXT);
-		pButton7->Show();
+        pButton7->Enable(); //pButton7->Show();
 
 		wxButton* pButton8 = (wxButton*)FindWindowById(IDC_BUTTON_CLEAR_GLOSS_LIST);
-		pButton8->Show();
+        pButton8->Enable(); //pButton8->Show();
 		wxButton* pButton9 = (wxButton*)FindWindowById(IDC_BUTTON_GLOSS_SET_ENGLISH);
-		pButton9->Show();
+        pButton9->Enable(); //pButton9->Show();
 		wxButton* pButton10 = (wxButton*)FindWindowById(IDC_BUTTON_GLOSS_COPY_TO_NEXT);
-		pButton10->Show();
+        pButton10->Enable(); //pButton10->Show();
 	}
 	pCaseEquivSizer->Layout();
 }
