@@ -19972,7 +19972,8 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 		wxString distPthName = execPath + distName + PathSeparator;
 		this->distPath = distPthName;
 		distExists = wxDirExists(this->distPath);
-		wxASSERT(distExists);
+        // whm 12Feb2021 removed the following wxASSERT since it duplicates the wxASSERT_MSG warning below
+        //wxASSERT(distExists);
 	}
 
 	if (execExists && distExists)
@@ -20065,7 +20066,10 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 		wxString caption = _T("CreateInputDatBlanks path error");
 		LogUserAction(msg);
 #if defined (_DEBUG)
-		wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
+        // whm 12Feb2021 changed the wxMessageBox to wxASSERT_MSG so that this message won't have re-entry problems
+        // with the working wizard, and will stay on top of the wizard.
+        //wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
+        wxASSERT_MSG(execExists && distExists, msg);
 #endif
 	}
 }
