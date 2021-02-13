@@ -795,6 +795,7 @@ void KBSharingMgrTabbedDlg::FillUserList(CAdapt_ItApp* pApp)
 		return;
 	}
 	int locn = -1;
+    locn = locn; // avoid "set but not used" gcc warning in release builds
 	int count = pApp->m_mgrUsernameArr.GetCount();
 	wxString aUsername;
 	int i;
