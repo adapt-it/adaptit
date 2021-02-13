@@ -155,19 +155,24 @@ Source: "{#SvnBase}\setup Unicode\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: I
 Source: "{#SvnBase}\setup Unicode\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 ; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
 ; added by whm 28 January 2021
-Source: "{#SvnBase}\setup Unicode\do_add_KBUsers.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_change_fullname.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_change_password.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_change_permission.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_changed_since_timed.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_create_entry.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_list_users.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_lookup_entry"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_pseudo_delete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_pseudo_undelete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
-Source: "{#SvnBase}\setup Unicode\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+; whm 13Feb2021 removed, since the app will incorporate c code equivalenst into the app
+;Source: "{#SvnBase}\setup Unicode\do_add_KBUsers.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_fullname.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_password.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_permission.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_changed_since_timed.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_create_entry.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_list_users.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_lookup_entry"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_pseudo_delete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_pseudo_undelete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+
+; added by whm 13Feb2021 - creates an empty dist directory as a child of the {app} directory
+[Dirs]
+Name: "{app}\dist"
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
