@@ -2741,9 +2741,14 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 		return;
 	}
-
-	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
-		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty()) ||
+    // whm 12Feb2021 Note: GCC issues "warning: suggest parenthese around '&&' within '||'".
+    // According to C++ operator precedence rules && has higher precedence than || so the 
+    // compiler will test for the && part of the condition before the || part, but the 
+    // parentheses structure below is ambiguous. I assume the whole condition before the
+    // || operator should be taken as a unit, so I'm placing another set of parentheses around
+    // that whole set of tests.
+	if (((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
+		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty())) ||
 		!gpApp->m_strKbServerIpAddr.IsEmpty())
 	{
 		event.Enable(TRUE);

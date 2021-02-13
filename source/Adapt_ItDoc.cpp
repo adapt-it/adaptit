@@ -31444,7 +31444,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						// - for space followed by opening parenthesis; or a )( combination
 						// where the word dividing location falls between the ) and (
 						else
-							if ((*ptr == _T(' ')) && (*(ptr + 1) == openParen)
+                            // whm 12Feb2021 Note: GCC issues "warning: suggest parenthese around '&&' within '||'".
+                            // According to C++ operator precedence rules && has higher precedence than || so the 
+                            // compiler will test for the && part of the condition before the || part, but the 
+                            // parentheses structure below is ambiguous. I assume the whole condition before the
+                            // || operator should be taken as a unit, so I'm placing another set of parentheses around
+                            // that whole set of tests.
+                            if (((*ptr == _T(' ')) && (*(ptr + 1) == openParen))
 								||
 								(*ptr == openParen)
 								)

@@ -20759,6 +20759,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		m_resultDatFileName = _T("lookup_user_return_results.dat");
 		bool bAuthenticationOK = FALSE; // initialise
+        bAuthenticationOK = bAuthenticationOK; // avoid gcc warning "set but not used"
 		bool bAllow = FALSE; // initialise
 
 		if (m_bKBSharingMgrEntered)

@@ -1228,6 +1228,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		// BEW added 26Oct12 for KBserver support
 //#if defined(_KBSERVER)
 		bool bCreatedOK = FALSE; // initialise
+        bCreatedOK = bCreatedOK; // avoid gcc warning "set but not used"
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
             (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
