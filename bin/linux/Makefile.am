@@ -41,6 +41,11 @@ miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt
 
+# whm testing rule below
+#distdir = $(pkgdatadir)/dist
+#distdir:
+#	mkdir -p distdir
+
 # AFM font data
 afmdir = $(pkgdatadir)/gs_afm
 afm_DATA = $(wildcard $(srcdir)/../../gs_afm/*)
