@@ -190,7 +190,6 @@ copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
 mkdir "Unicode Debug\dist"
-xcopy "..\..\win32_utils\*.*" "Unicode Debug\dist\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
 IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Debug\" /Y
 </Command>
     </PostBuildEvent>
@@ -338,7 +337,6 @@ copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
 mkdir "Unicode Release\dist"
-xcopy "..\..\win32_utils\*.*" "Unicode Release\dist\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
 IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Release\" /Y
 
 </Command>
