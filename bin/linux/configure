@@ -2302,6 +2302,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# whm 13Feb2021 added [subdir-objects] as parameter to AM_INIT_AUTOMAKE to avoid warning about subdir-objects
 am__api_version='1.15'
 
 ac_aux_dir=

@@ -1,5 +1,6 @@
 AC_INIT([adaptit],[0.1])
 AC_CONFIG_SRCDIR([../../source/Adapt_It.cpp])
+# whm 13Feb2021 added [subdir-objects] as parameter to AM_INIT_AUTOMAKE to avoid warning about subdir-objects
 AM_INIT_AUTOMAKE([-Wno-portability] [subdir-objects])
 
 AC_PROG_CXX
