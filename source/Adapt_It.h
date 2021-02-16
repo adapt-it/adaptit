@@ -243,9 +243,9 @@ class test_system_call;
 #define VERSION_MINOR_PART 10 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 18
-#define VERSION_DATE_MONTH 9
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 22
+#define VERSION_DATE_MONTH 5
 #define VERSION_DATE_YEAR 2020
 const wxString appVerStr(_T("6.10.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
@@ -2549,7 +2549,7 @@ class CAdapt_ItApp : public wxApp
 	ToolbarButtonSize m_toolbarSize;
 	bool m_bShowToolbarIconAndText; // default is FALSE
 	bool m_bToolbarButtons[50];		// which buttons to display on the toolbar
-
+public:
 	wxString RemovePathPrefix(wxString cmdLine, wxString& pathPrefix);
 
 private:
