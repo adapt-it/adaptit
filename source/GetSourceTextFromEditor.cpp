@@ -722,6 +722,18 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// name and it can contain spaces, whereas in the Paratext command line strings the
 	// short project name is used which doesn't generally contain spaces.
 	wxString commandLineSrc,commandLineTgt,commandLineFT;
+
+	// BEW 17Sep20 remove path prefix, save cwd, shorten command str, later after wxExecute(), restore cwd
+	// do this for each command
+	bool bSrcAllowed = FALSE; // initialize
+	bool bTgtAllowed = FALSE; // ditto
+	bool bFrTrAllowed = FALSE; // ditto
+	wxString saveWorkingDir; // all 3 calls are from same place
+	wxString srcPathPrefix;
+	wxString tgtPathPrefix;
+	wxString frTrPathPrefix;
+
+
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
 	    if (m_rdwrtPTPathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
@@ -735,21 +747,37 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	    else
 	    {
 	        // PT on Windows
-			// BEW 17Sep20, testing resetting cwd to Paratext 8 folder
-			bool bAllowed = FALSE;
-			wxString foreignPath = _T("C:\\Program Files (x86)\\Paratext 8\\");
-			bAllowed = ::wxSetWorkingDirectory(foreignPath);
-			if (bAllowed)
-			{
-				wxString gotten = ::wxGetCwd();
-				//int yay = TRUE; // whm 4Nov2020 removed to prevent gcc 'var not used' warning
-			}
 
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-            commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-            if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
-                commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
-	    }
+			// BEW 17Sep20 added next 3 lines
+			saveWorkingDir = ::wxGetCwd(); // save the current working directory for these 3 commands
+			commandLineSrc = m_pApp->RemovePathPrefix(commandLineSrc, srcPathPrefix); // LHS has no path prefix now
+			bSrcAllowed = ::wxSetWorkingDirectory(srcPathPrefix);
+			// BEW 17Sep20 remember to restore cwd after wxExecute() call below
+			
+			
+			commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+			// BEW 17Sep20 added next 2 lines
+			commandLineTgt = m_pApp->RemovePathPrefix(commandLineTgt, tgtPathPrefix); // LHS has no path prefix now
+			bTgtAllowed = bSrcAllowed == TRUE? TRUE: FALSE; // in same cwd folder
+			// BEW 17Sep20 remember to restore cwd after wxExecute() call below
+
+
+
+			if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+			{
+				commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+				// BEW 17Sep20 added next 2 lines
+				commandLineFT = m_pApp->RemovePathPrefix(commandLineFT, frTrPathPrefix); // LHS has no path prefix now
+				bFrTrAllowed = bSrcAllowed == TRUE ? TRUE : FALSE; // in same cwd folder
+				// BEW 17Sep20 remember to restore cwd after wxExecute() call below
+				wxString gotten = ::wxGetCwd();
+				wxUnusedVar(gotten);
+			}
+
+			// The above path prefixes should be identical, but I won't make the assumption
+
+		}
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
@@ -792,8 +820,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			{
 				resultFT = ::wxExecute(commandLineFT,outputFT,errorsFT);
 			}
-
 		}
+		// BEW 18Sep20 restore the saved current working directory, after wxExecute() calls
+		// wxGetCwd() was called above at line 753
+		bool bRestoredOK = ::wxSetWorkingDirectory(saveWorkingDir);
+		wxUnusedVar(bRestoredOK);
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
