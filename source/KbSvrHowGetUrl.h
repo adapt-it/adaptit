@@ -9,7 +9,7 @@
 /// \description	This is the header file for the KbSvrHowGetUrl class.
 /// The KbSvrHowGetUrl class provides a dialog for letting the user decide whether 
 /// to do service discovery on the local LAN to find a running KBserver, or to 
-/// manually type in a URL he knows (e.g. for a KBserver running on the web, or
+/// manually type in an ipAddress he knows (e.g. for a KBserver running on the web, or
 /// on a different subnet of the LAN, where service discovery would be of no benefit).
 /// The dialog consists of a wxRadioBox (two radio buttons), an OK button and a
 /// Cancel button. The same controls are also in the KbSharingSetup.h and .cpp
@@ -19,6 +19,7 @@
 /// KB Sharing Manager (tabbed dialog), and in the HookUpToExistingAIProject in
 /// the CollabUtilities.cpp file. It is not used in KbSharingSetup.cpp because
 /// the same controls are already built in to the latter dialog.
+/// BEW 27Jul20 keep name, but the class now deals with ipAddress, not a U R L
 /// \derivation		The KbSvrHowGetUrl class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -30,10 +31,10 @@
     #pragma interface "KbSvrHowGetUrl.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class CAdapt_ItApp;
-
+// BEW 27Jul20 keep the Url in the name, even though new it's dealing only with an ipAddress
 class KbSvrHowGetUrl : public AIModalDialog
 {
 public:
@@ -57,6 +58,6 @@ protected:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif
+//#endif
 
 #endif /* KbSvrHowGetUrl_h */

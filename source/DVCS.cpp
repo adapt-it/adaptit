@@ -249,7 +249,7 @@ int  DVCS::init_repository ()
 
 
 // update_user_details() sets the user.email and user.name items in a git config call.  These have to be correctly set before a commit.
-// Since our m_strUserID and m_strUsername strings may have changed, or our current directory may have changed, we just query
+// Since our m_strUserID and m_strFullname strings may have changed, or our current directory may have changed, we just query
 // git for the current values, and change them if they differ from those strings.
 
 int  DVCS::update_user_details ()
@@ -272,13 +272,13 @@ int  DVCS::update_user_details ()
         if (returnCode)  return returnCode;
     }
 
-// check user.name agrees with m_strUsername
+// check user.name agrees with m_strFullname
     git_output.Clear();
     git_options = _T("--get user.name");
     returnCode = call_git(FALSE);
-    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strUsername ) )      // an error might just mean there's no user.name yet
+    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strFullname ) )      // an error might just mean there's no user.name yet
     {   git_options = _T("user.name");
-        git_arguments = m_pApp->m_strUsername;  // this can contain spaces but it works like a filename and we handle that properly
+        git_arguments = m_pApp->m_strFullname;  // this can contain spaces but it works like a filename and we handle that properly
         returnCode = call_git (FALSE);
         if (returnCode)  return returnCode;
     }

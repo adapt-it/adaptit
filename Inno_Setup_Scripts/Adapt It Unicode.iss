@@ -19,6 +19,9 @@
 ; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_18_0_4AI.exe
 ; BEFORE COMPILING THIS SCRIPT
 ; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
+; whm 28 January 2021: Added the Windows *exe utility files for KB sharing
+; whm TODO: Add code to detect if Python 3 for Windows has been installed; if not install it
+; as part of the Installer process
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -103,12 +106,6 @@ Source: "{#SvnBase}\setup Unicode\License_CPLv05.txt"; DestDir: "{app}"; Flags: 
 Source: "{#SvnBase}\setup Unicode\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "{#SvnBase}\setup Unicode\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "{#SvnBase}\setup Unicode\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "{#SvnBase}\setup Unicode\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
@@ -156,6 +153,26 @@ Source: "{#SvnBase}\setup Unicode\CC\FwdSlashInsertAtPuncts.cct"; DestDir: "{app
 Source: "{#SvnBase}\setup Unicode\CC\FwdSlashRemoveAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
+; added by whm 28 January 2021
+; whm 13Feb2021 removed, since the app will incorporate c code equivalenst into the app
+;Source: "{#SvnBase}\setup Unicode\do_add_KBUsers.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_fullname.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_password.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_change_permission.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_changed_since_timed.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_create_entry.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_list_users.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_lookup_entry"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_pseudo_delete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_pseudo_undelete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+
+; added by whm 13Feb2021 - creates an empty dist directory as a child of the {app} directory
+[Dirs]
+Name: "{app}\dist"
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;

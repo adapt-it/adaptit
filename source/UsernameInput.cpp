@@ -9,7 +9,7 @@
 /// \description	This is the implementation file for the UsernameInputDlg class. 
 /// The UsernameInputDlg class presents the user with a dialog with two wxTextCtrl fields:
 /// the top one is for a usernameID (preferably unique, such as a full email address); the
-/// lower one is for an informal username that is more human friendly, such as "bruce
+/// lower one is for an informal fullname that is more human friendly, such as "bruce
 /// waters". These are used in DVCS and KB Sharing features, at a minimum. Invoked from
 /// within any project, but the names, once set, apply to all projects (but can be
 /// changed, but the new version of either still applies to all projects)
@@ -80,7 +80,7 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	wxASSERT(pApp != NULL);
 
     wxString        localUserID = pApp->m_strUserID;
-    wxString        localUsername = pApp->m_strUsername;
+    wxString        localFullname = pApp->m_strFullname;
 
 	pUsernameMsgTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
 	pUsernameMsgTextCtrl->SetBackgroundColour(pApp->sysColorBtnFace);
@@ -91,7 +91,7 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	usernameMsgTitle = _("Warning: No Unique Username");
 	usernameMsg = _("You must supply a username in the Unique Username text box.");
 	usernameInformalMsgTitle = _("Warning: No Informal Username");
-	usernameInformalMsg = _("You must supply an informal username in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
+	usernameInformalMsg = _("You must supply a fullname in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
 
     // Transfer the m_strUserID username string (loaded from basic config file before
     // InitDialog() is called) to the pUsernameTextCtrl textbox where the user can do
@@ -104,12 +104,12 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	pUsernameTextCtrl->ChangeValue(localUserID); // note, it could be empty (& if the
 							// user leaves it empty, the dialog will persist; the only way
 							// round that is to instead Cancel)
-	// Likewise, transfer the m_strUsername informal human-readable name to the
+	// Likewise, transfer the m_strFullname informal human-readable name to the
 	// pInformalUsernameTextCtrl edit box - box has to have a value before the dialog can
 	// be closed, or user must Cancel. Convert **** to empty string if the former is current.
     
-	if ( localUsername == NOOWNER )  localUsername.Empty();
-	pInformalUsernameTextCtrl->ChangeValue(localUsername);
+	if ( localFullname == NOOWNER )  localFullname.Empty();
+	pInformalUsernameTextCtrl->ChangeValue(localFullname);
 	
 	// Set focus on the unique username text box. Otherwise the read-only control gets
 	// focus on some systems/platforms.
@@ -137,7 +137,7 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	}
 
     // Don't allow dialog dismissal if the informal username textctrl is empty, or **** is
-    // there; but if not so then set m_strUsername to what it contains
+    // there; but if not so then set m_strFullname to what it contains
 	wxString strBox2 = pInformalUsernameTextCtrl->GetValue();
 	if ( strBox2.IsEmpty() || strBox2 == NOOWNER )
 	{

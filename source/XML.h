@@ -40,7 +40,7 @@ typedef char Int8;
 typedef unsigned char UInt8;
 typedef unsigned int Err;
 
-// masks for the CSourcePhrase BOOL flags
+// masks for the CSourcePhrase bool flags
 const UInt32 hasKBEntryMask				= 1; // position 1
 const UInt32 notInKBMask				= 2; // position 2
 const UInt32 hasGlossingKBEntryMask		= 4; // position 3

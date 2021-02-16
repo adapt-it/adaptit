@@ -36,7 +36,7 @@
 #include <wx/wx.h>
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -64,6 +64,8 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_SPINCTRL(ID_SPINCTRL_RECEIVE, KBSharing::OnSpinCtrlReceiving)
 END_EVENT_TABLE()
 
+// NOTE: The update handler for "Controls For Knowledge Base Sharing"
+// is OnUpdateKBSharingDlg() at line 554 of MainFrame.cpp line 2668
 
 KBSharing::KBSharing(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Controls For Knowledge Base Sharing"),
@@ -98,9 +100,10 @@ void KBSharing::OnOK(wxCommandEvent& myevent)
 	// currently instantiated and is running (KB sharing might be temporarily disabled, or
 	// enabled, we don't care which - and it doesn't matter as far as setting the interval
 	// is concerned)
-	if (receiveInterval != oldReceiveInterval && 
-		m_pApp->m_pKbServerDownloadTimer != NULL &&
-		m_pApp->m_pKbServerDownloadTimer->IsRunning())
+	receiveInterval = m_pSpinReceiving->GetValue();
+
+	if (receiveInterval != oldReceiveInterval && m_pApp->m_pKbServerDownloadTimer != NULL 
+		&& m_pApp->m_pKbServerDownloadTimer->IsRunning())
 	{
 		// The user has changed the interval setting (minutes), so store the new value
 		m_pApp->m_nKbServerIncrementalDownloadInterval = receiveInterval;
@@ -121,6 +124,8 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pBtnGetAll = (wxButton*)FindWindowById(ID_GET_ALL);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
 	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
+	// BEW 22Oct20 need to set min and max range, otherwise max defaults to 20
+	m_pSpinReceiving->SetRange(1, 120); // values are minutes
 
 	// initialize this; it applies to whatever KBserver(s) are open for business -
 	// but only one at a time can be active, since glossing is a different mode
@@ -128,17 +133,39 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bKBSharingEnabled = TRUE;
 
 	// get the current state of the two radio buttons
-	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
-	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
+	KbServer* pKbSvr = NULL; //initialise
+	if (gbIsGlossing)
+	{
+		pKbSvr = m_pApp->GetKbServer(2);
+		if (pKbSvr == NULL)
+		{
+			// Setup a running KbSrvr instance ptr, of glossing type
+			bool bSetupForGlossing = m_pApp->SetupForKBServer(2);
+			wxUnusedVar(bSetupForGlossing);
+		}
+	}
+	else
+	{
+		pKbSvr = m_pApp->GetKbServer(1);
+		{
+			if (pKbSvr == NULL)
+			{
+				// Setup a running KbSrvr instance ptr, of adapting type
+				bool bSetupForAdapting = m_pApp->SetupForKBServer(1);
+				wxUnusedVar(bSetupForAdapting);
+			}
+		}
+	}
+	m_nRadioBoxSelection = pKbSvr->IsKBSharingEnabled() ? 0 : 1;
 	m_pRadioBox->SetSelection(m_nRadioBoxSelection);
 
-	// update the 'save' boolean to whatever is the current state (user may Cancel and
-	// we would need to restore the initial state)
+	// update the 'save' boolean to whatever is the current state (user may 
+	// Cancel and we would need to restore the initial state)
 	bSaveKBSharingEnabled = m_nRadioBoxSelection == 0 ? TRUE: FALSE;
 	bKBSharingEnabled = bSaveKBSharingEnabled;
 
-	// initialize the spin control to the current value (from project config file, or as
-	// recently changed by the user)
+	// initialize the spin control to the current value (from project config
+	// file, or as recently changed by the user)
 	receiveInterval = m_pApp->m_nKbServerIncrementalDownloadInterval;
 	// put the value in the box
 	if (m_pSpinReceiving != NULL)
@@ -179,7 +206,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
         // sharing
 		if (m_nRadioBoxSelection == 0)
 		{
-			// This is the first button, the one for sharing to be ON
+			// This is the first radio button, the one for sharing to be ON
 			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
 			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
 			if (pAdaptingSvr != NULL)
@@ -194,7 +221,8 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 		}
 		else
 		{
-			// This is the second button, the one for sharing to be OFF
+			// This is the second radio button, the one for sharing to 
+			// be (temporarily) OFF
 			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
 			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
 			if (pAdaptingSvr != NULL)
@@ -212,6 +240,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 
 void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->m_bUserRequestsTimedDownload = TRUE;
 	KbServer* pKbServer;
 	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
@@ -252,12 +281,14 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(msg);
 		}
 	}
+	m_pApp->m_bUserRequestsTimedDownload = FALSE;
 	// make the dialog close
 	EndModal(wxID_OK);
 }
 
 void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->m_bUserRequestsTimedDownload = TRUE;
 	KbServer* pKbServer;
 	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
@@ -298,6 +329,7 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(msg);
 		}
 	}
+	m_pApp->m_bUserRequestsTimedDownload = FALSE;
 	// make the dialog close
 	EndModal(wxID_OK);
 }
@@ -308,80 +340,10 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 
 	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
 
-	// BEW comment 31Jan13
-	// I think that temporally long operations like uploading a whole KB or downloading the
-	// server's contents for a given project should not be done on a work thread. My
-	// reasoning is the following... The dialog will close (or if EndModal() below is
-	// omitted in this handler, the dialog will become responsive again) and the user may
-	// think that the upload or download is completed, when in fact a separate process may
-	// have a few minutes to run before it completes. The user, on closure of the dialog,
-	// may exit the project, or shut down the application - either of which will destroy
-	// the code resources which the thread is relying on to do its work. To avoid this
-	// kind of problem, long operations should be done synchronously, and be tracked by
-	// the progress indicator at least - and they should close the dialog when they complete.
-	// 
-	// BEW 29Jan15 Another kbserver client may happen to succeed in uploading a new entry 
-	// which is being attempted to be inserted into the remote DB by one of the up to 50 
-	// threads - if so, then when the thread with that same entry tries to have it entered
-	// into the remote DB, it will generate a http 401 error in the BulkEntry() call. We
-	// return all >= 400 errors as CURLE_HTTP_RETURNED_ERROR, (not that that has any special
-	// significance) but m_returnedCurlCodes[] array will store it. We check for there being
-	// at least one such error - if there is at least one, we call UploadToKbServer() a second
-	// time (there should be far fewer entries to upload on the second try, and the probability
-	// of the same error happening again almost non-zero; so we check again, and if we find
-	// an error still, we call it a third time. We don't check again, and even if there was still
-	// a failure of one of the bulk upload subsets to get all its entries into the mysql DB, 
-	// we'll not tell the user and not try again. We just assume that the entries not inserted
-	// won't change the adaptation experience in any significant way, and let the dialog be
-	// dismissed (which to the user will be interpretted as full success)
-
-	// BEW Note, 25Jun15. Even though care is taken to avoid uploading an entry which is
-	// already in the remote server, my debug logging indicates that a few such do happen.
-	// For example, my most recent out-of-kb-sharing-mode adaptations resulted in 145 new
-	// pairs waiting for upload. When I uploaded them, there were 4 duplicates. However,
-	// my code is done in such a way that this type of HTTP error, 400 Bad Request, returns
-	// a CURLcode value of 0, because we don't want the user to have to see such occasional
-	// errors - they do no harm to the remote kb, and no harm to to the client either, so
-	// we simply ignore them. The bulk upload, similarly, therefore ignores them. Hence
-	// this type of error will not cause a repeat try of the UploadToKbServer() call.
-
-	// First iteration - it should succeed in all but rare circumstances - see above
-	//
-	// Timing feedback: the UploadToKbServer() call took 13 seconds, for 145 entries, in
-	// my debug build (Release build would be quicker); most of the time is taken in the
-	// bulk download and comparison of local versus remote data to find out what to upload.
-	// I was uploading to a KBserver in VBox VM on the same computer - my XPS Win7 machine.
-	pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 
-	// Check for an error, if there was one, redo the upload
-	if (!pKbServer->AllEntriesGotEnteredInDB())
-	{
-#if defined(_DEBUG)
-		wxLogDebug(_T("\nOnBtnSendAll(): UploadToKbServer() had one or more chunk errors. Calling it second time to upload any not sent.\n%s"),
-			(pKbServer->ShowReturnedCurlCodes()).c_str());
-#endif
-		// Have a second try - far fewer entries should be involved in a second try
-		pKbServer->ClearReturnedCurlCodes();
-		pKbServer->UploadToKbServer();
-
-		// Have a third and last try if necessary if the last call still generated an error, 
-		// if there was one, redo the upload
-		if (!pKbServer->AllEntriesGotEnteredInDB())
-		{
-#if defined(_DEBUG)
-			wxLogDebug(_T("\n\nOnBtnSendAll(): UploadToKbServer() second try had one or more chunk errors. Calling it a third and last time to upload any not sent.\n%s"),
-				(pKbServer->ShowReturnedCurlCodes()).c_str());
-#endif
-			// A third try - even fewer entries should be involved this time
-			pKbServer->ClearReturnedCurlCodes();
-			pKbServer->UploadToKbServer();
-		}
-	}
-	pKbServer->ClearReturnedCurlCodes();
-	
 	// make the dialog close (a good way to say, "it's been done")
 	EndModal(wxID_OK);
 }
 
-#endif
+//#endif

@@ -94,7 +94,7 @@
 #include "CollabUtilities.h" // BEW added 15Sep14
 #include "ChooseTranslation.h" // whm added 10Jan2018
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #define SHOWSYNC // comment out to prevent logging for the synchronous curl calls to KBserver from OnIdle()
 
@@ -106,7 +106,7 @@
 #include "WaitDlg.h"
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -388,11 +388,11 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
 DEFINE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg)
 DEFINE_EVENT_TYPE(wxEVT_End_ServiceDiscovery)
-#endif
+//#endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -495,7 +495,7 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObject *) NULL \
 ),
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 #define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
@@ -518,7 +518,7 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
-#endif
+//#endif
 
 
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
@@ -547,7 +547,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
 	// support the KB Sharing dialog which is on the Advanced menu, BEW 14Jan13
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_DLG,	CMainFrame::OnKBSharingDlg)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
@@ -556,13 +556,13 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnDiscoverKBservers)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 
-#endif
+//#endif
 // The following ones disable KB Sharing related menu commands, when the build is not a KBserver one
-#if !defined(_KBSERVER)
-	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
-	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
-	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
-#endif
+//#if !defined(_KBSERVER)
+//	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
+//	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
+//	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
+//#endif
 
 	EVT_COMBOBOX(IDC_COMBO_REMOVALS, CMainFrame::OnRemovalsComboSelChange)
 
@@ -595,11 +595,11 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
 	EVT_SPLIT_IT(-1, CMainFrame::OnCustomEventSplitIt)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
-	EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg)
+	//EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg) BEW 25Sep20 now unneeded
 	EVT_END_SERVICEDISCOVERY(-1, CMainFrame::OnCustomEventEndServiceDiscovery)
-#endif
+//#endif
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -2024,10 +2024,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_auiMgr.Update();
     m_pPerspective = m_auiMgr.SavePerspective();
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	m_bKbSvrAdaptationsTicked = FALSE;
 	m_bKbSvrGlossesTicked = FALSE;
-#endif
+//#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2290,7 +2290,7 @@ void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
 
 // whm 1Oct12 removed all MRU operations
 /*
-void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRecentFile(UINT nID)
+void CMainFrame::OnMRUFile(wxCommandEvent& event) //bool CAdapt_ItApp::OnOpenRecentFile(UINT nID)
 // wx Note: I renamed this MFC handler OnMRUFile which is its virtual function name in wx's doc/view
 // framework. It also does not return a bool nor does it use the UINT nID parameter, but the usual
 // wxCommandEvent& event parameter.
@@ -2578,7 +2578,7 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 
 
 // BEW added 14Jan13, to support KB Sharing dialog on Advanced menu
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnKBSharingDlg(wxCommandEvent& event)
 {
@@ -2614,12 +2614,12 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
-    // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
+    // BEW added 28May13, check the m_strUserID and m_strFullname strings are setup up,
     // if not, open the dialog to get them set up -- the dialog cannot be closed except
     // by providing non-empty strings for the two text controls in it. Setting the
     // strings once from any project, sets them for all projects forever unless the
-	// user deliberately opens the dialog using the command in the View menu. (The
-	// strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
+	// user deliberately opens the dialog using the command in the Edit menu, "Change Username".
+	// (The strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
 	bool bUserDidNotCancel = CheckUsername();
 	if (!bUserDidNotCancel)
 	{
@@ -2627,10 +2627,12 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		// checks for a non-defined instance, and does nothing if so; otherwise, it
 		// deletes the KbServer instance from the heap, and sets its pointer to NULL
 		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
+/* Don't do this, it wipes out lots of stuff, instead, later check if they are running etc
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
 		gpApp->m_bIsGlossingKBServerProject = FALSE;
+*/
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_(
@@ -2639,7 +2641,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	}
 	else
 	{
-        // Valid m_strUserID and m_strUsername are in place now, so go ahead with next step
+        // Valid m_strUserID and m_strFullname are in place now, so go ahead with next step
         // which is to ask for setup, or removal, of this current project being one for KB
         // sharing - and find out which KBs are to be shared. We need to get values for
         // m_bIsKBServerProject and m_bIsGlossingKBServerProject so we know which of
@@ -2650,7 +2652,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			gpApp->LogUserAction(_T("KbSharingSetup instantiated from call CMainFrame::OnKBSharingSetupDlg()"));
-			// Authentication, by means of KBSharingStatelessSetupDlg call, has been done
+			// Authentication, by means of KBSharingAuthenticationDlg call, has been done
 			// successfully in the OnOK() button handler of KbSharingSetup, and the wanted
 			// calls for one or both of SetupForKBServer(1) and SetupForKBServer(2) done,
 			// and checks for language codes completed successfully
@@ -2663,6 +2665,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	}
 }
 
+// BEW 6Nov20 changed, to reflect refactorings for Leon's solution
 void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 {
 	// Disable when in read-only mode.
@@ -2671,13 +2674,14 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// Disable if there are no stored KBserver urls (and their hostnames too,
-	// but it is the urls which are important for login etc)
-	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	// BEW 6Nov20 changed -- irrelevant for whether the "Controls For Knowledge Base Sharing"
+	// menu item should be enabled or not. We allow empty arrs now.
+	// Disable if there are no stored KBserver ipAddresses <<-- no longer do this
+	//if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	// If there is no user logged in, it must be disabled
 	if (gpApp->m_bUserLoggedIn == FALSE)
 	{
@@ -2692,30 +2696,30 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Enable if both KBs of the project are ready for work
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	event.Enable(gpApp->m_bAdaptationsKBserverReady || gpApp->m_bGlossesKBserverReady);
 }
 
-#endif
+//#endif
 
 // The following variants are defined for when the build is not a _KBSERVER one
-#if !defined(_KBSERVER)
+//#if !defined(_KBSERVER)
 
-void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
-{
+//void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
+//{
 	// Disable the "Setup Or Remove Knowledge Base Sharing" command, on Tools menu
 	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
-void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
-{
+//	event.Enable(FALSE);
+//}
+//void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
+//{
 	// Disable the "Controls For Knowledge Base Sharing" command, on Tools menu
 	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
+//	event.Enable(FALSE);
+//}
 
-#endif // end block for when this is not a _KBSERVER build
+//#endif // end block for when this is not a _KBSERVER build
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 {
@@ -2726,21 +2730,26 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// Allow the possibility that the project has never been a KB Sharing one
-	// and that a KBserver is running for which the user knows its URL (for example
-	// it might be on the web) and wants to setup using that URL; or maybe the
-	// project has been a KB sharing one, but the project configuration file does
-	// not currently store any ipaddress, but the user knows one that will work.
+	// and that a KBserver is running for which the user knows its ipAddress (for example
+	// it might be on the web) and wants to setup using that ipAddress; or maybe the
+	// project has been a KB sharing one, but the basic configuration file does
+	// not currently store any ipAddress, but the user knows one that will work.
 	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
 		(!gpApp->m_bIsKBServerProject || 
-		(gpApp->m_bIsKBServerProject && gpApp->m_strKbServerURL.IsEmpty())))
+		(gpApp->m_bIsKBServerProject && gpApp->m_strKbServerIpAddr.IsEmpty())))
 	{
 		event.Enable(TRUE);
 		return;
 	}
-
-	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
-		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty()) ||
-		!gpApp->m_strKbServerURL.IsEmpty())
+    // whm 12Feb2021 Note: GCC issues "warning: suggest parenthese around '&&' within '||'".
+    // According to C++ operator precedence rules && has higher precedence than || so the 
+    // compiler will test for the && part of the condition before the || part, but the 
+    // parentheses structure below is ambiguous. I assume the whole condition before the
+    // || operator should be taken as a unit, so I'm placing another set of parentheses around
+    // that whole set of tests.
+	if (((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
+		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty())) ||
+		!gpApp->m_strKbServerIpAddr.IsEmpty())
 	{
 		event.Enable(TRUE);
 		return;
@@ -2750,7 +2759,7 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 	// Enable if both KBs of the project are ready for work
 	//event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
-
+/* BEW 25Sep20 deprecated, LookupUser() now does not need to call this,
 void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event))
 {
 	// this delays getting the Authenticate dialog open until after the
@@ -2764,7 +2773,7 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
 	wxUnusedVar(bSuccess);
 }
-
+*/
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
 	int nWhichOne = (int)event.GetExtraLong();
@@ -2772,7 +2781,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
 	{
 		// Use columned dialog now - from here, as in the handler is too early - i.e. using
-		// the columned dialog from the Discover One KBserver handler gets a success but the
+		// the columned dialog gets a success but the
 		// columned dlg shows nothing. So delay it to be shown here instead...
 
 		// Initializations
@@ -2780,51 +2789,36 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
         result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
-		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
+		gpApp->m_theIpAddrs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
 								  // accumulates composites from service discovery
 		gpApp->m_theHostnames.Clear(); // ditto
 		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into 
-		// the individual arrays m_theURLs and m_theHostnames so these can be
+		// the individual arrays m_theIpAddrs and m_theHostnames so these can be
 		// displayed to the user
-		int counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
-										gpApp->m_theURLs, gpApp->m_theHostnames);
+		int counter = GetIpAddrAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
+										gpApp->m_theIpAddrs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
-		/*
-		#if defined(_DEBUG)
-		// Create some dummy data for display, for testing purposes
-		gpApp->m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
-		gpApp->m_theHostnames.Add(_T("Jonathans_kbserver"));
-		gpApp->m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
-		gpApp->m_theHostnames.Add(_T("AI-Team-KBserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.171"));
-		gpApp->m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
-		gpApp->m_theURLs.Add(_T("192.168.3.234"));
-		gpApp->m_theHostnames.Add(_T("Dell-Mini9"));
-		gpApp->m_theURLs.Add(_T("192.168.3.94"));
-		gpApp->m_theHostnames.Add(_T("kbserver-X1-Carbon"));
-		#endif
-		*/
-		// Set the app variables for chosen url and hostname, initializing
+		// Set the app variables for chosen ipAddr and hostname, initializing
 		// to the empty string first
-		gpApp->m_chosenUrl.Empty();
+		gpApp->m_chosenIpAddr.Empty();
 		gpApp->m_chosenHostname.Empty();
-		CServDisc_KBserversDlg dlg(this, &gpApp->m_theURLs, &gpApp->m_theHostnames);
+		CServDisc_KBserversDlg dlg(this, &gpApp->m_theIpAddrs, &gpApp->m_theHostnames);
 		dlg.Center();
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			gpApp->m_chosenUrl = dlg.m_urlSelected;
+			gpApp->m_chosenIpAddr = dlg.m_ipAddrSelected;
 			gpApp->m_chosenHostname = dlg.m_hostnameSelected;
 
-			if (gpApp->m_chosenUrl.IsEmpty())
+			if (gpApp->m_chosenIpAddr.IsEmpty())
 			{
 				// The user made no choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseNone;
+				result = SD_MultipleIpAddr_UserChoseNone;
 			}
 			else
 			{
 				// This is the user's choice (whether there were one or many found)
-				result = SD_MultipleUrls_UserChoseOne;
+				result = SD_MultipleIpAddr_UserChoseOne;
 			}
 		}
 		else
@@ -2832,9 +2826,9 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 			// Cancelled
 			if (dlg.m_bUserCancelled)
 			{
-				gpApp->m_chosenUrl.Empty();
+				gpApp->m_chosenIpAddr.Empty();
 				gpApp->m_chosenHostname.Empty();
-				result = SD_MultipleUrls_UserCancelled;
+				result = SD_MultipleIpAddr_UserCancelled;
 
 				// Since the user has deliberately chosen to Cancel, and the dialog
 				// has explained what will happen, no further message is needed here
@@ -2859,15 +2853,14 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 // a wxMessageBox() to display to the user what the current inventory of discovered
 // KBserver urls are, along with their (host)names
 // Returns the number of url/name pairs available at the time of the call
-int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
-					wxArrayString& urlsArray, wxArrayString& namesArray)
+int CMainFrame::GetIpAddrAndHostnameInventory(wxArrayString& compositesArray,
+					wxArrayString& ipAddrsArray, wxArrayString& namesArray)
 {
 
 	wxString anIpAddress;
 	wxString aHostname;
 	wxString aComposite;
-	wxString aURL;
-	urlsArray.clear();
+	ipAddrsArray.clear();
 	namesArray.clear();
 	int count = (int)compositesArray.GetCount(); // the array passed in is the app's m_ipAddrs_Hostnames one
 	int i;
@@ -2879,8 +2872,7 @@ int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
 			aHostname = wxEmptyString;
 			aComposite = compositesArray.Item(i);
 			gpApp->ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
-			aURL = _T("https://") + anIpAddress;
-			urlsArray.Add(aURL);
+			ipAddrsArray.Add(anIpAddress);
 			namesArray.Add(aHostname);
 		}
 	}
@@ -2901,12 +2893,27 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
-wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
+wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostname)
 {
-	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.\n%s    %s\n The server name field is advisory, if <unknown> then ignore it.");
-	msg = msg.Format(msg, url.c_str(), hostname.c_str());
-	
-	wxString caption = _("Type the server's password");
+	wxString msg;
+	if (gpApp->m_bUseForeignOption)
+	{
+		msg = _("You are adding another person to the kbserver's user table.\nYou choose their Username, Informal Username, and password.\n The contents of the Edit menu's Choose Username... command is ignored.\nChoose a password now for this Username and type it below. Write down your choice.\nipAddress and hostname are: %s  &  %s\nYou must tell this user what choices you made for him, or her.");
+		msg = msg.Format(msg, ipAddr.c_str(), hostname.c_str());
+
+		gpApp->UpdateIpAddr(ipAddr);
+
+	}
+	else
+	{
+		msg = _("You are adding yourself ( %s ) to the kbserver's user table.\nYour Username is copied from the Edit menu's Choose Username... dialog.\nYour Informal Username ( %s ), copied from the same place, will also be included.\nChoose for yourself a password, and type it below.\nipAddress and hostname are: %s  &  %s\nYou must type a password - and remember it for later use. Write it down.");
+		msg = msg.Format(msg, gpApp->m_strUserID.c_str(), gpApp->m_strFullname.c_str(), ipAddr.c_str(), hostname.c_str());
+		// The following are known at this point, so save them in the 'normal' vars
+		gpApp->UpdateNormalIpAddr(ipAddr);
+		gpApp->UpdateCurNormalUsername(gpApp->m_strUserID);
+		gpApp->UpdateCurNormalFullname(gpApp->m_strFullname);
+	}
+	wxString caption = _("Type a suitable password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
@@ -2952,21 +2959,36 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 		// refrain from recording the password, that would introduce a vulnerability
 		strPwd = strPwd.Format(_T("GetPasswordFromUser(): A password was entered, of length: %d"), password.Len());
 		gpApp->LogUserAction(strPwd);
+
+		//BEW 20Aug20 added
+		if (gpApp->m_bUseForeignOption)
+		{
+			// store the password in app's string, m_strForeignPassword
+			gpApp->m_curAuthPassword = password;
+		}
+		else
+		{
+			// assume it's normal local user password, so let MainFrm.cpp store it
+			SetKBSvrPassword(password);
+			// and put in the updatable 'normal' string vars
+			gpApp->UpdateCurNormalPassword(password);
+		}
+		// End 20Aug20 addition
 	}
 	else
 	{
-		// No password - go back to the previous dialog where the url & username are 
-		// entered, so the user can either Cancel from there, or change url, or change 
-		// the username
-		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change url or username, or cancel the setup"));
+		// Empty password - go back to the previous dialog where the ipAddress & username are 
+		// entered, so the user can either Cancel from there, or change ipAddress, or change 
+		// the username, or change the password, and try again
+		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change ipAddress or username, or cancel the setup"));
 	}
 	return password;
 }
 
 
-#endif
+//#endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 // BEW 20Jul17 started refactoring to bypass the old zeroconf way, in favour of
 // using Leon's scripted solutions. A new variable, m_bDiscoverKBservers, is
@@ -3006,15 +3028,15 @@ void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 	}
 }
 
-#else
+//#else
 
-void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
-{
+//void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
+//{
 
-	event.Enable(FALSE);
-}
+//	event.Enable(FALSE);
+//}
 
-#endif
+//#endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
@@ -3481,7 +3503,16 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		wxString message = _("Access to Administrator privileges requires that you type a password");
 		wxString caption = _("Type Administrator Password");
 		wxString default_value = _T("");
-		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
+        // whm 23Sep2020 added line below to supress phrasebox run-on due to handling of ENTER in library function wxGetPasswordFromUser().
+        // NOTE: Testing shows that idle processing continues even while the password dialog is open, making the Idle count proceed to 5
+        // in CMainFrame::OnIdle() below, which then sets m_bUserDlgOrMessageRequested back to FALSE before the password dialog below is
+        // dismissed. We have to turn OFF Idle processing in this case to prevent OnIdle() execution until after the dialog is dismissed
+        // Stop all idle processing including processing of UI events while the wxGetPasswordFromUser dialog is displaying.
+        wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
+        wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
+        // Now, with Idle processing temporarily OFF, set the flag and call the wxGetPasswordFromUser() dialog
+        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
 		if (password == _T("admin") ||
 			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
 		{
@@ -3498,19 +3529,22 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			// item is a toggle menu item. Its toggle state does not need to be
 			// explicitly changed here.
 		}
-	}
+        // Start up idle processing again
+        wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
+        wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
+    }
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-#if !defined(_KBSERVER)
-	{
+//#if !defined(_KBSERVER)
+//	{
 		// If not a _KBSERVER build, disable the Knowledge Base Sharing Manager menu command
 		// on Administrator menu (at bottom)
-		if (pApp->m_bShowAdministratorMenu)
-		{
+//		if (pApp->m_bShowAdministratorMenu)
+//		{
 			// Don't call this code when the menu has just been hidden - that would crash
 			// the app since the menu is then not available, hence this test
-			wxMenuBar* pMenuBar = GetMenuBar();
+//			wxMenuBar* pMenuBar = GetMenuBar();
             // whm modified 22May2018 to simplify and avoid crash due to FindMenu(_T("Administrator")) returning
             // a -1 value (wxNOT_FOUND) for a non-English localization. Just use the FindItem() method of
             // wxMenuBar which only needs the item's ID value to directly to get a pointer to the 
@@ -3518,12 +3552,20 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			//int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
 			//wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
 			//wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
-            wxMenuItem* pShareMgrMenuItem = pMenuBar->FindItem(ID_MENU_KBSHARINGMGR);
-            if (pShareMgrMenuItem)
-			    pShareMgrMenuItem->Enable(FALSE);
-		}
-	}
-#endif
+//            wxMenuItem* pShareMgrMenuItem = pMenuBar->FindItem(ID_MENU_KBSHARINGMGR);
+//            if (pShareMgrMenuItem)
+//			    pShareMgrMenuItem->Enable(FALSE);
+//		}
+
+		// BEW 3Aug20 and also disable the "Add Users to KBserver" command
+//		if (pApp->m_bShowAdministratorMenu)
+//		{
+//			wxMenuBar* pMenuBar = GetMenuBar();
+//			wxMenuItem* pAddUsersMenuItem = pMenuBar->FindItem(ID_MENU_ADMIN_ADD_USERS);
+//			if (pAddUsersMenuItem)
+//				pAddUsersMenuItem->Enable(FALSE);
+//		}
+//#endif
 #if defined(_DEBUG)
 	// BEW 11Oct19, Try dynamically adding the developer's debug-mode only wxMenuItem here,
 	// after MakeMenuInitializationsAndPlatformAdjustments() has been called without it
@@ -4195,6 +4237,11 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
+    // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
+    // encountered when this OnUpdateViewComposeBar() update handler was being triggered at idle
+    // time, but before the View object was created
+    if (pView == NULL)
+        return;
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pApp->m_bFreeTranslationMode)
@@ -4236,7 +4283,12 @@ void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+    // whm 4Jan2021 added test if (pView == NULL) and early return to avoid rare crash that Mike H
+    // encountered when UI update handlers were being triggered at idle
+    // time, but before the View object was created
+    if (pView == NULL)
+        return;
+    wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	if (pView != NULL) //if (pView == pAppView)
 	{
@@ -4245,7 +4297,7 @@ void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
 	}
 }
 
-//void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) // MFC version
+//void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, bool bMinimized) // MFC version
 // NOTE: wxFrame::OnActivate() is MS Windows only. It is not a virtual function
 // under wxWidgets, and takes a single wxActivateEvent& event parameter.
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -4283,7 +4335,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
                 // whm 17May2020 Note: The following call of SetFocusAndSetSelectionAtLanding() gets called
                 // early on AFTER the closure of a modal dialog, AND BEFORE a bogus ENTER key press is passed on
                 // to the CPhraseBox::OnKeyUp() handler.
-                wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
+//BEW 14Dec20 commented out wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
                 pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
         }
@@ -4344,35 +4396,35 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 	// Speed critical GUI support, when a KBserver doing sharing is operational
 
 	if (pApp->m_bCreateEntry_For_KBserver)
 	{
 		pApp->m_bCreateEntry_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_CreateEntry(
+		pApp->m_pKbServer_For_OnIdle->CreateEntry(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
-		wxUnusedVar(rv);
+
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc: Synchronous_CreateEntry() returned  %d for src = %s  &  tgt = %s"),
-			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() for src = %s  &  tgt = %s"),
+			pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
 
 	if (pApp->m_bPseudoUndelete_For_KBserver)
 	{
 		pApp->m_bPseudoUndelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoUndelete(
+		int rv = pApp->m_pKbServer_For_OnIdle->PseudoUndelete(
 			pApp->m_pKbServer_For_OnIdle,
 			pApp->m_strSrc_For_KBserver,
 			pApp->m_strNonsrc_For_KBserver);
 		wxUnusedVar(rv);
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc  Synchronous_PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
+		wxLogDebug(_T("OnIdle(), from StoreText() etc  PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
@@ -4380,18 +4432,20 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (pApp->m_bPseudoDelete_For_KBserver)
 	{
 		pApp->m_bPseudoDelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoDelete(
+		int rv = pApp->m_pKbServer_For_OnIdle->PseudoDelete(
 			pApp->m_pKbServer_For_OnIdle, 
 			pApp->m_strSrc_For_KBserver, 
 			pApp->m_strNonsrc_For_KBserver);
 		wxUnusedVar(rv);
 		event.RequestMore();
 #if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from RemoveRefString() Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
+		wxLogDebug(_T("OnIdle(), from RemoveRefString() PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
+//#endif // for _KBSERVER
 
+/* BEW 2Sep10 deprecated tentatively, for Leon's solution - might not be needed now
 	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
 	// booleans, or both, will have been set TRUE in the OnOK() function of
 	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the
@@ -4407,15 +4461,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		bool bUserCancelled;
 
 		// The purpose of this dialog is to present the user with two radiobuttons,
-		// whereby he can declare "I want to get the URL by means of using service
+		// whereby he can declare "I want to get the ipAddress by means of using service
 		// discovery results -- if necessary, service discovery should have been done
-		// earlier, or at least a login to a KBserver which gets a URL stored without
-		// actually doing a service discovery - using a config file URL value and there
-		// happens to be the correct KBserver running on the LAN); or, " I don't want
-		//  service discovery - I'll type a URL myself (because, presumably, the URL
-		// is to a KBserver running somewhere in the world and accessible over the web)
+		// earlier, or at least a login to a KBserver which gets an ipAddress stored without
+		// actually doing a service discovery - using a basic config file ipAddress value and
+		// there happens to be the correct KBserver running on the LAN); or, "I don't want
+		// service discovery - I'll type an ipAddress myself (because, presumably, the ipAddr
+		// is to a KBserver running somewhere on the LAN or PAN).
 		// If service discovery is wanted, the dialog sets m_bServiceDiscoveryWanted
 		// to TRUE (it's a boolean member of the CAdapt_ItApp class)
+		// Note: the user never sees the code details, so the legacy class name is retained
+		// for simplicity; but now it deals with ipAddresses, not U R Ls
 		dlgReturnCode = modalHowGetUrl.ShowModal();
 		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
 		// user's chosen value; Cancelling, however, cancels from setting up sharing
@@ -4484,7 +4540,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
 #endif // _KBSERVER
-
+*/ 
 	if (pApp->m_bSingleStep)
 	{
 		pApp->m_bAutoInsert = FALSE;
@@ -4676,9 +4732,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(
-			_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-			_T(""), wxICON_INFORMATION | wxOK);
+			wxString title = _("Finished");
+			wxString msg = _("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file.");
+            wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}
 
@@ -4888,7 +4944,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #endif
 
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
@@ -4930,10 +4986,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// Do an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
 // GDLC 20JUL16 Temporary comment out while investigating logic
-            bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			//bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
+			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
-			if (bIsEnabled && bIsPending && bTimerIsRunning)
+			if (bIsEnabled && bIsPending && bTimerIsRunning && !gpApp->m_bUserRequestsTimedDownload)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
 
@@ -4941,7 +4998,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
 				// or fewer is about what we'd expect for a timer interval of 5 minutes per shot
-				int rv = pKbSvr->Synchronous_ChangedSince_Timed(pKbSvr);
+				wxString timestamp = pKbSvr->GetKBServerLastSync();
+				int rv = pKbSvr->ChangedSince_Timed(timestamp,TRUE);
 				wxUnusedVar(rv);
 
 				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls
@@ -4982,7 +5040,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 	}
 
-#endif // for _KBSERVER #defined
+//#endif // for _KBSERVER #defined
 
 	// More custom event handlers
 	
@@ -5989,14 +6047,14 @@ void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
 
 //************  KbServer -- some handlers for Custom Events *******************
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->StatusBar_ProgressOfKbDeletion();
 }
 
-#endif
+//#endif
 
 
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent

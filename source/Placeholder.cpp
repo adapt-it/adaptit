@@ -543,7 +543,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	CSourcePhrase* pSrcPhrase = NULL; // whm initialized to NULL
 	CSourcePhrase* pPrevSrcPhrase = NULL; // the sourcephrase which lies before the first 
 	// inserted ellipsis, in a retranslation we have to check this one for an 
-	// m_bEndFreeTrans being TRUE flag and move that BOOL value to the end of the
+	// m_bEndFreeTrans being TRUE flag and move that bool value to the end of the
 	// insertions, and so forth...
 	//CPile* pPrevPile; // set but not used
 	CPile* pPile = pInsertLocPile;
@@ -1243,7 +1243,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
         // 11Oct10 we also have to move what is in m_follOuterPunct.
         // We are inserting to pad out a retranslation, so if the last of the selected
         // source phrases has following punctuation, we need to move it to the last
-        // placeholder inserted (note, the case of moving free-translation-supporting BOOL
+        // placeholder inserted (note, the case of moving free-translation-supporting bool
         // values is done above, as also is the moving of the content of a final non-empty
 		// m_endMarkers member, and m_inlineNonbindingEndMarkers and
 		// m_inlineBindingEndMarkers to the last placeholder, in the insertion loop itself)
@@ -3089,17 +3089,80 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	bool bCanInsert = FALSE;
+	bool bCanInsert = TRUE; // initialise
 	if (m_pApp->m_pTargetBox != NULL)
 	{
 		// BEW changed 24Jan13, to make the test more robust
 		// BEW added more, 9Apr20, to disable if active location is within a span
-		// of footnote, extended footnote, or cross-reference
-		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1 ) || 
-			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() == wxWindow::FindFocus()))) // whm 12Jul2018 added ->GetTextCtrl() part
+		// of footnote (\f ... \f*), extended footnote (\ef .... \ef*), 
+		// cross-reference (\x ... \x*) or extended cross-reference (\ex ... \ex*)
+		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+		bool bWithin = FALSE; // initialise
+		
+		// TODO try caching soln that repeatedly provides the bWithin value until
+		// the phrasebox moves
+		if (m_pApp->m_entryCount_updateHandler == 0)
 		{
-			bCanInsert = TRUE;
+			// call the function, and cache it's return value, augment entry count
+			bWithin = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+			m_pApp->m_bIsWithin_ProhibSpan = bWithin; // cached now
+			// cache the active pile's ptr
+			m_pApp->m_pCachedActivePile = m_pApp->m_pActivePile; // what we compare against
+			m_pApp->m_entryCount_updateHandler++; // augment entry counter
+		}
+		else
+		{
+			// counter is > 0, so check for movement of the active pile
+			if (m_pApp->m_pActivePile != m_pApp->m_pCachedActivePile)
+			{
+				// There was movement of the active location, so gotta make
+				// the function call again, and re-cache the values, and
+				// reset entry count to zero
+				m_pApp->m_entryCount_updateHandler = 0;
+				bWithin = pDoc->IsWithinSpanProhibitingPlaceholderInsertion(m_pApp->m_pActivePile->GetSrcPhrase());
+				m_pApp->m_bIsWithin_ProhibSpan = bWithin; // cached now
+				// cache the active pile's ptr
+				m_pApp->m_pCachedActivePile = m_pApp->m_pActivePile; // what we compare against
+			}
+			else
+			{
+				// Active pile location has not changed, so set bWithin
+				// to the cached value
+				bWithin = m_pApp->m_bIsWithin_ProhibSpan; // saves a time-consuming func call
+				// Well... we don't really need to augment the counter here because
+				// it will stay at 1 until the active location moves again - so I'll
+				// refrain from augmenting entry counter here
+			}
+		}
+		if (bWithin)
+		{
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
+		// Next, if the target box is shown, but the window with focus is not that one,
+		// then disable
+		if ((m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() != wxWindow::FindFocus())))
+		{
+			// whm 12Jul2018 added ->GetTextCtrl() part
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
+		
+		// If there is a selection that is not well formed, disable
+		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine == -1) || 
+			(m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1))
+		{
+			bCanInsert = FALSE;
+			event.Enable(bCanInsert);
+			return;
+		}
 
+		// Finally, check iF PlacePhraseBox() has requested disabled 
+		// insert null src phrase buttons
+		if (bCanInsert)
+		{
 			if (m_pApp->m_bDisablePlaceholderInsertionButtons)
 			{
 				// BEW addition 9Apr20 handler is called on leaving and on landing - we
@@ -4233,7 +4296,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// 11Oct10 we also have to move what is in m_follOuterPunct.
 			// We are inserting to pad out a retranslation, so if the last of the selected
 			// source phrases has following punctuation, we need to move it to the last
-			// placeholder inserted (note, the case of moving free-translation-supporting BOOL
+			// placeholder inserted (note, the case of moving free-translation-supporting bool
 			// values is done above, as also is the moving of the content of a final non-empty
 			// m_endMarkers member, and m_inlineNonbindingEndMarkers and
 			// m_inlineBindingEndMarkers to the last placeholder, in the insertion loop itself)

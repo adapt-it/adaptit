@@ -108,7 +108,7 @@ echo *** End of WdrTweaks.exe processing</Command>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -189,6 +189,7 @@ copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
+mkdir "Unicode Debug\dist"
 IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Debug\" /Y
 </Command>
     </PostBuildEvent>
@@ -335,6 +336,7 @@ copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
+mkdir "Unicode Release\dist"
 IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Release\" /Y
 
 </Command>
@@ -351,6 +353,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\AIPrintout.cpp" />
     <ClCompile Include="..\..\source\AIPrintPreviewFrame.cpp" />
     <ClCompile Include="..\..\source\AssignLocationsForInputsAndOutputs.cpp" />
+    <ClCompile Include="..\..\source\Authenticate2Dlg.cpp" />
     <ClCompile Include="..\..\source\AutoSavingPage.cpp" />
     <ClCompile Include="..\..\source\base64.cpp" />
     <ClCompile Include="..\..\source\BookNameDlg.cpp" />
@@ -418,9 +421,9 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\KBPage.cpp" />
     <ClCompile Include="..\..\source\KbServer.cpp" />
     <ClCompile Include="..\..\source\KBSharing.cpp" />
+    <ClCompile Include="..\..\source\KBSharingAuthenticationDlg.cpp" />
     <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
     <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
-    <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
     <ClCompile Include="..\..\source\KbSvrHowGetUrl.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg_Single.cpp" />
@@ -508,6 +511,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\AIPrintout.h" />
     <ClInclude Include="..\..\source\AIPrintPreviewFrame.h" />
     <ClInclude Include="..\..\source\AssignLocationsForInputsAndOutputs.h" />
+    <ClInclude Include="..\..\source\Authenticate2Dlg.h" />
     <ClInclude Include="..\..\source\AutoSavingPage.h" />
     <ClInclude Include="..\..\source\base64.h" />
     <ClInclude Include="..\..\source\BookNameDlg.h" />
@@ -552,9 +556,9 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\GuesserAffix.h" />
     <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
     <ClInclude Include="..\..\source\InstallGitOptionsDlg.h" />
+    <ClInclude Include="..\..\source\KBSharingAuthenticationDlg.h" />
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
-    <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
     <ClInclude Include="..\..\source\KbSvrHowGetUrl.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
@@ -649,6 +653,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\Xhtml.h" />
     <ClInclude Include="..\..\source\XML.h" />
     <ClInclude Include="..\..\source\XMLErrorDlg.h" />
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\source\NewClassHeaderTemplate.txt" />

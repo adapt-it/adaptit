@@ -169,7 +169,7 @@ public:
 	// quite often and may involve loading and unloading of CKB instances - and we want to
 	// keep such actions from forcing unwanted KbServer instances being created and
 	// destroyed on the fly at such times
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
 	inline int	GetKBTypeForServer(); // returns 1 if !m_bGlossingKB, 2 if m_bGlossingKB
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
@@ -186,6 +186,8 @@ public:
 	// adapting CKB, TRUE for a glossing CKB. The latter is used for returning whichever
 	// of m_pKbServer[0] or [1] is to be associated with the current CKB instance
 	KbServer*	GetMyKbServer();
+
+	//size_t	CountAllKBEntries(CKB* pKB); // BEW 26Oct20 created, num of entries in local KB -- but not needed
 
 	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
@@ -208,7 +210,7 @@ public:
 	void		DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString);
 
 
-#endif // for _KBSERVER
+//#endif // for _KBSERVER
 
     // whm 13May2018 Moved the GetMatchingRefString() function below outside the _KBSERVER contitional
     // define block above. The GetMatchingRefString() function is now called in Adapt_ItView.cpp's

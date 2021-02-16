@@ -615,6 +615,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
             return;
         }
 	}
+
+	bool bNewWasNoAdaptation = FALSE; // initialize
+	bool bOldWasNoAdaptation = FALSE; // initialise
 	if (newText.IsEmpty())
 	{
 		// IDS_REDUCED_TO_NOTHING
@@ -627,6 +630,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		{
 			return;
 		}
+		bOldWasNoAdaptation = TRUE; // use below to support <no adaptation> being PseudoDeleted
 	}
 	// BEW 1Sep15 continuing the additions started above...
 	wxString activeKey = pSrcPhrase->m_key; // might be upper or lower case
@@ -748,7 +752,10 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	{
 		str = m_pListBoxExistingTranslations->GetString(i);
 		if (str == s) // does str equal _("<no adaptation>")
+		{
 			str = _T("");
+			bOldWasNoAdaptation = TRUE; // use below to support PseudoDeleting <no adaptation>
+		}
 		if ((str.IsEmpty() && newText.IsEmpty()) || (str == newText))
 		{
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
@@ -758,7 +765,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			_T(""),wxICON_INFORMATION | wxOK);
 			return;
 		}
-	}
+	} // end of for loop
 
 	// go ahead and do the update (pCurRefString should already be set, but I don't want
 	// to rely on that - so first add a few lines to make sure we have it set correctly)
@@ -783,13 +790,15 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pARefStr != NULL);
 
 		// does it match? (The second subtest is redundant, but is safety-first)
+		// (tests are in the local KB and the GUI, so no python called here
 		if (pARefStr->m_translation == newText && pARefStr->GetDeletedFlag() == TRUE)
 		{
 			// we've matched a deleted entry, so set the flag and exit the loop
 			bUndeleting = TRUE;
 			break;
 		}
-	}
+	} // end of while loop
+
 	if (bUndeleting) // pARefStr is the CRefString instance we are undeleting here
 	{
 		pARefStr->SetDeletedFlag(FALSE);
@@ -807,22 +816,34 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		//pCurRefString->m_refCount = 1; // leave it unchanged, if later undeleted set = 1 then
 		(pCurRefString->GetRefStringMetadata())->SetDeletedDateTime(aTimestamp);
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
+		int rv = -1; // initialise
+		wxUnusedVar(rv);
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
             (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
-			// create the thread and fire it off
+			// do the update, and support <no adaptation>
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
-				wxUnusedVar(rv);
+				// Note, KbEditorUpdateButton internally calls LookupEntryFields(), case 7
+				if (bOldWasNoAdaptation)
+				{
+					// BEW 20Jan21 I've refactored so that <no adaptation> is stored in the relevant
+					// "empty adaptation" rows for kbserver entry table; so that python has a string
+					// to store, and to grab when looking up the entry table
+					rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, s); // s is <no adaptation>
+				}
+				else
+				{
+					rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
+				}
 			}
 		}
-#endif
+//#endif
         // Now get the visible listbox contents to comply with what we've done. nFound is
         // still valid, it's the index for the list entry we need to remove; its clientData
         // pointer which is a ptr to the CRefString instance owning the translation is not
@@ -924,22 +945,29 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 26Oct12 for KBserver support
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
-    if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
+	int rv = -1;
+	wxUnusedVar(rv);
+	if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
         ||
         (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
-		// create the thread and fire it off
+		// Do the python code in for case 7 (lookup_entry_fields)
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
-			wxUnusedVar(rv);
+			if (bNewWasNoAdaptation)
+			{
+				rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, s);
+			}
+			else
+			{
+				rv = pKbSvr->KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
+			}
 		}
 	}
-#endif
+//#endif
 
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
@@ -1014,7 +1042,10 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		return;
 	}
 
-	wxString newText = _T(""); // this is what the user wants to add
+	wxString newText = _T(""); // this is what the user wants to add, for local KB
+	wxString s;
+	s = _("<no adaptation>");
+
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue();
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
@@ -1023,7 +1054,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	if (bOK)
 	{
 		// BEW added 19Feb13 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 Avoid crash with IsKBSharingEnabled()
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
@@ -1032,28 +1063,28 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, m_srcKeyStr.c_str(), newText.c_str());
+				pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, s); // BEW 20Jan21 we want <no adaptation> 
+						// in the entry table because python is not able to pick up a nothing value
+
+				wxLogDebug(_T("KBEditor.cpp (1036) OnAddNoAdaptation(): CreateEntry for src = %s  &  tgt = %s"),
+					m_srcKeyStr.c_str(), s.c_str());
 			}
 		}
-#endif
+//#endif
 		// Don't add to the list if the AddRefString call did not succeed
-		wxString s;
-		s = _("<no adaptation>");
-		newText = s; // i.e. "<no adaptation>"
-		m_pListBoxExistingTranslations->Append(newText);
+		//m_pListBoxExistingTranslations->Append(newText);
+		m_pListBoxExistingTranslations->Append(s); // BEW 21Jan21 -- user needs to 
+								// see <no adaptation> rather than an empty line
 		// m_pListBoxExistingTranslations is not sorted, but it is safer to always get
 		// an index using FindListBoxItem
-		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
-															caseSensitive, exactString);
+		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, s,
+													caseSensitive, exactString);
 		if (nFound == -1) // LB_ERR
 		{
             // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
             pApp->m_bUserDlgOrMessageRequested = TRUE;
             wxMessageBox(_(
-			"Error warning: Did not find the translation text just inserted!"),_T("")
+			"Error warning: Did not find the translation text just inserted!"),_("<no adaptation>")
 			,wxICON_EXCLAMATION | wxOK);
 			m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
 			CRefString* pRefStr = (CRefString*)
@@ -1067,14 +1098,15 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			return;
 		}
 		m_pListBoxExistingTranslations->SetClientData(nFound,pCurRefString);
-		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE); //m_pListBoxExistingTranslations->SetCurSel(nFound);
+		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE); 
 		OnSelchangeListExistingTranslations(event);
 		m_pEditRefCount->SetValue(m_refCountStr);
-		if (m_edTransStr == s)
-		{
+		// BEW 20Jan21 don't force to an empty string, user needs to see the <no adaptation>
+		//if (m_edTransStr == s)
+		//{
 			// in the edit box, show nothing rather than "<no adaptation>"
-			m_edTransStr.Empty();
-		}
+		//	m_edTransStr.Empty();
+		//}
 		m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 		m_pEditOrAddTranslationBox->DiscardEdits();
 		UpdateButtons();
@@ -1095,7 +1127,8 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-
+	wxString s = _("<no adaptation>");
+	bool bWasNoAdaptation = FALSE; // initialise
 	bool bOK = TRUE;
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
@@ -1124,7 +1157,10 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		"You are adding a translation which is nothing. That is okay, but is it what you want to do?"),
 		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value == wxNO)
+		{
 			return;
+		}
+		bWasNoAdaptation = TRUE; // used below to get <no adaptation> accepted into entry table of kbserver
 	}
 //#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
@@ -1183,18 +1219,16 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				// have repositioned the undeleted CRefString to the end of the CTargetUnit
 				// instance's list, so that the Append() call on the list box done below
 				// will match in position
-	wxString s = _("<no adaptation>");
 
 	// if it was added successfully, show it in the listbox & select it; and do KBserver
 	// support if required
+	int rv = -1; // initialise
 	if (bOK)
 	{
 		// BEW added 26Oct12 for KBserver support
-#if defined(_KBSERVER)
-// GDLC 20JUL16
-//		if ((pApp->m_bIsKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-//          ||
-//			(pApp->m_bIsGlossingKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+//#if defined(_KBSERVER)
+		bool bCreatedOK = FALSE; // initialise
+        bCreatedOK = bCreatedOK; // avoid gcc warning "set but not used"
         if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
             ||
             (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
@@ -1202,13 +1236,29 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, m_srcKeyStr.c_str(), newText.c_str());
+				if (bWasNoAdaptation)
+				{
+					rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, s);
+				}
+				else
+				{
+					rv = pKbSvr->CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				}
+				if (rv == 0)
+				{
+					bCreatedOK = TRUE;
+					wxLogDebug(_T("KBEditor.cpp line= %d , OnButtonAdd() Succeeded: CreateEntry for src = %s  &  tgt = %s"),
+						__LINE__, m_srcKeyStr.c_str(), newText.c_str());
+				}
+				else // rv == -1
+				{
+					wxLogDebug(_T("KBEditor.cpp line= %d , OnButtonAdd() Failed: CreateEntry for src = %s  &  tgt = %s"),
+						__LINE__, m_srcKeyStr.c_str(), newText.c_str());
+
+				}
 			}
 		}
-#endif
+//#endif
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
@@ -1234,18 +1284,21 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE);
 		OnSelchangeListExistingTranslations(event);
 		m_pEditRefCount->SetValue(m_refCountStr);
-		if (newText == s)
-		{
+		// BEW 16Jan21, I can't think of any good reason why adding an empty string
+		// should leave no obvious trace in the tgt box, so I'm commenting out these
+		// emptying lines
+		//if (newText == s)
+		//{
 			// in the edit box, show nothing rather than "<no adaptation>"
-			newText.Empty();
-		}
+		//	newText.Empty();
+		//}
 		m_pEditOrAddTranslationBox->ChangeValue(newText);
 		m_pEditOrAddTranslationBox->DiscardEdits(); // resets the internal "modified"
 													// flag to no longer "dirty"
 		UpdateButtons();
 		gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save button enabled
 	}
-}
+} 
 
 void CKBEditor::DoRestoreSearchStrings()
 {
@@ -1452,7 +1505,7 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// Disallow the button with a message, if it's a KB sharing project but sharing is
 	// temporarily disabled. (Reason? If allowed in when sharing is disabled, the user may
 	// spend an hour or more working through thousands of entries, ticking hundreds of
@@ -1505,7 +1558,7 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
-#endif
+//#endif
 
 	RemoveSomeTgtEntries dlg((wxWindow*)this);
 	if (dlg.ShowModal() == wxID_OK)
@@ -1562,6 +1615,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	s = _("<no adaptation>");
 	wxString message;
 	int	nPreviousReferences = 0;
+	bool bWasNoAdaptation = FALSE; // initialise
 
     // get the index of the selected translation string (this may not be the same index for
     // the CRefString stored in pCurTgtUnit because there may be stored deleted CRefString
@@ -1575,9 +1629,14 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 									// box translation string being deleted
 	wxString str2 = str;
 
+	// BEW 20Jan21 
 	if (str == s) // ie. if contents of str is "<no adaptation>"
+	{
 		str = _T(""); // for comparison's with what is stored in the KB,
 					  // it must be empty
+		bWasNoAdaptation = TRUE; // use this below to support <no adaptation> being 
+								 // in the entry table of kbserver
+	}
 
 	// don't allow an attempt to remove <Not In KB>
 	if (str == _T("<Not In KB>"))
@@ -1712,27 +1771,32 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// BEW added 22Oct12 for KBserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // GDLC 20JUL16 KbAdaptRunning() and KbGlossRunning() avoid a crash if there is no
 // KB server actually running. This can occur if the project was used with a KB server
 // but the KB server happens to be inaccessible now.
+	int rv = -1; //initialise
+	wxUnusedVar(rv);
     if ((pApp->m_bIsKBServerProject && pApp->KbAdaptRunning())
         ||
         (pApp->m_bIsGlossingKBServerProject && pApp->KbGlossRunning()))
-        //	if ((pApp->m_bIsKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-        //      ||
-        //		(pApp->m_bIsGlossingKBServerProject && pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 	
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_currentKey, pRefString->m_translation);
-			wxUnusedVar(rv);
+			if (bWasNoAdaptation)
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, m_currentKey, s);
+			}
+			else
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, m_currentKey, pRefString->m_translation);
+			}
 		}
 
 	}
-#endif
+//#endif
 	// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
 	// 'remove' in the context of kbVersion 2 just means to retain storage of the
 	// CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
@@ -1792,7 +1856,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		{
 			nNewKeySel--;
 		}
-	}
+	} // end of TRUE block for test: if (numNotDeleted == 0)
 	LoadDataForPage(m_nCurPage,nNewKeySel);
 	m_pTypeSourceBox->SetSelection(0,0); // sets selection to beginning of type
 										 // source edit box following MFC
@@ -1912,26 +1976,6 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			wxASSERT(FALSE);
 		}
-		/* legacy code
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
-		wxASSERT(pRefString != NULL);
-		pCurTgtUnit->m_pTranslations->DeleteNode(pos);
-		pos = pCurTgtUnit->m_pTranslations->Item(nSel);
-		wxASSERT(pos != NULL);
-        // Note: wxList::Insert places the item before the given item and the inserted item
-        // then has the insertPos node position.
-		TranslationsList::Node* newPos = pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
-		if (newPos == NULL)
-		{
-			// a rough & ready error message, unlikely to ever be called
-			wxMessageBox(_T(
-			"Error: MoveUp button failed to reinsert the translation being moved\n"),
-			_T(""), wxICON_EXCLAMATION | wxOK);
-			wxASSERT(FALSE);
-		}
-		*/
 	}
 
 	m_pEditRefCount->SetValue(m_refCountStr);
@@ -2205,8 +2249,6 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		m_nWordsSelected = -1;
 		m_TheSelectedKey = _T("");
 	}
-
-
     // Determine which tab page needs to be pre-selected.
     //
     // The m_nCurPage is set as follows depending on what the circumstances are when the 

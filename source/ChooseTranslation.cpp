@@ -960,11 +960,20 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // we have to detect that & change it to zero, otherwise bounds checking won't let us
     // exit the box
 	if (m_refCount < 0)
+	{
+		// protection...
 		m_refCount = 0;
+	}
+	// BEW 19Jan21, refactor next bit, so that local KB stores empty string for <no adaptation>
+	// but mysql kbserver entry table stores '<no adaptation>' (without the quotes of course)
+	// because the python code in do_pseudo_undelete.py cannot correctly handle an empty string,
+	// when undeleting, entry table needs to store <no adaptation> so that there's something to grab
+	bool bWasNoAdaptation = FALSE; // initialise
 	if (str == s)
 	{
 		// if str was reset to "<no adaptation>" then make it empty for any kb check below
 		str = _T("");
+		bWasNoAdaptation = TRUE;
 	}
 
 	// in support of removal when autocapitalization might be on - see the OnButtonRemove handler
@@ -978,7 +987,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
         pKB->m_bCallerIsRemoveButton = TRUE;
 
 	// BEW added 19Feb13 for kbserver support
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     //  GDLC 20JUL16 Use KbAdaptRunning() and KbGlossRunning()to avoid crashes if a previously
     //  used KB Server happens to be unavailable now
     if ((gpApp->m_bIsKBServerProject && gpApp->KbAdaptRunning() )
@@ -986,14 +995,21 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
         (gpApp->m_bIsGlossingKBServerProject && gpApp->KbGlossRunning() ) )
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
-
+		int rv = -1; // initialise to error value
 		if (!gpApp->pCurTargetUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
-			wxUnusedVar(rv);
+			if (bWasNoAdaptation)
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, s);
+			}
+			else
+			{
+				rv = pKbSvr->PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);				
+			}
 		}
+		wxUnusedVar(rv);
 	}
-#endif
+//#endif
 	// remove the corresponding CRefString instance from the knowledge base...
 	// BEW 25Jun10, 'remove' now means, set m_bDeleted = TRUE, etc, and hide it in the GUI
 	wxASSERT(pRefString != NULL);
@@ -1039,45 +1055,6 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	else
 		m_pMyListBox->SetFocus();
 }
-
-
-
-// whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
-//void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)
-//{
-//	CAdapt_ItApp* pApp = &wxGetApp();
-//	wxASSERT(pApp != NULL);
-//	//m_bCancelAndSelect = TRUE; // alter behaviour when Cancel is wanted (assume user wants instead
-//								// to create a merge of the source words at the selection location)
-//	pApp->m_curDirection = toright; // make sure any left-direction earlier drag selection
-//									// is cancelled; & BEW 2Oct13 changed from right to toright 
-//									// due to ambiguity
-//	OnCancel(event);
-//}
-
-// whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
-//void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
-//// applies only when adapting; when glossing, just immediately exit
-//{
-//	if (gbIsGlossing) return; // glossing being ON must not allow this shortcut to work
-//	if (event.AltDown())
-//	{
-//		// ALT key is down, so if right arrow key pressed, interpret the ALT key press as
-//		// a click on "Cancel And Select" button
-//		if (event.GetKeyCode() == WXK_RIGHT)
-//		{
-//			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
-//			if (pButton->IsShown())
-//			{
-//				wxCommandEvent evt = wxID_CANCEL;
-//				OnButtonCancelAndSelect(evt);
-//				return;
-//			}
-//			else
-//				return; // ignore the keypress when the button is invisible
-//		}
-//	}
-//}
 
 void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {

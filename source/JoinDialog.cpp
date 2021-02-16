@@ -353,7 +353,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 				// keep it as-is, that's better than losing the data - and let the
 				// user try work out what to do (making the temporary copy should
 				// never fail, so there's not much risk of such a mess happening)
-				::wxRemoveFile(pathAndOldCurrent); // don't care about returned boolean
+				wxRemoveFile(pathAndOldCurrent); // don't care about returned boolean
 			}
 			// Now restore the old current one by renaming the temporary copy
 			bool bOkay = TRUE;
@@ -418,7 +418,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	{
 		if (::wxFileExists(pathAndTempCurrent))
 		{
-			::wxRemoveFile(pathAndTempCurrent); // don't care about returned boolean
+			wxRemoveFile(pathAndTempCurrent); // don't care about returned boolean
 		}
 	}
 
@@ -447,12 +447,12 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			FileName = pAcceptedFiles->GetString(i);
 			if (FileName.CmpNoCase(MergeFileName) != 0) 
 			{
-				::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), FileName));
+				wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), FileName));
 			}
 		}
 		if (OldCurrentDocumentFileName.CmpNoCase(MergeFileName) != 0) 
 		{
-			::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
+			wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
 		}
 	}
 	/*
@@ -470,12 +470,12 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			FileName = pAcceptedFiles->GetString(j);
 			if (FileName.CmpNoCase(MergeFileName) != 0) 
 			{
-				::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), FileName));
+				wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), FileName));
 			}
 		}
 		if (OldCurrentDocumentFileName.CmpNoCase(MergeFileName) != 0) 
 		{
-			::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
+			wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
 		}
 	}
 	*/
@@ -544,7 +544,7 @@ void CJoinDialog::InitialiseLists()
 
 	// BEW modified 02Nov05, to only show document files (the FALSE parameter effects this)
 	//FillListBoxWithListOfFilesInPath(pAcceptedFiles, gpApp->GetCurrentDocFolderPath(), FALSE);
-	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, BOOL bShowAllFiles)
+	// whm note: Code below from JF's DialogBase::FillListBoxWithListOfFilesInPath(CListBox& lb, CString Path, bool bShowAllFiles)
 	// In wx version we're not implementing JF's DialogBase class, but using the code from its function here.
 	pAcceptedFiles->Clear(); // clear out all entries from the listbox
 	wxArrayString files;

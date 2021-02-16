@@ -1458,7 +1458,7 @@ bool CEmailReportDlg::BuildEmailReportXMLFile(wxString filePathAndName, bool bRe
 	if (bReplaceExistingReport)
 	{
 		wxASSERT(::wxFileExists(filePathAndName));
-		bOK = ::wxRemoveFile(filePathAndName);
+		bOK = wxRemoveFile(filePathAndName);
 	}
 	if (bOK)
 	{

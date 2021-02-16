@@ -297,7 +297,7 @@ void CWhichBook::FinishSetup()
 	// TODO: Determine if wxComboBox can be manipulated to force it to show the
 	// number of items as MFC code does below. This is not a critical need but
 	// would be a convenience, depending on how wxWidgets behaves in this case.
-	m_pComboChooseBook->SetSelection(m_nDivIndex); //BOOL bOK = m_comboChooseBook.SetCurSel(m_nDivIndex);
+	m_pComboChooseBook->SetSelection(m_nDivIndex); //bool bOK = m_comboChooseBook.SetCurSel(m_nDivIndex);
 	m_strBookName = m_pComboChooseBook->GetString(m_nDivIndex); // visible name, not for path
 	wxASSERT(!m_strBookName.IsEmpty());
 	gpApp->m_pCurrBookNamePair = (BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex]; 

@@ -25,22 +25,22 @@
     #pragma interface "ServDisc_KBserversDlg.h"
 #endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 class CServDisc_KBserversDlg : public AIModalDialog
 {
 public:
-	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames); // constructor
+	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pIpAddrs, wxArrayString* pHostnames); // constructor
 	virtual ~CServDisc_KBserversDlg(void); // destructor
 
 	wxSizer*	pServDisc_KBserversDlgSizer;
-	wxString	m_urlSelected;
+	wxString	m_ipAddrSelected;
 	wxString	m_hostnameSelected;
-	wxArrayString m_urlsArr;
+	wxArrayString m_ipAddrsArr;
 	wxArrayString m_hostnamesArr;
 	bool		m_bUserCancelled;
 	wxArrayString m_compositeArr; // put both strings into one, separated by @@@, recover
-						// the url & name substrings, using the selection's index
+						// the ipAddress & name substrings, using the selection's index
 protected:
 	void		InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void		OnOK(wxCommandEvent& event);
@@ -48,17 +48,17 @@ protected:
 	void		OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event));
 	void        OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
 	void		OnRemoveSelectedEntry(wxCommandEvent& WXUNUSED(event));
-	void		OnURLSelection(wxListEvent& event);
-	void		OnURLDeselection(wxListEvent& event);
+	void		OnIpAddrSelection(wxListEvent& event);
+	void		OnIpAddrDeselection(wxListEvent& event);
 
 private:
 	wxButton*   m_pBtnRemoveSelection;
 	wxTextCtrl* m_pBottomMessageBox;
-	wxListView* m_pListCtrlUrls;
-	wxString    strComposite; // url, spaces, hostname <--- temporary
-	size_t      nSel; // index of selected URL line
-	size_t		count; // count of how many items in pUrls wxArrayString* passed in in ctor
+	wxListView* m_pListCtrlIpAddrs;
+	wxString    strComposite; // ipAddress, spaces, hostname <--- temporary
+	size_t      nSel; // index of selected ipAddress line
+	size_t		count; // count of how many items in pIpAddrs wxArrayString* passed in in ctor
 	DECLARE_EVENT_TABLE()
 };
-#endif // _KBSERVER
+//#endif // _KBSERVER
 #endif

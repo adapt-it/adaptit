@@ -59,7 +59,7 @@ bOK = ::wxSetWorkingDirectory(dirPath); <<< bOK = ::SetCurrentDirectory(dirPath)
 bExists = ::wxFileExists(path) && !::wxDirExists(path); <<< CFileStatus status; CFile f; f.GetStatus(path,status);
 pFile->Write(oldText); <<< pFile->WriteString(oldText);
 bool bOK = ::wxMkdir(path); <<< bool bOK = ::CreateDirectory(path,NULL);
-if (!::wxRemoveFile(filePath)) <<< f.Remove(filePath); 
+if (!wxRemoveFile(filePath)) <<< f.Remove(filePath); 
 
 ReleaseMouse(); <<< ReleaseCapture();
 

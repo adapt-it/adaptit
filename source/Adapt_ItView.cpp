@@ -541,7 +541,7 @@ bool gbAdaptBeforeGloss = TRUE; // TRUE (default) if adaptationsStep is to be do
 /// 	bool			bEditSpanHasGlosses;
 /// 	bool			bEditSpanHasFreeTranslations;
 /// 	bool			bEditSpanHasBackTranslations;
-/// 	BOOL			bCollectedFromTargetText;
+/// 	bool			bCollectedFromTargetText;
 ///
 /// 	int				nSaveActiveSequNum;
 /// 	wxString		oldPhraseBoxText;
@@ -2164,7 +2164,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 			nSaveActiveSequNum = nFirstSequNum;
 
 		// do the merge
-		pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary
+		pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean for temporary
 										   // suppression only
 		MergeWords();
         pApp->m_bSuppressDefaultAdaptation = FALSE;
@@ -7415,7 +7415,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 			pApp->LogUserAction(msg);
 		}
 	}
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// BEW 28Sep12, clean up and make persistent any volatile data, if kbserver
 	// support is active
 	if (pApp->m_bIsKBServerProject)
@@ -7428,7 +7428,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnFileCloseProject()"));
 	}
-#endif
+//#endif
 	// BEW 28Sep12 moved KB erasure code to be here -- see note above
 	// Delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
@@ -8896,7 +8896,7 @@ bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString&
 
     // when both arrays have content, we must test each marker against all those in the
     // other array, doing this in both directions - because we must be sure to get a
-    // correct BOOL result in the situation where one marker set may be a subset of the
+    // correct bool result in the situation where one marker set may be a subset of the
     // other
 
     // iterate across the markers in the first array, testing for a non-match in the second
@@ -18218,6 +18218,13 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->LogUserAction(_T("Initiated OnToolsKbEditor()"));
+
+	pApp->m_bKBEditorEntered = TRUE; // TRUE if View.cpp function
+		// OnToolKbEditor(unused wxCommandEvent event) is invoked.
+		// FALSE when the handler is exited. Used for invoking the speedier
+		// CreateEntry function, for enum value create_entry (=4) when user
+		// is NOT in the KB Editor tabbed dialog.
+
 	// whm 23Jan09 Refactored the CKBEditor class and this handler. Changes to this handler
     // involved moving most of the intitializations of CKBEditor members to the CKBEditor
     // class itself, and eliminating several global variables that were only used in this
@@ -18236,6 +18243,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 		pApp->LogUserAction(_T("KB Editor menu item disabled"));
+		pApp->m_bKBEditorEntered = FALSE; // restore default
 		return;
 	}
 #if defined (_DEBUG)
@@ -18258,7 +18266,6 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			pApp->SaveGlossingKB(FALSE);
 		else
 			pApp->SaveKB(FALSE, TRUE);
-
 	}
 
 	// restore focus to the targetBox
@@ -18336,6 +18343,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		GetDocument()->OnEditConsistencyCheck(dummy);
 	}
 	pApp->m_bForceFullConsistencyCheck = FALSE; // restore default value
+	pApp->m_bKBEditorEntered = FALSE; // restore default
 }
 
 
@@ -19240,7 +19248,7 @@ void CAdapt_ItView::OnUpdateFind(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 void CAdapt_ItView::PositionDlgNearTop(wxDialog* pDlg)
 {
@@ -19326,7 +19334,7 @@ void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 		wxDefaultCoord, // use wxSIZE_USE_EXISTING with this param value for height
 		wxSIZE_USE_EXISTING);
 }
-#endif
+//#endif
 
 void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 {
@@ -25270,7 +25278,7 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 /// \param      nEndingSN		<->	(input)reference to the sequence number for the last pile
 ///                                 in the user's selection; (output) the sequence number value
 ///                                 for the last pile after any extension rightwards was done
-/// \param      bIsExtended		<-	reference to BOOL indicating whether extension was required
+/// \param      bIsExtended		<-	reference to bool indicating whether extension was required
 ///                                 and done (TRUE) or not required and not done (FALSE)
 /// \remarks
 /// Called from: The View's OnEditSourceText().
@@ -25847,11 +25855,11 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 ///                                             nStartingSequNum to nEndingSequNum; return
 ///                                             -1 if no back translation span was able to
 ///                                             be defined for the passed in editable span
-/// \param      bHasBackTranslations		<- 	ref to BOOL to inform caller that the span
+/// \param      bHasBackTranslations		<- 	ref to bool to inform caller that the span
 ///                                             has at least one collected back translation
 ///                                             defined on it (even if the collected \bt
 ///                                             marker's content was empty)
-/// \param	bCollectedFromTargetText	    <-	ref to BOOL to inform caller which line the
+/// \param	bCollectedFromTargetText	    <-	ref to bool to inform caller which line the
 ///                                             original collection was done from, return
 ///                                             TRUE if from the target text line, FALSE if
 ///                                             from the glossing line
@@ -25955,7 +25963,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 	// 23Apr08, BEW added this function
-    // use BOOL CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, BOOL&
+    // use bool CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, BOOL&
     // bFound_bt_mkr) as the way, when scanning forward, to determine halt locations - and
     // remember that the last CSourcePhrase instance within the span thus delineated is the
     // one which precedes the halt location (the halt location is actually the kick off
@@ -26542,13 +26550,13 @@ bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum 
 /// \param      pGlossList	<->	list for removed glosses
 /// \param      pFTList	<->	list for removed free translations
 /// \param      pNoteList	<->	list for removed notes
-/// \param      remAd		->	BOOL indicating whether to remove or retain adaptation
+/// \param      remAd		->	bool indicating whether to remove or retain adaptation
 ///                             information
-/// \param      remGl		->	BOOLindicating whether to remove or retain gloss information
-/// \param      remNt		->	BOOL indicating whether to remove or retain note information
-/// \param      remFT		->	BOOL indicating whether to remove or retain free translation
+/// \param      remGl		->	bool indicating whether to remove or retain gloss information
+/// \param      remNt		->	bool indicating whether to remove or retain note information
+/// \param      remFT		->	bool indicating whether to remove or retain free translation
 ///                             information
-/// \param      remBT		->	BOOL indicating whether to remove or retain back translation
+/// \param      remBT		->	bool indicating whether to remove or retain back translation
 ///                             information
 /// \remarks
 /// Called from: the View's ScanSpanDoingRemovals().
@@ -28486,7 +28494,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 
     // do any required selection 'extension' (actually only possibly new sequence numbers
     // are returned), returning TRUE if there was no error, FALSE there was an error. The
-    // bWasExtended BOOL parameter returns TRUE if extension and either or both ends was
+    // bWasExtended bool parameter returns TRUE if extension and either or both ends was
     // done, FALSE if no extension was required
 	// BEW 11Oct10, added internally to ExtendEditSourceTextSelection() to handle when
 	// there may be, at either or both ends, a placeholder with information to be
@@ -30073,7 +30081,7 @@ bailout:	pAdaptList->Clear();
 /// which is first in the following context. So that transfer is done here.
 /// (2) If moving filtered info leaves a CSourcePhrase instance whose only reason for existing
 /// was to carry that stuff; then once it's gone, this carrier instance must be deleted.
-/// (3) Knowledge of what happened is passed back to the caller by the returned BOOL
+/// (3) Knowledge of what happened is passed back to the caller by the returned bool
 /// parameter.
 /// Note 1: we check for m_precPunct non-empty, because a CSourcePhrase instance that
 /// results from a parse of endmarker followed by punctuation without any intervening space
@@ -32778,7 +32786,7 @@ void CAdapt_ItView::OnButtonNextStep(wxCommandEvent& WXUNUSED(event))
 	bCustomMessageSent = VerticalEdit_CheckForEndRequiringTransition(
 												sequNum,nextStep,TRUE);
 	bCustomMessageSent = bCustomMessageSent; // avoid warning
-	// no need to use returned BOOL value; TRUE means "force transition"
+	// no need to use returned bool value; TRUE means "force transition"
 }
 
 void CAdapt_ItView::OnUpdateButtonPrevStep(wxUpdateUIEvent& event)
@@ -32823,7 +32831,7 @@ void CAdapt_ItView::OnButtonPrevStep(wxCommandEvent& WXUNUSED(event))
 	bCustomMessageSent = VerticalEdit_CheckForEndRequiringTransition(sequNum,
 														previousStep,TRUE);
 	bCustomMessageSent = bCustomMessageSent; // avoid warning
-	// no need to use returned BOOL value; TRUE means "force transition"
+	// no need to use returned bool value; TRUE means "force transition"
 }
 
 void CAdapt_ItView::OnUpdateButtonEndNow(wxUpdateUIEvent& event)
@@ -33355,6 +33363,82 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 
 // TODO -- whatever
 
+	pApp->CheckForDefinedGlossLangName();
+
+	/*
+	wxString pathToFolder = pApp->execPath;
+	wxString filename = _T("local_kb_linesCopy.dat");
+	DoEscapeSingleQuote(pathToFolder, filename);
+	int stophereforalook = 1;
+	wxUnusedVar(stophereforalook);
+	*/
+	/*
+	wxString test = _T("it's,Dhay'yi,God's,b'long,here's how,you've,gam',yuwalk'thina,already\\'done");
+	test = DoEscapeSingleQuote(test);
+	int stophereforalook = 1; // works well
+	wxUnusedVar(stophereforalook);
+	*/
+/*
+	KbServer* pKbSvr = pApp->GetKbServer(1);
+	wxString execPath = pApp->execPath;
+	wxString datFilename = _T("local_kb_lines.dat");
+	wxString sourceLanguage = pApp->m_sourceName;
+	wxString nonSourceLanguage = pApp->m_targetName;
+	bool bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, pApp, execPath,
+						datFilename, sourceLanguage, nonSourceLanguage);
+	wxUnusedVar(bPopulated);
+*/
+/*
+	wxString execPath = pApp->execPath;
+	wxString distPath = pApp->distPath;
+	wxString src = _T("tokim");
+	wxString nonSrc = _T("am telling");
+	KbServer* pKbSvr = pApp->GetKbServer(1);
+	int rv = pKbSvr->LookupEntryFields(src, nonSrc);
+	rv = rv;
+*/
+//*
+	wxString execPath = pApp->execPath;
+	wxString saveCwd = ::wxGetCwd();
+	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
+	wxUnusedVar(bChangedCWD);
+	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
+	wxString comma = _T(",");
+	wxString ipAddr = _T("192.168.1.9");
+	wxString user = _T("bruce@unit2");
+	wxString pwd = _T("Clouds2093");
+	wxString user2 = _T("bobbie");
+	//wxString cmdLine = ipAddr + comma + user + comma + pwd + comma +user2 + comma;
+	wxString cmdLine = ipAddr + comma + user + comma + pwd + comma; // +user2 + comma;
+	wxTextFile f;
+	//bool bOpened = f.Open(execPath + _T("lookup_user.dat"));
+	bool bOpened = f.Open(execPath + _T("list_users.dat"));
+	if (bOpened)
+	{
+		f.Clear();
+		f.AddLine(cmdLine);
+		f.Write();
+		f.Close();
+	}
+
+	//wxString ipAddr = pApp->m_chosenIpAddr; //_T("192.168.1.9");
+	//wxString user = pApp->m_strUserID; // _T("bruce@unit2");
+	//wxString user2 = _T("bobbie"); // _T("bruce@unit2");
+	//CMainFrame* pFrame = pApp->GetMainFrame();
+	//wxString pwd = _T("Clouds2093");
+	//pFrame->SetKBSvrPassword(pwd);
+	//wxString user2 = user;
+	//KbServer* pKbSvr = new KbServer(1, FALSE); // TRUE = for manager
+	//KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
+
+	//pKbSvr->LookupUser(ipAddr, user, pwd, user2);
+	pKbSvr->ListUsers(ipAddr, user, pwd, user2);
+	//	if (bChangedCWD)
+//	{
+//		bChangedCWD = ::wxSetWorkingDirectory(saveCwd);
+//	}
+	delete pKbSvr;
+//*/
 
 }
 

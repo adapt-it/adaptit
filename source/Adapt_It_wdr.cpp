@@ -7737,19 +7737,19 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("ID     Users") );
+    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("              Users") );
     wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
 
     wxString *strs6 = (wxString*) NULL;
     wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(220,-1), 0, strs6, wxLB_SINGLE );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item4, 0, wxGROW|wxALL, 0 );
+    item3->Add( item4, 0, wxGROW|wxALL, 5 );
 
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("User Names and Password") );
+    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Change Permission, Password, or  Fullname") );
     wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Username (user's email address):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Username (should be unique):"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetToolTip( _("Each user name must be unique on this server") );
     item7->Add( item9, 0, wxALL, 5 );
 
@@ -7757,7 +7757,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     item10->SetToolTip( _("Type or edit the username here") );
     item7->Add( item10, 0, wxGROW|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Informal username (common name):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Informal username (Fullname):"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( _("The informal username can be a real or a false name") );
     item7->Add( item11, 0, wxALL, 5 );
 
@@ -7782,52 +7782,75 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     item3->Add( item7, 1, wxALL, 5 );
 
-    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("User Permissions") );
+    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("Change Permission or Fullname, or View Password") );
     wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
 
-    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
+
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxSize(140,-1), 0 );
     item19->SetToolTip( _("Tick this box to allow this user the permission to add, remove, or edit other users of this server") );
     item17->Add( item19, 0, wxALL, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("(can add, edit or remove other users)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("(can add users, or edit some user options)"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item20, 0, wxLEFT, 15 );
 
-    wxCheckBox *item21 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Shared database administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Tick this box to allow this user the permission to add, edit or remove shared databases stored in this server") );
-    item17->Add( item21, 0, wxALL, 5 );
+    item17->Add( 20, 4, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("(can add, edit or remove shared databases)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item22, 0, wxLEFT, 15 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_CHANGE_PERMISSION, _("Change Permission"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( 20, 3, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Selected User's Password") );
+    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
+
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SEL_USER_PWD, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    item25->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_CHANGE_PASSWORD, _("Change Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( item22, 0, wxALL, 5 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_CHANGE_FULLNAME, _("Change Fullname"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item27, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
     item3->Add( item17, 0, wxALL, 5 );
 
     item2->Add( item3, 1, wxGROW|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item30 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item26 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetToolTip( _("Change the selected user's details to be what the controls currently contain") );
-    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_SHOW_PASSWORD, _("Show Password"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("View the password for the selected user; it can be changed") );
+    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("Remove this user from the list, provided this is allowed") );
-    item23->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
 
-    item2->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Note: Removing a listed user is not permitted"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item28, 0, wxALL, 0 );
 
     item0->Add( item2, 1, wxGROW|wxLEFT|wxBOTTOM, 5 );
 
@@ -7845,12 +7868,14 @@ wxSizer *SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Use this dialog to create, modify or remove users or shared databases on the server which is currently connected."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item1, 0, wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Create extra users, or edit some settings for a selected user, on the connected server"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->SetFont( wxFont( 14, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
+    item0->Add( item1, 0, wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_CONNECTED_TO, _("You are currently connected to this server: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_CONNECTED_TO, _("You are connected to the KBserver at ipAddress: "), wxDefaultPosition, wxSize(-1,26), 0 );
+    item3->SetFont( wxFont( 14, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
     item2->Add( item3, 0, wxALIGN_CENTER|wxLEFT, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_SERVER_URL, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
@@ -7865,23 +7890,15 @@ wxWindow *item5 = item6;
     SharedKBManagerUsersPageFunc2( item7, FALSE );
     item6->AddPage( item7, _("Users of the shared databases") );
 
-    wxPanel *item8 = new wxPanel( item6, -1 );
-    SharedKBManager_CreateKbsPageFunc2( item8, FALSE );
-    item6->AddPage( item8, _("Create, modify or delete shared databases") );
-
-    wxPanel *item9 = new wxPanel( item6, -1 );
-    SharedKBManager_CreateCodesPageFunc( item9, FALSE );
-    item6->AddPage( item9, _("Create or delete custom language codes") );
-
     item0->Add( item5, 1, wxGROW|wxALL, 0 );
 
-    wxStdDialogButtonSizer *item10 = new wxStdDialogButtonSizer;
+    wxStdDialogButtonSizer *item8 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item10->AddButton( button ); }
-    item10->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item10->Realize();
-    item0->Add( item10, 0, wxGROW|wxALL, 5 );
+      item8->AddButton( button ); }
+    item8->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item8->Realize();
+    item0->Add( item8, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -7904,18 +7921,18 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Use the following two radio buttons to choose the type of shared knowledge base you wish to deal with."), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item2, 0, wxLEFT|wxRIGHT, 10 );
 
-    wxRadioButton *item3 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: Adaptations knowledge base - for storing shared associations between a source and a target language"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item3 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: Adaptations knowledge base - remotely stores associations between a source and a target language"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->SetValue( TRUE );
     item0->Add( item3, 0, wxLEFT, 10 );
 
-    wxRadioButton *item4 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: Glossing knowledge base - for storing shared associations between a source and a glossing language"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item4 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: Glossing knowledge base - remotely stores associations between a source and a glossing language"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item4, 0, wxLEFT, 10 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_EXISTING_KB_CODE_PAIRS, _("Existing shared databases (as   source,target   comma delimited code pairs):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_EXISTING_KB_CODE_PAIRS, _("Existing shared databases (as   source,target   language name pairs):"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxLEFT|wxRIGHT, 5 );
 
     wxString *strs8 = (wxString*) NULL;
@@ -7935,69 +7952,58 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     item11->SetToolTip( _("Display the username of who originally created this database") );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item12 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup Language Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetToolTip( _("Find the language codes for source and target, or for source and glossing. (Ethnologue codes; the ISO639-3 standard.)") );
+    wxButton *item12 = new wxButton( parent, ID_BUTTON_CLEAR_LIST_SELECTION, _("Clear List Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Clears the selection in the list. Do this before creating a new database.") );
     item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item13 = new wxButton( parent, ID_BUTTON_RFC5646, _("Help for Adding Dialect Subtags..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("View information explaining how to setup unique codes for dialects not in the Ethnologue. (Using the RFC5646 standard.)") );
-    item9->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item14 = new wxButton( parent, ID_BUTTON_CLEAR_LIST_SELECTION, _("Clear List Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Clears the selection in the list. Do this before creating a new database.") );
-    item9->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item5->Add( item9, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item5, 1, wxGROW|wxALL, 0 );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("  Using the text boxes below, create an empty shared database. If you need to create a custom language code, first click Help for Adding Dialect Subtags... "), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item15, 0, wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("  Using the text boxes below, create an empty shared database, after typing source and target language names."), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item13, 0, wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("  and follow the instructions there. Once a language code is created, it cannot be edited. But on the next page you can delete it and recreate it differently."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item16, 0, wxLEFT|wxRIGHT, 5 );
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+    item14->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item17->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Source:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(190,-1), 0 );
+    item16->SetToolTip( _("Type a language code for the new source language") );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(116,-1), 0 );
-    item19->SetToolTip( _("Type a language code for the new source language") );
-    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+    item14->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item17->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item17, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item20, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(190,-1), 0 );
+    item18->SetToolTip( _("Type a language code for the adaptations language") );
+    item14->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(116,-1), 0 );
-    item21->SetToolTip( _("Type a language code for the adaptations language") );
-    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    item14->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item17->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item19 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Create Database"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Create, on the server, a new shared database defined by the two language codes. (New shared databases start off empty).") );
+    item14->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item22 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Create Shared Database"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Create, on the server, a new shared database defined by the two language codes. (New shared databases start off empty).") );
-    item17->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item14, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
-    item0->Add( item17, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Source and Target Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Clear just the two text boxes, leave any list selection unchanged") );
+    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Clear just the two text boxes, leave any list selection unchanged") );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
+    item20->Add( 100, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item23->Add( 180, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Entire Selected Database And All Its Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Deletion is very slow, maybe many hours. Shut down anytime and repeat it later. The two language codes get removed after their database becomes empty.") );
+    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Entire Selected Database And All Its Entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Deletion is very slow, maybe many hours. Shut down anytime and repeat it later. The two language codes get removed after their database becomes empty.") );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -8013,17 +8019,19 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item1 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can type a different URL if necessary.  (Never change your username unnecessarily. You might prevent access to your KBserver.)"), wxDefaultPosition, wxSize(460,62), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item1 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("You can edit any field below, but be careful. Do not change the username if creating credentials for yourself. If an ipAddress is shown, it is what you selected when you did Discover KBservers. Use that, you can guess an ipAddress, but it is not likely to be correct.  Make sure you keep a written record of the credentials you set up."), wxDefaultPosition, wxSize(460,90), wxTE_MULTILINE|wxTE_READONLY );
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item2 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("This is your chosen  ipAddress for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item0->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
     item3->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
     item0->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("If the box is empty, type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item0->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("If the box below is empty, type the username you want:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item0->Add( item4, 0, wxALIGN_CENTER, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("This is your current unique username (copied from Edit menu > Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -8033,7 +8041,7 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
     item6->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
     item0->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("Type your password:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("Type the password you want:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item0->Add( item7, 0, wxALIGN_CENTER, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_KBSERVER_PWD, wxT(""), wxDefaultPosition, wxSize(360,-1), wxTE_PASSWORD );
@@ -9002,7 +9010,7 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("Universal Resource Locators (URLs) of the currently running KBservers"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("LAN or PAN addresses ( ipAdresses) of the currently running KBservers:  "), wxDefaultPosition, wxSize(460,68), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9012,8 +9020,8 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item0->Add( item1, 0, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(680,-1), wxTE_READONLY );
-    item4->SetFont( wxFont( 12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD ) );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the ipAddress (in first column) of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(780,68), wxTE_MULTILINE|wxTE_READONLY );
+    item4->SetFont( wxFont( 12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL ) );
     item0->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxListCtrl *item5 = new wxListCtrl( parent, ID_LISTCTRL_URLS, wxDefaultPosition, wxSize(720,132), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
@@ -9059,18 +9067,18 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT_1, _("Discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT_1, _("Discovery of the ipAddress for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item1, 0, wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_2, _("To connect to a KBserver running on the web, or having a known URL, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_2, _("To connect to an unlisted but running KBserver having a known ipAddress, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item2, 0, wxLEFT|wxTOP|wxBOTTOM, 5 );
 
     wxString strs3[] = 
     {
         _("Select a KBserver from discovery results"), 
-        _("I know the URL and I will type it")
+        _("I know the ipAddress and I will type it")
     };
-    wxRadioBox *item3 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs3, 2, wxRA_SPECIFY_ROWS );
+    wxRadioBox *item3 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the ipAddress?"), wxDefaultPosition, wxDefaultSize, 2, strs3, 2, wxRA_SPECIFY_ROWS );
     item0->Add( item3, 0, wxGROW|wxLEFT, 30 );
 
     wxStdDialogButtonSizer *item4 = new wxStdDialogButtonSizer;
@@ -9104,8 +9112,10 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Without the correct password, sharing your knowledge base data"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item3, 1, wxGROW|wxLEFT, 5 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("with others cannot happen, nor can they share theirs with you."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("with others cannot happen, nor can they share theirs with you."), wxDefaultPosition, wxSize(-1,20), 0 );
     item0->Add( item4, 0, wxGROW|wxLEFT, 5 );
+
+    item0->Add( 20, 6, 0, wxALIGN_CENTER, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_PASSWORD );
     item0->Add( item5, 0, wxGROW|wxLEFT|wxTOP|wxBOTTOM, 5 );
@@ -9114,8 +9124,6 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_URL_CHOSEN, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_READONLY );
     item6->Add( item7, 1, wxALIGN_CENTER|wxALL, 5 );
-
-    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_HOSTNAME_CHOSEN, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_READONLY );
     item6->Add( item8, 1, wxALIGN_CENTER|wxALL, 5 );
@@ -9752,6 +9760,67 @@ wxSizer *PlaceholderInsertDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     return item0;
 }
 
+wxSizer *user1_user2_lookup_func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("LookupUser and ListUsers use this dialog. It has text boxes for two usernames. The higher username box is for authenticating. The lower one, is for the username to be looked up. Those two usernames can be the same, or different. If you enter the same username in each, then LookupUser is intended, for doing normal adapting or glossing work in your project.  If the usernames are different, you are wanting access to the Knowledge Base Manager, and you are asking if the username in the lower box has permission to see the list of all known users.  Make sure you keep a written record of the first username, and its password."), wxDefaultPosition, wxSize(560,120), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("This is your chosen  ipAddress for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item4->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
+    item1->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("If the Authentication username box below is empty, type the username you want:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item1->Add( item5, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("This is your current unique username (copied from Edit menu > Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item6, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item7->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
+    item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("Type the password you want:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item1->Add( item8, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_KBSERVER_PWD, wxT(""), wxDefaultPosition, wxSize(360,-1), wxTE_PASSWORD );
+    item1->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Type the second username, the one you want looked up:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_USER2, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item11->SetToolTip( _("Type the username you want to be looked up") );
+    item1->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStdDialogButtonSizer *item12 = new wxStdDialogButtonSizer;
+    { wxButton *button = new wxButton( parent, wxID_OK );
+      button->SetDefault();
+      item12->AddButton( button ); }
+    item12->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item12->Realize();
+    item1->Add( item12, 0, wxGROW|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -9935,6 +10004,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->AppendSeparator();
     item9->Append( ID_DVCS_VERSION, _("Show DVCS version..."), wxT("") );
     item9->AppendSeparator();
+    item9->Append( ID_MENU_ADMIN_ADD_USERS, _("Add Users to KBserver"), _("KBserver needs a user to be setup before work can start") );
     item9->Append( ID_MENU_KBSHARINGMGR, _("&Knowledge Base Server Manager..."), _("Open the Manager for configuration of KBserver users, databases, custom language codes") );
     item0->Append( item9, _("Ad&ministrator") );
     

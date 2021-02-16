@@ -79,6 +79,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 //#include "csmatch.h" // " "
 
 // Other includes uncomment as implemented
+
 #include "Adapt_It.h"
 #include "OutputFilenameDlg.h"
 #include "helpers.h"
@@ -1816,7 +1817,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
     gpApp->LogUserAction (_T("OnTakeOwnership() called - m_owner = ") + gpApp->m_owner + _T(" m_strUserID = ") + gpApp->m_strUserID );
 
-    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strUsername.IsEmpty() )   // this can happen if AI is launched with shift down
+    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strFullname.IsEmpty() )   // this can happen if AI is launched with shift down
     {
         wxCommandEvent	dummy;
 
@@ -2196,8 +2197,8 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
         if (!bRemovedSuccessfully)
         {
             // tell developer or user, if the removal failed.  This isn't critical - just a warning.
-            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
-            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
+            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of wxRemoveFile() failed, at line 1709."));
+            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of wxRemoveFile() failed, at line 1709."));
         }
 
     }
@@ -2786,12 +2787,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		if (bOutputFileExists && bCopiedSuccessfully)
 		{
 			// remove the temporary backup, the original was saved successfully
-			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			bRemovedSuccessfully = wxRemoveFile(newFileAbsPath);
 			if (!bRemovedSuccessfully)
 			{
 				// tell developer or user, if the removal failed
-				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
-				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
@@ -2824,14 +2825,14 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 					if (thatSomethingsSize == originalSize)
 					{
 						// we are in luck, the original is still good, so remove the backup
-						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						bRemovedSuccessfully = wxRemoveFile(newFileAbsPath);
 						wxASSERT(bRemovedSuccessfully);
 					}
 					else
 					{
 						// the size is different, therefore the original was truncated, so
 						// restore the document file using the backup renamed
-						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 						wxASSERT(bRemovedSuccessfully);
 						bool bRenamedSuccessfully;
 						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
@@ -2866,11 +2867,11 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 					{
 						// we are out of luck, the original is truncated
 						bOutOfLuck = TRUE;
-						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 						if (!bRemovedSuccessfully)
 						{
 							// tell developer or user, if the removal failed
-							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
 							return TRUE;
 						}
 					}
@@ -2894,7 +2895,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
 			if (bTruncatedFragmentExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				bRemovedSuccessfully = wxRemoveFile(gpApp->m_curOutputPath);
 				wxASSERT(bRemovedSuccessfully);
 				// warn user to do a file save now while the doc is still in memory
 				wxString msg;
@@ -4083,7 +4084,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 				}
 				return;
@@ -4108,7 +4109,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(newAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 					bRemovedSuccessfully = bRemovedSuccessfully;  // prevent compiler warning, one of these is enough
 				}
@@ -4116,7 +4117,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 				if (bSomethingOfThatNameExists)
 				{
-					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 					wxASSERT(bRemovedSuccessfully);
 				}
 				return;
@@ -4129,7 +4130,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 				wxString msg = _("Warning: a SaveAs... file with the same name is illegal, so nothing was done.");
 				wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
@@ -4146,7 +4147,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			return;
@@ -4171,14 +4172,14 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(newAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			// and also the temp copy
 			bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
 			if (bSomethingOfThatNameExists)
 			{
-				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				bRemovedSuccessfully = wxRemoveFile(tempFileAbsPath);
 				wxASSERT(bRemovedSuccessfully);
 			}
 			return;
@@ -4816,7 +4817,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	{
 		// this backed up document file is on the disk, so delete it
 		//bOldBackupExists = TRUE;
-		if (!::wxRemoveFile(aFilename))
+		if (!wxRemoveFile(aFilename))
 		{
 			wxString s;
 			s = s.Format(_(
@@ -5993,7 +5994,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 //
 // Here below is the contents of the MFC base class CDocument::OnOpenDocument()
 // method (minus _DEBUG statements):
-//BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
+//bool CDocument::OnOpenDocument(LPCTSTR lpszPathName)
 //{
 //	CFileException fe;
 //	CFile* pFile = GetFile(lpszPathName,
@@ -6769,13 +6770,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// BEW 28Apr16 cause OnIdle() to get authentication done, after wizard completes
 		pApp->m_bEnteringKBserverProject = TRUE;
 	}
-#endif
+//#endif
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
@@ -14540,6 +14541,243 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 	return FALSE;
 }
 
+// BEW 5Nov20 added for ParseWord(): ptr-> points at ).<space>(<space>nxtwrd, 
+// after parsing in TokeniseText() before dealing with following punctuations
+// Without a block dedicated to identifying the first space as the word separator,
+// the punctuation ").<space>(" wrongly ends up as following punctuation
+bool CAdapt_ItDoc::IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar; // initialise
+	wxChar closeParen = _T(')');
+	wxChar openParen = _T('(');
+	wxChar space = _T(' ');
+	// If ptr is not pointing at ) then return FALSE
+	if (*ptr != closeParen)
+	{
+		return FALSE;
+	}
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++; // point past the ) character
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// We allow for a ( character to be as far as 3 characters further; if
+	// it isn't found by then, return FALSE; if it is found then return TRUE,
+	// but only provided intervening characters are each either a punctuation
+	// character or a space.
+	int offset = wxNOT_FOUND;
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		if (*ptr != space)
+		{
+			// ptr is not pointing at a punctuation character, nor space
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Found a punctuation character, is it an open parenthesis?
+		if (*ptr == openParen)
+		{
+			// Yes, there is one ahead of the passed in location
+			return TRUE;
+		}
+	}
+	
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say, ). (two characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say,<space> ). (three characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// One last shot... What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation [and ( is a punct char]
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space, nor (
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+	// look no further - we assume there's no point in having a 
+	// parse of )....( in a block, because we can't be sure that
+	// there is an opening parenthesis ahead which makes certain
+	// that the parser must call a halt to parsing between the
+	// ) and following ( somewhere.
+	// This function will be in the caller's test, and if it fails
+	// then the block is skipped and legacy code will operate to
+	// determine what's punctuation and where the word break will be	
+	return FALSE;
+}
+
+// BEW 5Nov20 added for ParseWord(): ptr-> points at ).<space>(<space>nxtwrd, 
+// after parsing in TokeniseText() before dealing with following punctuations
+// Without a block dedicated to identifying the first space as the word separator,
+// the punctuation ").<space>(" wrongly ends up as following punctuation
+bool CAdapt_ItDoc::IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar; // initialise
+	//wxChar closeParen = _T(')');
+	wxChar openParen = _T('(');
+	wxChar space = _T(' ');
+	// If ptr is not pointing at ) then return FALSE
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++; // point past the ) character
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// We allow for a ( character to be as far as 3 characters further; if
+	// it isn't found by then, return FALSE; if it is found then return TRUE,
+	// but only provided intervening characters are each either a punctuation
+	// character or a space.
+	int offset = wxNOT_FOUND;
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		if (*ptr != space)
+		{
+			// ptr is not pointing at a punctuation character, nor space
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Found a punctuation character, is it an open parenthesis?
+		if (*ptr == openParen)
+		{
+			// Yes, there is one ahead of the passed in location
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say, ). (two characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+
+	// No success yet, so keep looking...
+	if ((ptr + 1) < pEnd) // ensure there's room to find a ( ahead
+	{
+		ptr++;// ptr is now past, say,<space> ). (three characters)
+	}
+	else
+	{
+		// No room
+		return FALSE;
+	}
+	// One last shot... What is at ptr location?
+	offset = m_spacelessPuncts.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		// ptr is not pointing at punctuation [and ( is a punct char]
+		if (*ptr != space)
+		{
+			// ptr is not pointing at punctuation, nor a space, nor (
+			return FALSE;
+		}
+	}
+	else // ptr is pointing at a punctuation character. 
+	{
+		// Is it a ( character ?
+		if (*ptr == openParen)
+		{
+			// Yep, there is a ( character ahead
+			return TRUE;
+		}
+	}
+	// look no further - we assume there's no point in having a 
+	// parse of )....( in a block, because we can't be sure that
+	// there is an opening parenthesis ahead which makes certain
+	// that the parser must call a halt to parsing between the
+	// ) and following ( somewhere.
+	// This function will be in the caller's test, and if it fails
+	// then the block is skipped and legacy code will operate to
+	// determine what's punctuation and where the word break will be	
+	return FALSE;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
 /// \param		pChar		-> a pointer to a character in a buffer
@@ -16922,13 +17160,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 3Sep19 added next line, for support of USFM3
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
-#if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 2)
-		{
-			int halt_here = 1;
-			wxUnusedVar(halt_here);
-        }
-#endif
 #if defined (_DEBUG) && defined (LOGMKRS)
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd)
 		{
@@ -18237,7 +18468,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 						} // end of TRUE block for test: if (nFound != -1)
 
-						// BEW added 05Oct05; CSourcePhrase class has new BOOL attributes in
+						// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
 						// support of notes, backtranslations and free translations, so we have
 						// to set these at appropriate places in the parse.
 						if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
@@ -18718,6 +18949,12 @@ parsing:
 			wxLogDebug(_T("TokenizeText: line %d  ,   itemLen = %d  %s  sn=%d  Entering ParseWord()"),
 				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
+//#if defined (_DEBUG)
+//			if (pSrcPhrase->m_nSequNumber == 224)
+//			{
+//				int halt_here = 1;
+//			}
+//#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
@@ -20248,7 +20485,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
                                 // put an entry into m_FilterStatusMap to that effect, and
                                 // the caller will later use the fact that that map is not
                                 // empty to call RetokenizeText() with the option for
-                                // filter changes turned on (ie. BOOL parameter 2 in the
+                                // filter changes turned on (ie. bool parameter 2 in the
                                 // call is TRUE), and that will accomplish the required
                                 // filtering.
 								wxString mkr(ptr,itemLen); // construct the wholeMarker
@@ -20902,7 +21139,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 // len is its length in characters (not bytes), determined by ParseMarker() in the caller
 // pUsfmAnalysis is the struct on the heap that a prior call to LookupSFM(ptr) returned,
 // and could be NULL for an unknown marker.
-// The returned BOOL is the value of the m_bSpecialText member of pSrcPhrase.
+// The returned bool is the value of the m_bSpecialText member of pSrcPhrase.
 {
 	CSourcePhrase* pThis = pSrcPhrase;
 	CSourcePhrase* pLast = pLastSrcPhrase;
@@ -21338,9 +21575,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // This note describes the flow of control when the MFC app (CFrameWnd) does OnClose()
 // and the WX app (wxDocParentFrame) does OnCloseWindow():
 // IN MFC:	CFrameWnd::OnClose()
-// - ->		pApp::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
-// - ->		CDocMagager::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
-// - ->		CDocTemplate::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
+// - ->		pApp::CloseAllDocuments(FALSE) // parameter bool bEndSession
+// - ->		CDocMagager::CloseAllDocuments(FALSE) // parameter bool bEndSession
+// - ->		CDocTemplate::CloseAllDocuments(FALSE) // parameter bool bEndSession
 // - ->		CAdapt_ItDoc::OnCloseDocument() [see note following:]
 // - ->		CDocument::OnCloseDocument() // MFC app overrides this and calls it at end of override
 // The MFC AI override calls EraseKB on the adapting and glossing KBs, updates
@@ -21389,7 +21626,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 				//{
 				//	// destroy all frames viewing this document
 				//	// the last destroy may destroy us
-				//	BOOL bAutoDelete = m_bAutoDelete;
+				//	bool bAutoDelete = m_bAutoDelete;
 				//	m_bAutoDelete = FALSE;  // don't destroy document while closing views
 				//	while (!m_viewList.IsEmpty())
 				//	{
@@ -21515,7 +21752,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	if (!m_bReopeningAfterClosing)
 	{
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
 			pApp->ReleaseKBServer(1); // the adaptations one
@@ -21526,7 +21763,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			pApp->ReleaseKBServer(2); // the glossings one
 			pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
 		}
-#endif
+//#endif
 
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
@@ -24570,7 +24807,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 
 	// lastly remove the .aiz temporary file that was used to unpack from
 	// leaving the compressed .aip in the work folder
-	if (!::wxRemoveFile(packedDocPath))
+	if (!wxRemoveFile(packedDocPath))
 	{
 		// if there was an error, we just get no unpack done, but app can continue; and
 		// since we expect no error here, we will use an English message
@@ -24912,7 +25149,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
             // machine might be binary (ie. have .adt extension)
 			if (bItsXML)
 			{
-				if (!::wxRemoveFile(gpApp->m_curOutputPath))
+				if (!wxRemoveFile(gpApp->m_curOutputPath))
 				{
 					wxString thismsg;
 					thismsg = thismsg.Format(_(
@@ -25069,7 +25306,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // it
 	if (bRenamedConfigFile)
 	{
-		if (!::wxRemoveFile(renamedPath))
+		if (!wxRemoveFile(renamedPath))
 		{
 			wxString thismsg;
 			thismsg = _(
@@ -25148,7 +25385,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		gpApp->LogUserAction(thismsg);
 	}
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
 	// that the one who receives and unpacks the document will also want to share. He may
 	// only want to inspect what was sent. So check if the sender had sharing on, and
@@ -25171,24 +25408,24 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		if (bForeignAdaptingSharing && !bForeignGlossingSharing)
 		{
 			msg = _("The person who packed the document was sharing the adaptations knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else if (!bForeignAdaptingSharing && bForeignGlossingSharing)
 		{
 			msg = _("The person who packed the document was sharing the glossing knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else
 		{
 			// must have been sharing both kb types
 			msg = _("The person who packed the document was sharing both the adapting and the glossing knowledge bases to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
-			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			msg = msg.Format(msg, gpApp->m_strKbServerIpAddr.c_str());
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 	}
-#endif
+//#endif
 
 	return TRUE;
 }
@@ -30935,6 +31172,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 //		wxString inlineBindingEndMkrBeforeFixedSpace;  // moved to be earlier
 //		wxString inlineBindingMkrAfterFixedSpace;      // moved to be earlier
 		wxChar* savePtr = ptr;
+
 		// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
 		// if ~ is not found, then ptr returns pointing at whatever pEndWordProper points at
 		// (which is usually space, or endmarker, or punctuation)
@@ -31089,11 +31327,167 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 				}
 #endif
-
 				return len;
-
 			}
+/*			#if defined (_DEBUG)
+						if (pSrcPhrase->m_nSequNumber == 307)
+						{
+							int halt_here = 1;
+						}
+			#endif
+*/
+			// set pEndWordProper to where ptr currently is
 			pEndWordProper = ptr;
+
+			// BEW 4Nov20 the word proper has been parsed over, and the above tests done,
+			// but there are other tests we should make here, to smarten our parser.
+			// There could be, at ptr, a sequence like "). (" before the next word, and
+			// our parser currently parses that whole sequence as following punctuation -
+			// which is clearly wrong as between ) and ( there is an obvious place there
+			// somewhere where we should end of the parse by and return - the ( would
+			// then belong to the next pSrcPhrase. So a number of tests can be made here to
+			// give extra smarts. Another glitch from Scorza's data, is  word1.(<space>word2
+			// which we need to divide before the ( rather than after it. User may edit it
+			// in source text to be word1.<sp>(word2, so handle that too
+			// a testing block for it.
+			wxChar closeParen = _T(')');
+			wxChar openParen = _T('(');
+			wxString someFinalPuncts = _T("");
+			int offset3 = wxNOT_FOUND;
+			offset3 = spacelessPuncts.Find(*ptr);
+			int nCountFinals = 0;
+			bool bDivideAtParen = FALSE;
+			bool bDivideAtParen2 = FALSE;
+			if ((offset3 >= 0) && (*ptr != closeParen) && IsOpenParenthesisAhead2(ptr, pEnd))
+			{
+				// Punctuation character, but that one is not (, is followed by <space>, 
+				// or by a ( character. Handle these options
+				someFinalPuncts += *ptr; // store whatever the non-( punct is
+				ptr++; // for example, now ptr -> "("  of ".(" OR "<sp>(" 
+				nCountFinals++;
+				// That stores the punctuation character. If <space> comes next, then
+				// we want to divide off at the space. 
+				if (*ptr == _T(' '))
+				{
+					// at space, so check for ( after it
+					if (*(ptr + 1) == openParen)
+					{
+						// Where ptr is, at space, is what we want
+						bDivideAtParen2 = TRUE;
+					}
+				} // end of TRUE block for test: if (*ptr == _T(' '))
+				else
+				{
+					// ptr is not at space, check it's pointing at (
+					if (*ptr == openParen)
+					{
+						bDivideAtParen2 = TRUE; // we'll divide the words at (
+					}
+				} // end of else block for test: if (*ptr == _T(' '))
+
+				if (bDivideAtParen2)
+				{
+					len += nCountFinals;
+					if (nCountFinals > 0)
+					{
+						pSrcPhrase->m_follPunct += someFinalPuncts;
+					}
+					wxString theWord(pWordProper, pEndWordProper);
+					pSrcPhrase->m_key = theWord;
+					if (!pSrcPhrase->m_precPunct.IsEmpty())
+					{
+						pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+					}
+					pSrcPhrase->m_srcPhrase += theWord;
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+
+					return len;
+				} // end of TRUE block for test: if (bDivideAtParen2)
+			} // end of TRUE block for test: if ((offset3 == 0) && (*(ptr + 1) == openParen))
+			else
+			{
+				if (*ptr == closeParen && IsOpenParenthesisAhead(ptr, pEnd))
+				{
+					bDivideAtParen = TRUE;  // it's determined that this block 
+											// will complete this word's parse
+					// There is a closing parenthesis, it belongs in following
+					// punct if it is in the spaceless puncts string
+					int offset = wxNOT_FOUND;
+					offset = spacelessPuncts.Find(closeParen);
+					if (offset != wxNOT_FOUND)
+					{
+						// ) character is indeed a punctuation character, so put
+						// it in someFinalPuncts, and then go hunting for the (
+						someFinalPuncts += closeParen;
+						ptr++; // for example, now ptr -> ".<sp>("  of ")<sp>("
+						nCountFinals++;
+
+						// Now we'll use ptr to make a series of tests
+						// so as to divide the words of the parse preceding a
+						// space or before a '(' if there is no intervening space
+						int offset2 = wxNOT_FOUND;
+						offset2 = spacelessPuncts.Find(*ptr); // whatever ptr now points at, eg. a period
+						if ((offset2 >= 0) //  ptr is pointing at a non-space punctuation char
+							&& (*(ptr + 1) == _T(' ')) // tests that next char is a space
+							&& (*(ptr + 2) == openParen) // tests that following the space is (
+							)
+						{
+							// ptr is pointing a punctuation char, followed by space and an
+							// opening parenthesis - we'll assume it's a legit final punct
+							// and accept it, then return at the space which follows
+							someFinalPuncts += *ptr; // the period, or whatever punct it was
+							ptr++; // now pointing at the space -- and we know where ( is,
+								   // so before it is the word division location of the parse
+							nCountFinals++;
+						}
+						// Now, if the above did not succeed, try these shorter tests
+						// - for space followed by opening parenthesis; or a )( combination
+						// where the word dividing location falls between the ) and (
+						else
+                            // whm 12Feb2021 Note: GCC issues "warning: suggest parenthese around '&&' within '||'".
+                            // According to C++ operator precedence rules && has higher precedence than || so the 
+                            // compiler will test for the && part of the condition before the || part, but the 
+                            // parentheses structure below is ambiguous. I assume the whole condition before the
+                            // || operator should be taken as a unit, so I'm placing another set of parentheses around
+                            // that whole set of tests.
+                            if (((*ptr == _T(' ')) && (*(ptr + 1) == openParen))
+								||
+								(*ptr == openParen)
+								)
+							{
+								// End the parse 
+								bDivideAtParen = TRUE; // need something here, even if already TRUE
+							}
+					} // end of TRUE block for test: if (offset != wxNOT_FOUND)
+
+					// Okay, the divide location is determinate, so we have to build
+					// the contents of pSrcPhrase's fields here, otherwise it will be
+					// invalid in the layout (and empty). So pull up code from below
+					// do this, and return with len appropriately augmented
+					if (bDivideAtParen)
+					{
+						len += nCountFinals;
+						if (nCountFinals > 0)
+						{
+							pSrcPhrase->m_follPunct += someFinalPuncts;
+						}
+						wxString theWord(pWordProper, pEndWordProper);
+						pSrcPhrase->m_key = theWord;
+						if (!pSrcPhrase->m_precPunct.IsEmpty())
+						{
+							pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+						}
+						pSrcPhrase->m_srcPhrase += theWord;
+						pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+
+						return len;
+					} // end of TRUE block for test: if (bDivideAtParen)
+
+				} // end of TRUE block for test: if (*ptr == closeParen && IsOpenParenthesisAhead(ptr, pEnd))
+
+			} // end of else block for test: if ((offset3 == 0) && (*(ptr + 1) == openParen))
+			// If the above blocks were not entered, then continue with legacy parsing code
+
 			// Note, we may still have exited IsFixedSpaceAhead() because we came to a ]
 			// bracket, but having parsed one or more following punctuation characters first.
 			// In this case we returned with ptr pointing at word end (i.e. the start of the
@@ -37174,6 +37568,8 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 	bool bGotBeginMkr = FALSE;
 	bool bFoundSpanStart = FALSE;
 
+	//calls many many times, do a caching algorith above, which only re-calls if
+	// the active pile ptr changes in value
 	bGotBeginMkr = FindProhibitiveBeginMarker(pSP->m_markers, m_markersBeginMkr);
 	if (bGotBeginMkr)
 	{
@@ -37185,7 +37581,7 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 #endif
 		return TRUE;
 	}
-	// Else, if the passed in pSrcPhrase does not start such a span, loop
+	// else, if the passed in pSrcPhrase does not start such a span, loop
 	// back to find the first pSP of a candidate prohibited span
 	else
 	{

@@ -268,7 +268,7 @@ int CTargetUnit::FindDeletedRefString(wxString& translationStr)
 	return (int)wxNOT_FOUND;
 }
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 // A variant of the above FindDeletedRefString() function. Returns the matched
 // (pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
 CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationStr)
@@ -296,7 +296,7 @@ CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationS
 	// if control gets to here, we have no match and pRefString is still NULL
 	return pRefString;
 }
-#endif
+//#endif
 
 
 // Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it
@@ -605,6 +605,28 @@ int CTargetUnit::CountNonDeletedRefStringInstances()
 	}
 	return counter;
 }
+
+// BEW 26Oct20 counts the number of CRefString instances stored in 
+// this CTargetUnit instance, the count includes deleted == TRUE ones
+int CTargetUnit::CountAllRefStringInstances()
+{
+	if (m_pTranslations->IsEmpty())
+	{
+		return 0;
+	}
+	int counter = 0;
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		counter++;
+	}
+	return counter;
+}
+
 
 // BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it
 // didn't work for the xml LIFT parser for example)

@@ -584,7 +584,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		wxLogNull logNo; // eliminates any spurious messages from the system if wxRemoveFile()
 						// below fails - which it should in normal cases during the opening
 						// of an AI document
-		bool bRemoved = ::wxRemoveFile(pathToFile);
+		bool bRemoved = wxRemoveFile(pathToFile);
 		if (bRemoved)
 		{
 			// we were able to remove it, so it's a zombie
@@ -685,7 +685,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		// If we get here the lock file is either not owned by anybody we care about, or else
 		// the user wants immediate write access, so we consider it to be equivalent to a zombie 
 		// file, we remove it and return TRUE
-		bool bRemoved = ::wxRemoveFile(pathToFile);
+		bool bRemoved = wxRemoveFile(pathToFile);
 		if (bRemoved)
 		{
 	#ifdef _DEBUG_ROP
@@ -747,7 +747,7 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ro
 		// first run the user Cancels wizard and immediately closes app and
 		// there won't be any project folder created (observed error in Balsa).
 		wxLogNull logNo;
-		bRemoved = ::wxRemoveFile(pathToFile); // may fail
+		bRemoved = wxRemoveFile(pathToFile); // may fail
 	}
 	else
 	{

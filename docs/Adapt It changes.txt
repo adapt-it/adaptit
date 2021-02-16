@@ -1,4 +1,19 @@
 ﻿----------------------------------------------
+Version 7.0.0  ?? day month year
+----------------------------------------------
+Feature changes and new features in 7.0.0
+--------------------------------------------------------------------------------------------
+* 
+
+
+---------------------------------------------
+Bug fixes in 7.0.0 update
+---------------------------------------------
+* The update handler for the two placeholder insertion buttons had coding errors
+which made it disable the buttons at times when they should have been enabled.
+This is now fixed.
+
+----------------------------------------------
 Version 6.10.1 update 22 May 2020
 ----------------------------------------------
 Feature changes and new features in 6.10.1

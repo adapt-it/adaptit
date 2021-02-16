@@ -86,18 +86,19 @@ public:
 	int			FindRefString(wxString& translationStr);
 	int			FindDeletedRefString(wxString& translationStr); // only tests deleted ones for a match
 	int			CountNonDeletedRefStringInstances();
+	int			CountAllRefStringInstances(); // BEW 26Oct20 the count includes deleted == TRUE ones
 	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str); // str is either gloss or adaption
 	bool		IsItNotInKB();
 	bool		IsDeletedNotInKB();
 	void		DeleteOnlyNotInKB();
 	void		ValidateNotInKB(); // ensures every CRefString except the one which is <Not In KB>
 								   // has 'deleted' status
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	// A variant of the above FindDeletedRefString() function. Returns the matched
 	// (pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
 	CRefString*	FindDeletedRefStringForKbSharing(wxString& translationStr);
 
-#endif
+//#endif
 
 	// A variant of the above FindRefString() function. Returns the matched (not
 	// pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made

@@ -79,14 +79,14 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
-DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1) BEW25Sep20 deprecated, no longer needed
 DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 DECLARE_EVENT_TYPE(wxEVT_HowGetURL, -1)
 
-#endif
+//#endif
 
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -201,7 +201,7 @@ public:
     int lastCount;
 	bool m_bShowScrollData;
 
-	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns BOOL
+	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns bool
 
 	CAdapt_ItCanvas *canvas;	// The MainFrame holds the main pointer to our canvas
 								// Note: The View also holds its own pointer to this canvas
@@ -238,16 +238,16 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 
-#if !defined(_KBSERVER)
+//#if !defined(_KBSERVER)
 
 	// When not a KBserver build, 5 menu commands pertain to KB sharing, and 4
 	// of these are not disabled (but do nothing), so better if I disable them
-	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
-	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
-	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
-#endif
+//	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+//	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
+//	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
+//#endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
@@ -255,8 +255,8 @@ public:
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 	void OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
-	int  GetUrlAndHostnameInventory(wxArrayString& compositesArray, 
-			wxArrayString& urlsArray, wxArrayString& namesArray);
+	int  GetIpAddrAndHostnameInventory(wxArrayString& compositesArray, 
+			wxArrayString& ipAddrsArray, wxArrayString& namesArray);
 
 private:
 	wxString m_kbserverPassword;
@@ -266,7 +266,7 @@ public:
 	void	 SetKBSvrPassword(wxString pwd);
 	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
-	wxString GetKBSvrPasswordFromUser(wxString& url, wxString& hostname);
+	wxString GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostname);
 	// BEW 24May16 The next two booleans are for getting the KbSvrHowGetUrl dialog open
 	// from the OnIdle() handler. Formerly it was opened from within the OnOK() handler
 	// of the KBSharingSetup handler class - which worked fine on Windows and Linux,
@@ -276,7 +276,7 @@ public:
 	bool m_bKbSvrAdaptationsTicked;
 	bool m_bKbSvrGlossesTicked;
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 	// bool DoPhraseBoxWidthUpdate(); BEW 14Aug18 - might not need this
 
 	void OnClose(wxCloseEvent& event);
@@ -302,11 +302,11 @@ public:
 	void OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event));
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
+	//void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event)); BEW 25Sep20 removed
 	void OnCustomEventEndServiceDiscovery(wxCommandEvent& event);
-#endif
+//#endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
 

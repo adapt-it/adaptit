@@ -376,10 +376,10 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 // for doing so, we'll also make it possible to do this from the view menu
 bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
 					  // Cancel button in the internal dialog
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 void ShortWait();           // set the wait delay in AdaptitConstants.h MSG_SECONDS and MSG_MILLISECONDS
 void ShortWaitSharingOff(); // ditto
-#endif
+//#endif
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
@@ -530,23 +530,14 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase); // get it from m_srcWor
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 
-bool IsURLStoreable(wxArrayString* pArr, wxString& url);
+bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr);
 
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
+//bool CheckForValidUsernameForKbServer(wxString ipAddr, wxString username, wxString password); // BEW 6Jun13
 
-bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType);
+
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
-
-void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag, 
-		bool& saveSharingGlossesFlag, bool bJustRestore = FALSE);
-
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
-		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
-		bool& saveSharingGlossesFlag);
 
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,
@@ -560,7 +551,20 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // class
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted);
 bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
-#endif // _KBSERVER
+
+bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr, wxString* pUsername, 
+							wxString* pPassword, wxString datFilename);
+bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
+		wxString* pPassword, bool bCanAddUsers, wxString datFilename); // BEW 23Nov20 call from Manager
+
+void DoMessageDelay(int hundredths); // to enable waitDlg to persist long enough for user to read
+
+wxString DoEscapeSingleQuote(wxString& str);
+wxString DoUnescapeSingleQuote(wxString& str);
+void DoEscapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
+void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
+
+//#endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)
 void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);
@@ -614,5 +618,9 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_bFwdSlashDelimiter
 		// is TRUE, and CSourcePhrase's  m_srcWordBreak contains a / (solidus, or forward slash)
 //#endif
+
+// BEW 21Jan21 keep this, but commented out. The 3 places where it was used, are commented out
+//wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
+
 
 #endif	// helpers_h

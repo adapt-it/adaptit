@@ -25,7 +25,7 @@
 #endif
 
 // defines for debugging purposes
-#define _FIND_DELAY
+//#define _FIND_DELAY
 //#define _AUTO_INS_BUG
 //#define LOOKUP_FEEDBACK
 //#define DROPDOWN
@@ -2254,7 +2254,7 @@ b:	pApp->m_bSaveToKB = TRUE;
                     // m_bSuppressStoreForAltBackspaceKeypress flag was TRUE? Then we have
                     // to turn the flag off for a while, but turn it on programmatically
                     // later if we are still in Automatic mode and we come to another <Not
-                    // In KB> entry. We can do this with another BOOL defined for this
+                    // In KB> entry. We can do this with another bool defined for this
                     // purpose
 					m_bTemporarilySuspendAltBKSP = TRUE;
 					m_bSuppressStoreForAltBackspaceKeypress = FALSE;
@@ -3567,7 +3567,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// gets the contents of the phrasebox including the just typed character.
 		thePhrase = this->GetTextCtrl()->GetValue(); // current box text (including the character just typed)
 
-        wxLogDebug(_T("     ***%s() called - thePhrase is now:[%s]"),__FUNCTION__, thePhrase.c_str());
+//        wxLogDebug(_T("  ***%s(), line %d, called - thePhrase is now:[%s]"),__FUNCTION__, 
+//					__LINE__, thePhrase.c_str());
 
 		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
 		if (gbAutoCaps && pApp->m_pActivePile != NULL)
@@ -4141,7 +4142,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
-    wxLogDebug(_T("In CPhraseBox::OnChar() key code: %d"),event.GetKeyCode());
+//    wxLogDebug(_T("In CPhraseBox::OnChar() key code: %d"),event.GetKeyCode());
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -4317,7 +4318,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				}
 				else
 				{
-                    pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN used for temporary
+                    pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
 													   // suppression only
 				}
 			}
@@ -5424,7 +5425,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 {
-    wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
+    //wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
 
     // wx Note: This routine handles Adapt It's AltDown key events
 	// and CmdDown events (= ControlDown on PCs; Apple Command key events on Macs).
@@ -6884,7 +6885,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         || keycode == WXK_NUMPAD_ENTER // NUMPAD_ENTER
         || keycode == WXK_NUMPAD_TAB)  // NUMPAD_TAB  //whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
-        // whm 16May2020 moved the code for handling bogus Enter key presses causeing
+        // whm 16May2020 moved the code for handling bogus Enter key presses causing
         // phrasebox run-on situation, from where BEW placed it below, up here to the beginning 
         // of the block detecting ENTER and TAB key presses. The Reason: To avoid executing the
         // auto-merging code below and the pView->RemoveSelection() call below that can cause
@@ -6903,7 +6904,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         }
         if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
         {
-            // set both global flags badk to FALSE so next legit ENTER will get processed.
+            // set both global flags back to FALSE so next legit ENTER will get processed.
             pApp->m_bUserDlgOrMessageRequested = FALSE; 
             pApp->m_bUserHitEnterOrTab = FALSE;
         	// Just return from OnKeyUp(), because it is likely this is a bogus box run-on situation
@@ -7021,7 +7022,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
                     }
                     else
                     {
-                        pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN used for temporary
+                        pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
                                                                    // suppression only
                     }
                 }
@@ -7261,7 +7262,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
-    wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
+    //wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
 
     // refactored 2Apr09
 	//wxLogDebug(_T("OnKeyDown() %d called from PhraseBox"),event.GetKeyCode());
@@ -8740,8 +8741,6 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 #endif
 }
-
-
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)

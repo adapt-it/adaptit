@@ -124,7 +124,7 @@ int Mover::FinishMove()
 	// The MoveFileEx() function is MFC only. Since is uses the MOVEFILE_REPLACE_EXISTING flag
 	// the MFC docs say that MoveFileEx() cannot be used to move directories only files, which
 	// is what we would expect here as we are moving only one file at a time. Under wx we can
-	// use ::wxCopyFile(), and if it succeeds use ::wxRemoveFile() to remove it from its
+	// use ::wxCopyFile(), and if it succeeds use wxRemoveFile() to remove it from its
 	// previous location
 	//if (MoveFileEx(SourcePath, DestinationPath, MOVEFILE_REPLACE_EXISTING) == 0) 
 	if (!::wxCopyFile(SourcePath, DestinationPath))
@@ -132,7 +132,7 @@ int Mover::FinishMove()
 		CancelMove();
 		return DOCUMENTMOVER_ERROR_UNEXPECTED;
 	}
-	else if (!::wxRemoveFile(SourcePath))
+	else if (!wxRemoveFile(SourcePath))
 	{
 		CancelMove();
 		return DOCUMENTMOVER_ERROR_UNEXPECTED;

@@ -801,7 +801,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	if (pSrcPhrase->m_bBoundary)
 		m_bBoundary = TRUE;
 
-    // copy across the BOOL values for free translation, note, and free translation
+    // copy across the bool values for free translation, note, and free translation
     // sectioning criterion, for versionable_schema 4, 5 & 6 etc (1) if the first instance
     // sections a free translation by 'verse' or 'punctuation', then the merger must
     // section the same way (unless the user explicitly changes it), so change the original

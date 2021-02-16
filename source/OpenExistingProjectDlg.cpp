@@ -98,7 +98,7 @@ COpenExistingProjectDlg::COpenExistingProjectDlg(wxWindow* parent)
 
 /////////////////////////////////////////////////////////////////////////////
 // Dialog initialization
-void COpenExistingProjectDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //MFC had BOOL COpenExistingProjectDlg::OnInitDialog()
+void COpenExistingProjectDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	//InitDialog() is not virtual, no call needed to the base class
 

@@ -17,6 +17,9 @@
 ; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_18_0_4AI.exe
 ; BEFORE COMPILING THIS SCRIPT
 ; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
+; whm 28 January 2021: Added the Windows *exe utility files for KB sharing
+; whm TODO: Add code to detect if Python 3 for Windows has been installed; if not install it
+; as part of the Installer process
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -88,14 +91,27 @@ Source: "{#SvnBase}\setup Unicode - Minimal\LICENSING.txt"; DestDir: "{app}"; Fl
 Source: "{#SvnBase}\setup Unicode - Minimal\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - Minimal\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - Minimal\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "{#SvnBase}\setup Unicode - Minimal\rdwrtp7.exe"; DestDir: {app}; Flags: IgnoreVersion; 
-; Source: "{#SvnBase}\setup Unicode - Minimal\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - Minimal\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - Minimal\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - Minimal\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; Source: "{#SvnBase}\setup Unicode - Minimal\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode - Minimal\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
+; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
+; added by whm 28 January 2021
+; whm 13Feb2021 removed, since the app will incorporate c code equivalenst into the app
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_add_KBUsers.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_change_fullname.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_change_password.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_change_permission.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_changed_since_timed.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_create_entry.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_list_users.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_lookup_entry"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_pseudo_delete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_pseudo_undelete.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+;Source: "{#SvnBase}\setup Unicode - Minimal\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+
+; added by whm 13Feb2021 - creates an empty dist directory as a child of the {app} directory
+[Dirs]
+Name: "{app}\dist"
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;

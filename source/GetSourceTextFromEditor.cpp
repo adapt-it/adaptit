@@ -771,6 +771,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 				commandLineFT = m_pApp->RemovePathPrefix(commandLineFT, frTrPathPrefix); // LHS has no path prefix now
 				bFrTrAllowed = bSrcAllowed == TRUE ? TRUE : FALSE; // in same cwd folder
 				// BEW 17Sep20 remember to restore cwd after wxExecute() call below
+				wxString gotten = ::wxGetCwd();
+				wxUnusedVar(gotten);
 			}
 
 			// The above path prefixes should be identical, but I won't make the assumption

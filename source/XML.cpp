@@ -3323,7 +3323,7 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			{
 				gpSrcPhrase = new CSourcePhrase; // the constructor creates empty m_pSavedWords
 												// m_pMedialPuncts and m_pMedialMarkers list too;
-												// all BOOLs are FALSE, and all CStrings empty
+												// all bools are FALSE, and all CStrings empty
 				// strictly speaking I should test for gpEmbeddedSrcPhrase == NULL here, but I'll assume it is
 			}
 			else
@@ -5755,7 +5755,7 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 ///  \remarks
 ///  Used to convert the 22 byte string of 0s and 1s (currently 22, at Aug 2005) into an
 ///  integer and then use the masking constants to reconstuct any TRUE bool values, and set
-///  the appropriate bool members in pSP. If we subsequently add extra BOOLs to
+///  the appropriate bool members in pSP. If we subsequently add extra bools to
 ///  CSourcePhrase, we only need to add the code lines for the extra ones in the function
 ///  and we'll be able to read legacy Adapt It documents in XML format without having to
 ///  bump a version number.
@@ -5822,7 +5822,7 @@ void MakeBOOLs(CSourcePhrase*& pSP, CBString& digits)
 /// \ remarks
 ///  Used to convert the (currently, at Aug 2005) 22 bool values in pSP to a 22 digit byte
 ///  string to be output in the f=" " attribute of the Adapt It document's sourcephrase
-///  representations in XML. If we subsequently add extra BOOLs to CSourcePhrase, we only
+///  representations in XML. If we subsequently add extra bools to CSourcePhrase, we only
 ///  need to make sure that any bool we add has a safe default value of FALSE (ie. zero),
 ///  and we then only need to change the hard coded constant below from 22 to 23 or
 ///  whatever and fix the rest accordingly and we'll be able to read legacy Adapt It

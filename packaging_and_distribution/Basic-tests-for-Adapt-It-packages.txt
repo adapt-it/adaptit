@@ -1,6 +1,6 @@
 Basic-tests-for-Adapt-It-packages.txt
 Author: Bill Martin
-Revised: 9 January 2013
+Revised: 9 Febrary 2021
 
 There are some basic tests that should be done for each Adapt It
 Windows installer, Linux distribution package, and Mac dmg. These
@@ -29,6 +29,10 @@ Here are the steps for basic testing:
           sudo dpkg -i adaptit-docs_6.3.1-1+precise_all.deb
           sudo apt-get install -f   [if "Errors were encountered while 
                                      processing:" message appears]
+   Mac: Download the .dmg file and double-click to mount the image.
+        When the Adapt It .dmg window is displayed, drag the Adapt It
+        application to the Applications folder alias in the same 
+        window.
 
 3. Run Adapt It. On Linux run it from the Office menu (or by searching 
 for "adapit" in Unity). It should run and (on Linux and Mac) the 

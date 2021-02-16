@@ -57,6 +57,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/choicdlg.h>
 #include <wx/fileconf.h>
+
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "AdminEditMenuProfile.h"

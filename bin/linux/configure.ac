@@ -1,11 +1,15 @@
-AC_INIT([adaptit], [0.1])
+AC_INIT([adaptit],[0.1])
 AC_CONFIG_SRCDIR([../../source/Adapt_It.cpp])
-AM_INIT_AUTOMAKE([-Wno-portability])
+# whm 13Feb2021 added [subdir-objects] as parameter to AM_INIT_AUTOMAKE to avoid warning about subdir-objects
+AM_INIT_AUTOMAKE([-Wno-portability] [subdir-objects])
 
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+#_LT_SET_OPTION([LT_INIT],[dlopen])
+#AC_DIAGNOSE([obsolete],[AC_LIBTOOL_DLOPEN: Remove this warning and the call to _LT_SET_OPTION when you
+#put the 'dlopen' option into LT_INIT's first parameter.])
+
+LT_INIT([dlopen])
 
 # Define _KBSERVER for all builds - whm added 11Dec2015
 # Uncomment the following _KBSERVER define for version 7.x.x releases
@@ -79,4 +83,5 @@ AM_GNU_GETTEXT([external])
 CURL_LIBS="`curl-config --libs`"
 AC_SUBST(CURL_LIBS)
 
-AC_OUTPUT(Makefile po/Makefile.in)
+AC_CONFIG_FILES([Makefile po/Makefile.in])
+AC_OUTPUT

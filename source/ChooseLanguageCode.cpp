@@ -60,13 +60,13 @@ ChooseLanguageCode::ChooseLanguageCode(wxWindow* parent) // constructor
 			
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
-	/*
+	//*
 	wxListBox* m_pListTgtCodes;
 	wxListBox* m_pListGlossCodes;
 	wxTextCtrl* m_pTextCtrlSrcCode;
 	wxButton* m_pBtnCancel;
 	wxButton* m_pBtnOK;
-	*/
+	//*/
 	
 	m_pListTgtCodes = (wxListBox*)FindWindowById(ID_LISTBOX_TGT);
 	wxASSERT(m_pListTgtCodes != NULL);

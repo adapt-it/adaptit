@@ -1579,7 +1579,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 	if (::wxFileExists(tempFilePathName))
 	{
 		bool bRemoved = FALSE;
-		bRemoved = ::wxRemoveFile(tempFilePathName);
+		bRemoved = wxRemoveFile(tempFilePathName);
 		if (!bRemoved)
 		{
 			// Not likely to happen, so an English message will suffice.
@@ -2095,7 +2095,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 	// ignore dealing with any unlikely pathCreationErrors at this point
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// We need to try re-establish a connection to the KBserver if one is running
@@ -2106,58 +2106,9 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		// NOT prevent the collaboration from being hooked up.
 		pApp->m_bEnteringKBserverProject = TRUE;
 
-
-		/* The old code -- remove shortly
-		bool bUserCancelled = FALSE; // initialize
-		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
-		pHowGetUrl->Center();
-		int dlgReturnCode;
-		dlgReturnCode = pHowGetUrl->ShowModal();
-		if (dlgReturnCode == wxID_OK)
-		{
-			// m_bServiceDiscoveryWanted will have been set or cleared in
-			// the OnOK() handler of the above dialog
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
-		}
-		else
-		{
-			// User cancelled. This clobbers the sharing setup - that clobbering is
-			// already done in the OnCancel() handler
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
-		}
-		bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-		pHowGetUrl->Destroy();
-		//delete pHowGetUrl; // We don't want the dlg showing any longer
-
-		// If the user didn't cancel, then call Authenticate....()
-		if (!bUserCancelled) // if user did not cancel...
-		{
-            // Do service discovery of KBserver, authentication, checking, and KB
-            // Sharing setup. Second param, bool m_bUserAuthenticating must be TRUE.
-            // Note: the function could fail, in which case KB sharing will be turned
-            // off - this does **not** mean that the HookUpToExistingAIProject()
-            // function will, or should, also fail. KB sharing and PT or BE
-            // collaboration are orthogonal to each other, any project can have one or
-            // the other or both turned on. KB sharing not on does not prevent
-            // collaboration from doing its job
-            pApp->m_bUserAuthenticating = TRUE; // this means that the real user is
-				// logging in, or else someone who knows some other person's credentials
-				// is doing so (and the KBserver has to know those credentials too of
-				// course if the login is to succeed)
-			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_bServiceDiscoveryWanted);
-			wxUnusedVar(bSuccess);
-		}
-		else
-		{
-			// User canceled before Authentication could be attempted - so tell him
-			// that sharing is OFF
-			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
-		}
-		pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-		*/
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 
-#endif // _KBSERVER
+//#endif // _KBSERVER
 
 	return TRUE;
 }
@@ -2370,7 +2321,17 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 #endif
 	// create the path to the file
 	wxString filePath = folderPath + pApp->PathSeparator + fileTitle + _T(".txt");
-	// an earlier version of the file may already be present, if so, just overwrite it
+
+	// BEW 16Sep20 archive the temporary source text .txt files from collaboration
+	// dropped into __SOURCE_INPUTS, and remove these (but not non-collab ones) from
+	// that folder when OnExit() is called.
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		gpApp->m_arrFilePathsToRemove.Add(filePath);
+	}
+	// BEW end of 16Sep20 addition
+
+	// An earlier version of the file may already be present, if so, just overwrite it
 	wxFFile ff;
 	bool bOK;
 	// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds
@@ -3249,7 +3210,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
     // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
     // before the KBs are clobbered; since UnloadKBs is called on every document closure in
     // collaboration mode, and in the wizard, and OnFileClose() and CreateNewAIProject().
@@ -3265,7 +3226,7 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called for  both kbs in UnloadKBs()"));
 	}
-#endif
+//#endif
 	// unload the KBs from memory
 	if (pApp->m_pKB != NULL)
 	{

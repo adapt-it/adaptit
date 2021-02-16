@@ -1528,7 +1528,7 @@ bool AdminMoveOrCopy::RemoveSingleFile(wxString& thePath, wxString& filename)
 	wxString thisPath = thePath + gpApp->PathSeparator + filename;
 
 	// do the removal
-	bSuccess = ::wxRemoveFile(thisPath); //bool overwrite = true
+	bSuccess = wxRemoveFile(thisPath); //bool overwrite = true
 	if (!bSuccess)
 	{
 		wxString msg;
@@ -2146,7 +2146,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 				theSourceFilePath = srcFolderPath + gpApp->PathSeparator + aFilename;
 
 				// remove the file from the source pane's displayed folder contents
-				bRemovedSuccessfully = ::wxRemoveFile(theSourceFilePath);
+				bRemovedSuccessfully = wxRemoveFile(theSourceFilePath);
 				if (!bRemovedSuccessfully)
 				{
 					// shouldn't ever fail, so an English message for developer will do

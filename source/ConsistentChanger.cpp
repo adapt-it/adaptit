@@ -120,7 +120,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 		wxString s;
 		s = s.Format(_T("Relocating the CC table file in loadTableFromFile failed, so cc processing is disabled; original table's path was: %s"),aPath.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
-		return s ; // MFC note: we really need to return BOOL -- add this change later
+		return s ; // MFC note: we really need to return bool -- add this change later
 	}
 
 	int iResult2;
@@ -149,7 +149,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 #endif
 
 	// get rid of the temporary file _tbt_.cct in the data folder
-	if (!::wxRemoveFile(lpPath))
+	if (!wxRemoveFile(lpPath))
 	{
 		wxString aPath = tablePathName;
 		wxString s;

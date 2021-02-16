@@ -341,7 +341,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 	if (m_bIsGlossingKB)
 	{
 		// Ours is a local glossing KB
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (m_pApp->m_bIsGlossingKBServerProject)
 		{
 			// This project is one for sharing gloss entries to a remote KBserver,
@@ -369,25 +369,18 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsGlossingKBServerProject)
-#endif
+//#endif
 		// We can go ahead with the present bulk removal
 		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray,
 			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
 
-		// Start the background KBserver deletions first, then do the local KB
-		// deletions after that thread has been fired off
-#if defined(_KBSERVER)
-
-		// ***********************  TODO  the thread for the KBserver deletions **********************
-
-#endif
-		// Now the local KB deletions
+		// do entry table pseudo deletions, and then the local KB deletions
 		DoLocalBulkKbPseudoDeletions(m_bIsGlossingKB);
 	}
 	else
 	{
 		// Ours is an local adapting KB
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		if (m_pApp->m_bIsKBServerProject)
 		{
 			// This project is one for sharing adaptation entries to a remote KBserver,
@@ -398,11 +391,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 			wxUnusedVar(pKbServer); // needed for Release build
 
 			// Test here for the app's m_arrSourcesForPseudoDeletion or
-			// m_arrTargetsForPseudoDeletion not yet Empty. A background thread may be
-			// doing bulk pseudo-deletions from an earlier invocation of the
-			// RemoveSomeTgtEntries handler, and we must not try to use those arrays for
-			// another invocation before that thread finishes - at it's finish it will
-			// empty the arrays
+			// m_arrTargetsForPseudoDeletion not yet Empty.
 			if (!m_pApp->m_arrSourcesForPseudoDeletion.IsEmpty() ||
 				!m_pApp->m_arrTargetsForPseudoDeletion.IsEmpty())
 			{
@@ -415,7 +404,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				return; // stay in the dialog
 			}
 		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
-#endif
+//#endif
 		// We can go ahead with the present bulk removal
 		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray,
 			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
@@ -434,15 +423,8 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 		} // <<- end of scope limitation
 */
 #endif
-		// Start the background KBserver deletions first, then do the local KB
-		// deletions after that thread has been fired off
-
-#if defined(_KBSERVER)
-
-		// ***********************  TODO  the thread for the KBserver deletions **********************
-
-#endif
-		// Now the local KB deletions
+		// do needed PseudoDeletions, including for <no adaptation> target strings in 
+		// the entry table, and then deletions in the local KB 
 		DoLocalBulkKbPseudoDeletions(m_bIsGlossingKB);
 	} // end of else block for test: if (m_bIsGlossingKB)
 
@@ -458,24 +440,49 @@ void RemoveSomeTgtEntries::OnCancel(wxCommandEvent& event)
 	event.Skip();
 }
 
+// BEW 20Jan21 added support for <no adaptation> or <no gloss> being in
+// the kbserver entry table as strings indicating empty values. Python
+// doesn't pick up empty strings, it needs something to grab. However,
+// our gui is not altered. The entry table is altered though.
 void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 {
 	CKB* pKB = NULL;
+	bool bGlossing;
 	if (bIsGlossingKB)
 	{
 		pKB = m_pApp->m_pGlossingKB; // the glossing KB's pointer
+		bGlossing = TRUE;
 	}
 	else
 	{
 		pKB = m_pApp->m_pKB; // the adapting KB's pointer
+		bGlossing = FALSE;
 	}
 	size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
 	size_t i;
 	for (i = 0; i < count; ++i)
 	{
+		bool bGlossingNonSrcEmpty = FALSE; // initialise
+		bool bAdaptingNonSrcEmpty = FALSE; // initialise
+
 		// Get the next source phrase / target or gloss word/phrase pair to be pseudo-deleted
 		wxString src = m_pApp->m_arrSourcesForPseudoDeletion.Item(i);
 		wxString nonsrc = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
+
+		if (bGlossing)
+		{
+			if (nonsrc.IsEmpty() || (nonsrc == m_no_gloss))
+			{
+				bGlossingNonSrcEmpty = TRUE;
+			}
+		}
+		else
+		{
+			if (nonsrc.IsEmpty() || (nonsrc == m_no_adaptation))
+			{
+				bAdaptingNonSrcEmpty = TRUE;
+			}
+		}
 
 		// Get the CTargetUnit instance which stores this pair
 		int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
@@ -506,8 +513,8 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 		}
 		else
 		{
-		// BEW added 22Oct12 for KBserver support
-#if defined(_KBSERVER)
+			// BEW added 22Oct12 for KBserver support
+//#if defined(_KBSERVER)
 			int kbServerType = 1; // default, for an adapting kb (2 is for a glossing one)
 			if (bIsGlossingKB)
 			{
@@ -519,16 +526,41 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 			// (so that we keep the local and remote KB contents synced)
 			if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 			{
-			KbServer* pKbSvr = m_pApp->GetKbServer(kbServerType);
-
-			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
-			{
-				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, src, nonsrc);
+				KbServer* pKbSvr = m_pApp->GetKbServer(kbServerType);
+				int rv = -1; // initialise
 				wxUnusedVar(rv);
-			}
+				if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
+				{
+					if (bGlossing)
+					{
+						if (bGlossingNonSrcEmpty)
+						{
+							rv = pKbSvr->PseudoDelete(pKbSvr, src, m_no_gloss); // string is <no gloss>
+						}
+						else
+						{
+							// the gloss is other than <no gloss>
+							rv = pKbSvr->PseudoDelete(pKbSvr, src, nonsrc);
+						}
+					}
+					else
+					{
+						// dealing with the adapting KB
+						if (bAdaptingNonSrcEmpty)
+						{
+							rv = pKbSvr->PseudoDelete(pKbSvr, src, m_no_adaptation); // string is <no adaptation>
+						}
+						else
+						{
+							// the adaptation is other than <no adaptation>
+							rv = pKbSvr->PseudoDelete(pKbSvr, src, nonsrc);
+						}
+					}
+				} // end of TRUE block for test: if (!pTU->IsItNotInKB())
 
-			}
-#endif
+			} // end of TRUE block for test:
+			  // if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+//#endif
 			// pTU points the CTargetUnit instance we want, so next we get the
 			// CRefString instance which stores the adaption (or gloss if in
 			// glossing mode)
