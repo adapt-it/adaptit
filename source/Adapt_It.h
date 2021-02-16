@@ -2154,24 +2154,6 @@ class CAdapt_ItApp : public wxApp
     // item that user initially clicks on. It is interpreted by CPhraseBox::On
     int m_nDropDownClickedItemIndex;
 
-    // whm 12Jul2018 removed the following that were used with FilterEvent
-    /*
-    // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
-    // TODO: Remove any of these that might not be needed with the new phrasebox
-    bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
-    bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
-    bool ClickedOnMainMenuBar(wxMouseEvent& event);
-    // The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
-    bool MouseOverMainMenuBar(wxMouseEvent& event);
-    bool MouseOverToolBar(wxMouseEvent& event);
-    bool MouseOverModeBar(wxMouseEvent& event);
-    // The following three are used within the wxEVT_CHAR block of FilterEvent():
-    bool TypedReservedDropDownListNavKey(wxKeyEvent& event);
-    bool TypedNonReservedNavKey(wxKeyEvent& event);
-    bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
-    bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
-    */
-
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
 	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
