@@ -4028,6 +4028,17 @@ public:
 	wxString m_xmlInstallPath;	// whm added for path where the AI_USFM.xml, AI_UserProfiles.xml
 								// and books.xml files are installed
 
+    /// whm 13Feb2021 added the new App member m_distKBsharingPath
+    /// m_distKBsharingPath stores the path where the KB sharing "dist" directory
+    /// is installed on the given platform. This location is actually the same as the
+    /// m_xmlInstallPath + _T("dist")
+    /// On wxMSW:   "C:\Program Files\Adapt It WX\ or
+    ///             C:\Program Files\Adapt It WX Unicode\"
+    /// On wxGTK:   "/usr/share/adaptit/" or "/usr/local/share/adaptit" depending on m_PathPrefix
+    ///             [adaptit here is the name of a directory]
+    /// On wxMac:   "AdaptIt.app/Contents/Resources"
+    wxString m_distKBsharingPath;
+
     /// m_localizationInstallPath stores the path where the <lang> localization files are
     /// installed on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or

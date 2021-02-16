@@ -23744,6 +23744,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
     wxLogDebug(_T("The m_xmlInstallPath = %s"), m_xmlInstallPath.c_str());
 
+    // whm 13Feb2021 added the calculation for the new App member m_distKBsharingPath
+    // The m_distKBsharingPath stores the path where the KB sharing "dist" directory
+    // is installed on the given platform. This location is actually the same as the
+    // m_xmlInstallPath + _T("dist")
+    // On wxMSW: "C:\Program Files\Adapt It WX Unicode\dist"
+    // On wxGTK: "/usr/share/adaptit/dist" or "/usr/local/share/adaptit/dist" depending on the
+    //           value of m_PathPrefix [adaptit here is the name of a directory]
+    // On wxMac: "AdaptIt.app/Contents/Resources"
+    m_distKBsharingPath = m_xmlInstallPath + PathSeparator + _T("dist");
+
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
     // On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or

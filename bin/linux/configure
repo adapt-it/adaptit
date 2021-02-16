@@ -2302,6 +2302,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# whm 13Feb2021 added [subdir-objects] as parameter to AM_INIT_AUTOMAKE to avoid warning about subdir-objects
 am__api_version='1.15'
 
 ac_aux_dir=
@@ -3610,9 +3611,9 @@ fi
 
 
 
-enable_dlopen=yes
-
-
+#_LT_SET_OPTION([LT_INIT],[dlopen])
+#AC_DIAGNOSE([obsolete],[AC_LIBTOOL_DLOPEN: Remove this warning and the call to _LT_SET_OPTION when you
+#put the 'dlopen' option into LT_INIT's first parameter.])
 
 case `pwd` in
   *\ * | *\	*)
@@ -8125,6 +8126,7 @@ func_stripname_cnf ()
 
 
 # Set options
+enable_dlopen=yes
 
 
 
