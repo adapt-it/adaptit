@@ -6,7 +6,6 @@ echo      1. _CopyDocs2InstallFolders.bat in the docs folder
 echo      2. _CopyHelp2InstallFolders.bat in the hlp folder
 echo      3. _CopyMO2InstallFolders.bat in the po folder
 echo      4. _CopyXML2InstallFolders.bat in the xml folder
-echo      5. _CopyWin32ExeUtils2InstallFolders.bat in the win32_utils folder
 echo ===============================================================
 echo Note: Calling the batch files populates the installation folders
 echo with everything they need EXCEPT for the actual Regular and
@@ -42,12 +41,6 @@ cd ..
 cd "xml"
 call _CopyXML2InstallFolders.bat
 
-@echo on
-rem 4. Now calling _CopyWin32ExeUtils.bat from the win32_utils folder
-@echo off
-cd ..
-cd "win32_utils"
-call _CopyWin32ExeUtils2InstallFolders.bat
 cd ..
 echo ===================================================
 echo Batch processes completed.
