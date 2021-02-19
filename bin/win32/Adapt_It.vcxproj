@@ -54,7 +54,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+      <Command>echo ********** Begin Pre-Build Event Checks **********
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
@@ -92,26 +93,25 @@ goto buildEventOK
 :buildEventFailed
 If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
 If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
-echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** Pre-Build Event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
 echo ***    If WXWIN is set to "c:\wxWidgets-3.1.x" then WXVER should be set to 31
 echo ***    If WXWIN is set to "c:\wxWidgets-3.0.x" then WXVER should be set to 30
-echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
 echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
 exit 1
 :configFailed
-echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** Pre-Build Event for $(ProjectName) FAILED
 echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
 echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
 exit 1
 :buildEventOK
-echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
-echo Building using wxWidgets version at: %25WXWIN%25
-echo *** Calling WdrTweaks.exe to pre-process wxDesigner sources if needed...
-IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (..\..\scripts\WdrTweaks.exe)
-echo *** End of WdrTweaks.exe processing</Command>
+echo ********** Pre-Build Event checks for $(ProjectName) COMPLETED OK **********
+echo ********** Building using wxWidgets version: %25WXWIN%25
+echo ********** Begin WdrTweaks.exe processing to pre-process wxDesigner sources if needed...
+IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the adaptit\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
+echo ********** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -147,64 +147,64 @@ echo *** End of WdrTweaks.exe processing</Command>
       <Version>6.10</Version>
     </Link>
     <PostBuildEvent>
-      <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
-copy "..\..\xml\AI_USFM.xml" "Unicode Debug\AI_USFM.xml"
-copy "..\..\xml\aiDefault.css" "Unicode Debug\aiDefault.css"
-copy "..\..\docs\curl-ca-bundle.crt" "Unicode Debug\curl-ca-bundle.crt"
-copy "..\..\docs\iso639-3codes.txt" "Unicode Debug\iso639-3codes.txt"
-copy "..\..\docs\Help_for_Administrators.htm" "Unicode Debug\Help_for_Administrators.htm"
-copy "..\..\docs\RFC5646message.htm" "Unicode Debug\RFC5646message.htm"
-copy "..\..\docs\GuesserExplanation.htm" "Unicode Debug\GuesserExplanation.htm"
-mkdir "..\..\docs\Images\Admin_help\"
-xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Debug\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Debug\Adapt_It_Quick_Start.htm"
-mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
-xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-mkdir "Unicode Debug\Languages\es"
-mkdir "Unicode Debug\Languages\fr"
-mkdir "Unicode Debug\Languages\id"
-mkdir "Unicode Debug\Languages\pt"
-mkdir "Unicode Debug\Languages\ru"
-mkdir "Unicode Debug\Languages\tpi"
-mkdir "Unicode Debug\Languages\zh"
-mkdir "Unicode Debug\Languages\az"
-mkdir "Unicode Debug\Languages\swh"
-copy "..\..\po\es.mo" "Unicode Debug\Languages\es\Adapt_It_Unicode.mo"
-copy "..\..\po\es.po" "Unicode Debug\Languages\es\es.po"
-copy "..\..\po\wxstd-es.mo" "Unicode Debug\Languages\es\wxstd.mo"
-copy "..\..\po\fr.mo" "Unicode Debug\Languages\fr\Adapt_It_Unicode.mo"
-copy "..\..\po\fr.po" "Unicode Debug\Languages\fr\fr.po"
-copy "..\..\po\wxstd-fr.mo" "Unicode Debug\Languages\fr\wxstd.mo"
-copy "..\..\po\id.mo" "Unicode Debug\Languages\id\Adapt_It_Unicode.mo"
-copy "..\..\po\id.po" "Unicode Debug\Languages\id\id.po"
-copy "..\..\po\pt.mo" "Unicode Debug\Languages\pt\Adapt_It_Unicode.mo"
-copy "..\..\po\pt.po" "Unicode Debug\Languages\pt\pt.po"
-copy "..\..\po\wxstd-pt.mo" "Unicode Debug\Languages\pt\wxstd.mo"
-copy "..\..\po\ru.mo" "Unicode Debug\Languages\ru\Adapt_It_Unicode.mo"
-copy "..\..\po\ru.po" "Unicode Debug\Languages\ru\ru.po"
-copy "..\..\po\wxstd-ru.mo" "Unicode Debug\Languages\ru\wxstd.mo"
-copy "..\..\po\tpi.mo" "Unicode Debug\Languages\tpi\Adapt_It_Unicode.mo"
-copy "..\..\po\tpi.po" "Unicode Debug\Languages\tpi\tpi.po"
-copy "..\..\po\tpi_readme.txt" "Unicode Debug\Languages\tpi\tpi_readme.txt"
-copy "..\..\po\books_tpi.xml" "Unicode Debug\Languages\tpi\books_tpi.xml"
-copy "..\..\po\wxstd-tpi.mo" "Unicode Debug\Languages\tpi\wxstd.mo"
-copy "..\..\po\zh.mo" "Unicode Debug\Languages\zh\Adapt_It_Unicode.mo"
-copy "..\..\po\zh.po" "Unicode Debug\Languages\zh\zh.po"
-copy "..\..\po\wxstd-zh.mo" "Unicode Debug\Languages\zh\wxstd.mo"
-copy "..\..\po\az.mo" "Unicode Debug\Languages\az\Adapt_It_Unicode.mo"
-copy "..\..\po\az.po" "Unicode Debug\Languages\az\az.po"
-copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
-copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
-copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
-copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
-mkdir "Unicode Debug\dist"
-IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Debug\" /Y
-</Command>
+      <Command>echo ********** Begin Post-Build Event Batch Process **********
+copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml" /Y 
+copy "..\..\xml\AI_USFM.xml" "Unicode Debug\AI_USFM.xml" /Y 
+copy "..\..\xml\aiDefault.css" "Unicode Debug\aiDefault.css" /Y 
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Debug\curl-ca-bundle.crt" /Y 
+copy "..\..\docs\iso639-3codes.txt" "Unicode Debug\iso639-3codes.txt" /Y 
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Debug\Help_for_Administrators.htm" /Y 
+copy "..\..\docs\RFC5646message.htm" "Unicode Debug\RFC5646message.htm" /Y 
+copy "..\..\docs\GuesserExplanation.htm" "Unicode Debug\GuesserExplanation.htm" /Y 
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Debug\Images\Admin_help\*.*" /Y /Q /S /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Debug\Adapt_It_Quick_Start.htm" /Y 
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /S /EXCLUDE:..\..\Exclude.txt
+if exist "$(OutputPath)Languages\es\" (echo Languages\es exists) else (mkdir "$(OutputPath)Languages\es")
+if exist "$(OutputPath)Languages\fr\" (echo Languages\fr exists) else (mkdir "$(OutputPath)Languages\fr")
+if exist "$(OutputPath)Languages\id\" (echo Languages\id exists) else (mkdir "$(OutputPath)Languages\id")
+if exist "$(OutputPath)Languages\pt\" (echo Languages\pt exists) else (mkdir "$(OutputPath)Languages\pt")
+if exist "$(OutputPath)Languages\ru\" (echo Languages\ru exists) else (mkdir "$(OutputPath)Languages\ru")
+if exist "$(OutputPath)Languages\tpi\" (echo Languages\tpi exists) else (mkdir "$(OutputPath)Languages\tpi")
+if exist "$(OutputPath)Languages\zh\" (echo Languages\zh exists) else (mkdir "$(OutputPath)Languages\zh")
+if exist "$(OutputPath)Languages\az\" (echo Languages\az exists) else (mkdir "$(OutputPath)Languages\az")
+if exist "$(OutputPath)Languages\swh\" (echo Languages\swh exists) else (mkdir "$(OutputPath)Languages\swh")
+copy "..\..\po\es.mo" "Unicode Debug\Languages\es\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\es.po" "Unicode Debug\Languages\es\es.po" /Y 
+copy "..\..\po\wxstd-es.mo" "Unicode Debug\Languages\es\wxstd.mo" /Y 
+copy "..\..\po\fr.mo" "Unicode Debug\Languages\fr\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\fr.po" "Unicode Debug\Languages\fr\fr.po" /Y 
+copy "..\..\po\wxstd-fr.mo" "Unicode Debug\Languages\fr\wxstd.mo" /Y 
+copy "..\..\po\id.mo" "Unicode Debug\Languages\id\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\id.po" "Unicode Debug\Languages\id\id.po" /Y 
+copy "..\..\po\pt.mo" "Unicode Debug\Languages\pt\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\pt.po" "Unicode Debug\Languages\pt\pt.po" /Y 
+copy "..\..\po\wxstd-pt.mo" "Unicode Debug\Languages\pt\wxstd.mo" /Y 
+copy "..\..\po\ru.mo" "Unicode Debug\Languages\ru\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\ru.po" "Unicode Debug\Languages\ru\ru.po" /Y 
+copy "..\..\po\wxstd-ru.mo" "Unicode Debug\Languages\ru\wxstd.mo" /Y 
+copy "..\..\po\tpi.mo" "Unicode Debug\Languages\tpi\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\tpi.po" "Unicode Debug\Languages\tpi\tpi.po" /Y 
+copy "..\..\po\tpi_readme.txt" "Unicode Debug\Languages\tpi\tpi_readme.txt" /Y 
+copy "..\..\po\books_tpi.xml" "Unicode Debug\Languages\tpi\books_tpi.xml" /Y 
+copy "..\..\po\wxstd-tpi.mo" "Unicode Debug\Languages\tpi\wxstd.mo" /Y 
+copy "..\..\po\zh.mo" "Unicode Debug\Languages\zh\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\zh.po" "Unicode Debug\Languages\zh\zh.po" /Y 
+copy "..\..\po\wxstd-zh.mo" "Unicode Debug\Languages\zh\wxstd.mo" /Y 
+copy "..\..\po\az.mo" "Unicode Debug\Languages\az\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\az.po" "Unicode Debug\Languages\az\az.po" /Y 
+copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po" /Y 
+copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo" /Y 
+copy "..\..\po\default.po" "Unicode Debug\Languages\default.po" /Y 
+if exist "$(OutputPath)dist\" (echo dist exists) else (mkdir "$(OutputPath)dist" &amp;&amp; echo created dist directory)
+if exist "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Debug\" /Y
+echo ********** EndPost-Build Event Batch Process **********</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+      <Command>echo ********** Begin Pre-Build Event Checks **********
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
@@ -242,27 +242,25 @@ goto buildEventOK
 :buildEventFailed
 If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
 If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
-echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** Pre-Build Event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
 echo ***    If WXWIN is set to "c:\wxWidgets-3.1.x" then WXVER should be set to 31
 echo ***    If WXWIN is set to "c:\wxWidgets-3.0.x" then WXVER should be set to 30
-echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
 echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
 exit 1
 :configFailed
-echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** Pre-Build Event for $(ProjectName) FAILED
 echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
 echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
 exit 1
 :buildEventOK
-echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
-echo Building using wxWidgets version at: %25WXWIN%25
-echo *** Calling WdrTweaks.exe to pre-process wxDesigner sources if needed...
-IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (..\..\scripts\WdrTweaks.exe)
-echo *** End of WdrTweaks.exe processing
-</Command>
+echo ********** Pre-Build Event checks for $(ProjectName) COMPLETED OK **********
+echo ********** Building using wxWidgets version: %25WXWIN%25
+echo ********** Begin WdrTweaks.exe processing to pre-process wxDesigner sources if needed...
+IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the adaptit\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
+echo ********** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -296,64 +294,58 @@ echo *** End of WdrTweaks.exe processing
       <Version>6.8</Version>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "..\..\setup Unicode\"
-copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode\Adapt_It_Unicode.exe"
-mkdir "..\..\setup Unicode - Minimal\"
-copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe"
-mkdir "..\..\setup Unicode - No Html Help\"
-copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe"
-copy "..\..\xml\AI_UserProfiles.xml" "Unicode Release\AI_UserProfiles.xml"
-copy "..\..\xml\AI_USFM.xml" "Unicode Release\AI_USFM.xml"
-copy "..\..\xml\aiDefault.css" "Unicode Release\aiDefault.css"
-copy "..\..\docs\curl-ca-bundle.crt" "Unicode Release\curl-ca-bundle.crt"
-copy "..\..\docs\iso639-3codes.txt" "Unicode Release\iso639-3codes.txt"
-copy "..\..\docs\Help_for_Administrators.htm" "Unicode Release\Help_for_Administrators.htm"
-copy "..\..\docs\RFC5646message.htm" "Unicode Release\RFC5646message.htm"
-copy "..\..\docs\GuesserExplanation.htm" "Unicode Release\GuesserExplanation.htm"
-mkdir "..\..\docs\Images\Admin_help\"
-xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Release\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Release\Adapt_It_Quick_Start.htm"
-mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
-xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-mkdir "Unicode Release\Languages\es"
-mkdir "Unicode Release\Languages\fr"
-mkdir "Unicode Release\Languages\id"
-mkdir "Unicode Release\Languages\pt"
-mkdir "Unicode Release\Languages\ru"
-mkdir "Unicode Release\Languages\tpi"
-mkdir "Unicode Release\Languages\zh"
-mkdir "Unicode Release\Languages\az"
-mkdir "Unicode Release\Languages\swh"
-copy "..\..\po\es.mo" "Unicode Release\Languages\es\Adapt_It_Unicode.mo"
-copy "..\..\po\es.po" "Unicode Release\Languages\es\es.po"
-copy "..\..\po\wxstd-es.mo" "Unicode Release\Languages\es\wxstd.mo"
-copy "..\..\po\fr.mo" "Unicode Release\Languages\fr\Adapt_It_Unicode.mo"
-copy "..\..\po\fr.po" "Unicode Release\Languages\fr\fr.po"
-copy "..\..\po\wxstd-fr.mo" "Unicode Release\Languages\fr\wxstd.mo"
-copy "..\..\po\id.mo" "Unicode Release\Languages\id\Adapt_It_Unicode.mo"
-copy "..\..\po\id.po" "Unicode Release\Languages\id\id.po"
-copy "..\..\po\pt.mo" "Unicode Release\Languages\pt\Adapt_It_Unicode.mo"
-copy "..\..\po\pt.po" "Unicode Release\Languages\pt\pt.po"
-copy "..\..\po\wxstd-pt.mo" "Unicode Release\Languages\pt\wxstd.mo"
-copy "..\..\po\ru.mo" "Unicode Release\Languages\ru\Adapt_It_Unicode.mo"
-copy "..\..\po\ru.po" "Unicode Release\Languages\ru\ru.po"
-copy "..\..\po\wxstd-ru.mo" "Unicode Release\Languages\ru\wxstd.mo"
-copy "..\..\po\tpi.mo" "Unicode Release\Languages\tpi\Adapt_It_Unicode.mo"
-copy "..\..\po\tpi.po" "Unicode Release\Languages\tpi\tpi.po"
-copy "..\..\po\tpi_readme.txt" "Unicode Release\Languages\tpi\tpi_readme.txt"
-copy "..\..\po\books_tpi.xml" "Unicode Release\Languages\tpi\books_tpi.xml"
-copy "..\..\po\wxstd-tpi.mo" "Unicode Release\Languages\tpi\wxstd.mo"
-copy "..\..\po\zh.mo" "Unicode Release\Languages\zh\Adapt_It_Unicode.mo"
-copy "..\..\po\zh.po" "Unicode Release\Languages\zh\zh.po"
-copy "..\..\po\wxstd-zh.mo" "Unicode Release\Languages\zh\wxstd.mo"
-copy "..\..\po\az.mo" "Unicode Release\Languages\az\Adapt_It_Unicode.mo"
-copy "..\..\po\az.po" "Unicode Release\Languages\az\az.po"
-copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
-copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
-copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
-copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
-mkdir "Unicode Release\dist"
-IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Release\" /Y
+      <Command>echo ********** Begin Post-Build Event Batch Process **********
+copy "..\..\xml\AI_UserProfiles.xml" "Unicode Release\AI_UserProfiles.xml" /Y 
+copy "..\..\xml\AI_USFM.xml" "Unicode Release\AI_USFM.xml" /Y 
+copy "..\..\xml\aiDefault.css" "Unicode Release\aiDefault.css" /Y 
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Release\curl-ca-bundle.crt" /Y 
+copy "..\..\docs\iso639-3codes.txt" "Unicode Release\iso639-3codes.txt" /Y 
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Release\Help_for_Administrators.htm" /Y 
+copy "..\..\docs\RFC5646message.htm" "Unicode Release\RFC5646message.htm" /Y 
+copy "..\..\docs\GuesserExplanation.htm" "Unicode Release\GuesserExplanation.htm" /Y 
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Release\Images\Admin_help\*.*" /Y /Q /S /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Release\Adapt_It_Quick_Start.htm" /Y 
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /S /EXCLUDE:..\..\Exclude.txt
+if exist "$(OutputPath)Languages\es\" (echo Languages\es exists) else (mkdir "$(OutputPath)Languages\es")
+if exist "$(OutputPath)Languages\fr\" (echo Languages\fr exists) else (mkdir "$(OutputPath)Languages\fr")
+if exist "$(OutputPath)Languages\id\" (echo Languages\id exists) else (mkdir "$(OutputPath)Languages\id")
+if exist "$(OutputPath)Languages\pt\" (echo Languages\pt exists) else (mkdir "$(OutputPath)Languages\pt")
+if exist "$(OutputPath)Languages\ru\" (echo Languages\ru exists) else (mkdir "$(OutputPath)Languages\ru")
+if exist "$(OutputPath)Languages\tpi\" (echo Languages\tpi exists) else (mkdir "$(OutputPath)Languages\tpi")
+if exist "$(OutputPath)Languages\zh\" (echo Languages\zh exists) else (mkdir "$(OutputPath)Languages\zh")
+if exist "$(OutputPath)Languages\az\" (echo Languages\az exists) else (mkdir "$(OutputPath)Languages\az")
+if exist "$(OutputPath)Languages\swh\" (echo Languages\swh exists) else (mkdir "$(OutputPath)Languages\swh")
+copy "..\..\po\es.mo" "Unicode Release\Languages\es\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\es.po" "Unicode Release\Languages\es\es.po" /Y 
+copy "..\..\po\wxstd-es.mo" "Unicode Release\Languages\es\wxstd.mo" /Y 
+copy "..\..\po\fr.mo" "Unicode Release\Languages\fr\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\fr.po" "Unicode Release\Languages\fr\fr.po" /Y 
+copy "..\..\po\wxstd-fr.mo" "Unicode Release\Languages\fr\wxstd.mo" /Y 
+copy "..\..\po\id.mo" "Unicode Release\Languages\id\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\id.po" "Unicode Release\Languages\id\id.po" /Y 
+copy "..\..\po\pt.mo" "Unicode Release\Languages\pt\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\pt.po" "Unicode Release\Languages\pt\pt.po" /Y 
+copy "..\..\po\wxstd-pt.mo" "Unicode Release\Languages\pt\wxstd.mo" /Y 
+copy "..\..\po\ru.mo" "Unicode Release\Languages\ru\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\ru.po" "Unicode Release\Languages\ru\ru.po" /Y 
+copy "..\..\po\wxstd-ru.mo" "Unicode Release\Languages\ru\wxstd.mo" /Y 
+copy "..\..\po\tpi.mo" "Unicode Release\Languages\tpi\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\tpi.po" "Unicode Release\Languages\tpi\tpi.po" /Y 
+copy "..\..\po\tpi_readme.txt" "Unicode Release\Languages\tpi\tpi_readme.txt" /Y 
+copy "..\..\po\books_tpi.xml" "Unicode Release\Languages\tpi\books_tpi.xml" /Y 
+copy "..\..\po\wxstd-tpi.mo" "Unicode Release\Languages\tpi\wxstd.mo" /Y 
+copy "..\..\po\zh.mo" "Unicode Release\Languages\zh\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\zh.po" "Unicode Release\Languages\zh\zh.po" /Y 
+copy "..\..\po\wxstd-zh.mo" "Unicode Release\Languages\zh\wxstd.mo" /Y 
+copy "..\..\po\az.mo" "Unicode Release\Languages\az\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\az.po" "Unicode Release\Languages\az\az.po" /Y 
+copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo" /Y 
+copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po" /Y 
+copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo" /Y 
+copy "..\..\po\default.po" "Unicode Release\Languages\default.po" /Y 
+if exist "$(OutputPath)dist\" (echo dist exists) else (mkdir "$(OutputPath)dist" &amp;&amp; echo created dist directory)
+if exist "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Release\" /Y
+echo ********** EndPost-Build Event Batch Process **********
 
 </Command>
     </PostBuildEvent>
