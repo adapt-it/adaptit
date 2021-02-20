@@ -10612,7 +10612,8 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 "Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
 			_T(""),wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 			wxString temp;
-			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "),resultSrc);
+			// whm 19Feb2021 corrected the %d below to %ld for a long resultSrc 
+			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %ld "),resultSrc);
 			pApp->LogUserAction(temp);
 			wxLogDebug(temp);
 			int ct;
