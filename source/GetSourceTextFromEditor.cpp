@@ -722,9 +722,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// name and it can contain spaces, whereas in the Paratext command line strings the
 	// short project name is used which doesn't generally contain spaces.
 	wxString commandLineSrc,commandLineTgt,commandLineFT;
-
-	// BEW 17Sep20 remove path prefix, save cwd, shorten command str, later after wxExecute(), restore cwd
-	// do this for each command
+#if defined (__WXMSW__)
+	// BEW 17Sep20 remove path prefix, save cwd, shorten command str, later after 
+	// wxExecute(), restore cwd -- do this for each command
 	bool bSrcAllowed = FALSE; // initialize
 	bool bTgtAllowed = FALSE; // ditto
 	bool bFrTrAllowed = FALSE; // ditto
@@ -732,51 +732,60 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString srcPathPrefix;
 	wxString tgtPathPrefix;
 	wxString frTrPathPrefix;
-
-
+	saveWorkingDir = ::wxGetCwd(); // save the current working directory for these 3 commands
+								   // for Windows only
+#endif
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
 	    if (m_rdwrtPTPathAndFileName.Contains(_T("paratext"))) // note the lower case p in paratext
 	    {
 	        // PT on linux -- need to add --rdwrtp7 as the first param to the command line
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+
             commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-            if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
-                commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+
+			if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+			{
+				commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+
+
+			}
 	    }
 	    else
 	    {
-	        // PT on Windows
+	        // PT on Windows  -- BEW 22Feb21: rdwrtp7 is not at beginning of command line
+			// and the hack to shorten the path is only a __WXMSW__ issue (Bill thinks it's
+			// unnecessary but I had lots of wxExecute() fails due to long paths, so I'll
+			// retain the shortening hack here. So only here is the is the working directory
+			// reset. Therefore later below where it is restored, a conditional compile is 
+			// required that must exclude the builds for __WXGTK__ and __WXMAC__ from 
+			// the cwd restoration call
 
 			commandLineSrc = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+#if defined (__WXMSW__)
 			// BEW 17Sep20 added next 3 lines
-			saveWorkingDir = ::wxGetCwd(); // save the current working directory for these 3 commands
 			commandLineSrc = m_pApp->RemovePathPrefix(commandLineSrc, srcPathPrefix); // LHS has no path prefix now
 			bSrcAllowed = ::wxSetWorkingDirectory(srcPathPrefix);
 			// BEW 17Sep20 remember to restore cwd after wxExecute() call below
-			
-			
+#endif			
 			commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+#if defined (__WXMSW__)
 			// BEW 17Sep20 added next 2 lines
 			commandLineTgt = m_pApp->RemovePathPrefix(commandLineTgt, tgtPathPrefix); // LHS has no path prefix now
 			bTgtAllowed = bSrcAllowed == TRUE? TRUE: FALSE; // in same cwd folder
 			// BEW 17Sep20 remember to restore cwd after wxExecute() call below
-
-
-
+#endif
 			if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
 			{
 				commandLineFT = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+#if defined (__WXMSW__)
 				// BEW 17Sep20 added next 2 lines
 				commandLineFT = m_pApp->RemovePathPrefix(commandLineFT, frTrPathPrefix); // LHS has no path prefix now
 				bFrTrAllowed = bSrcAllowed == TRUE ? TRUE : FALSE; // in same cwd folder
 				// BEW 17Sep20 remember to restore cwd after wxExecute() call below
-				wxString gotten = ::wxGetCwd();
-				wxUnusedVar(gotten);
+#endif
 			}
-
 			// The above path prefixes should be identical, but I won't make the assumption
-
 		}
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
@@ -821,10 +830,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 				resultFT = ::wxExecute(commandLineFT,outputFT,errorsFT);
 			}
 		}
+#if defined (__WXMSW__)
 		// BEW 18Sep20 restore the saved current working directory, after wxExecute() calls
 		// wxGetCwd() was called above at line 753
 		bool bRestoredOK = ::wxSetWorkingDirectory(saveWorkingDir);
 		wxUnusedVar(bRestoredOK);
+#endif
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
