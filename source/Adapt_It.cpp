@@ -18518,14 +18518,22 @@ bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
 // parent folder, which holds the executable AI file which is running. These
 // copies are temporary - each is destroyed after use. The blanks, however,
 // lodged in the dist folder, have constant contents.
-void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
+// whm 22Feb2021 Note: The value passed in via execPth is now the m_appInstallPathOnly
+// member variable rather than a separately created execPath variable in the caller
+// Also changed wxString&I execPth parameter to value parameter wxString execPth since
+// the CreateInputDatBlanks() doesn't return a value to caller through execPth.
+void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 {
 	bool execExists = wxDirExists(execPth);
-	wxString distPth = this->GetDistFolder(); // gets the path to dist folder
-			// based on Get().GetExecutablePaths(), Bill has created it as
-			// a post-build script, so should be in existence
+    // whm 22Feb2021 modified below to use the App's member variable m_distKBsharingPath, which ends with PathSeparator
+    wxString distPth = m_distKBsharingPath; // the App member variable is established in OnInit()
+	//wxString distPth = this->GetDistFolder(); // gets the path to dist folder
+	//		// based on Get().GetExecutablePaths(), Bill has created it as
+	//		// a post-build script, so should be in existence
 	// Check that distPth now exists
 	bool distExists = wxDirExists(distPth);
+    // whm 22Feb2021 the following if...else... blocks are not needed
+    /*
 	if (distExists)
 	{
 		// Make sure distPath in AI.h and .cpp is set
@@ -18536,20 +18544,22 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 	else
 	{
 		// Insurance in case Bill's psost-build script hasn't done its job
-		wxString distName = _T("dist");
-		wxString distPthName = execPath + distName + PathSeparator;
-		this->distPath = distPthName;
+        // whm 22Feb2021 modified/simplified the code below to use the m_distKBsharingPath which 
+        // is the ...\Adapt It Unicode Work\dist\ folder on Windows or .../Adapt It Unicode Work/dist/
+        // folder on Linux/Mac.
 		distExists = wxDirExists(this->distPath);
         // whm 12Feb2021 removed the following wxASSERT since it duplicates the wxASSERT_MSG warning below
         //wxASSERT(distExists);
 	}
+    */
 
 	if (execExists && distExists)
 	{
 		int i = noDatFile; // must initialize, before using
 		while (i >= noDatFile && i < blanksEnd)
 		{
-			switch (i)
+            // whm 22Feb2021 modified the following Make... functions to use the remove the unnecessary exePath parameter and use distPth instead of distPath
+            switch (i)
 			{
 			case noDatFile: // do nothing, = 0
 			{
@@ -18557,62 +18567,62 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 			}
 			case credentials_for_user: // = 1
 			{
-				MakeCredentialsForUser(credentials_for_user, execPth, distPth);
+				MakeCredentialsForUser(credentials_for_user, distPth); // whm Note: removed exePth parameter
 				break;
 			}
 			case lookup_user: // = 2
 			{
-				MakeLookupUser(lookup_user, execPath, distPath);
+				MakeLookupUser(lookup_user, distPth); // whm Note: removed execPath parameter
 				break;
 			}
 			case list_users: // = 3
 			{
-				MakeListUsers(list_users, execPath, distPath); // = 3
+				MakeListUsers(list_users, distPth); // = 3   // whm Note: removed execPath parameter
 				break;
 			}
 			case create_entry: // = 4
 			{
-				MakeCreateEntry(create_entry, execPath, distPath);
+				MakeCreateEntry(create_entry, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_delete: // = 5
 			{
-				MakePseudoDelete(pseudo_delete, execPath, distPath);
+				MakePseudoDelete(pseudo_delete,distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_undelete: // = 6
 			{
-				MakePseudoUndelete(pseudo_undelete, execPath, distPath);
+				MakePseudoUndelete(pseudo_undelete, distPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case lookup_entry: // = 7
 			{
-				MakeLookupEntry(lookup_entry, execPath, distPath);
+				MakeLookupEntry(lookup_entry, distPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case changed_since_timed: // = 8
 			{
-				MakeChangedSinceTimed(changed_since_timed, execPath, distPath);
+				MakeChangedSinceTimed(changed_since_timed, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case upload_local_kb: //= 9;
 			{
-				MakeUploadLocalKb(upload_local_kb, execPath, distPath);
+				MakeUploadLocalKb(upload_local_kb, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_permission: // = 10
 			{
-				MakeChangePermission(change_permission, execPath, distPath);
+				MakeChangePermission(change_permission, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_fullname: // = 11
 			{
-				MakeChangeFullname(change_fullname, execPath, distPath);
+				MakeChangeFullname(change_fullname, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_password: // = 12
 			{
-				MakeChangePassword(change_password, execPath, distPath);
+				MakeChangePassword(change_password, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 
@@ -18629,6 +18639,8 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 	} // end of TRUE block for test: if (execExists && distExists)
 	else
 	{
+        // whm 22Feb2021 this situation should not happen now that the dist folder is created as a child of 
+        // the "Adapt It Unicode Work" directory.
 		// tell the developer it failed
 		wxString msg = _T("CreateInputDatBlanks() failed because execPath or distPath could not be found");
 		wxString caption = _T("CreateInputDatBlanks path error");
@@ -18652,8 +18664,8 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 	m_bDoingChangePassword = FALSE;
 	m_bChangingPermission = FALSE;
 
-	wxString distFolderPath = this->distPath;
-	wxString execFolderPath = this->execPath;
+	wxString distFolderPath = m_distKBsharingPath; //this->distPath; // whm 22Feb2021 changed to use App's member m_distKBsharingPath, which end with PathSeparator
+	wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; // whm 22Feb2021 changed to use App's member which doesn't end with PathSeparator
 	bool execExists = wxDirExists(execFolderPath);
 	bool distExists = wxDirExists(distFolderPath);
 	if (execExists && distExists)
@@ -19282,9 +19294,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// Now in the caller the file has been moved to the parent folder 
 		// of the dist folder; so use wxTextFile to make the changes in
-		// the file copy within thee parent folder: "credentials_for_user.dat" 
+		// the file copy within the parent folder: "credentials_for_user.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19506,7 +19519,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "lookup_user.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19581,7 +19595,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "create_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19692,7 +19707,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "create_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (!m_bKBEditorEntered)
@@ -19867,7 +19883,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "pseudo_delete.dat",  within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19979,7 +19996,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "pseudo_undelete.dat",  within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20094,7 +20112,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "lookup_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20188,7 +20207,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "changed_since_timed.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20249,7 +20269,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "upload_local_kb.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20354,7 +20375,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_permission.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20425,7 +20447,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_fullname.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20483,7 +20506,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_fullname.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20516,9 +20540,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of switch:  switch (funcNumber)
 }
 
-void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("credentials_for_user.dat");
@@ -23723,12 +23747,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
     }
 #else
-    m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+    m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T("")); // whm 22Feb2021 Note: m_appInstallPathOnly does NOT end with PathSeparator
 #endif
     wxLogDebug(_T("The m_appInstallPathOnly = %s"), m_appInstallPathOnly.c_str());
     // On Windows the m_appInstallPathOnly will be something like (if installed to
     // default location):
-    // "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode\"
+    // "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode"
+    // or when running within Visual Studio: "C:\Users\Bill\Documents\adaptit\bin\win32\Unicode Debug" or "C:\Users\Bill\Documents\adaptit\bin\win32\Unicode Release"
     // On Linux/GTK the m_setupFolder will be something like:
     // "/usr/bin/" or "/usr/local/bin/"
     // On the Mac the m_setupFolder will be something like:
@@ -23744,15 +23769,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
     wxLogDebug(_T("The m_xmlInstallPath = %s"), m_xmlInstallPath.c_str());
 
-    // whm 13Feb2021 added the calculation for the new App member m_distKBsharingPath
-    // The m_distKBsharingPath stores the path where the KB sharing "dist" directory
-    // is installed on the given platform. This location is actually the same as the
-    // m_xmlInstallPath + _T("dist")
-    // On wxMSW: "C:\Program Files\Adapt It WX Unicode\dist"
-    // On wxGTK: "/usr/share/adaptit/dist" or "/usr/local/share/adaptit/dist" depending on the
-    //           value of m_PathPrefix [adaptit here is the name of a directory]
-    // On wxMac: "AdaptIt.app/Contents/Resources"
-    m_distKBsharingPath = m_xmlInstallPath + PathSeparator + _T("dist");
+    // whm 22Feb2021 added App member variable m_distKBsharingFolderName which is
+    // assigned the value "dist" here. See note below re the m_distKBsharingPath.
+    m_distKBsharingFolderName = _T("dist");
+
+    // whm 14Feb2021 NOTE about the location and assignment of the "dist" folder:
+    // The new App member m_distKBsharingPath which is the absolute
+    // path to the "dist" folder for storing KB Sharing .DAT files, and ends with PathSeparator.
+    // On 22Feb2021 the team decided to place the "dist" folder in the "Adapt It Unicode Work"
+    // folder. The m_distKBsharingPath location on ALL platforms will be either:
+    // m_customWorkFolderPath + PathSeparator + _T("dist"), or
+    // m_workFolderPath + PathSeparator +  _T("dist")
+    // depending on wiether the user/admin has set up a custom work folder.
+    // The actual value for m_distKBsharingPath has to be determined later below in 
+    // this OnInit() function after it is determined whether the work folder is
+    // a custom work folder or the normal world folder. The code that assigns the
+    // proper value for m_distKBsharingPath done below about lines 26781 and 26802.
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
@@ -26735,6 +26767,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString AIDocCreateLogFolderPath;
     wxString AIpackedDocumentFolderPathOnly;
     wxString AIccTableFolderPathOnly;
+    wxString AIdistKBsharingFolderPath; // whm 22Feb2021 added
     //#if defined(FWD_SLASH_DELIM)
     wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
     // but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
@@ -26768,11 +26801,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
+        // whm 22Feb2021 added test and mkdir command below
+        if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName))
+            ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName);
         AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+        // whm 22Feb2021 added line below
+        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName; // App member m_distKBsharingPath is assigned below - ends with PathSeparator
     }
     else
     {
@@ -26788,11 +26826,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             ::wxMkdir(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
+        // whm 22Feb2021 added test and mkdir command below
+        if (!::wxDirExists(m_workFolderPath + PathSeparator + m_distKBsharingFolderName))
+            ::wxMkdir(m_workFolderPath + PathSeparator + m_distKBsharingFolderName);
         AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+        // whm 22Feb2021 added line below Note: To be compatible with BEW's KBsharing code the AIDistKBsharingFolderPath needs to end with a PathSeparator
+        AIdistKBsharingFolderPath = m_workFolderPath + PathSeparator + m_distKBsharingFolderName + PathSeparator; // App member m_distKBsharingPath is assigned below
     }
 	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
 	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
@@ -26806,6 +26849,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
     m_docCreationFilePathAndName = AIDocCreateLogFolderPath; // whm added 6Apr2020
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
+    m_distKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
 
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -28524,10 +28568,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
 //#if defined(_KBSERVER)
+    
+    // whm 22Feb2021 removed the following two lines
+	//execPath = PathToExecFolder(); // app removed from end, ends now in separator
+	//distPath = GetDistFolder();  // set the path to dist folder, for this session
 
-	execPath = PathToExecFolder(); // app removed from end, ends now in separator
-	distPath = GetDistFolder();  // set the path to dist folder, for this session
-	CreateInputDatBlanks(execPath); // executablePath set above at 22,258
+    // whm 22Feb2021 modified the line below to use the m_appInstallPathOnly instead of exePath
+    CreateInputDatBlanks(m_appInstallPathOnly+PathSeparator); //CreateInputDatBlanks(execPath);
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
 	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
 										   // called in CallExecute()'s post-wxExecute() switch
@@ -28544,6 +28591,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //#if defined (_KBSERVER)
 
+// whm 22Feb2021 removed PathToExeFolder() since the value that this function was getting 
+// already existed in the App member's m_appInstallPathOnly variable (which doesn't end in PathSeparator so needs + PathSeparator to be equivalent to what was in App's execPath)
+/*
 wxString CAdapt_ItApp::PathToExecFolder()
 {
 	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
@@ -28559,7 +28609,11 @@ wxString CAdapt_ItApp::PathToExecFolder()
 
 	return execPath;
 }
+*/
 
+// whm 22Feb2021 removed GetDistFolder() as it is no longer needed since the "dist" folder is now
+// a child folder of the "Adapt It Unicode Work" folder and is always available in m_distKBsharingPath
+/*
 wxString CAdapt_ItApp::GetDistFolder()
 {
 	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
@@ -28577,6 +28631,7 @@ wxString CAdapt_ItApp::GetDistFolder()
 
 	return distPath;
 }
+*/
 
 //#endif
 
@@ -35826,8 +35881,9 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 		// The input .dat file is now set up ready for do_add_KBusers.exe
 		wxString execFileName = _T("do_add_KBUsers.exe"); 
 		wxString resultFile = _T("add_KBUsers_return_result_file.dat");
-		bool bExecutedOK = CallExecute(credentials_for_user, execFileName, execPath, resultFile, 30, 31, TRUE);
-		wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
+        // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
+        bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathAndName, resultFile, 30, 31, TRUE);
+        wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
 		// In above call, TRUE is non-default value for bReportResult
 	}
 }
@@ -58710,7 +58766,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
 
 	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
-	wxString distFolder = _T("dist");
+    wxString distFolder = m_distKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_distKBsharingFolderName
 
 	// Legacy code, dsb-win.bat produces, from anywhere in a command prompt window, a string 
 	// like this for 3 kbservers running:
@@ -59248,9 +59304,9 @@ SD_SD_ValueIsIrrelevant
 };
 */
 
-void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_delete.dat");
@@ -59306,9 +59362,9 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString execPath, wxS
 	}
 }
 
-void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_undelete.dat");
@@ -59364,9 +59420,9 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString execPath, w
 	}
 }
 
-void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString distPath) // whm 22Feb2021 removed execPath parameter
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("create_entry.dat");
@@ -59421,9 +59477,9 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString execPath, wxSt
 	}
 }
 
-void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_user.dat");
@@ -59496,9 +59552,9 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxStr
 	}
 }
 
-void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_entry.dat");
@@ -59551,9 +59607,9 @@ void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString execPath, wxSt
 	}
 }
 
-void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("changed_since_timed.dat");
@@ -59612,9 +59668,9 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath
 	}
 }
 
-void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("upload_local_kb.dat");
@@ -59690,9 +59746,9 @@ void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString execPath, wx
 	}
 }
 
-void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm 22Feb2021 removed execPath parameter
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("list_users.dat");
@@ -59755,9 +59811,9 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxStri
 	}
 }
 
-void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_permission.dat");
@@ -59826,9 +59882,9 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath,
 	}
 }
 
-void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_fullname.dat");
@@ -59897,9 +59953,9 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, w
 	}
 }
 
-void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_password.dat");

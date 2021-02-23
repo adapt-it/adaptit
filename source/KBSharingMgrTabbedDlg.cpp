@@ -255,7 +255,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	{
 		// The input .dat file is now set up ready for do_user_lookup.exe
 		wxString execFileName = _T("do_user_lookup.exe");
-		wxString execPath = m_pApp->execPath;
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("lookup_user_return_results.dat");
 #if defined  (_DEBUG)
 		wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
@@ -601,7 +601,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 	{
 		// The input .dat file is now set up ready for do_change_permission.exe
 		wxString execFileName = _T("do_change_permission.exe");
-		wxString execPath = m_pApp->execPath;
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("change_permission_return_results.dat");
 		bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 99, 99);
 		if (!bExecutedOK)
@@ -636,7 +636,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 	{
 		// The input .dat file is now set up ready for do_change_fullname.exe
 		wxString execFileName = _T("do_change_fullname.exe");
-		wxString execPath = m_pApp->execPath;
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("change_fullname_return_results.dat");
 
 		bool bExecutedOK = FALSE;
@@ -655,7 +655,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 		// At this point, the user table is altered, so it just remains to
 		// Update...() the two lists of structs to achieve synced state
 		// and load in the new state to the m_pUsersListBox
-		//UpdateUserPage(m_pApp, m_pApp->execPath, resultFile, &m_pApp->m_arrLines); deprecated 22Dec20
+		//UpdateUserPage(m_pApp, m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator, resultFile, &m_pApp->m_arrLines); deprecated 22Dec20
 		LoadDataForPage(0);
 
 		if (m_pApp->m_bDoingChangeFullname)
@@ -704,7 +704,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 	{
 		// The input .dat file is now set up ready for do_change_fullname.exe
 		wxString execFileName = _T("do_change_password.exe");
-		wxString execPath = m_pApp->execPath;
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("change_password_return_results.dat");
 
 		bool bExecutedOK = FALSE;

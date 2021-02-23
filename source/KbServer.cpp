@@ -769,7 +769,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	// ***** progress *****
 
 	wxString separator = m_pApp->PathSeparator;
-	wxString execPath = m_pApp->execPath;
+	wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 	int length = execPath.Len();
 	wxChar lastChar = execPath.GetChar(length - 1);
 	wxString strLastChar = wxString(lastChar);
@@ -1034,7 +1034,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 		{
 			// The input .dat file is now set up ready for do_list_users.exe
 			wxString execFileName = _T("do_list_users.exe"); // this call does not use user2, just authenticates
-			wxString execPath = m_pApp->execPath;
+			wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 			wxString resultFile = _T("list_users_return_results.dat");
 			bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 32, 33);
 			if (!bExecutedOK)
@@ -1079,7 +1079,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 	{
 		// The input .dat file is now set up ready for do_user_lookup.exe
 		wxString execFileName = _T("do_user_lookup.exe");
-		wxString execPath = m_pApp->execPath;
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("lookup_user_return_results.dat");
 		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
 		// In above call, last param, bReportResult, is default FALSE therefore omitted;
@@ -1124,7 +1124,7 @@ int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
 	{
-		m_pApp->m_curExecPath = m_pApp->execPath;
+		m_pApp->m_curExecPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 	}
 	execPath = m_pApp->m_curExecPath;
 
@@ -1231,7 +1231,7 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
 	{
-		m_pApp->m_curExecPath = m_pApp->execPath;
+		m_pApp->m_curExecPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 	}
 	execPath = m_pApp->m_curExecPath;
 	int rv = -1; // initialise
@@ -1271,7 +1271,7 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
 	{
-		m_pApp->m_curExecPath = m_pApp->execPath;
+		m_pApp->m_curExecPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 	}
 	execPath = m_pApp->m_curExecPath;
 	// First, store src and nonSrc on the relevant app variables, (m_curNormalAdaption),
@@ -1313,7 +1313,7 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
 	{
-		m_pApp->m_curExecPath = m_pApp->execPath;
+		m_pApp->m_curExecPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 	}
 	execPath = m_pApp->m_curExecPath;
 
@@ -1541,7 +1541,7 @@ void KbServer::UploadToKbServer()
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(upload_local_kb);
 	if (bConfiguredOK)
 	{
-		wxString execPath = m_pApp->execPath; // has PathSeparator at string end
+		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString execFileName = _T("do_upload_local_kb.exe");
 		wxString resultFile = _T("upload_local_kb.exe");
 		m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99);

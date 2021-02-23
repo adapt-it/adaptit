@@ -2180,16 +2180,20 @@ class CAdapt_ItApp : public wxApp
 	wxString discoveryPath; // added this one because it will allow the path to the  <<-- deprecate 
 		// kbserver discovery code to be stored - it may temporarily be different
 		// from resultsPath or execPath
-	wxString distPath; // to Leon's dist folder - always a child of the app's folder
-	wxString execPath; // the "executablePath" with the executable app at end removed
-	wxString GetDistFolder(); // ending in the path separator
-	wxString PathToExecFolder(); // ending in the path separator
+
+    // whm 22Feb2021 removed the following as they are no longer needed for determing the
+    // path to the dist folder or the executable path. Use the App members m_distKBsharingPath
+    // and m_appInstallPathOnly + PathSeparator. 
+	//wxString distPath; // to Leon's dist folder - always a child of the app's folder
+	//wxString execPath; // the "executablePath" with the executable app at end removed
+	//wxString GetDistFolder(); // ending in the path separator
+	//wxString PathToExecFolder(); // ending in the path separator
 
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
 	bool m_bDoingChangePassword; // BEW added, 11Jan21, default FALSE - for KB Sharing Mgr
 
 	// Handler files for the cases in the KBserverDAT_Blanks switch
-	void MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath);
+	void MakeCredentialsForUser(const int funcNumber, wxString distPath);  // whm Note: removed execPath parameter
 
 	// BEW 18Dec20 Legacy code for KB Sharing Mgr is too convoluted, use a set of arrays.
 	// So I'm refactoring to use wxArrayString instances and wxArrayInt for useradmin value
@@ -3458,20 +3462,22 @@ public:
 	// Use a switch internally in CreatInputDatBlanks to make the constant text lines
 	// for the various *.dat 'input' files which are dynamically copied to the execPath
 	// folder and there their final line, the command line of parameters, is replaced 
-	// with the needed parameters for the call by an .exe file using ::wxExecute(...exe); 
-	void CreateInputDatBlanks(wxString& execPth);
+	// with the needed parameters for the call by an .exe file using ::wxExecute(...exe);
+    // whm 22Feb2021 removed the & from the function signature since execPth should be
+    // a value parameter and not a reference parameter.
+	void CreateInputDatBlanks(wxString execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
-	void MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath); // =2
-	void MakeListUsers(const int funcNumber, wxString execPath, wxString distPath); // = 3
-	void MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath); // =4
-	void MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath); // =5
-	void MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath); // =6
-	void MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath); // = 7
-	void MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath); // = 8
-	void MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath); // = 9
-	void MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath); // = 10
-	void MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath); // = 11
-	void MakeChangePassword(const int funcNumber, wxString execPath, wxString distPath); // = 12
+	void MakeLookupUser(const int funcNumber, wxString distPath); // =2  // whm Note: removed execPath parameter
+	void MakeListUsers(const int funcNumber, wxString distPath); // = 3  // whm Note: removed execPath parameter
+	void MakeCreateEntry(const int funcNumber, wxString distPath); // = 4  // whm Note: removed execPath parameter
+	void MakePseudoDelete(const int funcNumber, wxString distPath); // = 5  // whm Note: removed execPath parameter
+	void MakePseudoUndelete(const int funcNumber, wxString distPath); // = 6  // whm Note: removed execPath parameter
+	void MakeLookupEntry(const int funcNumber, wxString distPath); // = 7  // whm Note: removed execPath parameter
+	void MakeChangedSinceTimed(const int funcNumber, wxString distPath); // = 8  // whm Note: removed execPath parameter
+	void MakeUploadLocalKb(const int funcNumber, wxString distPath); // = 9  // whm Note: removed execPath parameter
+	void MakeChangePermission(const int funcNumber, wxString distPath); // = 10  // whm Note: removed execPath parameter
+	void MakeChangeFullname(const int funcNumber, wxString distPath); // = 11  // whm Note: removed execPath parameter
+	void MakeChangePassword(const int funcNumber, wxString distPath); // = 12  // whm Note: removed execPath parameter
 	void CheckForDefinedGlossLangName();
 
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that
@@ -3976,8 +3982,9 @@ public:
 
 	/// m_appInstallPathOnly stores the path (only the path, not path and name) where the
     /// executable application file is installed on the given platform. The value of this
-	/// variable is determined by calling FindAppPath().
-    /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	/// variable is determined by calling FindAppPath(). It doesn't end with PathSeparator
+    /// at least on Windows.
+    /// On wxMSW: C:\Program Files\Adapt It WX Unicode"
     /// On wxGTK: "/usr/bin/" or "/usr/local/bin/" depending on m_PathPrefix
     /// On wxMac: "/Programs/"
 	wxString m_appInstallPathOnly;
@@ -4030,15 +4037,23 @@ public:
 	wxString m_xmlInstallPath;	// whm added for path where the AI_USFM.xml, AI_UserProfiles.xml
 								// and books.xml files are installed
 
+    /// whm 22Feb2021 added a new App member m_distKBsharingFolderName to hold
+    /// the folder name "dist". The assignment of that folder name is done in
+    /// the .cpp file at about line 23750.
+    wxString m_distKBsharingFolderName;
+
     /// whm 13Feb2021 added the new App member m_distKBsharingPath
-    /// m_distKBsharingPath stores the path where the KB sharing "dist" directory
-    /// is installed on the given platform. This location is actually the same as the
-    /// m_xmlInstallPath + _T("dist")
-    /// On wxMSW:   "C:\Program Files\Adapt It WX\ or
-    ///             C:\Program Files\Adapt It WX Unicode\"
-    /// On wxGTK:   "/usr/share/adaptit/" or "/usr/local/share/adaptit" depending on m_PathPrefix
-    ///             [adaptit here is the name of a directory]
-    /// On wxMac:   "AdaptIt.app/Contents/Resources"
+    /// The new App member m_distKBsharingPath is the absolute
+    /// path to the "dist" folder for storing KB Sharing .DAT files - ending with PathSeparator
+    /// On 22Feb2021 the team decided to place the "dist" folder in the "Adapt It Unicode Work"
+    /// folder. The m_distKBsharingPath location on ALL platforms will be either:
+    /// m_customWorkFolderPath + PathSeparator + _T("dist") + PathSeparator, or
+    /// m_workFolderPath + PathSeparator +  _T("dist") + PathSeparator,
+    /// depending on wiether the user/admin has set up a custom work folder.
+    /// The actual value for m_distKBsharingPath has to be determined later below in 
+    /// this OnInit() function after it is determined whether the work folder is
+    /// a custom work folder or the normal world folder. The code that assigns the
+    /// proper value for m_distKBsharingPath is done in Adapt_It.cpp at lines 26781 and 26802.
     wxString m_distKBsharingPath;
 
     /// m_localizationInstallPath stores the path where the <lang> localization files are
