@@ -23771,7 +23771,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm 22Feb2021 added App member variable m_distKBsharingFolderName which is
     // assigned the value "dist" here. See note below re the m_distKBsharingPath.
-    m_distKBsharingFolderName = _T("dist");
+    m_distKBsharingFolderName = _T("_DATA_KB_SHARING");
 
     // whm 14Feb2021 NOTE about the location and assignment of the "dist" folder:
     // The new App member m_distKBsharingPath which is the absolute
