@@ -1462,7 +1462,7 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 	wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
 
 	wxASSERT(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit); // whm added 4Mar12
-
+#if defined (__WXMSW__)
 	// BEW 18Sep20 changes to remove path prefix to rdwrtp executable, and shift
 	// cwd (current working directory) there temporarily, alter commandLine
 	// accordingly, and then restore the cwd to original folder after ::wxExecute()
@@ -1470,7 +1470,7 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 	bool bChangeCwdAllowed = FALSE; // initialize
 	wxString saveCurWorkingDir; // all 3 calls are from same place
 	wxString pathPrefix;
-
+#endif
 	if (lineFor == reading)
 	{
 		// we are transferring data from Paratext or Bibledit, to Adapt It
@@ -1481,18 +1481,19 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// Use the wxExecute() override that takes the two wxStringArray parameters. This
 			// also redirects the output and suppresses the dos console window during execution.
 			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+#if defined (__WXMSW__)
 			// BEW added 18Sep20
 			saveCurWorkingDir = ::wxGetCwd(); // save the current working directory
 			commandLine = gpApp->RemovePathPrefix(commandLine, pathPrefix); // LHS has no path prefix now
 			bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
 			wxUnusedVar(bChangeCwdAllowed); // we assume success - until we find out otherwise!
-
+#endif
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
-
+#if defined (__WXMSW__)
 			// BEW 18Sep20, restore the cwd
 			bool bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
 			wxUnusedVar(bRestoredOK);
-
+#endif
 			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
 				// the code pointer will pass thru here, so it's a suitable place to
 				// reinitialize the flag to FALSE; because operations which open and close
@@ -1531,18 +1532,19 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// Use the wxExecute() override that takes the two wxStringArray parameters. This
 			// also redirects the output and suppresses the dos console window during execution.
 			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+#if defined (__WXMSW__)
 			// BEW added 18Sep20
 			saveCurWorkingDir = ::wxGetCwd(); // save the current working directory
 			commandLine = gpApp->RemovePathPrefix(commandLine, pathPrefix); // LHS has no path prefix now
 			bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
 			wxUnusedVar(bChangeCwdAllowed); // we assume success - until we find out otherwise!
-
+#endif
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
-
+#if defined (__WXMSW__)
 			// BEW 18Sep20, restore the cwd
 			bool bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
 			wxUnusedVar(bRestoredOK);
-
+#endif
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{

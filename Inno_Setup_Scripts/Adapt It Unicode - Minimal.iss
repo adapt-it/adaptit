@@ -110,8 +110,9 @@ Source: "{#SvnBase}\setup Unicode - Minimal\Readme_Unicode_Version.txt"; DestDir
 ;Source: "{#SvnBase}\setup Unicode - Minimal\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
 
 ; added by whm 13Feb2021 - creates an empty dist directory as a child of the {app} directory
-[Dirs]
-Name: "{app}\dist"
+; whm 22Feb2021 removed the creation of a "dist" directory at install time
+;[Dirs]
+;Name: "{app}\dist"
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;

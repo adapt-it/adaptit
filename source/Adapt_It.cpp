@@ -8099,91 +8099,91 @@ const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW = _T("EncConverterConvertString");
 wxString szDoAdaptingBeforeGlossing_InVerticalEdit =
 _T("DoAdaptingBeforeGlossing_InVerticalEdit");   // bool -- for vertical edit settings
 
-                                                 /* this following code from AdminMoveOrCopy class is tested below at lines 5470++
-                                                 wxString BuildChangedFilenameForCopy(wxString* pFilename);
-                                                 wxString BuildChangedFilenameForCopy(wxString* pFilename)
-                                                 {
-                                                 wxString newFilename = _T("");
-                                                 //wxFileName fn(m_strDestFolderPath,*pFilename);
-                                                 wxFileName fn(*pFilename);
-                                                 wxString extn = _T("");
-                                                 bool bHasExtension = FALSE;
-                                                 if (fn.HasExt())
-                                                 {
-                                                 extn = fn.GetExt();
-                                                 bHasExtension = TRUE; // to handle when only the . of an extension is present
-                                                 }
-                                                 wxString name = fn.GetName();
-                                                 wxString reversed = MakeReverse(name); // our utility from helpers.cpp
-                                                 // look for ")d...d(" at the start of the reversed string, where d...d is one or more
-                                                 // digits; we want to get the digit(s), convert to int, increment by 1, convert back
-                                                 // to digits, and build the new string with (n) at the end where n is the new larger
-                                                 // value. However, mostly no such end string is present, in which case we can just
-                                                 // create a name with "(2)" at the end immediately.
-                                                 wxString shortname;
-                                                 wxChar aChar = reversed.GetChar(0);
-                                                 wxString ending = _T("");
-                                                 if (aChar == _T(')'))
-                                                 {
-                                                 // we've got a filename with the name part in the form name(n) where n is one or
-                                                 // more digits (or at least we'll assume so)
-                                                 ending = aChar;
-                                                 shortname = reversed.Mid(1);
-                                                 // get the digits -- look for matching '(', if not found, just add "(2)" as below,
-                                                 // but if found, the characters up to that point should be the digit string we want
-                                                 int offset = shortname.Find(_T('('));
-                                                 if (offset == wxNOT_FOUND)
-                                                 {
-                                                 newFilename = name + _T("(2)");
-                                                 newFilename += _T(".") + extn;
-                                                 }
-                                                 else
-                                                 {
-                                                 wxString digitStr = shortname.Left(offset);
-                                                 shortname = shortname.Mid(offset); // this is now "(reversednamepart"
-                                                 // reverse digitStr, to make it normal order
-                                                 digitStr = MakeReverse(digitStr);
-                                                 // convert digitStr to an unsigned long
-                                                 unsigned long value;
-                                                 bool bConvertedOK = digitStr.ToULong(&value);
-                                                 if (!bConvertedOK)
-                                                 {
-                                                 // it wasn't a valid digit string, so make a (2) at end of original name
-                                                 newFilename = name + _T("(2)");
-                                                 newFilename += _T(".") + extn;
-                                                 }
-                                                 else
-                                                 {
-                                                 // it converted correctly, so bump the value by 1 and rebuild the new
-                                                 // string's output form
-                                                 value++;
-                                                 digitStr.Printf(_T("%d"),value);
-                                                 // now reverse it again
-                                                 digitStr = MakeReverse(digitStr);
-                                                 // prepend to shortname
-                                                 shortname = digitStr + shortname;
-                                                 // add the ending
-                                                 shortname = ending + shortname; // remember this is still reversed!
-                                                 // now reverse it back to natural order
-                                                 shortname = MakeReverse(shortname);
-                                                 newFilename = shortname + _T(".") + extn;
-                                                 }
-                                                 }
-                                                 }
-                                                 else
-                                                 {
-                                                 // assume it is a normal filename with no (n) on the end
-                                                 newFilename = name + _T("(2)");
-                                                 newFilename += _T(".") + extn;
-                                                 }
-                                                 return newFilename;
-                                                 }
-                                                 */
+/* this following code from AdminMoveOrCopy class is tested below at lines 5470++
+wxString BuildChangedFilenameForCopy(wxString* pFilename);
+wxString BuildChangedFilenameForCopy(wxString* pFilename)
+{
+wxString newFilename = _T("");
+//wxFileName fn(m_strDestFolderPath,*pFilename);
+wxFileName fn(*pFilename);
+wxString extn = _T("");
+bool bHasExtension = FALSE;
+if (fn.HasExt())
+{
+extn = fn.GetExt();
+bHasExtension = TRUE; // to handle when only the . of an extension is present
+}
+wxString name = fn.GetName();
+wxString reversed = MakeReverse(name); // our utility from helpers.cpp
+// look for ")d...d(" at the start of the reversed string, where d...d is one or more
+// digits; we want to get the digit(s), convert to int, increment by 1, convert back
+// to digits, and build the new string with (n) at the end where n is the new larger
+// value. However, mostly no such end string is present, in which case we can just
+// create a name with "(2)" at the end immediately.
+wxString shortname;
+wxChar aChar = reversed.GetChar(0);
+wxString ending = _T("");
+if (aChar == _T(')'))
+{
+// we've got a filename with the name part in the form name(n) where n is one or
+// more digits (or at least we'll assume so)
+ending = aChar;
+shortname = reversed.Mid(1);
+// get the digits -- look for matching '(', if not found, just add "(2)" as below,
+// but if found, the characters up to that point should be the digit string we want
+int offset = shortname.Find(_T('('));
+if (offset == wxNOT_FOUND)
+{
+newFilename = name + _T("(2)");
+newFilename += _T(".") + extn;
+}
+else
+{
+wxString digitStr = shortname.Left(offset);
+shortname = shortname.Mid(offset); // this is now "(reversednamepart"
+// reverse digitStr, to make it normal order
+digitStr = MakeReverse(digitStr);
+// convert digitStr to an unsigned long
+unsigned long value;
+bool bConvertedOK = digitStr.ToULong(&value);
+if (!bConvertedOK)
+{
+// it wasn't a valid digit string, so make a (2) at end of original name
+newFilename = name + _T("(2)");
+newFilename += _T(".") + extn;
+}
+else
+{
+// it converted correctly, so bump the value by 1 and rebuild the new
+// string's output form
+value++;
+digitStr.Printf(_T("%d"),value);
+// now reverse it again
+digitStr = MakeReverse(digitStr);
+// prepend to shortname
+shortname = digitStr + shortname;
+// add the ending
+shortname = ending + shortname; // remember this is still reversed!
+// now reverse it back to natural order
+shortname = MakeReverse(shortname);
+newFilename = shortname + _T(".") + extn;
+}
+}
+}
+else
+{
+// assume it is a normal filename with no (n) on the end
+newFilename = name + _T("(2)");
+newFilename += _T(".") + extn;
+}
+return newFilename;
+}
+*/
 
-                                                 /////////////////////////////////////////////////////////////////////////////
-                                                 // CAdapt_ItApp construction
+/////////////////////////////////////////////////////////////////////////////
+// CAdapt_ItApp construction
 
-                                                 // initialize static class variable
+// initialize static class variable
 bool CAdapt_ItApp::bLookAheadMerge = FALSE;
 
 /// **** DO NOT PUT INITIALIZATIONS IN THE APP'S CONSTRUCTOR *****
@@ -8266,781 +8266,6 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
     event.Skip();
     return -1; // Event_Skip;
 }
-
-// whm 11July2018 disabling the contents of FilterEvent() as it should not be needed
-// in the refactored phrasebox
-/*
-
-// whm 2Jun2018 added to filter all events for wxEVT_LEFT_DOWN and wxEVT_CHAR events when dropdown
-// is open. FilterEvent() is conditionally compiled so that parts of it execute on Linux and Mac ports
-// and other parts execute on ALL ports. Currently no parts of FilterEvent() execute only on Windows.
-// The Windows port regularly closes the dropdown list for the various events filtered in FilterEvent(),
-// whereas the Linux/Mac ports require more intervention here to close the dropdown is open.
-// See comments within this function for more details on the problem behaviors and what FilterEvent()
-// does to remedy those problems.
-//
-// For reference see: https://wiki.wxwidgets.org/Catching_key_events_globally section: Filter Events
-int CAdapt_ItApp::FilterEvent(wxEvent & event)
-{
-    const wxEventType t = event.GetEventType();
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // IMPORTANT CONSIDERATIONS: When handling events here in FilterEvent() the timing can be
-    // tricky, especially for detecting a downstream events such as whether the dropdown list
-    // is OPEN or CLOSED. For example, when calling m_pTargetBox->IsPopupShown() it may be TRUE
-    // at the beginning of FilterEvent() but it will quickly turn FALSE after a few statements
-    // in FilterEvent() are executed. So, as soon as possible, we call IsPopupShown() at the
-    // beginning of our function below, and we set the local boolean value bEVT_LEFT_DOWN or
-    // bEVT_CHAR to TRUE if one of those events has occurred while the dropdown list is
-    // initially open. That way we don't need to, nor should we call IsPopupShown() later in
-    // the function when it might not be TRUE.
-    //
-    // whm 30Jun2018 Note: Certain parts of FilterEvent() are conditionally compiled for the
-    // Linux/Mac ports. Other parts are compiled for all 3 ports: Linux, Mac and Windows.
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    if (m_pTargetBox != NULL)
-    {
-        // Observation: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
-        // on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed. However,
-        // a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
-        // only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the
-        // CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
-
-        // whm Note: ***CAUTION*** attempting to filter wxEVT_LEFT_DOWN event and setting breakpoints
-        // in this function within gdb seems to result in hanging up the entire system, necessitating
-        // a cold reboot!!! Instead of using breakpoints it is better to post wxLogDebug statements.
-        //if (t == wxEVT_LEFT_DOWN)
-        //{
-        //    //int MenuID;
-        //    if (ClickedOnMainMenuBar((wxMouseEvent&)event)) // TODO: ClickedOnMainMenuBar() not yet working
-        //    {
-        //        wxLogDebug(_T("Clicked on Main Menu Bar"));
-        //    }
-
-        //    int breakpoint = 0;
-        //    breakpoint = breakpoint;
-        //    wxLogDebug(_T("**Triggered wxEVT_LEFT_DOWN in FilterEvent()**"));
-        //}
-
-
-        //// TODO: Revisit the wxEVT_LEFT_DOWN filtering later
-        //if (t == wxEVT_LEFT_DOWN)
-        //{
-        //    wxLogDebug(_T("**Left Button Down**"));
-        //    if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
-        //    {
-        //        // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's
-        //        // edit box.
-        //        wxLogDebug(_T("***Clicked on phrasebox***"));
-        //        // TODO: Dropdown closes before getting here!!!
-        //        if (m_pTargetBox->IsPopupShown())
-        //        {
-        //            // Even though Windows will call Dismiss() on the first character stroke, we don't have to
-        //            // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
-        //            // Dismiss() call to be done on a combo box whose dropdown is already closed.
-        //            m_pTargetBox->CloseDropDown();
-        //            // When the dropdown list is showing, the text inside the edit box will be selected.
-        //            // Dismissing/Closing the dropdown normally won't remove the text highlighting because
-        //            // the code elsewhere will use the App's m_nStartChar and m_nEndChar settings. Since
-        //            // the user can just start typing to enter a new translation replacing the completely
-        //            // highlighted text, here we will tell the App vars that we want there to be no selection
-        //            // by setting m_nStartChar and m_nEndChar to zero.
-        //            m_nStartChar = 0;
-        //            m_nEndChar = 0;
-        //            //m_pTargetBox->GetTextCtrl()->SetSelection(0, 0);
-        //            //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
-        //            //m_pTargetBox->GetTextCtrl()->Refresh();
-        //            // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown()
-        //            // handler to execute it flag coctail (including m_bAbandonable = FALSE).
-        //            // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
-        //            // phrasebox on the first mouse click.
-        //            m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
-        //        }
-
-        //        //int breakpoint = 0;
-        //        //breakpoint = breakpoint;
-        //    }
-        //    else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
-        //    {
-        //        wxLogDebug(_T("***Clicked on other target location***"));
-        //        int BreakPoint = 0;
-        //        BreakPoint = BreakPoint;
-        //            // For clicks on the canvas other than directly on the phrasebox
-        //            CMainFrame* pFrame = GetMainFrame();
-        //            if (pFrame != NULL && pFrame->canvas != NULL)
-        //            {
-        //                wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonUp() from FilterEvent() wxEVT_LEFT_DOWN"));
-        //                pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
-        //            }
-        //    }
-        //    int breakpoint = 0;
-        //    breakpoint = breakpoint;
-        //} // end of if (t == wxEVT_LEFT_DOWN)
-
-
-
-        // Without the wxEVT_LEFT_UP intervention below Windows a left click into the phrasebox's edit box
-        // does nothing but close the dropdown list if it is open, leaving the text in the edit box selected.
-        // If the dropdown list is closed when the click into the phrasebox is done, only the selection of
-        // text is removed and the insertion point is placed wherever the mouse pointer was pointing in the
-        // text at the time of the left click. In either case, neither the CPhraseBox::OnLButtonDown(), nor
-        // the CPhraseBox::OnLButtonUp() handler is triggered without the intervention below.
-        // Other behaviors:
-        // If the left click is directly on the dropdown button, both the CPhraseBox::OnLButtonDown() and
-        // the CPhraseBox::OnLButtonUp() handlers are called!
-        // If an item in the list is selected with a mouse or with arrow key and Return,
-        //
-        //
-        // With the wxEVT_LEFT_UP intervention below compiled into the code, a left click into the phrasebox's
-        // edit box outputs the wxLogDebug calls contained in the ClickedOnPhraseBoxLocation() block below
-        if (t == wxEVT_LEFT_UP)
-        {
-            // The wxEVT_LEFT_UP proves to be more consistent that the wxEVT_LEFT_DOWN event and allows some time
-            // for the internal state of the phrasebox to get settled before.
-            // Note: We cannot call m_pTargetBox->IsPopupShowing() to detect if the dropdown list is open
-            // because the wxEVT_LEFT_UP gets the list closed before we get to this point.
-            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
-            {
-                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
-                wxLogDebug(_T("***Clicked on phrasebox***"));
-                wxLogDebug(_T("Calling CPhraseBox::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
-                m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
-                wxLogDebug(_T("Calling CPhraseBox::OnLButtonUp() from FilterEvent() wxEVT_LEFT_UP"));
-                m_pTargetBox->OnLButtonUp((wxMouseEvent&)event);
-            }
-            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
-            {
-                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
-                wxLogDebug(_T("***Clicked on other target location***"));
-                CMainFrame* pFrame = GetMainFrame();
-                if (pFrame != NULL && pFrame->canvas != NULL)
-                {
-                    wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
-                    pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
-				}
-            }
-        }
-
-
-        if (t == wxEVT_CHAR)
-        {
-            // If the dropdown list is open any key press will close it, but on Linux/Mac
-            // the key press itself is not propagated on when the dropdown list is open,
-            // so we detect whether the popup is open here (before the code downstream
-            // closes it), close the dropdown here, and directly call from here the
-            // appropriate CPhraseBox key event handler.
-            // We must take care in our filtering of the wxEVT_CHAR events to make sure
-            // that we only intervene for those key events that happen when the dropdown
-            // list is open, AND when the phrasebox control is in focus.
-            if (m_pTargetBox->IsPopupShown())
-            {
-                // The dropdown list is open!
-
-                // We do the following interventions only when the phrasebox is in focus.
-                // Normally the phrasebox is in focus when the dropdown list is open, but the
-                // library code for wxOwnerDrawnComboBox has a m_partialCompletionTimer variable
-                // it uses in handling certain key strokes which may affect transitions between
-                // the changing of window focus, so we'll try to play safe by detecting that
-                // the phrasebox is not only open, but still has the focus - before performing
-                // the following interventions.
-                if (PhraseBoxIsInFocus())
-                {
-                    // Problem 1:
-                    // Pressing LEFT, RIGHT, ALT+LEFT, or ALT+RIGHT keys don't react immediately
-                    // when dropdown is open. It takes two presses of the above keys - the first press
-                    // closes the dropdown list (in downstream code), and the second key press then is
-                    // caught by the CPhraseBox key handlers.
-
-                    // Problem 2:
-                    // ALT+LEFT and ALT+RIGHT keys do not pass through FilterEvent() at all
-                    // on Linux platform when the dropdown is open. In fact no keys of the type
-                    // HasModifiers() (with ALT down or CTRL down) pass through FilterEvent() on
-                    // the Linux platform when the dropdown is open.
-                    // No Solution to Problem 2 is known at this time!!!
-
-                    // Solution to Problem 1:
-
-#if defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXMAC__) // compile below for all platforms
-                    // This TypedNonReservedNavKey() defined block detects these keys:
-                    // LEFT Arrow, RIGHT Arrow, ALT+LEFT Arrow, and ALT+RIGHT Arrow.
-                    // The interventions here should execute on all platforms to overcome these
-                    // Unwanted Behaviors:
-                    //   Pressing LEFT or RIGHT arrow keys either don't close the dropdown, or
-                    //   if they do on a given platform, they don't remove the selection, and
-                    //   don't set the insertion point in an intuitive way.
-                    // Solution:
-                    //   1. Use our TypedNonReservedNavKey() function to detect only nav key
-                    //      events LEFT Arrow, RIGHT Arrow, ALT+LEFT Arrow, and ALT+RIGHT Arrow.
-                    //   2. Close the dropdown list from here.
-                    //   3. Determine if whole phrasebox text is selected, and if so, remove the
-                    //      selection and adjust the insertion point for LEFT and RIGHT key press.
-                    //   4. For ALT+LEFT and ALT+RIGHT key presses don't bother with removing the
-                    //      selection, but leave it selected (unless intervention elsewhere has
-                    //      removed it).
-                    //   5. Call the CPhraseBox::OnSysKeyUp() handler directly from here, which
-                    //      has the usual Adapt It way of handling LEFT Arrow, RIGHT Arrow,
-                    //      ALT+LEFT Arrow, and ALT+RIGHT Arrow.
-                    //   6. Return from FilterEvent() without calling event.Skip(). Since we have
-                    //      directly called OnSysKeyUp() we don't want OnSysKeyUp() to get called
-                    //      again downstream from here.
-                    if (TypedNonReservedNavKey((wxKeyEvent&)event)) // 1.
-                    {
-                        // LEFT, RIGHT, ALT+LEFT, or ALT+RIGHT was pressed while dropdown open/focused
-                        // 2.
-                        m_pTargetBox->CloseDropDown();
-                        // 3.
-                        long strLen;
-                        strLen = m_pTargetBox->GetValue().Length();
-                        long startSel;
-                        long endSel;
-                        m_pTargetBox->GetSelection(&startSel, &endSel);
-                        // Adjust selection and insertion point for LEFT and RIGHT key press, but
-                        // only if whole contents is selected - in case another means has been found
-                        // to remove the selection and place insertion point at end before coming here.
-                        if (startSel == 0 && endSel == strLen)
-                        {
-                            // whole phrasebox content is selected at this point, so remove the selection
-                            // and adjust insertion point.
-                            if (((wxKeyEvent&)event).GetKeyCode() == WXK_LEFT)
-                            {
-                                // A LEFT key press should remove selection and put insertion point end -1.
-                                m_pTargetBox->GetTextCtrl()->SetSelection(endSel - 1, endSel - 1);
-                            }
-                            else if (((wxKeyEvent&)event).GetKeyCode() == WXK_RIGHT)
-                            {
-                                // A RIGHT key press should remove selection and put insertion point at end.
-                                m_pTargetBox->GetTextCtrl()->SetSelection(strLen, strLen);
-                            }
-                            // 4. Don't remove any selection for ALT+LEFT or ALT+RIGHT
-                        }
-                        // 5.
-                        // Note: On Linux (and Mac?) the next call to OnSysKeyUp() won't happen for
-                        // ALT+LEFT nor ALT+RIGHT because they aren't detected in FilterEvent() on Linux
-                        // when the dropdown list is open.
-                        m_pTargetBox->OnSysKeyUp((wxKeyEvent&)event); // OnKeyUP() diverts ALT+LEFT and ALT+RIGHT to OnSysKeyUp()
-                        // 6.
-                        return 1; // value of 1 means Event_Processed. The event was already handled, don't process it normally. // Don't call event.Skip()
-
-                        // whm TODO: There are other non-reserved nav keys that are handled within OnSysKeyUp()
-                        // and which probably require pressing twice to activate their functionality when the
-                        // dropdown list is open. In the list below, all but # 10-#13 probably cannot be detected
-                        // on Linux, but most of the other probably can be detected on Windows.
-                        // Those other sys key presses include:
-
-                        // 2. Handles ALT+ENTER to Make a Phrase if not glossing and selection count > 1.
-                        // 3. Handles ALT+BACKSPACE to advance phrasebox without KB lookup if transliteration mode in ON
-                        //    and not glossing.
-                        // 4. Handles ALT+BACKSPACE if transliteration mode in OFF with error message to user.
-                        // 5. Handles ALT+RIGHT to extent selection right if not glossing.
-                        // 6. Handles ALT+LEFT to extent selection left if not glossing.
-                        // 7. Handles ALT+UP to summon the retranslation dialog via DoRetranslationByUpArrow().
-                        // 8. Note: ALT+DOWN no longer handled (to insert placeholder BEFORE) in our key handlers because
-                        //    ALT+DOWN is the built in hot key to make the dropdown list open/close. See SHIFT+ALT+DOWN below.
-                        // 9. Handle ALT+DELETE to un-merge a current merger into separate words, when not glossing.
-                        // 10. Handle SHIFT+UP to scroll the screen up about 1 strip. A simple WXK_UP cannot be used anymore
-                        //     because it is reserved to move the highlight in the dropdown list.
-                        // 11. Handle SHIFT+DOWN to scroll the screen down about 1 strip. A simple WXK_DOWN cannot be used
-                        //     anymore because it is reserved to move the highlight in the dropdown list.
-                        // 12. Handle SHIFT+PAGEUP to scroll the screen up about a screen full. A simple WXK_PAGEUP cannot
-                        //     be used anymore because it is reserved to move the highlight in the dropdown list.
-                        // 13. Handle SHIFT+PAGEDOWN to scroll the screen down about a screen full. A simple WXK_PAGEDOWN
-                        //     cannot be used anymore because it is reserved to move the highlight in the dropdown list.
-                        // 14. Handle SHIFT+ALT+DOWN or SHIFT+CTRL+DOWN to add a placeholder BEFORE the phrasebox location.
-                        //     Previously this was just ALT+DOWN, but ALT+DOWN is now reserved to toggle the dropdown list
-                        //     open/closed.
-                        // 15. Handle SHIFT+CTRL+SPACE to enter a ZWSP (zero width space) into the composebar's editbox;
-                        //     replacing a selection if there is one defined.
-                        // 16. Handle CTRL+DOWN to insert placeholder AFTER the phrasebox location (not on a Mac)
-                        //     TODO: Add CTRL+ALT+DOWN as alternate???
-                        // 17. Handle CTRL+ENTER to Jump Forward when transliteration, or warning message if not
-                        //     transliteration is not turned ON.
-                    }
-#endif
-                    // Don't use else if for the remainin tests - as we are not necessarily dealing with exclusive
-                    // categories in our bool key event detection functions
-
-                    // The TypedAlphanumericKeyInPhraseBox() is needed because of differences between Windows and
-                    // Linux/Mac in the handling of the first alphanumeric character typed while the dropdown list is
-                    // open.
-                    // The interventions here should execute on all platforms to overcome these
-                    // Unwanted Behaviors:
-                    //    On Windows: The alphanumeric character key press closes the dropdown list, and the owner
-                    // drwawn combo box copies that character into the phrasebox, but it doesn't call all 3 of the
-                    // normal CPhraseBox handlers for the first key press - it only calls OnKeyUp(). That is
-                    // problematic on Windows when a source phrase selection is current, because the first key gets
-                    // put into the phrasebox, but no merge happens because there is no call to the CPhraseBox::OnChar()
-                    // handler to merge the source phrase at that first key press. Instead, the merge happens on
-                    // the second key press and the first key is lost/omitted from the phrasebox.
-                    //    On Linux/Mac: The alphanumeric character simply gets blocked when the dropdown list is open, and
-                    // the key is not registered in the phrasebox, and none of the 3 normal CPhraseBox handlers get
-                    // called.
-                    // Solution:
-                    //   1. Use our TypedAlphanumericKeyInPhraseBox() function below to detect only alphanumeric key
-                    //   events - the characters that make up normal text entered into the phrasebox.
-                    //   2. Close the dropdown list from here.
-                    //   3. Determine if whole phrasebox text is selected, and if so, remove the
-                    //      selection and adjust the insertion point for LEFT and RIGHT key press.
-                    //   4. For ALT+LEFT and ALT+RIGHT key presses don't bother with removing the
-                    //      selection, but leave it selected (unless intervention elsewhere has
-                    //      removed it).
-                    //   5. Call the CPhraseBox::OnSysKeyUp() handler directly from here, which
-                    //      has the usual Adapt It way of handling LEFT Arrow, RIGHT Arrow,
-                    //      ALT+LEFT Arrow, and ALT+RIGHT Arrow.
-                    //   6. Return from FilterEvent() without calling event.Skip(). Since we have
-                    //      directly called OnSysKeyUp() we don't want OnSysKeyUp() to get called
-                    //      again downstream from here.
-                    //
-                    if (TypedAlphanumericKeyInPhraseBox((wxKeyEvent&)event))
-                    {
-                        // Detected a normal alphanumeric key press including ShiftDown() forms.
-                        // Excludes reserved navigation arrow keys WXK_DOWN, WXK_UP, WXK_PAGEDOWN and WXK_PAGEUP,
-                        // Exludes any key events that return TRUE for HasModifiers() which includes any
-                        // The use of GetUnicodeKey() also excludes other keys like the function keys, F8, etc.
-                        // accelerator keys modified by CTRL down, and other special hot keys modified
-                        // by ALT down. Basically returns true for any key that becomes visible text within the
-                        // phrasebox.
-                        // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
-                        // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
-                        int keyCode = ((wxKeyEvent&)event).GetUnicodeKey(); // must use GetUnicodeKey() here!
-                        wxChar keyChar = wxChar(keyCode);
-                        wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
-
-                        m_pTargetBox->CloseDropDown();
-                        // Manually put this first alphanumeric character into the phrasebox
-                        // but call OnKeyDown() and OnChar() first. OnChar() will take care of any
-                        // merger that needs doing before we put our first typed alphanumeric character
-                        // into the phrasebox.
-                        m_pTargetBox->OnKeyDown((wxKeyEvent&)event);
-                        m_pTargetBox->OnChar((wxKeyEvent&)event); // This call of OnChar() triggers a merger if a selection is present
-                        // Now that any awaiting merger has been done, put the first typed character into the phrasebox
-                        m_pTargetBox->GetTextCtrl()->ChangeValue(keyChar);
-                        // Since the insertion point ends up at position zero - before the char just typed
-                        // we need to set it to the position after the char
-                        m_pTargetBox->SetInsertionPointEnd();
-                        m_pTargetBox->OnKeyUp((wxKeyEvent&)event);
-
-                        int Breakpoint = 0;
-                        Breakpoint = Breakpoint;
-
-                        return 1;  // value of 1 means Event_Processed. The event was already handled, don't process it normally. // Don't call event.Skip()
-
-                    }
-
-                    if (TypedReservedDropDownListNavKey((wxKeyEvent&)event))
-                    {
-                        int Breakpoint = 0;
-                        Breakpoint = Breakpoint;
-                    }
-
-                    if (TypedSysKeyInPhraseBox((wxKeyEvent&)event))
-                    {
-                        int Breakpoint = 0;
-                        Breakpoint = Breakpoint;
-
-                    }
-
-                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
-                    // filtered here, first one has a negative value returned by GetId() call below, the second
-                    // one has the ID of the phrasebox (22030).
-                    // On Linux a key press with dropdown open results in one wxEVT_KEY_DOWN event being
-                    // filtered here. It has a negative value, and cannot be used to identify the phrasebox.
-                    // Observation: The Windows version of wx propagates the key event on to the phrasebox
-                    // closing its dropdown list and registering the first key stroke into the phrasebox replacing
-                    // its currently selected text. But note that this first key going into the phrasebox does
-                    // NOT result in the triggering of the CPhraseBox::OnChar() method for that alphanumeric
-                    // character, as does any/all following alphanumeric input after that first character.
-                    int keyCode = ((wxKeyEvent&)event).GetKeyCode();
-                    wxChar keyChar = wxChar(keyCode);
-                    wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
-                    //int keyid = event.GetId(); // returns negative number on Linux.
-                    //wxClassInfo* classInfo = event.GetClassInfo();
-                    //wxString className = classInfo->GetClassName();
-                    //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
-
-                    // The block below is for testing and setting breakpoints in the Windows version.
-                    // It has the same conditions as the block below that is conditionally compiled
-                    // for __WXGTK__ and __WXMAC__.
-                    if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
-                        && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
-                        && wxIsprint(keyChar))
-                    {
-                        int breakpoint = 0;
-                        breakpoint = breakpoint;
-                    }
-
-#if 0 //#if defined (__WXGTK__) || defined (__WXMAC__)
-
-                    // Don't Dismiss() the dropdown for list navigation keys WXK_DOWN and WXK_UP
-                    if (!(keyCode == WXK_DOWN) && !(keyCode == WXK_UP) && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
-                    {
-                        // Even though Windows will call Dismiss() on the first character stroke, we don't have to
-                        // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
-                        // Dismiss() call to be done on a combo box whose dropdown is already closed.
-                        m_pTargetBox->CloseDropDown();
-                        // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
-                        // character into the phrasebox.
-                        // whm 24June2018 removed the !ShiftDown() filter - upper case chars need to be processed!
-                        // If the key that was typed is an alphanumeric key put it into the phrasebox.
-                        if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
-                            && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
-                            && wxIsprint(keyChar))
-                        {
-                            m_pTargetBox->GetTextCtrl()->ChangeValue(keyChar);
-                            // Since the insertion point ends up at position zero - before the char just typed
-                            // we need to set it to the position after the char
-                            m_pTargetBox->SetInsertionPointEnd();
-                        }
-                    }
-#endif
-                } // end of if (PhraseBoxIsInFocus())
-            }
-
-        } // end of if (t == wxEVT_CHAR)
-
-        if (t == wxEVT_ENTER_WINDOW)
-        {
-            //if (!(this->GetMainFrame()->canvas == ((wxMouseEvent&)event).GetEventObject()))
-            //{
-            //    int Breakpoint = 0;
-            //    Breakpoint = Breakpoint;
-            //}
-            //// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //if (MouseOverMainMenuBar((wxMouseEvent&) event))
-            //{
-            //    int Breakpoint = 0;
-            //    Breakpoint = Breakpoint;
-
-            //}
-
-            //else if (MouseOverToolBar((wxMouseEvent&)event))
-            //{
-            //    int Breakpoint = 0;
-            //    Breakpoint = Breakpoint;
-
-            //}
-            //else if (MouseOverModeBar((wxMouseEvent&)event))
-            //{
-            //    int Breakpoint = 0;
-            //    Breakpoint = Breakpoint;
-
-            //}
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        }
-    }
-//#endifj
-
-
-    // Continue processing the event normally as well.
-    event.Skip();
-    return -1; // Event_Skip;
-}
-
-*/
-
-
-// whm 12Jul2018 Note: If the following PhraseBoxIsInFocus() function is needed apart from
-// the wxOwnerDrawnComboBox and FilterEvent(), it could be refactored for the new phrasebox
-// and discriminating the actual m_pTargetBox->GetTextCtrl() part of the phrasebox.
-
-/*
-// whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
-// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
-bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
-{
-    // The object represented by the m_pTargetBox->GetTextCtrl() return value is the pointer
-    // to just the wxTextCtrl part of the dropdown phrasebox. Clicking on just the phrasebox
-    // down button here returns FALSE as it is a different object.
-    if (m_pTargetBox->GetTextCtrl() == ((wxMouseEvent&)event).GetEventObject())
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
-
-// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
-// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
-bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
-{
-    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
-    wxASSERT(pView != NULL);
-    wxPoint point;
-    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
-                                    // corner of the window.
-                                    // get the point into logical coordinates
-    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
-    wxClientDC aDC(pCanvas); // make a device context
-    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
-
-                      // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
-                      // provides logical coordinates for the clicked point; wxPoint in device coords was needed
-                      // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
-                      // coords of the point here.
-    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
-    point = logicalPoint;
-
-    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
-    if (pClickedStrip != NULL)
-    {
-        int numPiles;
-        numPiles = pClickedStrip->GetPileCount();
-        if (numPiles > 0)
-        {
-            CPile* pPile = NULL;
-            CCell* pCell = NULL;
-            wxRect cellRect;
-            int indexPile;
-            for (indexPile = 0; indexPile < numPiles; indexPile++)
-            {
-                pPile = pClickedStrip->GetPileByIndex(indexPile);
-                wxASSERT(pPile != NULL);
-                wxRect pileRect = pPile->GetPileRect();
-                if (pileRect.Contains(point))
-                {
-                    pCell = pPile->GetCell(1);
-                    pCell->GetCellRect(cellRect);
-                    if (cellRect.Contains(point))
-                        return TRUE;
-                }
-            }
-        }
-    }
-    return FALSE;
-}
-
-bool CAdapt_ItApp::ClickedOnMainMenuBar(wxMouseEvent & event)
-{
-    //wxRect menuRect = this->GetMainFrame()->m_pMenuBar->HitTest(GetRect();
-    wxPoint mousePtrPos = ((wxMouseEvent&)event).GetPosition();
-    int itemAtPosition = this->GetMainFrame()->m_pMenuBar->HitTest(mousePtrPos);
-    //if (menuRect.Contains(mousePtrPos))
-    if (itemAtPosition == 1)
-    {
-        return TRUE;
-        // TODO: Close dropdown list
-        // TODO: Propagate the mouse click on
-    }
-    //int objectID = ((wxMouseEvent&)event).GetId(); // TODO: This is returning a large negative number instead of an object ID.
-    //if (objectID == ID_FILE_MENU
-    //    || objectID == ID_EDIT_MENU
-    //    || objectID == ID_VIEW_MENU
-    //    || objectID == ID_TOOLS_MENU
-    //    || objectID == ID_EXPORT_IMPORT_MENU
-    //    || objectID == ID_ADVANCED_MENU
-    //    || objectID == ID_LAYOUT_MENU
-    //    || objectID == ID_HELP_MENU
-    //    || objectID == ID_ADMINISTRATOR_MENU)
-    //{
-    //    MenuID = objectID;
-    //    return TRUE;
-    //}
-    return false;
-}
-
-// The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
-bool CAdapt_ItApp::MouseOverMainMenuBar(wxMouseEvent& event)
-{
-    if (this->GetMainFrame()->m_pMenuBar == ((wxMouseEvent&)event).GetEventObject())
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
-
-bool CAdapt_ItApp::MouseOverToolBar(wxMouseEvent& event)
-{
-    if (this->GetMainFrame()->m_auiToolbar == ((wxMouseEvent&)event).GetEventObject())
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
-
-bool CAdapt_ItApp::MouseOverModeBar(wxMouseEvent& event)
-{
-    if (this->GetMainFrame()->m_pControlBar == ((wxMouseEvent&)event).GetEventObject())
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
-
-// The following three are used within the wxEVT_CHAR block of FilterEvent():
-bool CAdapt_ItApp::TypedReservedDropDownListNavKey(wxKeyEvent& WXUNUSED(event))
-{
-    return FALSE;
-}
-
-// Detect the WXK_LEFT, WXK_RIGHT, and ALTDOWN + WXK_LEFT and ALTDOWN + WXK_RIGHT
-// For use in App's FilterEvent() function.
-bool CAdapt_ItApp::TypedNonReservedNavKey(wxKeyEvent& event)
-{
-    int keyCode = event.GetKeyCode();
-    if (event.AltDown() && keyCode == WXK_LEFT)
-    {
-        wxLogDebug(_T("Pressed ALT + LEFT Arrow key"));
-        return TRUE;
-    }
-    else if (event.AltDown() && keyCode == WXK_RIGHT)
-    {
-        wxLogDebug(_T("Pressed ALT + RIGHT Arrow key"));
-        return TRUE;
-    }
-    else if (keyCode == WXK_LEFT)
-   {
-        wxLogDebug(_T("Pressed LEFT Arrow key"));
-        return TRUE;
-    }
-    else if (keyCode == WXK_RIGHT)
-    {
-        wxLogDebug(_T("Pressed RIGHT Arrow key"));
-        return TRUE;
-    }
-    return false;
-}
-
-// Detect
-// For use in App's FilterEvent() function.
-bool CAdapt_ItApp::TypedSysKeyInPhraseBox(wxKeyEvent& WXUNUSED(event))
-{
-    return FALSE;
-}
-
-// Detect normal alphanumeric key presses including ShiftDown() forms.
-// Excludes reserved navigation arrow keys WXK_DOWN, WXK_UP, WXK_PAGEDOWN and WXK_PAGEUP,
-// Exludes any key events that return TRUE for HasModifiers() which includes any
-// accelerator keys modified by CTRL down, and other special hot keys modified
-// by ALT down. Basically returns true for any key that becomes visible text within the
-// phrasebox.
-// For use in App's FilterEvent() function.
-bool CAdapt_ItApp::TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event)
-{
-    // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
-    // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
-    int keyCode = event.GetUnicodeKey(); // must use GetUnicodeKey() here!
-    wxChar keyChar = wxChar(keyCode);
-    if (
-           !((wxKeyEvent&)event).HasModifiers() // Note: HasModifiers() does not include ShiftDown()
-        && !(keyCode == WXK_DOWN)
-        && !(keyCode == WXK_UP)
-        && !(keyCode == WXK_PAGEDOWN)
-        && !(keyCode == WXK_PAGEUP)
-        // Exclude other keys here - such as WXK_HOME, WXK_END ???
-        && wxIsprint(keyChar)
-        )
-    {
-        return TRUE;
-    }
-
-    return FALSE;
-}
-*/
-
-/*
-// whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's
-// wxScrollingDialog class which (along with scScrollingWizard) is now used throughout
-// Adapt It.
-//
-// The idea for this function was inspired by a blog by Julian Smart, wxWidgets developer
-// at:  http://wxwidgets.blogspot.com/2007/12/programming-for-eee-pc-with-wxwidgets.html
-// This is a function to fit the dialog it is called on around the dialog's contents, but
-// then it checks that the dialog will fit in a certain maxSize. If not, the size of the
-// dialog is adjusted smaller to fit within the maxSize and, if a scrolled window is passed
-// in scrolledWindow, scrolling is enabled in the scrolledWindow in the required
-// orientation(s). The maxSize would normally be the display size of the computer the
-// program is running on, but, it could be a wizard, property sheet, or other dialog which
-// contains sub-windows/pages which we want to fit within that wizard, property sheet, or
-// other dialog, and make these sub-windows/pages be scrollable if they would otherwise
-// exceed the maxSize. The main purpose of this function is to prevent dialogs, wizards,
-// property sheets, etc, from ending up with controls off the screen on computers that have
-// a small resolution (i.e., 800 x 600 or smaller which is typical of the new generation of
-// mini-notebook computers such as the Asus Eee PC, or the Aspire One, Dell Mini 9, etc).
-bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow,
-wxSize maxSize)
-{
-wxSizer* sizer = dialog->GetSizer();
-if (!sizer)
-return false;
-
-sizer->SetSizeHints(dialog);
-
-wxSize windowSize = dialog->GetSize();
-
-// Allow for caption size on wxWidgets < 2.9
-#if defined(__WXGTK__) && !wxCHECK_VERSION(2,9,0)
-int allowExtraHeight = 30;
-#else
-int allowExtraHeight = 0;
-#endif
-int scrollBarSize = 20;
-
-// whm Note: The wxDisplay class can be used to determine the sizes and locations of
-// displays connected to the system.
-// The GetFromWindow() method "Returns the index of the display on which the given
-// window lies. If the window is on more than one display it gets the display that
-// overlaps the window the most.
-// Returns wxNOT_FOUND if the window is not on any connected display."
-// The GetClientArea() method "Returns [as a wxRect] the client area of the display.
-// The client area is the part of the display available for the normal (non full
-// screen) windows, usually it is the same as GetGeometry but it could be less if there
-// is a taskbar (or equivalent) on this display."
-// The GetSize() is a method of wxRect that returns a size for the display (from the
-// rect returned by GetClientArea()).
-
-//wxSize displaySize =
-//wxDisplay(wxDisplay::GetFromWindow(dialog)).GetClientArea().GetSize();
-wxSize displaySize = maxSize;
-
-bool resizeVertically = (windowSize.y >= (displaySize.y - allowExtraHeight));
-bool resizeHorizontally = (windowSize.x >= displaySize.x);
-
-if (resizeVertically || resizeHorizontally)
-{
-int scrollBarExtraX = 0, scrollBarExtraY = 0;
-
-if (scrolledWindow)
-{
-// Allow extra for a scrollbar, assuming we resizing in one direction only.
-if ((resizeVertically && !resizeHorizontally) &&
-(windowSize.x < (displaySize.x - scrollBarSize)))
-scrollBarExtraX = scrollBarSize;
-if ((resizeHorizontally && !resizeVertically) &&
-(windowSize.y < (displaySize.y - scrollBarSize)))
-scrollBarExtraY = scrollBarSize;
-
-scrolledWindow->SetScrollRate(resizeHorizontally ?
-10 : 0, resizeVertically ? 10 : 0);
-}
-
-wxSize limitTo = windowSize + wxSize(scrollBarExtraX, scrollBarExtraY);
-if (resizeVertically)
-limitTo.y = displaySize.y - allowExtraHeight;
-if (resizeHorizontally)
-limitTo.x = displaySize.x;
-
-dialog->SetMinSize(limitTo);
-dialog->SetSize(limitTo);
-
-dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(),
-dialog->GetMaxHeight() );
-}
-
-return true;
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the base directory which contains
@@ -11113,27 +10338,6 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
     }
     return bItemIsVisible;
 }
-/*  This way ran into asserts tripping, try adding dynamically instead
-void CAdapt_ItApp::RemoveDeveloperMenuItem()
-{
-	wxBell();
-	wxMessageBox(_T(" RemoveDeveloperMenuItem() called"), _T(" Called it"));
-	CMainFrame* pMainFrame = GetMainFrame();
-	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
-	// Get the Administrator Menu
-	wxMenu* pAdminMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
-	if (pAdminMenu != NULL)
-	{
-		wxMenuItem* pDevMenuItem = pAdminMenu->FindChildItem(ID_MENU_ITEM_HIDDEN);
-		if (pDevMenuItem != NULL)
-		{
-			bool bDestroyed = pAdminMenu->Destroy(pDevMenuItem);
-			wxUnusedVar(bDestroyed);
-			pMenuBar->Refresh();
-		}
-	}
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -11183,60 +10387,6 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     if (pFileMenu != NULL)
     {
         // whm 1Oct12 removed all MRU code
-        /*
-        // whm added 29Mar12. Remove file history when collaborating with PT/BE. Also remove
-        // any _Collab... files from history when collaborating was explicitly turned OFF
-        // from the ChooseCollabOptionsDlg. Use the ProgMenuMode enum for possible modes.
-        if (progMenuMode == collabAvailableTurnedOn)
-        {
-        wxASSERT(m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit);
-        // In this case the user opted to turn collab on, and as such we
-        // remove all MRU items from the file history. In collaboration mode
-        // the user should not be able to bypass the collaboration mechanism
-        // by choosing an item from the file history even if it were a _Collab
-        // item (loading of collaboration documents is not done via OnOpenDocument()).
-        wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
-        while (fileHistory->GetCount() > 0)
-        {
-        fileHistory->RemoveFileFromHistory(0);
-        }
-        }
-        else if (progMenuMode == collabAvailableTurnedOff)
-        {
-        // In this case the user opted to turn collab off, and as such we
-        // remove any _Collab documents from the file history but leave others
-        wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
-        int numFilesInHistory = fileHistory->GetCount();
-        int ct;
-        // remove any _Collab... file history items in reverse order (top down)
-        for (ct = numFilesInHistory - 1; ct >= 0; ct--)
-        {
-        wxString fileHistoryName = fileHistory->GetHistoryFile(ct);
-        if (fileHistoryName.Find(_T("_Collab")) == 0) // see DocPage.cpp test
-        {
-        fileHistory->RemoveFileFromHistory(ct);
-        }
-        }
-        }
-        else if (progMenuMode == collabIndeterminate)
-        {
-        // In this case MakeMenuInitializationsAndPlatformAdjustments() is being called
-        // at a point where collaboration might be either ON or OFF. Remove file history
-        // if collaboration is on. Don't worry about the _Collab... name cases here.
-        if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-        {
-        wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
-        while (fileHistory->GetCount() > 0)
-        {
-        fileHistory->RemoveFileFromHistory(0);
-        }
-        }
-        }
-        else if (progMenuMode == collabAvailableReadOnlyOn)
-        {
-        ; // do nothing any MRU file history is eligible for selection
-        }
-        */
 
         // The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
         // the new label, otherwise everything that comes after the tab will be displaced to the right side
@@ -11401,24 +10551,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         {
             label.Remove(0, 1);
         }
-        // whm 4Apr12 removed %s from this label in wxDesigner
-        //if (label.Find(_T("%s")) != wxNOT_FOUND)
-        //{
-        //	wxASSERT(!m_collaborationEditor.IsEmpty());
-        //	label = label.Format(label,m_collaborationEditor.c_str());
-        //}
         pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION, label);
-        // whm added 1Sep11
-        // now substitute "Paratext" or "Bibledit" for the %s in the menu help text
-        // whm 4Apr12 removed %s instances (2) from this menu's help text in wxDesigner
-        //wxMenuItem* pCollabMenuItem = pAdministratorMenu->FindItem(ID_SETUP_EDITOR_COLLABORATION);
-        //if (pCollabMenuItem != NULL)
-        //{
-        //	label = pCollabMenuItem->GetHelp(); //_("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts")
-        //	wxASSERT(!m_collaborationEditor.IsEmpty());
-        //	label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
-        //	pCollabMenuItem->SetHelp(label);
-        //}
     }
 
     // MAKE MENU ACCELERATOR KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
@@ -12025,83 +11158,6 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 
     DestroyUserProfiles(pTempUserProfiles);
 }
-
-
-/* This function is currently unused (and possibly untested/incomplete) but might be useful in the future
-bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind)
-{
-if (itemKind == _T("wxITEM_SEPARATOR"))
-{
-// do not confirm existence of menuSeparator items
-return FALSE;
-}
-bool bItemExists = FALSE;
-CMainFrame* pMainFrame = GetMainFrame();
-wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
-int mCt;
-int nMenuItems = pMenuBar->GetMenuCount();
-for (mCt = 0; mCt < nMenuItems; mCt++)
-{
-wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
-wxString mmLabel = pMenuBar->GetMenuLabel(mCt);
-if (mmLabel != mainMenuLabel)
-{
-// we're not in the right top level menu
-continue;
-}
-wxASSERT(pMainMenu != NULL);
-wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
-int smCt;
-int nSubMenuItems = (int)pMenuItemList.GetCount();
-for (smCt = 0; smCt < nSubMenuItems; smCt++)
-{
-wxMenuItemList::Node* pNode;
-wxMenuItem* pMenuItem;
-pNode = pMenuItemList.Item(smCt);
-pMenuItem = pNode->GetData();
-wxString smKindStr;
-wxItemKind smKind = pMenuItem->GetKind();
-smKindStr = GetMenuItemKindAsString(smKind);
-
-// Note: Using GetItemLabel() is supposed to preserve any & and Ctrl-key accelerator characters.
-// Testing shows that it only partially does so - the \t character that separates the label from
-// the Ctrl-key part is a literal whitespace tab. To achieve more reliable comparisons, it is best
-// that we compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
-// from menu labels.
-wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
-wxString subMenuLabelPlain = subMenuLabel;
-subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain); // removes any & chars for comparison
-int nTest;
-nTest = subMenuLabelPlain.Find(_T("\\t"));
-if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
-{
-// there is a tab char in the menu label, so remove from that point to remainder of string
-subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("\\t")));
-}
-else
-{
-// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
-if (subMenuLabelPlain.Find(_T("Ctrl-")) != wxNOT_FOUND)
-{
-subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Ctrl-")));
-}
-else if (subMenuLabelPlain.Find(_T("Shift-")) != wxNOT_FOUND)
-{
-subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Shift-")));
-}
-}
-if (smLabel == subMenuLabelPlain && smKindStr == itemKind)
-{
-bItemExists = TRUE;
-return bItemExists;
-}
-}
-}
-
-
-return bItemExists;
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if menuItemIDint is supposed to be visible in this nProfile, FALSE otherwise
@@ -14678,494 +13734,6 @@ wxString CAdapt_ItApp::ValidateCollabEditorAndVersionStrAgainstInstallationData(
 
     return tempCollabEditorVerStr;
 }
-
-
-/*
-// NOTE: As of 4Feb2020 this ParatextVersionInstalled() function is DEPRECATED and entirely
-// replaced by calls to the more flexible and more granular function IsThisParatextVersionInstalled().
-//////////////////////////////////////////////////////////////////////////////////////////
-/// \return     One of enum type: PTVersionsInstalled: PTNotInstalled, PTVer7, PTVer8, PTVer7and8, PTVer9
-///             or (for Linux): PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8, PTLinuxVer9
-/// \remarks
-/// This function is important to Adapt It's collaboration functionality.
-/// Modified by whm 25Junel2016 and 27Nov2016 for detecting which Paratext version (7 or 8)
-/// is installed, or both, or neither is installed - as indicated by enum return value.
-/// The function works for Paratext installations on Windows or Linux (__WXGTK__).
-/// The revised function first checks for the existence of a Paratext 8 installation.
-/// It then checks for the existence of a Paratext 7 installation.
-/// whm revised 4Feb2020 to cover release of Paratext 9 for Windows and Linux
-/// If no Paratexxt installation is found, the function returns PTNotInstalled.
-/// If only PT8 installation is found, the function returns PTVer8 on Windows or PTLinuxVer8 on Linux
-/// If only PT7 installation is found, the function returns PTVer7 on Windows or PTLinuxVer7 on Linux
-/// If both installations are found, the function returns PTVer7and8 on Windows or PTinuxVer7and8 for LInux.
-/// Note: The initial Beta version of PT8 for Linux installed only PT7 or PT8, but subsequently the PT
-/// devs decided to allow both PT7 and PT8 to be installed on Linux simultaneously - just as in Wndows.
-/// Hence, for early Beta version of PT 8 the install was the same as for PT7, namely /usr/lib/Paratext
-/// but later PT 8 versions install at /usr/lib/Paratext8 and only PT installs at /usr/lib/Paratext.
-/// TODO: Check for Linux install of PT 9 - /usr/lib/Paratext9 ???
-/// Like on Windows, there are separate projects dir paths - to facilitate data migration from PT 7
-/// to PT 8 on Linux.
-/// The default PT projects dir on Linux will be ~/ParatextProjects for PTLinuxVer7 and
-/// ~/Paratext8Projects for PTLinuxVer8).
-/// TODO: Check for Linux default PT projects dir - does it follow Windows and remain ~/Paratext8Projects ???
-/// This function does not determine if an administrator has migrated a user's data from a
-/// PT 7 to a PT 8 or PT 9 install for specific projects.
-/// The calling code will determine what to do with the PT installation information returned
-/// by this function, and the caller will have to determine the migration status of PT
-/// projects.
-/// The PT dev team recommends the following guideline: In general, if a PT8 installation
-/// is found, it can be assumed to be the currently active version and the user's data has
-/// been migrated to it. If PT 8 is not found but a PT 7 installation is found, PT 7
-/// is assumed to be the currently active version and has the current version of the user's
-/// PT data. No data migration required in upgrade of PT 8 to PT 9.
-/// However, the above assumptions/recommendations, while useful in a general way,
-/// are not so useful for AID collaboration. AID collaboration requires an exact
-/// determination of the Paratext version (and hence the installation and data store
-/// locations) in order to collaborate correctly, exchange data via the rdwrtp7.exe or rdwrtp8.exe
-/// utility is required to collaborate correctly after an administrator has upgraded a user
-/// from PT 7 to PT 8 and/or PT 9. The PT developers eventually added rdwrtp8.exe to the PT 8
-/// Windows installation.
-///
-/// Called from: the App's OnInit(), GetAIProjectCollabStatus(), SetCollabSettingsToNewProjDefaults()
-///    CSetupEditorCollaboration::InitDialog(), CSetupEditorCollaboration::DoInit(),
-///    CSetupEditorCollaboration::OnBtnSelectFromListSourceProj() ... FromListTarget...() FromListFreeTrans...()
-///    CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData().
-///    CSetupEditorCollaboration::OnCreateNewAIProject()
-///    CSetupEditorCollaboration::DoSaveSetupForThisProject()
-/// Looks in the Windows registry/system to see if Paratext is installed.
-/// ON A WINDOWS SYSTEM:
-/// 1. Checks for the following key(s) in the Windows registry:
-///    For Paratext 7.X:
-///      HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
-///    For Paratext 8.X:
-///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw8
-///    when running on a 64-bit version of Windows
-///    or
-///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw8
-///    when running on a 32-bit version of Windows
-///    For Paratext 9: // Note ...\Paratext\8\ reg path is still used in PT9, and only the value Program_Files_Directory_Ptw9 is added
-///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw9
-///    when running on a 64-bit version of Windows
-///    or
-///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw9 // Note ...\Paratext\8\ reg path is still used in PT9
-///    when running on a 32-bit version of Windows
-/// 2. Checks if the string value associated with the above key represents a valid path
-///    where Paratext is installed, default locations are "C:\Program Files\Paratext7\",
-///    in the case of Paratext 7; "C:\Program Files\Paratext 8\", in the case of
-///    Paratext 8 running on 32-bit Windows; or "C:\Program Files (x86)\Paratext 8\",
-///    in the case of Paratext 8 running on 64-bit Windows installations,
-///    "C:\Program Files\Paratext 9\", in the case of Paratext 9 running on 32-bit Windows;'
-///    or "C:\Program Files (x86)\Paratext 9\", in the case of Paratext 9 running on 64-bit
-///    Windows installations.
-/// 3. Checks if the folder designated in 2 above contains the Paratext.exe executable file
-///    and (for PT7 and PT8 only) the ParatextShared.dll file - there is no ParatextShared.dll
-///    in PT 9.
-/// whm 22Jan2018 added additional checks for Paratext.exe (and ParatextShared.dll) located at
-///    their default folder locations. At least one system that runs Windows 10 under
-///    VMWare Fusion (Ron A), is not able to query the Windows registry for some unknown
-///    reason. Therefore we will return PTVer7, PTVer8, or PTVer7and8 if the Paratext
-///    executables are in their default installation folders even when the installation
-///    paths cannot be determined from the normal Windows registry calls using wxRegKey.
-/// Note: We make every attemtp to get a definitive PT version on Windows for when each version
-///    PT 7, PT 8, and PT 9 are installed, and that the projects dir of both installations currently
-///    have valid/usable PT projects. If only PT 7 has valid/usable projects within its
-///    "My Paratext Projects" projects dir, we can assume that PTVer7 should be returned.
-///    Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8 Projects"
-///    projects dir, we can assume that PTVer8 or PTVer9 should be returned. However, if the
-///    projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
-///    return an ambiguous enum value of PTVer7and8. In that case the caller has to
-///    determine whether to give priority to PT 8, or to query the user/administrator for
-///    the appropriate version of PT for given collaboration project(s).
-/// ON A LINUX SYSTEM:
-/// 1. A "Paratext" directory exists at the following path: "/usr/lib/Paratext"
-/// 2. The /usr/lib/Paratext direcotry contains a Paratext.exe file
-/// 3. The /usr/lib/Paratext directory contains a ParatextShared.dll file (for PT7 or PT8)
-/// 4. The /usr/bin/paratext shell script sets an environment variable called
-///    MONO_REGISTRY_PATH to a non-empty string - as determined by a call to the
-///    GetParatextEnvVar() function.
-/// Note: To get a definitive PT version on Linux we call GetParatextProjectsDirPath() and
-///    examine the dir returned to see if it has '8' in its name ("Paratext8Projects").
-///    If so it must be PTLinuxVer8 (or PTLinuxVer9), otherwise it is PTLinuxVer7.
-/// This function only reads/queries the Windows registry/system; it does not make changes
-/// to it.
-//////////////////////////////////////////////////////////////////////////////////////////
-PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
-{
-    bool bPT7Installed = FALSE;
-    bool bPT8Installed = FALSE;
-    bool bPT9Installed = FALSE; // whm 4Feb2020 added
-    bool bPT7LinuxInstalled = FALSE;
-    bool bPT8LinuxInstalled = FALSE;
-    bool bPT9LinuxInstalled = FALSE; // whm 4Feb2020 added
-
-//#ifdef __WXMSW__ // Windows host -- use registry
-
-    wxLogNull logNo; // eliminate any spurious messages from the system
-
-    // whm 4Feb2020 added checks for PT9 registry entires.
-    // Notes: This function only checks for the installation of Paratext version(s); it does
-    // not indicate whether a given version is actually running. For that see ParatextIsRunning()
-    // and/or BibleditIsRunning().
-    // By examining the Windows registry after installation of Paratext 9, it is clear that
-    // Paratext 9 retains the Paratext\8 registry path, and simply adds the following reg Name-Data pair:
-    //   Name: Program_Files_Directory_Ptw9 with Data: C:\Program Files (x86)\Paratext 9\.
-    // So we examine the save reg key ...\Paratext\8, and query for both of these Name-Data values:
-    //   Program_Files_Directory_Ptw8, and Program_Files_Directory_Ptw9.
-    // Check first for Paratext 8 installed on a 64-bit Windows OS - to see if it
-    // points to a valid directory; and it that directory contains a Paratext.exe file
-    wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
-    wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
-    wxString dirStrValue;
-    dirStrValue.Empty();
-    if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
-    {
-        // The 64-bit key exists and has values
-        if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
-        {
-            // whm 4Feb2020 added query here for Program_Files_Directory_Ptw9
-            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext 8\)
-            keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw9"), dirStrValue);
-            // Note: the dirStrValue path ends with a backslash so we don't add one here.
-            if (::wxDirExists(dirStrValue)) // does dirStrValue path exist?
-            {
-                // Note: Main main Paratext component that we check for to determine
-                // if Paratext is installed is Paratext.exe. There is no ParatextShared.dll
-                // in PT9.
-                if (::wxFileExists(dirStrValue + _T("Paratext.exe")))
-                    //&& ::wxFileExists(dirStrValue + _T("ParatextShared.dll"))) // Note: PT9 doesn't have a ParatextShared.dll
-                {
-                    bPT9Installed = TRUE;
-                }
-            }
-
-            // Now query for Program_Files_Directory_Ptw8
-            //wxString settingsDirStrValue;
-            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext 8\)
-            keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
-            //keyOS64PTInstallDir.QueryValue(_T("Settings_Directory"), settingsDirStrValue);
-            // Note: the dirStrValue path ends with a backslash so we don't add one here.
-            //dirStrValue = keyOS64PTInstallDir.QueryDefaultValue();
-            if (::wxDirExists(dirStrValue)) // does dirStrValue path exist?
-            {
-                // Note: There are two main Paratext components in PT8 that we check for to determine
-                // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
-                // the main program. The other is the shared dynamic library with which our
-                // collaboration with Paratext is achieved. We later interact with the
-                // ParatextShared.dll library.
-                if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
-                    && ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
-                {
-                    bPT8Installed = TRUE;
-                }
-            }
-        }
-    }
-    // If above test failed, check next for Paratext 8 installed on a 32-bit Windows OS
-    else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
-    {
-        // The 32-bit key exists and has values
-        if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
-        {
-            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext 8\)
-            // Note: the dirStrValue path ends with a backslash so we don't add one here.
-            dirStrValue = keyOS32PTInstallDir.QueryDefaultValue();
-            if (::wxDirExists(dirStrValue))
-            {
-                // Note: There are two main Paratext components that we check for to determine
-                // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
-                // the main program. The other is the shared dynamic library with which our
-                // collaboration with Paratext is achieved. We later interact with the
-                // ParatextShared.dll library.
-                if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
-                    && ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
-                {
-                    bPT8Installed = TRUE;
-                }
-            }
-        }
-    }
-    // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-    // their default PT8 folder locations - fallback in case wxRegKey fails above even though
-    // the Paratext 8 executables exist at their normal default paths for Windows.
-    if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
-    {
-        // Check the default PT8 installation location for 32-bit adn 64-bit PT
-        wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
-        wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
-        wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
-        wxString dllPathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\ParatextShared.dll");
-        if ((::wxFileExists(exePathPT8_on_32bitOS)
-            && ::wxFileExists(dllPathPT8_on_32bitOS)) ||
-            (::wxFileExists(exePathPT8_on_64bitOS)
-                && ::wxFileExists(dllPathPT8_on_64bitOS)))
-        {
-            bPT8Installed = TRUE;
-        }
-        // whm 4Feb2020 added for PT9
-        wxString exePathPT9_on_32bitOS = _T("C:\\Program Files\\Paratext 9\\Paratext.exe");
-        wxString exePathPT9_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 9\\Paratext.exe");
-        if (::wxFileExists(exePathPT9_on_32bitOS) || ::wxFileExists(exePathPT9_on_64bitOS))
-        {
-            bPT9Installed = TRUE;
-        }
-    }
-
-    // Check next for a PT7 installation
-    // Neither the PT 8 nor the PT 9 installation reg keys exist, so determine if the PT 7's
-    // Program_Files_Directory_Ptw7 key exists in the host Windows' registry; if so,
-    // does it point to a valid directory; and does that directory contain a Paratext.exe file
-    wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
-    dirStrValue.Empty();
-    if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
-    {
-        if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
-        {
-            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
-            // Note: the dirStrValue path ends with a backslash so we don't add one here.
-            dirStrValue = keyPTInstallDir.QueryDefaultValue();
-            if (::wxDirExists(dirStrValue))
-            {
-                // Note: There are two main Paratext components that we check for to determine
-                // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
-                // the main program. The other is the shared dynamic library with which our
-                // collaboration with Paratext is achieved. We later interact with the
-                // ParatextShared.dll library.
-                if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
-                    && ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
-                {
-                    bPT7Installed = TRUE;
-                }
-            }
-        }
-    }
-
-    // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-    // their default PT7 folder locations - fallback in case wxRegKey fails above even though
-    // the Paratext 7 executables exist at their normal default paths for Windows.
-    if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
-    {
-        // Check the default PT7 installation location for 32-bit PT
-        wxString exePathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\Paratext.exe");
-        wxString exePathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\Paratext.exe");
-        wxString dllPathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\ParatextShared.dll");
-        wxString dllPathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\ParatextShared.dll");
-        if ((::wxFileExists(exePathPT7_on_32bitOS)
-            && ::wxFileExists(dllPathPT7_on_32bitOS)) ||
-            (::wxFileExists(exePathPT7_on_64bitOS)
-                && ::wxFileExists(dllPathPT7_on_64bitOS)))
-        {
-            bPT7Installed = TRUE;
-        }
-
-    }
-
-    // whm 4Feb2020 added. If Paratext 9 is installed it is an "upgrade" to Paratext 8, so we
-    // should be able to assume that it is being used even though earlier versions of Paratext
-    // may be installed alongside it. Even if a user fires up Paratext 8 instead of Paratext 9
-    // PT8 and PT9 use the same data store, and eventually this function would return PTVer8
-    // during that running of PT8. It doesn't appear to make a difference whether rdwrtp8.exe
-    // is called from the PT8 or PT9 installation location for collaboration to succeed.
-    if (bPT9Installed)
-    {
-        return PTVer9;
-    }
-    // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
-    // collaboration by examining the projects dir for each installation, and determine if only one
-    // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable
-    // projects within its "My Paratext Projects" projects dir, we can assume that PTVer7 should be
-    // returned here. Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8
-    // Projects" projects dir, we can assume that PTVer8 should be returned. However, if the
-    // projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
-    // return an ambiguous enum value of PTVer7and8.
-    else if (bPT8Installed && bPT7Installed)
-    {
-        wxArrayString pt7ProjList;
-        wxArrayString pt8ProjList;
-        pt7ProjList = this->GetListOfPTProjects(_T("PTVersion7"));
-        pt8ProjList = this->GetListOfPTProjects(_T("PTVersion8"));
-        if (pt7ProjList.GetCount() > 0 && pt8ProjList.GetCount() == 0)
-        {
-            // Only PT 7 has useable project(s) - data migration to PT 8 not done
-            return PTVer7;
-        }
-        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() == 0)
-        {
-            // Only PT 8 has useable project(s) - data migration likely completed
-            return PTVer8;
-        }
-        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() > 0)
-        {
-            // Both PT 7 and PT 8 have useable projects - data migration only partial? Some projects using PT 7, others PT 8?
-            return PTVer7and8;
-        }
-        else if (pt8ProjList.GetCount() == 0 && pt7ProjList.GetCount() == 0)
-        {
-            // This is the 4th logical possibility - neither PT 7 nor PT 8 have useable project(s)
-            // In this case it is still ambiguous, return PTVer7and8
-            return PTVer7and8;
-        }
-        else // not a logical possibility
-            return PTVer7and8;
-    }
-    else if (bPT8Installed)
-        return PTVer8;
-    else if (bPT7Installed)
-        return PTVer7;
-    //return PTNotInstalled;
-//#endif
-//#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
-
-    // whm 21June2016 Note: Tom Hindle said that their then-current plans were that the
-    // PT version 8 for Linux's installation files would go in the same location
-    // that PT 7 did, that is: /usr/lib/Paratext. As of November 2016, however, the
-    // PT team has decided that PT 8 would be installed in a separate location
-    // at: /usr/lib/Paratext8 to enable users to have both PT7 and PT8 installed at the
-    // same time.
-    // In an email dated 22Nov2016 Tom indicates that there will now be a separate
-    // installation location for PT 8 which will be: /usr/lib/Paratext8.
-    // The PT 8's projects dir will continue to be a separate dir from PT 7's projects
-    // dir - as it was previously for the early Beta of PT8.
-    // So, the upgrade to PT 8 on Linux will establish a new projects dir called
-    // "Paratext8Projects". Hence, A linux user who was previously collaborating
-    // with PT 7, and upgrades to or installs PT 8 will likely have both "ParatextProjects"
-    // and "Paratext8Projects" dirs in their Home directory. A Linux user, like Windows
-    // will be able to install and run PT 7 or PT 8 on the same machine, and will be
-    // able to migrate some or all their PT 7 projects to PT 8, and hence may work with
-    // some PT projects in PT 7 and others in PT 8 - just as was possible on Windows.
-
-    // TODO: Use the same strategy now for Linux as we did for Windows above.
-    // That is, we First look for a PT installation in /usr/lib/Paratext8. If it exists,
-    // and we can determine the PT 8 major version number, we know that a PT 8 installation exists.
-    // Next, we look for a PT installation in /usr/lib/Paratext. If it exists, we determine
-    // the major version number. The number could be 8 if the earlier PT 8 was installed, but
-    // we expect to find the numnber 7 there. If we find number 8 at both locations, we'll
-    // assume that PT 7 is not installed and we'll assume that PT 8 is the active and only
-    // PT installation. If we find the number 7 at /usr/lib/Paratext and the number 8 at
-    // /usr/lib/Paratext8, then we know that both PT 7 and the newer PT 8 are installed, so
-    // we then use the same method as the Windows code above uses - checking for valid
-    // PT projects in the respective projects directory.
-
-    // whm TODO: Check the following test to ensure it works properly once Paratext 9 for
-    // Linux is released.
-
-    // Look for a PT9 installation
-    wxString strPT9InstallDir = _T("/usr/lib/Paratext9");
-    if (::wxDirExists(strPT9InstallDir))
-    {
-        // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
-        if (::wxFileExists(strPT9InstallDir + _T("/Paratext.exe"))
-            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT9")).IsEmpty()))
-        {
-            // Note: The /usr/lib/Paratext9 directory exists, and the PT component executable file exists
-            // so we can assume that it is certainly a PT9 installation and we don't have to look into
-            // the PTVersion file in that location to be sure.
-            bPT9LinuxInstalled = TRUE;
-        }
-    }
-
-    // Look for a PT8 installation
-    wxString strPT8InstallDir = _T("/usr/lib/Paratext8");
-    if (::wxDirExists(strPT8InstallDir))
-    {
-        // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
-        if (::wxFileExists(strPT8InstallDir + _T("/Paratext.exe"))
-            && ::wxFileExists(strPT8InstallDir + _T("/ParatextShared.dll"))
-            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8")).IsEmpty()))
-        {
-            // Note: The /usr/lib/Paratext8 directory exists, and the PT component executable files exist
-            // so we can assume that it is certainly a PT8 installation and we don't have to look into
-            // the PTVersion file in that location to be sure. We have to make an extra check for the PT 7
-            // situation - see the next if blocks below.
-            bPT8LinuxInstalled = TRUE;
-        }
-    }
-
-    // Now, look for a PT 7 installation
-    wxString strPT7InstallDir = _T("/usr/lib/Paratext");
-    if (::wxDirExists(strPT7InstallDir))
-    {
-        // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
-        if (::wxFileExists(strPT7InstallDir + _T("/Paratext.exe"))
-            && ::wxFileExists(strPT7InstallDir + _T("/ParatextShared.dll"))
-            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7")).IsEmpty()))
-        {
-            // Note: The /usr/lib/Paratext directory exists and the PT component executable files exist
-            // but we don't know for sure whether that represents a PT7 or an early Beta of PT8, so we
-            // need to look further by examining the contents of the PTVersion file in that same directory
-            wxString PTLinuxMajorVersionNumStr;
-            PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strPT7InstallDir + PathSeparator + _T("PTVersion"));
-            //wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
-            // If the major version number is 8, the user still has an early PT8 installation at /usr/lib/Paratext
-            // and we know that PT7 is not installed.
-            // Otherwise, if the major version number is indeed 7, then we know that PT 7 is installed
-            if (PTLinuxMajorVersionNumStr == _T("7"))
-                bPT7LinuxInstalled = TRUE;
-           // If the major version is not "7" we just leave the value of bPT7Installed as FALSE
-        }
-    }
-
-    // whm 4Feb2020 added test of bPT9Installed and if so, return PTLinuxVer9 below
-    if (bPT9LinuxInstalled)
-    {
-        wxArrayString pt9ProjList;
-        pt9ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion9"));
-        if (pt9ProjList.GetCount() > 0)
-        {
-            // PT 9 has project(s) - assume it is the active installed version
-            return PTLinuxVer9;
-        }
-    }
-    // Now we deal with the situation in which both PT7 and PT8 for Linux are installed. Same as
-    // Windows code above, except we return enum values that are specific to the Linux versions:
-    //    PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer9, PTLinuxVer7and8
-    // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
-    // collaboration by examining the projects dir for each installation, and determine if only one
-    // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable
-    // projects within its "My Paratext Projects" projects dir, we can assume that PTVer7 should be
-    // returned here. Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8
-    // Projects" projects dir, we can assume that PTVer8 should be returned. However, if the
-    // projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only
-    // return an ambiguous enum value of PTVer7and8.
-    else if (bPT8LinuxInstalled && bPT7LinuxInstalled)
-    {
-        wxArrayString pt7ProjList;
-        wxArrayString pt8ProjList;
-        pt7ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion7"));
-        pt8ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion8"));
-        if (pt7ProjList.GetCount() > 0 && pt8ProjList.GetCount() == 0)
-        {
-            // Only PT 7 has useable project(s) - data migration to PT 8 not done
-            return PTLinuxVer7;
-        }
-        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() == 0)
-        {
-            // Only PT 8 has useable project(s) - data migration likely completed
-            return PTLinuxVer8;
-        }
-        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() > 0)
-        {
-            // Both PT 7 and PT 8 have useable projects - data migration only partial? Some projects using PT 7, others PT 8?
-            return PTLinuxVer7and8;
-        }
-        else if (pt8ProjList.GetCount() == 0 && pt7ProjList.GetCount() == 0)
-        {
-            // This is the 4th logical possibility - neither PT 7 nor PT 8 have useable project(s)
-            // In this case it is still ambiguous, return PTVer7and8
-            return PTLinuxVer7and8;
-        }
-        else // not a logical possibility
-            return PTLinuxVer7and8;
-    }
-    else if (bPT8LinuxInstalled)
-        return PTLinuxVer8;
-    else if (bPT7LinuxInstalled)
-        return PTLinuxVer7;
-    // if we get here no known version of PT is installed
-    return PTNotInstalled;
-
-//#endif
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the Paratext for Linux's major version number
@@ -19950,14 +18518,19 @@ bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
 // parent folder, which holds the executable AI file which is running. These
 // copies are temporary - each is destroyed after use. The blanks, however,
 // lodged in the dist folder, have constant contents.
-void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
+// whm 22Feb2021 Note: The value passed in via execPth is now the m_appInstallPathOnly
+// member variable rather than a separately created execPath variable in the caller
+// Also changed wxString&I execPth parameter to value parameter wxString execPth since
+// the CreateInputDatBlanks() doesn't return a value to caller through execPth.
+void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 {
 	bool execExists = wxDirExists(execPth);
-	wxString distPth = this->GetDistFolder(); // gets the path to dist folder
-			// based on Get().GetExecutablePaths(), Bill has created it as
-			// a post-build script, so should be in existence
+    // whm 22Feb2021 modified below to use the App's member variable m_distKBsharingPath, which ends with PathSeparator
+    wxString distPth = m_distKBsharingPath; // the App member variable is established in OnInit()
 	// Check that distPth now exists
 	bool distExists = wxDirExists(distPth);
+    // whm 22Feb2021 the following if...else... blocks are not needed
+    /*
 	if (distExists)
 	{
 		// Make sure distPath in AI.h and .cpp is set
@@ -19968,20 +18541,22 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 	else
 	{
 		// Insurance in case Bill's psost-build script hasn't done its job
-		wxString distName = _T("dist");
-		wxString distPthName = execPath + distName + PathSeparator;
-		this->distPath = distPthName;
+        // whm 22Feb2021 modified/simplified the code below to use the m_distKBsharingPath which 
+        // is the ...\Adapt It Unicode Work\dist\ folder on Windows or .../Adapt It Unicode Work/dist/
+        // folder on Linux/Mac.
 		distExists = wxDirExists(this->distPath);
         // whm 12Feb2021 removed the following wxASSERT since it duplicates the wxASSERT_MSG warning below
         //wxASSERT(distExists);
 	}
+    */
 
 	if (execExists && distExists)
 	{
 		int i = noDatFile; // must initialize, before using
 		while (i >= noDatFile && i < blanksEnd)
 		{
-			switch (i)
+            // whm 22Feb2021 modified the following Make... functions to use the remove the unnecessary exePath parameter and use distPth instead of distPath
+            switch (i)
 			{
 			case noDatFile: // do nothing, = 0
 			{
@@ -19989,62 +18564,62 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 			}
 			case credentials_for_user: // = 1
 			{
-				MakeCredentialsForUser(credentials_for_user, execPth, distPth);
+				MakeCredentialsForUser(credentials_for_user, distPth); // whm Note: removed exePth parameter
 				break;
 			}
 			case lookup_user: // = 2
 			{
-				MakeLookupUser(lookup_user, execPath, distPath);
+				MakeLookupUser(lookup_user, distPth); // whm Note: removed execPath parameter
 				break;
 			}
 			case list_users: // = 3
 			{
-				MakeListUsers(list_users, execPath, distPath); // = 3
+				MakeListUsers(list_users, distPth); // = 3   // whm Note: removed execPath parameter
 				break;
 			}
 			case create_entry: // = 4
 			{
-				MakeCreateEntry(create_entry, execPath, distPath);
+				MakeCreateEntry(create_entry, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_delete: // = 5
 			{
-				MakePseudoDelete(pseudo_delete, execPath, distPath);
+				MakePseudoDelete(pseudo_delete,distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_undelete: // = 6
 			{
-				MakePseudoUndelete(pseudo_undelete, execPath, distPath);
+				MakePseudoUndelete(pseudo_undelete, distPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case lookup_entry: // = 7
 			{
-				MakeLookupEntry(lookup_entry, execPath, distPath);
+				MakeLookupEntry(lookup_entry, distPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case changed_since_timed: // = 8
 			{
-				MakeChangedSinceTimed(changed_since_timed, execPath, distPath);
+				MakeChangedSinceTimed(changed_since_timed, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case upload_local_kb: //= 9;
 			{
-				MakeUploadLocalKb(upload_local_kb, execPath, distPath);
+				MakeUploadLocalKb(upload_local_kb, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_permission: // = 10
 			{
-				MakeChangePermission(change_permission, execPath, distPath);
+				MakeChangePermission(change_permission, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_fullname: // = 11
 			{
-				MakeChangeFullname(change_fullname, execPath, distPath);
+				MakeChangeFullname(change_fullname, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_password: // = 12
 			{
-				MakeChangePassword(change_password, execPath, distPath);
+				MakeChangePassword(change_password, distPth);   // whm Note: removed execPath parameter
 				break;
 			}
 
@@ -20061,6 +18636,8 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString& execPth)
 	} // end of TRUE block for test: if (execExists && distExists)
 	else
 	{
+        // whm 22Feb2021 this situation should not happen now that the dist folder is created as a child of 
+        // the "Adapt It Unicode Work" directory.
 		// tell the developer it failed
 		wxString msg = _T("CreateInputDatBlanks() failed because execPath or distPath could not be found");
 		wxString caption = _T("CreateInputDatBlanks path error");
@@ -20084,8 +18661,16 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 	m_bDoingChangePassword = FALSE;
 	m_bChangingPermission = FALSE;
 
-	wxString distFolderPath = this->distPath;
-	wxString execFolderPath = this->execPath;
+	wxString distFolderPath = m_distKBsharingPath; //this->distPath; // whm 22Feb2021 changed to use App's member m_distKBsharingPath, which end with PathSeparator
+	// BEW 25Feb21 with moving & renaming dist folder to the work folder, a
+	// new value is needed for execFolderPath - it's the path to the (temporary) set of 13
+	// do_xxxx.exe executables for the 13 different funcNumber values, which need to
+	// reside (until Leon provides .c equivalents to meld into AI code) in the 
+	// _DATA_KB_SHARING folder within the work folder. (I need to manually copy these
+	// executables to that folder until our work on .c variants is completed etc)
+	wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; // whm 22Feb2021 changed to use App's member which doesn't end with PathSeparator
+	//wxString execFolderPath = m_distKBsharingPath;
+
 	bool execExists = wxDirExists(execFolderPath);
 	bool distExists = wxDirExists(distFolderPath);
 	if (execExists && distExists)
@@ -20610,9 +19195,12 @@ void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString distFolderPath
 {
 	wxString f1 = distFolderPath + filename; // absolute path to filename's file
 	wxString f2 = execFolderPath + filename; // destination for the move, absolute path -
-						// that is, to the parent folder which is execFolderPath
-	wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
+	if (f1 != f2)
+	{
+		// that is, to the parent folder which is execFolderPath
+		wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
 						// configure it in execPath folder, to have needed data values
+	}
 }
 
 void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename,
@@ -20714,9 +19302,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// Now in the caller the file has been moved to the parent folder 
 		// of the dist folder; so use wxTextFile to make the changes in
-		// the file copy within thee parent folder: "credentials_for_user.dat" 
+		// the file copy within the parent folder: "credentials_for_user.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20938,7 +19527,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "lookup_user.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21013,7 +19603,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "create_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21124,7 +19715,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "create_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (!m_bKBEditorEntered)
@@ -21299,7 +19891,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "pseudo_delete.dat",  within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21411,7 +20004,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "pseudo_undelete.dat",  within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21526,7 +20120,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "lookup_entry.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21620,7 +20215,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "changed_since_timed.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21681,7 +20277,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; use wxTextFile to make the changes in
 		// that file copy: "upload_local_kb.dat", within the parent folder, 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21786,7 +20383,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_permission.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21857,7 +20455,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_fullname.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21915,7 +20514,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// of the dist folder; so use wxTextFile to make the changes in
 		// the file copy within the parent folder: "change_fullname.dat" 
 		// so it has only the above commandLine value stored in it
-		wxString datPath = execPath + filename;
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -21948,9 +20548,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of switch:  switch (funcNumber)
 }
 
-void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("credentials_for_user.dat");
@@ -25155,12 +23755,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
     }
 #else
-    m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+    m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T("")); // whm 22Feb2021 Note: m_appInstallPathOnly does NOT end with PathSeparator
 #endif
     wxLogDebug(_T("The m_appInstallPathOnly = %s"), m_appInstallPathOnly.c_str());
     // On Windows the m_appInstallPathOnly will be something like (if installed to
     // default location):
-    // "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode\"
+    // "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode"
+    // or when running within Visual Studio: "C:\Users\Bill\Documents\adaptit\bin\win32\Unicode Debug" or "C:\Users\Bill\Documents\adaptit\bin\win32\Unicode Release"
     // On Linux/GTK the m_setupFolder will be something like:
     // "/usr/bin/" or "/usr/local/bin/"
     // On the Mac the m_setupFolder will be something like:
@@ -25176,15 +23777,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
     wxLogDebug(_T("The m_xmlInstallPath = %s"), m_xmlInstallPath.c_str());
 
-    // whm 13Feb2021 added the calculation for the new App member m_distKBsharingPath
-    // The m_distKBsharingPath stores the path where the KB sharing "dist" directory
-    // is installed on the given platform. This location is actually the same as the
-    // m_xmlInstallPath + _T("dist")
-    // On wxMSW: "C:\Program Files\Adapt It WX Unicode\dist"
-    // On wxGTK: "/usr/share/adaptit/dist" or "/usr/local/share/adaptit/dist" depending on the
-    //           value of m_PathPrefix [adaptit here is the name of a directory]
-    // On wxMac: "AdaptIt.app/Contents/Resources"
-    m_distKBsharingPath = m_xmlInstallPath + PathSeparator + _T("dist");
+    // whm 22Feb2021 added App member variable m_distKBsharingFolderName which is
+    // assigned the value "dist" here. See note below re the m_distKBsharingPath.
+    m_distKBsharingFolderName = _T("_DATA_KB_SHARING");
+
+    // whm 14Feb2021 NOTE about the location and assignment of the "dist" folder:
+    // The new App member m_distKBsharingPath which is the absolute
+    // path to the "dist" folder for storing KB Sharing .DAT files, and ends with PathSeparator.
+    // On 22Feb2021 the team decided to place the "dist" folder in the "Adapt It Unicode Work"
+    // folder. The m_distKBsharingPath location on ALL platforms will be either:
+    // m_customWorkFolderPath + PathSeparator + _T("dist"), or
+    // m_workFolderPath + PathSeparator +  _T("dist")
+    // depending on wiether the user/admin has set up a custom work folder.
+    // The actual value for m_distKBsharingPath has to be determined later below in 
+    // this OnInit() function after it is determined whether the work folder is
+    // a custom work folder or the normal world folder. The code that assigns the
+    // proper value for m_distKBsharingPath done below about lines 26781 and 26802.
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
@@ -28167,6 +26775,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString AIDocCreateLogFolderPath;
     wxString AIpackedDocumentFolderPathOnly;
     wxString AIccTableFolderPathOnly;
+    wxString AIdistKBsharingFolderPath; // whm 22Feb2021 added
     //#if defined(FWD_SLASH_DELIM)
     wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
     // but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
@@ -28200,11 +26809,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
+        // whm 22Feb2021 added test and mkdir command below
+        if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName))
+            ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName);
         AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+        // whm 22Feb2021 added line below
+        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName; // App member m_distKBsharingPath is assigned below - ends with PathSeparator
     }
     else
     {
@@ -28220,11 +26834,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             ::wxMkdir(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
+        // whm 22Feb2021 added test and mkdir command below
+        if (!::wxDirExists(m_workFolderPath + PathSeparator + m_distKBsharingFolderName))
+            ::wxMkdir(m_workFolderPath + PathSeparator + m_distKBsharingFolderName);
         AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+        // whm 22Feb2021 added line below Note: To be compatible with BEW's KBsharing code the AIDistKBsharingFolderPath needs to end with a PathSeparator
+        AIdistKBsharingFolderPath = m_workFolderPath + PathSeparator + m_distKBsharingFolderName + PathSeparator; // App member m_distKBsharingPath is assigned below
     }
 	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
 	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
@@ -28238,6 +26857,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
     m_docCreationFilePathAndName = AIDocCreateLogFolderPath; // whm added 6Apr2020
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
+    m_distKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
 
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -29956,10 +28576,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
 //#if defined(_KBSERVER)
+    
+    // whm 22Feb2021 removed the following two lines
+	//wxString execPath = PathToExecFolder(); // app removed from end, ends now in separator
+	//distPath = GetDistFolder();  // set the path to dist folder, for this session
 
-	execPath = PathToExecFolder(); // app removed from end, ends now in separator
-	distPath = GetDistFolder();  // set the path to dist folder, for this session
-	CreateInputDatBlanks(execPath); // executablePath set above at 22,258
+    // BEW 27Feb2021 modified the line below to use m_distKBsharingPath instead of exePath
+	CreateInputDatBlanks(m_distKBsharingPath); // path ends in PathSeparator, no file yet
+					// we want these blanks to be created in the _DATA_KB_SHARING folder
+					// which is a child of the AI Unicode Work folder
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
 	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
 										   // called in CallExecute()'s post-wxExecute() switch
@@ -29976,6 +28601,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //#if defined (_KBSERVER)
 
+// whm 22Feb2021 removed PathToExeFolder() since the value that this function was getting 
+// already existed in the App member's m_appInstallPathOnly variable (which doesn't end in PathSeparator so needs + PathSeparator to be equivalent to what was in App's execPath)
+/*
 wxString CAdapt_ItApp::PathToExecFolder()
 {
 	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
@@ -29991,7 +28619,11 @@ wxString CAdapt_ItApp::PathToExecFolder()
 
 	return execPath;
 }
+*/
 
+// whm 22Feb2021 removed GetDistFolder() as it is no longer needed since the "dist" folder is now
+// a child folder of the "Adapt It Unicode Work" folder and is always available in m_distKBsharingPath
+/*
 wxString CAdapt_ItApp::GetDistFolder()
 {
 	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
@@ -30009,6 +28641,7 @@ wxString CAdapt_ItApp::GetDistFolder()
 
 	return distPath;
 }
+*/
 
 //#endif
 
@@ -37258,8 +35891,9 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 		// The input .dat file is now set up ready for do_add_KBusers.exe
 		wxString execFileName = _T("do_add_KBUsers.exe"); 
 		wxString resultFile = _T("add_KBUsers_return_result_file.dat");
-		bool bExecutedOK = CallExecute(credentials_for_user, execFileName, execPath, resultFile, 30, 31, TRUE);
-		wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
+        // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
+        bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathAndName, resultFile, 30, 31, TRUE);
+        wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
 		// In above call, TRUE is non-default value for bReportResult
 	}
 }
@@ -60010,6 +58644,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need
 												 // it to be TRUE so the later loop is accessible
 	wxString aSlash = PathSeparator;
+/*
 	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
 	wxString execPath = wxStandardPaths::Get().GetExecutablePath();  // path to Adapt_It_Unicode.exe if on windows
 
@@ -60027,6 +58662,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	revStr = revStr.Mid(offset);
 	execPath = MakeReverse(revStr);
 	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
+*/
+	// BEW 25Feb21 dedicate a new path to the dLss_win.exe file, scannerPath
+	wxString scannerPath = _T(""); // set below
 
 	// Prior to this point, the code is agnostic of which platform is running
 #if defined (__WXGTK__)
@@ -60142,35 +58780,21 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
 
 	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
-	wxString distFolder = _T("dist");
+    wxString distFolder = m_distKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_distKBsharingFolderName
 
-	// Legacy code, dsb-win.bat produces, from anywhere in a command prompt window, a string 
-	// like this for 3 kbservers running:
-	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
-	// Leon's July2020 solution produces the same output, in kbservice_file.dat and is
-	// stored in the "dist" folder, along with other five other *.dat intermediate results files.
+	// BEW 25Feb21 resultsPath now needs to point at the _DATA_KB_SHARING folder in the work folder
+	wxLogDebug(_T("Scanner's m_distKBsharingPath: %s"), m_distKBsharingPath.c_str());
 
-	// Temporary path to the results... so we can get access to the *.dat files for auditing, etc
-	resultsPath = execPath + distFolder;
-	wxLogDebug(_T("Scanner's resultsPath: %s"), resultsPath.c_str());
-
-	// BEW 22July20, temporarily point the current working directory's path to results Path
-	wxFileName fName(resultsPath); // points to dist folder; ignore returned boolean
-	fName.SetCwd(resultsPath);
+	// BEW 22July20, temporarily point the current working directory to m_distKBsharingPath
+	wxFileName fName(m_distKBsharingPath); // ignore returned boolean
+	fName.SetCwd(m_distKBsharingPath);
 	wxLogDebug(_T("SetCwd() was set to: %s"), fName.GetCwd().c_str());
-
-	// BEW note 22July20: resultsPath and discoveryPath are public wxString variables in 
-	// the CAdapt_ItApp class, and so the header with their declarations is accessible 
-	// from most of our classes.
-	// When using the dist folder during VisStudio AI development, manually place a copy 
-	// of the dist folder in the folders: Unicode Debug, and Unicode Release. When doing
-	// a Release version, the Adapt It installer must place the dist folder in the same
-	// folder as holds the Adapt_It_Unicode.exe executable.
 
 	// Make a path to the kbservice_file.dat results file.
 	// The new current working directory path will ensure that this
 	// path is the same as the path to where dLss_win.exe resides, in the dist folder.
-	discoveryPath = execPath + distFolder + aSlash + tempFile; // ends with _T("kbservice_file.dat")
+	// BEW 25Feb21 discovery path now is simpler
+	discoveryPath = m_distKBsharingPath + tempFile; // ends with _T("kbservice_file.dat")
 	wxLogDebug(_T("Scanner's discoveryPath: %s"), discoveryPath.c_str());
 	{
 		// Use braces to restrict scope to this block and avoid any clashing with program variables
@@ -60184,15 +58808,16 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// running a released version.
 		// Scanner's executable path is to dLss_win.exe which is in a child folder in
 		// the adaptit executable's folder, called "dist".
-		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent, for Windows build
-		execPath += distFolder + aSlash + execDiscoveryFile;
-		wxLogDebug(_T("Scanner's execPath: %s  length = %d"), execPath.c_str(), execPath.Len());
+		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent 
+														 // (till Leon's work obsoletes it)
+		// BEW 25Feb21, set scannerPath
+		scannerPath += m_distKBsharingPath + execDiscoveryFile; 
+		wxLogDebug(_T("Scanner's scannerPath: %s  length = %d"), scannerPath.c_str(), scannerPath.Len());
 		// The above execPath returned a length of 55 characters, for our testing development
 
 		// Drop out to the system to make the needed call. dLss_win.exe has all that is needed -
 		// it is a standalone .exe and does not internally do a call of dLss.bat, the code for
 		// that is now in the C-function, dLss_win.exe which Leon says must be in the dist folder
-		// and the latter being a child of the folder which houses the AI executable
 
 		// Comment from Leon, 21July20 - retain for documenting his approach
 		/////////////////////////////////////////////////////////////////////////////////////////
@@ -60203,28 +58828,29 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// Calling 'dLss_win.exe' from the 'dist' as you did in the cli shell did exactly this , you supplied
 		// a path variable that could be used. 
 		// 80 char array handles our 56 characters with ease, and gives room for paths which may be longer
-		char command[80]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
+		char command[130]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
 
 		//Leon said: strncpy( command,"insert here the full execpath to the dist folder\\dist\\dLss_win.exe" );
 		CBString dblQuote = '"';
-		CBString charPath = Convert16to8(execPath); // converts wxString to a multibyte C-string of UTF-8
+		CBString charPath = Convert16to8(scannerPath); // converts wxString to a multibyte C-string of UTF-8
+		// scannerPath is 75 so 130 should be plenty if storage is in a custom path location
 		// Wrap it with double-quote either end
 		charPath = dblQuote + charPath;
 		charPath += dblQuote;
-		wxASSERT(charPath.GetLength() < 80);
-		strncpy(command, charPath.GetBuffer(), 80);
+		wxASSERT(charPath.GetLength() < 130);
+		strncpy(command, charPath.GetBuffer(), 130);
 		// The following line works, but it is hard coded. We need the stuff above to get it to utf-8
-		//strncpy(command, "C:\\adaptit-git\\bin\\win32\\\"Unicode Debug\"\\dist\\dLss_win.exe", 80);
+		//strncpy(command, "C:\\Users\\bwaters\\Documents\\Adapt It Unicode Work\\_DATA_KB_SHARING\\dLss_win.exe", 130);
 		// For logging, use BString to convert back to wxString
 		wxString thePath = charPath.Convert8To16();
-		wxLogDebug(_T("full execPath, strncpy used, n=80: %s"), thePath.c_str());
+		wxLogDebug(_T("full execPath, strncpy used, n=130: %s"), thePath.c_str());
 
 			// in my case, I run the dLss_win.exe code with the system command calls ( a few of them ) 
 			// in the 'dist' folder and all output .dat files appear in the same folder where
 			// 'dLss_win.exe' is run from.
 			// When I test run 'dLss_win.exe' from any other folder I have to ensure I run the
 			// .exe with some path variable set to where 'dist' folder is, whereas the output
-			// .dat files still always appear in that same folder with the .exe file
+			// .dat files still always appear in the same folder as the AI .exe file
 			//
 			// NOTE: NOTE: NOTE: before I could do any c/c++/python-pyinstaller compiles or even 
 			// call wmic stuff and Nmap I had to first setup user & system path variables ... 
@@ -60680,9 +59306,9 @@ SD_SD_ValueIsIrrelevant
 };
 */
 
-void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_delete.dat");
@@ -60738,9 +59364,9 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString execPath, wxS
 	}
 }
 
-void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_undelete.dat");
@@ -60796,9 +59422,9 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString execPath, w
 	}
 }
 
-void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString distPath) // whm 22Feb2021 removed execPath parameter
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("create_entry.dat");
@@ -60853,9 +59479,9 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString execPath, wxSt
 	}
 }
 
-void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_user.dat");
@@ -60928,9 +59554,9 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString execPath, wxStr
 	}
 }
 
-void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_entry.dat");
@@ -60983,9 +59609,9 @@ void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString execPath, wxSt
 	}
 }
 
-void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("changed_since_timed.dat");
@@ -61044,9 +59670,9 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString execPath
 	}
 }
 
-void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("upload_local_kb.dat");
@@ -61122,9 +59748,9 @@ void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString execPath, wx
 	}
 }
 
-void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm 22Feb2021 removed execPath parameter
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("list_users.dat");
@@ -61187,9 +59813,9 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString execPath, wxStri
 	}
 }
 
-void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_permission.dat");
@@ -61258,9 +59884,9 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString execPath,
 	}
 }
 
-void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_fullname.dat");
@@ -61329,9 +59955,9 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString execPath, w
 	}
 }
 
-void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString execPath, wxString distPath)
+void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString distPath)
 {
-	wxASSERT(!execPath.IsEmpty());
+	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!distPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_password.dat");

@@ -33398,7 +33398,7 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	rv = rv;
 */
 //*
-	wxString execPath = pApp->execPath;
+	wxString execPath = pApp->m_appInstallPathOnly + pApp->PathSeparator; //pApp->execPath; // whm changed execPath to m_appInstallPathOnly + PathSeparator
 	wxString saveCwd = ::wxGetCwd();
 	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
 	wxUnusedVar(bChangedCWD);
