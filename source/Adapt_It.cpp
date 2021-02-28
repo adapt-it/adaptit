@@ -18527,9 +18527,6 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 	bool execExists = wxDirExists(execPth);
     // whm 22Feb2021 modified below to use the App's member variable m_distKBsharingPath, which ends with PathSeparator
     wxString distPth = m_distKBsharingPath; // the App member variable is established in OnInit()
-	//wxString distPth = this->GetDistFolder(); // gets the path to dist folder
-	//		// based on Get().GetExecutablePaths(), Bill has created it as
-	//		// a post-build script, so should be in existence
 	// Check that distPth now exists
 	bool distExists = wxDirExists(distPth);
     // whm 22Feb2021 the following if...else... blocks are not needed
@@ -18665,7 +18662,15 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 	m_bChangingPermission = FALSE;
 
 	wxString distFolderPath = m_distKBsharingPath; //this->distPath; // whm 22Feb2021 changed to use App's member m_distKBsharingPath, which end with PathSeparator
+	// BEW 25Feb21 with moving & renaming dist folder to the work folder, a
+	// new value is needed for execFolderPath - it's the path to the (temporary) set of 13
+	// do_xxxx.exe executables for the 13 different funcNumber values, which need to
+	// reside (until Leon provides .c equivalents to meld into AI code) in the 
+	// _DATA_KB_SHARING folder within the work folder. (I need to manually copy these
+	// executables to that folder until our work on .c variants is completed etc)
 	wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; // whm 22Feb2021 changed to use App's member which doesn't end with PathSeparator
+	//wxString execFolderPath = m_distKBsharingPath;
+
 	bool execExists = wxDirExists(execFolderPath);
 	bool distExists = wxDirExists(distFolderPath);
 	if (execExists && distExists)
@@ -19190,9 +19195,12 @@ void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString distFolderPath
 {
 	wxString f1 = distFolderPath + filename; // absolute path to filename's file
 	wxString f2 = execFolderPath + filename; // destination for the move, absolute path -
-						// that is, to the parent folder which is execFolderPath
-	wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
+	if (f1 != f2)
+	{
+		// that is, to the parent folder which is execFolderPath
+		wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
 						// configure it in execPath folder, to have needed data values
+	}
 }
 
 void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename,
@@ -28570,11 +28578,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#if defined(_KBSERVER)
     
     // whm 22Feb2021 removed the following two lines
-	//execPath = PathToExecFolder(); // app removed from end, ends now in separator
+	//wxString execPath = PathToExecFolder(); // app removed from end, ends now in separator
 	//distPath = GetDistFolder();  // set the path to dist folder, for this session
 
-    // whm 22Feb2021 modified the line below to use the m_appInstallPathOnly instead of exePath
-    CreateInputDatBlanks(m_appInstallPathOnly+PathSeparator); //CreateInputDatBlanks(execPath);
+    // BEW 27Feb2021 modified the line below to use m_distKBsharingPath instead of exePath
+	CreateInputDatBlanks(m_distKBsharingPath); // path ends in PathSeparator, no file yet
+					// we want these blanks to be created in the _DATA_KB_SHARING folder
+					// which is a child of the AI Unicode Work folder
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
 	m_bAdaptationsLookupSucceeded = FALSE; // of the FileToEntryStruct() struct function
 										   // called in CallExecute()'s post-wxExecute() switch
@@ -58634,6 +58644,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need
 												 // it to be TRUE so the later loop is accessible
 	wxString aSlash = PathSeparator;
+/*
 	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
 	wxString execPath = wxStandardPaths::Get().GetExecutablePath();  // path to Adapt_It_Unicode.exe if on windows
 
@@ -58651,6 +58662,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	revStr = revStr.Mid(offset);
 	execPath = MakeReverse(revStr);
 	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
+*/
+	// BEW 25Feb21 dedicate a new path to the dLss_win.exe file, scannerPath
+	wxString scannerPath = _T(""); // set below
 
 	// Prior to this point, the code is agnostic of which platform is running
 #if defined (__WXGTK__)
@@ -58768,33 +58782,19 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
     wxString distFolder = m_distKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_distKBsharingFolderName
 
-	// Legacy code, dsb-win.bat produces, from anywhere in a command prompt window, a string 
-	// like this for 3 kbservers running:
-	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
-	// Leon's July2020 solution produces the same output, in kbservice_file.dat and is
-	// stored in the "dist" folder, along with other five other *.dat intermediate results files.
+	// BEW 25Feb21 resultsPath now needs to point at the _DATA_KB_SHARING folder in the work folder
+	wxLogDebug(_T("Scanner's m_distKBsharingPath: %s"), m_distKBsharingPath.c_str());
 
-	// Temporary path to the results... so we can get access to the *.dat files for auditing, etc
-	resultsPath = execPath + distFolder;
-	wxLogDebug(_T("Scanner's resultsPath: %s"), resultsPath.c_str());
-
-	// BEW 22July20, temporarily point the current working directory's path to results Path
-	wxFileName fName(resultsPath); // points to dist folder; ignore returned boolean
-	fName.SetCwd(resultsPath);
+	// BEW 22July20, temporarily point the current working directory to m_distKBsharingPath
+	wxFileName fName(m_distKBsharingPath); // ignore returned boolean
+	fName.SetCwd(m_distKBsharingPath);
 	wxLogDebug(_T("SetCwd() was set to: %s"), fName.GetCwd().c_str());
-
-	// BEW note 22July20: resultsPath and discoveryPath are public wxString variables in 
-	// the CAdapt_ItApp class, and so the header with their declarations is accessible 
-	// from most of our classes.
-	// When using the dist folder during VisStudio AI development, manually place a copy 
-	// of the dist folder in the folders: Unicode Debug, and Unicode Release. When doing
-	// a Release version, the Adapt It installer must place the dist folder in the same
-	// folder as holds the Adapt_It_Unicode.exe executable.
 
 	// Make a path to the kbservice_file.dat results file.
 	// The new current working directory path will ensure that this
 	// path is the same as the path to where dLss_win.exe resides, in the dist folder.
-	discoveryPath = execPath + distFolder + aSlash + tempFile; // ends with _T("kbservice_file.dat")
+	// BEW 25Feb21 discovery path now is simpler
+	discoveryPath = m_distKBsharingPath + tempFile; // ends with _T("kbservice_file.dat")
 	wxLogDebug(_T("Scanner's discoveryPath: %s"), discoveryPath.c_str());
 	{
 		// Use braces to restrict scope to this block and avoid any clashing with program variables
@@ -58808,15 +58808,16 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// running a released version.
 		// Scanner's executable path is to dLss_win.exe which is in a child folder in
 		// the adaptit executable's folder, called "dist".
-		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent, for Windows build
-		execPath += distFolder + aSlash + execDiscoveryFile;
-		wxLogDebug(_T("Scanner's execPath: %s  length = %d"), execPath.c_str(), execPath.Len());
+		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent 
+														 // (till Leon's work obsoletes it)
+		// BEW 25Feb21, set scannerPath
+		scannerPath += m_distKBsharingPath + execDiscoveryFile; 
+		wxLogDebug(_T("Scanner's scannerPath: %s  length = %d"), scannerPath.c_str(), scannerPath.Len());
 		// The above execPath returned a length of 55 characters, for our testing development
 
 		// Drop out to the system to make the needed call. dLss_win.exe has all that is needed -
 		// it is a standalone .exe and does not internally do a call of dLss.bat, the code for
 		// that is now in the C-function, dLss_win.exe which Leon says must be in the dist folder
-		// and the latter being a child of the folder which houses the AI executable
 
 		// Comment from Leon, 21July20 - retain for documenting his approach
 		/////////////////////////////////////////////////////////////////////////////////////////
@@ -58827,28 +58828,29 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// Calling 'dLss_win.exe' from the 'dist' as you did in the cli shell did exactly this , you supplied
 		// a path variable that could be used. 
 		// 80 char array handles our 56 characters with ease, and gives room for paths which may be longer
-		char command[80]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
+		char command[130]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
 
 		//Leon said: strncpy( command,"insert here the full execpath to the dist folder\\dist\\dLss_win.exe" );
 		CBString dblQuote = '"';
-		CBString charPath = Convert16to8(execPath); // converts wxString to a multibyte C-string of UTF-8
+		CBString charPath = Convert16to8(scannerPath); // converts wxString to a multibyte C-string of UTF-8
+		// scannerPath is 75 so 130 should be plenty if storage is in a custom path location
 		// Wrap it with double-quote either end
 		charPath = dblQuote + charPath;
 		charPath += dblQuote;
-		wxASSERT(charPath.GetLength() < 80);
-		strncpy(command, charPath.GetBuffer(), 80);
+		wxASSERT(charPath.GetLength() < 130);
+		strncpy(command, charPath.GetBuffer(), 130);
 		// The following line works, but it is hard coded. We need the stuff above to get it to utf-8
-		//strncpy(command, "C:\\adaptit-git\\bin\\win32\\\"Unicode Debug\"\\dist\\dLss_win.exe", 80);
+		//strncpy(command, "C:\\Users\\bwaters\\Documents\\Adapt It Unicode Work\\_DATA_KB_SHARING\\dLss_win.exe", 130);
 		// For logging, use BString to convert back to wxString
 		wxString thePath = charPath.Convert8To16();
-		wxLogDebug(_T("full execPath, strncpy used, n=80: %s"), thePath.c_str());
+		wxLogDebug(_T("full execPath, strncpy used, n=130: %s"), thePath.c_str());
 
 			// in my case, I run the dLss_win.exe code with the system command calls ( a few of them ) 
 			// in the 'dist' folder and all output .dat files appear in the same folder where
 			// 'dLss_win.exe' is run from.
 			// When I test run 'dLss_win.exe' from any other folder I have to ensure I run the
 			// .exe with some path variable set to where 'dist' folder is, whereas the output
-			// .dat files still always appear in that same folder with the .exe file
+			// .dat files still always appear in the same folder as the AI .exe file
 			//
 			// NOTE: NOTE: NOTE: before I could do any c/c++/python-pyinstaller compiles or even 
 			// call wmic stuff and Nmap I had to first setup user & system path variables ... 
