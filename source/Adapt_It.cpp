@@ -58912,7 +58912,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 #endif
 
 #if defined(__WXOSX_COCOA__)
-
+	//GDLC 01MAR21 m_pApp added to get access to m_appInstallPathOnly
+	CAdapt_ItApp* m_pApp = &wxGetApp();
+	
 	// Although the script can be run from anywhere, the appropriate place to run
 	// it from is where the adaptit executable is located.
 	// It and other temporary files get lodged there, they are cleared out at the
@@ -58944,6 +58946,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	//wxString redirectStr = _T(" 2>/dev/null"); <<-- I don't think we need this
 	//wxString redirectStr = _T(" 2>") + resultsPathFile;
 
+	//GDLC 01MAR21 Added execPath to avoid build failure.
+	//	When KBServer discovery is completed for Mac there may be changes here!
+	wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator;
 	// For opening the report.dat, we need to add the filename to resultsPathFile
 	//resultsPath = resultsPathFile + PathSeparator + reportFile; // path to report.dat
 	resultsPath = execPath + reportFile; // path to report.dat
