@@ -58699,6 +58699,11 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
 	wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
 
+    // whm 01Mar21 temporarily added execPath declaration and assignment to avoid build failure.
+    // When KBServer discovery is completed for Linux there may be changes here!
+    // cf similar temporary change that GFLC made in the Mac conditional block farther below.
+    wxString execPath = m_appInstallPathOnly + PathSeparator;
+
 	// While developing, this returns for execPath on Linux for a Debug build:
 	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
 	// But when running after normal installation, it will/should return:
@@ -58912,8 +58917,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 #endif
 
 #if defined(__WXOSX_COCOA__)
-	//GDLC 01MAR21 m_pApp added to get access to m_appInstallPathOnly
-	CAdapt_ItApp* m_pApp = &wxGetApp();
 	
 	// Although the script can be run from anywhere, the appropriate place to run
 	// it from is where the adaptit executable is located.
@@ -58948,7 +58951,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 	//GDLC 01MAR21 Added execPath to avoid build failure.
 	//	When KBServer discovery is completed for Mac there may be changes here!
-	wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator;
+	wxString execPath = m_appInstallPathOnly + PathSeparator;
 	// For opening the report.dat, we need to add the filename to resultsPathFile
 	//resultsPath = resultsPathFile + PathSeparator + reportFile; // path to report.dat
 	resultsPath = execPath + reportFile; // path to report.dat
