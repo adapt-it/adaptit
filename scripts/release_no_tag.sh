@@ -136,8 +136,21 @@ fi
 if [ "$3" = "-notag" ]
 then
   echo -e "\nScript was called with a -notag parameter."
-  echo "Packages will be built based on current code in your working copy."
-  echo "Therefore, NO GitHub clone/updates/pull will be performed!"
+  # Use the local working copy in directory suffixed with -<releasenum>-notag, for example directory named adaptit-6.10.1-notag
+  # If the directory suffixed with -<releasenem>-notag doesn't exist notify the user and exit
+  if [ -e "$PACKAGING_DIR/adaptit-$1-notag" ]; then
+    echo "************************************************************************"
+    echo "ERROR: The working directory at:"
+    echo "   $PACKAGING_DIR/adaptit-$1-notag doesn't exist!"
+    echo "Put any modifications since tagged version $1 in a directory named:"
+    echo "   $PACKAGING_DIR/adaptit-$1-notag and run this script again."
+    echo "************************************************************************"
+    echo "ABORTING THIS SCRIPT!"
+    exit 2
+  else
+    echo "Found a working directory at: $PACKAGING_DIR/adaptit-$1-notag"
+    echo "  Using the adaptit-$1-notag working copy for build/packaging." 
+  fi
 fi
 
 # This convenience function determines if someList contains someItem
@@ -562,21 +575,6 @@ then
     [ -d adaptit ] || git clone $AID_GITURL
   fi
 else
-  # Use the local working copy in directory suffixed with -<releasenum>-notag, for example directory named adaptit-6.10.1-notag
-  # If the directory suffixed with -<releasenem>-notag doesn't exist notify the user and exit
-  if [ -e "$PACKAGING_DIR/adaptit-$1-notag" ]; then
-    echo "************************************************************************"
-    echo "ERROR: The working directory at:"
-    echo "   $PACKAGING_DIR/adaptit-$1-notag doesn't exist!"
-    echo "Put any modifications since tagged version $1 in a directory named:"
-    echo "   $PACKAGING_DIR/adaptit-$1-notag and run this script again."
-    echo "************************************************************************"
-    echo "ABORTING THIS SCRIPT!"
-    exit 2
-  else
-    echo "Found a working directory at: $PACKAGING_DIR/adaptit-$1-notag"
-    echo "  Using the adaptit-$1-notag working copy for build/packaging." 
-  fi
   echo -e "\nSyncing a copy of existing -notag code to:  $PACKAGING_DIR/adaptit"
   echo      "  from $PROJECTS_DIR/adaptit-$1-notag/"
   echo      "  to $PACKAGING_DIR/adaptit"
