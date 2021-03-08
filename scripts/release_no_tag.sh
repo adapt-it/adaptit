@@ -544,7 +544,7 @@ cd $PACKAGING_DIR
 
 if [ ! "$3" = "-notag" ]
 then
-# Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
+  # Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
   echo -e "\nChecking for a git repo at: $PACKAGING_DIR/adaptit"
   if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
     echo "A repo was found at: $PACKAGING_DIR/adaptit"
@@ -562,10 +562,26 @@ then
     [ -d adaptit ] || git clone $AID_GITURL
   fi
 else
- echo -e "\nSyncing a copy of existing code to:  $PACKAGING_DIR/adaptit"
-  echo      "  from $PROJECTS_DIR/adaptit/"
+  # Use the local working copy in directory suffixed with -<releasenum>-notag, for example directory named adaptit-6.10.1-notag
+  # If the directory suffixed with -<releasenem>-notag doesn't exist notify the user and exit
+  if [ -e "$PACKAGING_DIR/adaptit-$1-notag" ]; then
+    echo "************************************************************************"
+    echo "ERROR: The working directory at:"
+    echo "   $PACKAGING_DIR/adaptit-$1-notag doesn't exist!"
+    echo "Put any modifications since tagged version $1 in a directory named:"
+    echo "   $PACKAGING_DIR/adaptit-$1-notag and run this script again."
+    echo "************************************************************************"
+    echo "ABORTING THIS SCRIPT!"
+    exit 2
+  else
+    echo "Found a working directory at: $PACKAGING_DIR/adaptit-$1-notag"
+    echo "  Using the adaptit-$1-notag working copy for build/packaging." 
+  fi
+  echo -e "\nSyncing a copy of existing -notag code to:  $PACKAGING_DIR/adaptit"
+  echo      "  from $PROJECTS_DIR/adaptit-$1-notag/"
   echo      "  to $PACKAGING_DIR/adaptit"
   rsync -aq --delete --ignore-times --checksum --exclude="build_*" $PROJECTS_DIR/adaptit/ $PACKAGING_DIR/adaptit
+  # For example, the above rsync command copies the ~/projects/adaptit-6.10.1-notag/ dir to ~/packaging/adaptit
 
   cd $PACKAGING_DIR/adaptit
   buildSuffix=`dpkg-parsechangelog | awk '/^Version: / {print $2}' | cut -d '-' -f2`
@@ -616,11 +632,11 @@ echo -e "\nCall autogen.sh to recreate the build environment"
 pathbefore=`pwd`
 echo "Path before autogen.sh: $pathbefore"
 ./autogen.sh
-
-#cd ..
-cd $PACKAGING_DIR
 pathafter=`pwd`
 echo "Path after autogen.sh: $pathafter"
+echo "Changing path to $PACKAGING_DIR"
+#cd ..
+cd $PACKAGING_DIR
 
 # Delete unwanted non-source files here
 echo -e "\nRemoving unwanted non-source files from adaptit-${RELEASE}"
@@ -694,8 +710,10 @@ for i in $OSRELEASES; do
     # The remaining arguments are passed on to the script."
 
     # Build in each pbuilder
-    echo -e "\nBuilding in each pbuilder with command:"
+    echo -e "\n******************** back in main script ************************************"
+    echo "Building in each pbuilder with command:"
     echo "  pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc"
+    echo "******************** now calling pbuilder-$1 build ***********************"
     pbuilder-$i build adaptit_${RELEASE}-$buildSuffix.dsc
     #echo -e "\nBuilding in each pbuilder with command:"
     #echo "  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc"

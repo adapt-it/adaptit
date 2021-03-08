@@ -21428,7 +21428,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block below executes      !!!!!!!!!!!!
-
+    // whm 3Mar2021 added more wxLogDebug() statements in OnInit() including the followin first one:
+    wxLogDebug(_T("****************************************************************************")); 
+    wxLogDebug(_T("Starting Program Initialization in OnInit()"));
+    
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
 	m_bkSlash = _T("\\");
@@ -24400,6 +24403,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // their menu id int associations. This shouldn't strictly be needed, but is a
     // precaution in case something goes awry with the localization - there will be
     // English defaults for menu item labels in the mapping.
+    wxLogDebug(_T("Calling SetupUnTranslatedMapMenuLabelStrToIdInt()"));
     SetupUnTranslatedMapMenuLabelStrToIdInt(m_mapMenuLabelStrToIdInt);
 
     // NOTE: We determine Adapt It's user interface language here early in OnInit() before
@@ -24418,6 +24422,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //		__LINE__, m_szView.x, m_szView.y);
 	if (!m_bAutoExport)
     {
+        wxLogDebug(_T("Calling ProcessUILanguageInfoFromConfig()"));
         currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
                                                                   // the m_languageInfo is defined above
 
@@ -24454,6 +24459,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
         {
             // can disregard return bool value of ChooseInterfaceLanguage() here
+            wxLogDebug(_T("Calling ChooseInterfaceLanguage()"));
             ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that
                                                 // currLocalizationInfo's curr_UI_Language is something other than wxLANGUAGE_UNKNOWN
         }
@@ -24609,6 +24615,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pHelpController->UseConfig(m_pConfig, _T("/HtmlHelpControler"));
 
     // Required for images in the online documentation
+    wxLogDebug(_T("Calling wxInitAllImageHandlers()"));
     wxInitAllImageHandlers(); // the help sample program does this, although it is not
                               // documented anywhere in wxWidgets!
     // Note: There are also individual handlers, i.e., wxImage::AddHandler(new
@@ -24628,6 +24635,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
     // also created within the CMainFrame's constructor.
 
+    wxLogDebug(_T("Creating CMainFrame instance"));
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*)NULL, -1, m_FrameAndDocProgramTitle,
         wxPoint(0, 0), wxSize(735, 500),
         wxDEFAULT_FRAME_STYLE
@@ -25933,7 +25941,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //#endif
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
-	EnsureWorkFolderPresent();
+    wxLogDebug(_T("Calling EnsureWorkFolderPresent()"));
+    EnsureWorkFolderPresent();
     // m_workFolderPath is set in EnsureWorkFolderPresent(), and this becomes the current
     // working directory. m_localPathPrefix is also set in here and is used in
     // MakeForeignBasicConfigFileSafe() below.
@@ -25975,6 +25984,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // is so that any unwise meddling with what is in the basic config file, in
     // particular, it's stored critical paths, won't crash the app, but will instead get
     // self-healed before the data has to be committed to.)
+    wxLogDebug(_T("Calling DealWithThePossibilityOfACustomWorkFolderLocation()"));
     bool bDealtWithItOK = DealWithThePossibilityOfACustomWorkFolderLocation();
     if (!bDealtWithItOK)
     {
@@ -26194,6 +26204,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // into InitializeFonts() and InitializePunctuation() which are both called earler in
     // OnInit() above.
 
+    wxLogDebug(_T("Creating the global Page Setup Dialog Data"));
     // create the global Page Setup Dialog Data
     pPgSetupDlgData = new wxPageSetupDialogData; // must delete in OnExit()
     wxASSERT(pPgSetupDlgData != NULL);
@@ -26286,6 +26297,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // at the custom location (provided the user or admin doesn't change the location
         // using the Administrator menu).
         // !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        wxLogDebug(_T("Calling GetBasicConfiguration()"));
         bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
 													// detects SHIFT-DOWN
 		if (m_bWorkFolderBeingSetUp)
@@ -26538,7 +26550,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 6Apr20 remove widowed ~AIROP file persisting due to previous bad shutdown
 	if (!m_curProjectPath.IsEmpty())
 	{
-		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+        bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+        if (bRemoved)
+        {
+            wxLogDebug(_T("Removed stale ~AIROP lock file"));
+        }
 		wxUnusedVar(bRemoved); // to avoid warning
 		m_bReadOnlyAccess = FALSE;
 		m_bFictitiousReadOnlyAccess = FALSE;
@@ -26605,6 +26621,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         pCheckboxIsGlossing->Show(FALSE);
     }
 
+    wxLogDebug(_T("Calling m_pMainFrame->Show(TRUE) and SetTopWindow(m_pMainFrame)"));
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
 
@@ -26803,6 +26820,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 #endif
         AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+        wxLogDebug(_T("Creating custom work folder's sub-folders, if needed, and adjusting their paths"));
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName);
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
@@ -26828,6 +26846,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 #endif
         AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+        wxLogDebug(_T("Creating work folder's sub-folders, if needed, and adjusting their paths"));
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName);
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
@@ -26859,6 +26878,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
     m_distKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
 
+    wxLogDebug(_T("Creating user log file at: %s"), m_usageLogFilePathAndName.c_str());
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -26873,6 +26893,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // This is to prevent unnecessary bloat of disk usage in the _LOGS_EMAIL_REPORTS log folder over time.
     // The RemoveOldDocCreationLogFiles() uses the same strategy that the
     // RemoveUnwantedOldUserProfilesFiles() function uses.
+    wxLogDebug(_T("Calling RemoveOldDocCreationLogFiles()"));
     RemoveOldDocCreationLogFiles();
 
     // Create a new instance of the m_docCreationLogFile which will be a file with a unique date-time substring in
@@ -26893,6 +26914,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // phrase/word, sequ number, and a ch:verse reference.
     // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
     m_docCreationLogFile = new wxFile(m_docCreationFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
+    wxLogDebug(_T("Prepared document creation log file at: %s"), m_docCreationFilePathAndName.c_str());
 
     // Now the user log file is set up, we can call git:
     m_DVCS_installed = (m_pDVCS->DoDVCS(DVCS_CHECK, 0) == 0);       // if this call returns an error, assume DVCS not installed
@@ -27767,6 +27789,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // according to the m_bShowAdministratorMenu flag set above.
     // whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
     // within OnInit() after the above m_collaborationEditor string has been assigned.
+    wxLogDebug(_T("Calling MakeMenuInitializationsAndPlatformAdjustments()"));
     MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -27889,10 +27912,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // using PushEventHandler() here appears to be too early (there is no 'previous' event
     // handler yet), so try at end of OnInit()
 
-
-    // Display message in status bar that startup initialization is complete
-    message = _("Initialization complete. Call Start Working...");
-    pStatusBar->SetStatusText(message, 0); // use first field 0
+    // whm 3Mar2021 moved to end of OnInit()
+    //// Display message in status bar that startup initialization is complete
+    //message = _("Initialization complete. Call Start Working...");
+    //pStatusBar->SetStatusText(message, 0); // use first field 0
         // we are passed all the MFC initialization stuff, and about to enter the Start
         // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
         // out the project config file once the user's setting for book mode is in place
@@ -28496,6 +28519,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     */
 
     // Next call prevents old userprofiles files from accumulating on disk
+    wxLogDebug(_T("Calling RemoveUnwantedOldUserProfilesFiles()"));
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
 	//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -28582,6 +28606,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//distPath = GetDistFolder();  // set the path to dist folder, for this session
 
     // BEW 27Feb2021 modified the line below to use m_distKBsharingPath instead of exePath
+    wxLogDebug(_T("Calling CreateInputDatBlanks for KB Sharing in: %s"), m_distKBsharingPath.c_str());
 	CreateInputDatBlanks(m_distKBsharingPath); // path ends in PathSeparator, no file yet
 					// we want these blanks to be created in the _DATA_KB_SHARING folder
 					// which is a child of the AI Unicode Work folder
@@ -28594,6 +28619,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
+    // whm 3Mar2021 moved here just before return from OnInit()
+    // Display message in status bar that startup initialization is complete
+    message = _("Initialization complete in OnInit(). Now, OnIdle() will call Start Working wizard...");
+    wxLogDebug(message);
+    wxLogDebug(_T("****************************************************************************"));
+    pStatusBar->SetStatusText(message, 0); // use first field 0
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
