@@ -18838,8 +18838,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	target = FwdSlashtoZWSP(target);
 //#endif
 
-	wxLogDebug(_T("\n%s::%s() line= %d , (tgt)textLen= %d  (tgt)text= %s\n"),
-		__FILE__, __FUNCTION__, __LINE__, textLen, target.c_str());
+    // whm 4Mar2021 commented out to reduce debug console output during collaboration
+	//wxLogDebug(_T("\n%s::%s() line= %d , (tgt)textLen= %d  (tgt)text= %s\n"),
+	//	__FILE__, __FUNCTION__, __LINE__, textLen, target.c_str());
 
 	return textLen;
 }// end of RebuildTargetText

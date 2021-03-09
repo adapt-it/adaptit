@@ -21431,7 +21431,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 3Mar2021 added more wxLogDebug() statements in OnInit() including the followin first one:
     wxLogDebug(_T("****************************************************************************")); 
     wxLogDebug(_T("Starting Program Initialization in OnInit()"));
-    
+    wxString appVersionStr = GetAppVersionOfRunningAppAsString();
+    wxLogDebug(_T("Version of this Application is: %s"),appVersionStr.c_str());
+
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
 	m_bkSlash = _T("\\");
