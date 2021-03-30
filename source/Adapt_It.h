@@ -209,7 +209,7 @@ class test_system_call;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 247).
+// 1. The appVerStr const defined below (about line 250).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 //    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
@@ -241,13 +241,13 @@ class test_system_call;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 10 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
-#define VERSION_DATE_MONTH 5
-#define VERSION_DATE_YEAR 2020
-const wxString appVerStr(_T("6.10.1"));
+#define VERSION_DATE_DAY 8
+#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_YEAR 2021
+const wxString appVerStr(_T("6.10.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
