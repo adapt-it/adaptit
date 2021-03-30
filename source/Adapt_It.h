@@ -984,6 +984,61 @@ struct TIMESETTINGS
 	wxDateTime	m_tLastKBSave;
 };
 
+/*
+// These are the "restored default" settings, which WriteCacheDefaults()
+// will set using the following struct. m_pFindDlg points at the FindReplace.h,
+// class creator, see line 38
+pApp->m_pFindDlg->m_srcStr.Empty();
+pApp->m_pFindDlg->m_tgtStr.Empty();
+pApp->m_pFindDlg->m_replaceStr.Empty();
+pApp->m_pFindDlg->m_sfm.Empty();
+pApp->m_pFindDlg->m_markerStr.Empty();
+pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
+pApp->m_pFindDlg->m_bFindSFM = FALSE;
+pApp->m_pFindDlg->m_bSrcOnly = TRUE;
+pApp->m_pFindDlg->m_bTgtOnly = FALSE;
+pApp->m_pFindDlg->m_bSrcAndTgt = FALSE;
+pApp->m_pFindDlg->m_bSpecialSearch = FALSE;
+pApp->m_pFindDlg->m_bFindDlg = TRUE;
+pApp->m_pFindDlg->m_bSpanSrcPhrases = FALSE;
+pApp->m_pFindDlg->m_bIncludePunct = FALSE;
+pApp->m_pFindDlg->m_bIgnoreCase = FALSE;
+pApp->m_pFindDlg->m_nCount = 0;
+// There are 3 functions which use this struct, from FindReplace.cpp's instance:
+// bool WriteCacheDefaults() - which sets defaultFindConfig struct to have the above values
+// bool WriteFindCache(pApp->m_pFindDlg) - which sets readwriteFindConfig struct to have the
+// values as at the Find Next button press (so that config is not lost when Ctrl+F is done)
+// bool ReadFindCache(pApp->m_pFindDlg) - which takes the cached values in the 
+// readwriteFindConfig struct,to restore them when Ctrl+F is done to call OnFind(), 
+// at its start, when doing a Find Next with unchanged configuration values. 
+// Return FALSE if there was an error so that the caller can take evasive action 
+// to prevent a crash
+*/
+struct CacheFindReplaceConfig
+{
+	wxString srcStr;
+	wxString tgtStr;
+	wxString replaceStr;
+	int marker;
+	wxString markerStr;
+	wxString sfm;
+	bool bFindRetranslation;
+	bool bFindNullSrcPhrase; // NullSrcPhrase is a Placeholder, as of years ago
+	bool bFindSFM;
+	bool bSrcOnly;
+	bool bTgtOnly;
+	bool bSrcAndTgt;
+	bool bSpecialSearch;
+	bool bFindDlg;
+	bool bSpanSrcPhrases;
+	bool bIncludePunct;
+	bool bIgnoreCase = FALSE;
+	// count of how many srcPhrase instances were matched 
+	// (value is not valid when there was no match)
+	int nCount;
+};
+
 /// A struct for specifying paired source and target punctuation characters.
 /// Struct members include: charSrc and charTgt.
 struct PUNCTPAIR
@@ -3405,6 +3460,16 @@ public:
 	wxString	m_targetLanguageName; // name for the target language
 	wxString	m_glossesLanguageName; // name
 	wxString	m_freeTransLanguageName;  // name for free translation language
+
+	// BEW 25Mar21 Find or Find & Replace support, using the struct
+	// CacheFindReplaceConfig - defined above at line 1017
+	bool        WriteCacheDefaults(); // writes default values into the struct
+	bool        WriteFindCache();
+	bool        ReadFindCache();
+	// Use the next 3, one in each of the above functions, to hold the config values
+	CacheFindReplaceConfig defaultFindConfig;
+	CacheFindReplaceConfig readwriteFindConfig;
+	wxComboBox*	m_pComboSFM; 
 
 	// Status bar support
 	void	 RefreshStatusBarInfo();

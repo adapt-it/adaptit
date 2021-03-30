@@ -468,6 +468,9 @@ extern int	gnToVerse;
 /// This global is defined in CAdapt_ItView
 extern bool	gbCheckInclFreeTransText;
 
+/// This global is defined in CAdapt_ItView
+extern bool gbFind;
+
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;
 
@@ -21461,7 +21464,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_entryCount_updateHandler = 0; // augment every time the OnUpdateButtonNullSource() func is called
 	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
-
 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
@@ -60918,6 +60920,294 @@ wxString CAdapt_ItApp::RemovePathPrefix(wxString cmdLine, wxString& pathPrefix)
 		return cmd; // path prefix now removed
 	}
 }
+
+bool CAdapt_ItApp::WriteCacheDefaults()
+{
+	// sanity test
+	if (gbFind == FALSE)
+	{
+		return FALSE; // this means current config remains in force, if defined
+	}
+	defaultFindConfig.srcStr = wxEmptyString;
+	defaultFindConfig.tgtStr = wxEmptyString;
+	defaultFindConfig.replaceStr = wxEmptyString;
+	defaultFindConfig.sfm = wxEmptyString;
+	defaultFindConfig.markerStr = wxEmptyString;
+	defaultFindConfig.bFindRetranslation = FALSE;
+	defaultFindConfig.bFindNullSrcPhrase = FALSE;
+	defaultFindConfig.bFindSFM = FALSE;
+	defaultFindConfig.bSrcOnly = TRUE;
+	defaultFindConfig.bTgtOnly = FALSE;
+	defaultFindConfig.bSrcAndTgt = FALSE;
+	defaultFindConfig.bSpecialSearch = FALSE;
+	defaultFindConfig.bFindDlg = TRUE;
+	defaultFindConfig.bSpanSrcPhrases = FALSE;
+	defaultFindConfig.bIncludePunct = FALSE;
+	defaultFindConfig.bIgnoreCase = FALSE;
+	defaultFindConfig.nCount = 0;
+	// There is an AI.h public member variable m_pComboBox for
+	// caching the list of USFMs in a special search
+	return TRUE;
+}
+
+bool CAdapt_ItApp::WriteFindCache()
+{
+	CFindDlg* pDlg = m_pFindDlg;
+	if (pDlg == NULL)
+	{
+		gbFind = FALSE;
+		return FALSE;
+	}
+	CacheFindReplaceConfig* pStruct = &readwriteFindConfig; // point to the cache
+	wxTextCtrl*	pSrcTxt = pDlg->m_pEditSrc;
+	pStruct->srcStr = pSrcTxt->GetValue();
+
+	wxTextCtrl*	pTgtTxt = pDlg->m_pEditTgt;
+	pStruct->tgtStr = pTgtTxt->GetValue();
+
+	// Find lack a "replace" text box, so leave next line as is, with pStruct->replaceStr default empty
+	pStruct->replaceStr = pDlg->m_replaceStr;
+
+	// The radio buttons...
+	wxRadioButton*	pSrcOnly = pDlg->m_pRadioSrcTextOnly;
+	pStruct->bSrcOnly = pSrcOnly->GetValue();
+	wxRadioButton*	pTgtOnly = pDlg->m_pRadioTransTextOnly;
+	pStruct->bTgtOnly = pTgtOnly->GetValue();
+	wxRadioButton*	pSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+	pStruct->bSrcAndTgt = pSrcTgt->GetValue();
+
+	pStruct->markerStr = pDlg->m_markerStr; // no wxTextCtrl for this, it for when searching for a marker
+	pStruct->sfm = pDlg->m_sfm; // no wxTextCtrl for this, it for when searching for a \usfmtype
+	pStruct->marker = pDlg->m_marker; // int - list index value (could be -1)
+	//pStruct->bFindRetranslation = pDlg->m_bFindRetranslation;
+	//pStruct->bFindNullSrcPhrase = pDlg->m_bFindNullSrcPhrase; // ie for finding a Placeholder
+	//pStruct->bFindSFM = pDlg->m_bFindSFM;
+	pStruct->bSpecialSearch = pDlg->m_bSpecialSearch;
+	pStruct->bFindDlg = pDlg->m_bFindDlg;
+
+	// The checkboxes...
+	wxCheckBox*	pCheckSpan = pDlg->m_pCheckSpanSrcPhrases;
+	pStruct->bSpanSrcPhrases = pCheckSpan->GetValue();
+	wxCheckBox*	pCheckIncludePunct = pDlg->m_pCheckIncludePunct;
+	pStruct->bIncludePunct = pCheckIncludePunct->GetValue();
+	wxCheckBox*	pCheckIgnoreCase = pDlg->m_pCheckIgnoreCase;
+	pStruct->bIgnoreCase = pCheckIgnoreCase->GetValue();
+
+	// The three "Special Search" radio buttons
+	wxRadioButton* pRadioRetrans =	pDlg->m_pFindRetranslation;
+	pStruct->bFindRetranslation = pRadioRetrans->GetValue();
+	wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
+	pStruct->bFindNullSrcPhrase = pRadioPlaceholder->GetValue();
+	wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
+	pStruct->bFindSFM = pRadioSFM->GetValue();
+
+	// Now the wxComboBox - this is not in the struct, but a cache variable is on AI.h
+	m_pComboSFM = pDlg->m_pComboSFM;	
+
+	pStruct->nCount = pDlg->m_nCount;
+	return TRUE;
+}
+
+bool CAdapt_ItApp::ReadFindCache()
+{
+	CFindDlg* pDlg = m_pFindDlg;
+	if (pDlg == NULL)
+	{
+		gbFind = FALSE; // gets the class destroyed ant m_pFindDlg set to NULL
+		return FALSE;
+	}
+	CacheFindReplaceConfig* pStruct = &readwriteFindConfig; // point to it
+	pDlg->m_srcStr = pStruct->srcStr;
+	pDlg->m_tgtStr = pStruct->tgtStr;
+	pDlg->m_replaceStr = pStruct->replaceStr;
+	pDlg->m_markerStr = pStruct->markerStr;
+	pDlg->m_sfm = pStruct->sfm;
+	pDlg->m_marker = pStruct->marker; // int - list index value (could be -1)
+	pDlg->m_bFindRetranslation = pStruct->bFindRetranslation;
+	pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // ie for finding a Placeholder
+	pDlg->m_bFindSFM = pStruct->bFindSFM;
+	pDlg->m_bSrcOnly = pStruct->bSrcOnly;
+	pDlg->m_bTgtOnly = pStruct->bTgtOnly;
+	pDlg->m_bSrcAndTgt = pStruct->bSrcAndTgt;
+	pDlg->m_bSpecialSearch = pStruct->bSpecialSearch;
+	pDlg->m_bFindDlg = pStruct->bFindDlg;
+	pDlg->m_bSpanSrcPhrases = pStruct->bSpanSrcPhrases;
+	pDlg->m_bIncludePunct = pStruct->bIncludePunct;
+	pDlg->m_bIgnoreCase = pStruct->bIgnoreCase;
+	pDlg->m_nCount = pStruct->nCount;
+
+	// Now get the restored values into the config dialog's gui
+	if (pDlg->m_bSrcOnly == TRUE)
+	{
+		wxString src = pDlg->m_pEditSrc->GetValue();
+		if (src != pDlg->m_srcStr)
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+		}
+		pDlg->m_pEditSrc->Show();
+		pDlg->m_pEditSrc->SetFocus();
+		pDlg->m_pEditTgt->Hide();
+
+		// make the radio buttons comply
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		bool bRadioSrc = pRadioSrc->GetValue();
+		if (bRadioSrc != pDlg->m_bSrcOnly) // LHS is current gui value, RHS is cache value
+		{
+			pRadioSrc->SetValue(pDlg->m_bSrcOnly);
+		}
+		else
+		{
+			pRadioSrc->SetValue(TRUE);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bSrcOnly;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		pRadioTgt->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+	}
+	else if (pDlg->m_bTgtOnly == TRUE)
+	{
+		wxString tgt = pDlg->m_pEditTgt->GetValue();
+		if (tgt != pDlg->m_tgtStr)
+		{
+			// Put the cached tgt string into the config dlg
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+		}
+		pDlg->m_pEditTgt->Show();
+		pDlg->m_pEditTgt->SetFocus();
+		pDlg->m_pEditSrc->Hide();
+		// make the radio buttons comply
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		bool bRadioTgt = pRadioTgt->GetValue();
+		if (bRadioTgt != pDlg->m_bTgtOnly) // LHS is current gui value, RHS is cache value
+		{
+			pRadioTgt->SetValue(pDlg->m_bTgtOnly);
+		}
+		else
+		{
+			pRadioTgt->SetValue(TRUE);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bTgtOnly;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		pRadioSrc->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+	}
+	else if (pDlg->m_bSrcAndTgt == TRUE)
+	{
+		wxString src = pDlg->m_pEditSrc->GetValue();
+		if (src != pDlg->m_srcStr)
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+			pDlg->m_pEditSrc->Show();
+			//pDlg->m_pEditSrc->SetFocus();
+		}
+		else
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+			pDlg->m_pEditSrc->Show();
+		}
+
+		wxString tgt = pDlg->m_pEditTgt->GetValue();
+		if (tgt != pDlg->m_tgtStr)
+		{
+			// Put the cached translation string into the config dlg
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr); // translation string is reset
+			pDlg->m_pEditTgt->Show();
+			
+		}
+		else
+		{
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+			pDlg->m_pEditTgt->Show();
+		}
+		pDlg->m_pEditTgt->SetFocus(); // put it here
+
+		// make the radio buttons comply
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		bool bRadioSrcTgt = pRadioSrcTgt->GetValue();
+		if (bRadioSrcTgt != pDlg->m_bSrcAndTgt) // LHS is current gui value, RHS is cache value
+		{
+			pRadioSrcTgt->SetValue(pDlg->m_bSrcAndTgt);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bSrcAndTgt;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		pRadioSrc->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		pRadioTgt->SetValue(bOtherValue); // FALSE
+	}
+	else
+	{
+		// We never expect control to enter here, something's real wrong
+		gbFind = FALSE; // kill the dialog
+		wxString msg = _T("%s:%s(), error, line %d, none of othe radio buttons was matched. Find dialog will close, but Adapt It will continue running");
+		msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__);
+		LogUserAction(msg);
+		return FALSE;
+	}
+	// Next, update the checkboxes to former values, if necessary
+	wxCheckBox* pIgnore = pDlg->m_pCheckIgnoreCase; 
+	bool bIgnoreCase = pIgnore->GetValue(); // get current value of the checkbox
+	bool bCachedIgnore = pStruct->bIgnoreCase; // get the cached value
+	if (bIgnoreCase == FALSE && bCachedIgnore == TRUE)
+	{
+		pIgnore->SetValue(TRUE);
+	}
+
+	wxCheckBox* pIncludePunct = pDlg->m_pCheckIncludePunct;
+	bool bIncludePunct = pIncludePunct->GetValue(); // get current value of the checkbox
+	bool bCachedIncludePunct = pStruct->bIncludePunct; // get the cached value
+	if ((bIncludePunct == FALSE) && (bCachedIncludePunct == TRUE))
+	{
+		pIncludePunct->SetValue(TRUE);
+	}
+
+	wxCheckBox* pSpan = pDlg->m_pCheckSpanSrcPhrases;
+	bool bSpan = pSpan->GetValue(); // get the current value of the checkbox
+	bool bCachedSpan = pStruct->bSpanSrcPhrases; // get the cached value
+	if (bSpan == FALSE && bCachedSpan == TRUE)
+	{
+		pSpan->SetValue(TRUE);
+	}
+
+	// The three "Special Search" radio buttons
+	wxRadioButton* pRadioRetrans = pDlg->m_pFindRetranslation;
+	bool bRadioRetrans = pRadioRetrans->GetValue(); // get dlg's current value
+	bool bRadioCachedRetrans = pStruct->bFindRetranslation; // what we cached
+	if (bRadioRetrans != bRadioCachedRetrans)
+	{
+		pDlg->m_pFindRetranslation->SetValue(bRadioCachedRetrans);
+	}
+
+	wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
+	bool bRadioPlaceholder = pRadioPlaceholder->GetValue(); // get dlg's current value
+	bool bRadioCachedPlaceholder = pStruct->bFindNullSrcPhrase; // what we cached
+	if (bRadioPlaceholder != bRadioCachedPlaceholder)
+	{
+		pDlg->m_bFindNullSrcPhrase = bRadioCachedPlaceholder;
+	}
+
+	wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
+	bool bRadioSFM = pRadioSFM->GetValue(); // get dlg's current value
+	bool bRadioCachedSFM = pStruct->bFindSFM; // what we cached
+	if (bRadioSFM != bRadioCachedSFM)
+	{
+		pDlg->m_bFindSFM = bRadioCachedSFM;
+	}
+
+	// the combobox, RHS is an AI.h member variable, not in the struct
+	pDlg->m_pComboSFM = m_pComboSFM;
+
+	pDlg->Refresh();
+	return TRUE;
+}
+
 
 // BEW 23Apr20, copies the pAnalysis members to the cache variables
 // on the app. See AI.h about lines 4174 plus or minus

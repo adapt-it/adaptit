@@ -127,6 +127,7 @@ BEGIN_EVENT_TABLE(CFindDlg, wxScrollingDialog)
     EVT_TEXT_ENTER(IDC_EDIT_TGT_FIND, CFindDlg::OnTgtEditBoxEnterKeyPress)
 
 	EVT_BUTTON(wxID_OK, CFindDlg::OnFindNext)
+	EVT_BUTTON(ID_BUTTON_RESTORE_DEFAULTS, CFindDlg::OnRestoreFindDefaults)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_ONLY_FIND, CFindDlg::OnRadioSrcOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_TGT_ONLY_FIND, CFindDlg::OnRadioTgtOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_AND_TGT_FIND, CFindDlg::OnRadioSrcAndTgt)
@@ -475,15 +476,26 @@ void CFindDlg::DoFindNext()
 	pView->RemoveSelection();
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
+
     int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber; // could be 0 if active pile is at 0
 
 repeatfind:
 
-    // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
+	// BEW 27Mar21 write the cached values into the config dialog, if the struct
+	// CacheFindReplaceConfig has it's bool bFindDlg set TRUE (it's TRUE after a
+	// Find or Find Replace has been initiated, and stays TRUE until user cancels, 
+	// whereupon its FALSE). Reading the cache in order to restore the cached values
+	// to the next OnFind(), etc, call so that the config dialog reappears with values
+	// unchanged is done at the start of the OnFind() call in the View class after
+	// line 19,138 (near start of the function)
+	bool bWriteStructCache = gpApp->WriteFindCache();
+	wxUnusedVar(bWriteStructCache);
+
+	// whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
     // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
     // For modeless dialogs - which can execute ENTER-generated commands multiple times
-    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
-    // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialog() only
+    // is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
     // in order to supress all phrasebox run-on instances due to ENTER key getting 
     // propagated on to CPhraseBox::OnKeyUp().
     gpApp->m_bUserDlgOrMessageRequested = TRUE;
@@ -771,6 +783,88 @@ repeatfind:
 		Update();
 		::wxBell();
 	}
+}
+
+void CFindDlg::OnRestoreFindDefaults(wxCommandEvent& WXUNUSED(event))
+{
+	// CFindDlg does not support a 'replace' wxTextBox
+	gpApp->WriteCacheDefaults(); // sets the default config struct to have default values
+	CacheFindReplaceConfig* pStruct = &gpApp->defaultFindConfig; // point to it
+	CFindDlg* pDlg = gpApp->m_pFindDlg;
+	// Now set the relevant member parameters from the struct
+	pDlg->m_srcStr = pStruct->srcStr;
+	pDlg->m_tgtStr = pStruct->tgtStr;
+	pDlg->m_replaceStr = pStruct->replaceStr;
+	pDlg->m_sfm = pStruct->sfm;
+	pDlg->m_markerStr = pStruct->markerStr;
+	pDlg->m_marker = pStruct->marker; // int
+	pDlg->m_bFindRetranslation = pStruct->bFindRetranslation;
+	pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // to find a Placeholder
+	pDlg->m_bFindSFM = pStruct->bFindSFM;
+	pDlg->m_bSrcOnly = pStruct->bSrcOnly;
+	pDlg->m_bTgtOnly = pStruct->bTgtOnly;
+	pDlg->m_bSrcAndTgt = pStruct->bSrcAndTgt;
+	pDlg->m_bSpecialSearch = pStruct->bSpecialSearch;
+	pDlg->m_bFindDlg = pStruct->bFindDlg;
+	pDlg->m_bSpanSrcPhrases = pStruct->bSpanSrcPhrases;
+	pDlg->m_bIncludePunct = pStruct->bIncludePunct;
+	pDlg->m_bIgnoreCase = pStruct->bIgnoreCase;
+	pDlg->m_nCount = pStruct->nCount;
+	// Now make the GUI conform to the new (default) values
+	wxString src = pDlg->m_pEditSrc->GetValue();
+	if (src != pDlg->m_srcStr)
+	{
+		pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr);
+		pDlg->m_pEditSrc->SetFocus();
+	}
+	wxString tgt = pDlg->m_pEditTgt->GetValue();
+	if (tgt != pDlg->m_tgtStr)
+	{
+		// Change to show the src text box
+		pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+	}
+	//pDlg->DoRadioSrcOnly();
+		
+	// Fix the radio buttons, if needed
+	wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+	bool bRadioSrc = pRadioSrc->GetValue();
+	if (bRadioSrc == FALSE)
+	{
+		pRadioSrc->SetValue(TRUE);
+	}
+	wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+	bool bRadioTgt = pRadioTgt->GetValue();
+	if (bRadioTgt == TRUE)
+	{
+		pRadioTgt->SetValue(FALSE);
+	}
+	wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+	bool bRadioSrcTgt = pRadioSrcTgt->GetValue();			
+	if (bRadioSrcTgt == TRUE)
+	{
+		pRadioSrcTgt->SetValue(FALSE);
+	}
+
+	wxCheckBox* pIgnore = pDlg->m_pCheckIgnoreCase;
+	bool bIgnoreCase = pIgnore->GetValue();
+	if (bIgnoreCase == TRUE)
+	{
+		pIgnore->SetValue(FALSE);
+	}
+	wxCheckBox* pIncludePunct = pDlg->m_pCheckIncludePunct;
+	bool bIncludePunct = pIncludePunct->GetValue();
+	if (bIncludePunct == TRUE)
+	{
+		pIncludePunct->SetValue(FALSE);
+	}
+	wxCheckBox* pSpan = pDlg->m_pCheckSpanSrcPhrases;
+	bool bSpan = pSpan->GetValue();
+	if (bSpan == TRUE)
+	{
+		pSpan->SetValue(FALSE);
+	}
+
+	pDlg->Refresh();
 }
 
 void CFindDlg::DoRadioSrcOnly() 
@@ -1068,7 +1162,7 @@ void CFindDlg::OnTgtEditBoxEnterKeyPress(wxCommandEvent & WXUNUSED(event))
     // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
     // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
     // For modeless dialogs - which can execute ENTER-generated commands multiple times
-    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialos() 
+    // setting gpApp->m_bUserDlgOrMessageRequested to TRUE in the dialog's InitDialog() 
     // only is not sufficient. Here in CFind, it needs to be set to TRUE in each DoFindNext() call 
     // in order to supress all phrasebox run-on instances due to ENTER key getting 
     // propagated on to CPhraseBox::OnKeyUp().
@@ -1667,6 +1761,10 @@ repeatfind:
 	// do the Find Next operation
 	bool bFound;
 	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CReplaceDlg"));
+
+	wxLogDebug(_T("%s:%s() line %d: sequnum %d , m_tgtStr %s , bool m_bTgtOnly %d , nAtSequNum %d"),
+		__FILE__,__FUNCTION__,__LINE__,nKickOffSequNum,m_tgtStr.c_str(),(int)m_bTgtOnly,nAtSequNum);
+
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
 									m_bSpanSrcPhrases,
