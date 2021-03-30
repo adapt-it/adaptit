@@ -19335,11 +19335,11 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		// as it uses wx code and that results in src radio button ticked even
 		// when tgtOnly button was chosen, and tgtText then shows as srcText. Ouch!
 		// Gotta find another way to get Ctrl+F to make the config window reappear
-#if defined( _DEBUG)
-		unsigned int findDlg = (unsigned int)pApp->m_pFindDlg;
-		unsigned int pdlg = (unsigned int)pDlg;
-		wxASSERT(findDlg == pdlg); // they are the same pointer
-#endif
+//#if defined( _DEBUG)
+//		unsigned long findDlg = (unsigned int)pApp->m_pFindDlg;
+//		unsigned long pdlg = (unsigned int)pDlg;
+//		wxASSERT(findDlg == pdlg); // they are the same pointer
+//#endif
 		// BEW 30Mar21 I had a great (almost desparing) fight to get Ctrl+F to
 		// (a) get the dialog to reappear when the user had switched to be in
 		// the frame's layout of the doc, and (b) to reappear with the right
