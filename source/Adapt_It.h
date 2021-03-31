@@ -993,7 +993,7 @@ pApp->m_pFindDlg->m_tgtStr.Empty();
 pApp->m_pFindDlg->m_replaceStr.Empty();
 pApp->m_pFindDlg->m_sfm.Empty();
 pApp->m_pFindDlg->m_markerStr.Empty();
-pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+pApp->m_pFindDlg->m_bFindRetransln = FALSE;
 pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
 pApp->m_pFindDlg->m_bFindSFM = FALSE;
 pApp->m_pFindDlg->m_bSrcOnly = TRUE;
@@ -2591,6 +2591,8 @@ class CAdapt_ItApp : public wxApp
 	// functions which must treat matches within a retranslation as a match within a
 	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
 	// single word), such as DoExtendedSearch(), etc
+	// BEW 30Mar21, refactoring the Find... for a Special Search for retranslations, this
+	// variable was not getting set TRUE, and needs to be. Set TRUE in 
 	bool m_bMatchedRetranslation;
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;

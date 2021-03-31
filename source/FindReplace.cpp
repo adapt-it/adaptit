@@ -600,6 +600,13 @@ repeatfind:
 	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 	gpApp->m_pActivePile = pPile;
 
+	// BEW 30Mar21, I have split m_bFindRetranslation (for a Special Search)
+	// from a new boolean, m_bFindRetransln (for Normal searching),
+	// so ensure the former is FALSE, till a Special Search is
+	// invoked for searching for a retranslation
+	m_bFindRetranslation = FALSE;
+	m_pFindRetranslation->SetValue(m_bFindRetranslation);
+
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
@@ -624,6 +631,36 @@ repeatfind:
 
 	// do the Find Next operation
 	bool bFound;
+	bool bWhichFindRetrans = m_bFindRetransln; // default, for 'Normal" scenario
+	if (m_bSpecialSearch) // IF TRUE, user has asked for a search for retranslations, or placeholders, or USfMs
+	{
+		//CFindDlg* pDlg = gpApp->m_pFindDlg;
+		// Find what the Retranslation radio button is, on or off. This is
+		// tricky because the first radio button will be ticked, but
+		// m_bFindRetranslation is still false. So we do it by process of
+		// elimination. Set it true if the other two radio buttons are false
+		if ((m_bFindNullSrcPhrase == FALSE) && (m_bFindSFM == FALSE))
+		{
+			m_bFindRetranslation = TRUE;
+		}
+		// The other two, will get values set beforehand, so don't need
+		// special check here on
+		if (m_bFindRetranslation)
+		{
+			bWhichFindRetrans = m_bFindRetranslation; // use this RHSide
+			bWhichFindRetrans = TRUE; // we want finding of a retranslation
+		}
+		else if (m_bFindNullSrcPhrase)
+		{
+			bWhichFindRetrans = FALSE;
+			m_bFindSFM = FALSE; // redundant, but no harm
+		}
+		else if (m_bFindSFM)
+		{
+			bWhichFindRetrans = FALSE;
+			m_bFindNullSrcPhrase = FALSE;
+		}
+	}
 	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CFindDlg"));
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
@@ -632,7 +669,7 @@ repeatfind:
 									m_bSrcOnly,
 									m_bTgtOnly,
 									m_bSrcAndTgt,
-									m_bFindRetranslation,
+									bWhichFindRetrans,
 									m_bFindNullSrcPhrase,
 									m_bFindSFM,
 									m_srcStr,
@@ -798,7 +835,7 @@ void CFindDlg::OnRestoreFindDefaults(wxCommandEvent& WXUNUSED(event))
 	pDlg->m_sfm = pStruct->sfm;
 	pDlg->m_markerStr = pStruct->markerStr;
 	pDlg->m_marker = pStruct->marker; // int
-	pDlg->m_bFindRetranslation = pStruct->bFindRetranslation;
+	pDlg->m_bFindRetransln = pStruct->bFindRetranslation;
 	pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // to find a Placeholder
 	pDlg->m_bFindSFM = pStruct->bFindSFM;
 	pDlg->m_bSrcOnly = pStruct->bSrcOnly;
@@ -1266,6 +1303,10 @@ void CFindDlg::OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
 	m_pFindSFM->SetValue(m_bFindSFM);
 	m_pComboSFM->SetSelection(m_marker);
+
+	// BEW 31Mar21 turn off the bool in app which gets
+	// the Retranslation radio button reset TRUE
+	gpApp->m_bMatchedRetranslation = FALSE;
 }
 
 // BEW 3Aug09 removed unneeded FindNextHasLanded() call in OnCancel()

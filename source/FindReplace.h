@@ -86,7 +86,8 @@ public:
 	bool m_bTgtOnly;
 	bool m_bSrcAndTgt;
 	wxString m_sfm; // the standard format marker to be used is stored here
-	bool m_bFindRetranslation;
+	bool m_bFindRetranslation; // this one, for Special Search finding of retranslations
+	bool m_bFindRetransln; // this one for Normal mode, must not use just one for both modes
 	bool m_bFindNullSrcPhrase;
 	bool m_bFindSFM;
 	bool m_bSpecialSearch;

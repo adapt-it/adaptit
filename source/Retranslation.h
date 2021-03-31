@@ -57,6 +57,7 @@ public:
 					// of CSourcePhrase instances (BEW added 11May11). Return its old adaptation too
 	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
+	int  CountRetransPiles(SPList* pList, int beginSequNum); // BEW added 31Mar21 to support Find retranslations
 
 	/* BEW deprecated 9Mar11
 	// a function for use when converting a sublist of (modified) CSourcePhrase instances

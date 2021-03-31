@@ -18986,13 +18986,14 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
 	}
 	// get the cell which will show the selection
-	CCell* pCell;
+	CCell* pCell = NULL;
+	CPile* pFirstPileInRetrans = NULL;
 	if (pApp->m_bMatchedRetranslation)
 	{
 		// active pile is outside the retranslation, so the matched location will be the
-		// first cell of the retranslation, but we must put the phrase box there - put it
-		// at the previous CSourcePhrase, if it exists
-		CPile* pFirstPileInRetrans = GetPile(nNewSequNum);
+		// first cell of the retranslation, but we must not put the phrase box there - 
+		// put it at the previous CSourcePhrase, if that exists
+		pFirstPileInRetrans = GetPile(nNewSequNum);
 		pCell = pFirstPileInRetrans->GetCell(nSelectionLine);
 		CPile* pPrevPile = GetPile( nNewSequNum - 1);
 		if (pPrevPile != NULL)
@@ -19048,6 +19049,21 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	pApp->m_selectionLine = nSelectionLine;
 	pApp->m_pAnchor = pCell;
 
+	CFindDlg* pDlg = pApp->m_pFindDlg;
+	wxASSERT(pDlg != NULL);
+
+	if (pDlg->m_bFindRetranslation)
+	{
+		// BEW 31Mar21 added next 6 lines, to get an accurate nCount value,
+		// when searching for retranslation locations
+		int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber;
+		int howMany = pApp->GetRetranslation()->CountRetransPiles(pApp->m_pSourcePhrases, firstSequNum);
+		if (howMany > nCount)
+		{
+			nCount = howMany;
+		}
+	}
+
 	if (nCount > 1)
 	{
 		// extend the selection
@@ -19059,6 +19075,21 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		// single cell shown selected
 		GetLayout()->Redraw();
 	}
+	// BEW 31Mar21 get the m_adaption value at the active location, and write it to
+	// app's m_targetPhrase, and into the phrasebox
+	wxString tgtPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+	pApp->m_targetPhrase = tgtPhrase;
+	pApp->m_pTargetBox->ChangeValue(tgtPhrase);
+
+	// BEW 31Mar21 finding retranslations, at each success, the radio button goes
+	// unticked, so reset it
+
+	if (pApp->m_bMatchedRetranslation)
+	{
+		pDlg->m_bFindRetranslation = TRUE; // this bool got cleared to false
+		pDlg->m_pFindRetranslation->SetValue(TRUE);
+	}
+
 	Invalidate();
 	GetLayout()->PlaceBox();
 }
@@ -19167,7 +19198,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_marker = 0;
 		pApp->m_pFindDlg->m_markerStr.Empty();
 		pApp->m_pFindDlg->m_sfm.Empty();
-		pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+		pApp->m_pFindDlg->m_bFindRetransln = FALSE;
 		pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
 		pApp->m_pFindDlg->m_bFindSFM = FALSE;
 		pApp->m_pFindDlg->m_bSrcOnly = TRUE;
@@ -19199,7 +19230,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_marker = 0;
 		pApp->m_pFindDlg->m_markerStr.Empty();
 		pApp->m_pFindDlg->m_sfm.Empty();
-		pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+		pApp->m_pFindDlg->m_bFindRetransln = FALSE;
 		pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
 		pApp->m_pFindDlg->m_bFindSFM = FALSE;
 		pApp->m_pFindDlg->m_bSrcOnly = TRUE;

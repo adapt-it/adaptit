@@ -61020,9 +61020,6 @@ bool CAdapt_ItApp::WriteFindCache()
 	pStruct->markerStr = pDlg->m_markerStr; // no wxTextCtrl for this, it for when searching for a marker
 	pStruct->sfm = pDlg->m_sfm; // no wxTextCtrl for this, it for when searching for a \usfmtype
 	pStruct->marker = pDlg->m_marker; // int - list index value (could be -1)
-	//pStruct->bFindRetranslation = pDlg->m_bFindRetranslation;
-	//pStruct->bFindNullSrcPhrase = pDlg->m_bFindNullSrcPhrase; // ie for finding a Placeholder
-	//pStruct->bFindSFM = pDlg->m_bFindSFM;
 	pStruct->bSpecialSearch = pDlg->m_bSpecialSearch;
 	pStruct->bFindDlg = pDlg->m_bFindDlg;
 
@@ -61064,7 +61061,7 @@ bool CAdapt_ItApp::ReadFindCache()
 	pDlg->m_markerStr = pStruct->markerStr;
 	pDlg->m_sfm = pStruct->sfm;
 	pDlg->m_marker = pStruct->marker; // int - list index value (could be -1)
-	pDlg->m_bFindRetranslation = pStruct->bFindRetranslation;
+	pDlg->m_bFindRetransln = pStruct->bFindRetranslation;
 	pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // ie for finding a Placeholder
 	pDlg->m_bFindSFM = pStruct->bFindSFM;
 	pDlg->m_bSrcOnly = pStruct->bSrcOnly;
