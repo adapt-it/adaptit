@@ -468,6 +468,9 @@ extern int	gnToVerse;
 /// This global is defined in CAdapt_ItView
 extern bool	gbCheckInclFreeTransText;
 
+/// This global is defined in CAdapt_ItView
+extern bool gbFind;
+
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;
 
@@ -21428,6 +21431,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     // !!!!!!!!!! Do not allocate any memory with the new command before this point in OnInit() !!!!!!!!!!!!
     // !!!!!!!!!! at least not before the wxSingleInstanceCheckercode block below executes      !!!!!!!!!!!!
+    // whm 3Mar2021 added more wxLogDebug() statements in OnInit() including the followin first one:
+    wxLogDebug(_T("****************************************************************************")); 
+    wxLogDebug(_T("Starting Program Initialization in OnInit()"));
+    wxString appVersionStr = GetAppVersionOfRunningAppAsString();
+    wxLogDebug(_T("Version of this Application is: %s"),appVersionStr.c_str());
 
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
@@ -21461,7 +21469,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_entryCount_updateHandler = 0; // augment every time the OnUpdateButtonNullSource() func is called
 	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
-
 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
@@ -24400,6 +24407,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // their menu id int associations. This shouldn't strictly be needed, but is a
     // precaution in case something goes awry with the localization - there will be
     // English defaults for menu item labels in the mapping.
+    wxLogDebug(_T("Calling SetupUnTranslatedMapMenuLabelStrToIdInt()"));
     SetupUnTranslatedMapMenuLabelStrToIdInt(m_mapMenuLabelStrToIdInt);
 
     // NOTE: We determine Adapt It's user interface language here early in OnInit() before
@@ -24418,6 +24426,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //		__LINE__, m_szView.x, m_szView.y);
 	if (!m_bAutoExport)
     {
+        wxLogDebug(_T("Calling ProcessUILanguageInfoFromConfig()"));
         currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
                                                                   // the m_languageInfo is defined above
 
@@ -24454,6 +24463,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
         {
             // can disregard return bool value of ChooseInterfaceLanguage() here
+            wxLogDebug(_T("Calling ChooseInterfaceLanguage()"));
             ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that
                                                 // currLocalizationInfo's curr_UI_Language is something other than wxLANGUAGE_UNKNOWN
         }
@@ -24609,6 +24619,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pHelpController->UseConfig(m_pConfig, _T("/HtmlHelpControler"));
 
     // Required for images in the online documentation
+    wxLogDebug(_T("Calling wxInitAllImageHandlers()"));
     wxInitAllImageHandlers(); // the help sample program does this, although it is not
                               // documented anywhere in wxWidgets!
     // Note: There are also individual handlers, i.e., wxImage::AddHandler(new
@@ -24628,6 +24639,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
     // also created within the CMainFrame's constructor.
 
+    wxLogDebug(_T("Creating CMainFrame instance"));
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*)NULL, -1, m_FrameAndDocProgramTitle,
         wxPoint(0, 0), wxSize(735, 500),
         wxDEFAULT_FRAME_STYLE
@@ -25933,7 +25945,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //#endif
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
-	EnsureWorkFolderPresent();
+    wxLogDebug(_T("Calling EnsureWorkFolderPresent()"));
+    EnsureWorkFolderPresent();
     // m_workFolderPath is set in EnsureWorkFolderPresent(), and this becomes the current
     // working directory. m_localPathPrefix is also set in here and is used in
     // MakeForeignBasicConfigFileSafe() below.
@@ -25975,6 +25988,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // is so that any unwise meddling with what is in the basic config file, in
     // particular, it's stored critical paths, won't crash the app, but will instead get
     // self-healed before the data has to be committed to.)
+    wxLogDebug(_T("Calling DealWithThePossibilityOfACustomWorkFolderLocation()"));
     bool bDealtWithItOK = DealWithThePossibilityOfACustomWorkFolderLocation();
     if (!bDealtWithItOK)
     {
@@ -26194,6 +26208,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // into InitializeFonts() and InitializePunctuation() which are both called earler in
     // OnInit() above.
 
+    wxLogDebug(_T("Creating the global Page Setup Dialog Data"));
     // create the global Page Setup Dialog Data
     pPgSetupDlgData = new wxPageSetupDialogData; // must delete in OnExit()
     wxASSERT(pPgSetupDlgData != NULL);
@@ -26286,6 +26301,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // at the custom location (provided the user or admin doesn't change the location
         // using the Administrator menu).
         // !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        wxLogDebug(_T("Calling GetBasicConfiguration()"));
         bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
 													// detects SHIFT-DOWN
 		if (m_bWorkFolderBeingSetUp)
@@ -26538,7 +26554,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 6Apr20 remove widowed ~AIROP file persisting due to previous bad shutdown
 	if (!m_curProjectPath.IsEmpty())
 	{
-		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+        bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+        if (bRemoved)
+        {
+            wxLogDebug(_T("Removed stale ~AIROP lock file"));
+        }
 		wxUnusedVar(bRemoved); // to avoid warning
 		m_bReadOnlyAccess = FALSE;
 		m_bFictitiousReadOnlyAccess = FALSE;
@@ -26605,6 +26625,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         pCheckboxIsGlossing->Show(FALSE);
     }
 
+    wxLogDebug(_T("Calling m_pMainFrame->Show(TRUE) and SetTopWindow(m_pMainFrame)"));
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
 
@@ -26803,6 +26824,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 #endif
         AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+        wxLogDebug(_T("Creating custom work folder's sub-folders, if needed, and adjusting their paths"));
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName);
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
@@ -26828,6 +26850,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 #endif
         AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+        wxLogDebug(_T("Creating work folder's sub-folders, if needed, and adjusting their paths"));
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName);
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
@@ -26859,6 +26882,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
     m_distKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
 
+    wxLogDebug(_T("Creating user log file at: %s"), m_usageLogFilePathAndName.c_str());
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -26873,6 +26897,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // This is to prevent unnecessary bloat of disk usage in the _LOGS_EMAIL_REPORTS log folder over time.
     // The RemoveOldDocCreationLogFiles() uses the same strategy that the
     // RemoveUnwantedOldUserProfilesFiles() function uses.
+    wxLogDebug(_T("Calling RemoveOldDocCreationLogFiles()"));
     RemoveOldDocCreationLogFiles();
 
     // Create a new instance of the m_docCreationLogFile which will be a file with a unique date-time substring in
@@ -26893,6 +26918,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // phrase/word, sequ number, and a ch:verse reference.
     // The m_docCreationLogFile is saved in the user's _LOGS_EMAIL_REPORTS folder.
     m_docCreationLogFile = new wxFile(m_docCreationFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
+    wxLogDebug(_T("Prepared document creation log file at: %s"), m_docCreationFilePathAndName.c_str());
 
     // Now the user log file is set up, we can call git:
     m_DVCS_installed = (m_pDVCS->DoDVCS(DVCS_CHECK, 0) == 0);       // if this call returns an error, assume DVCS not installed
@@ -27767,6 +27793,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // according to the m_bShowAdministratorMenu flag set above.
     // whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
     // within OnInit() after the above m_collaborationEditor string has been assigned.
+    wxLogDebug(_T("Calling MakeMenuInitializationsAndPlatformAdjustments()"));
     MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -27889,10 +27916,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // using PushEventHandler() here appears to be too early (there is no 'previous' event
     // handler yet), so try at end of OnInit()
 
-
-    // Display message in status bar that startup initialization is complete
-    message = _("Initialization complete. Call Start Working...");
-    pStatusBar->SetStatusText(message, 0); // use first field 0
+    // whm 3Mar2021 moved to end of OnInit()
+    //// Display message in status bar that startup initialization is complete
+    //message = _("Initialization complete. Call Start Working...");
+    //pStatusBar->SetStatusText(message, 0); // use first field 0
         // we are passed all the MFC initialization stuff, and about to enter the Start
         // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
         // out the project config file once the user's setting for book mode is in place
@@ -28496,6 +28523,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     */
 
     // Next call prevents old userprofiles files from accumulating on disk
+    wxLogDebug(_T("Calling RemoveUnwantedOldUserProfilesFiles()"));
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
 	//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -28582,6 +28610,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//distPath = GetDistFolder();  // set the path to dist folder, for this session
 
     // BEW 27Feb2021 modified the line below to use m_distKBsharingPath instead of exePath
+    wxLogDebug(_T("Calling CreateInputDatBlanks for KB Sharing in: %s"), m_distKBsharingPath.c_str());
 	CreateInputDatBlanks(m_distKBsharingPath); // path ends in PathSeparator, no file yet
 					// we want these blanks to be created in the _DATA_KB_SHARING folder
 					// which is a child of the AI Unicode Work folder
@@ -28594,6 +28623,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
+    // whm 3Mar2021 moved here just before return from OnInit()
+    // Display message in status bar that startup initialization is complete
+    message = _("Initialization complete in OnInit(). Now, OnIdle() will call Start Working wizard...");
+    wxLogDebug(message);
+    wxLogDebug(_T("****************************************************************************"));
+    pStatusBar->SetStatusText(message, 0); // use first field 0
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
@@ -58699,6 +58734,11 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
 	wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
 
+    // whm 01Mar21 temporarily added execPath declaration and assignment to avoid build failure.
+    // When KBServer discovery is completed for Linux there may be changes here!
+    // cf similar temporary change that GFLC made in the Mac conditional block farther below.
+    wxString execPath = m_appInstallPathOnly + PathSeparator;
+
 	// While developing, this returns for execPath on Linux for a Debug build:
 	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
 	// But when running after normal installation, it will/should return:
@@ -58912,7 +58952,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 #endif
 
 #if defined(__WXOSX_COCOA__)
-
+	
 	// Although the script can be run from anywhere, the appropriate place to run
 	// it from is where the adaptit executable is located.
 	// It and other temporary files get lodged there, they are cleared out at the
@@ -58944,6 +58984,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	//wxString redirectStr = _T(" 2>/dev/null"); <<-- I don't think we need this
 	//wxString redirectStr = _T(" 2>") + resultsPathFile;
 
+	//GDLC 01MAR21 Added execPath to avoid build failure.
+	//	When KBServer discovery is completed for Mac there may be changes here!
+	wxString execPath = m_appInstallPathOnly + PathSeparator;
 	// For opening the report.dat, we need to add the filename to resultsPathFile
 	//resultsPath = resultsPathFile + PathSeparator + reportFile; // path to report.dat
 	resultsPath = execPath + reportFile; // path to report.dat
@@ -60918,6 +60961,291 @@ wxString CAdapt_ItApp::RemovePathPrefix(wxString cmdLine, wxString& pathPrefix)
 		return cmd; // path prefix now removed
 	}
 }
+
+bool CAdapt_ItApp::WriteCacheDefaults()
+{
+	// sanity test
+	if (gbFind == FALSE)
+	{
+		return FALSE; // this means current config remains in force, if defined
+	}
+	defaultFindConfig.srcStr = wxEmptyString;
+	defaultFindConfig.tgtStr = wxEmptyString;
+	defaultFindConfig.replaceStr = wxEmptyString;
+	defaultFindConfig.sfm = wxEmptyString;
+	defaultFindConfig.markerStr = wxEmptyString;
+	defaultFindConfig.bFindRetranslation = FALSE;
+	defaultFindConfig.bFindNullSrcPhrase = FALSE;
+	defaultFindConfig.bFindSFM = FALSE;
+	defaultFindConfig.bSrcOnly = TRUE;
+	defaultFindConfig.bTgtOnly = FALSE;
+	defaultFindConfig.bSrcAndTgt = FALSE;
+	defaultFindConfig.bSpecialSearch = FALSE;
+	defaultFindConfig.bFindDlg = TRUE;
+	defaultFindConfig.bSpanSrcPhrases = FALSE;
+	defaultFindConfig.bIncludePunct = FALSE;
+	defaultFindConfig.bIgnoreCase = FALSE;
+	defaultFindConfig.nCount = 0;
+	// There is an AI.h public member variable m_pComboBox for
+	// caching the list of USFMs in a special search
+	return TRUE;
+}
+
+bool CAdapt_ItApp::WriteFindCache()
+{
+	CFindDlg* pDlg = m_pFindDlg;
+	if (pDlg == NULL)
+	{
+		gbFind = FALSE;
+		return FALSE;
+	}
+	CacheFindReplaceConfig* pStruct = &readwriteFindConfig; // point to the cache
+	wxTextCtrl*	pSrcTxt = pDlg->m_pEditSrc;
+	pStruct->srcStr = pSrcTxt->GetValue();
+
+	wxTextCtrl*	pTgtTxt = pDlg->m_pEditTgt;
+	pStruct->tgtStr = pTgtTxt->GetValue();
+
+	// Find lack a "replace" text box, so leave next line as is, with pStruct->replaceStr default empty
+	pStruct->replaceStr = pDlg->m_replaceStr;
+
+	// The radio buttons...
+	wxRadioButton*	pSrcOnly = pDlg->m_pRadioSrcTextOnly;
+	pStruct->bSrcOnly = pSrcOnly->GetValue();
+	wxRadioButton*	pTgtOnly = pDlg->m_pRadioTransTextOnly;
+	pStruct->bTgtOnly = pTgtOnly->GetValue();
+	wxRadioButton*	pSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+	pStruct->bSrcAndTgt = pSrcTgt->GetValue();
+
+	pStruct->markerStr = pDlg->m_markerStr; // no wxTextCtrl for this, it for when searching for a marker
+	pStruct->sfm = pDlg->m_sfm; // no wxTextCtrl for this, it for when searching for a \usfmtype
+	pStruct->marker = pDlg->m_marker; // int - list index value (could be -1)
+	pStruct->bSpecialSearch = pDlg->m_bSpecialSearch;
+	pStruct->bFindDlg = pDlg->m_bFindDlg;
+
+	// The checkboxes...
+	wxCheckBox*	pCheckSpan = pDlg->m_pCheckSpanSrcPhrases;
+	pStruct->bSpanSrcPhrases = pCheckSpan->GetValue();
+	wxCheckBox*	pCheckIncludePunct = pDlg->m_pCheckIncludePunct;
+	pStruct->bIncludePunct = pCheckIncludePunct->GetValue();
+	wxCheckBox*	pCheckIgnoreCase = pDlg->m_pCheckIgnoreCase;
+	pStruct->bIgnoreCase = pCheckIgnoreCase->GetValue();
+
+	// The three "Special Search" radio buttons
+	wxRadioButton* pRadioRetrans =	pDlg->m_pFindRetranslation;
+	pStruct->bFindRetranslation = pRadioRetrans->GetValue();
+	wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
+	pStruct->bFindNullSrcPhrase = pRadioPlaceholder->GetValue();
+	wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
+	pStruct->bFindSFM = pRadioSFM->GetValue();
+
+	// Now the wxComboBox - this is not in the struct, but a cache variable is on AI.h
+	m_pComboSFM = pDlg->m_pComboSFM;	
+
+	pStruct->nCount = pDlg->m_nCount;
+	return TRUE;
+}
+
+bool CAdapt_ItApp::ReadFindCache()
+{
+	CFindDlg* pDlg = m_pFindDlg;
+	if (pDlg == NULL)
+	{
+		gbFind = FALSE; // gets the class destroyed ant m_pFindDlg set to NULL
+		return FALSE;
+	}
+	CacheFindReplaceConfig* pStruct = &readwriteFindConfig; // point to it
+	pDlg->m_srcStr = pStruct->srcStr;
+	pDlg->m_tgtStr = pStruct->tgtStr;
+	pDlg->m_replaceStr = pStruct->replaceStr;
+	pDlg->m_markerStr = pStruct->markerStr;
+	pDlg->m_sfm = pStruct->sfm;
+	pDlg->m_marker = pStruct->marker; // int - list index value (could be -1)
+	pDlg->m_bFindRetransln = pStruct->bFindRetranslation;
+	pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // ie for finding a Placeholder
+	pDlg->m_bFindSFM = pStruct->bFindSFM;
+	pDlg->m_bSrcOnly = pStruct->bSrcOnly;
+	pDlg->m_bTgtOnly = pStruct->bTgtOnly;
+	pDlg->m_bSrcAndTgt = pStruct->bSrcAndTgt;
+	pDlg->m_bSpecialSearch = pStruct->bSpecialSearch;
+	pDlg->m_bFindDlg = pStruct->bFindDlg;
+	pDlg->m_bSpanSrcPhrases = pStruct->bSpanSrcPhrases;
+	pDlg->m_bIncludePunct = pStruct->bIncludePunct;
+	pDlg->m_bIgnoreCase = pStruct->bIgnoreCase;
+	pDlg->m_nCount = pStruct->nCount;
+
+	// Now get the restored values into the config dialog's gui
+	if (pDlg->m_bSrcOnly == TRUE)
+	{
+		wxString src = pDlg->m_pEditSrc->GetValue();
+		if (src != pDlg->m_srcStr)
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+		}
+		pDlg->m_pEditSrc->Show();
+		pDlg->m_pEditSrc->SetFocus();
+		pDlg->m_pEditTgt->Hide();
+
+		// make the radio buttons comply
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		bool bRadioSrc = pRadioSrc->GetValue();
+		if (bRadioSrc != pDlg->m_bSrcOnly) // LHS is current gui value, RHS is cache value
+		{
+			pRadioSrc->SetValue(pDlg->m_bSrcOnly);
+		}
+		else
+		{
+			pRadioSrc->SetValue(TRUE);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bSrcOnly;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		pRadioTgt->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+	}
+	else if (pDlg->m_bTgtOnly == TRUE)
+	{
+		wxString tgt = pDlg->m_pEditTgt->GetValue();
+		if (tgt != pDlg->m_tgtStr)
+		{
+			// Put the cached tgt string into the config dlg
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+		}
+		pDlg->m_pEditTgt->Show();
+		pDlg->m_pEditTgt->SetFocus();
+		pDlg->m_pEditSrc->Hide();
+		// make the radio buttons comply
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		bool bRadioTgt = pRadioTgt->GetValue();
+		if (bRadioTgt != pDlg->m_bTgtOnly) // LHS is current gui value, RHS is cache value
+		{
+			pRadioTgt->SetValue(pDlg->m_bTgtOnly);
+		}
+		else
+		{
+			pRadioTgt->SetValue(TRUE);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bTgtOnly;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		pRadioSrc->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+	}
+	else if (pDlg->m_bSrcAndTgt == TRUE)
+	{
+		wxString src = pDlg->m_pEditSrc->GetValue();
+		if (src != pDlg->m_srcStr)
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+			pDlg->m_pEditSrc->Show();
+			//pDlg->m_pEditSrc->SetFocus();
+		}
+		else
+		{
+			pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
+			pDlg->m_pEditSrc->Show();
+		}
+
+		wxString tgt = pDlg->m_pEditTgt->GetValue();
+		if (tgt != pDlg->m_tgtStr)
+		{
+			// Put the cached translation string into the config dlg
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr); // translation string is reset
+			pDlg->m_pEditTgt->Show();
+			
+		}
+		else
+		{
+			pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+			pDlg->m_pEditTgt->Show();
+		}
+		pDlg->m_pEditTgt->SetFocus(); // put it here
+
+		// make the radio buttons comply
+		wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+		bool bRadioSrcTgt = pRadioSrcTgt->GetValue();
+		if (bRadioSrcTgt != pDlg->m_bSrcAndTgt) // LHS is current gui value, RHS is cache value
+		{
+			pRadioSrcTgt->SetValue(pDlg->m_bSrcAndTgt);
+		}
+		// The other two must be opposite value, so set accordingly
+		bool bOtherValue = !pDlg->m_bSrcAndTgt;
+		wxASSERT(bOtherValue == FALSE);
+		wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+		pRadioSrc->SetValue(bOtherValue); // FALSE
+		wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+		pRadioTgt->SetValue(bOtherValue); // FALSE
+	}
+	else
+	{
+		// We never expect control to enter here, something's real wrong
+		gbFind = FALSE; // kill the dialog
+		wxString msg = _T("%s:%s(), error, line %d, none of othe radio buttons was matched. Find dialog will close, but Adapt It will continue running");
+		msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__);
+		LogUserAction(msg);
+		return FALSE;
+	}
+	// Next, update the checkboxes to former values, if necessary
+	wxCheckBox* pIgnore = pDlg->m_pCheckIgnoreCase; 
+	bool bIgnoreCase = pIgnore->GetValue(); // get current value of the checkbox
+	bool bCachedIgnore = pStruct->bIgnoreCase; // get the cached value
+	if (bIgnoreCase == FALSE && bCachedIgnore == TRUE)
+	{
+		pIgnore->SetValue(TRUE);
+	}
+
+	wxCheckBox* pIncludePunct = pDlg->m_pCheckIncludePunct;
+	bool bIncludePunct = pIncludePunct->GetValue(); // get current value of the checkbox
+	bool bCachedIncludePunct = pStruct->bIncludePunct; // get the cached value
+	if ((bIncludePunct == FALSE) && (bCachedIncludePunct == TRUE))
+	{
+		pIncludePunct->SetValue(TRUE);
+	}
+
+	wxCheckBox* pSpan = pDlg->m_pCheckSpanSrcPhrases;
+	bool bSpan = pSpan->GetValue(); // get the current value of the checkbox
+	bool bCachedSpan = pStruct->bSpanSrcPhrases; // get the cached value
+	if (bSpan == FALSE && bCachedSpan == TRUE)
+	{
+		pSpan->SetValue(TRUE);
+	}
+
+	// The three "Special Search" radio buttons
+	wxRadioButton* pRadioRetrans = pDlg->m_pFindRetranslation;
+	bool bRadioRetrans = pRadioRetrans->GetValue(); // get dlg's current value
+	bool bRadioCachedRetrans = pStruct->bFindRetranslation; // what we cached
+	if (bRadioRetrans != bRadioCachedRetrans)
+	{
+		pDlg->m_pFindRetranslation->SetValue(bRadioCachedRetrans);
+	}
+
+	wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
+	bool bRadioPlaceholder = pRadioPlaceholder->GetValue(); // get dlg's current value
+	bool bRadioCachedPlaceholder = pStruct->bFindNullSrcPhrase; // what we cached
+	if (bRadioPlaceholder != bRadioCachedPlaceholder)
+	{
+		pDlg->m_bFindNullSrcPhrase = bRadioCachedPlaceholder;
+	}
+
+	wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
+	bool bRadioSFM = pRadioSFM->GetValue(); // get dlg's current value
+	bool bRadioCachedSFM = pStruct->bFindSFM; // what we cached
+	if (bRadioSFM != bRadioCachedSFM)
+	{
+		pDlg->m_bFindSFM = bRadioCachedSFM;
+	}
+
+	// the combobox, RHS is an AI.h member variable, not in the struct
+	pDlg->m_pComboSFM = m_pComboSFM;
+
+	pDlg->Refresh();
+	return TRUE;
+}
+
 
 // BEW 23Apr20, copies the pAnalysis members to the cache variables
 // on the app. See AI.h about lines 4174 plus or minus

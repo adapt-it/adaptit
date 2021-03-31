@@ -18986,13 +18986,14 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
 	}
 	// get the cell which will show the selection
-	CCell* pCell;
+	CCell* pCell = NULL;
+	CPile* pFirstPileInRetrans = NULL;
 	if (pApp->m_bMatchedRetranslation)
 	{
 		// active pile is outside the retranslation, so the matched location will be the
-		// first cell of the retranslation, but we must put the phrase box there - put it
-		// at the previous CSourcePhrase, if it exists
-		CPile* pFirstPileInRetrans = GetPile(nNewSequNum);
+		// first cell of the retranslation, but we must not put the phrase box there - 
+		// put it at the previous CSourcePhrase, if that exists
+		pFirstPileInRetrans = GetPile(nNewSequNum);
 		pCell = pFirstPileInRetrans->GetCell(nSelectionLine);
 		CPile* pPrevPile = GetPile( nNewSequNum - 1);
 		if (pPrevPile != NULL)
@@ -19048,6 +19049,21 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	pApp->m_selectionLine = nSelectionLine;
 	pApp->m_pAnchor = pCell;
 
+	CFindDlg* pDlg = pApp->m_pFindDlg;
+	wxASSERT(pDlg != NULL);
+
+	if (pDlg->m_bFindRetranslation)
+	{
+		// BEW 31Mar21 added next 6 lines, to get an accurate nCount value,
+		// when searching for retranslation locations
+		int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber;
+		int howMany = pApp->GetRetranslation()->CountRetransPiles(pApp->m_pSourcePhrases, firstSequNum);
+		if (howMany > nCount)
+		{
+			nCount = howMany;
+		}
+	}
+
 	if (nCount > 1)
 	{
 		// extend the selection
@@ -19059,6 +19075,21 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		// single cell shown selected
 		GetLayout()->Redraw();
 	}
+	// BEW 31Mar21 get the m_adaption value at the active location, and write it to
+	// app's m_targetPhrase, and into the phrasebox
+	wxString tgtPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+	pApp->m_targetPhrase = tgtPhrase;
+	pApp->m_pTargetBox->ChangeValue(tgtPhrase);
+
+	// BEW 31Mar21 finding retranslations, at each success, the radio button goes
+	// unticked, so reset it
+
+	if (pApp->m_bMatchedRetranslation)
+	{
+		pDlg->m_bFindRetranslation = TRUE; // this bool got cleared to false
+		pDlg->m_pFindRetranslation->SetValue(TRUE);
+	}
+
 	Invalidate();
 	GetLayout()->PlaceBox();
 }
@@ -19140,7 +19171,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 	{
 		if (gbFind == FALSE)
 		{
-			pApp->m_pFindDlg->TransferDataFromWindow();
+			//pApp->m_pFindDlg->TransferDataFromWindow(); // no longer used
 			saveSrc = pApp->m_pFindDlg->m_srcStr;
 			saveTgt = pApp->m_pFindDlg->m_tgtStr;
 			pApp->m_pFindDlg->Destroy();
@@ -19167,7 +19198,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_marker = 0;
 		pApp->m_pFindDlg->m_markerStr.Empty();
 		pApp->m_pFindDlg->m_sfm.Empty();
-		pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+		pApp->m_pFindDlg->m_bFindRetransln = FALSE;
 		pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
 		pApp->m_pFindDlg->m_bFindSFM = FALSE;
 		pApp->m_pFindDlg->m_bSrcOnly = TRUE;
@@ -19178,7 +19209,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_bSpanSrcPhrases = FALSE;
 		pApp->m_pFindDlg->m_bIncludePunct = FALSE;
 		pApp->m_pFindDlg->m_bIgnoreCase = FALSE;
-		pApp->m_pFindDlg->TransferDataToWindow();
+		//pApp->m_pFindDlg->TransferDataToWindow(); // no longer used
 
 		pApp->m_pFindDlg->Centre(); // this sets the horizontal pos,
 				// AdjustDialogPosition below overrides the vertical one
@@ -19188,6 +19219,10 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 	}
 	else
 	{
+		// BEW 27Mar21 - restore config values from the cache struct
+		bool bRestoredValues = pApp->ReadFindCache();
+		wxUnusedVar(bRestoredValues);
+		/*
 		// set default parameter values
 		pApp->m_pFindDlg->m_srcStr = saveSrc;
 		pApp->m_pFindDlg->m_tgtStr = saveTgt;
@@ -19195,7 +19230,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_marker = 0;
 		pApp->m_pFindDlg->m_markerStr.Empty();
 		pApp->m_pFindDlg->m_sfm.Empty();
-		pApp->m_pFindDlg->m_bFindRetranslation = FALSE;
+		pApp->m_pFindDlg->m_bFindRetransln = FALSE;
 		pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
 		pApp->m_pFindDlg->m_bFindSFM = FALSE;
 		pApp->m_pFindDlg->m_bSrcOnly = TRUE;
@@ -19206,12 +19241,173 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		pApp->m_pFindDlg->m_bSpanSrcPhrases = FALSE;
 		pApp->m_pFindDlg->m_bIncludePunct = FALSE;
 		pApp->m_pFindDlg->m_bIgnoreCase = FALSE;
-		pApp->m_pFindDlg->TransferDataToWindow();
-
+		//pApp->m_pFindDlg->TransferDataToWindow(); no longer used
+		*/
 		pApp->m_pFindDlg->Centre(); // this sets the horizontal pos,
 				// AdjustDialogPosition below overrides the vertical one
 		AdjustDialogPosition(pApp->m_pFindDlg);
-		pApp->m_pFindDlg->Show(TRUE);
+		wxLogDebug(_T("%s:%s() line %d, srcTextRadio %d , tgtTextRadio %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pFindDlg->m_pRadioSrcTextOnly->GetValue(),
+			(int)pApp->m_pFindDlg->m_pRadioTransTextOnly->GetValue());
+
+		//pApp->m_pFindDlg->Show(TRUE); // step in, this fouls up the radio button settings
+		CFindDlg* pDlg = pApp->m_pFindDlg;
+		bool bSrcOnlyRadio = pApp->m_pFindDlg->m_pRadioSrcTextOnly->GetValue();
+		bool bTgtOnlyRadio = pApp->m_pFindDlg->m_pRadioTransTextOnly->GetValue();
+		bool bSrcTgtRadio = pApp->m_pFindDlg->m_pRadioBothSrcAndTransText->GetValue();
+		pDlg->Show();
+
+		if (bSrcOnlyRadio == TRUE)
+		{
+			wxString src = pDlg->m_pEditSrc->GetValue();
+			if (src.IsEmpty())
+			{
+				pDlg->m_pEditSrc->ChangeValue(wxEmptyString);
+			} else
+			{
+				pDlg->m_pEditSrc->ChangeValue(src); // source string is reset
+			}
+			pDlg->m_pEditSrc->SetFocus();
+			pDlg->m_pEditTgt->Hide();
+
+			// make the radio buttons comply
+			wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+			bool bRadioSrc = pRadioSrc->GetValue();
+			if (bRadioSrc != bSrcOnlyRadio) // LHS is current gui value, RHS is cache value
+			{
+				pRadioSrc->SetValue(bSrcOnlyRadio);
+			}
+			else
+			{
+				pRadioSrc->SetValue(TRUE);
+			}
+			// The other two must be opposite value, so set accordingly
+			bool bOtherValue = !bSrcOnlyRadio;
+			wxASSERT(bOtherValue == FALSE);
+			wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+			pRadioTgt->SetValue(bOtherValue); // FALSE
+			wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+			pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+		}
+		else if (bTgtOnlyRadio == TRUE)
+		{
+			wxString tgt = pDlg->m_pEditTgt->GetValue();
+			if (tgt.IsEmpty())
+			{
+				pDlg->m_pEditTgt->ChangeValue(wxEmptyString);
+			} else
+			{
+				// Put the cached tgt string into the config dlg
+				pDlg->m_pEditTgt->ChangeValue(tgt);
+			}
+			pDlg->m_pEditTgt->SetFocus();
+			pDlg->m_pEditSrc->Hide();
+
+			// make the radio buttons comply
+			wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+			bool bRadioTgt = pRadioTgt->GetValue();
+			if (bRadioTgt != bTgtOnlyRadio) // LHS is current gui value, RHS is cache value
+			{
+				pRadioTgt->SetValue(bTgtOnlyRadio);
+			}
+			else
+			{
+				pRadioTgt->SetValue(TRUE);
+			}
+			// The other two must be opposite value, so set accordingly
+			bool bOtherValue = !bTgtOnlyRadio;
+			wxASSERT(bOtherValue == FALSE);
+			wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+			pRadioSrc->SetValue(bOtherValue); // FALSE
+			wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+			pRadioSrcTgt->SetValue(bOtherValue); // FALSE
+		}
+		else if (bSrcTgtRadio == TRUE)
+		{
+			wxString src = pDlg->m_pEditSrc->GetValue();
+			if (src.IsEmpty())
+			{
+				pDlg->m_pEditSrc->ChangeValue(wxEmptyString);
+			}
+			else
+			{
+				pDlg->m_pEditSrc->ChangeValue(src); // source string is reset
+			}
+
+			wxString tgt = pDlg->m_pEditTgt->GetValue();
+			if (tgt.IsEmpty())
+			{
+				pDlg->m_pEditTgt->ChangeValue(wxEmptyString);
+			}
+			else
+			{
+				// Put the cached tgt string into the config dlg
+				pDlg->m_pEditTgt->ChangeValue(tgt);
+			}
+
+			pDlg->m_pEditTgt->SetFocus(); // put input focus here
+
+			// make the radio buttons comply
+			wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
+			bool bRadioSrcTgt = pRadioSrcTgt->GetValue();
+			if (bRadioSrcTgt != bSrcTgtRadio) // LHS is current gui value, RHS is cache value
+			{
+				pRadioSrcTgt->SetValue(bSrcTgtRadio);
+			}
+			// The other two must be opposite value, so set accordingly
+			bool bOtherValue = !bSrcTgtRadio;
+			wxASSERT(bOtherValue == FALSE);
+			wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
+			pRadioSrc->SetValue(bOtherValue); // FALSE
+			wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
+			pRadioTgt->SetValue(bOtherValue); // FALSE
+		}
+		// The checkboxes should be okay, as is; but ->Show(TRUE) cannot be used
+		// as it uses wx code and that results in src radio button ticked even
+		// when tgtOnly button was chosen, and tgtText then shows as srcText. Ouch!
+		// Gotta find another way to get Ctrl+F to make the config window reappear
+//#if defined( _DEBUG)
+//		unsigned long findDlg = (unsigned int)pApp->m_pFindDlg;
+//		unsigned long pdlg = (unsigned int)pDlg;
+//		wxASSERT(findDlg == pdlg); // they are the same pointer
+//#endif
+		// BEW 30Mar21 I had a great (almost desparing) fight to get Ctrl+F to
+		// (a) get the dialog to reappear when the user had switched to be in
+		// the frame's layout of the doc, and (b) to reappear with the right
+		// radio button still selected and the search text still present. The
+		// Show(TRUE) command had to be done above, early, just after the
+		// setting of the flags bSrcOnlyRadio, bTgtOnlyRadio, and  bSrcTgtRadio
+		// above, was done. But Show() takes control into the base classes for
+		// a dialog, and that results in reverting to src radio button wrongly
+		// being active (assuming some other button was chosen, such as tgtOnly)
+		// and therefore the search text being dumped in the possibly wrong text
+		// control. What was needed was Show() to get the dialog to reappear,
+		// and then subsequently, code to restore config values (as preserved in
+		// in the caching struct, running that code, and then it still was not
+		// enough. The final thing was to programmatically simulate the effect
+		// of a user click on the radiobutton handler - that's what is done
+		// in the code which follows here. Calling these On...() handlers gets
+		// a Do....() function called, and following that, a call to the sizer
+		// to have it rebuilt with the restored parameters. Took days to get
+		// sequencing of all this right. Sigh:-(
+		wxCommandEvent cmdDummyOnly; // a dummy
+		if (bSrcOnlyRadio)
+		{
+			pDlg->OnRadioSrcOnly(cmdDummyOnly);
+		}
+		if (bTgtOnlyRadio)
+		{
+			pDlg->OnRadioTgtOnly(cmdDummyOnly); 
+		}
+		if (bSrcTgtRadio)
+		{
+			pDlg->OnRadioSrcAndTgt(cmdDummyOnly);
+		}
+
+		wxLogDebug(_T("%s:%s() line %d, srcTextRadio %d , tgtTextRadio %d"),
+			__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pFindDlg->m_pRadioSrcTextOnly->GetValue(),
+			(int)pApp->m_pFindDlg->m_pRadioTransTextOnly->GetValue());
+
 		gbFindOrReplaceCurrent = TRUE;
 	}
 }

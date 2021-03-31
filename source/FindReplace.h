@@ -29,7 +29,7 @@
 /// Provides a find dialog in which the user can find 
 /// the location(s) of specified source and/or target text. The dialog has an "Ignore case" 
 /// checkbox, a "Special Search" button, and other options. 
-/// CFindDlg is created as a Modeless dialogs. It is created on 
+/// CFindDlg is created as a Modeless dialog. It is created on 
 /// the heap and is displayed with Show(), not ShowModal().
 /// \derivation		The CFindDlg class is derived from wxScrollingDialog when built with wxWidgets
 /// prior to version 2.9.x, but derived from wxDialog for version 2.9.x and later.
@@ -75,7 +75,7 @@ public:
 	wxRadioButton*	m_pFindSFM;
 	wxComboBox*		m_pComboSFM; 
 
-	int m_marker;
+	int m_marker; // index of chosen marker in listed markers
 	wxString m_srcStr;
 	wxString m_tgtStr;
 	bool m_bIncludePunct;
@@ -86,7 +86,8 @@ public:
 	bool m_bTgtOnly;
 	bool m_bSrcAndTgt;
 	wxString m_sfm; // the standard format marker to be used is stored here
-	bool m_bFindRetranslation;
+	bool m_bFindRetranslation; // this one, for Special Search finding of retranslations
+	bool m_bFindRetransln; // this one for Normal mode, must not use just one for both modes
 	bool m_bFindNullSrcPhrase;
 	bool m_bFindSFM;
 	bool m_bSpecialSearch;
@@ -126,6 +127,8 @@ protected:
     void OnTgtEditBoxEnterKeyPress(wxCommandEvent& WXUNUSED(event));
 
 	void OnFindNext(wxCommandEvent& WXUNUSED(event));
+	void OnRestoreFindDefaults(wxCommandEvent& WXUNUSED(event));
+public:
 	void OnRadioSrcOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTgtOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSrcAndTgt(wxCommandEvent& WXUNUSED(event));

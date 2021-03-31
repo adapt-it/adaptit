@@ -209,7 +209,7 @@ class test_system_call;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 247).
+// 1. The appVerStr const defined below (about line 250).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 //    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
@@ -241,13 +241,13 @@ class test_system_call;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 10 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
-#define VERSION_DATE_MONTH 5
-#define VERSION_DATE_YEAR 2020
-const wxString appVerStr(_T("6.10.1"));
+#define VERSION_DATE_DAY 8
+#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_YEAR 2021
+const wxString appVerStr(_T("6.10.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -982,6 +982,61 @@ struct TIMESETTINGS
 	wxTimeSpan	m_tsKB;
 	wxDateTime	m_tLastDocSave;
 	wxDateTime	m_tLastKBSave;
+};
+
+/*
+// These are the "restored default" settings, which WriteCacheDefaults()
+// will set using the following struct. m_pFindDlg points at the FindReplace.h,
+// class creator, see line 38
+pApp->m_pFindDlg->m_srcStr.Empty();
+pApp->m_pFindDlg->m_tgtStr.Empty();
+pApp->m_pFindDlg->m_replaceStr.Empty();
+pApp->m_pFindDlg->m_sfm.Empty();
+pApp->m_pFindDlg->m_markerStr.Empty();
+pApp->m_pFindDlg->m_bFindRetransln = FALSE;
+pApp->m_pFindDlg->m_bFindNullSrcPhrase = FALSE;
+pApp->m_pFindDlg->m_bFindSFM = FALSE;
+pApp->m_pFindDlg->m_bSrcOnly = TRUE;
+pApp->m_pFindDlg->m_bTgtOnly = FALSE;
+pApp->m_pFindDlg->m_bSrcAndTgt = FALSE;
+pApp->m_pFindDlg->m_bSpecialSearch = FALSE;
+pApp->m_pFindDlg->m_bFindDlg = TRUE;
+pApp->m_pFindDlg->m_bSpanSrcPhrases = FALSE;
+pApp->m_pFindDlg->m_bIncludePunct = FALSE;
+pApp->m_pFindDlg->m_bIgnoreCase = FALSE;
+pApp->m_pFindDlg->m_nCount = 0;
+// There are 3 functions which use this struct, from FindReplace.cpp's instance:
+// bool WriteCacheDefaults() - which sets defaultFindConfig struct to have the above values
+// bool WriteFindCache(pApp->m_pFindDlg) - which sets readwriteFindConfig struct to have the
+// values as at the Find Next button press (so that config is not lost when Ctrl+F is done)
+// bool ReadFindCache(pApp->m_pFindDlg) - which takes the cached values in the 
+// readwriteFindConfig struct,to restore them when Ctrl+F is done to call OnFind(), 
+// at its start, when doing a Find Next with unchanged configuration values. 
+// Return FALSE if there was an error so that the caller can take evasive action 
+// to prevent a crash
+*/
+struct CacheFindReplaceConfig
+{
+	wxString srcStr;
+	wxString tgtStr;
+	wxString replaceStr;
+	int marker;
+	wxString markerStr;
+	wxString sfm;
+	bool bFindRetranslation;
+	bool bFindNullSrcPhrase; // NullSrcPhrase is a Placeholder, as of years ago
+	bool bFindSFM;
+	bool bSrcOnly;
+	bool bTgtOnly;
+	bool bSrcAndTgt;
+	bool bSpecialSearch;
+	bool bFindDlg;
+	bool bSpanSrcPhrases;
+	bool bIncludePunct;
+	bool bIgnoreCase = FALSE;
+	// count of how many srcPhrase instances were matched 
+	// (value is not valid when there was no match)
+	int nCount;
 };
 
 /// A struct for specifying paired source and target punctuation characters.
@@ -2536,6 +2591,8 @@ class CAdapt_ItApp : public wxApp
 	// functions which must treat matches within a retranslation as a match within a
 	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
 	// single word), such as DoExtendedSearch(), etc
+	// BEW 30Mar21, refactoring the Find... for a Special Search for retranslations, this
+	// variable was not getting set TRUE, and needs to be. Set TRUE in 
 	bool m_bMatchedRetranslation;
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;
@@ -3405,6 +3462,16 @@ public:
 	wxString	m_targetLanguageName; // name for the target language
 	wxString	m_glossesLanguageName; // name
 	wxString	m_freeTransLanguageName;  // name for free translation language
+
+	// BEW 25Mar21 Find or Find & Replace support, using the struct
+	// CacheFindReplaceConfig - defined above at line 1017
+	bool        WriteCacheDefaults(); // writes default values into the struct
+	bool        WriteFindCache();
+	bool        ReadFindCache();
+	// Use the next 3, one in each of the above functions, to hold the config values
+	CacheFindReplaceConfig defaultFindConfig;
+	CacheFindReplaceConfig readwriteFindConfig;
+	wxComboBox*	m_pComboSFM; 
 
 	// Status bar support
 	void	 RefreshStatusBarInfo();

@@ -4000,19 +4000,25 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item30 = new wxButton( parent, IDC_BUTTON_SPECIAL, _("Special Search"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Activate special search context buttons") );
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item30 = new wxButton( parent, ID_BUTTON_RESTORE_DEFAULTS, _("Restore Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Clears earlier settings and empties text boxes") );
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item29->Add( 30, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item31 = new wxButton( parent, IDC_BUTTON_SPECIAL, _("Special Search"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Activate special search context buttons") );
+    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item29->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item31 = new wxButton( parent, wxID_OK, _("Find &Next"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetToolTip( _("Find the next occurrence (if any)") );
-    item29->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+    wxButton *item32 = new wxButton( parent, wxID_OK, _("Find &Next"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Find the next occurrence (if any)") );
+    item29->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxButton *item32 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("Close the Find-Replace dialog") );
-    item29->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    wxButton *item33 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Close the Find-Replace dialog") );
+    item29->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item29, 0, wxALIGN_RIGHT|wxALL, 5 );
 

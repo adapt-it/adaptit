@@ -150,54 +150,45 @@ bool CRetranslation::DoFindRetranslation(int nStartSequNum, int& nSequNum, int& 
 	CSourcePhrase* pSrcPhrase = NULL;
 	SPList::Node* savePos = pos;
 
-	// get past the current retranslation, if we are in one
 	pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	if (pSrcPhrase->m_bBeginRetranslation)
+	if (pSrcPhrase->m_bBeginRetranslation && pSrcPhrase->m_bRetranslation)//BEW 30Mar21 added 2nd test
 	{
 		// we are at the start of a retranslation, so must access the next srcPhrase
 		// before we have a possibility of being out of it, or into the next retranslation
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		savePos = pos;
 		pos = pos->GetNext();
 	}
-	if (pSrcPhrase->m_bRetranslation)
+	// BEW 30Mar21  we need to search for where the next retranslation begins
+	while (pos != NULL)
 	{
-		while (pos != NULL)
-		{
-			savePos = pos;
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
-			if (!pSrcPhrase->m_bRetranslation || pSrcPhrase->m_bBeginRetranslation)
-				break; // break if we are out, or at the beginning of a consecutive one
-		}
+		savePos = pos;
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bRetranslation && pSrcPhrase->m_bBeginRetranslation) // BEW 30Mar21 changed test to &&
+			break; // break at the beginning of next one
 	}
-
-	// do the search, confining attempts within a single CSourcePhrase instance
+	
 	if (pos == NULL)
 	{
 		// we are at the end of the document
 		nSequNum = -1; // undefined
+		m_pApp->m_bMatchedRetranslation = FALSE;
 		return FALSE;
 	}
 
 	pos = savePos;
 	wxASSERT(pos != NULL);
-	while (pos != NULL)
-	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		wxASSERT(pSrcPhrase != NULL);
-		if (pSrcPhrase->m_bRetranslation || pSrcPhrase->m_bBeginRetranslation)
-		{
-			// we found a retranslation
-			nSequNum = pSrcPhrase->m_nSequNumber;
-			nCount = 1;
-			return TRUE;
-		}
-	}
+	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	// we found a retranslation
+	nSequNum = pSrcPhrase->m_nSequNumber;
+	nCount = 1;
+	m_pApp->m_bMatchedRetranslation = TRUE; // needed in MakeSelectionForFind()
 
-	// if we get here, we didn't find a match
-	nSequNum = -1;
-	return FALSE;
+	wxLogDebug(_T("%s:%s() line %d, sequNum = %d, src = %s , tgt = %s , nCount = %d  Returning TRUE"),
+		__FILE__,__FUNCTION__,__LINE__, nSequNum, pSrcPhrase->m_srcPhrase.c_str(), 
+		pSrcPhrase->m_targetStr.c_str(), nCount);
+	return TRUE;
 }
 
 void CRetranslation::DoRetranslation()
@@ -5247,3 +5238,61 @@ void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wx
 
 }
 
+// BEW added 31Mar21, public member, to support Find retranslations.
+// pList, points at the m_pSourcePhrases list
+// startingSequNum defines the pPile which has the
+// the pSrcPhrase->m_bBeginRetranslation flag TRUE
+// Return value is the count of how many there are that
+// have pSrcPhrase->m_bRetranslation TRUE, the count
+// ends when m_bEndRetranslation TRUE is encountered.
+// If count returns as zero, then the caller should infer that the
+// there were none, and treat it as an error and act accordingly -
+// i.e. the Find... of retranslations did not find any at the
+// starting location
+int CRetranslation::CountRetransPiles(SPList* pList, int beginSequNum)
+{
+	int count = 0;
+	wxASSERT(pList != NULL);
+	SPList::Node* pos = pList->Item(beginSequNum); // starting POSITION
+	wxASSERT(pos != NULL);
+	CSourcePhrase* pSrcPhrase = NULL;
+	SPList::Node* savePos = pos;
+	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	if (pSrcPhrase->m_bRetranslation)
+	{
+		count = 1;
+		pos = pos->GetNext();
+		// this much we are assured of, the while loop which
+		// follows will scan for the remainder, incrementing count
+	}
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		savePos = pos;
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			count++;
+			if (pSrcPhrase->m_bEndRetranslation || pos == NULL)
+			{
+				if (pos == NULL)
+				{
+					// fix lack of proper end of the retranslation
+					pSrcPhrase->m_bEndRetranslation = TRUE; // the flag was unset at doc end
+				}
+				break; // we've counted the last one of this retranslation set of piles
+			}
+		}
+		else
+		{
+			// m_bRetranslation flag is not TRUE, so we must be out of the
+			// current retranslation set of piles - so don't count this one.
+			// The previous one must have it's m_bEndRetranslation flag unset,
+			// so correct the doc by setting it here
+			pSrcPhrase = (CSourcePhrase*)savePos->GetData();
+			pSrcPhrase->m_bEndRetranslation = TRUE;
+			break;
+		}
+	}
+	return count;
+}
