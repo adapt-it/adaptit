@@ -71,6 +71,13 @@
 //#define _KBSERVER
 //#endif
 
+// When src word has no puncts, and user adds puncts to tgt (copied) word, because its an
+// unknown meaning, different processing paths are required to prevent unwanted loss of
+// the temporary puncts by the phrasebox landing at that place and then going elsewhere.
+// Define a wxLogDebug() that tracks src word with it's puncts, tgt word (with its puncts),
+// to get a handle on places where the tgt word's temporary puncts get lost unwittingly
+//#define TEMP_PUNCTS -- I didn't take this line of refactoring further - too much hacking for too little gain
+
 // BEW changed to force m_bAbandonable to forever by FALSE everywhere - lesser of two
 // evils, because of users forgetting to click in box to make an abandonable adaptation
 // (typically a source copy) "stick" - leading to holes unexpected back in the translation
@@ -1037,6 +1044,31 @@ struct CacheFindReplaceConfig
 	// count of how many srcPhrase instances were matched 
 	// (value is not valid when there was no match)
 	int nCount;
+};
+
+struct CacheReplaceConfig
+{
+	wxString srcStr;
+	wxString tgtStr;
+	wxString replaceStr;
+	//int marker;
+	//wxString markerStr;
+	//wxString sfm;
+	//bool bFindRetranslation;
+	//bool bFindNullSrcPhrase; // NullSrcPhrase is a Placeholder, as of years ago
+	//bool bFindSFM;
+	bool bSrcOnly;
+	bool bTgtOnly;
+	//bool bSrcAndTgt;
+	//bool bSpecialSearch;
+	bool bFindDlg; // retain
+	bool bReplaceDlg; // added
+	bool bSpanSrcPhrases;
+	bool bIncludePunct;
+	bool bIgnoreCase = FALSE;
+	// count of how many srcPhrase instances were matched 
+	// (value is not valid when there was no match)
+	//int nCount;
 };
 
 /// A struct for specifying paired source and target punctuation characters.

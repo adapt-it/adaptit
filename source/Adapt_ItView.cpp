@@ -19903,6 +19903,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 		pApp->m_pReplaceDlg->m_bTgtOnly = TRUE;
 		pApp->m_pReplaceDlg->m_bSrcAndTgt = FALSE;
 		pApp->m_pReplaceDlg->m_bFindDlg = FALSE;
+		pApp->m_pReplaceDlg->m_bReplaceDlg = TRUE;
 		pApp->m_pReplaceDlg->m_bSpanSrcPhrases = FALSE;
 		pApp->m_pReplaceDlg->m_bIncludePunct = FALSE;
 		pApp->m_pReplaceDlg->m_bIgnoreCase = FALSE;
@@ -19937,6 +19938,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 			pApp->m_pReplaceDlg->m_bTgtOnly = TRUE;
 			pApp->m_pReplaceDlg->m_bSrcAndTgt = FALSE;
 			pApp->m_pReplaceDlg->m_bFindDlg = FALSE;
+			pApp->m_pReplaceDlg->m_bReplaceDlg = TRUE;
 			pApp->m_pReplaceDlg->m_bSpanSrcPhrases = FALSE;
 			pApp->m_pReplaceDlg->m_bIncludePunct = FALSE;
 			pApp->m_pReplaceDlg->m_bIgnoreCase = FALSE;
