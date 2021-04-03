@@ -191,6 +191,7 @@ public:
 	bool m_bSpanSrcPhrases;
 	bool m_bIgnoreCase;
 	bool m_bFindDlg;
+	bool m_bReplaceDlg; // BEW added 3Apr21
 	bool m_bSrcOnly;
 	bool m_bTgtOnly;
 	bool m_bSrcAndTgt;

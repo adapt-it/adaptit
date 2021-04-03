@@ -2410,6 +2410,7 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	m_bSrcAndTgt = FALSE;
 
 	m_bFindDlg = FALSE; // it is TRUE in the CFindDlg
+	m_bReplaceDlg = FALSE; // BEW added 3Apr21
 
 	//TransferDataToWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataToWindow()
