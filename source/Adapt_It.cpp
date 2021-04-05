@@ -61256,7 +61256,9 @@ bool CAdapt_ItApp::WriteReplaceCache()
     }
     CacheReplaceConfig* pStruct = &readwriteReplaceConfig; // point to the cache
     wxTextCtrl* pSrcTxt = pDlg->m_pEditSrc;
-    pStruct->srcStr = pSrcTxt->GetValue();
+    pStruct->srcStr = pSrcTxt->GetValue(); // should be empty, as replacedlg does
+		// not support find/replace other than just using tgt text and replace text
+	wxASSERT(pStruct->srcStr.IsEmpty());
 
     wxTextCtrl* pTgtTxt = pDlg->m_pEditTgt;
     pStruct->tgtStr = pTgtTxt->GetValue();
@@ -61266,8 +61268,15 @@ bool CAdapt_ItApp::WriteReplaceCache()
     // The radio buttons...
     wxRadioButton* pSrcOnly = pDlg->m_pRadioSrcTextOnly;
     pStruct->bSrcOnly = pSrcOnly->GetValue();
+	pStruct->bSrcOnly = FALSE; // Must be FALSE, src edits are not supported by find/replace
+
     wxRadioButton* pTgtOnly = pDlg->m_pRadioTransTextOnly;
     pStruct->bTgtOnly = pTgtOnly->GetValue();
+	if (pStruct->bTgtOnly == FALSE)
+	{
+		// reset as TRUE, this is the only option for find/replace
+		pStruct->bTgtOnly = TRUE;
+	}
     //wxRadioButton* pSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
     //pStruct->bSrcAndTgt = pSrcTgt->GetValue();
 
@@ -61278,7 +61287,7 @@ bool CAdapt_ItApp::WriteReplaceCache()
     pStruct->bFindDlg = pDlg->m_bFindDlg;
     pStruct->bReplaceDlg = pDlg->m_bReplaceDlg;
 
-    // The checkboxes...
+    // The checkboxes... as for m_pFindDlg
     wxCheckBox* pCheckSpan = pDlg->m_pCheckSpanSrcPhrases;
     pStruct->bSpanSrcPhrases = pCheckSpan->GetValue();
     wxCheckBox* pCheckIncludePunct = pDlg->m_pCheckIncludePunct;
