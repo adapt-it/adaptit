@@ -19852,7 +19852,7 @@ void CAdapt_ItView::AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick)
 
 void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 {
-	// refactored 17Apr09
+	// refactored 17Apr09; next refactor - BEW 3Apr21
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (event.GetId() == wxID_REPLACE)
 	{
@@ -19870,7 +19870,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 	{
 		if (gbFind == TRUE)
 		{
-			pApp->m_pReplaceDlg->TransferDataFromWindow();
+			//pApp->m_pReplaceDlg->TransferDataFromWindow(); // no longer used
 			saveSrc = pApp->m_pReplaceDlg->m_srcStr;
 			saveTgt = pApp->m_pReplaceDlg->m_tgtStr;
 			pApp->m_pReplaceDlg->Destroy();
@@ -19878,7 +19878,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 		}
 	}
 
-	gbFind = FALSE; // make dialog appearance be for Find & Replace
+	gbFind = FALSE; // make dialog appearance be for Find & Replace (m_bReplaceDlg later set TRUE too)
 	gbJustReplaced = FALSE;
 
 	// we must not be in 'show target only' mode, so if so, switch back to normal view mode
@@ -19894,29 +19894,39 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 		gbJustReplaced = FALSE;
 
 		// set default parameter values
-		pApp->m_pReplaceDlg->m_srcStr = saveSrc;
-		pApp->m_pReplaceDlg->m_tgtStr = saveTgt;
+		pApp->m_pReplaceDlg->m_srcStr = wxEmptyString;
+		pApp->m_pReplaceDlg->m_tgtStr = wxEmptyString;
 		pApp->m_pReplaceDlg->m_replaceStr.Empty();
-		pApp->m_pReplaceDlg->m_markerStr.Empty();
-		pApp->m_pReplaceDlg->m_sfm.Empty();
-		pApp->m_pReplaceDlg->m_bSrcOnly = FALSE;
+		//pApp->m_pReplaceDlg->m_markerStr.Empty();
+		//pApp->m_pReplaceDlg->m_sfm.Empty();
+		pApp->m_pReplaceDlg->m_bSrcOnly = FALSE; // we don't want default to be changing src text values
 		pApp->m_pReplaceDlg->m_bTgtOnly = TRUE;
-		pApp->m_pReplaceDlg->m_bSrcAndTgt = FALSE;
+		//pApp->m_pReplaceDlg->m_bSrcAndTgt = FALSE;
 		pApp->m_pReplaceDlg->m_bFindDlg = FALSE;
 		pApp->m_pReplaceDlg->m_bReplaceDlg = TRUE;
 		pApp->m_pReplaceDlg->m_bSpanSrcPhrases = FALSE;
 		pApp->m_pReplaceDlg->m_bIncludePunct = FALSE;
 		pApp->m_pReplaceDlg->m_bIgnoreCase = FALSE;
-		pApp->m_pReplaceDlg->TransferDataToWindow();
+		//pApp->m_pReplaceDlg->TransferDataToWindow(); // no longer used
 
 		pApp->m_pReplaceDlg->Centre(); // this sets the horizontal pos,
 				// AdjustDialogPosition below overrides the vertical one
 		AdjustDialogPosition(pApp->m_pReplaceDlg);
-		pApp->m_pReplaceDlg->Show(TRUE);
+
+
+		//pApp->m_pReplaceDlg->Show(TRUE); <<--- NEVER use Show() here
+
 		gbFindOrReplaceCurrent = TRUE;
 	}
 	else
 	{
+
+// Put ReadReplaceCache() here.....
+
+
+
+
+// TODO alter what's below
 		if (pApp->m_pReplaceDlg != NULL)
 		{
 			AdjustDialogPosition(pApp->m_pReplaceDlg);

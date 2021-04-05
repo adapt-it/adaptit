@@ -1671,6 +1671,16 @@ void CReplaceDlg::DoFindNext()
 
 repeatfind:
 
+	// BEW 3Apr21 write the cached values into the config dialog, if the struct
+	// CacheReplaceConfig has it's bool bReplaceDlg set TRUE (it's TRUE after a
+	// Find or Find Replace has been initiated, and stays TRUE until user cancels, 
+	// whereupon its FALSE). Reading the cache in order to restore the cached values
+	// to the next OnFind(), etc, call so that the config dialog reappears with values
+	// unchanged is done at the start of the OnFind() call in the View class after
+	// line 19,138 (near start of the function). For m_pReplalceDlg, use WriteFindCache()
+	bool bWriteStructCache = gpApp->WriteReplaceCache();
+	wxUnusedVar(bWriteStructCache);
+
     // whm 15May2020 Note: gpApp->m_bUserDlgOrMessageRequested is set to TRUE in this->InitDialog()
     // but it becomes FALSE again (by code elsewhere) after the first Find Next is done. 
     // For modeless dialogs - which can execute ENTER-generated commands multiple times

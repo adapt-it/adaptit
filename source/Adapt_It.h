@@ -1055,7 +1055,7 @@ struct CacheReplaceConfig
 	//wxString markerStr;
 	//wxString sfm;
 	//bool bFindRetranslation;
-	//bool bFindNullSrcPhrase; // NullSrcPhrase is a Placeholder, as of years ago
+	//bool bFindNullSrcPhrase; // NullSrcPhrase is a Placeholder
 	//bool bFindSFM;
 	bool bSrcOnly;
 	bool bTgtOnly;
@@ -3504,6 +3504,11 @@ public:
 	CacheFindReplaceConfig defaultFindConfig;
 	CacheFindReplaceConfig readwriteFindConfig;
 	wxComboBox*	m_pComboSFM; 
+	// BEW 3Apr21... and for the WriteReplaceCache() for use in m_pReplaceDlg
+	bool        WriteReplaceCache();
+	bool        ReadReplaceCache();
+	CacheReplaceConfig readwriteReplaceConfig; // the struct for config values
+
 
 	// Status bar support
 	void	 RefreshStatusBarInfo();
