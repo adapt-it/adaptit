@@ -1510,15 +1510,15 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	m_pStaticSrcBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_SRC_REPLACE);
 	wxASSERT(m_pStaticSrcBoxLabel != NULL);
 
-	m_pEditSrc = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_REPLACE);
-	wxASSERT(m_pEditSrc != NULL);
+	m_pEditSrc_Rep = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_REPLACE); // BEW 5Apr21 name change, see reason in next comment
+	wxASSERT(m_pEditSrc_Rep != NULL);
 	//m_pEditSrc->SetValidator(wxGenericValidator(&m_srcStr)); // use validator
 
 	m_pStaticTgtBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_TGT_REPLACE);
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 
-	m_pEditTgt = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_REPLACE);
-	wxASSERT(m_pEditTgt != NULL);
+	m_pEditTgt_Rep = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_REPLACE); // BEW 5Apr21 added _Rep, as control was going to Find's line 66
+	wxASSERT(m_pEditTgt_Rep != NULL);
 	//m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
 
 	m_pButtonReplace = (wxButton*)FindWindowById(IDC_REPLACE);
@@ -1552,7 +1552,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 
     // make the font show user-chosen point size in the dialog
 	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSrc, NULL,
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSrc_Rep, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSrc, NULL, 
@@ -1565,7 +1565,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	{
 		#ifdef _RTL_FLAGS
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
-				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
+				m_pEditTgt_Rep, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
 				gpApp->m_bNavTextRTL);
 		#else // Regular version, only LTR scripts supported, 
 			  // so use default FALSE for last parameter
@@ -1577,7 +1577,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	{
 		#ifdef _RTL_FLAGS
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
-				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
+				m_pEditTgt_Rep, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
 				gpApp->m_bTgtRTL);
 		#else // Regular version, only LTR scripts supported, 
 			  // so use default FALSE for last parameter
@@ -1614,8 +1614,8 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	wxASSERT(m_pRadioTransTextOnly != NULL);
 	m_pRadioTransTextOnly->SetValue(TRUE);
 	
-	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->Hide();
+	wxASSERT(m_pEditSrc_Rep != NULL);
+	m_pEditSrc_Rep->Hide();
 	
 	wxASSERT(m_pStaticSrcBoxLabel != NULL);
 	m_pStaticSrcBoxLabel->Hide();
@@ -1626,8 +1626,8 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	m_pStaticTgtBoxLabel->SetLabel(str);
 	m_pStaticTgtBoxLabel->Show(TRUE);
 	
-	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->Show(TRUE);
+	wxASSERT(m_pEditTgt_Rep != NULL);
+	m_pEditTgt_Rep->Show(TRUE);
 
     // whm 16May2020 added - initially disable the Replace and Replace All buttons
     wxASSERT(m_pButtonReplace != NULL);
@@ -1638,7 +1638,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 
 
     // whm 14May2020 in CReplaceDlg we set initial focus in the m_pEditTgt edit box
-    m_pEditTgt->SetFocus();
+    m_pEditTgt_Rep->SetFocus();
 
     // set the default button to Find Next button explicitly (otherwise, an MFC bug makes
     // it the Replace All button)
@@ -1796,8 +1796,8 @@ repeatfind:
 	m_srcStr = FwdSlashtoZWSP(m_srcStr);
 	m_tgtStr = FwdSlashtoZWSP(m_tgtStr);
 //#endif
-	m_srcStr = m_pEditSrc->GetValue();
-	m_tgtStr = m_pEditTgt->GetValue();
+	m_srcStr = m_pEditSrc_Rep->GetValue();
+	m_tgtStr = m_pEditTgt_Rep->GetValue();
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_replaceStr = m_pEditReplace->GetValue();
@@ -1919,11 +1919,11 @@ repeatfind:
         // the document.
         wxString searchStr;
         if (m_bSrcOnly)
-            searchStr = m_pEditSrc->GetValue();
+            searchStr = m_pEditSrc_Rep->GetValue();
         else if (m_bTgtOnly)
-            searchStr = m_pEditTgt->GetValue();
+            searchStr = m_pEditTgt_Rep->GetValue();
         else if (m_bSrcAndTgt)
-            searchStr = m_pEditSrc->GetValue(); // when searching both src and translated text the m_srcStr is used
+            searchStr = m_pEditSrc_Rep->GetValue(); // when searching both src and translated text the m_srcStr is used
 
         wxString msg;
         if (nKickOffSequNum == 0) // nKickOffSequNum was 0 at beginning of document
@@ -2023,7 +2023,7 @@ void CReplaceDlg::OnUpdateReplaceAllButton(wxUpdateUIEvent& event)
     // or if the Translation text box is empty. Both edit boxes need to have some text value before the Replace
     // All button is enabled. These conditions can be combined with m_bSpanSrcPhrases
     
-	if (m_bSpanSrcPhrases || m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
+	if (m_bSpanSrcPhrases || m_pEditTgt_Rep->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
 	{
 		// keep the Replace All button disabled
 		event.Enable(FALSE);
@@ -2047,7 +2047,7 @@ void CReplaceDlg::OnUpdateReplace(wxUpdateUIEvent & event)
     {
         event.Enable(FALSE);
     }
-    else if (m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
+    else if (m_pEditTgt_Rep->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
     {
         // keep the Replace All button disabled
         event.Enable(FALSE);
@@ -2065,7 +2065,7 @@ void CReplaceDlg::OnUpdateReplace(wxUpdateUIEvent & event)
 // the Translation edit box as well as the Replacement Text edit box.
 void CReplaceDlg::OnUpdateFindNext(wxUpdateUIEvent & event)
 {
-    if (m_pEditTgt->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
+    if (m_pEditTgt_Rep->GetValue().IsEmpty() || m_pEditReplace->GetValue().IsEmpty())
     {
         // keep the Replace All button disabled
         event.Enable(FALSE);
@@ -2083,19 +2083,19 @@ void CReplaceDlg::DoRadioSrcOnly()
 	wxASSERT(m_pStaticSrcBoxLabel != NULL);
 	m_pStaticSrcBoxLabel->Show(TRUE);
 	
-	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->SetFocus();
+	wxASSERT(m_pEditSrc_Rep != NULL);
+	m_pEditSrc_Rep->SetFocus();
     // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
     // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
     // menu item is NOT ticked.
-    m_pEditSrc->SetSelection(-1,-1); // -1,-1 selects all
-	m_pEditSrc->Show(TRUE);
+    m_pEditSrc_Rep->SetSelection(-1,-1); // -1,-1 selects all
+	m_pEditSrc_Rep->Show(TRUE);
 	
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	m_pStaticTgtBoxLabel->Hide();
 	
-	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->Hide();
+	wxASSERT(m_pEditTgt_Rep != NULL);
+	m_pEditTgt_Rep->Hide();
 	m_bSrcOnly = TRUE;
 	m_bTgtOnly = FALSE;
 	m_bSrcAndTgt = FALSE;
@@ -2106,11 +2106,11 @@ void CReplaceDlg::DoRadioTgtOnly()
 	wxASSERT(m_pStaticSrcBoxLabel != NULL);
 	m_pStaticSrcBoxLabel->Hide();
 	
-	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->Hide();
+	wxASSERT(m_pEditSrc_Rep != NULL);
+	m_pEditSrc_Rep->Hide();
 
     // whm 14May2020 added set focus in the m_pEditTgt box
-    m_pEditTgt->SetFocus();
+    m_pEditTgt_Rep->SetFocus();
 
     wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	wxString str;
@@ -2118,13 +2118,13 @@ void CReplaceDlg::DoRadioTgtOnly()
 	m_pStaticTgtBoxLabel->SetLabel(str);
 	m_pStaticTgtBoxLabel->Show(TRUE);
 	
-	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->SetFocus();
+	wxASSERT(m_pEditTgt_Rep != NULL);
+	m_pEditTgt_Rep->SetFocus();
     // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
     // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
     // menu item is NOT ticked.
-    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
-	m_pEditTgt->Show(TRUE);
+    m_pEditTgt_Rep->SetSelection(-1,-1); // -1,-1 selects all
+	m_pEditTgt_Rep->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = TRUE;
 	m_bSrcAndTgt = FALSE;
@@ -2135,8 +2135,8 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 	wxASSERT(m_pStaticSrcBoxLabel != NULL);
 	m_pStaticSrcBoxLabel->Show(TRUE);
 	
-	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->Show(TRUE);
+	wxASSERT(m_pEditSrc_Rep != NULL);
+	m_pEditSrc_Rep->Show(TRUE);
 	
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 	wxString str;
@@ -2144,13 +2144,13 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 	m_pStaticTgtBoxLabel->SetLabel(str);
 	m_pStaticTgtBoxLabel->Show(TRUE);
 	
-	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->SetFocus();
+	wxASSERT(m_pEditTgt_Rep != NULL);
+	m_pEditTgt_Rep->SetFocus();
     // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
     // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
     // menu item is NOT ticked.
-    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
-	m_pEditTgt->Show(TRUE);
+    m_pEditTgt_Rep->SetSelection(-1,-1); // -1,-1 selects all
+	m_pEditTgt_Rep->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = FALSE;
 	m_bSrcAndTgt = TRUE;	
@@ -2249,8 +2249,8 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
-	m_srcStr = m_pEditSrc->GetValue();
-	m_tgtStr = m_pEditTgt->GetValue();
+	m_srcStr = m_pEditSrc_Rep->GetValue();
+	m_tgtStr = m_pEditTgt_Rep->GetValue();
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_replaceStr = m_pEditReplace->GetValue();
@@ -2345,8 +2345,8 @@ void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event)
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
-	m_srcStr = m_pEditSrc->GetValue();
-	m_tgtStr = m_pEditTgt->GetValue();
+	m_srcStr = m_pEditSrc_Rep->GetValue();
+	m_tgtStr = m_pEditTgt_Rep->GetValue();
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_replaceStr = m_pEditReplace->GetValue();
@@ -2425,8 +2425,8 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	//TransferDataToWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataToWindow()
 	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
-	m_pEditSrc->ChangeValue(m_srcStr);
-	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pEditSrc_Rep->ChangeValue(m_srcStr);
+	m_pEditTgt_Rep->ChangeValue(m_tgtStr);
 	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
 	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
 	m_pEditReplace->ChangeValue(m_replaceStr);

@@ -175,9 +175,9 @@ public:
 	wxButton*		m_pFindNext;
 
 	wxStaticText*	m_pStaticSrcBoxLabel;
-	wxTextCtrl*		m_pEditSrc;
+	wxTextCtrl*		m_pEditSrc_Rep;
 	wxStaticText*	m_pStaticTgtBoxLabel;
-	wxTextCtrl*		m_pEditTgt;
+	wxTextCtrl*		m_pEditTgt_Rep;
 	wxButton*		m_pButtonReplace;
 	wxButton*		m_pButtonReplaceAll;
 	wxCheckBox*		m_pCheckIncludePunct;

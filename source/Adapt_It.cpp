@@ -61255,12 +61255,12 @@ bool CAdapt_ItApp::WriteReplaceCache()
         return FALSE;
     }
     CacheReplaceConfig* pStruct = &readwriteReplaceConfig; // point to the cache
-    wxTextCtrl* pSrcTxt = pDlg->m_pEditSrc;
+    wxTextCtrl* pSrcTxt = pDlg->m_pEditSrc_Rep;
     pStruct->srcStr = pSrcTxt->GetValue(); // should be empty, as replacedlg does
 		// not support find/replace other than just using tgt text and replace text
 	wxASSERT(pStruct->srcStr.IsEmpty());
 
-    wxTextCtrl* pTgtTxt = pDlg->m_pEditTgt;
+    wxTextCtrl* pTgtTxt = pDlg->m_pEditTgt_Rep;
     pStruct->tgtStr = pTgtTxt->GetValue();
 
     pStruct->replaceStr = pDlg->m_replaceStr;
@@ -61277,36 +61277,29 @@ bool CAdapt_ItApp::WriteReplaceCache()
 		// reset as TRUE, this is the only option for find/replace
 		pStruct->bTgtOnly = TRUE;
 	}
-    //wxRadioButton* pSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
-    //pStruct->bSrcAndTgt = pSrcTgt->GetValue();
-
-    //pStruct->markerStr = pDlg->m_markerStr; // no wxTextCtrl for this, it for when searching for a marker
-    //pStruct->sfm = pDlg->m_sfm; // no wxTextCtrl for this, it for when searching for a \usfmtype
-    //pStruct->marker = pDlg->m_marker; // int - list index value (could be -1)
-    //pStruct->bSpecialSearch = pDlg->m_bSpecialSearch;
     pStruct->bFindDlg = pDlg->m_bFindDlg;
     pStruct->bReplaceDlg = pDlg->m_bReplaceDlg;
 
-    // The checkboxes... as for m_pFindDlg
+    // The checkboxes... as for m_pFindDlg, but we won't allow find/replace over multiple files
     wxCheckBox* pCheckSpan = pDlg->m_pCheckSpanSrcPhrases;
-    pStruct->bSpanSrcPhrases = pCheckSpan->GetValue();
+    if (pCheckSpan->GetValue() == TRUE)
+    {
+        pCheckSpan->SetValue(FALSE);
+    }
+    pStruct->bSpanSrcPhrases = pCheckSpan->GetValue(); // store it as unticked (always)
+    // And disable it - it's not appropriate for find & replace
+    bool bIsEnabled = pCheckSpan->IsEnabled();
+    if (bIsEnabled)
+    {
+        pCheckSpan->Disable();
+    }
+
     wxCheckBox* pCheckIncludePunct = pDlg->m_pCheckIncludePunct;
     pStruct->bIncludePunct = pCheckIncludePunct->GetValue();
+
     wxCheckBox* pCheckIgnoreCase = pDlg->m_pCheckIgnoreCase;
     pStruct->bIgnoreCase = pCheckIgnoreCase->GetValue();
 
-    // The three "Special Search" radio buttons
-    //wxRadioButton* pRadioRetrans = pDlg->m_pFindRetranslation;
-    //pStruct->bFindRetranslation = pRadioRetrans->GetValue();
-    //wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
-    //pStruct->bFindNullSrcPhrase = pRadioPlaceholder->GetValue();
-    //wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
-    //pStruct->bFindSFM = pRadioSFM->GetValue();
-
-    // Now the wxComboBox - this is not in the struct, but a cache variable is on AI.h
-    //m_pComboSFM = pDlg->m_pComboSFM;
-
-    //pStruct->nCount = pDlg->m_nCount;
     return TRUE;
 }
 
@@ -61320,67 +61313,68 @@ bool CAdapt_ItApp::ReadReplaceCache()
     }
     CacheReplaceConfig* pStruct = &readwriteReplaceConfig; // point to it
     pDlg->m_srcStr = pStruct->srcStr;
+    // we don't allow find & replace to alter doc's source text
+    if (!pDlg->m_srcStr.IsEmpty())
+    {
+        pDlg->m_srcStr.Empty(); // ensure it's emptpy
+    }
+
+    // BEW 5Apr21, When reading the cache, only 2 strings are relevant; tgt, and replacement;
+    // then the checkboxes as in Find dlg are in the replace config dlg unchanged.
+    // The other difference is that there are 3 buttons in addition to Cancel button:
+    // Find Next (default, with a handler in View.cpp), Replace (handler in View.cpp)
+    // and Replace All (handler in FindReplace.cpp at about 2,336++)
+
     pDlg->m_tgtStr = pStruct->tgtStr;
     pDlg->m_replaceStr = pStruct->replaceStr;
-    //pDlg->m_markerStr = pStruct->markerStr;
-    //pDlg->m_sfm = pStruct->sfm;
-    //pDlg->m_marker = pStruct->marker; // int - list index value (could be -1)
-    //pDlg->m_bFindRetransln = pStruct->bFindRetranslation;
-    //pDlg->m_bFindNullSrcPhrase = pStruct->bFindNullSrcPhrase; // ie for finding a Placeholder
-   // pDlg->m_bFindSFM = pStruct->bFindSFM;
+
     pDlg->m_bSrcOnly = pStruct->bSrcOnly;
+    if (pDlg->m_bSrcOnly == TRUE)
+    {
+        // gotta be FALSE, find/replace is not allowed to support src text changing
+        pDlg->m_bSrcOnly;
+    }
     pDlg->m_bTgtOnly = pStruct->bTgtOnly;
-    //pDlg->m_bSrcAndTgt = pStruct->bSrcAndTgt;
-    //pDlg->m_bSpecialSearch = pStruct->bSpecialSearch;
-    pDlg->m_bFindDlg = pStruct->bFindDlg;
-    pDlg->m_bReplaceDlg = pStruct->bReplaceDlg;
+    // The above can be empty, as searching for an empty target text is meaningful - at
+    // least until unadapted part of document is reached
+
+    pDlg->m_bFindDlg = pStruct->bFindDlg; // should be FALSE
+    wxASSERT(pDlg->m_bFindDlg == FALSE);
+
+    pDlg->m_bReplaceDlg = pStruct->bReplaceDlg; // should be TRUE
+    wxASSERT(pDlg->m_bReplaceDlg == TRUE);
+
+    // now,   the checkboxes - logically same as for FindDlg, but implemented from different resource IDs
     pDlg->m_bSpanSrcPhrases = pStruct->bSpanSrcPhrases;
     pDlg->m_bIncludePunct = pStruct->bIncludePunct;
     pDlg->m_bIgnoreCase = pStruct->bIgnoreCase;
-    //pDlg->m_nCount = pStruct->nCount;
+ 
+    // If the user forays into the interlinear doc layout, the replace dlg will disappear (but
+    // its cached config values will persist), and user will need to do a CTRL+H to get it
+    // restored to visibility. Doing that will cause wx code to be accessed, and the config
+    // values get lost. So the code below will need, after a Show(TRUE) is done - which causes the
+    // values loss, that the config values to be recreated below - since reading the cache needs
+    // to be done as above, and values for the config settings for find/replace to be restored.
+    //
+    // The code below will also be needed for restoring the config dialog's settings, when
+    // one of the handlers is called for the Find Next, Replace, or Replace All button handlers
+    // is called - since each of these will need to do a Show(TRUE) and layout interface code will
+    // cause config settings to be lost then too, and so the code below will need to also be
+    // copied to the end of each of the button handlers - except Replace All which, on testing,
+    // works correctly without any changes being needed.
 
-    // Now get the restored values into the config dialog's gui
-    if (pDlg->m_bSrcOnly == TRUE)
+    if (pDlg->m_bTgtOnly == TRUE)
     {
-        wxString src = pDlg->m_pEditSrc->GetValue();
-        if (src != pDlg->m_srcStr)
-        {
-            pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
-        }
-        pDlg->m_pEditSrc->Show();
-        pDlg->m_pEditSrc->SetFocus();
-        pDlg->m_pEditTgt->Hide();
-
-        // make the radio buttons comply
-        wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
-        bool bRadioSrc = pRadioSrc->GetValue();
-        if (bRadioSrc != pDlg->m_bSrcOnly) // LHS is current gui value, RHS is cache value
-        {
-            pRadioSrc->SetValue(pDlg->m_bSrcOnly);
-        }
-        else
-        {
-            pRadioSrc->SetValue(TRUE);
-        }
-        // The other two must be opposite value, so set accordingly
-        bool bOtherValue = !pDlg->m_bSrcOnly;
-        wxASSERT(bOtherValue == FALSE);
-        wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
-        pRadioTgt->SetValue(bOtherValue); // FALSE
-        //wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
-        //pRadioSrcTgt->SetValue(bOtherValue); // FALSE
-    }
-    else if (pDlg->m_bTgtOnly == TRUE)
-    {
-        wxString tgt = pDlg->m_pEditTgt->GetValue();
+        wxString tgt = pDlg->m_pEditTgt_Rep->GetValue();
         if (tgt != pDlg->m_tgtStr)
         {
             // Put the cached tgt string into the config dlg
-            pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
+            pDlg->m_pEditTgt_Rep->ChangeValue(pDlg->m_tgtStr);
         }
-        pDlg->m_pEditTgt->Show();
-        pDlg->m_pEditTgt->SetFocus();
-        pDlg->m_pEditSrc->Hide();
+        pDlg->m_pEditTgt_Rep->Show();
+        //pDlg->m_pEditTgt_Rep->SetFocus();
+        pDlg->m_pEditSrc_Rep->Hide(); // tell the sizer not to show this wxTextTrl
+
         // make the radio buttons comply
         wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
         bool bRadioTgt = pRadioTgt->GetValue();
@@ -61397,57 +61391,7 @@ bool CAdapt_ItApp::ReadReplaceCache()
         wxASSERT(bOtherValue == FALSE);
         wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
         pRadioSrc->SetValue(bOtherValue); // FALSE
-        //wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
-        //pRadioSrcTgt->SetValue(bOtherValue); // FALSE
     }
-    /*
-    else if (pDlg->m_bSrcAndTgt == TRUE)
-    {
-        wxString src = pDlg->m_pEditSrc->GetValue();
-        if (src != pDlg->m_srcStr)
-        {
-            pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
-            pDlg->m_pEditSrc->Show();
-            //pDlg->m_pEditSrc->SetFocus();
-        }
-        else
-        {
-            pDlg->m_pEditSrc->ChangeValue(pDlg->m_srcStr); // source string is reset
-            pDlg->m_pEditSrc->Show();
-        }
-
-        wxString tgt = pDlg->m_pEditTgt->GetValue();
-        if (tgt != pDlg->m_tgtStr)
-        {
-            // Put the cached translation string into the config dlg
-            pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr); // translation string is reset
-            pDlg->m_pEditTgt->Show();
-
-        }
-        else
-        {
-            pDlg->m_pEditTgt->ChangeValue(pDlg->m_tgtStr);
-            pDlg->m_pEditTgt->Show();
-        }
-        pDlg->m_pEditTgt->SetFocus(); // put it here
-        /*
-        // make the radio buttons comply
-        wxRadioButton* pRadioSrcTgt = pDlg->m_pRadioBothSrcAndTransText;
-        bool bRadioSrcTgt = pRadioSrcTgt->GetValue();
-        if (bRadioSrcTgt != pDlg->m_bSrcAndTgt) // LHS is current gui value, RHS is cache value
-        {
-            pRadioSrcTgt->SetValue(pDlg->m_bSrcAndTgt);
-        }
-        // The other two must be opposite value, so set accordingly
-        bool bOtherValue = !pDlg->m_bSrcAndTgt;
-        wxASSERT(bOtherValue == FALSE);
-        wxRadioButton* pRadioSrc = pDlg->m_pRadioSrcTextOnly;
-        pRadioSrc->SetValue(bOtherValue); // FALSE
-        wxRadioButton* pRadioTgt = pDlg->m_pRadioTransTextOnly;
-        pRadioTgt->SetValue(bOtherValue); // FALSE
-        
-    }
-    */
     else
     {
         // We never expect control to enter here, something's real wrong
@@ -61481,34 +61425,6 @@ bool CAdapt_ItApp::ReadReplaceCache()
     {
         pSpan->SetValue(TRUE);
     }
-
-    // The three "Special Search" radio buttons
- //   wxRadioButton* pRadioRetrans = pDlg->m_pFindRetranslation;
- //   bool bRadioRetrans = pRadioRetrans->GetValue(); // get dlg's current value
- //   bool bRadioCachedRetrans = pStruct->bFindRetranslation; // what we cached
- //   if (bRadioRetrans != bRadioCachedRetrans)
- //   {
- //      pDlg->m_pFindRetranslation->SetValue(bRadioCachedRetrans);
- //   }
-
- //   wxRadioButton* pRadioPlaceholder = pDlg->m_pFindPlaceholder;
- //   bool bRadioPlaceholder = pRadioPlaceholder->GetValue(); // get dlg's current value
- //   bool bRadioCachedPlaceholder = pStruct->bFindNullSrcPhrase; // what we cached
- //   if (bRadioPlaceholder != bRadioCachedPlaceholder)
- //   {
- //       pDlg->m_bFindNullSrcPhrase = bRadioCachedPlaceholder;
- //   }
-
- //   wxRadioButton* pRadioSFM = pDlg->m_pFindSFM;
- //   bool bRadioSFM = pRadioSFM->GetValue(); // get dlg's current value
- //   bool bRadioCachedSFM = pStruct->bFindSFM; // what we cached
- //   if (bRadioSFM != bRadioCachedSFM)
- //   {
- //       pDlg->m_bFindSFM = bRadioCachedSFM;
- //   }
-
-    // the combobox, RHS is an AI.h member variable, not in the struct
- //   pDlg->m_pComboSFM = m_pComboSFM;
 
     pDlg->Refresh();
     return TRUE;
@@ -61573,37 +61489,12 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 			// What's next-most common? Probably subheadings - test that...
 
 
-
-
-
 		// temporary...
 			wxUnusedVar(ttTemp);
 			wxUnusedVar(ttNoneOr);
-
-
-
 
 // TODO - the rest
 		}
 	}
 }
-
-/* remove later
-bool    m_bTextTypeChangePending;
-
-// For our "cache" for recall of what was returned from TokenizeText's AI_USFM lookup for a marker
-wxString m_marker_Cached; // stored with initial backslash
-wxString m_endMarker_Cached; // stored with initial backslash
-bool	m_bInLine_Cached;
-bool	m_bSpecial_Cached;
-bool	m_bBdryOnLast_Cached;
-TextType m_bMainTextType_Cached; // use for default, ie' 'verse' for any of the verse or chapter mkrs
-// Next two are independent of USFMAnalysis struct, use for dynamic setting
-// (a) the Temp one, for things like poetry or footnotes, xrefs, extended ones
-// (b) the None or NoType one, for note, none, noType - things we want to skip
-// over without changing the TextType. When we default these two, it's to
-// what the XML defaults the TextType to - to 'verse'
-TextType m_bTempTextType_Cached;
-TextType m_bNoneOrNoType_Cached;
-*/
 
