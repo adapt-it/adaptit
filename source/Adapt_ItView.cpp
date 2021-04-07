@@ -19049,45 +19049,67 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	pApp->m_selectionLine = nSelectionLine;
 	pApp->m_pAnchor = pCell;
 
-	CFindDlg* pDlg = pApp->m_pFindDlg;
-	wxASSERT(pDlg != NULL);
-
-	if (pDlg->m_bFindRetranslation)
+	if (pApp->m_pFindDlg != NULL)
 	{
-		// BEW 31Mar21 added next 6 lines, to get an accurate nCount value,
-		// when searching for retranslation locations
-		int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber;
-		int howMany = pApp->GetRetranslation()->CountRetransPiles(pApp->m_pSourcePhrases, firstSequNum);
-		if (howMany > nCount)
+		CFindDlg* pDlg = pApp->m_pFindDlg;
+		wxASSERT(pDlg != NULL);
+
+		if (pDlg->m_bFindRetranslation)
 		{
-			nCount = howMany;
+			// BEW 31Mar21 added next 6 lines, to get an accurate nCount value,
+			// when searching for retranslation locations
+			int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber;
+			int howMany = pApp->GetRetranslation()->CountRetransPiles(pApp->m_pSourcePhrases, firstSequNum);
+			if (howMany > nCount)
+			{
+				nCount = howMany;
+			}
 		}
-	}
 
-	if (nCount > 1)
-	{
-		// extend the selection
-		ExtendSelectionForFind(pCell,nCount);
-	}
-	else
-	{
-		// if not extending, we still need a Redraw() in order to get the highlighted
-		// single cell shown selected
-		GetLayout()->Redraw();
-	}
-	// BEW 31Mar21 get the m_adaption value at the active location, and write it to
-	// app's m_targetPhrase, and into the phrasebox
-	wxString tgtPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-	pApp->m_targetPhrase = tgtPhrase;
-	pApp->m_pTargetBox->ChangeValue(tgtPhrase);
+		if (nCount > 1)
+		{
+			// extend the selection
+			ExtendSelectionForFind(pCell, nCount);
+		}
+		else
+		{
+			// if not extending, we still need a Redraw() in order to get the highlighted
+			// single cell shown selected
+			GetLayout()->Redraw();
+		}
+		// BEW 31Mar21 get the m_adaption value at the active location, and write it to
+		// app's m_targetPhrase, and into the phrasebox
+		wxString tgtPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+		pApp->m_targetPhrase = tgtPhrase;
+		pApp->m_pTargetBox->ChangeValue(tgtPhrase);
 
-	// BEW 31Mar21 finding retranslations, at each success, the radio button goes
-	// unticked, so reset it
+		// BEW 31Mar21 finding retranslations, at each success, the radio button goes
+		// unticked, so reset it
 
-	if (pApp->m_bMatchedRetranslation)
+		if (pApp->m_bMatchedRetranslation)
+		{
+			pDlg->m_bFindRetranslation = TRUE; // this bool got cleared to false
+			pDlg->m_pFindRetranslation->SetValue(TRUE);
+		}
+	} // end of TRUE block for test:  if (pApp->m_pFindDlg != NULL)
+	else // BEW 6Apr21 added else block
 	{
-		pDlg->m_bFindRetranslation = TRUE; // this bool got cleared to false
-		pDlg->m_pFindRetranslation->SetValue(TRUE);
+		// we are doing a Find Next in the m_pReplaceDlg
+		if (pApp->m_pReplaceDlg->m_bReplaceDlg != NULL)
+		{
+			CReplaceDlg* pDlg = pApp->m_pReplaceDlg;
+			wxASSERT(pDlg != NULL);
+			nCount = 1; // disallow replacing across multiple piles
+			// anchor pCell is already selected, and backgounded yellow
+			GetLayout()->Redraw(); // get the pCell shown selected
+
+		// BEW 31Mar21 get the m_adaption value at the active location, and write it to
+		// app's m_targetPhrase, and into the phrasebox
+			wxString tgtPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			pApp->m_targetPhrase = tgtPhrase;
+			pApp->m_pTargetBox->ChangeValue(tgtPhrase);
+
+		} // end of true block for test: if (pApp->m_pReplaceDlg->m_bReplaceDlg != NULL)
 	}
 
 	Invalidate();
@@ -19252,6 +19274,8 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 
 		//pApp->m_pFindDlg->Show(TRUE); // step in, this fouls up the radio button settings
 		CFindDlg* pDlg = pApp->m_pFindDlg;
+		CacheFindReplaceConfig* pStruct = &pApp->readwriteFindConfig;
+
 		bool bSrcOnlyRadio = pApp->m_pFindDlg->m_pRadioSrcTextOnly->GetValue();
 		bool bTgtOnlyRadio = pApp->m_pFindDlg->m_pRadioTransTextOnly->GetValue();
 		bool bSrcTgtRadio = pApp->m_pFindDlg->m_pRadioBothSrcAndTransText->GetValue();
@@ -19260,12 +19284,10 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		if (bSrcOnlyRadio == TRUE)
 		{
 			wxString src = pDlg->m_pEditSrc->GetValue();
-			if (src.IsEmpty())
+			wxString cachedSrc = pStruct->srcStr; // use this if values differ
+			if (src != cachedSrc)
 			{
-				pDlg->m_pEditSrc->ChangeValue(wxEmptyString);
-			} else
-			{
-				pDlg->m_pEditSrc->ChangeValue(src); // source string is reset
+				pDlg->m_pEditSrc->ChangeValue(cachedSrc); // source string is reset
 			}
 			pDlg->m_pEditSrc->SetFocus();
 			pDlg->m_pEditTgt->Hide();
@@ -19292,13 +19314,10 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		else if (bTgtOnlyRadio == TRUE)
 		{
 			wxString tgt = pDlg->m_pEditTgt->GetValue();
-			if (tgt.IsEmpty())
+			wxString cachedTgt = pStruct->tgtStr; // use this if values differ
+			if (tgt != cachedTgt)
 			{
-				pDlg->m_pEditTgt->ChangeValue(wxEmptyString);
-			} else
-			{
-				// Put the cached tgt string into the config dlg
-				pDlg->m_pEditTgt->ChangeValue(tgt);
+				pDlg->m_pEditTgt->ChangeValue(cachedTgt); // transln string is reset
 			}
 			pDlg->m_pEditTgt->SetFocus();
 			pDlg->m_pEditSrc->Hide();
@@ -19325,26 +19344,17 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 		else if (bSrcTgtRadio == TRUE)
 		{
 			wxString src = pDlg->m_pEditSrc->GetValue();
-			if (src.IsEmpty())
-			{
-				pDlg->m_pEditSrc->ChangeValue(wxEmptyString);
-			}
-			else
-			{
-				pDlg->m_pEditSrc->ChangeValue(src); // source string is reset
-			}
-
 			wxString tgt = pDlg->m_pEditTgt->GetValue();
-			if (tgt.IsEmpty())
+			wxString srcCached = pStruct->srcStr;
+			wxString tgtCached = pStruct->tgtStr;
+			if (src != srcCached)
 			{
-				pDlg->m_pEditTgt->ChangeValue(wxEmptyString);
+				pDlg->m_pEditSrc->ChangeValue(srcCached); // source string is reset
 			}
-			else
+			if (tgt != tgtCached)
 			{
-				// Put the cached tgt string into the config dlg
-				pDlg->m_pEditTgt->ChangeValue(tgt);
+				pDlg->m_pEditTgt->ChangeValue(tgtCached); // transln string is reset
 			}
-
 			pDlg->m_pEditTgt->SetFocus(); // put input focus here
 
 			// make the radio buttons comply
@@ -19897,39 +19907,65 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 		pApp->m_pReplaceDlg->m_srcStr = wxEmptyString;
 		pApp->m_pReplaceDlg->m_tgtStr = wxEmptyString;
 		pApp->m_pReplaceDlg->m_replaceStr.Empty();
-		//pApp->m_pReplaceDlg->m_markerStr.Empty();
-		//pApp->m_pReplaceDlg->m_sfm.Empty();
 		pApp->m_pReplaceDlg->m_bSrcOnly = FALSE; // we don't want default to be changing src text values
 		pApp->m_pReplaceDlg->m_bTgtOnly = TRUE;
-		//pApp->m_pReplaceDlg->m_bSrcAndTgt = FALSE;
 		pApp->m_pReplaceDlg->m_bFindDlg = FALSE;
-		pApp->m_pReplaceDlg->m_bReplaceDlg = TRUE;
+		pApp->m_pReplaceDlg->m_bReplaceDlg = TRUE; // must be TRUE for find/replace
+		// checkboxes start off unticked
 		pApp->m_pReplaceDlg->m_bSpanSrcPhrases = FALSE;
 		pApp->m_pReplaceDlg->m_bIncludePunct = FALSE;
 		pApp->m_pReplaceDlg->m_bIgnoreCase = FALSE;
-		//pApp->m_pReplaceDlg->TransferDataToWindow(); // no longer used
 
-		pApp->m_pReplaceDlg->Centre(); // this sets the horizontal pos,
-				// AdjustDialogPosition below overrides the vertical one
+		pApp->m_pReplaceDlg->Centre(); // this sets the horizontal pos
+		// AdjustDialogPosition below overrides the vertical one
 		AdjustDialogPosition(pApp->m_pReplaceDlg);
 
+		pApp->m_pReplaceDlg->Show(TRUE); // We have to show it, but control wanders round in
+			// wx basic resources,  which clobbers vital config values, so we have to restore
+			// from what we set on the app above, and set the text boxes too
+		CReplaceDlg* pDlg = pApp->m_pReplaceDlg; // easier to work with pDlg
 
-		//pApp->m_pReplaceDlg->Show(TRUE); <<--- NEVER use Show() here
+		pDlg->m_pEditSrc_Rep->ChangeValue(pDlg->m_srcStr);
+		pDlg->m_pEditTgt_Rep->ChangeValue(pDlg->m_tgtStr);
+		pDlg->m_pEditReplace->ChangeValue(pDlg->m_replaceStr);
+
+		pDlg->m_bFindDlg = FALSE;
+		pDlg->m_bReplaceDlg = TRUE;
+
+		// Turn off all 3 checkboxes if any are ticked
+		bool bIsTicked = pDlg->m_pCheckSpanSrcPhrases->GetValue();
+		if (bIsTicked)
+		{
+			pDlg->m_pCheckSpanSrcPhrases->SetValue(!bIsTicked);
+		}
+		bIsTicked = pDlg->m_pCheckIncludePunct->GetValue();
+		if (bIsTicked)
+		{
+			pDlg->m_pCheckIncludePunct->SetValue(!bIsTicked);
+		}
+		bIsTicked = pDlg->m_pCheckIgnoreCase->GetValue();
+		if (bIsTicked)
+		{
+			pDlg->m_pCheckIgnoreCase->SetValue(!bIsTicked);
+		}
 
 		gbFindOrReplaceCurrent = TRUE;
 	}
 	else
 	{
 
-// Put ReadReplaceCache() here.....
+		// Put ReadReplaceCache() here.....
+		// BEW 6Apr21 Trying to do a replace in tgt text across multiple piles, is a bridge too far.
+		// The pDlg->m_pCheckSpanSrcPhrases will be disabled for the m_pReplaceDlg instance
 
+		bool bRestoredValues = pApp->ReadReplaceCache();
+		wxUnusedVar(bRestoredValues);
 
-
-
-// TODO alter what's below
 		if (pApp->m_pReplaceDlg != NULL)
 		{
 			AdjustDialogPosition(pApp->m_pReplaceDlg);
+
+
 			pApp->m_pReplaceDlg->Show(TRUE);
 			gbFindOrReplaceCurrent = TRUE;
 		}
@@ -19938,6 +19974,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 			// wx doesn't need to call Create
 			gbJustReplaced = FALSE;
 
+			/* // BEW 6Apr21 we don't want to reset defaults, but rather to preserve the configuration
 			// set default parameter values
 			pApp->m_pReplaceDlg->m_srcStr = saveSrc;
 			pApp->m_pReplaceDlg->m_tgtStr = saveTgt;
@@ -19952,12 +19989,70 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 			pApp->m_pReplaceDlg->m_bSpanSrcPhrases = FALSE;
 			pApp->m_pReplaceDlg->m_bIncludePunct = FALSE;
 			pApp->m_pReplaceDlg->m_bIgnoreCase = FALSE;
-			pApp->m_pReplaceDlg->TransferDataToWindow();
+			//pApp->m_pReplaceDlg->TransferDataToWindow();
+			*/
 
 			pApp->m_pReplaceDlg->Centre(); // this sets the horizontal position,
-						// AdjustDialogPosition() below sets vertical position
+					// AdjustDialogPosition() below sets vertical position
 			AdjustDialogPosition(pApp->m_pReplaceDlg);
-			pApp->m_pReplaceDlg->Show(TRUE);
+
+			pApp->m_pReplaceDlg->Show(TRUE); // Necessary for getting the config dlg
+						// shown, but this mucks up the config; so reset it from cache
+
+			CReplaceDlg* pDlg = pApp->m_pReplaceDlg; // easier to work with pDlg
+			CacheReplaceConfig* pStruct = &pApp->readwriteReplaceConfig;
+
+			bool bSrcRadio = FALSE; // must be so
+			bool bTgtRadio = TRUE; // must be so
+			bool bReplaceBox = TRUE; // must be able to see the replace text in its box
+			wxUnusedVar(bReplaceBox);
+
+			// Check the restored settings agree, if not, reconfigure each as needed
+			pDlg->m_pRadioSrcTextOnly->SetValue(bSrcRadio);
+			pDlg->m_pRadioTransTextOnly->SetValue(bTgtRadio);
+
+			// Now the text boxes
+			pDlg->m_pEditSrc_Rep->SetValue(wxEmptyString); // must be empty for find/replace
+
+			if (bTgtRadio == TRUE) // of course, it will be, but the redundancy is harmless
+			{
+				wxString tgt = pDlg->m_pEditTgt_Rep->GetValue();
+				wxString cachedTgt = pStruct->tgtStr; // use this if values don't agree
+				if (tgt != cachedTgt)
+				{
+					pDlg->m_pEditTgt_Rep->ChangeValue(cachedTgt);
+				}
+			}
+			
+			if (!pDlg->m_pEditReplace->IsEnabled())
+			{
+				pDlg->m_pEditReplace->Enable(TRUE);
+				pDlg->m_pEditReplace->Show();
+			}
+
+			if (bReplaceBox)
+			{
+				wxString replaceStr = pDlg->m_pEditReplace->GetValue();
+				wxString replaceCacheStr = pStruct->replaceStr; // use this if values don't match
+				if (replaceStr != replaceCacheStr)
+				{
+					pDlg->m_pEditReplace->ChangeValue(replaceCacheStr);
+				}
+			}
+
+			// Disable the pDlg->m_pCheckSpanSrcPhrases checkbox
+			bool bIsSet = pDlg->m_pCheckSpanSrcPhrases->GetValue();
+			if (bIsSet)
+			{
+				pDlg->m_bSpanSrcPhrases = FALSE;
+				pDlg->m_pCheckSpanSrcPhrases->SetValue(FALSE); // force it to unticked
+				// And disable it
+				if (pDlg->m_pCheckSpanSrcPhrases->IsEnabled())
+				{
+					pDlg->m_pCheckSpanSrcPhrases->Disable();
+				}
+			}
+
 			gbFindOrReplaceCurrent = TRUE;
 		}
 	}
