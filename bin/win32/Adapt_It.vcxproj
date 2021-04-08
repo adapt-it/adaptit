@@ -111,7 +111,7 @@ exit 1
 echo ********** Pre-Build Event checks for $(ProjectName) COMPLETED OK **********
 echo ********** Building using wxWidgets version: %25WXWIN%25
 echo ********** Begin WdrTweaks.exe processing to pre-process wxDesigner sources if needed...
-IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the adaptit\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
+IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the ..\..\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
 echo ********** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
@@ -259,7 +259,7 @@ exit 1
 echo ********** Pre-Build Event checks for $(ProjectName) COMPLETED OK **********
 echo ********** Building using wxWidgets version: %25WXWIN%25
 echo ********** Begin WdrTweaks.exe processing to pre-process wxDesigner sources if needed...
-IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the adaptit\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
+IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (echo *** Calling WdrTweaks.exe from the ..\..\scripts folder &amp;&amp; ..\..\scripts\WdrTweaks.exe)
 echo ********** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
