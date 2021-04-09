@@ -6704,13 +6704,14 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	if (bAnyDocChanged && !bDontDoIt)
 	{
 
+		// whm 8Apr2021 keep wxLogNull line below with scope for entire if () block
 		wxLogNull logNo; // avoid spurious messages from the system
 
 		// The wxArrayString errors contains all the text to be written to the log file
 		errors.Add(_T("\n\nEnd of log."));
 		// Write out errors to external log file.
 		bool bOK;
-		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath);
+		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath); // see wxLogNull statement above
 		wxASSERT(bOK);
         bOK = bOK; // avoid warning (we don't expect this function to fail)
 		// Note: Since we want a text file output, we'll use wxTextOutputStream which

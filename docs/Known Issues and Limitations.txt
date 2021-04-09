@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.10.1 
+Limitations and known issues in the version 6.10.3 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -36,7 +36,13 @@ documents.
 
 All Versions:
 
-1. Sync Scrolling should work on the Windows port, but has not 
+1. The user will note some menu items in the Advanced and 
+Administrator menus related to Knowledge Base Sharing and
+Knowledge Base Server (KBServer). These have been added to the
+interface in preparation for the major Knowledge Base Sharing
+feature that will appear in Adapt It version 7.0.0. These menu
+items are currently stubs only and/or are non yet functional.
+2. Sync Scrolling should work on the Windows port, but has not 
 been implemented on the non-Windows ports because the 
 mechanism that controls synchronized scrolling in application 
 such as TW and Paratext was designed with only the Windows 
@@ -47,7 +53,7 @@ Adapt It running on those ports to sync scroll with other
 applications capable of sync scrolling that run natively on 
 those other ports.
 
-2. Adapt It WX does not have a splitter window with ability to 
+3. Adapt It WX does not have a splitter window with ability to 
 split the main window horizontally into two separately scrolled 
 windows into the view. This would take a fair bit of work to 
 implement on the cross platform version, but could probably be 

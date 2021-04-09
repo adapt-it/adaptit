@@ -295,6 +295,12 @@ echo ********** End of WdrTweaks.exe processing</Command>
     </Link>
     <PostBuildEvent>
       <Command>echo ********** Begin Post-Build Event Batch Process **********
+if Not Exist "..\..\setup Unicode\" (mkdir "..\..\setup Unicode\")
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode\Adapt_It_Unicode.exe"
+if Not Exist "..\..\setup Unicode - Minimal\" (mkdir "..\..\setup Unicode - Minimal\")
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe"
+if Not Exist "..\..\setup Unicode - No Html Help\" (mkdir "..\..\setup Unicode - No Html Help\")
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe"
 copy "..\..\xml\AI_UserProfiles.xml" "Unicode Release\AI_UserProfiles.xml" /Y 
 copy "..\..\xml\AI_USFM.xml" "Unicode Release\AI_USFM.xml" /Y 
 copy "..\..\xml\aiDefault.css" "Unicode Release\aiDefault.css" /Y 

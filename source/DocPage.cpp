@@ -934,7 +934,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			dirPath = pApp->m_lastSourceInputPath; // from the path that was last used
 		}
 
-		bool bOK = ::wxSetWorkingDirectory(dirPath);
+		bool bOK;
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = ::wxSetWorkingDirectory(dirPath);
+		} // end of wxLogNull scope
 		if (!bOK)
 		{
 			wxString str;
@@ -944,7 +949,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			dirPath.c_str());
 			wxMessageBox(str, _T(""), wxICON_INFORMATION | wxOK);
 			dirPath = pApp->m_workFolderPath;
-			bOK = ::wxSetWorkingDirectory(dirPath);
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bOK = ::wxSetWorkingDirectory(dirPath);
+			} // end of wxLogNull scope
 			if (!bOK)
 			{
 				// should not fail, but if it did, then exit the new operation with message,

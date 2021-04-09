@@ -457,7 +457,11 @@ int  DVCS::DoDVCS ( int action, int parm )
 // Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
     str = m_pApp->m_curAdaptationsPath;
-    bResult = ::wxSetWorkingDirectory (str);
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bResult = ::wxSetWorkingDirectory(str);
+	} // end of wxLogNull scope
 
     if (!bResult)
     {
@@ -480,7 +484,11 @@ int  DVCS::DoDVCS ( int action, int parm )
 			result = -1;
 	}
 
-	wxSetWorkingDirectory (saveWorkDir);		// restore working directory back to what it was
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		wxSetWorkingDirectory(saveWorkDir);		// restore working directory back to what it was
+	} // end of wxLogNull scope
 	return result;
 }
 

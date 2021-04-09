@@ -4357,7 +4357,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
             // whm added 05Jan07 to restore the former current working directory for safety
 			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
 			// above
-			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			} // end of wxLogNull scope
 			m_pApp->LogUserAction(_T("Cancelled Retrans Report at wxFileDialog"));
 			return; // user cancelled
 		}
@@ -4469,7 +4473,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // whm added 05Jan07 to restore the former current working directory for safety
         // sake to what it was on entry, since there was a wxSetWorkingDirectory call made
         // above
-		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		} // end of wxLogNull scope
 		m_pApp->LogUserAction(_T("Unable to open report file."));
 		if (bDocForcedToClose)
 		{
@@ -4560,7 +4568,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // safety sake to what it was on entry, since the EnumerateDocFiles call
                 // made above changes the current working dir to the Adaptations folder
                 // (MFC version did not add the line below)
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				// whm 8Apr2021 added wxLogNull block below
+				{
+					wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+					bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				} // end of wxLogNull scope
 				m_pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
 				if (bDocForcedToClose)
 				{
@@ -4604,7 +4616,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // safety sake to what it was on entry, since the wxSetWorkingDirectory
                 // call made above changes the current working dir to the Adaptations
                 // folder (MFC version did not add the line below)
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				// whm 8Apr2021 added wxLogNull block below
+				{
+					wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+					bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				} // end of wxLogNull scope
 				m_pApp->LogUserAction(_T("finder.Open() failed in OnRetransReport()"));
 				if (bDocForcedToClose)
 				{
@@ -4695,7 +4711,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							DoRetranslationReport(pDoc,docName,pFileList,
 												  m_pApp->m_pSourcePhrases,&f, _("Generating Retranslation Report..."));
 							// restore parent folder as current
-							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptationsPath);
+							// whm 8Apr2021 added wxLogNull block below
+							{
+								wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+								bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptationsPath);
+							} // end of wxLogNull scope
 							// the wxASSERT() is a problem when using Freeze() and Thaw()
 							// so if it gets thawed here, but control gets past the assert
 							// as would be the case in Release build, then re-freeze
@@ -4764,7 +4784,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
     }
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry
-	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	} // end of wxLogNull scope
 
 	// whm revised 5Aug11 to always inform the user of the completion of
 	// the report operation.

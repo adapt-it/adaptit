@@ -3523,7 +3523,11 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 	else
 	{
 		// wxDir must call .Open() before enumerating files
-		bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
+		} // end of wxLogNull scope
 		if (!bOK)
 		{
 			// unlikely to fail, but just in case...
@@ -3705,7 +3709,12 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 	}
 	wxDir dir;
 	// wxDir must call .Open() before enumerating files
-	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
+	bool bOK;
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
+	} // end of wxLogNull scope
 	if (!bOK)
 	{
 		// unlikely to fail, but just in case...

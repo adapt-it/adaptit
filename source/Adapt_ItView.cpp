@@ -16189,7 +16189,12 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 		dirPath = pApp->m_bibleBooksFolderPath;
 	else
 		dirPath = pApp->m_curAdaptationsPath;
-	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	bool bOK;
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	} // end of wxLogNull scope
 
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = dirPath;
@@ -33703,7 +33708,13 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 //*
 	wxString execPath = pApp->m_appInstallPathOnly + pApp->PathSeparator; //pApp->execPath; // whm changed execPath to m_appInstallPathOnly + PathSeparator
 	wxString saveCwd = ::wxGetCwd();
-	bool bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
+	bool bChangedCWD;
+	// whm 8Apr2021 added wxLogNull block below
+	// whm WARNING: the following path for wxSetWorkingDirectory() is WINDOWS ONLY
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bChangedCWD = ::wxSetWorkingDirectory(_T("C:\\adaptit-git\\bin\\win32\\Unicode Debug"));
+	}
 	wxUnusedVar(bChangedCWD);
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 	wxString comma = _T(",");

@@ -529,7 +529,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 		dirPath = pApp->m_lastSourceInputPath; // from the path that was last used
 	}
 	bool bOK;
-	bOK = ::wxSetWorkingDirectory(dirPath);
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath);
+	} // end of wxLogNull scope
 
 	// the above may have failed, so if so use m_workFolderPath as the folder,
 	// so we can proceed to the file dialog safely
@@ -537,7 +541,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 	{
 		dirPath = pApp->m_workFolderPath;
 		pApp->m_lastSourceInputPath = dirPath;
-		bOK = ::wxSetWorkingDirectory(dirPath); // this should work, since m_workFolderPath can hardly be wrong!
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = ::wxSetWorkingDirectory(dirPath); // this should work, since m_workFolderPath can hardly be wrong!
+		} // end of wxLogNull scope
 		if (!bOK)
 		{
 			if (!bOK)
@@ -1883,7 +1891,11 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	wxString		strSaveCurrentDirectoryFullPath = dirPath;
 
-	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	} // end of wxLogNull scope
 	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
 
 	m_bReopeningAfterClosing = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
@@ -3296,18 +3308,24 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	// We'll regularly use ::wxSetWorkingDirectory()
 	bool bOK;
 	wxString pathToSaveFolder; // use this with Save As... to prevent a change of working directory
-	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+
+	// whm 8Apr2021 added wxLogNull block below
 	{
-		// save to the folder specified by app's member  m_bibleBooksFolderPath
-		bOK = ::wxSetWorkingDirectory(pApp->m_bibleBooksFolderPath);
-		pathToSaveFolder = pApp->m_bibleBooksFolderPath;
-	}
-	else
-	{
-		// do legacy save, to the Adaptations folder
-		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptationsPath);
-		pathToSaveFolder = pApp->m_curAdaptationsPath;
-	}
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+		if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+		{
+			// save to the folder specified by app's member  m_bibleBooksFolderPath
+			bOK = ::wxSetWorkingDirectory(pApp->m_bibleBooksFolderPath);
+			pathToSaveFolder = pApp->m_bibleBooksFolderPath;
+		}
+		else
+		{
+			// do legacy save, to the Adaptations folder
+			bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptationsPath);
+			pathToSaveFolder = pApp->m_curAdaptationsPath;
+		}
+	} // end of wxLogNull scope
 	if (!bOK)
 	{
         // BEW changed 23Apr10, I've never know the working directory set call to fail if a
@@ -4521,7 +4539,11 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 	else
 		dirPath = pApp->m_curAdaptationsPath;
 	bool bOK;
-	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	} // end of wxLogNull scope
 	bOK = bOK; // avoid warning
 	// NOTE: This OnFileOpen() handler calls DoFileOpen() in the App, which now simply
 	// calls DoStartWorkingWizard().
@@ -4762,16 +4784,21 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	// if in book mode
 	wxString basePath;
 	bool bOK;
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	// whm 8Apr2021 added wxLogNull block below
 	{
-		basePath = gpApp->m_bibleBooksFolderPath;
-		bOK = ::wxSetWorkingDirectory(gpApp->m_bibleBooksFolderPath);
-	}
-	else
-	{
-		basePath = gpApp->m_curAdaptationsPath;
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptationsPath);
-	}
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		{
+			basePath = gpApp->m_bibleBooksFolderPath;
+			bOK = ::wxSetWorkingDirectory(gpApp->m_bibleBooksFolderPath);
+		}
+		else
+		{
+			basePath = gpApp->m_curAdaptationsPath;
+			bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptationsPath);
+		}
+	} // end of wxLogNull scope
 	if (!bOK)
 	{
 		wxString str;
@@ -14000,7 +14027,11 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 	else
 		dirPath = gpApp->m_curAdaptationsPath;
 	bool bOK;
-	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	} // end of wxLogNull scope
 	bOK = bOK; // avoid warning
 	wxString docName;
 	gpApp->GetPossibleAdaptionDocuments(&gpApp->m_acceptedFilesList, dirPath);
@@ -25952,7 +25983,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		dirPath = pApp->m_bibleBooksFolderPath;
 	else
 		dirPath = pApp->m_curAdaptationsPath;
-	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	bool bOK;
+	// whm 8Apr2021 added wxLogNull block below
+	{
+		wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+		bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	} // end of wxLogNull scope
 
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = dirPath;
@@ -26225,7 +26261,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					RemoveAutoFixList(afList);
 				}
 				// restore working directory
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				// whm 8Apr2021 added wxLogNull block below
+				{
+					wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+					bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				} // end of wxLogNull scope
 
 			} // end of TRUE block for test: if (pApp->m_bBookMode && !pApp->m_bDisableBookMode )
 			else

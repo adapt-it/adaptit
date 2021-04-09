@@ -1485,13 +1485,22 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// BEW added 18Sep20
 			saveCurWorkingDir = ::wxGetCwd(); // save the current working directory
 			commandLine = gpApp->RemovePathPrefix(commandLine, pathPrefix); // LHS has no path prefix now
-			bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
+			} // end of wxLogNull scope
 			wxUnusedVar(bChangeCwdAllowed); // we assume success - until we find out otherwise!
 #endif
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
 #if defined (__WXMSW__)
 			// BEW 18Sep20, restore the cwd
-			bool bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
+			bool bRestoredOK;
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
+			} // end of wxLogNull scope
 			wxUnusedVar(bRestoredOK);
 #endif
 			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
@@ -1536,13 +1545,22 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// BEW added 18Sep20
 			saveCurWorkingDir = ::wxGetCwd(); // save the current working directory
 			commandLine = gpApp->RemovePathPrefix(commandLine, pathPrefix); // LHS has no path prefix now
-			bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bChangeCwdAllowed = ::wxSetWorkingDirectory(pathPrefix);
+			} // end of wxLogNull scope
 			wxUnusedVar(bChangeCwdAllowed); // we assume success - until we find out otherwise!
 #endif
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
 #if defined (__WXMSW__)
 			// BEW 18Sep20, restore the cwd
-			bool bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
+			bool bRestoredOK;
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bRestoredOK = ::wxSetWorkingDirectory(saveCurWorkingDir);
+			} // end of wxLogNull scope
 			wxUnusedVar(bRestoredOK);
 #endif
 		}

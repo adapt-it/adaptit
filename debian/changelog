@@ -1,3 +1,9 @@
+adaptit (6.10.3-1) unstable; urgency=low
+
+  * pull in updates to refactor Find feature
+
+ -- Bill Martin <bill_martin@sil.org>  Fri, 9 Apr 2021 18:30:00 -0600
+
 adaptit (6.10.2-1) unstable; urgency=low
 
   * pull in updates to fix Linux idle-time crash

@@ -765,7 +765,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 #if defined (__WXMSW__)
 			// BEW 17Sep20 added next 3 lines
 			commandLineSrc = m_pApp->RemovePathPrefix(commandLineSrc, srcPathPrefix); // LHS has no path prefix now
-			bSrcAllowed = ::wxSetWorkingDirectory(srcPathPrefix);
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+				bSrcAllowed = ::wxSetWorkingDirectory(srcPathPrefix);
+			} // end of wxLogNull scope
 			// BEW 17Sep20 remember to restore cwd after wxExecute() call below
 #endif			
 			commandLineTgt = _T("\"") + m_rdwrtPTPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
@@ -833,7 +837,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 #if defined (__WXMSW__)
 		// BEW 18Sep20 restore the saved current working directory, after wxExecute() calls
 		// wxGetCwd() was called above at line 753
-		bool bRestoredOK = ::wxSetWorkingDirectory(saveWorkingDir);
+		bool bRestoredOK;
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bRestoredOK = ::wxSetWorkingDirectory(saveWorkingDir);
+		} // end of wxLogNull scope
 		wxUnusedVar(bRestoredOK);
 #endif
 	}

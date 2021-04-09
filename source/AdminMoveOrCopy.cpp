@@ -1738,10 +1738,15 @@ void AdminMoveOrCopy::RemoveFilesAndFolders(wxString theFolderPath,
 			// both files and folders, so remove it; first reset the working directory to a
 			// directory not to be removed, and the removals will work
 			bool bOK;
-			if (sideWithFocus == leftSideHasFocus)
-				bOK = ::wxSetWorkingDirectory(m_strLeftFolderPath); // the top level path (to left pane)
-			else
-				bOK = ::wxSetWorkingDirectory(m_strRightFolderPath); // the top level path (to right pane)
+			// whm 8Apr2021 added wxLogNull block below
+			{
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+				if (sideWithFocus == leftSideHasFocus)
+					bOK = ::wxSetWorkingDirectory(m_strLeftFolderPath); // the top level path (to left pane)
+				else
+					bOK = ::wxSetWorkingDirectory(m_strRightFolderPath); // the top level path (to right pane)
+			} // end of wxLogNull scope
 			bOK = ::wxRmdir(theFolderPath2);
 			if (!bOK)
 			{
@@ -1839,9 +1844,13 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 
 		// Change to new name? -- use ::wxRenameFile(), but not on open
 		// or working directory, and the overwrite parameter must be set TRUE
-		bOK = ::wxSetWorkingDirectory(m_strRightFolderPath); // make parent directory be the working one
-		wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
-		bOK = ::wxRenameFile(theFolderPath,theNewPath,TRUE);
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = ::wxSetWorkingDirectory(m_strRightFolderPath); // make parent directory be the working one
+			wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
+			bOK = ::wxRenameFile(theFolderPath,theNewPath,TRUE);
+		} // end of wxLogNull scope
 		// if the rename failed, return -- the rename failure will be visible as the folder
 		// will just not be renamed
 		if (!bOK)
@@ -1874,16 +1883,21 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		// if the panes have the same folder open, update the other as well
 		if (m_strRightFolderPath == m_strLeftFolderPath)
 		{
-			if (sideWithFocus == leftSideHasFocus)
+			// whm 8Apr2021 added wxLogNull block below
 			{
-				::wxSetWorkingDirectory(m_strRightFolderPath);
-				SetupRightList(m_strRightFolderPath);
-			}
-			else
-			{
-				::wxSetWorkingDirectory(m_strLeftFolderPath);
-				SetupLeftList(m_strLeftFolderPath);
-			}
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+				if (sideWithFocus == leftSideHasFocus)
+				{
+					::wxSetWorkingDirectory(m_strRightFolderPath);
+					SetupRightList(m_strRightFolderPath);
+				}
+				else
+				{
+					::wxSetWorkingDirectory(m_strLeftFolderPath);
+					SetupLeftList(m_strLeftFolderPath);
+				}
+			} // end of wxLogNull scope
 		}
 	}
 	else if (pPaneSelectedFiles->GetCount() == 1)
@@ -1916,9 +1930,13 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 
 		// Change to new name? -- use ::wxRenameFile(), but not on open
 		// or working directory, and the overwrite parameter must be set TRUE
-		bOK = ::wxSetWorkingDirectory(pathToPane); // make parent directory be the working one
-		wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
-		bOK = ::wxRenameFile(theFilePath,theNewPath,TRUE);
+		// whm 8Apr2021 added wxLogNull block below
+		{
+			wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+			bOK = ::wxSetWorkingDirectory(pathToPane); // make parent directory be the working one
+			wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
+			bOK = ::wxRenameFile(theFilePath,theNewPath,TRUE);
+		} // end of wxLogNull scope
 		// if the rename failed, return -- the rename failure will be visible as the folder
 		// will just not be renamed
 		if (!bOK)
@@ -1952,16 +1970,21 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		// if the panes have the same folder open, update the other as well
 		if (m_strRightFolderPath == m_strLeftFolderPath)
 		{
-			if (sideWithFocus == leftSideHasFocus)
+			// whm 8Apr2021 added wxLogNull block below
 			{
-				::wxSetWorkingDirectory(m_strRightFolderPath);
-				SetupRightList(m_strRightFolderPath);
-			}
-			else
-			{
-				::wxSetWorkingDirectory(m_strLeftFolderPath);
-				SetupLeftList(m_strLeftFolderPath);
-			}
+				wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+				if (sideWithFocus == leftSideHasFocus)
+				{
+					::wxSetWorkingDirectory(m_strRightFolderPath);
+					SetupRightList(m_strRightFolderPath);
+				}
+				else
+				{
+					::wxSetWorkingDirectory(m_strLeftFolderPath);
+					SetupLeftList(m_strLeftFolderPath);
+				}
+			} // end of wxLogNull scope
 		}
 
 //		SetupRightList(m_strRightFolderPath);
@@ -2256,8 +2279,13 @@ _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe
 					// the directory within srcFolderPath will be currently set as the working
 					// directory, and that prevents ::wxRmdir() from removing it, so first
 					// reset the working directory to its parent, and the removals will work
-					bool bOK = ::wxSetWorkingDirectory(srcFolderPath);
-					bOK = ::wxRmdir(srcFolderPath2);
+					bool bOK;
+					// whm 8Apr2021 added wxLogNull block below
+					{
+						wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+						bOK = ::wxSetWorkingDirectory(srcFolderPath);
+						bOK = ::wxRmdir(srcFolderPath2);
+					} // end of wxLogNull scope
 					// ::wxRmdir() will fail if it still contains a file or folder - this can
 					// happen if there was a file conflict and the user elected to do noCopy,
 					// which means the conflicting file remains in the left directory. We

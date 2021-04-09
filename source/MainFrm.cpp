@@ -977,7 +977,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					if (strFolderName.IsEmpty())
 					{
 						// could not get the folder name, so just ignore this scripture reference message
-						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						// whm 8Apr2021 added wxLogNull block below
+						{
+							wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+							bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						} // end of wxLogNull scope
 						return FALSE;
 					}
 					// here is the absolute path to the doc files we are intested in looking inside
@@ -989,7 +993,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					strFolderPath = gpApp->m_curAdaptationsPath;
 				}
 				// set current directory
-				bOK = ::wxSetWorkingDirectory(strFolderPath);
+				// whm 8Apr2021 added wxLogNull block below
+				{
+					wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+					bOK = ::wxSetWorkingDirectory(strFolderPath);
+				} // end of wxLogNull scope
 				if (!bOK)
 				{
 					// we shouldn't ever fail in that call, but if we do, then just abandon the sync silently
@@ -1007,7 +1015,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 				{
 					// no document with the reference was found
 					bool bOK;
-					bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+					// whm 8Apr2021 added wxLogNull block below
+					{
+						wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+					} // end of wxLogNull scope
 					// we don't expect this call to have failed
 					gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 734 in MainFrm.cpp"));
 					wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 734 in MainFrm.cpp"));
@@ -1022,7 +1034,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					if (gpApp->m_pSourcePhrases->GetCount() > 0)
 					{
 						// there is an open document to be disposed of
-						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						// whm 8Apr2021 added wxLogNull block below
+						{
+							wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+							bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						} // end of wxLogNull scope
 						bool bModified = pDoc->IsModified();
 						if (bModified)
 						{
@@ -1074,7 +1090,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 
 					}
 					pDoc->SetFilename(foundDocWithReferenceFilePathAndName,TRUE);
-					bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
+					// whm 8Apr2021 added wxLogNull block below
+					{
+						wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+						bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
+					} // end of wxLogNull scope
 					// we don't expect this call to have failed
 					gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 797 in MainFrm.cpp"));
 					wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 797 in MainFrm.cpp"));
@@ -1091,7 +1111,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 "Loading the document failed. Possibly it was created with a later version of Adapt It. Contact the developers if you cannot resolve the problem yourself."),
 						_T(""), wxICON_ERROR | wxOK);
 						bool bOK;
-						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						// whm 8Apr2021 added wxLogNull block below
+						{
+							wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+							bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						} // end of wxLogNull scope
 						// we don't expect this call to have failed
 						gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 813 in MainFrm.cpp"));
 						wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 813 in MainFrm.cpp"));
@@ -1108,7 +1132,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						// this shouldn't happen
 						wxASSERT(FALSE);
 						bool bOK;
-						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						// whm 8Apr2021 added wxLogNull block below
+						{
+							wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+							bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						} // end of wxLogNull scope
 						// we don't expect this call to have failed
 						gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 829 in MainFrm.cpp"));
 						wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 829 in MainFrm.cpp"));

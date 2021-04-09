@@ -8631,6 +8631,8 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
         return;
     wxString filename, saveDir;
     saveDir = ::wxGetCwd();
+    // whm 8Apr2021 reinstated wxLogNull - it had been set below just before the dir.open() command but had been commented out
+    wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
     ::wxSetWorkingDirectory(initialPath);
     wxDir dir(initialPath);
 
@@ -8640,7 +8642,6 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 //#endif
 
 
-    //wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
     //wxASSERT(dir.IsOpened());
     bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
                                                                                          //wxLogDebug(_T("List of subDirs:"));
@@ -14907,6 +14908,8 @@ bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
     wxString saveCurWorkingDir = ::wxGetCwd();
     // Scan the files in the Adaptations folder for any that start with a "_Collab" substring.
     wxDir finder;
+    // whm 8Apr2021 added wxLogNull block below
+    wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() returns FALSE
     bool bOK = (::wxSetWorkingDirectory(path2Adaptations) && finder.Open(path2Adaptations)); // wxDir
     bOK = bOK; // avoid warning
     wxString str = _T("");
@@ -14922,6 +14925,7 @@ bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
         bWorking = finder.GetNext(&str);
     }
     ::wxSetWorkingDirectory(saveCurWorkingDir); // ignore failures
+    // end of scope for wxLogNull
     return projHasCollabDocs;
 }
 
@@ -33110,8 +33114,14 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
     // since it does not have a graceful way to return if dirPath is bad. See CDocPage.
     wxDir finder;//CFileFind finder;
 
-    bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir
-                                                                           // must call .Open() before enumerating files!
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+        bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir
+                                                                               // must call .Open() before enumerating files!
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // think again!
@@ -33244,8 +33254,14 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 // directory to the passed in dirPath.
 {
     wxDir finder;
-    bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir must
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+        bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir must
                                                                            // call .Open() before enumerating files!
+    }
     if (!bOK)
     {
         wxMessageBox(_T(
@@ -33400,9 +33416,15 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
         dirPath = m_workFolderPath;
     }
     wxDir finder;
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
 
-    bool bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath); // wxDir must
+
+        bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath); // wxDir must
                                                                          // call .Open() before enumerating files!
+    }
     if (!bOK)
     {
         // oops, this is a fatal error, we can't go on
@@ -34829,7 +34851,12 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
     // Set the current working directory to point to the standard docs directory which
     // would normally be the "Documents" or "My Documents" folder on Windows, the ~ (home
     // directory) on Linux, or the ~/Documents directory on the Mac.
-    ::wxSetWorkingDirectory(stdDocsDir);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        ::wxSetWorkingDirectory(stdDocsDir);
+    } // end of wxLogNull scope
+
     dirPath = ::wxGetCwd();
     m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe
                                  // which gets called subsequently in OnInit().
@@ -34901,16 +34928,22 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
     // the Adapt It Unicode Work folder) before exiting
     m_workFolderPath = workFolderPath;
 
-    if ((m_workFolderPath != m_customWorkFolderPath) && m_bUseCustomWorkFolderPath)
+    // whm 8Apr2021 added wxLogNull block below
     {
-        // customWorkFolderPath exists so set the current work directory to it
-        ::wxSetWorkingDirectory(m_customWorkFolderPath);
-    }
-    else
-    {
-        // workFolderPath exists so set the current work directory to it
-        ::wxSetWorkingDirectory(workFolderPath);
-    }
+        wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+
+        if ((m_workFolderPath != m_customWorkFolderPath) && m_bUseCustomWorkFolderPath)
+        {
+            // customWorkFolderPath exists so set the current work directory to it
+            ::wxSetWorkingDirectory(m_customWorkFolderPath);
+        }
+        else
+        {
+            // workFolderPath exists so set the current work directory to it
+            ::wxSetWorkingDirectory(workFolderPath);
+        }
+    } // end of wxLogNull scope
 
     // for the custom location, m_customWorkFolderPath is already determined to be a valid
     // work directory and so we don't need to do anything more here
@@ -37122,7 +37155,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                 _T("Restore Knowledge Base..."), wxICON_EXCLAMATION | wxOK);
 
             // let the view respond again to updates
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             if (::wxFileExists(tempKBfilePath))
             {
                 bOK = wxRemoveFile(tempKBfilePath);
@@ -37187,7 +37224,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         m_bibleBooksFolderPath = save_bibleBooksFolderPath;
 
         // restore the former current working directory to what it was on entry
-        bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+        // whm 8Apr2021 added wxLogNull block below
+        {
+            wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+        } // end of wxLogNull scope
         LogUserAction(_T("Cancelled from CWhichFilesDlg()"));
         if (bDocForcedToClose)
         {
@@ -37210,8 +37251,14 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // are sisters of the Bible book folders for which the Adaptations folder is the
         // common parent folder
         wxDir finder; //CFileFind finder;
-        bool bOK = (::wxSetWorkingDirectory(m_curAdaptationsPath) && finder.Open(m_curAdaptationsPath)); // wxDir
+        bool bOK;
+        // whm 8Apr2021 added wxLogNull block below
+        {
+            wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+            bOK = (::wxSetWorkingDirectory(m_curAdaptationsPath) && finder.Open(m_curAdaptationsPath)); // wxDir
                                                                                                          // must call .Open() before enumerating files!
+        } // end of wxLogNull scope
         if (!bOK)
         {
             wxString s1, s2, s3;
@@ -37221,7 +37268,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                 "processing book folders, so the book folder document files do not contribute to the rebuild.");
             s3 = s3.Format(_T("%s%s"), s1.c_str(), s2.c_str());
             wxMessageBox(s3, _T(""), wxICON_EXCLAMATION | wxOK);
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             m_acceptedFilesList.Clear();
             if (::wxFileExists(tempKBfilePath))
             {
@@ -37310,7 +37362,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                             // needed here because EnumerateDocFiles() has been called
                             // and it has clobbered the setting of the working directory
                             // to the Adaptations folder & call finder.GetNext()
-                            bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                            // whm 8Apr2021 added wxLogNull block below
+                            {
+                                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                                bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                            } // end of wxLogNull scope
                             // restore parent folder as current
                             wxASSERT(bOK);
                             bWorking = finder.GetNext(&str); // needed for the iteration
@@ -37326,7 +37382,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                             // needed here because EnumerateDocFiles() has been called
                             // and it has clobbered the setting of the working directory
                             // to the Adaptations folder; and call finder.GetNext()
-                            bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                            // whm 8Apr2021 added wxLogNull block below
+                            {
+                                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                                bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                            } // end of wxLogNull scope
                             // restore parent folder as current
                             wxASSERT(bOK);
                             bWorking = finder.GetNext(&str); // needed for the iteration
@@ -37341,7 +37401,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                         // BEW altered 19Mar2010, because the reopening of finder by the
                         // above line of code destroyed the iterator, contributing to infinite
                         // looping
-                        bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                        // whm 8Apr2021 added wxLogNull block below
+                        {
+                            wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                            bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
+                        } // end of wxLogNull scope
                         // restore parent folder as current
                         wxASSERT(bOK);
                     } // end of TRUE block for test IsDirectoryWithin(str,m_pBibleBooks)
@@ -37442,7 +37506,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
     // BEW added 05Jan07 to restore the former current working directory
     // to what it was on entry
-    bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+    } // end of wxLogNull scope
 
     if (bDocForcedToClose)
     {
@@ -37590,7 +37658,12 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
     // set a local var for the Adaptations folder's path, or book folder path - whichever
     // was passed in
     wxASSERT(!folderPath.IsEmpty());
-    bool bOK = ::wxSetWorkingDirectory(folderPath);
+    // whm 8Apr2021 added wxLogNull block below
+    bool bOK;
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(folderPath);
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // something's real wrong!
@@ -37658,7 +37731,12 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 
     // reset the current working directory to the path passed in
     wxASSERT(!folderPath.IsEmpty());
-    bool bOK = ::wxSetWorkingDirectory(folderPath);
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(folderPath);
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // something's real wrong!
@@ -37673,7 +37751,11 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
     GetPossibleAdaptionDocuments(&docNamesList, folderPath);
 
     // restore the working directory
-    bOK = ::wxSetWorkingDirectory(saveWorkDir);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(saveWorkDir);
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // something's real wrong!
@@ -37722,7 +37804,12 @@ enum LoadabilityFilter filtered)
 
     // reset the current working directory to the path passed in
     wxASSERT(!folderPath.IsEmpty());
-    bool bOK = ::wxSetWorkingDirectory(folderPath);
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(folderPath);
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // something's real wrong!
@@ -37768,7 +37855,11 @@ enum LoadabilityFilter filtered)
     {
         // restore the working directory (we don't expect failure, so a
         // non-localizable message will do)
-        bOK = ::wxSetWorkingDirectory(saveWorkDir);
+        // whm 8Apr2021 added wxLogNull block below
+        {
+            wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+            bOK = ::wxSetWorkingDirectory(saveWorkDir);
+        } // end of wxLogNull scope
         if (!bOK)
         {
             // something's real wrong!
@@ -37814,7 +37905,11 @@ enum LoadabilityFilter filtered)
 
     // restore the working directory (we don't expect failure, so a non-localizable
     // message will do)
-    bOK = ::wxSetWorkingDirectory(saveWorkDir);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(saveWorkDir);
+    } // end of wxLogNull scope
     if (!bOK)
     {
         // something's real wrong! This is too big an error for the app to continue
@@ -44084,7 +44179,11 @@ bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projec
     wxString  strValue;
     wxString dummy;
     // make the working directory the "Adapt It Work" or "Adapt It Unicode Work" one
-    bIsOK = ::wxSetWorkingDirectory(projectFolderPath);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bIsOK = ::wxSetWorkingDirectory(projectFolderPath);
+    } // end of wxLogNull scope
     wxTextFile f;
     // Under wxWidgets, wxTextFile actually reads the entire file into memory at the Open()
     // call. It is set up so we can treat it as a line oriented text file while in memory,
@@ -44879,14 +44978,14 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
     wxString number;
     //int color = 0; // default black - unused
 
+    // whm 8Apr2021 maintain this wxLogNull below for the remainder of this function
     wxLogNull logNo; // avoid spurious messages from the system
 
-                     // open the config file for writing
+    // open the config file for writing
     bool bIsOK = TRUE;
     wxTextFile f;
     // make the working directory the "Adapt It Work" one
-    // bool bOK = ::SetCurrentDirectory(destinationFolder); // ignore failures
-    bIsOK = ::wxSetWorkingDirectory(destinationFolder);
+    bIsOK = ::wxSetWorkingDirectory(destinationFolder); // this is within wxLogNull scope - see above
     if (!bIsOK)
         LogUserAction(_T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed"));
     wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,032 in Adapt_It.cpp"));
@@ -44977,7 +45076,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 
     // BEW added 04Jan07 to restore the former current working directory
     // to what it was for document accesses
-    bIsOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+    bIsOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath); // this is within wxLogNull scope - see above
     wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,117 in Adapt_It.cpp"));
 
     {
@@ -45042,16 +45141,17 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
         this->LogUserAction(msg);
     }
 
+    // whm 8Apr2021 moved this up above the wxSetWorkingDirectory() call below; scope of wxLogNull is end of this function
+    wxLogNull logNo; // avoid spurious messages from the system
+
     // make the working directory the "Adapt It Work" one
-    bool bOK = ::wxSetWorkingDirectory(sourceFolder);
+    bool bOK = ::wxSetWorkingDirectory(sourceFolder); // this is within wxLogNull scope - see above
 
     wxTextFile f;
     // Under wxWidgets, wxTextFile actually reads the entire file into memory at the Open()
     // call. It is set up so we can treat it as a line oriented text file while in memory,
     // modifying it, then if not just reading it, we can write it back out to persistent
     // storage with a single call to Write().
-
-    wxLogNull logNo; // avoid spurious messages from the system
 
     wxString configType;
     // whm Note 30Jan12. The wxString configType declaration in the line above was conflicting with the
@@ -46784,7 +46884,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // AreBookFoldersCreated(m_curAdaptationsPath) call above changes the current
             // working directory to m_curAdaptationsPath.
             bool bOK;
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 30,740 in Adapt_It.cpp"));
             gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
             return FALSE;
@@ -46829,7 +46933,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // AreBookFoldersCreated(m_curAdaptationsPath) call above changes the current
             // working directory to m_curAdaptationsPath.
             bool bOK;
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,785 in Adapt_It.cpp"));
             if (nTotal > 0)
             {
@@ -46997,7 +47105,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // EnumerateDocFiles(strOtherAdaptationsPath) call above changes the current
             // working directory to strOtherAdaptationsPath.
             bool bOK;
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,950 in Adapt_It.cpp"));
             wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
                 _T(""), wxICON_EXCLAMATION | wxOK);
@@ -47022,7 +47134,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // EnumerateDocFiles(strOtherAdaptationsPath) call above changes the current
             // working directory to strOtherAdaptationsPath.
             bool bOK;
-            bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+            } // end of wxLogNull scope
             wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,972 in Adapt_It.cpp"));
             if (nTotal > 0)
             {
@@ -47052,8 +47168,13 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // user-created folders which are sisters of the Bible book folders for which
             // the Adaptations folder is the common parent folder
             wxDir finder;
-            bool bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) &&
-                finder.Open(strOtherAdaptationsPath));
+            bool bOK;
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) &&
+                    finder.Open(strOtherAdaptationsPath));
+            }// end of wxLogNull scope
             // wxDir must call .Open() before enumerating files!
             if (!bOK)
             {
@@ -47070,7 +47191,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
                 // wxSetWorkingDirectory(strOtherAdaptationsPath) call above changes the
                 // current working directory to strOtherAdaptationsPath.
                 bool bOK2;
-                bOK2 = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+                // whm 8Apr2021 added wxLogNull block below
+                {
+                    wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                    bOK2 = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+                } // end of wxLogNull scope
                 wxCHECK_MSG(bOK2, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 31,017 in Adapt_It.cpp"));
                 if (nTotal > 0)
                 {
@@ -47201,7 +47326,11 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
       // BEW added 05Jan07 to restore the former current working directory
       // to what it was on entry
     bool bOK;
-    bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+    } // end of wxLogNull scope
     wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 37027 in Adapt_It.cpp"));
     return bSuccess;
 }
@@ -53452,7 +53581,11 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
         //wxLogDebug(_T("3  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
         if (bIsValid)
         {
-            ::wxSetWorkingDirectory(m_workFolderPath);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                ::wxSetWorkingDirectory(m_workFolderPath);
+            } // end of wxLogNull scope
             // MUST call EnsureWorkFolderPresent() before calling
             // MakeForeignBasicConfigFileSafe(), if it isn't called then
             // m_localPathPrefix string is left with the remote work folder's path and we get
@@ -53580,7 +53713,11 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
                                                                    // folder on Windows, the ~ (home directory) on Linux, or the ~/Documents
                                                                    // directory on the Mac.
             default_path = stdDocsDir; // one wasn't set, so use documents dir
-            ::wxSetWorkingDirectory(stdDocsDir);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                ::wxSetWorkingDirectory(stdDocsDir);
+            } // end of wxLogNull scope
 
             //wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
         }
@@ -53596,7 +53733,11 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
             if (!bExists)
                 goto a;
             default_path = m_customWorkFolderPath; // the current one, if there is one
-            ::wxSetWorkingDirectory(default_path);
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                ::wxSetWorkingDirectory(default_path);
+            } // end of wxLogNull scope
 
             //wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
         }
@@ -53612,7 +53753,11 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
         if (!bExists)
             goto a;
         default_path = m_workFolderPath;
-        ::wxSetWorkingDirectory(default_path);
+        // whm 8Apr2021 added wxLogNull block below
+        {
+            wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+            ::wxSetWorkingDirectory(default_path);
+        } // end of wxLogNull scope
 
         //wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
     }
@@ -53636,8 +53781,11 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
             m_bUseCustomWorkFolderPath = bSaveUsageFlag;
             m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
             // restore the saved working dir
-            ::wxSetWorkingDirectory(saveCurWorkingDir);
-
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                ::wxSetWorkingDirectory(saveCurWorkingDir);
+            } // end of wxLogNull scope
 
             // ** TODO **   call OnLocalWorkFolder() ?? actually it could be one of
             // several possibilities, depending on whether administrator is local or
@@ -53967,6 +54115,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
     bool bOK;
     wxFile f; // create a wxFile instance with default constructor
 
+    // whm 8Apr2021 keep wxLogNull scope below to end of this function/handler
     wxLogNull logNo; // avoid spurious messages from the system
 
     bOK = ::wxSetWorkingDirectory(m_workFolderPath); // the default work folder location
@@ -56444,8 +56593,13 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
             // Now get the PT 7 projects
             wxDir finder;
             // Must call wxDir::Open() before calling GetFirst() and enumerating files!
-            bool bOK = (::wxSetWorkingDirectory(path) &&
-                finder.Open(path));
+            bool bOK;
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = (::wxSetWorkingDirectory(path) &&
+                    finder.Open(path));
+            } // end of wxLogNull scope
 
             bool bWorking;
             wxString filespec;
@@ -56792,8 +56946,13 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
             // We've found a PT 8 projects dir
             wxDir finder;
             // Must call wxDir::Open() before calling GetFirst() and enumerating files!
-            bool bOK = (::wxSetWorkingDirectory(path) &&
-                finder.Open(path));
+            bool bOK;
+            // whm 8Apr2021 added wxLogNull block below
+            {
+                wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+                bOK = (::wxSetWorkingDirectory(path) &&
+                    finder.Open(path));
+            } // end of wxLogNull scope
 
             bool bWorking;
             wxString filespec;
@@ -57175,8 +57334,13 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
     // by collecting the names of all subdirectories in this BE_ProjectsDirPath.
 
     wxDir finder;
-    bool bOK = (::wxSetWorkingDirectory(BE_ProjectsDirPath) &&
-        finder.Open(BE_ProjectsDirPath));
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = (::wxSetWorkingDirectory(BE_ProjectsDirPath) &&
+            finder.Open(BE_ProjectsDirPath));
+    } // end of wxLogNull scope
     // wxDir must call .Open() before enumerating files!
     if (!bOK)
     {
@@ -57985,8 +58149,13 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
     // Gather all of the file names that exist in the folder
     wxArrayString filesInFolder;
     wxDir finder;
-    bool bOK = (::wxSetWorkingDirectory(folderPath) && finder.Open(folderPath)); // wxDir
+    bool bOK;
+    // whm 8Apr2021 added wxLogNull block below
+    {
+        wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+        bOK = (::wxSetWorkingDirectory(folderPath) && finder.Open(folderPath)); // wxDir
                                                                                  // must call .Open() before enumerating files!
+    } // end of wxLogNull scope
 
     if (bOK)
     {
