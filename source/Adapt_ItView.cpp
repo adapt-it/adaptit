@@ -19016,6 +19016,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	}
 	else
 	{
+		// whm 12May2021 Observation: code going through this path results in pFirstPileInRetrans remaining NULL
 		// the new active location needs to be at the match location
 		pApp->m_pActivePile = GetPile(nNewSequNum);
 		pApp->m_nActiveSequNum = nNewSequNum;
@@ -19054,7 +19055,10 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	pApp->m_selectionLine = nSelectionLine;
 	pApp->m_pAnchor = pCell;
 
-	if (pApp->m_pFindDlg != NULL)
+	// whm 12May2021 modified to prevent crash observed by Mike H in Linux due to the pFirstPileInRetrans pointer being NULL
+	// BEW should check my logic below in adding the test for detecting whether PFirstPileInRetrans id NULL
+	//if (pApp->m_pFindDlg != NULL)
+	if (pApp->m_pFindDlg != NULL && pFirstPileInRetrans != NULL)
 	{
 		CFindDlg* pDlg = pApp->m_pFindDlg;
 		wxASSERT(pDlg != NULL);
@@ -19063,7 +19067,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		{
 			// BEW 31Mar21 added next 6 lines, to get an accurate nCount value,
 			// when searching for retranslation locations
-			int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber;
+			int firstSequNum = pFirstPileInRetrans->GetSrcPhrase()->m_nSequNumber; // <== Crash happened here because pFirstPileInRetrans was still NULL
 			int howMany = pApp->GetRetranslation()->CountRetransPiles(pApp->m_pSourcePhrases, firstSequNum);
 			if (howMany > nCount)
 			{
