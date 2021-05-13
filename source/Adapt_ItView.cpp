@@ -19104,7 +19104,9 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	else // BEW 6Apr21 added else block
 	{
 		// we are doing a Find Next in the m_pReplaceDlg
-		if (pApp->m_pReplaceDlg->m_bReplaceDlg != NULL)
+		// whm 12Mqy2021 modified the test below to check for m_pReplaceDlg being NULL to avoid crash reported by Mike H.
+		//if (pApp->m_pReplaceDlg->m_bReplaceDlg != NULL)
+		if (pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->m_bReplaceDlg != FALSE)
 		{
 			CReplaceDlg* pDlg = pApp->m_pReplaceDlg;
 			wxASSERT(pDlg != NULL);
