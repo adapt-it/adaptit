@@ -15,7 +15,6 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
@@ -30,12 +29,10 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_UNICODE" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no -libs core,base,aui,html,xrc,qa,adv,xml,net`" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
@@ -221,6 +218,8 @@
 		<Unit filename="../../source/AdminMoveOrCopy.h" />
 		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.cpp" />
 		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.h" />
+		<Unit filename="../../source/Authenticate2Dlg.cpp" />
+		<Unit filename="../../source/Authenticate2Dlg.h" />
 		<Unit filename="../../source/AutoSavingPage.cpp" />
 		<Unit filename="../../source/AutoSavingPage.h" />
 		<Unit filename="../../source/BString.cpp" />
@@ -340,10 +339,10 @@
 		<Unit filename="../../source/KBPage.h" />
 		<Unit filename="../../source/KBSharing.cpp" />
 		<Unit filename="../../source/KBSharing.h" />
+		<Unit filename="../../source/KBSharingAuthenticationDlg.cpp" />
+		<Unit filename="../../source/KBSharingAuthenticationDlg.h" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.cpp" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.h" />
-		<Unit filename="../../source/KBSharingStatelessSetupDlg.cpp" />
-		<Unit filename="../../source/KBSharingStatelessSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
 		<Unit filename="../../source/KbSharingSetup.cpp" />
