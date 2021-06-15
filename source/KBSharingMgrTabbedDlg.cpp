@@ -256,7 +256,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// The input .dat file is now set up ready for do_user_lookup.exe
 		wxString execFileName = _T("do_user_lookup.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString resultFile = _T("lookup_user_return_results.dat");
+		wxString resultFile = _T("lookup_user_results.dat");
 #if defined  (_DEBUG)
 		wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
 			lookup_user, __LINE__);
@@ -314,7 +314,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_curNormalUsername);
 	m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_curNormalPassword);
 
-	// Get the list of users into the returned list_users_return_results.dat file
+	// Get the list of users into the returned list_users_results.dat file
 	int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr,
 		m_pApp->m_strUserID, m_pApp->m_curNormalPassword, m_pApp->m_strUserID);
 	wxUnusedVar(rv);
@@ -602,7 +602,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 		// The input .dat file is now set up ready for do_change_permission.exe
 		wxString execFileName = _T("do_change_permission.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString resultFile = _T("change_permission_return_results.dat");
+		wxString resultFile = _T("change_permission_results.dat");
 		bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 99, 99);
 		if (!bExecutedOK)
 		{
@@ -637,7 +637,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 		// The input .dat file is now set up ready for do_change_fullname.exe
 		wxString execFileName = _T("do_change_fullname.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString resultFile = _T("change_fullname_return_results.dat");
+		wxString resultFile = _T("change_fullname_results.dat");
 
 		bool bExecutedOK = FALSE;
 		bExecutedOK = m_pApp->CallExecute(change_fullname, execFileName, execPath, resultFile, 99, 99);
@@ -705,7 +705,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 		// The input .dat file is now set up ready for do_change_fullname.exe
 		wxString execFileName = _T("do_change_password.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString resultFile = _T("change_password_return_results.dat");
+		wxString resultFile = _T("change_password_results.dat");
 
 		bool bExecutedOK = FALSE;
 		bExecutedOK = m_pApp->CallExecute(change_password, execFileName, execPath, resultFile, 99, 99);
@@ -942,7 +942,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		m_pApp->m_temp_useradmin_flag = strUseradmin;
 		wxString ipAddr = m_pApp->m_chosenIpAddr;
 		wxString datFilename = _T("credentials_for_user.dat");
-		wxString resultFile = _T("credentials_for_user_return_results.dat");
+		wxString resultFile = _T("credentials_for_user_results.dat");
 
 		bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname,
 			&strPassword, bUseradmin, datFilename);

@@ -2269,12 +2269,11 @@ class CAdapt_ItApp : public wxApp
 		// from resultsPath or execPath
 
     // whm 22Feb2021 removed the following as they are no longer needed for determing the
-    // path to the dist folder or the executable path. Use the App members m_distKBsharingPath
+    // path to the dist folder or the executable path. Use the App members m_dataKBsharingPath
     // and m_appInstallPathOnly + PathSeparator. 
 	//wxString distPath; // to Leon's dist folder - always a child of the app's folder
 	//wxString execPath; // the "executablePath" with the executable app at end removed
 	//wxString GetDistFolder(); // ending in the path separator
-	//wxString PathToExecFolder(); // ending in the path separator
 
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
 	bool m_bDoingChangePassword; // BEW added, 11Jan21, default FALSE - for KB Sharing Mgr
@@ -4141,24 +4140,28 @@ public:
 	wxString m_xmlInstallPath;	// whm added for path where the AI_USFM.xml, AI_UserProfiles.xml
 								// and books.xml files are installed
 
-    /// whm 22Feb2021 added a new App member m_distKBsharingFolderName to hold
-    /// the folder name "dist". The assignment of that folder name is done in
-    /// the .cpp file at about line 23750.
-    wxString m_distKBsharingFolderName;
+    /// whm 22Feb2021 added a new App member m_dataKBsharingFolderName to hold
+    /// the folder name "d_DATA_KB_SHARING". The assignment of that folder name is done in
+    /// the .cpp file at about line 23750. See next comment. (Formerly the folder was "dist")
+    wxString m_dataKBsharingFolderName;
 
-    /// whm 13Feb2021 added the new App member m_distKBsharingPath
-    /// The new App member m_distKBsharingPath is the absolute
-    /// path to the "dist" folder for storing KB Sharing .DAT files - ending with PathSeparator
-    /// On 22Feb2021 the team decided to place the "dist" folder in the "Adapt It Unicode Work"
-    /// folder. The m_distKBsharingPath location on ALL platforms will be either:
-    /// m_customWorkFolderPath + PathSeparator + _T("dist") + PathSeparator, or
-    /// m_workFolderPath + PathSeparator +  _T("dist") + PathSeparator,
-    /// depending on wiether the user/admin has set up a custom work folder.
-    /// The actual value for m_distKBsharingPath has to be determined later below in 
+    /// whm 13Feb2021 added the new App member m_dataKBsharingPath
+    /// The new App member m_dataKBsharingPath is the absolute path to the
+    /// "_DATA_KB_SHARING" folder for storing KB Sharing .DAT files, and their sets of
+	/// either 12 .exe externally compiled and linked files, or, for Linux or OSC builds,
+	/// their releated 12 python *.py files (to be run under python 3.x or higher) - 
+	/// ending with PathSeparator
+    /// On 22Feb2021 the team decided to place the "_DATA_KB_SHARING" folder in the
+    /// "Adapt It Unicode Work" folder. The m_dataKBsharingPath location on ALL platforms 
+	/// will be either:
+    /// m_customWorkFolderPath + PathSeparator + _T("_DATA_KB_SHARING") + PathSeparator, or
+    /// m_workFolderPath + PathSeparator +  _T("_DATA_KB_SHARING") + PathSeparator,
+    /// depending on whether the user/admin has set up a custom work folder or not.
+    /// The actual value for m_dataKBsharingPath has to be determined later below in 
     /// this OnInit() function after it is determined whether the work folder is
     /// a custom work folder or the normal world folder. The code that assigns the
-    /// proper value for m_distKBsharingPath is done in Adapt_It.cpp at lines 26781 and 26802.
-    wxString m_distKBsharingPath;
+    /// proper value for m_dataKBsharingPath is done in Adapt_It.cpp at lines 26781 and 26802.
+    wxString m_dataKBsharingPath;
 
     /// m_localizationInstallPath stores the path where the <lang> localization files are
     /// installed on the given platform.
