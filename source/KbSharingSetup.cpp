@@ -235,7 +235,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// function, so we need to have an instance of KbServer running on the heap, so
 	// we can call its LookupUser().
 	wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-	wxString distPath = m_pApp->m_distKBsharingPath; // whm 22Feb2021 changed distPath to m_distKBsharingPath which ends with PathSeparator
+	wxString distPath = m_pApp->m_dataKBsharingPath; // whm 22Feb2021 changed distPath to m_dataKBsharingPath which ends with PathSeparator
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager, but this
 							// will be changed to FALSE internally because the
 							// user1 and user2 values match

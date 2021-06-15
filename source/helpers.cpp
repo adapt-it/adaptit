@@ -12194,7 +12194,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	username = *pUsername;
 	pwd = *pPassword;
 	wxString comma = _T(",");
-	wxString distFolderPath = pApp->m_distKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_distKBsharingPath, which ends with PathSeparator
+	wxString distFolderPath = pApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
 	wxString datPath = distFolderPath + datFilename;
 
 	// Check that the file already exists, if not, create it
@@ -12284,7 +12284,7 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 	wxString useradmin = bCanAddUsers ? _T("1") : _T("0");
 
 	wxString comma = _T(",");
-	wxString distFolderPath = gpApp->m_distKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_distKBsharingPath, which ends with PathSeparator
+	wxString distFolderPath = gpApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
 	wxString datPath = distFolderPath + datFilename;
 
 	// Check that the file already exists, if not, create it

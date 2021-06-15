@@ -15,7 +15,6 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
@@ -30,12 +29,10 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_UNICODE" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no -libs core,base,aui,html,xrc,qa,adv,xml,net`" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>

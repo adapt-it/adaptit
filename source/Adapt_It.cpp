@@ -18527,13 +18527,13 @@ bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
 // lodged in the dist folder, have constant contents.
 // whm 22Feb2021 Note: The value passed in via execPth is now the m_appInstallPathOnly
 // member variable rather than a separately created execPath variable in the caller
-// Also changed wxString&I execPth parameter to value parameter wxString execPth since
+// Also changed wxString& execPth parameter to value parameter wxString execPth since
 // the CreateInputDatBlanks() doesn't return a value to caller through execPth.
 void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 {
 	bool execExists = wxDirExists(execPth);
-    // whm 22Feb2021 modified below to use the App's member variable m_distKBsharingPath, which ends with PathSeparator
-    wxString distPth = m_distKBsharingPath; // the App member variable is established in OnInit()
+    // whm 22Feb2021 modified below to use the App's member variable m_dataKBsharingPath, which ends with PathSeparator
+    wxString distPth = m_dataKBsharingPath; // the App member variable is established in OnInit()
 	// Check that distPth now exists
 	bool distExists = wxDirExists(distPth);
     // whm 22Feb2021 the following if...else... blocks are not needed
@@ -18548,7 +18548,7 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 	else
 	{
 		// Insurance in case Bill's psost-build script hasn't done its job
-        // whm 22Feb2021 modified/simplified the code below to use the m_distKBsharingPath which 
+        // whm 22Feb2021 modified/simplified the code below to use the m_dataKBsharingPath which 
         // is the ...\Adapt It Unicode Work\dist\ folder on Windows or .../Adapt It Unicode Work/dist/
         // folder on Linux/Mac.
 		distExists = wxDirExists(this->distPath);
@@ -18668,19 +18668,14 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 	m_bDoingChangePassword = FALSE;
 	m_bChangingPermission = FALSE;
 
-	wxString distFolderPath = m_distKBsharingPath; //this->distPath; // whm 22Feb2021 changed to use App's member m_distKBsharingPath, which end with PathSeparator
-	// BEW 25Feb21 with moving & renaming dist folder to the work folder, a
-	// new value is needed for execFolderPath - it's the path to the (temporary) set of 13
-	// do_xxxx.exe executables for the 13 different funcNumber values, which need to
-	// reside (until Leon provides .c equivalents to meld into AI code) in the 
-	// _DATA_KB_SHARING folder within the work folder. (I need to manually copy these
-	// executables to that folder until our work on .c variants is completed etc)
-	wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; // whm 22Feb2021 changed to use App's member which doesn't end with PathSeparator
-	//wxString execFolderPath = m_distKBsharingPath;
+	wxString dataFolderPath = m_dataKBsharingPath; //path to _DATA_KB_SHARING folder, in work folder
 
+	wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; 
+                // whm 22Feb2021 changed to use App's member which doesn't end 
+                // with PathSeparator, so added it explicitly
 	bool execExists = wxDirExists(execFolderPath);
-	bool distExists = wxDirExists(distFolderPath);
-	if (execExists && distExists)
+	bool dataExists = wxDirExists(dataFolderPath);
+	if (execExists && dataExists)
 	{
 		switch (funcNumber)
 		{
@@ -18692,18 +18687,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("credentials_for_user.dat");
 			DeleteOldDATfile(filename, execFolderPath);
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath);
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath);
 			ConfigureMovedDatFile(funcNumber, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest ('destination') folder
 			wxString execFilename = _T("do_add_KBUsers.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_add_KBUser.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18711,13 +18706,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_add_KBUsers.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_add_KBUsers.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18735,18 +18730,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// values accordingly, otherwise, 'For Manager' variables get set instead
 			wxString filename = _T("lookup_user.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(lookup_user, filename, execFolderPath); // <<-- looks up app bools
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the destination folder
 			wxString execFilename = _T("do_user_lookup.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_user_lookup.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18754,13 +18749,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_user_lookup.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_user_lookup.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18772,18 +18767,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("list_users.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(list_users, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_users_list.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_users_list.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18791,13 +18786,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_users_list.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_users_list.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18814,7 +18809,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			{
 				// If the user is in the KB Editor, the slower way can be
 				// used - starting with the boilerplate (blank) file in the
-				// dist folder - a child of the executable's folder. But
+				// _DATA_KB_SHARING folder - a child of the work folder. But
 				// if the user is not in the KB Editor, these two calls are
 				// skipped, and the input .dat file is created if not in
 				// existance, directly in the exec folder, and then filled
@@ -18822,19 +18817,19 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				// commandLine string's .dat file - which is 
 				// ConfigureMovedDatFile()'s job.
 				DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-				MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+				MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			}
 			ConfigureMovedDatFile(create_entry, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the destination folder
 			wxString execFilename = _T("do_create_entry.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_create_entry.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18842,13 +18837,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_create_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_create_entry.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18861,18 +18856,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For pseudo-deleting an entry line of the entry table
 			wxString filename = _T("pseudo_delete.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(pseudo_delete, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_pseudo_delete.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_pseudo_delete.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18880,13 +18875,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_pseudo_delete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_pseudo_delete.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18899,18 +18894,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For undeleting a pseudo-deleted line of the entry table
 			wxString filename = _T("pseudo_undelete.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(pseudo_undelete, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_pseudo_undelete.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_pseudo_undelete.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18918,13 +18913,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_pseudo_undelete.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_pseudo_undelete.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18937,18 +18932,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For looking up a row of the entry table
 			wxString filename = _T("lookup_entry.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(lookup_entry, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_lookup_entry.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_lookup_entry.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18956,13 +18951,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_lookup_entry.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_lookup_entry.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -18977,18 +18972,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// file will contain one row per line for however many are received
 			wxString filename = _T("changed_since_timed.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(changed_since_timed, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_changed_since_timed.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_lookup_entry.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -18996,13 +18991,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_changed_since_timed.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_changed_since_timed.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19020,18 +19015,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// line with an error message which lackes "success" within it.
 			wxString filename = _T("upload_local_kb.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(upload_local_kb, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_upload_local_kb.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_lookup_entry.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -19039,13 +19034,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_upload_local_kb.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_upload_local_kb.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19058,18 +19053,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_permission.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_permission, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_change_permission.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_change_permission.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -19077,13 +19072,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_change_permission.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_permission.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19095,18 +19090,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_fullname.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_fullname, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_change_fullname.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_change_fullname.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -19114,13 +19109,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_change_fullname.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_fullname.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19132,18 +19127,18 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_password.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, distFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_password, filename, execFolderPath);
-			// The .exe with the python code for doing the SQL etc, has to be
+			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the dist folder
+			// the dest folder
 			wxString execFilename = _T("do_change_password.exe");
-			wxString execInDist = distFolderPath + execFilename;
-			bool bPresentInDist = ::FileExists(execInDist);
-			if (bPresentInDist)
+			wxString execInDest = dataFolderPath + execFilename;
+			bool bPresentInDest = ::FileExists(execInDest);
+			if (bPresentInDest)
 			{
 				// Check if do_change_password.exe is already in the AI executable's folder,
-				// if it is - no need to move the dist one to there; otherwise, move it
+				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
 				wxString destinationPath = execFolderPath + execFilename;
@@ -19151,13 +19146,13 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				if (!bPresentInAIExecFolder)
 				{
 					// Copy it to there
-					wxCopyFile(execInDist, destinationPath);
+					wxCopyFile(execInDest, destinationPath);
 				}
 			}
 			else
 			{
-				// Oops, if it's not in dist folder, can't go further. Tell user & exit False
-				wxString msg = _("do_change_password.exe is not in the 'dist' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
+				wxString msg = _("do_change_password.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19173,11 +19168,11 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		}
 		
-	} // end of TRUE block for test: if (execExists && distExists)
+	} // end of TRUE block for test: if (execExists && dataExists)
 	else
 	{
 		// tell the developer it failed
-		wxString msg = _T("ConfigureDatFile() failed because execFolderPath or distFolderPath could not be found");
+		wxString msg = _T("ConfigureDatFile() failed because execFolderPath or dataFolderPath could not be found");
 		wxString caption = _T("ConfigureDatFile path error");
 		LogUserAction(msg);
 #if defined (_DEBUG)
@@ -19198,13 +19193,13 @@ void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 	}
 }
 
-void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString distFolderPath, wxString execFolderPath)
+void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString dataFolderPath, wxString execFolderPath)
 {
-	wxString f1 = distFolderPath + filename; // absolute path to filename's file
+	wxString f1 = dataFolderPath + filename; // absolute path to filename's file
 	wxString f2 = execFolderPath + filename; // destination for the move, absolute path -
 	if (f1 != f2)
 	{
-		// that is, to the parent folder which is execFolderPath
+		// f1 copied to f2: that is, to the parent folder which is execFolderPath
 		wxCopyFile(f1, f2); // after this, it's still the 'blank' file - next call will
 						// configure it in execPath folder, to have needed data values
 	}
@@ -19307,12 +19302,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			// when the user addition is sourced from the user page of KB Sharing Mgr
 		}
 
-		// Now in the caller the file has been moved to the parent folder 
-		// of the dist folder; so use wxTextFile to make the changes in
-		// the file copy within the parent folder: "credentials_for_user.dat" 
+		// Now in the caller the file has been moved to the the folder where the 
+		// installed app is run; so use wxTextFile to make the changes in
+		// the file copy within that folder; here it's: "credentials_for_user.dat" 
 		// so it has only the above commandLine value stored in it
-        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
-        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 
+                                                                            // changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19320,7 +19316,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out off builerplate content
+				// Clear out all the boilerplate text content
 				f.Clear();
 				// Now add commandLine as the only line
 				f.AddLine(commandLine);
@@ -19330,8 +19326,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				// fields for the subsequent .exe in wxExecute() which will
 				// implement the adding of the user to the user table
 				// If the adding does not happen, Leon's .exe will drop a .dat
-				// file with an appropriate error message. This .dat file is
-				// moved to the execPath folder, ready for use
+				// file with an appropriate error message. This .dat file will be
+				// lodged in the m_appInstallPathOnly folder
 
 				// Store a copy of path to it on app, for CallExecute() to use
 				m_datPath = datPath;
@@ -19353,7 +19349,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case lookup_user: // = 2
 	{
-		m_resultDatFileName = _T("lookup_user_return_results.dat");
+		m_resultDatFileName = _T("lookup_user_results.dat");
 		bool bAuthenticationOK = FALSE; // initialise
         bAuthenticationOK = bAuthenticationOK; // avoid gcc warning "set but not used"
 		bool bAllow = FALSE; // initialise
@@ -19489,7 +19485,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 					wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
 
 					// useradmin value?? that should be available in the
-					// returned lookup_user_return_results.dat file
+					// returned lookup_user_results.dat file
 					commandLine += user1 + comma + pwd + comma + user2 + comma;
 #if defined (_DEBUG)
 					wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
@@ -19564,7 +19560,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the list_users.dat file for input, making the commandLine for 
 		// wxExecute() to call
-		m_resultDatFileName = _T("list_users_return_results.dat");
+		m_resultDatFileName = _T("list_users_results.dat");
 
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 		// Next are the username and the password...
@@ -19640,7 +19636,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the create_entry.dat file for input, making the commandLine for 
 		// wxExecute() to call
-		m_resultDatFileName = _T("create_entry_return_results.dat");
+		m_resultDatFileName = _T("create_entry_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 		// Next are the username and the password...
@@ -19789,7 +19785,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the pseudo_delete.dat file for input, making the commandLine for 
 		// wxExecute() to call
-		m_resultDatFileName = _T("pseudo_delete_return_results.dat");
+		m_resultDatFileName = _T("pseudo_delete_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 
@@ -19928,7 +19924,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the pseudo_undelete.dat file for input, making the commandLine for 
 		// wxExecute() to call
-		m_resultDatFileName = _T("pseudo_undelete_return_results.dat");
+		m_resultDatFileName = _T("pseudo_undelete_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 														 // Next are the username and the password...
@@ -20041,7 +20037,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the lookup_entry.dat file for input, making the commandLine for 
 		// wxExecute() to call
-		m_resultDatFileName = _T("lookup_entry_return_results.dat");
+		m_resultDatFileName = _T("lookup_entry_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 
@@ -20160,7 +20156,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// without warning (most likely after a CHKDISK update), so if the config file's
 		// value results in a commandLine which fails, the do Discover KBservers again,
 		// select the wanted one, click O. Then setup the project fpr KBserver support again.
-		m_resultDatFileName = _T("changed_since_timed_return_results.dat");
+		m_resultDatFileName = _T("changed_since_timed_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 				// (could be wrong, see comment above) Next are the username and the password...
@@ -20252,7 +20248,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		// Build the upload_local_kb.dat file for input, making the commandLine for 
 		// wxExecute() to call.
-		m_resultDatFileName = _T("upload_local_kb_return_results.dat");
+		m_resultDatFileName = _T("upload_local_kb_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 														 // (could be wrong, see comment above) 
@@ -20314,7 +20310,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case change_permission: // = 10
 	{
-		m_resultDatFileName = _T("change_permission_return_results.dat");
+		m_resultDatFileName = _T("change_permission_results.dat");
 		m_bChangingPermission = TRUE;
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
@@ -20419,7 +20415,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case change_fullname: // = 11
 	{
-		m_resultDatFileName = _T("change_fullname_return_results.dat");
+		m_resultDatFileName = _T("change_fullname_results.dat");
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
 		wxString tempStr;
@@ -20491,7 +20487,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case change_password: // = 12
 	{
-		m_resultDatFileName = _T("change_password_return_results.dat");
+		m_resultDatFileName = _T("change_password_results.dat");
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
 		wxString tempStr;
@@ -20768,9 +20764,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	bool bTempCwd = fn.SetCwd(execPath);
 	if (bTempCwd)
 	{
-		// BEW 10Oct20, if the commandLine does not succeed in the underlying python,
-		// this is not a failure of wxExecute, provided the python runs without error.
-		// The *_return_results.dat will from the python will provide values that our
+		// BEW 10Oct20, if the commandLine does not succeed in the underlying .c code,
+		// this is not a failure of wxExecute, provided the C executable runs without error.
+		// The *_results.dat will from the C executable will provide values that our
 		// AI code can interrogate to see if the desired mariaDB access worked. So
 		// rv == 0  does not mean wxExecute() error, but if it did fail, errors array
 		// can be checked for what went wrong with it.
@@ -23788,27 +23784,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
     wxLogDebug(_T("The m_xmlInstallPath = %s"), m_xmlInstallPath.c_str());
 
-    // whm 22Feb2021 added App member variable m_distKBsharingFolderName which is
-    // assigned the value "dist" here. See note below re the m_distKBsharingPath.
-    m_distKBsharingFolderName = _T("_DATA_KB_SHARING");
+    // whm 22Feb2021 added App member variable m_dataKBsharingFolderName which was
+    // assigned the value "dist"  originally. See note below.
+    // BEW 9Jun2021 Since we are obsoleting the "dist" folder, the name and path
+    // should everwhere be changed to: m_dataKBsharingFolderName & m_dataKBsharingPath
+    // so I'll do those changes now with global search and replaces
+    m_dataKBsharingFolderName = _T("_DATA_KB_SHARING");
 
-    // whm 14Feb2021 NOTE about the location and assignment of the "dist" folder:
-    // The new App member m_distKBsharingPath which is the absolute
-    // path to the "dist" folder for storing KB Sharing .DAT files, and ends with PathSeparator.
-    // On 22Feb2021 the team decided to place the "dist" folder in the "Adapt It Unicode Work"
-    // folder. The m_distKBsharingPath location on ALL platforms will be either:
-    // m_customWorkFolderPath + PathSeparator + _T("dist"), or
-    // m_workFolderPath + PathSeparator +  _T("dist")
-    // depending on wiether the user/admin has set up a custom work folder.
-    // The actual value for m_distKBsharingPath has to be determined later below in 
+    // whm 14Feb2021 NOTE about the location and assignment of the old "dist" folder:
+    // On 22Feb2021 the team decided to place the set of "data blanks" text files
+    // in the "Adapt It Unicode Work" folder. Calling it's name: _T("_DATA_KB_SHARING")
+    // The contents of each of the 12 .dat blanks is created programmatically, if not
+    // already done, in the OnInit() function, by the call 
+    // CreateInputDatBlanks(m_dataKBsharingPath)
+    // The m_dataKBsharingPath location on ALL platforms will be either:
+    // m_customWorkFolderPath + PathSeparator + _T("_DATA_KB_SHARING"), or
+    // m_workFolderPath + PathSeparator +  _T("_DATA_KB_SHARING")
+    // depending on whether the user/admin has set up a custom work folder.
+    // The actual value for m_dataKBsharingPath has to be determined later below in 
     // this OnInit() function after it is determined whether the work folder is
     // a custom work folder or the normal world folder. The code that assigns the
-    // proper value for m_distKBsharingPath done below about lines 26781 and 26802.
+    // proper value for m_dataKBsharingPath done below about lines 26781 and 26802.
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
-    // On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or
-    //             C:\Program Files\Adapt It WX Unicode\Languages\"
+    // On wxMSW:   "C:\Program Files (x86)\Adapt It WX Unicode\Languages\" for 32 bit Adapt It
     // On wxGTK:   "/usr/share/locale/" or "/usr/local/share/locale/"   which then contains multiple
     //                                   "<lang>/LC_MESSAGES/adaptit.mo"
     // On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this
@@ -23818,8 +23818,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // The m_helpInstallPath stores the path where the help files are installed on
     // the given platform.
-    // On wxMSW:   "C:\Program Files\Adapt It WX\ or
-    //             C:\Program Files\Adapt It WX Unicode\"
+    // On wxMSW:   "C:\Program Files\Adapt It WX Unicode\"
     // On wxGTK:   "/usr/share/adaptit/help/" or "/usr/local/share/adaptit/help/"
     //             depending on the value of m_PathPrefix.
     // On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]
@@ -26836,15 +26835,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
         // whm 22Feb2021 added test and mkdir command below
-        if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName))
-            ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName);
+        if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_dataKBsharingFolderName))
+            ::wxMkdir(m_customWorkFolderPath + PathSeparator + m_dataKBsharingFolderName);
         AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
         // whm 22Feb2021 added line below
-        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_distKBsharingFolderName; // App member m_distKBsharingPath is assigned below - ends with PathSeparator
+        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_dataKBsharingFolderName; // App member m_dataKBsharingPath is assigned below - ends with PathSeparator
     }
     else
     {
@@ -26862,15 +26861,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         if (!::wxDirExists(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
             ::wxMkdir(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
         // whm 22Feb2021 added test and mkdir command below
-        if (!::wxDirExists(m_workFolderPath + PathSeparator + m_distKBsharingFolderName))
-            ::wxMkdir(m_workFolderPath + PathSeparator + m_distKBsharingFolderName);
+        if (!::wxDirExists(m_workFolderPath + PathSeparator + m_dataKBsharingFolderName))
+            ::wxMkdir(m_workFolderPath + PathSeparator + m_dataKBsharingFolderName);
         AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
         AIDocCreateLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("DocCreateLog_") + strUserID + _T("_") + dateTimeStrForFilename + _T(".txt");
         AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
         // whm 22Feb2021 added line below Note: To be compatible with BEW's KBsharing code the AIDistKBsharingFolderPath needs to end with a PathSeparator
-        AIdistKBsharingFolderPath = m_workFolderPath + PathSeparator + m_distKBsharingFolderName + PathSeparator; // App member m_distKBsharingPath is assigned below
+        AIdistKBsharingFolderPath = m_workFolderPath + PathSeparator + m_dataKBsharingFolderName + PathSeparator; // App member m_dataKBsharingPath is assigned below
     }
 	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
 	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
@@ -26884,7 +26883,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
     m_docCreationFilePathAndName = AIDocCreateLogFolderPath; // whm added 6Apr2020
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
-    m_distKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
+    m_dataKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
 
     wxLogDebug(_T("Creating user log file at: %s"), m_usageLogFilePathAndName.c_str());
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
@@ -28612,10 +28611,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 22Feb2021 removed the following two lines
 	//wxString execPath = PathToExecFolder(); // app removed from end, ends now in separator
 	//distPath = GetDistFolder();  // set the path to dist folder, for this session
-
-    // BEW 27Feb2021 modified the line below to use m_distKBsharingPath instead of exePath
-    wxLogDebug(_T("Calling CreateInputDatBlanks for KB Sharing in: %s"), m_distKBsharingPath.c_str());
-	CreateInputDatBlanks(m_distKBsharingPath); // path ends in PathSeparator, no file yet
+ 
+    // BEW 27Feb2021 modified the line below to use m_dataKBsharingPath instead of exePath
+    wxLogDebug(_T("Calling CreateInputDatBlanks for KB Sharing in: %s"), m_dataKBsharingPath.c_str());
+	CreateInputDatBlanks(m_dataKBsharingPath); // path ends in PathSeparator, no file yet
 					// we want these blanks to be created in the _DATA_KB_SHARING folder
 					// which is a child of the AI Unicode Work folder
 	m_bGlossesLookupSucceeded = FALSE;  // These two are for tracking success or failure
@@ -28660,8 +28659,21 @@ wxString CAdapt_ItApp::PathToExecFolder()
 }
 */
 
+/*
+wxString separator = m_pApp->PathSeparator;
+wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
+int length = execPath.Len();
+wxChar lastChar = execPath.GetChar(length - 1);
+wxString strLastChar = wxString(lastChar);
+if (strLastChar != separator)
+{
+    execPath += separator; // has path separator at end now
+}
+wxString distPath = execPath + _T("dist"); // always a child folder of execPath
+*/
+
 // whm 22Feb2021 removed GetDistFolder() as it is no longer needed since the "dist" folder is now
-// a child folder of the "Adapt It Unicode Work" folder and is always available in m_distKBsharingPath
+// a child folder of the "Adapt It Unicode Work" folder and is always available in m_dataKBsharingPath
 /*
 wxString CAdapt_ItApp::GetDistFolder()
 {
@@ -35947,8 +35959,8 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 	// AI executable's folder, do the wxExecute() call on just the script filename, and
 	// restore the cwd after it returns.
 	// I've encapsulated the needed code in a function: 
-	// bool CallExecute(execFileName,execPath,add_KBUsers_return_result_file.dat)
-	// and I'll check add_KBUsers_return_result_file.dat for "created successfully" substring,
+	// bool CallExecute(execFileName,execPath,add_KBUsers_results.dat)
+	// and I'll check add_KBUsers_results.dat for "created successfully" substring,
 	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
 	m_nAddUsersCount = 0; // gotta protect, as number of fields may differ
 // replace the above with a function...
@@ -35958,7 +35970,7 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 	{
 		// The input .dat file is now set up ready for do_add_KBusers.exe
 		wxString execFileName = _T("do_add_KBUsers.exe"); 
-		wxString resultFile = _T("add_KBUsers_return_result_file.dat");
+		wxString resultFile = _T("add_KBUsers_results.dat");
         // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
         bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathAndName, resultFile, 30, 31, TRUE);
         wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
@@ -58989,21 +59001,21 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
 
 	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
-    wxString distFolder = m_distKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_distKBsharingFolderName
+    wxString distFolder = m_dataKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_dataKBsharingFolderName
 
 	// BEW 25Feb21 resultsPath now needs to point at the _DATA_KB_SHARING folder in the work folder
-	wxLogDebug(_T("Scanner's m_distKBsharingPath: %s"), m_distKBsharingPath.c_str());
+	wxLogDebug(_T("Scanner's m_dataKBsharingPath: %s"), m_dataKBsharingPath.c_str());
 
-	// BEW 22July20, temporarily point the current working directory to m_distKBsharingPath
-	wxFileName fName(m_distKBsharingPath); // ignore returned boolean
-	fName.SetCwd(m_distKBsharingPath);
+	// BEW 22July20, temporarily point the current working directory to m_dataKBsharingPath
+	wxFileName fName(m_dataKBsharingPath); // ignore returned boolean
+	fName.SetCwd(m_dataKBsharingPath);
 	wxLogDebug(_T("SetCwd() was set to: %s"), fName.GetCwd().c_str());
 
 	// Make a path to the kbservice_file.dat results file.
 	// The new current working directory path will ensure that this
 	// path is the same as the path to where dLss_win.exe resides, in the dist folder.
 	// BEW 25Feb21 discovery path now is simpler
-	discoveryPath = m_distKBsharingPath + tempFile; // ends with _T("kbservice_file.dat")
+	discoveryPath = m_dataKBsharingPath + tempFile; // ends with _T("kbservice_file.dat")
 	wxLogDebug(_T("Scanner's discoveryPath: %s"), discoveryPath.c_str());
 	{
 		// Use braces to restrict scope to this block and avoid any clashing with program variables
@@ -59020,7 +59032,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent 
 														 // (till Leon's work obsoletes it)
 		// BEW 25Feb21, set scannerPath
-		scannerPath += m_distKBsharingPath + execDiscoveryFile; 
+		scannerPath += m_dataKBsharingPath + execDiscoveryFile; 
 		wxLogDebug(_T("Scanner's scannerPath: %s  length = %d"), scannerPath.c_str(), scannerPath.Len());
 		// The above execPath returned a length of 55 characters, for our testing development
 
@@ -59548,7 +59560,7 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   pseudo_delete.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: pseudo_delete_return_results.dat");
+			line = _T("# 'output' file in exec folder: pseudo_delete_results.dat");
 			f.AddLine(line);
 			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
 			f.AddLine(line);
@@ -59606,7 +59618,7 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   pseudo_undelete.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: pseudo_undelete_return_results.dat");
+			line = _T("# 'output' file in exec folder: pseudo_undelete_results.dat");
 			f.AddLine(line);
 			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
 			f.AddLine(line);
@@ -59657,19 +59669,21 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString distPath) // w
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			wxString line = _T("# goal: insert an entry into the kbserver's entry table");
+			wxString line = _T("# goal: insert an entry into the kbserver's entry table, duplication not allowed");
 			f.AddLine(line);
-			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+            line = _T("# deleted flag may be 1, indicating it is pseudo-deleted. If so, the create fails.");
+            f.AddLine(line);
+            line = _T("# It is do_pseudo_undelete.exe's job to handle undeletion. AI's code will call that.");
+            f.AddLine(line);
+            line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   create_entry.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: create_entry_return_results.dat");
+			line = _T("# 'output' file in exec folder: create_entry_results.dat");
 			f.AddLine(line);
-			line = _T("# The row's fields, in order (initial id automatic):");
+			line = _T("# The row's fields, in order (initial id automatic; timestamp is now()'s timestamp):");
 			f.AddLine(line);
 			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
-			f.AddLine(line);
-			line = _T("# timestamp is between username & type, provided by function call");
 			f.AddLine(line);
 			line = _T("# login credentials: ipaddr, username, password");
 			f.AddLine(line);
@@ -59720,7 +59734,7 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file: lookup_user.dat");
 			f.AddLine(line);
-			line = _T("# AI executable's folder, output file: lookup_user_return_results_file.dat");
+			line = _T("# AI executable's folder, output file: lookup_user_results.dat");
 			f.AddLine(line);
 			line = _T("# (A) Login uses first 3 fields, and ignores the 2nd username");
 			f.AddLine(line);
@@ -59795,7 +59809,7 @@ void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   lookup_entry.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: lookup_entry_return_results.dat");
+			line = _T("# 'output' file in exec folder: lookup_entry_results.dat");
 			f.AddLine(line);
 			line = _T("# The row's fields, in order (initial id automatic):");
 			f.AddLine(line);
@@ -59852,9 +59866,11 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString distPath
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   changed_since_timed.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: changed_since_timed_return_results.dat");
+			line = _T("# 'output' file in exec folder: changed_since_timed_results.dat");
 			f.AddLine(line);
-			line = _T("# The row's fields, in order (initial id automatic):");
+            line = _T("# Pass in, as last argument, the timestamp from which changes are calculated");
+            f.AddLine(line);
+            line = _T("# Each row's fields, in order (initial id automatic):");
 			f.AddLine(line);
 			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted");
 			f.AddLine(line);
@@ -59909,7 +59925,7 @@ void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# Uses two input .dat files. First, for authenticating access, second, having the data lines.");
 			f.AddLine(line);
-			line = _T("# Internally, in the python code, the second input .dat file is: local_kb_lines.dat");
+			line = _T("# Internally, in the C code, the second input .dat file is: local_kb_lines.dat");
 			f.AddLine(line);
 			line = _T("# local_kb_lines.dat is constructed by calling PopulateLocalKbLines(const int funcNumber,");
 			f.AddLine(line);
@@ -59921,27 +59937,27 @@ void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's first 'input' file:   upload_local_kb.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file for that, in exec folder: upload_local_kb_return_results.dat");
+			line = _T("# 'output' file for that, in exec folder: upload_local_kb_results.dat");
 			f.AddLine(line);
 			line = _T("# Do not pass in a timestamp in upload_local_kb.dat; and in local_kb_lines.dat");
 			f.AddLine(line);
 			line = _T("# exclude the local KB's creation datetime for any being-sent src/nonSrc pairs.");
 			f.AddLine(line);
-			line = _T("# Python exec's name:  do_upload_local_kb.py");
+			line = _T("# C exec's name:  do_upload_local_kb.exe from do_upload_local_kb.c");
 			f.AddLine(line);
-			line = _T("# Adapt It must create the file \"local_kb_lines.dat\" before do_upload_local_kb.py is called.");
+			line = _T("# Adapt It must create the file \"local_kb_lines.dat\" before do_upload_local_kb.exe is called.");
 			f.AddLine(line);
 			line = _T("# Each line of local_kb_lines.dat has fields, comma separated, as follows:");
 			f.AddLine(line);
 			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted");
 			f.AddLine(line);
-			line = _T("# with these values taken from an Adapt It looping over the whole local KB, by calling");
+			line = _T("# with these values taken from Adapt It by looping over the whole local KB, i.e. by calling");
 			f.AddLine(line);
 			line = _T("# PopulateLocalKbLines(...) prior to calling wxExecute() within CallExecute() function.");
 			f.AddLine(line);
-			line = _T("# login credentials for do_upload_local_kb.py or .exe:  ipaddr,username,password");
+			line = _T("# login credentials for do_upload_local_kb.c or its .exe:  ipaddr,username,password");
 			f.AddLine(line);
-			line = _T("# Output results for do_upload_local_kb.py .dat:");
+			line = _T("# Output results for do_upload_local_kb.exe's .dat file with");
 			f.AddLine(line);
 			line = _T("# \"success\", followed by the starting timestamp, then the ending timestamp, comma separated");
 			f.AddLine(line);
@@ -59989,15 +60005,17 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file: list_users.dat");
 			f.AddLine(line);
-			line = _T("# Results file: list_users_return_results.dat");
+			line = _T("# Results file: list_users_results.dat");
 			f.AddLine(line);
-			line = _T("# After login, checks if username has useradmin value equalling 1");
+			line = _T("# After login, checks if username has useradmin value equaling 1");
 			f.AddLine(line);
-			line = _T("# If that check fails, return list_users_return_results_file.dat");
+			line = _T("# If that check fails, return list_users_results.dat");
+            f.AddLine(line);
+            line = _T("# with first line lacking the substring \"success\", and saying:");
+            f.AddLine(line);
+			line = _T("# \"this user does not have permission to access the DB user's table:- <name>\"");
 			f.AddLine(line);
-			line = _T("# \"this user does not have permission to access the DB user's table: <name>\"");
-			f.AddLine(line);
-			line = _T("# If the check succeeds, return the list_users_return_results_file.dat file");
+			line = _T("# If the check succeeds, return the list_users_results.dat file");
 			f.AddLine(line);
 			line = _T("# with first line having \"success\" findable in it.");
 			f.AddLine(line);
@@ -60009,7 +60027,7 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 			f.AddLine(line);
 			line = _T("# useradmin values, comma-separated.");
 			f.AddLine(line);
-			line = _T("# The executable will be:  do_users_list.exe based on do_users_list.py");
+			line = _T("# The executable will be:  do_users_list.exe with credentialss for entry:");
 			f.AddLine(line);
 			line = _T("ipAddress,username,password,");
 			f.AddLine(line);
@@ -60054,7 +60072,7 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file: change_permission.dat");
 			f.AddLine(line);
-			line = _T("# AI executable's folder, output file: change_permission_return_results.dat");
+			line = _T("# AI executable's folder, output file: change_permission_results.dat");
 			f.AddLine(line);
 			line = _T("# (A) Login uses first 3 fields, and ignores selected_username");
 			f.AddLine(line);
@@ -60125,7 +60143,7 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file: change_fullname.dat");
 			f.AddLine(line);
-			line = _T("# AI executable's folder, output file: change_fullname_return_results.dat");
+			line = _T("# AI executable's folder, output file: change_fullname_results.dat");
 			f.AddLine(line);
 			line = _T("# (A) Login uses first 3 fields, and ignores selected_username & selected_fullname");
 			f.AddLine(line);
@@ -60151,7 +60169,7 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,glenys@unit2,Glenys Waters");
 			f.AddLine(line);
-			line = _T("and Output .dat file, change_fullname_return_results.dat, 2 lines, contents as above.");
+			line = _T("and Output .dat file, change_fullname_results.dat, 2 lines, contents as above.");
 			f.AddLine(line);
 			line = _T("ipAddress,username,password,selected_username,selected_fullname");
 			f.AddLine(line);
@@ -60196,7 +60214,7 @@ void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file: change_password.dat");
 			f.AddLine(line);
-			line = _T("# AI executable's folder, output file: change_password_return_results.dat");
+			line = _T("# AI executable's folder, output file: change_password_results.dat");
 			f.AddLine(line);
 			line = _T("# (A) Login uses first 3 fields, and ignores selected_username & selected_password");
 			f.AddLine(line);
@@ -60222,7 +60240,7 @@ void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString distPath)
 			f.AddLine(line);
 			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,JoeBloggs,anypwd");
 			f.AddLine(line);
-			line = _T("and Output .dat file, change_password_return_results.dat, 2 lines, contents as above.");
+			line = _T("and Output .dat file, change_password_results.dat, 2 lines, contents as above.");
 			f.AddLine(line);
 			line = _T("ipAddress,username,password,selected_username,selected_password");
 			f.AddLine(line);
@@ -61485,7 +61503,7 @@ bool CAdapt_ItApp::ReadReplaceCache()
     // we don't allow find & replace to alter doc's source text
     if (!pDlg->m_srcStr.IsEmpty())
     {
-        pDlg->m_srcStr.Empty(); // ensure it's emptpy
+        pDlg->m_srcStr.Empty(); // ensure it's empty
     }
 
     // BEW 5Apr21, When reading the cache, only 2 strings are relevant; tgt, and replacement;
@@ -61501,7 +61519,7 @@ bool CAdapt_ItApp::ReadReplaceCache()
     if (pDlg->m_bSrcOnly == TRUE)
     {
         // gotta be FALSE, find/replace is not allowed to support src text changing
-        pDlg->m_bSrcOnly;
+        pDlg->m_bSrcOnly = FALSE;
     }
     pDlg->m_bTgtOnly = pStruct->bTgtOnly;
     // The above can be empty, as searching for an empty target text is meaningful - at

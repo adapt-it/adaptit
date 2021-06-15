@@ -787,7 +787,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	if (bConfiguredOK)
 	{
 		wxString execFileName = _T("do_changed_since_timed.exe");
-		resultsFilename = _T("changed_since_timed_return_results.dat");
+		resultsFilename = _T("changed_since_timed_results.dat");
 		bool bReportResult = FALSE;
 		bool bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
 			resultsFilename, 99, 99, bReportResult);
@@ -1035,7 +1035,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 			// The input .dat file is now set up ready for do_list_users.exe
 			wxString execFileName = _T("do_list_users.exe"); // this call does not use user2, just authenticates
 			wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-			wxString resultFile = _T("list_users_return_results.dat");
+			wxString resultFile = _T("list_users_results.dat");
 			bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 32, 33);
 			if (!bExecutedOK)
 			{
@@ -1080,7 +1080,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 		// The input .dat file is now set up ready for do_user_lookup.exe
 		wxString execFileName = _T("do_user_lookup.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-		wxString resultFile = _T("lookup_user_return_results.dat");
+		wxString resultFile = _T("lookup_user_results.dat");
 		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
 		// In above call, last param, bReportResult, is default FALSE therefore omitted;
 		// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
@@ -1119,7 +1119,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 {
 	wxString execFileName = _T("do_lookup_entry.exe");
-	wxString resultFile = _T("lookup_entry_return_results.dat");
+	wxString resultFile = _T("lookup_entry_results.dat");
 	wxString datFileName = _T("lookup_entry.dat");
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
@@ -1226,7 +1226,7 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxUnusedVar(pKbSvr);
 
 	wxString execFileName = _T("do_create_entry.exe");
-	wxString resultFile = _T("create_entry_return_results.dat");
+	wxString resultFile = _T("create_entry_results.dat");
 	wxString datFileName = _T("create_entry.dat");
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
@@ -1266,7 +1266,7 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 
 	int rv = -1; //initialise
 	wxString execFileName = _T("do_pseudo_undelete.exe");
-	wxString resultFile = _T("pseudo_undelete_return_results.dat");
+	wxString resultFile = _T("pseudo_undelete_results.dat");
 	wxString datFileName = _T("pseudo_undelete.dat");
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
@@ -1308,7 +1308,7 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 
 	int rv = -1; //initialise
 	wxString execFileName = _T("do_pseudo_delete.exe");
-	wxString resultFile = _T("pseudo_delete_return_results.dat");
+	wxString resultFile = _T("pseudo_delete_results.dat");
 	wxString datFileName = _T("pseudo_delete.dat");
 	wxString execPath;
 	if (m_pApp->m_curExecPath.IsEmpty())
@@ -1686,7 +1686,7 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 	return TRUE;
 }
 
-// pass in execFolderPath with final PathSeparator; datFileName is a *_return_results.dat file
+// pass in execFolderPath with final PathSeparator; datFileName is a *_results.dat file
 bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 {
 	if (m_pApp->m_bAdaptationsKBserverReady || m_pApp->m_bGlossesKBserverReady)
