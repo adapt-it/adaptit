@@ -335,12 +335,25 @@ int main(int argc, char **argv)
         break;
     }
 
+    // whm 26Apr2021 NOTE:
+    // When WdrTweaks.exe is run under Visual Studio the current working directory is in relation to WdrTweaks.vcxproj location
+    // which is: something like: C:\Users\Bill\Documents\adaptit\bin\win32\WdrTweaks\
+    // However, when WdrTweaks.exe is called as a Pre-Build Event the current working directory detected is different, and may be
+    // any of the following: 
+    //   C:\Users\Bill\Documents\adaptit\bin\win32\, or
+    //   C:\Users\Bill\Documents\adaptit\bin\win32\WdrTweaks\, or
+    //   C:\Users\Bill\Documents\adaptit\bin\win32\Debug_WdrTweaks\, or
+    //   C:\Users\Bill\Documents\adaptit\bin\win32\Release_WdrTweaks\
+    //
+    // To be a good neighbor, we'll save the current work directory and restore that saved value upon exit
+    wxString saveCurrWorkDir;
+    saveCurrWorkDir = wxGetCwd();
+
     wxString dirPathSeparator = wxFileName::GetPathSeparator();
-    wxString sourcePath;
-    wxString outputPath;
-    wxString scriptsPath;
+    wxString sourcePathOnly;
+    wxString outputPathOnly;
+    wxString wdrExePathOnly;
     wxString currWorkDir;
-    wxString parentDir;
     int paramct;
     int paramtotal = (int)params.GetCount();
     if (paramtotal == 0)
@@ -354,95 +367,111 @@ int main(int argc, char **argv)
                 wxPrintf("Parameter %d: %s\n", paramct + 1, tempStr.c_str());
         }
 
-        // Adjust paths relative and absolute.
-        // Set up some default values and relative paths. These relative paths may be changed by input 
-        // parameters below, and in any case, will be changed to absolute paths in code below.
-        // The sourcePath starts as a relative path as calculated relative to the IDE's project 
-        // directory, i.e., C:\Users\Bill\Documents\adaptit\bin\win32 
-        sourcePath = _T("..") + dirPathSeparator + _T("..") + dirPathSeparator + _T("source") + dirPathSeparator; // ..\..\source\ or ../../source/
-
-        // The outputPath starts as a relative path that is the same as the sourcePath (.cpp file(s) written back to their
-        // same location.
-        outputPath = sourcePath;
-
-        // The scriptsPath starts as a relative path as calculated relative to the IDE's project 
-        // directory, i.e., C:\Users\Bill\Documents\adaptit\bin\win32 
-        scriptsPath = _T("..") + dirPathSeparator + _T("..") + dirPathSeparator + _T("scripts") + dirPathSeparator; // ..\..\scripts\ or ../../scripts/
-        // Note: All the path variables defined above terminate with a $dirPathSeparator \ or /
-
+        // whm 26Apr2021 modified to obtain a more reliable determination of the absolute paths after tweaking the 
+        // Pre-Build/Post-Build Events for the Adapt_It and WdrTweaks projects. 
+        // Set up the paths to the source directory and the executable directory using relative paths in relation
+        // to the currWorkDir value as determined by a call to ::wxGetDwd(), and normalize them to absolute paths. 
+        // Note: The paths to the source and executable directories could be changed by input 
+        // parameters below, but we don't normally do so within the Visual Studio projects.
+        // 
+        // Note: The WdrTweaks.exe executable is no longer called from the adaptit/scripts directory since the 
+        // WdrTweaks's Post-Build Event no longer attempts to copy the WdrTweaks.exe executable to that 
+        // location. Moreover, the Adapt_It Pre-Build Event now simply calls the WdrTweaks.exe executable 
+        // from its build location which is:
+        //   C:\Users\Bill\Documents\adaptit\bin\win32\Debug_WdrTweaks\WdrTweaks.exe, or
+        //   C:\Users\Bill\Documents\adaptit\bin\win32\Release_WdrTweaks\WdrTweaks.exe
+        // The sourcePathOnly starts as a relative path as calculated relative to the current work directory which
+        // could be the WdrTweaks.vcxproj project file or another location such as the win32 directory. We'll check the 
+        // top level directory of the currWorkDir and work from that relative node.
+        // Note: The returned string from the ::wxGetCwd() call does NOT have a final path separator, and will usually
+        // be one of the following:
+        //   C:\Users\Bill\Documents\adaptit\bin\win32\WdrTweaks  [when Debug_WdrTweaks or Release_WdrTweaks are run as debug process]
+        //   C:\Users\Bill\Documents\adaptit\bin\win32 [when WdrTweaks.exe is called from Adapt_It project's Pre-Build Event]
+        //   ??? other path locations with topDir of "Debug_WdrTweaks" or "Release_WdrTweaks" - where WdrTweaks.exe resides ???
+        // We check the above possible topDir locations below and assign relative paths accordingly.
         currWorkDir = ::wxGetCwd();
-        wxLogDebug("Debug1: currWorkDir: %s",currWorkDir.c_str());
-        wxFileName fn1(currWorkDir);
-        fn1.SplitPath(currWorkDir, &parentDir, NULL, NULL);
-        //wxLogDebug("Debug2: parentDir: %s",parentDir.c_str());
-        parentDir = parentDir.AfterLast(wxFileName::GetPathSeparator());
-        //wxLogDebug("Debug3: parentDir: %s",parentDir.c_str());
+        wxLogDebug("WdrTweaks currWorkDir: %s", currWorkDir.c_str());
+        wxPrintf("*** WdrTweaks currWorkDir: %s\n", currWorkDir.c_str());
 
-        wxFileName fn2(currWorkDir + dirPathSeparator + scriptsPath);
-        fn2.Normalize();
-        int flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
-        scriptsPath = fn2.GetPath(flags); // gets it in native format, including final separator
-        //wxLogDebug("Debug4: scriptsPath: %s",scriptsPath.c_str());
-
-        if (parentDir == _T("win32"))
+        // determine the last directory in the currWordDir string. 
+        // If it is win32 we bump back 2 levels to the adaptit (or adaptit-git) directory
+        // If it is WdrTweaks or Debug_WdrTweaks or Release_WdrTweaks we bump back 3 levels to the adaptit (or adaptit-git) directory
+        wxString topDir;
+        topDir = currWorkDir.AfterLast(_T('\\'));
+        if (topDir == _T("win32"))
         {
-            // The parentDir will not now be "win32" unless this script was located in the "win32" 
-            // directory and called from there.
-            bool bOK;
-            // change working directory from C:\Users\Bill\Documents\adaptit\bin\win32 to
-            // C:\Users\Bill\Documents\adaptit\scripts
-            bOK = ::wxSetWorkingDirectory(_T("scriptsPath"));
-            bOK = bOK;
+            sourcePathOnly = currWorkDir + dirPathSeparator + _T("..") + dirPathSeparator + _T("..") + dirPathSeparator + _T("source") + dirPathSeparator; 
+            // sourcePathOnly is:
+            // ..\..\source\ 
+            //
+#if defined (_DEBUG) 
+            wdrExePathOnly = currWorkDir + dirPathSeparator + _T("Debug_WdrTweaks") + dirPathSeparator; 
+            // wdrExePathOnly is:
+            // C:\Users\Bill\Documents\adaptit\bin\win32\Debug_WdrTweaks\ 
+            //
+#else
+            wdrExePathOnly = currWorkDir + dirPathSeparator + _T("Release_WdrTweaks") + dirPathSeparator;
+            // wdrExePathOnly is:
+            // C:\Users\Bill\Documents\adaptit\bin\win32\Release_WdrTweaks\ 
+            //
+#endif
         }
-        else if (parentDir == _T("scripts")) // the normal case
+        else if (topDir == _T("WdrTweaks") || topDir == _T("Debug_WdrTweaks") || topDir == _T("Release_WdrTweaks"))
         {
-            // The parentDir is "scripts" 
-            ; // Keep current working dir
-            if (bVerbose)
-                wxPrintf("This script was called from %s\n", currWorkDir.c_str());
+            sourcePathOnly = currWorkDir + dirPathSeparator + _T("..") + dirPathSeparator + _T("..") + dirPathSeparator + _T("..") + dirPathSeparator + _T("source") + dirPathSeparator; 
+            // sourcePathOnly is:
+            // ..\..\..\source\ 
+            //
+            wdrExePathOnly = currWorkDir + dirPathSeparator; 
+            // wdrExePathOnly may be:
+            // C:\Users\Bill\Documents\adaptit\bin\win32\WdrTweaks\ or  
+            // C:\Users\Bill\Documents\adaptit\bin\win32\Debug_WdrTweaks\ or  
+            // C:\Users\Bill\Documents\adaptit\bin\win32\Release_WdrTweaks\ 
+            //
         }
         else
         {
-            // The script is being called from some unknown current dir, so we assume the
-            // source files are in the current working dir, and the corresponding output 
-            // files are to be written to the same current working dir - unless changed by
-            // input parameters into this script (below).
-            ; // Keep current working dir
-            if (bVerbose)
-                wxPrintf("This script was called from unknown dir %s\n", currWorkDir.c_str());
+            wxString msg = _T("topDir of currWorkDir had unexpected value: %s");
+            msg = msg.Format(msg, topDir.c_str());
+            wxPrintf("*** ERROR - %s ***",msg.c_str());
+            return 1;
         }
 
-        // Get absolute paths for the relative paths: sourcePath and outputPath, calculated from
-        // the current working dir (normally C:\Users\Bill\Documents\adaptit\scripts), 
-        // by adding the sourcePath relative path to the currWorkDir and resolving it to an 
-        // absolute path. 
-        // Check if the relative sourcePath exists as calculated from currWorkDir or not and
-        // set default paths appropriately.
-        wxFileName fn3(currWorkDir + dirPathSeparator + sourcePath);
-        fn3.Normalize();
-        flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
-        sourcePath = fn3.GetPath(flags); // gets it in native format, including final separator
-        outputPath = sourcePath;
-        wxFileName fn4(currWorkDir + dirPathSeparator + scriptsPath);
-        fn4.Normalize();
-        flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
-        scriptsPath = fn4.GetPath(flags); // gets it in native format, including final separator
+        wxFileName fn1(sourcePathOnly);
+        fn1.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        sourcePathOnly = fn1.GetFullPath();//  (sourcePathOnly, &parentDir, NULL, NULL);
+        wxLogDebug("WdrTweaks sourcePathOnly: %s", sourcePathOnly.c_str());
+        wxPrintf("*** WdrTweaks sourcePathOnly: %s\n", sourcePathOnly.c_str());
+
+        // The outputPathOnly is the same as the sourcePathOnly, i.e. the .cpp file(s) written back to their
+        // same location.
+        outputPathOnly = sourcePathOnly;
+        wxLogDebug("WdrTweaks outputPathOnly: %s", outputPathOnly.c_str());
+        wxPrintf("*** WdrTweaks outputPathOnly: %s\n", outputPathOnly.c_str());
+
+        wxFileName fn2(wdrExePathOnly);
+        fn2.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        wdrExePathOnly = fn2.GetFullPath(); // gets it in native format, and absolute path including final separator
+        wxLogDebug("***WdrTweaks wdrExePathOnly: %s", wdrExePathOnly.c_str());
+        wxPrintf("*** WdrTweaks wdrExePathOnly: %s\n", wdrExePathOnly.c_str());
     }
     else
     {
+        // whm 26Apr2021 Currently we do not invoke WdrTweaks.exe with input parameters from the Adapt_it project's Pre-Build Event
+        // therefore this else block should not execute in normal usage within Visual Studio
         // At least one path parameter was given.
         if (paramtotal == 1)
         {
-            sourcePath = params[0];
-            outputPath = sourcePath;
+            sourcePathOnly = params[0];
+            outputPathOnly = sourcePathOnly;
         }
         else if (paramtotal == 2)
         {
-            sourcePath = params[0];
-            outputPath = params[1];
+            sourcePathOnly = params[0];
+            outputPathOnly = params[1];
         }
     }
-    if (sourcePath != outputPath)
+    if (sourcePathOnly != outputPathOnly)
     {
         // Parameters require output go to a different path than the input came from.
         // To do this with wxTextFile, we need to create a new file and iterate through
@@ -461,27 +490,34 @@ int main(int argc, char **argv)
         // The default outputFilename is same as inputFilename - name doesn't change when output
         wxString outputFilename = inputFilename;
 
-        // Ensure the sourcePath and outputPath end in path separator (user may not have typed 
+        // Ensure the sourcePathOnly and outputPathOnly end in path separator (user may not have typed 
         // path parameter(s) with terminating separators).
-        if (sourcePath.Right(1) != wxFileName::GetPathSeparator())
-            sourcePath = sourcePath + dirPathSeparator;
-        if (outputPath.Right(1) != wxFileName::GetPathSeparator())
-            outputPath = outputPath + dirPathSeparator;
+        if (sourcePathOnly.Right(1) != wxFileName::GetPathSeparator())
+            sourcePathOnly = sourcePathOnly + dirPathSeparator;
+        if (outputPathOnly.Right(1) != wxFileName::GetPathSeparator())
+            outputPathOnly = outputPathOnly + dirPathSeparator;
 
-        wxString inputFilePathAndName = sourcePath + inputFilename;
-        wxString outputFilePathAndName = outputPath + outputFilename;
-        if (bVerbose)
-        {
-            wxPrintf("***********************************************************************\n");
-            wxPrintf("The input path is: %s\n", inputFilePathAndName.c_str());
-            wxPrintf("The output path is: %s\n", outputFilePathAndName.c_str());
-            //wxPrintf("  The scripts path is: %s\n", scriptsPath.c_str());
-        }
+        wxString inputFilePathAndName = sourcePathOnly + inputFilename;
+        wxString outputFilePathAndName = outputPathOnly + outputFilename;
+        wxString executableFilePathAndName = wdrExePathOnly + _T("WdrTweaks.exe");
+        //if (bVerbose)
+        //{
+        wxPrintf("***********************************************************************\n");
+        //wxPrintf("The executable path/name is: %s\n", executableFilePathAndName.c_str());
+        wxPrintf("The input path/name is: %s\n", inputFilePathAndName.c_str());
+        wxPrintf("The output path/name is: %s\n", outputFilePathAndName.c_str());
+        //}
         currWorkDir = wxFileName::GetCwd();
 
         wxTextFile file(inputFilePathAndName);
         wxPrintf("    Opening and reading %s - please wait... ",inputFilename.c_str());
-        file.Open();
+        bool bOK;
+        bOK = file.Open();
+        if (!bOK)
+        {
+            wxPrintf("Could NOT OPEN input path/name at: %s\n", inputFilePathAndName.c_str());
+            return 1;
+        }
         // Check for the "// This file was processed by the sedConvert.sh script" header comment.
         // If it already exists we need not continue
         int totalLineCt = 0;
@@ -998,6 +1034,10 @@ int main(int argc, char **argv)
             file.Close();
         }
     } // end of for (filect = 0; filect < filetotal; filect++)
+
+    // whm 26Apr2021 added restore current working directory
+    wxLogNull logNo;	// eliminates any spurious messages from the system if the wxSetWorkingDirectory() returns FALSE
+    ::wxSetWorkingDirectory(saveCurrWorkDir); // ignore failures
 
     return 0;
 } // end of main()
