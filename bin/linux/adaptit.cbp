@@ -6,120 +6,141 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
+			<Target title="Debug_wx3.0">
+				<Option output="bin/Debug_wx3.0/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug_wx3.0/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_UNICODE" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
+			<Target title="Release_wx3.0">
+				<Option output="bin/Release_wx3.0/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release_wx3.0/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_UNICODE" />
-					<Add option="-D_KBSERVER" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
+					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
-			<Target title="DebugWX2.8">
-				<Option output="bin/DebugWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX2.8/" />
+			<Target title="Debug_wx31Static">
+				<Option output="bin/Debug_wx31Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug_wx31Static/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5-Static/buildgtkud/wx-config  --version=3.1 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
-					<Add directory="/wx28/include" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5-Static/include" />
 				</Compiler>
 				<Linker>
-					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5-Static/buildgtkud/wx-config  --version=3.1 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx28/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseWX2.8">
-				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX2.8/" />
+			<Target title="Release_wx31Static">
+				<Option output="bin/Release_wx31Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release_wx31Static/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="`/wx28/buildgtku/wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
-					<Add directory="/wx28/include" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5/buildgtku/wx-config  --version=3.1 --unicode=yes --debug=yes --cppflags`" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5-Static/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5-Static/buildgtku/wx-config  --version=3.1 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx28/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="DebugWX3.0">
-				<Option output="bin/DebugWX3.0/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX3.0/" />
+			<Target title="Debug_wx-git">
+				<Option output="bin/Debug_wxgit/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug_wxgit/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`/wx30/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-git/buildgtkud/wx-config  --version=3.1 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
-					<Add directory="/wx30/include" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/projects/wxWidgets-git/include" />
 				</Compiler>
 				<Linker>
-					<Add option="`/wx30/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --libs`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-git/buildgtkud/wx-config  --version=3.1 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseWX3.0">
-				<Option output="bin/ReleaseWX3.0/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/ReleaseWX3.0/" />
+			<Target title="Release_wx-git">
+				<Option output="bin/Release_wxgit/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release_wxgit/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
-					<Add option="-Wall" />
-					<Add option="-m32" />
-					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_UNICODE" />
-					<Add option="-D_KBSERVER" />
-					<Add directory="/wx30/include" />
+					<Add option="-O2" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-3.1.5/buildgtku/wx-config  --version=3.1 --unicode=yes --debug=yes --cppflags`" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/projects/wxWidgets-git/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-m32" />
-					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs`" />
+					<Add option="-s" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/projects/wxWidgets-git/buildgtku/wx-config  --version=3.1 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
-			<Target title="DebugWX3Static">
-				<Option output="bin/DebugWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX3Static/" />
+			<Target title="Link2DebugWXgitStatic">
+				<Option output="bin/Link2DebugWXgitStatic/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Link2DebugWXgitStatic/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`/wxgit/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add directory="/wxgit/include" />
+				</Compiler>
+				<Linker>
+					<Add option="`/wxgit/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+			</Target>
+			<Target title="Link2ReleaseWXgitStatic">
+				<Option output="bin/Link2ReleaseWXgitStatic/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Link2ReleaseWXgitStatic/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`/wxgit/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="/wxgit/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`/wxgit/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs core,base,aui,html,xrc,qa,adv,xml,net`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+			</Target>
+			<Target title="XDebugWX3Static">
+				<Option output="bin/XDebugWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/XDebugWX3Static/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -127,7 +148,6 @@
 					<Add option="-g" />
 					<Add option="`$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
 					<Add directory="$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/include" />
 				</Compiler>
 				<Linker>
@@ -144,9 +164,9 @@
 					<Add before="sleep 4" />
 				</ExtraCommands>
 			</Target>
-			<Target title="ReleaseWX3Static">
-				<Option output="bin/ReleaseWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/ReleaseWX3Static/" />
+			<Target title="XReleaseWX3Static">
+				<Option output="bin/XReleaseWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/XReleaseWX3Static/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -175,6 +195,7 @@
 			<Add option="-m64" />
 			<Add option="-g" />
 			<Add option="-Wno-unused-local-typedefs" />
+			<Add option="-D_KBSERVER" />
 		</Compiler>
 		<Linker>
 			<Add option="-m64" />
@@ -355,6 +376,8 @@
 		<Unit filename="../../source/AdminMoveOrCopy.h" />
 		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.cpp" />
 		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.h" />
+		<Unit filename="../../source/Authenticate2Dlg.cpp" />
+		<Unit filename="../../source/Authenticate2Dlg.h" />
 		<Unit filename="../../source/AutoSavingPage.cpp" />
 		<Unit filename="../../source/AutoSavingPage.h" />
 		<Unit filename="../../source/BString.cpp" />
@@ -474,10 +497,10 @@
 		<Unit filename="../../source/KBPage.h" />
 		<Unit filename="../../source/KBSharing.cpp" />
 		<Unit filename="../../source/KBSharing.h" />
+		<Unit filename="../../source/KBSharingAuthenticationDlg.cpp" />
+		<Unit filename="../../source/KBSharingAuthenticationDlg.h" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.cpp" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.h" />
-		<Unit filename="../../source/KBSharingStatelessSetupDlg.cpp" />
-		<Unit filename="../../source/KBSharingStatelessSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
 		<Unit filename="../../source/KbSharingSetup.cpp" />
