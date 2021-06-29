@@ -1543,7 +1543,7 @@ void KbServer::UploadToKbServer()
 	{
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString execFileName = _T("do_upload_local_kb.exe");
-		wxString resultFile = _T("upload_local_kb.exe");
+		wxString resultFile = _T("upload_local_kb.dat");
 		m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99);
 	}
 }
