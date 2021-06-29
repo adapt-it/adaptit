@@ -68,6 +68,7 @@
 #include "Layout.h"
 #include "KBEditor.h"
 #include "RefString.h"
+#include "KBSharingAuthenticationDlg.h"
 #include "helpers.h"
 #include "tellenc.h"
 #include "RefStringMetadata.h"
@@ -76,7 +77,7 @@
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
-#include "KBSharingAuthenticationDlg.h"
+
 //#if defined (_KBSERVER)
 #include <stdio.h>
 #include <stdlib.h>
@@ -252,7 +253,7 @@ n:
 /// \return nothing
 /// \remarks
 /// A Helper function for doing a time delay in 1/100ths of a second.
-/// Based on helper function DoDelay() but does not use the global 
+/// Based on helper function DoDelay() but does not use the global
 /// m_nCurDelay; instead the time in hundredths is taken from the
 /// int parameter.
 /////////////////////////////////////////////////////////////
@@ -751,7 +752,7 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 	// determine whether the empty verse range includes all verses of the chapter
 	// or not, we parse the incoming emptyVersesStr to see if it is of the later
 	// "1-29" form. There will be a single '-' character and no comma delimiters.
-    // The caller ensures that the incoming emptyVersesStr will NOT be an empty 
+    // The caller ensures that the incoming emptyVersesStr will NOT be an empty
     // string.
     wxASSERT(!emptyVersesStr.IsEmpty());
 	bool bAllVersesAreEmpty = FALSE;
@@ -2105,7 +2106,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	return span;
 }
 
-// BEW created 17Nov16 for 
+// BEW created 17Nov16 for
 // use in CAdapt_ItApp::EnsureProperCapitalization()
 wxString GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd)
 {
@@ -2215,7 +2216,7 @@ wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 	// and the m_bSingleQuoteAsPunct flag value updated according to what is
 	// found, TRUE if in the punct set, FALSE if not
 	wxString str = _T("'");
-	if (pApp->m_bSingleQuoteAsPunct == TRUE) // BEW 7Nov16 TRUE is the new default, 
+	if (pApp->m_bSingleQuoteAsPunct == TRUE) // BEW 7Nov16 TRUE is the new default,
 											 // but user can remove ' in Prefs to override
 	// BEW 7Nov16, make sure ' and ~ are at the end of the src and tgt m_punctuation strings
 	{
@@ -6866,16 +6867,16 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 #if !defined(USE_LEGACY_PARSER)
 
 /// return      The recomposed end of the source text string, including punctuation and markers,
-///             starting with m_key value, and exclude contents of m_filteredInfo_After 
+///             starting with m_key value, and exclude contents of m_filteredInfo_After
 /// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
 /// BEW created 8May2017 to build the source text from a single CSourcePhrase (because
-/// merging across filtered information is prohibited, we only have to consider a 
+/// merging across filtered information is prohibited, we only have to consider a
 /// singleton), which is undergoing unfiltering. We only build the post-word string,
 /// which might be empty, or just punctuation, or just one or more inline endmarkers,
 /// or a mix of punctuation and inline endmarkers - while ignoring the CSourcePhrase's
 /// m_filteredInfo_After contents. The aim is to get everthing in place, except
-/// any unfiltered information, and then pass the returned string to the caller to 
-/// place the unfilted (one or more) information in the correct places, using the 
+/// any unfiltered information, and then pass the returned string to the caller to
+/// place the unfilted (one or more) information in the correct places, using the
 /// metadata stored with the filtered info which is stored in m_filteredInfo_After.
 /// The only function which uses this is the document's ReconstituteAfterFilteringChange(),
 /// and it is based on code from within helpers.cpp FromSingleMakeSstr(), with some
@@ -6920,9 +6921,9 @@ wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, 
 	}
 	// Finally, there could be an inline non-binding endmarker, like \wj* (words of Jesus)
 	// Note: if unfiltering of material from a location which earlier was post-word, such
-	// as \x ... content ...\x* is to be done, the caller will need to search for any 
+	// as \x ... content ...\x* is to be done, the caller will need to search for any
 	// inline non-binding endmarkers that get added here, and move them to the end of whatever
-	// unfiltered material is restored to visibility in the source text - otherwise, something 
+	// unfiltered material is restored to visibility in the source text - otherwise, something
 	// like \wj* might end up within the punctuation at the end of a word, rather than after it,
 	// therefore we return any non-binding inline markers separately in order to make it easy
 	// to move elsewhere if necessary
@@ -10059,10 +10060,10 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 
     unsigned int numMonitors;
     numMonitors = wxDisplay::GetCount();
-    // whm 11Apr2019 added the following test to check whether mainFrmDisplayIndex is 
+    // whm 11Apr2019 added the following test to check whether mainFrmDisplayIndex is
     // within the range of detected monitors. If it is a bad value it will generate a crash.
     // We can avoid the crash by checking for a bad mainFrmDisplayIndex value, and if so,
-    // we just set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // we just set some reasonable myTopCoord and myLeftCoord values that would center the
     // dialog on the primary monitor.
     if (mainFrmDisplayIndex == wxNOT_FOUND || mainFrmDisplayIndex < 0 || mainFrmDisplayIndex >(numMonitors - 1))
     {
@@ -10093,7 +10094,7 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
     // replacing it, gets the rectScreen of the actual monitor the app is displaying on.
 	//rectScreen = wxGetClientDisplayRect(); // a global wx function
     //
-    // Create an instance of wxDisplay for thisDisplay and get its rectScreen (may 
+    // Create an instance of wxDisplay for thisDisplay and get its rectScreen (may
     // be primary or a secondary display)
     wxDisplay thisDisplay(mainFrmDisplayIndex);
     rectScreen = thisDisplay.GetClientArea();
@@ -10111,8 +10112,8 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	int phraseBoxHeight;
 	int phraseBoxWidth;
 	pApp->m_pTargetBox->GetTextCtrl()->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want // whm 12Jul2018 added GetTextCtrl()-> part
-    // whm Note: The top-left corner of the phrasebox YPos and XPos, is calculated in the caller 
-    // via the CalcScrolledPosition() and ClientToScreen() calls. They are in screen pixels 
+    // whm Note: The top-left corner of the phrasebox YPos and XPos, is calculated in the caller
+    // via the CalcScrolledPosition() and ClientToScreen() calls. They are in screen pixels
     // based on the whole extended display from the 0,0 point on the primary monitor.
     int xOffsetToSecondaryMonitor = 0; // default to no offset for single monitor calcs
     // Calculate an xOffsetToSecondaryMonitor if thisDisplay is not the primary display.
@@ -10282,7 +10283,7 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
     //
     // whm 11Apr2019 modified. The detection of myMonitor should not be done
     // with the wxDisplay::GetFromPoint() function, because if the phrasebox
-    // is scrolled up or down and not visible - beyond the virtual boundary of 
+    // is scrolled up or down and not visible - beyond the virtual boundary of
     // the monitor, or if the main frame is moved down so the phrasebox is not
     // in view but below the boundary of the monitor, GetFromPoint() won't find it!
     // It is better to attempt detection using the GetFromWindow(pApp->GetMainFrame())
@@ -10294,10 +10295,10 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
     unsigned int myMonitor = wxDisplay::GetFromWindow(pApp->GetMainFrame());
     // whm 11Apr2019 added the following test to check whether myMonitor is within the
     // range of detected monitors. If the user were to position AI's main frame down
-    // so that the phraseBoxTopLeft point is not visible on the monitor, then the 
+    // so that the phraseBoxTopLeft point is not visible on the monitor, then the
     // GetFromPoint(phraseBoxTopLeft) call above will fail and generate a crash.
     // We can avoid the crash by checking for a bad myMonitor value, and if so, we just
-    // set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // set some reasonable myTopCoord and myLeftCoord values that would center the
     // dialog on the primary monitor.
     if (myMonitor == wxNOT_FOUND || myMonitor < 0 || myMonitor >(numMonitors - 1))
     {
@@ -10868,7 +10869,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 	wxUnusedVar(bGloss);
 	wxUnusedVar(bFreeTrans);
 	wxUnusedVar(bUserCancelled);
-	return TRUE; 
+	return TRUE;
 	/* BEW 5Sep20, no longer needed, remove
 	bUserCancelled = FALSE; // default
 	// The next test tests yields TRUE if a wanted code has its app storage member for it
@@ -11087,7 +11088,7 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	// ProjectPage::OnWizardPageChanging() as that would display the authentication
 	// dialog in the middle of working through the wizard, from project to
 	// and open document; but rather we just there set a boolean,
-	// CAdapt_ItApp::m_bEnteringKBserverProject to TRUE, and use that to call this 
+	// CAdapt_ItApp::m_bEnteringKBserverProject to TRUE, and use that to call this
 	// function from CMainFrame's OnIdle() handler - providing it's an adaptations
 	// or glosses sharing project. Its dialog will appear just after the document
 	// is laid out
@@ -11164,7 +11165,7 @@ bool IsIpAddrStoreable(wxArrayString* pArr, wxString& ipAddr)
 		// so return TRUE
 		return TRUE;
 	}
-	wxString strNoProtocol = ipAddr; 
+	wxString strNoProtocol = ipAddr;
 	size_t count = pArr->GetCount();
 	size_t index;
 	int offset = wxNOT_FOUND;
@@ -11201,14 +11202,14 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
     // authenticating, do not use it for authentication to the KB Sharing Manager -- the
     // latter authentication job is done from the app instance, in the handler which
     // creates and launches the KB Sharing Manager instance
- 
+
 	pApp->m_bUserAuthenticating = TRUE; // user authentications require this be TRUE
 	pApp->m_bLoginFailureErrorSeen = FALSE;
 	pApp->m_bAuthenticationCancellation = FALSE;
 	pApp->m_bUserLoggedIn = FALSE; // initialize
 
 	CMainFrame* pFrame = pApp->GetMainFrame();
-	// Make the bServiceDiscoveryWanted param accessible to KBSharingAuthenticationDlg 
+	// Make the bServiceDiscoveryWanted param accessible to KBSharingAuthenticationDlg
 	// (the "Authenticate" dialog)
 	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
 
@@ -11319,6 +11320,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 			// member within this session, is going to be the one required for whatever ipAddr
 			// gets typed in. We can only assume the username is correct, but it will be
 			// checked in the KBSharingAuthenticationDlg dialog's OnOK() handler
+
 			KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
 			dlg.Center();
 			int dlgReturnCode;
@@ -11334,7 +11336,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				if (dlg.m_bError)
 				{
 					pApp->m_bLoginFailureErrorSeen = TRUE;
-					goto bad2; 
+					goto bad2;
 				}
                 // We want valid codes for source and target if sharing the adaptations KB,
                 // and for source and glosses languages if sharing the glossing KB.
@@ -11351,8 +11353,8 @@ here2:		dlgReturnCode = dlg.ShowModal();
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
 						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
-						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
-							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
+							pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
 						*/
@@ -11369,9 +11371,9 @@ here2:		dlgReturnCode = dlg.ShowModal();
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
 						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr, 
-							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
-							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr,
+							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 							pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
 						*/
@@ -11404,7 +11406,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = 
+						wxString msg =
 _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
@@ -11422,7 +11424,7 @@ _("The attempt to share the adaptations knowledge base failed.\nYou can continue
 						pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = 
+						wxString msg =
 _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
                         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                         pApp->m_bUserDlgOrMessageRequested = TRUE;
@@ -11444,19 +11446,19 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					// Don't proceed to store it if the same ipAddr is already stored within the array
 					if (IsIpAddrStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerIpAddr))
 					{
-						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), 
+						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"),
 							__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 						// Since the ipAddr is okay, construct the composite string and .Add() it to the
 						// app's m_ipAddrs_Hostnames array
-						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to 
+						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to
 						// the CServiceDiscovery instance
 						wxString composite = pApp->m_strKbServerIpAddr;
 						wxString defaultHostname = _("unknown");
 						wxString ats = _T("@@@");
 						composite += ats + defaultHostname;
 						pApp->m_ipAddrs_Hostnames.Add(composite);
-						
-						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), 
+
+						wxLogDebug(_T("helpers.cpp line=%d: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"),
 							__LINE__, pApp->m_ipAddrs_Hostnames.GetCount());
 					}
 				} // 3
@@ -11493,8 +11495,8 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// password). The function always sets m_bIsKBServerProject and
 				// m_bIsGlossingKBServerProject to FALSE
 				/* BEW 25Sep20 deprecated, we no longer investigate lang codes
-				   HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr, 
-					pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+				   HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
+					pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 				*/
 bad2:			bSetupKBserverFailed = TRUE;
@@ -11505,9 +11507,9 @@ bad2:			bSetupKBserverFailed = TRUE;
 			{  // 2
 				// User clicked OK button but in the OnOK() handler, premature return was
 				// asked for most likely due to an empty password submitted or a Cancel
-				// from within one of the lower level calls, or there was a error saying 
-				// that the connection could not be made, etc. So allow retry, or a change 
-				// to the settings, or a Cancel button press at this level instead (the 
+				// from within one of the lower level calls, or there was a error saying
+				// that the connection could not be made, etc. So allow retry, or a change
+				// to the settings, or a Cancel button press at this level instead (the
 				// Authenticate dialog includes a Cancel button, pressing
 				// it makes the project not be a sharing one for adapting or glossing kbs)
 				goto here2; // <<-- back to showing the dialog window
@@ -11543,7 +11545,7 @@ bad2:			bSetupKBserverFailed = TRUE;
 			// and give the user guidance about how to proceed to connect; and if an
 			// automatic connection is possible (it should be if the ipAddr has not
 			// changed, and there is a stored password available within this session)
-			// then it can be done. Any failures should not result in a return from 
+			// then it can be done. Any failures should not result in a return from
 			// this wizard function, but just cancellation of the sharing setup.
 			// We need a few booleans so that if an error happens, we can skip code
 			// that should not be attempted subsequently
@@ -11552,7 +11554,7 @@ bad2:			bSetupKBserverFailed = TRUE;
 			bool bSimulateUserCancellation = FALSE; // initialize
 			bool bSetupKBserverFailed = FALSE; // initialize
 
-			// ConnectUsingDiscoveryResults() internally creates an instantiation of the 
+			// ConnectUsingDiscoveryResults() internally creates an instantiation of the
 			// ServiceDiscovery class. The pointer CAdapt_ItApp::m_pServDisc points
 			// to the ServiceDiscovery instance and is non-NULL while the service discovery
 			// runs, but when it is shut down, that pointer needs to again be set to NULL
@@ -11694,7 +11696,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 								// user has changed his mind about KB Sharing being on - so turn it off
 								/* BEW 25Sep20 deprecated, we no longer call this
 								HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
-									pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+									pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 									pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
 								*/
@@ -11712,8 +11714,8 @@ here:				dlgReturnCode = dlg.ShowModal();
 								// user has changed his mind about KB Sharing being on - so turn it off
 								/* BEW 25Sep20 deprecated, we no longer call this
 								HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldIpAddrStr,
-									pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
-									pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+									pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,
+									pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 									pApp->m_saveSharingGlossesFlag);
 								pApp->m_bLoginFailureErrorSeen = TRUE;
 								*/
@@ -11801,7 +11803,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 						// m_bIsGlossingKBServerProject to FALSE
 						/* BEW 25Sep20 deprecated, we no longer call this
 						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
-						pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+						pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 						pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 						*/
 bad:					bSetupKBserverFailed = TRUE;
@@ -11812,9 +11814,9 @@ bad:					bSetupKBserverFailed = TRUE;
 					{
 						// User clicked OK button but in the OnOK() handler, premature return was
 						// asked for most likely due to an empty password submitted or a Cancel
-						// from within one of the lower level calls, or there was a error, saying 
+						// from within one of the lower level calls, or there was a error, saying
 						// that the connection could not be made, etc. So allow retry, or a change
-						// to the settings, or a Cancel button press at this level instead (the 
+						// to the settings, or a Cancel button press at this level instead (the
 						// Authenticate dialog includes a Cancel button, pressing
 						// it makes the project not be a sharing one for adapting or glossing kbs)
 						goto here; // <<-- back to the showing of the dialog
@@ -11990,7 +11992,7 @@ bad:					bSetupKBserverFailed = TRUE;
 						}
 
 					} // end of TRUE block for test: if (!bSimulateUserCancellation)
-				
+
 				} //end of else block for test: if (bShowIpAddrAndUsernameDlg == TRUE)
 
 			} // end of TRUE block for test: if (bServiceDiscoverySucceeded)
@@ -12182,7 +12184,7 @@ void ShortWaitSharingOff()
 	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
 
-bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pUsername, 
+bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pUsername,
 							wxString* pPassword, wxString datFilename)
 {
 	// Using absolute paths...
@@ -12200,7 +12202,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	bool bFileExists = FALSE; // initialise
 	bFileExists = wxFileName::FileExists(datPath);
 
-	// Create the lines to be added. Last is comma-separated credentials 
+	// Create the lines to be added. Last is comma-separated credentials
 	// Comment lines start with # (hash)
 	wxString comment1 = _T("# Usage: ipAddress,username,password,");
 	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
@@ -12212,7 +12214,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	{
 		// Create() must only be called when the file doesn't already exist
 		textFile.Create(datPath);
-		// Note textFile is empty at this point							   
+		// Note textFile is empty at this point
 		textFile.Open();
 		bool bIsOpened = textFile.IsOpened();
 		if (bIsOpened)
@@ -12262,7 +12264,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	return TRUE;
 }
 
-// BEW 23Nov20, use this one from the KB Sharing Manager, so set app's 
+// BEW 23Nov20, use this one from the KB Sharing Manager, so set app's
 // m_bUseForeignOption to TRUE, so that the case 1, with "credentials_for_user.dat
 // as the input .dat file, can be filled from an alternative path using KB Sharing
 // Manager supplied values.
@@ -12290,20 +12292,20 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 	bool bFileExists = FALSE; // initialise
 	bFileExists = wxFileName::FileExists(datPath);
 
-	// Create the lines to be added. Last is comma-separated credentials 
+	// Create the lines to be added. Last is comma-separated credentials
 	// Comment lines start with # (hash)
 	wxString comment1 = _T("# Usage: ipAddress,username,password,bCanAddUsers");
 	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 	wxString comment3 = _T("# dist folder's 'input' file: credentials_for_user.dat");
 	wxString comment4 = _T("# Default useradmin value is to be TRUE");
-	wxString credentials = ipaddr + comma + username + comma + fullname + comma 
+	wxString credentials = ipaddr + comma + username + comma + fullname + comma
 							+ pwd + comma + useradmin + comma;
 	// BEWARE, don't try escaping any ' in credentials above, the pwd may contain one
 	// and should not be changed. Do each field separately, if the field needs it
 	if (!bFileExists)
 	{
 		textFile.Create(datPath);
-		// Note textFile is empty at this point							   
+		// Note textFile is empty at this point
 		textFile.Open();
 		bool bIsOpened = textFile.IsOpened();
 		if (bIsOpened)
@@ -12374,7 +12376,7 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 // inserting strings into mariaDB/kbserver mysql entry table, or
 // user table, which contain internal single quotes in words,
 // phrases, or names, or language names, or whatever. Our data
-// for sending to a kbserver table never has a single quoted 
+// for sending to a kbserver table never has a single quoted
 // string, so any single quotes must be escaped to keep SQL
 // requests from failing - since ' is a key-character in SQL
 // requests. MySQL will take the \' escaped strings "as is",
@@ -12583,7 +12585,7 @@ void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename)
 		// free the malloc buffer, don't need it, fileBuffer has the data now
 		free((void*)pByteBuf);
 		// Now call the string form of the DoUnescapeSingleQuote(wxString& str)
-		// to get all escaped single quotes ( \' ) in the file's contents, 
+		// to get all escaped single quotes ( \' ) in the file's contents,
 		// un-escaped to ( ' )
 		// (if any are already un-escaped, they are left as is & returned)
 		fileBuffer = DoUnescapeSingleQuote(fileBuffer);
@@ -12620,7 +12622,7 @@ void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename)
 // Remove the subStr from inputStr and return the resulting string. Remove once
 // only (default, bRemoveAll is FALSE) - the first one found. If bRemoveAll is
 // explicitly TRUE, then every occurrence of subStr is removed, and the result
-// returned. If there is no occurrence of subStr, then return the inputStr 
+// returned. If there is no occurrence of subStr, then return the inputStr
 // 'as is'. Likewise, if subStr is empty, the passed in inputStr is returned
 // unchanged.
 // BEW 30Sep19 created
@@ -12684,7 +12686,7 @@ wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll)
 // gets the path single-quoted, and any internal spaces in folder names result
 // in failure when the app tries to follow the path. The first space results in
 // the earlier path of the path being treated as a command, with the word of the
-// path immediately before the space being wrongly treated as a command - which 
+// path immediately before the space being wrongly treated as a command - which
 // it isn't, and the path fails. For example:
 // C:\adaptit-git\bin\win32\Unicode Debug\python dLss_win.py
 // fails because C:\adaptit-git\bin\win32\Unicode is taken wrongly as the whole
@@ -12750,7 +12752,7 @@ wxString SafetifyPath(wxString rawpath)
 				// use the inner loop (using ptr in the inner loop confuses the
 				// compiler and it can result in the inner loop jumping to a
 				// former processed but different path - so avoid this)
-				bHasFolderInitialQuote = TRUE; // keeps control in the inner loop 
+				bHasFolderInitialQuote = TRUE; // keeps control in the inner loop
 											   // while this is TRUE
 				newPath.Append(*ptr); // copy over the separator
 				ptr++; // advance
@@ -12809,7 +12811,7 @@ wxString SafetifyPath(wxString rawpath)
 					}
 				} // end of inner loop, while (ptr2 < pEnd2)
 
-			} // end of TRUE block for test: 
+			} // end of TRUE block for test:
 			  // if ((*ptr == _T('\\')) && (*(ptr + 1) == dblQuote))
 
 			if (bReachedBufferEnd)
@@ -12869,7 +12871,7 @@ wxString SafetifyPath(wxString rawpath)
 							countFromLastSeparator = 0; // counting is about to begin
 						}
 						// We've come to a separator, transferred it and advance over it
-						// but a new folder name may be starting, there may be a space or 
+						// but a new folder name may be starting, there may be a space or
 						// spaces in the name
 						if (!bScanningToFolderEnd && bAfterFolderStart) // && (*ptr != charSeparator))
 						{
@@ -12892,7 +12894,7 @@ wxString SafetifyPath(wxString rawpath)
 								{
 									newPath.Append(*ptr); // copy over the character of the foldername
 									ptr++; // advance
-									// Count each char traversed... we may come to a space 
+									// Count each char traversed... we may come to a space
 									countFromLastSeparator++;
 								}
 							}
@@ -12902,7 +12904,7 @@ wxString SafetifyPath(wxString rawpath)
 
 
 				} // end of TRUE block for test: if (*ptr == charSeparator)
-				//else				
+				//else
 				if (!bBeginningScan && !bScanningToFolderEnd)
 				{
 					// If we come to a space, iterate without advancing so that the
@@ -12919,7 +12921,7 @@ wxString SafetifyPath(wxString rawpath)
 						countFromLastSeparator++; // count, we may come to a space
 					}
 					// iterate
-				} // end of TRUE block for test: 
+				} // end of TRUE block for test:
 				  // if (!bBeginningScan && !bScanningToFolderEnd)
 				else
 				{
