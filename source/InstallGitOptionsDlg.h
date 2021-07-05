@@ -27,24 +27,22 @@ public:
     CInstallGitOptionsDlg(wxWindow* parent); // constructor
     virtual ~CInstallGitOptionsDlg(void); // destructor
                                // other methods
-
-protected:
-    void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-    void OnOK(wxCommandEvent& event);
-    void OnCancel(wxCommandEvent& event);
-    void OnRadioDoNotInstallGit(wxCommandEvent& event);
-    void OnRadioDownloadGitAndInstall(wxCommandEvent& event);
-    void OnRadioBrowseForGitAndInstall(wxCommandEvent& event);
-
     wxRadioButton* pRadioBtnDoNotInstallGitNow;
     wxRadioButton* pRadioBtnDownloadAndInstallGitFromInternet;
     wxRadioButton* pRadioBtnBrowseForGitInstaller;
-	// BEW 20Jun17 changed to multiline readonly text ctrl, as wx 2.8.12 can't concatenate
-	// wide & narrow strings, (wxDesigner only wrapped first line of wxStaticText with _() macro)
-    //wxStaticText* pStaticTextTop;
-    //wxStaticText* pStaticDescTopBtn;
-    wxTextCtrl* pStaticTextTop;
+    wxTextCtrl* pStaticTextPreamble;
     wxTextCtrl* pStaticDescTopBtn;
+    wxTextCtrl* pStaticDescMiddleBtn;
+    wxTextCtrl* pStaticDescBottomBtn;
+
+    // the following variables made public for possibl use in CAdapt_ItApp::OnToolsInstallGit()
+    
+    wxString gitVerNumAlreadyInstalled;
+    wxString topPreambleStr;
+    wxString verNumWithDots;
+    wxString topStr;
+    wxString middleStr; 
+    wxString bottomStr;
 
     wxString PathToAIInstallation;
     wxString GitInstallerPathAndName;
@@ -55,8 +53,17 @@ protected:
     wxString msg;
     wxString GitInstallerFileName;
     wxString GitDownloadInstallerFileName;
-    wxString GitSetupURL;
     wxString GitDownloadInstallerPathAndName;
+    
+
+protected:
+    void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+    void OnRadioDoNotInstallGit(wxCommandEvent& event);
+    void OnRadioDownloadGitAndInstall(wxCommandEvent& event);
+    void OnRadioBrowseForGitAndInstall(wxCommandEvent& event);
+
 
 private:
     CAdapt_ItApp* m_pApp;

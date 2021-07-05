@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2021-04-08 21:32-0500\n"
-"PO-Revision-Date: 2021-04-08 21:32-0500\n"
+"POT-Creation-Date: 2021-07-03 21:32-0500\n"
+"PO-Revision-Date: 2021-07-03 21:32-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: sw\n"
@@ -58,21 +58,21 @@ msgstr ""
 
 # Priority 1
 # Meaning: display glosses, if they exist (in a separate line)
-#: Adapt_It.cpp:9695
+#: Adapt_It.cpp:9707
 msgid "See Glosses"
 msgstr "Onyesha Fafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:10009 Adapt_It.cpp:21888 Adapt_ItView.cpp:32010
-#: Adapt_ItView.cpp:32174 ConsistencyCheckDlg.cpp:197
+#: Adapt_It.cpp:10021 Adapt_It.cpp:21896 Adapt_ItView.cpp:32016
+#: Adapt_ItView.cpp:32180 ConsistencyCheckDlg.cpp:197
 #: ConsistencyCheckDlg.cpp:822 RemoveSomeTgtEntries.cpp:182
 #, fuzzy
 msgid "<no gloss>"
 msgstr "ufafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:10013 Adapt_It.cpp:21887 Adapt_ItView.cpp:31998
-#: Adapt_ItView.cpp:32185 Adapt_It_wdr.cpp:274 Adapt_It_wdr.cpp:5130
+#: Adapt_It.cpp:10025 Adapt_It.cpp:21895 Adapt_ItView.cpp:32004
+#: Adapt_ItView.cpp:32191 Adapt_It_wdr.cpp:274 Adapt_It_wdr.cpp:5130
 #: ChooseTranslation.cpp:212 ChooseTranslation.cpp:341
 #: ChooseTranslation.cpp:467 ChooseTranslation.cpp:622
 #: ChooseTranslation.cpp:785 ChooseTranslation.cpp:813
@@ -87,273 +87,273 @@ msgstr "<hakuna tafsiri>"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: Adapt_It.cpp:10073 Adapt_It.cpp:49573 Adapt_It_wdr.cpp:288
+#: Adapt_It.cpp:10085 Adapt_It.cpp:49809 Adapt_It_wdr.cpp:288
 #: Adapt_It_wdr.cpp:5136
 msgid "Glossing"
 msgstr "Ufafanuzi"
 
 # Priority 1
 # This refers to a short time delay that the user can set to slow down automatic insertions in the phrase box.
-#: Adapt_It.cpp:10082
+#: Adapt_It.cpp:10094
 #, fuzzy
 msgid "Delay"
 msgstr "Kuchelewesha"
 
 # Priority 1
-#: Adapt_It.cpp:10137 Adapt_It_wdr.cpp:10026 Adapt_It_wdr.cpp:10089
+#: Adapt_It.cpp:10149 Adapt_It_wdr.cpp:10026 Adapt_It_wdr.cpp:10089
 #: MainFrm.cpp:1666 ToolbarPage.cpp:184
 msgid "New"
 msgstr "Mpya"
 
-#: Adapt_It.cpp:10137 Adapt_It_wdr.cpp:9837 Adapt_It_wdr.cpp:10026
+#: Adapt_It.cpp:10149 Adapt_It_wdr.cpp:9837 Adapt_It_wdr.cpp:10026
 #: Adapt_It_wdr.cpp:10089 MainFrm.cpp:1666 ToolbarPage.cpp:184
 msgid "Create a new document"
 msgstr "Unda waraka mpya"
 
 # Priority 1
-#: Adapt_It.cpp:10138 Adapt_It_wdr.cpp:478 Adapt_It_wdr.cpp:10028
+#: Adapt_It.cpp:10150 Adapt_It_wdr.cpp:478 Adapt_It_wdr.cpp:10028
 #: Adapt_It_wdr.cpp:10091 MainFrm.cpp:1667 ToolbarPage.cpp:185
 msgid "Open"
 msgstr "Fungua"
 
-#: Adapt_It.cpp:10138 Adapt_It_wdr.cpp:9838 Adapt_It_wdr.cpp:10028
+#: Adapt_It.cpp:10150 Adapt_It_wdr.cpp:9838 Adapt_It_wdr.cpp:10028
 #: Adapt_It_wdr.cpp:10091 MainFrm.cpp:1667 ToolbarPage.cpp:185
 msgid "Open an existing document"
 msgstr "Fungua waraka"
 
 # Priority 1
-#: Adapt_It.cpp:10139 Adapt_It_wdr.cpp:10030 Adapt_It_wdr.cpp:10093
+#: Adapt_It.cpp:10151 Adapt_It_wdr.cpp:10030 Adapt_It_wdr.cpp:10093
 #: MainFrm.cpp:1668 ToolbarPage.cpp:186
 msgid "Save"
 msgstr "Tunza"
 
-#: Adapt_It.cpp:10139 Adapt_It_wdr.cpp:9839 Adapt_It_wdr.cpp:10030
+#: Adapt_It.cpp:10151 Adapt_It_wdr.cpp:9839 Adapt_It_wdr.cpp:10030
 #: Adapt_It_wdr.cpp:10093 MainFrm.cpp:1668 ToolbarPage.cpp:186
 msgid "Save the active document"
 msgstr "Tunza waraka unaotumika"
 
 # Priority 1
-#: Adapt_It.cpp:10141 Adapt_It_wdr.cpp:10032 MainFrm.cpp:1670
+#: Adapt_It.cpp:10153 Adapt_It_wdr.cpp:10032 MainFrm.cpp:1670
 #: ToolbarPage.cpp:188
 msgid "Cut"
 msgstr "Kata"
 
-#: Adapt_It.cpp:10141 Adapt_It_wdr.cpp:9869 Adapt_It_wdr.cpp:10032
+#: Adapt_It.cpp:10153 Adapt_It_wdr.cpp:9869 Adapt_It_wdr.cpp:10032
 #: MainFrm.cpp:1670 ToolbarPage.cpp:188
 msgid "Cut the selection and put it on the Clipboard"
 msgstr "Kata yaliyochaguliwa na kuweka sehemu ya kuficha"
 
 # Priority 1
-#: Adapt_It.cpp:10142 Adapt_It_wdr.cpp:10033 MainFrm.cpp:1671
+#: Adapt_It.cpp:10154 Adapt_It_wdr.cpp:10033 MainFrm.cpp:1671
 #: ToolbarPage.cpp:189
 msgid "Copy"
 msgstr "Nakili"
 
-#: Adapt_It.cpp:10142 Adapt_It_wdr.cpp:9870 Adapt_It_wdr.cpp:10033
+#: Adapt_It.cpp:10154 Adapt_It_wdr.cpp:9870 Adapt_It_wdr.cpp:10033
 #: MainFrm.cpp:1671 ToolbarPage.cpp:189
 msgid "Copy the selection and put it on the Clipboard"
 msgstr "Nakili yaliyochaguliwa na kuweka sehemu ya kuficha"
 
 # Priority 1
-#: Adapt_It.cpp:10143 Adapt_It_wdr.cpp:10034 MainFrm.cpp:1672
+#: Adapt_It.cpp:10155 Adapt_It_wdr.cpp:10034 MainFrm.cpp:1672
 #: ToolbarPage.cpp:190
 #, fuzzy
 msgid "Paste"
 msgstr "Weka"
 
-#: Adapt_It.cpp:10143 Adapt_It_wdr.cpp:9871 Adapt_It_wdr.cpp:10034
+#: Adapt_It.cpp:10155 Adapt_It_wdr.cpp:9871 Adapt_It_wdr.cpp:10034
 #: MainFrm.cpp:1672 ToolbarPage.cpp:190
 msgid "Insert Clipboard contents"
 msgstr "Ingiza yaliyomo sehemu ya kuficha"
 
 # Priority 1
-#: Adapt_It.cpp:10145 Adapt_It_wdr.cpp:10037 MainFrm.cpp:1674
+#: Adapt_It.cpp:10157 Adapt_It_wdr.cpp:10037 MainFrm.cpp:1674
 #: ToolbarPage.cpp:192
 msgid "Print"
 msgstr "Chapisha"
 
-#: Adapt_It.cpp:10145 Adapt_It_wdr.cpp:9846 Adapt_It_wdr.cpp:10037
+#: Adapt_It.cpp:10157 Adapt_It_wdr.cpp:9846 Adapt_It_wdr.cpp:10037
 #: MainFrm.cpp:1674 ToolbarPage.cpp:192
 msgid "Print the active document"
 msgstr "Kuchapisha waraka unaotumika"
 
-#: Adapt_It.cpp:10147 ToolbarPage.cpp:194
+#: Adapt_It.cpp:10159 ToolbarPage.cpp:194
 msgid "Guesser"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10147 Adapt_It_wdr.cpp:10039 Adapt_It_wdr.cpp:10095
+#: Adapt_It.cpp:10159 Adapt_It_wdr.cpp:10039 Adapt_It_wdr.cpp:10095
 #: MainFrm.cpp:1676 ToolbarPage.cpp:194
 msgid "Change Guesser Settings"
 msgstr ""
 
-#: Adapt_It.cpp:10147 Adapt_It_wdr.cpp:10039 Adapt_It_wdr.cpp:10095
+#: Adapt_It.cpp:10159 Adapt_It_wdr.cpp:10039 Adapt_It_wdr.cpp:10095
 #: MainFrm.cpp:1676 ToolbarPage.cpp:194
 msgid "Change settings for guessing the translation text"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10149 ToolbarPage.cpp:196
+#: Adapt_It.cpp:10161 ToolbarPage.cpp:196
 #, fuzzy
 msgid "Notes"
 msgstr "Futa kumbukumbu zote zilizopo katika waraka"
 
 # Priority 1
-#: Adapt_It.cpp:10149 Adapt_It_wdr.cpp:10041 Adapt_It_wdr.cpp:10097
+#: Adapt_It.cpp:10161 Adapt_It_wdr.cpp:10041 Adapt_It_wdr.cpp:10097
 #: MainFrm.cpp:1678 ToolbarPage.cpp:196
 msgid "Open a Note dialog"
 msgstr "Fungua kidirisha cha kumbukumbu"
 
-#: Adapt_It.cpp:10149 Adapt_It_wdr.cpp:10041 Adapt_It_wdr.cpp:10097
+#: Adapt_It.cpp:10161 Adapt_It_wdr.cpp:10041 Adapt_It_wdr.cpp:10097
 #: MainFrm.cpp:1678 ToolbarPage.cpp:196
 msgid "Create a note dialog and open it for typing"
 msgstr "Unda kidirisha cha ukumbusho na kukifungua."
 
 # Priority 1
-#: Adapt_It.cpp:10150 ToolbarPage.cpp:197
+#: Adapt_It.cpp:10162 ToolbarPage.cpp:197
 #, fuzzy
 msgid "Previous Note"
 msgstr "Rudi nyuma na fungua kumbukumbu iliyotangulia"
 
 # Priority 1
-#: Adapt_It.cpp:10150 Adapt_It_wdr.cpp:10042 Adapt_It_wdr.cpp:10098
+#: Adapt_It.cpp:10162 Adapt_It_wdr.cpp:10042 Adapt_It_wdr.cpp:10098
 #: MainFrm.cpp:1679 ToolbarPage.cpp:197
 msgid "Jump to the previous Note"
 msgstr "Rudia ukumbusho utanguliao"
 
-#: Adapt_It.cpp:10150 Adapt_It_wdr.cpp:10042 Adapt_It_wdr.cpp:10098
+#: Adapt_It.cpp:10162 Adapt_It_wdr.cpp:10042 Adapt_It_wdr.cpp:10098
 #: MainFrm.cpp:1679 ToolbarPage.cpp:197
 msgid "Go back and open the previous note"
 msgstr "Rudi nyuma na fungua kumbukumbu iliyotangulia"
 
 # Priority 1
 # Meaning: go to the next step (in vertical editing)
-#: Adapt_It.cpp:10151 ToolbarPage.cpp:198
+#: Adapt_It.cpp:10163 ToolbarPage.cpp:198
 #, fuzzy
 msgid "Next Note"
 msgstr "Nenda mbele na fungua kumbukumbu nyingine"
 
 # Priority 1
-#: Adapt_It.cpp:10151 Adapt_It_wdr.cpp:10043 Adapt_It_wdr.cpp:10099
+#: Adapt_It.cpp:10163 Adapt_It_wdr.cpp:10043 Adapt_It_wdr.cpp:10099
 #: MainFrm.cpp:1680 ToolbarPage.cpp:198
 msgid "Jump to the next Note"
 msgstr "Hama hadi kumbukumbu nyingine"
 
-#: Adapt_It.cpp:10151 Adapt_It_wdr.cpp:10043 Adapt_It_wdr.cpp:10099
+#: Adapt_It.cpp:10163 Adapt_It_wdr.cpp:10043 Adapt_It_wdr.cpp:10099
 #: MainFrm.cpp:1680 ToolbarPage.cpp:198
 msgid "Go forward and open the next note"
 msgstr "Nenda mbele na fungua kumbukumbu nyingine"
 
 # Priority 1
-#: Adapt_It.cpp:10152 Adapt_It_wdr.cpp:10044 Adapt_It_wdr.cpp:10100
+#: Adapt_It.cpp:10164 Adapt_It_wdr.cpp:10044 Adapt_It_wdr.cpp:10100
 #: MainFrm.cpp:1681 ToolbarPage.cpp:199
 msgid "Delete All Notes"
 msgstr "Futa kumbukumbu zote"
 
-#: Adapt_It.cpp:10152 Adapt_It_wdr.cpp:10044 Adapt_It_wdr.cpp:10100
+#: Adapt_It.cpp:10164 Adapt_It_wdr.cpp:10044 Adapt_It_wdr.cpp:10100
 #: MainFrm.cpp:1681 ToolbarPage.cpp:199
 msgid "Delete all the notes currently in the document"
 msgstr "Futa kumbukumbu zote zilizopo katika waraka"
 
 # Priority 1
-#: Adapt_It.cpp:10154 Adapt_ItView.cpp:23403 Adapt_ItView.cpp:23424
+#: Adapt_It.cpp:10166 Adapt_ItView.cpp:23409 Adapt_ItView.cpp:23430
 #, fuzzy
 msgid "Boundaries"
 msgstr "Simamisha Chaguo kwenye mipaka"
 
 # Priority 1
-#: Adapt_It.cpp:10154 Adapt_ItView.cpp:23402 MainFrm.cpp:1683
+#: Adapt_It.cpp:10166 Adapt_ItView.cpp:23408 MainFrm.cpp:1683
 #: ToolbarPage.cpp:201
 msgid "Ignore Boundaries"
 msgstr "Usijali mipaka"
 
 # Priority 1
-#: Adapt_It.cpp:10154 Adapt_It_wdr.cpp:10046 Adapt_It_wdr.cpp:10102
+#: Adapt_It.cpp:10166 Adapt_It_wdr.cpp:10046 Adapt_It_wdr.cpp:10102
 #: MainFrm.cpp:1683 ToolbarPage.cpp:201
 msgid "Ignore boundaries when making selections"
 msgstr "Puuza mipaka wakati inafanya machaguo"
 
 # Priority 1
-#: Adapt_It.cpp:10155 Adapt_ItView.cpp:23526 Adapt_ItView.cpp:23547
+#: Adapt_It.cpp:10167 Adapt_ItView.cpp:23532 Adapt_ItView.cpp:23553
 #: EditPreferencesDlg.cpp:224 EditPreferencesDlg.cpp:228
 #: EditPreferencesDlg.cpp:433 EditPreferencesDlg.cpp:487
 msgid "Punctuation"
 msgstr "Alama za uandishi"
 
 # Priority 1
-#: Adapt_It.cpp:10155 Adapt_ItView.cpp:23546 Adapt_It_wdr.cpp:10047
+#: Adapt_It.cpp:10167 Adapt_ItView.cpp:23552 Adapt_It_wdr.cpp:10047
 #: Adapt_It_wdr.cpp:10103 MainFrm.cpp:1684 ToolbarPage.cpp:202
 msgid "Hide Punctuation"
 msgstr "Ficha alama za uandishi"
 
-#: Adapt_It.cpp:10155 Adapt_It_wdr.cpp:10047 Adapt_It_wdr.cpp:10103
+#: Adapt_It.cpp:10167 Adapt_It_wdr.cpp:10047 Adapt_It_wdr.cpp:10103
 #: MainFrm.cpp:1684 ToolbarPage.cpp:202
 msgid "Don't show punctuation with the text"
 msgstr "Haioneshi alama za uandishi pamoja na maandiko"
 
 # Priority 1
 # Meaning: End the vertical edit process now
-#: Adapt_It.cpp:10157 ToolbarPage.cpp:204
+#: Adapt_It.cpp:10169 ToolbarPage.cpp:204
 #, fuzzy
 msgid "End"
 msgstr "Tangulia mbele mpaka mwisho wa maandiko"
 
 # Priority 1
-#: Adapt_It.cpp:10157 Adapt_It_wdr.cpp:10049 Adapt_It_wdr.cpp:10105
+#: Adapt_It.cpp:10169 Adapt_It_wdr.cpp:10049 Adapt_It_wdr.cpp:10105
 #: MainFrm.cpp:1686 ToolbarPage.cpp:204
 msgid "Advance to End"
 msgstr "Nenda mahali pa kumalizia"
 
-#: Adapt_It.cpp:10157 Adapt_It_wdr.cpp:10049 Adapt_It_wdr.cpp:10105
+#: Adapt_It.cpp:10169 Adapt_It_wdr.cpp:10049 Adapt_It_wdr.cpp:10105
 #: MainFrm.cpp:1686 ToolbarPage.cpp:204
 msgid "Advance to the end of the data"
 msgstr "Tangulia mbele mpaka mwisho wa maandiko"
 
-#: Adapt_It.cpp:10158 ToolbarPage.cpp:205
+#: Adapt_It.cpp:10170 ToolbarPage.cpp:205
 #, fuzzy
 msgid "Start"
 msgstr "Rudia Mwanzo wa maandiko"
 
 # Priority 1
-#: Adapt_It.cpp:10158 Adapt_It_wdr.cpp:10050 Adapt_It_wdr.cpp:10106
+#: Adapt_It.cpp:10170 Adapt_It_wdr.cpp:10050 Adapt_It_wdr.cpp:10106
 #: MainFrm.cpp:1687 ToolbarPage.cpp:205
 msgid "Back to Start"
 msgstr "Rudi mahali pa kuanzia"
 
-#: Adapt_It.cpp:10158 Adapt_It_wdr.cpp:10050 Adapt_It_wdr.cpp:10106
+#: Adapt_It.cpp:10170 Adapt_It_wdr.cpp:10050 Adapt_It_wdr.cpp:10106
 #: MainFrm.cpp:1687 ToolbarPage.cpp:205
 msgid "Go back to the start of the data"
 msgstr "Rudia Mwanzo wa maandiko"
 
-#: Adapt_It.cpp:10159 ToolbarPage.cpp:206
+#: Adapt_It.cpp:10171 ToolbarPage.cpp:206
 #, fuzzy
 msgid "Down"
 msgstr "Rudi nyuma Hatua Moja"
 
 # Priority 1
-#: Adapt_It.cpp:10159 ToolbarPage.cpp:206
+#: Adapt_It.cpp:10171 ToolbarPage.cpp:206
 #, fuzzy
 #| msgid "Move &Down"
 msgid "Move down"
 msgstr "Hamisha &Chini"
 
-#: Adapt_It.cpp:10159 ToolbarPage.cpp:206
+#: Adapt_It.cpp:10171 ToolbarPage.cpp:206
 msgid "Move down one step towards the bottom of the file"
 msgstr ""
 
-#: Adapt_It.cpp:10160 ToolbarPage.cpp:207
+#: Adapt_It.cpp:10172 ToolbarPage.cpp:207
 #, fuzzy
 msgid "Up"
 msgstr "Nenda mbele hatua moja"
 
 # Priority 1
-#: Adapt_It.cpp:10160 ToolbarPage.cpp:207
+#: Adapt_It.cpp:10172 ToolbarPage.cpp:207
 #, fuzzy
 #| msgid "Move &Up"
 msgid "Move up"
 msgstr "Hamisha &Juu"
 
-#: Adapt_It.cpp:10160 ToolbarPage.cpp:207
+#: Adapt_It.cpp:10172 ToolbarPage.cpp:207
 #, fuzzy
 #| msgid "Go back to the start of the data"
 msgid "Move back up one step towards the start of the file"
@@ -361,122 +361,122 @@ msgstr "Rudia Mwanzo wa maandiko"
 
 # Priority 1
 # Button in wizard to return to previous page
-#: Adapt_It.cpp:10161 ToolbarPage.cpp:208
+#: Adapt_It.cpp:10173 ToolbarPage.cpp:208
 #, fuzzy
 msgid "Back"
 msgstr "< &Nyuma"
 
 # Priority 1
-#: Adapt_It.cpp:10161 MainFrm.cpp:1690 ToolbarPage.cpp:208
+#: Adapt_It.cpp:10173 MainFrm.cpp:1690 ToolbarPage.cpp:208
 #, fuzzy
 msgid "Jump back"
 msgstr "Hama kurudi nyuma"
 
-#: Adapt_It.cpp:10161 Adapt_It_wdr.cpp:10055 Adapt_It_wdr.cpp:10111
+#: Adapt_It.cpp:10173 Adapt_It_wdr.cpp:10055 Adapt_It_wdr.cpp:10111
 #: MainFrm.cpp:1690 ToolbarPage.cpp:208
 msgid "Jump back to the last active location"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10163 ToolbarPage.cpp:210
+#: Adapt_It.cpp:10175 ToolbarPage.cpp:210
 #, fuzzy
 msgid "New Phrase"
 msgstr "Kirai:"
 
 # Priority 1
-#: Adapt_It.cpp:10163 MainFrm.cpp:1692 ToolbarPage.cpp:210
+#: Adapt_It.cpp:10175 MainFrm.cpp:1692 ToolbarPage.cpp:210
 #, fuzzy
 msgid "Make a phrase"
 msgstr "Tengeneza Kirai"
 
-#: Adapt_It.cpp:10163 Adapt_It_wdr.cpp:10057 Adapt_It_wdr.cpp:10113
+#: Adapt_It.cpp:10175 Adapt_It_wdr.cpp:10057 Adapt_It_wdr.cpp:10113
 #: MainFrm.cpp:1692 ToolbarPage.cpp:210
 #, fuzzy
 msgid "Merge selected words into a phrase"
 msgstr "Tengeneza yaliyochaguliwa katika kirai"
 
 # Priority 1
-#: Adapt_It.cpp:10164 ToolbarPage.cpp:211
+#: Adapt_It.cpp:10176 ToolbarPage.cpp:211
 #, fuzzy
 msgid "Delete Phrase"
 msgstr "Futa"
 
 # Priority 1
-#: Adapt_It.cpp:10164 Adapt_It_wdr.cpp:10059 Adapt_It_wdr.cpp:10115
+#: Adapt_It.cpp:10176 Adapt_It_wdr.cpp:10059 Adapt_It_wdr.cpp:10115
 #: MainFrm.cpp:1693 ToolbarPage.cpp:211
 #, fuzzy
 msgid "Unmake A Phrase"
 msgstr "Tohoa kirai"
 
-#: Adapt_It.cpp:10164 Adapt_It.cpp:10172 Adapt_It_wdr.cpp:10059
+#: Adapt_It.cpp:10176 Adapt_It.cpp:10184 Adapt_It_wdr.cpp:10059
 #: Adapt_It_wdr.cpp:10115 MainFrm.cpp:1693 ToolbarPage.cpp:211
 #: ToolbarPage.cpp:219
 msgid "Restore selected phrase to a sequence of word objects"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10166 ToolbarPage.cpp:213
+#: Adapt_It.cpp:10178 ToolbarPage.cpp:213
 #, fuzzy
 msgid "New Retrans"
 msgstr "Tafsiri Fuatizi"
 
 # Priority 1
-#: Adapt_It.cpp:10166 Adapt_It_wdr.cpp:10062 Adapt_It_wdr.cpp:10118
+#: Adapt_It.cpp:10178 Adapt_It_wdr.cpp:10062 Adapt_It_wdr.cpp:10118
 #: MainFrm.cpp:1695 ToolbarPage.cpp:213
 msgid "Do A Retranslation"
 msgstr "Fanya Tafsiri Fuatizi"
 
-#: Adapt_It.cpp:10166 Adapt_It_wdr.cpp:10062 Adapt_It_wdr.cpp:10118
+#: Adapt_It.cpp:10178 Adapt_It_wdr.cpp:10062 Adapt_It_wdr.cpp:10118
 #: MainFrm.cpp:1695 ToolbarPage.cpp:213
 msgid "The selected section is a retranslation, not an adaptation"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10167 ToolbarPage.cpp:214
+#: Adapt_It.cpp:10179 ToolbarPage.cpp:214
 #, fuzzy
 msgid "Edit Retrans"
 msgstr "Hariri Tafsiri Fuatizi"
 
 # Priority 1
-#: Adapt_It.cpp:10167 Adapt_It_wdr.cpp:10064 Adapt_It_wdr.cpp:10120
+#: Adapt_It.cpp:10179 Adapt_It_wdr.cpp:10064 Adapt_It_wdr.cpp:10120
 #: MainFrm.cpp:1696 ToolbarPage.cpp:214
 msgid "Edit A Retranslation"
 msgstr "Hariri Tafsiri Fuatizi"
 
-#: Adapt_It.cpp:10167 Adapt_It_wdr.cpp:10064 Adapt_It_wdr.cpp:10120
+#: Adapt_It.cpp:10179 Adapt_It_wdr.cpp:10064 Adapt_It_wdr.cpp:10120
 #: MainFrm.cpp:1696 ToolbarPage.cpp:214
 msgid "Edit the retranslation at the selection or at the active location"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10168 ToolbarPage.cpp:215
+#: Adapt_It.cpp:10180 ToolbarPage.cpp:215
 #, fuzzy
 msgid "Delete Retrans"
 msgstr "Fanya Tafsiri Fuatizi"
 
 # Priority 1
-#: Adapt_It.cpp:10168 Adapt_It_wdr.cpp:10066 Adapt_It_wdr.cpp:10122
+#: Adapt_It.cpp:10180 Adapt_It_wdr.cpp:10066 Adapt_It_wdr.cpp:10122
 #: MainFrm.cpp:1697 ToolbarPage.cpp:215
 msgid "Remove A Retranslation"
 msgstr "Futa tafsiri Fuatizi"
 
-#: Adapt_It.cpp:10168 Adapt_It_wdr.cpp:10066 Adapt_It_wdr.cpp:10122
+#: Adapt_It.cpp:10180 Adapt_It_wdr.cpp:10066 Adapt_It_wdr.cpp:10122
 #: MainFrm.cpp:1697 ToolbarPage.cpp:215
 msgid "Remove the whole of the retranslation"
 msgstr ""
 
-#: Adapt_It.cpp:10170 ToolbarPage.cpp:217
+#: Adapt_It.cpp:10182 ToolbarPage.cpp:217
 msgid "... Left"
 msgstr ""
 
-#: Adapt_It.cpp:10170 Adapt_It_wdr.cpp:10069 Adapt_It_wdr.cpp:10125
+#: Adapt_It.cpp:10182 Adapt_It_wdr.cpp:10069 Adapt_It_wdr.cpp:10125
 #: MainFrm.cpp:1699 ToolbarPage.cpp:217
 #, fuzzy
 #| msgid "Insert a placeholder into the source language text"
 msgid "Insert A Placeholder to Left of Selection/PhraseBox"
 msgstr "Ingiza sehemu ya ziada katika maandiko chanzo."
 
-#: Adapt_It.cpp:10170 Adapt_It_wdr.cpp:10069 Adapt_It_wdr.cpp:10125
+#: Adapt_It.cpp:10182 Adapt_It_wdr.cpp:10069 Adapt_It_wdr.cpp:10125
 #: MainFrm.cpp:1699 ToolbarPage.cpp:217
 #, fuzzy
 #| msgid "Insert a placeholder into the source language text"
@@ -485,18 +485,18 @@ msgid ""
 "selection or the phrasebox location"
 msgstr "Ingiza sehemu ya ziada katika maandiko chanzo."
 
-#: Adapt_It.cpp:10171 ToolbarPage.cpp:218
+#: Adapt_It.cpp:10183 ToolbarPage.cpp:218
 msgid "... Right"
 msgstr ""
 
-#: Adapt_It.cpp:10171 Adapt_It_wdr.cpp:10071 Adapt_It_wdr.cpp:10127
+#: Adapt_It.cpp:10183 Adapt_It_wdr.cpp:10071 Adapt_It_wdr.cpp:10127
 #: MainFrm.cpp:1700 ToolbarPage.cpp:218
 #, fuzzy
 #| msgid "Insert a placeholder into the source language text"
 msgid "Insert A Placeholder to Right of Selection/PhraseBox"
 msgstr "Ingiza sehemu ya ziada katika maandiko chanzo."
 
-#: Adapt_It.cpp:10171 Adapt_It_wdr.cpp:10071 Adapt_It_wdr.cpp:10127
+#: Adapt_It.cpp:10183 Adapt_It_wdr.cpp:10071 Adapt_It_wdr.cpp:10127
 #: MainFrm.cpp:1700 ToolbarPage.cpp:218
 #, fuzzy
 #| msgid "Insert a placeholder into the source language text"
@@ -506,65 +506,65 @@ msgid ""
 msgstr "Ingiza sehemu ya ziada katika maandiko chanzo."
 
 # Priority 1
-#: Adapt_It.cpp:10172 ToolbarPage.cpp:219
+#: Adapt_It.cpp:10184 ToolbarPage.cpp:219
 #, fuzzy
 #| msgid "Delete"
 msgid "Delete ..."
 msgstr "Futa"
 
 # Priority 1
-#: Adapt_It.cpp:10172 Adapt_It_wdr.cpp:10072 MainFrm.cpp:1701
+#: Adapt_It.cpp:10184 Adapt_It_wdr.cpp:10072 MainFrm.cpp:1701
 #, fuzzy
 msgid "Remove a Placeholder"
 msgstr "Ondoa Sehemu ya Ziada"
 
 # Priority 1
-#: Adapt_It.cpp:10174 ChooseTranslation.cpp:94 ToolbarPage.cpp:221
+#: Adapt_It.cpp:10186 ChooseTranslation.cpp:94 ToolbarPage.cpp:221
 msgid "Choose Translation"
 msgstr "Chagua Tafsiri"
 
 # Priority 1
-#: Adapt_It.cpp:10174 Adapt_It_wdr.cpp:10075 Adapt_It_wdr.cpp:10131
+#: Adapt_It.cpp:10186 Adapt_It_wdr.cpp:10075 Adapt_It_wdr.cpp:10131
 #: MainFrm.cpp:1703 ToolbarPage.cpp:221
 msgid "Show The Choose Translation Dialog"
 msgstr "Onyesha kidirisha cha Kuchagua Tafsiri"
 
-#: Adapt_It.cpp:10174 Adapt_It_wdr.cpp:10075 Adapt_It_wdr.cpp:10131
+#: Adapt_It.cpp:10186 Adapt_It_wdr.cpp:10075 Adapt_It_wdr.cpp:10131
 #: MainFrm.cpp:1703 ToolbarPage.cpp:221
 msgid "Force the Choose Translation dialog to be shown"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:10175 Adapt_ItView.cpp:23688 Adapt_ItView.cpp:23709
+#: Adapt_It.cpp:10187 Adapt_ItView.cpp:23694 Adapt_ItView.cpp:23715
 #, fuzzy
 msgid "View Mode"
 msgstr "Chunguza"
 
 # Priority 1
-#: Adapt_It.cpp:10175 Adapt_ItView.cpp:23708 Adapt_It_wdr.cpp:10076
+#: Adapt_It.cpp:10187 Adapt_ItView.cpp:23714 Adapt_It_wdr.cpp:10076
 #: Adapt_It_wdr.cpp:10132 MainFrm.cpp:1704 ToolbarPage.cpp:222
 msgid "Show Target Text Only"
 msgstr "Onyesha Maandiko Lengwa tu"
 
-#: Adapt_It.cpp:10175 Adapt_It_wdr.cpp:10076 Adapt_It_wdr.cpp:10132
+#: Adapt_It.cpp:10187 Adapt_It_wdr.cpp:10076 Adapt_It_wdr.cpp:10132
 #: MainFrm.cpp:1704 ToolbarPage.cpp:222
 msgid "Show target text only"
 msgstr "Onyesha maandiko lengwa tu"
 
 # Priority 1
-#: Adapt_It.cpp:10176 ToolbarPage.cpp:223
+#: Adapt_It.cpp:10188 ToolbarPage.cpp:223
 #, fuzzy
 msgid "View Translations"
 msgstr "Tafsiri mpya:"
 
 # Priority 1
-#: Adapt_It.cpp:10176 Adapt_It_wdr.cpp:10077 Adapt_It_wdr.cpp:10133
+#: Adapt_It.cpp:10188 Adapt_It_wdr.cpp:10077 Adapt_It_wdr.cpp:10133
 #: MainFrm.cpp:1705 ToolbarPage.cpp:223
 msgid "View Translation or Glosses Elsewhere in the Document"
 msgstr "Chunguza Tafsiri au Fafanuzi mahali popote katika Waraka"
 
 # Priority 1
-#: Adapt_It.cpp:10177 ToolbarPage.cpp:224
+#: Adapt_It.cpp:10189 ToolbarPage.cpp:224
 #, fuzzy
 msgid ""
 "View translation or glosses elsewhere in the document; locate them by "
@@ -572,181 +572,181 @@ msgid ""
 msgstr "Chunguza Tafsiri au Fafanuzi mahali popote katika Waraka"
 
 # Priority 1
-#: Adapt_It.cpp:10178 Adapt_ItView.cpp:23839 Adapt_ItView.cpp:23860
+#: Adapt_It.cpp:10190 Adapt_ItView.cpp:23845 Adapt_ItView.cpp:23866
 #, fuzzy
 msgid "Punctuation Copy"
 msgstr "Hakuna nakala za alama za uandishi"
 
 # Priority 1
-#: Adapt_It.cpp:10178 Adapt_It_wdr.cpp:10078 Adapt_It_wdr.cpp:10134
+#: Adapt_It.cpp:10190 Adapt_It_wdr.cpp:10078 Adapt_It_wdr.cpp:10134
 #: MainFrm.cpp:1706 ToolbarPage.cpp:225
 msgid "No Punctuation Copy"
 msgstr "Hakuna nakala za alama za uandishi"
 
-#: Adapt_It.cpp:10178 Adapt_It_wdr.cpp:10078 Adapt_It_wdr.cpp:10134
+#: Adapt_It.cpp:10190 Adapt_It_wdr.cpp:10078 Adapt_It_wdr.cpp:10134
 #: MainFrm.cpp:1706 ToolbarPage.cpp:225
 msgid "Suppress the copying of source text punctuation temporarily"
 msgstr "Zuia kunakili kwa alama za uandisha katika maandiko chanzo kwa muda"
 
 # Priority 1
-#: Adapt_It.cpp:10179 MainFrm.cpp:1707 ToolbarPage.cpp:226
+#: Adapt_It.cpp:10191 MainFrm.cpp:1707 ToolbarPage.cpp:226
 #, fuzzy
 msgid "Help"
 msgstr "Msaada"
 
-#: Adapt_It.cpp:10179 Adapt_It_wdr.cpp:10079 MainFrm.cpp:1707
+#: Adapt_It.cpp:10191 Adapt_It_wdr.cpp:10079 MainFrm.cpp:1707
 #: ToolbarPage.cpp:226
 msgid "Display Adapt It program help topics"
 msgstr ""
 
 # Priority 1
 # Be sure to retain the angle braces < and > around the translation of the words New Project
-#: Adapt_It.cpp:10338 ProjectPage.cpp:156 ProjectPage.cpp:388
+#: Adapt_It.cpp:10350 ProjectPage.cpp:156 ProjectPage.cpp:388
 #: ProjectPage.cpp:401
 msgid "<New Project>"
 msgstr "<Mpango Mpya>"
 
 # Priority 1
-#: Adapt_It.cpp:10414 Adapt_It_wdr.cpp:9838
+#: Adapt_It.cpp:10426 Adapt_It_wdr.cpp:9838
 msgid "&Open...\tCtrl-O"
 msgstr "Fungua...\tCtrl-O"
 
 # Priority 1
-#: Adapt_It.cpp:10415
+#: Adapt_It.cpp:10427
 #, fuzzy
 msgid "&Open... (Get Source Text From Paratext)\tCtrl-O"
 msgstr "Yote Maandiko chanzo na Maandiko yaliyotafsiriwa."
 
 # Priority 1
-#: Adapt_It.cpp:10416
+#: Adapt_It.cpp:10428
 #, fuzzy
 msgid "&Open... (Get Source Text From Bibledit)\tCtrl-O"
 msgstr "Yote Maandiko chanzo na Maandiko yaliyotafsiriwa."
 
 # Priority 1
-#: Adapt_It.cpp:10459 Adapt_It_wdr.cpp:9839
+#: Adapt_It.cpp:10471 Adapt_It_wdr.cpp:9839
 msgid "&Save\tCtrl-S"
 msgstr "&Tunza\tCtrl-S"
 
-#: Adapt_It.cpp:10460
+#: Adapt_It.cpp:10472
 #, fuzzy
 msgid "&Save (Transfer Translation Draft To Paratext)\tCtrl-S"
 msgstr "Maandiko ya tafsiri (lugha lengwa) ya awali"
 
-#: Adapt_It.cpp:10461
+#: Adapt_It.cpp:10473
 #, fuzzy
 msgid "&Save (Transfer Translation Draft To Bibledit)\tCtrl-S"
 msgstr "Maandiko ya tafsiri (lugha lengwa) ya awali"
 
 # Priority 1
-#: Adapt_It.cpp:10576
+#: Adapt_It.cpp:10588
 #, fuzzy
 msgid "Start Working...\tCtrl-Shift-O"
 msgstr "Anza na Fanya kazi\tCtrl-W"
 
 # Priority 1
-#: Adapt_It.cpp:10605
+#: Adapt_It.cpp:10617
 #, fuzzy
 msgid "Close Project\tCtrl-W"
 msgstr "Funga Mpango\tCtrl-J"
 
 # Priority 1
-#: Adapt_It.cpp:10620
+#: Adapt_It.cpp:10632
 #, fuzzy
 msgid "Quit\tCtrl-Q"
 msgstr "Ka&ta\tCtrl-X"
 
 # Priority 1
-#: Adapt_It.cpp:10633
+#: Adapt_It.cpp:10645
 #, fuzzy
 msgid "Edit Source Text...\tCtrl-Shift-E"
 msgstr "Hariri Maandiko ya Chanzo\tCtrl-Q"
 
 # Priority 1
-#: Adapt_It.cpp:10642
+#: Adapt_It.cpp:10654
 #, fuzzy
 msgid "Move Note Backward\tCtrl-Shift-2"
 msgstr "Hamisha Ukumbusho Nyuma\tCtrl-2"
 
 # Priority 1
-#: Adapt_It.cpp:10651
+#: Adapt_It.cpp:10663
 #, fuzzy
 msgid "Move Note Forward\tCtrl-Shift-3"
 msgstr "Hamisha Ukumbusho Mbele\tCtrl-3"
 
 # Priority 1
-#: Adapt_It.cpp:10665
+#: Adapt_It.cpp:10677
 #, fuzzy
 msgid "Find and Replace...\tCtrl-Shift-F"
 msgstr "Tafuta na Kubadilisha...\tCtrl-H"
 
 # Priority 1
-#: Adapt_It.cpp:10678 Adapt_ItView.cpp:23054 Adapt_ItView.cpp:23145
+#: Adapt_It.cpp:10690 Adapt_ItView.cpp:23060 Adapt_ItView.cpp:23151
 #, fuzzy
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
 msgstr "Pangilia Mpangilio wa Programa Kulia kwenda Kushoto\tCtrl-1"
 
 # Priority 1
-#: Adapt_It.cpp:10687
+#: Adapt_It.cpp:10699
 #, fuzzy
 msgid "Help Topics\tCtrl-Shift-/"
 msgstr "Mada ya Msaada"
 
 # Priority 1
-#: Adapt_It.cpp:10696
+#: Adapt_It.cpp:10708
 #, fuzzy
 msgid "Help Topics\tF1"
 msgstr "Mada ya Msaada"
 
 # Priority 1
-#: Adapt_It.cpp:12290 Adapt_It_wdr.cpp:9864
+#: Adapt_It.cpp:12302 Adapt_It_wdr.cpp:9864
 msgid "&File"
 msgstr "Yafanyikayo &Jalada"
 
 # Priority 1
-#: Adapt_It.cpp:12292 Adapt_It_wdr.cpp:9884
+#: Adapt_It.cpp:12304 Adapt_It_wdr.cpp:9884
 msgid "&Edit"
 msgstr "&Hariri"
 
 # Priority 1
-#: Adapt_It.cpp:12294 Adapt_It_wdr.cpp:9900
+#: Adapt_It.cpp:12306 Adapt_It_wdr.cpp:9900
 msgid "&View"
 msgstr "&Chunguza"
 
 # Priority 1
-#: Adapt_It.cpp:12296 Adapt_It_wdr.cpp:9928
+#: Adapt_It.cpp:12308 Adapt_It_wdr.cpp:9928
 msgid "&Tools"
 msgstr "&Vifaa"
 
 # Priority 1
-#: Adapt_It.cpp:12298 Adapt_It_wdr.cpp:9941
+#: Adapt_It.cpp:12310 Adapt_It_wdr.cpp:9941
 msgid "E&xport-Import"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:12300 Adapt_It_wdr.cpp:9971
+#: Adapt_It.cpp:12312 Adapt_It_wdr.cpp:9971
 #, fuzzy
 msgid "&Advanced"
 msgstr "Mengine"
 
 # Priority 1
-#: Adapt_It.cpp:12302 Adapt_It_wdr.cpp:9975
+#: Adapt_It.cpp:12314 Adapt_It_wdr.cpp:9975
 #, fuzzy
 msgid "&Layout"
 msgstr "Pangilia Mpangilio wa Programa Kulia kwenda Kushoto\tCtrl-1"
 
 # Priority 1
-#: Adapt_It.cpp:12304 Adapt_It_wdr.cpp:9987 scrollingwizard.cpp:382
+#: Adapt_It.cpp:12316 Adapt_It_wdr.cpp:9987 scrollingwizard.cpp:382
 #: scrollingwizard.cpp:389
 msgid "&Help"
 msgstr "Msaada"
 
 # Priority 1
-#: Adapt_It.cpp:12306 Adapt_It_wdr.cpp:10015
+#: Adapt_It.cpp:12318 Adapt_It_wdr.cpp:10015
 msgid "Ad&ministrator"
 msgstr ""
 
-#: Adapt_It.cpp:15077
+#: Adapt_It.cpp:15089
 #, c-format
 msgid ""
 "Adapt It could not open the project configuration file (AI-"
@@ -754,45 +754,45 @@ msgid ""
 "administrator for help."
 msgstr ""
 
-#: Adapt_It.cpp:15081
+#: Adapt_It.cpp:15093
 #, fuzzy
 msgid "This project's configuration settings could not be read"
 msgstr ""
 "Kujiandika kwa yaliyomo katika jalada la utengenezaji wa mpango "
 "haukufanikiwa. "
 
-#: Adapt_It.cpp:15165
+#: Adapt_It.cpp:15177
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" is missing its project configuration file (AI-"
 "ProjectConfiguration.aic)."
 msgstr ""
 
-#: Adapt_It.cpp:15399
+#: Adapt_It.cpp:15411
 msgid "Restore collaboration also?"
 msgstr ""
 
-#: Adapt_It.cpp:15400
+#: Adapt_It.cpp:15412
 msgid ""
 "If a collaboration was set up with Paratext or Bibledit, do you want it to "
 "be restored now, if possible?"
 msgstr ""
 
-#: Adapt_It.cpp:15952
+#: Adapt_It.cpp:15964
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" is missing its setting that designates its %s "
 "project for obtaining source texts."
 msgstr ""
 
-#: Adapt_It.cpp:15962
+#: Adapt_It.cpp:15974
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" is missing its setting that designates its %s "
 "project for storing translation texts."
 msgstr ""
 
-#: Adapt_It.cpp:15993
+#: Adapt_It.cpp:16005
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" has a setting that designates its %s project for "
@@ -801,28 +801,28 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:16062 SetupEditorCollaboration.cpp:1876
+#: Adapt_It.cpp:16074 SetupEditorCollaboration.cpp:1876
 #, fuzzy, c-format
 msgid ""
 "The \"%s\" project cannot be found as a %s project for obtaining source "
 "texts."
 msgstr "Tumia vitufe vilivyoko kulia kubadilisha Mwandiko Lengwa"
 
-#: Adapt_It.cpp:16088 SetupEditorCollaboration.cpp:1902
+#: Adapt_It.cpp:16100 SetupEditorCollaboration.cpp:1902
 #, c-format
 msgid ""
 "The \"%s\" project cannot be found as a %s project for storing translation "
 "texts."
 msgstr ""
 
-#: Adapt_It.cpp:16125 SetupEditorCollaboration.cpp:1939
+#: Adapt_It.cpp:16137 SetupEditorCollaboration.cpp:1939
 #, c-format
 msgid ""
 "The \"%s\" project cannot be found as a %s project for storing free "
 "translation texts."
 msgstr ""
 
-#: Adapt_It.cpp:16335
+#: Adapt_It.cpp:16347
 #, c-format
 msgid ""
 "Adapt It could not open the project configuration file (AI-"
@@ -831,33 +831,33 @@ msgid ""
 "computer) and try again."
 msgstr ""
 
-#: Adapt_It.cpp:17582
+#: Adapt_It.cpp:17594
 msgid ""
 "The user interface language change may not fully take effect until you "
 "restart Adapt It."
 msgstr "Lugha ya programa haitabadilika mpaka uanze upya Adapt It."
 
 # Priority 1
-#: Adapt_It.cpp:17905 MainFrm.cpp:2149
+#: Adapt_It.cpp:17917 MainFrm.cpp:2149
 msgid "Unknown"
 msgstr "Yasiyojulikana"
 
-#: Adapt_It.cpp:18171 KbSharingSetup.cpp:157
+#: Adapt_It.cpp:18183 KbSharingSetup.cpp:157
 msgid "<unknown>"
 msgstr ""
 
-#: Adapt_It.cpp:18270
+#: Adapt_It.cpp:18282
 msgid ""
 "You did not choose an ipAddress. This is the same as clicking Cancel.\n"
 "Knowledge base sharing will now be turned OFF.\n"
 "You can try again later, or ask your administrator to help you."
 msgstr ""
 
-#: Adapt_It.cpp:18273 Adapt_It.cpp:18349
+#: Adapt_It.cpp:18285 Adapt_It.cpp:18361
 msgid "KBserver rejected by user"
 msgstr ""
 
-#: Adapt_It.cpp:18325
+#: Adapt_It.cpp:18337
 #, c-format
 msgid ""
 "The ipAddress previously used was:  %s\n"
@@ -872,11 +872,11 @@ msgid ""
 "Do you wish to connect using this new ipAddress?"
 msgstr ""
 
-#: Adapt_It.cpp:18329
+#: Adapt_It.cpp:18341
 msgid "The ipAddress has changed"
 msgstr ""
 
-#: Adapt_It.cpp:18345
+#: Adapt_It.cpp:18357
 #, c-format
 msgid ""
 "You chose not to connect to the available KBserver at %s.\n"
@@ -886,7 +886,7 @@ msgid ""
 "Then try to connect to it, or ask your administrator to help you."
 msgstr ""
 
-#: Adapt_It.cpp:18365
+#: Adapt_It.cpp:18377
 msgid ""
 "Knowledge base sharing will now be turned OFF. There are several possible "
 "reasons.\n"
@@ -899,123 +899,123 @@ msgid ""
 "Change Username..."
 msgstr ""
 
-#: Adapt_It.cpp:18368
+#: Adapt_It.cpp:18380
 msgid "KBserver discovery failed"
 msgstr ""
 
-#: Adapt_It.cpp:18504
+#: Adapt_It.cpp:18516
 msgid "Permission to add users wanted?"
 msgstr ""
 
-#: Adapt_It.cpp:18505
+#: Adapt_It.cpp:18517
 msgid "Click Yes to give this user permission to add more users"
 msgstr ""
 
-#: Adapt_It.cpp:18720
+#: Adapt_It.cpp:18727
 msgid ""
-"do_add_KBUsers.exe is not in the 'dist' folder, or wrongly named. Find it "
+"do_add_KBUsers.exe is not in the 'dest' folder, or wrongly named. Find it "
 "and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18721 Adapt_It.cpp:18764 Adapt_It.cpp:18801 Adapt_It.cpp:18852
-#: Adapt_It.cpp:18890 Adapt_It.cpp:18928 Adapt_It.cpp:18966 Adapt_It.cpp:19006
-#: Adapt_It.cpp:19049 Adapt_It.cpp:19087 Adapt_It.cpp:19124 Adapt_It.cpp:19161
+#: Adapt_It.cpp:18728 Adapt_It.cpp:18771 Adapt_It.cpp:18808 Adapt_It.cpp:18859
+#: Adapt_It.cpp:18897 Adapt_It.cpp:18935 Adapt_It.cpp:18973 Adapt_It.cpp:19013
+#: Adapt_It.cpp:19056 Adapt_It.cpp:19094 Adapt_It.cpp:19131 Adapt_It.cpp:19168
 msgid "ConfigureDatFile resource absent error"
 msgstr ""
 
-#: Adapt_It.cpp:18763
+#: Adapt_It.cpp:18770
 msgid ""
-"do_user_lookup.exe is not in the 'dist' folder, or wrongly named. Find it "
+"do_user_lookup.exe is not in the 'dest' folder, or wrongly named. Find it "
 "and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18800
+#: Adapt_It.cpp:18807
 msgid ""
-"do_users_list.exe is not in the 'dist' folder, or wrongly named. Find it and "
+"do_users_list.exe is not in the 'dest' folder, or wrongly named. Find it and "
 "put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18851
+#: Adapt_It.cpp:18858
 msgid ""
-"do_create_entry.exe is not in the 'dist' folder, or wrongly named. Find it "
+"do_create_entry.exe is not in the 'dest' folder, or wrongly named. Find it "
 "and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18889
+#: Adapt_It.cpp:18896
 msgid ""
-"do_pseudo_delete.exe is not in the 'dist' folder, or wrongly named. Find it "
+"do_pseudo_delete.exe is not in the 'dest' folder, or wrongly named. Find it "
 "and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18927
+#: Adapt_It.cpp:18934
 msgid ""
-"do_pseudo_undelete.exe is not in the 'dist' folder, or wrongly named. Find "
+"do_pseudo_undelete.exe is not in the 'dest' folder, or wrongly named. Find "
 "it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:18965
+#: Adapt_It.cpp:18972
 msgid ""
-"do_lookup_entry.exe is not in the 'dist' folder, or wrongly named. Find it "
+"do_lookup_entry.exe is not in the 'dest' folder, or wrongly named. Find it "
 "and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:19005
+#: Adapt_It.cpp:19012
 msgid ""
-"do_changed_since_timed.exe is not in the 'dist' folder, or wrongly named. "
+"do_changed_since_timed.exe is not in the 'dest' folder, or wrongly named. "
 "Find it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:19048
+#: Adapt_It.cpp:19055
 msgid ""
-"do_upload_local_kb.exe is not in the 'dist' folder, or wrongly named. Find "
+"do_upload_local_kb.exe is not in the 'dest' folder, or wrongly named. Find "
 "it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:19086
+#: Adapt_It.cpp:19093
 msgid ""
-"do_change_permission.exe is not in the 'dist' folder, or wrongly named. Find "
+"do_change_permission.exe is not in the 'dest' folder, or wrongly named. Find "
 "it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:19123
+#: Adapt_It.cpp:19130
 msgid ""
-"do_change_fullname.exe is not in the 'dist' folder, or wrongly named. Find "
+"do_change_fullname.exe is not in the 'dest' folder, or wrongly named. Find "
 "it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:19160
+#: Adapt_It.cpp:19167
 msgid ""
-"do_change_password.exe is not in the 'dist' folder, or wrongly named. Find "
+"do_change_password.exe is not in the 'dest' folder, or wrongly named. Find "
 "it and put it there, then try again."
 msgstr ""
 
-#: Adapt_It.cpp:20816
+#: Adapt_It.cpp:20824
 #, c-format
 msgid ""
 "line %d, after ::wxExecute(), errors array: first= %s second= %s third= %s, "
 "cmdLine= %s"
 msgstr ""
 
-#: Adapt_It.cpp:21208
+#: Adapt_It.cpp:21216
 #, c-format
 msgid ""
 "line %d, in CallExecute() ::wxExecute() failed for %s called in folder %s"
 msgstr ""
 
-#: Adapt_It.cpp:21219
+#: Adapt_It.cpp:21227
 #, c-format
 msgid ""
 "Setting a temporary current working directory failed for %s called in folder "
 "%s"
 msgstr ""
 
-#: Adapt_It.cpp:21458
+#: Adapt_It.cpp:21466
 msgid ""
 "Adapt It is already running. Aborting attempt to run a second instance of "
 "Adapt It..."
 msgstr ""
 
-#: Adapt_It.cpp:21598
+#: Adapt_It.cpp:21606
 msgid ""
 "Select the ipAddress you wish to connect to, then click OK.  If none is "
 "selected, a connection will not be tried. The listed ipAddresses are stored "
@@ -1027,7 +1027,7 @@ msgid ""
 "project."
 msgstr ""
 
-#: Adapt_It.cpp:21599
+#: Adapt_It.cpp:21607
 msgid ""
 "KBserver discovery works only for KBservers connected to the Local Area "
 "Network (LAN), or to a private local network (PAN).  Your LAN, or PAN, can "
@@ -1040,75 +1040,75 @@ msgid ""
 msgstr ""
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: Adapt_It.cpp:21881
+#: Adapt_It.cpp:21889
 #, fuzzy
 msgid "adaptation"
 msgstr "<hakuna tafsiri>"
 
 # Priority 1
-#: Adapt_It.cpp:21882 ConsChk_Empty_noTU_Dlg.cpp:177 EditPreferencesDlg.cpp:842
+#: Adapt_It.cpp:21890 ConsChk_Empty_noTU_Dlg.cpp:177 EditPreferencesDlg.cpp:842
 msgid "gloss"
 msgstr "ufafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:21883
+#: Adapt_It.cpp:21891
 #, fuzzy
 msgid "an adaptation"
 msgstr "<hakuna tafsiri>"
 
 # Priority 1
-#: Adapt_It.cpp:21884
+#: Adapt_It.cpp:21892
 #, fuzzy
 msgid "a gloss"
 msgstr "ufafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:21889 Adapt_ItDoc.cpp:28071 Adapt_ItDoc.cpp:28234
+#: Adapt_It.cpp:21897 Adapt_ItDoc.cpp:28071 Adapt_ItDoc.cpp:28234
 #: Adapt_ItDoc.cpp:28502 Adapt_ItDoc.cpp:29342 ConsistencyCheckDlg.cpp:87
 #, fuzzy
 msgid "Inconsistency Found"
 msgstr "Ilipata lisilofuata kamusi"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: Adapt_It.cpp:21890
+#: Adapt_It.cpp:21898
 #, fuzzy
 msgid "Adaptation text"
 msgstr "Tafsiri"
 
 # Priority 1
-#: Adapt_It.cpp:21891
+#: Adapt_It.cpp:21899
 #, fuzzy
 msgid "Gloss text"
 msgstr "Hariri majozi ya herufi dogo na kubwa ya lugha ya ufafanuzi"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: Adapt_It.cpp:21892
+#: Adapt_It.cpp:21900
 #, fuzzy
 msgid "adaptations"
 msgstr "Tafsiri"
 
 # Priority 1
-#: Adapt_It.cpp:21893
+#: Adapt_It.cpp:21901
 #, fuzzy
 msgid "glosses"
 msgstr "Badilisha tafsiri ziwe fananuzi"
 
-#: Adapt_It.cpp:21894
+#: Adapt_It.cpp:21902
 msgid "An adaptation exists. A knowledge base entry is expected, but is absent"
 msgstr ""
 
-#: Adapt_It.cpp:21895
+#: Adapt_It.cpp:21903
 #, fuzzy, c-format
 msgid "The knowledge base entry is %s, the document does not agree"
 msgstr "Tunza kamusi na waraka, halafu funga mpango"
 
 # Do not translate.
-#: Adapt_It.cpp:22506
+#: Adapt_It.cpp:22514
 msgid "Adapt It Unicode"
 msgstr "Adapt It Unicode"
 
 # Do not translate.
-#: Adapt_It.cpp:22507
+#: Adapt_It.cpp:22515
 msgid "Unicode "
 msgstr "Unicode "
 
@@ -1117,67 +1117,67 @@ msgstr "Unicode "
 # 2. In the Welcome splash screen.
 # 3. In the Help About Information.
 # It is probably best not to translate.
-#: Adapt_It.cpp:22509 Adapt_It_wdr.cpp:64 Adapt_It_wdr.cpp:1138
+#: Adapt_It.cpp:22517 Adapt_It_wdr.cpp:64 Adapt_It_wdr.cpp:1138
 msgid "Adapt It"
 msgstr "Adapt It"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: Adapt_It.cpp:22541 Adapt_It.cpp:49673 Adapt_It.cpp:49928
+#: Adapt_It.cpp:22549 Adapt_It.cpp:49909 Adapt_It.cpp:50164
 #: Adapt_It_wdr.cpp:8497
 msgid "Adaptations"
 msgstr "Tafsiri"
 
 # Priority 1
-#: Adapt_It.cpp:22760
+#: Adapt_It.cpp:22768
 msgid "History books"
 msgstr "Vitabu vya Kihistoria"
 
 # Priority 1
-#: Adapt_It.cpp:22761
+#: Adapt_It.cpp:22769
 msgid "Wisdom books"
 msgstr "Vitabu vya Hekima"
 
 # Priority 1
-#: Adapt_It.cpp:22762
+#: Adapt_It.cpp:22770
 msgid "Prophecy books"
 msgstr "Vitabu vya Unabii"
 
 # Priority 1
-#: Adapt_It.cpp:22763
+#: Adapt_It.cpp:22771
 msgid "New Testament books"
 msgstr "Vitabu vya Agano Jipya"
 
-#: Adapt_It.cpp:22764
+#: Adapt_It.cpp:22772
 msgid "Other Texts"
 msgstr "Matini Mengine"
 
-#: Adapt_It.cpp:26004
+#: Adapt_It.cpp:26015
 msgid ""
 "Locating the custom work folder location failed. Either recovery requires "
 "you to take action outside of Adapt It, or the recovery attempt failed, or "
 "you Cancelled in order to force the application to abort now."
 msgstr ""
 
-#: Adapt_It.cpp:26006 Adapt_It.cpp:41846 Adapt_It.cpp:41857 Adapt_It.cpp:41982
+#: Adapt_It.cpp:26017 Adapt_It.cpp:42082 Adapt_It.cpp:42093 Adapt_It.cpp:42218
 msgid "Error of file named CustomWorkFolderLocation"
 msgstr ""
 
-#: Adapt_It.cpp:26665 Adapt_ItDoc.cpp:4692
+#: Adapt_It.cpp:26676 Adapt_ItDoc.cpp:4692
 msgid "Untitled - Adapt It"
 msgstr "Wazi - Adapt It"
 
 # Priority 1
 # Do not translate the file names books.xml and AI_USFM.xml.
-#: Adapt_It.cpp:26671
+#: Adapt_It.cpp:26682
 msgid "Loading books.xml and AI_USFM.xml ..."
 msgstr "Kubebesha vitabu.xml na AI_USFM.xml ..."
 
 # Do not translate
-#: Adapt_It.cpp:26683 Adapt_It.cpp:26687 Adapt_It.cpp:26699
+#: Adapt_It.cpp:26694 Adapt_It.cpp:26698 Adapt_It.cpp:26710
 msgid "books.xml"
 msgstr "books.xml"
 
-#: Adapt_It.cpp:26748
+#: Adapt_It.cpp:26759
 msgid ""
 "Warning: book folder mode will be disabled until a books.xml file is "
 "stored \n"
@@ -1190,7 +1190,7 @@ msgstr ""
 "Kwa hiyo, ni lazima ufunge programa na kutengeneza jarada la vitabu.xml\n"
 " kabla ya kufanya kazi zaidi."
 
-#: Adapt_It.cpp:27279
+#: Adapt_It.cpp:27290
 msgid ""
 "Warning: using default USFM styles until a AI_USFM.xml file is stored in the "
 "work folder and it is read in and parsed correctly. You should exit the "
@@ -1204,11 +1204,11 @@ msgstr ""
 
 # Priority 1
 # Do not translate the file name AI_UserProfiles.xml
-#: Adapt_It.cpp:27313
+#: Adapt_It.cpp:27324
 msgid "Loading AI_UserProfiles.xml ..."
 msgstr ""
 
-#: Adapt_It.cpp:27493
+#: Adapt_It.cpp:27504
 #, c-format
 msgid ""
 "Could not create backup of the modified AI_UserProfiles.xml file: \n"
@@ -1216,19 +1216,19 @@ msgid ""
 "Please ask your administrator to check your user workflow profiles."
 msgstr ""
 
-#: Adapt_It.cpp:27525 Adapt_It.cpp:27702
+#: Adapt_It.cpp:27536 Adapt_It.cpp:27713
 msgid ""
 "Unable to read the AI_UserProfiles.xml file in the work folder. Ask your "
 "administrator to recreate Adapt It's user workflow profiles."
 msgstr ""
 
-#: Adapt_It.cpp:27575
+#: Adapt_It.cpp:27586
 msgid ""
 "Unable to update the AI_UserProfiles.xml file in the work folder. Ask your "
 "administrator to recreate Adapt It's user workflow profiles."
 msgstr ""
 
-#: Adapt_It.cpp:27611
+#: Adapt_It.cpp:27622
 #, c-format
 msgid ""
 "Could not create backup of the modified AI_UserProfiles.xml file: \n"
@@ -1236,7 +1236,7 @@ msgid ""
 "Please ask your administrator to recreate your user workflow profiles."
 msgstr ""
 
-#: Adapt_It.cpp:27618
+#: Adapt_It.cpp:27629
 #, c-format
 msgid ""
 "There was an incompatible version (%s) of AI_UserProfiles.xml in the work "
@@ -1249,19 +1249,19 @@ msgid ""
 "profiles if necessary."
 msgstr ""
 
-#: Adapt_It.cpp:27663
+#: Adapt_It.cpp:27674
 #, fuzzy
 msgid "Could not remove the AI_UserProfiles.xml file from the work folder."
 msgstr "Ilishindwa kuondoa jalada la AI_USFM.xml kutoka katika mfuko wa kazi."
 
 # Priority 1
-#: Adapt_It.cpp:27841
+#: Adapt_It.cpp:27852
 #, c-format
 msgid "Initializing help system file %s..."
 msgstr "Kuanzisha jalada msaada %s..."
 
 # Priority 1
-#: Adapt_It.cpp:28632
+#: Adapt_It.cpp:28643
 #, fuzzy
 #| msgid "Initialization complete. Call Start Working..."
 msgid ""
@@ -1269,7 +1269,7 @@ msgid ""
 "wizard..."
 msgstr "Kuanzisha kumeisha. Lete, Anza kufanya kazi..."
 
-#: Adapt_It.cpp:30054
+#: Adapt_It.cpp:30078
 msgid ""
 "WARNING: Adapt It detected that you held the Shift key down during program "
 "startup.\n"
@@ -1287,11 +1287,11 @@ msgid ""
 "continue using your old settings."
 msgstr ""
 
-#: Adapt_It.cpp:30055
+#: Adapt_It.cpp:30079
 msgid "Detected Shift key down during startup"
 msgstr ""
 
-#: Adapt_It.cpp:30144
+#: Adapt_It.cpp:30168
 msgid ""
 "WARNING: Adapt It detected that you held the Shift key down while opening a "
 "project.\n"
@@ -1310,12 +1310,12 @@ msgid ""
 "continue using your old settings."
 msgstr ""
 
-#: Adapt_It.cpp:30145
+#: Adapt_It.cpp:30169
 msgid "Detected Shift key down during project opening"
 msgstr ""
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
-#: Adapt_It.cpp:30279
+#: Adapt_It.cpp:30303
 #, c-format
 msgid ""
 "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this "
@@ -1324,7 +1324,7 @@ msgstr ""
 "Samahani, kuna jalada linaloitwa 'Adapt It %sWork'. Futa au badilisha jina "
 "la jalada hili kwa sababu Adapt It inahitaji kutumia jina hili kwa mfuko."
 
-#: Adapt_It.cpp:30299
+#: Adapt_It.cpp:30323
 #, c-format
 msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your "
@@ -1335,7 +1335,7 @@ msgstr ""
 "katika mfuka wa <mtumiaji>/Nyaraka Zangu.\n"
 "Adapt It %s haikuundwa kiusahihi na kwa hiyo itazimika. "
 
-#: Adapt_It.cpp:30367
+#: Adapt_It.cpp:30391
 #, c-format
 msgid ""
 "Warning: a project with the name \"%s\" already exists. Adapt It will "
@@ -1345,7 +1345,7 @@ msgstr ""
 
 # Also do not translate  Adapt It %sWork
 # Note that the %s place holders are filled with text in the same order as the original English text. Therefore it is important to translate the first sentence if possible so that the \"%s to %s adaptations\"  and the Adapt It %sWork parts remain in the same order, i.e., Adapt It %sWork should not precede \"%s to %s adaptations\" in the sentence.
-#: Adapt_It.cpp:30385
+#: Adapt_It.cpp:30409
 #, c-format
 msgid ""
 "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It "
@@ -1357,7 +1357,7 @@ msgstr ""
 "inahitaji jina hili kutumika katika jalada. "
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: Adapt_It.cpp:30409
+#: Adapt_It.cpp:30433
 #, c-format
 msgid ""
 "Sorry, there was an error creating the \"%s to %s adaptations\" folder in "
@@ -1368,7 +1368,7 @@ msgstr ""
 "katika Mfuko wa Kazi ya Adapt It %s. Adapt It haikuundwa kiusahihi na kwa "
 "hiyo itazimika."
 
-#: Adapt_It.cpp:30448
+#: Adapt_It.cpp:30472
 #, c-format
 msgid ""
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please "
@@ -1378,7 +1378,7 @@ msgstr ""
 "Samahani, kuna jalada linaitwa \"Tafsiri\" katika mfuko wako wa  \"%s\""
 
 # Do not translate the \"Adaptations\" part of the sentence.
-#: Adapt_It.cpp:30466
+#: Adapt_It.cpp:30490
 msgid ""
 "Sorry, there was an error creating the \"Adaptations\" folder in your "
 "project folder. Adapt It is not set up properly and so must close down."
@@ -1387,7 +1387,7 @@ msgstr ""
 "mpango wa mfuko. Adapt It haikuundwa kiusahihi kwa hiyo itazimika."
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: Adapt_It.cpp:30483
+#: Adapt_It.cpp:30507
 #, fuzzy, c-format
 msgid ""
 "Sorry, there was an error creating the following folder(s) in your Adapt It "
@@ -1399,19 +1399,19 @@ msgstr ""
 "katika Mfuko wa Kazi ya Adapt It %s. Adapt It haikuundwa kiusahihi na kwa "
 "hiyo itazimika."
 
-#: Adapt_It.cpp:31904 Adapt_It.cpp:32031 XML.cpp:1020
+#: Adapt_It.cpp:31928 Adapt_It.cpp:32055 XML.cpp:1020
 #, c-format
 msgid "Reading File %s - part %d of %d"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:31907 Adapt_It.cpp:31935 Adapt_It.cpp:31963 Adapt_It.cpp:31970
-#: Adapt_It.cpp:31987
+#: Adapt_It.cpp:31931 Adapt_It.cpp:31959 Adapt_It.cpp:31987 Adapt_It.cpp:31994
+#: Adapt_It.cpp:32011
 #, fuzzy
 msgid "Loading the Glossing Knowledge Base"
 msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
 
-#: Adapt_It.cpp:31947
+#: Adapt_It.cpp:31971
 msgid ""
 "Warning: a knowledge base for storing glosses was not found. An empty one "
 "has been created for your use instead."
@@ -1420,13 +1420,13 @@ msgstr ""
 "kamusi mpya."
 
 # Priority 1
-#: Adapt_It.cpp:32034 Adapt_It.cpp:32062 Adapt_It.cpp:32115 Adapt_It.cpp:32119
-#: Adapt_It.cpp:32154
+#: Adapt_It.cpp:32058 Adapt_It.cpp:32086 Adapt_It.cpp:32139 Adapt_It.cpp:32143
+#: Adapt_It.cpp:32178
 #, fuzzy
 msgid "Loading the Knowledge Base"
 msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
 
-#: Adapt_It.cpp:32074
+#: Adapt_It.cpp:32098
 msgid ""
 "Warning: a knowledge base for storing adaptations was not found. An empty "
 "one has been created for your use instead. "
@@ -1434,7 +1434,7 @@ msgstr ""
 "Onyo: Kamusi ya kutunzia tafsiri haikupatikana. Badala yake, Adapt It "
 "imekutengenezea kamusi nyingine ya wazi. "
 
-#: Adapt_It.cpp:32259
+#: Adapt_It.cpp:32283
 msgid ""
 "Loading the knowledge base failed. You should now try the Restore Knowledge "
 "Base command in the File menu. If that fails, you should restore your "
@@ -1442,7 +1442,7 @@ msgid ""
 "any more work."
 msgstr ""
 
-#: Adapt_It.cpp:32296
+#: Adapt_It.cpp:32320
 msgid ""
 "Creating the knowledge base failed. Ensure that no other program is using "
 "the KB files, then try again. If continue to get failures you can try the "
@@ -1451,7 +1451,7 @@ msgid ""
 "doing any more work."
 msgstr ""
 
-#: Adapt_It.cpp:32343 Adapt_It.cpp:35312
+#: Adapt_It.cpp:32367 Adapt_It.cpp:35431
 msgid ""
 "Error: loading the glossing knowledge base failed. The application will now "
 "close."
@@ -1459,7 +1459,7 @@ msgstr ""
 "Kosa: Kubebesha kamusi ya maneno fafanuzi kumeshindwa. Sasa, Adapt It "
 "itafungwa."
 
-#: Adapt_It.cpp:32378
+#: Adapt_It.cpp:32402
 msgid ""
 "Creating the glossing knowledge base failed. Ensure that no other program is "
 "using the KB files, then try again. If continue to get failures you can try "
@@ -1468,23 +1468,23 @@ msgid ""
 "doing any more work."
 msgstr ""
 
-#: Adapt_It.cpp:32761
+#: Adapt_It.cpp:32785
 msgid "Loading Prefixes"
 msgstr ""
 
-#: Adapt_It.cpp:32765
+#: Adapt_It.cpp:32789
 msgid "Warning: a prefix file was found, but it was not readable."
 msgstr ""
 
-#: Adapt_It.cpp:32795
+#: Adapt_It.cpp:32819
 msgid "Loading Suffixes"
 msgstr ""
 
-#: Adapt_It.cpp:32799
+#: Adapt_It.cpp:32823
 msgid "Warning: a suffix file was found, but it was not readable."
 msgstr ""
 
-#: Adapt_It.cpp:33129
+#: Adapt_It.cpp:33153
 #, fuzzy
 msgid ""
 "Failed to set the current directory when getting existing adaptation "
@@ -1493,7 +1493,7 @@ msgstr ""
 "Imeshindwa kutengeneza maelezo ya mapya wakati ilikuwa inafuta nyaraka za "
 "tafsiri"
 
-#: Adapt_It.cpp:33225
+#: Adapt_It.cpp:33249
 #, c-format
 msgid ""
 "Creating folder: \"%s\" failed. This folder will be skipped, processing will "
@@ -1502,13 +1502,13 @@ msgstr ""
 "Utengenezaji wa mfuko: \"%s\" haukufaulu. Mfuko huu utarukwa, hatua "
 "itaendelea."
 
-#: Adapt_It.cpp:33668
+#: Adapt_It.cpp:33787
 msgid "Error opening glossing KB file for writing with path:\n"
 msgstr ""
 "Kosa limetokea wakati waraka wa kamusi ya fafanuzi iliandikwa kwa kutumia "
 "njia:\n"
 
-#: Adapt_It.cpp:33670
+#: Adapt_It.cpp:33789
 #, fuzzy
 msgid ""
 "\n"
@@ -1520,25 +1520,25 @@ msgstr ""
 "Je ueneshaji wako una nafasi ndogo, au waraka umefunguliwa kwa kazi nyingine?"
 
 # Priority 1
-#: Adapt_It.cpp:33685 Adapt_It.cpp:33784 KB.cpp:6211
+#: Adapt_It.cpp:33804 Adapt_It.cpp:33903 KB.cpp:6211
 #, fuzzy, c-format
 msgid "Saving KB %s - %d of %d Total entries and senses"
 msgstr "%s - %d ya %d jumla ya maneno na virai"
 
-#: Adapt_It.cpp:33691 Adapt_It.cpp:33692 Adapt_It.cpp:33716 Adapt_It.cpp:33734
+#: Adapt_It.cpp:33810 Adapt_It.cpp:33811 Adapt_It.cpp:33835 Adapt_It.cpp:33853
 msgid "Saving the Glossing KB"
 msgstr ""
 
-#: Adapt_It.cpp:33713 Adapt_It.cpp:33904
+#: Adapt_It.cpp:33832 Adapt_It.cpp:34023
 #, fuzzy
 msgid "Removing backup glossing kb file failed."
 msgstr "Kuondoa kamusi ya tafsiri fafanuzi haukufanikiwa."
 
-#: Adapt_It.cpp:33767
+#: Adapt_It.cpp:33886
 msgid "Error opening KB file for writing with path:\n"
 msgstr "Kosa limetokea wakati waraka wa kamusi ulifungua kwa kutumia njia:\n"
 
-#: Adapt_It.cpp:33769
+#: Adapt_It.cpp:33888
 #, fuzzy
 msgid ""
 "\n"
@@ -1551,23 +1551,23 @@ msgstr ""
 "nyingine?"
 
 # Priority 1
-#: Adapt_It.cpp:33789 Adapt_It.cpp:33792 Adapt_It.cpp:33812 Adapt_It.cpp:33828
+#: Adapt_It.cpp:33908 Adapt_It.cpp:33911 Adapt_It.cpp:33931 Adapt_It.cpp:33947
 #, fuzzy
 msgid "Saving the KB"
 msgstr "Kutunza jalada"
 
-#: Adapt_It.cpp:33809 Adapt_It.cpp:33861
+#: Adapt_It.cpp:33928 Adapt_It.cpp:33980
 msgid "Removing backup kb file failed."
 msgstr "Kuondoa waraka wa kamusi ya marekebisho haukufanikiwa"
 
-#: Adapt_It.cpp:34118
+#: Adapt_It.cpp:34237
 msgid ""
 "You cancelled the dialog - You may turn collaboration off if you want to "
 "access a different project from the Start Working Wizard.\n"
 "Do you want to turn collaboration off?"
 msgstr ""
 
-#: Adapt_It.cpp:34168
+#: Adapt_It.cpp:34287
 #, c-format
 msgid ""
 "Adapt It cannot collaborate with this project (%s). There is a problem with "
@@ -1575,11 +1575,11 @@ msgid ""
 "Please ask your administrator for help."
 msgstr ""
 
-#: Adapt_It.cpp:34207
+#: Adapt_It.cpp:34326
 msgid "No project folder defined yet. "
 msgstr ""
 
-#: Adapt_It.cpp:34210
+#: Adapt_It.cpp:34329
 #, fuzzy
 msgid ""
 "\n"
@@ -1590,19 +1590,19 @@ msgstr ""
 "Kama unataka kuendelea, lazima uchague mpango tofauti au mpya. \n"
 "Je unataka kuendelea?"
 
-#: Adapt_It.cpp:34211
+#: Adapt_It.cpp:34330
 #, fuzzy
 msgid "Basic Configuration File Not Read"
 msgstr "Jina la mwandiko halipatikani katika jalada la Utengenezaji"
 
 # Priority 1
-#: Adapt_It.cpp:34235
+#: Adapt_It.cpp:34354
 #, c-format
 msgid "Failed to find the %s folder."
 msgstr "Imeshindwa kutafuta mfuko wa %s"
 
 # Priority 1
-#: Adapt_It.cpp:34238
+#: Adapt_It.cpp:34357
 msgid ""
 "\n"
 "If you want to continue, you must choose a different project or create a new "
@@ -1613,17 +1613,17 @@ msgstr ""
 "Kama unataka kuendelea, lazima uchague mpango tofauti au mpya. \n"
 "Je unataka kuendelea?"
 
-#: Adapt_It.cpp:34239
+#: Adapt_It.cpp:34358
 msgid "Bad path in config file"
 msgstr "Mwelekeo mbaya katika waraka wa Matengenezo"
 
 # Priority 1
-#: Adapt_It.cpp:34917
+#: Adapt_It.cpp:35036
 msgid "Adapt It cannot create its work folder: "
 msgstr "Adapt It haiwezi kutengeneza mfuko wa  kazi yake"
 
 # Priority 1
-#: Adapt_It.cpp:34918
+#: Adapt_It.cpp:35037
 msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
@@ -1632,16 +1632,16 @@ msgstr ""
 "Adapt It haiwezi kuendelea na haitatoa chochote sasa"
 
 # Priority 1
-#: Adapt_It.cpp:34919
+#: Adapt_It.cpp:35038
 msgid "Critical Error"
 msgstr "Makosa ya uhakika"
 
-#: Adapt_It.cpp:35183 Adapt_It.cpp:35195
+#: Adapt_It.cpp:35302 Adapt_It.cpp:35314
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
 msgstr "Onyo: Haikuondoa waraka wa kamusi mbaya %s"
 
-#: Adapt_It.cpp:35214
+#: Adapt_It.cpp:35333
 #, c-format
 msgid ""
 "Error renaming glossing KB Backup file, path %s, to be the new glossing KB "
@@ -1650,57 +1650,57 @@ msgstr ""
 "Kosa limebaki katika waraka wa kamusi ya Tafsiri fafanuzii, njia %s, ili uwe "
 "waraka mpya wa kamusi ya tafsiri fafanuzi."
 
-#: Adapt_It.cpp:35237 Adapt_It.cpp:35281
+#: Adapt_It.cpp:35356 Adapt_It.cpp:35400
 msgid ""
 "Error: saving the knowledge base failed. The application will now close."
 msgstr "Kosa: Kutunza kamusi kumeshindwa. Sasa, Adapt It itajifunga."
 
-#: Adapt_It.cpp:35254
+#: Adapt_It.cpp:35373
 #, c-format
 msgid "Error renaming KB Backup file with path %s to become the new KB file."
 msgstr ""
 "Kosa limebaki katika waraka wa marekebisho ya kamusi pamoja na njia %s ili "
 "kuwa waraka mpya wa Kamusi."
 
-#: Adapt_It.cpp:35323
+#: Adapt_It.cpp:35442
 msgid "Glossing KB file not found immediately after it was renamed!\n"
 msgstr ""
 "Waraka wa kamusi ya Tafsiri fafanuzi haupatikani baada ya kupewa jina "
 "jipya!\n"
 
-#: Adapt_It.cpp:35350
+#: Adapt_It.cpp:35469
 msgid "Error: loading a knowledge base failed. The application will now close."
 msgstr "Kosa: Kubebesha Kamusi kumeshindwa. Sasa, Adapt It itafungwa."
 
-#: Adapt_It.cpp:35361
+#: Adapt_It.cpp:35480
 msgid "KB file not found immediately after it was renamed!\n"
 msgstr "Waraka wa Kamusi haupatikani baada ya kupewa jina jipya\n"
 
-#: Adapt_It.cpp:35485 Adapt_It.cpp:35504
+#: Adapt_It.cpp:35604 Adapt_It.cpp:35623
 msgid "The clipboard was empty; there is nothing to do."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:35486 Adapt_It.cpp:35505
+#: Adapt_It.cpp:35605 Adapt_It.cpp:35624
 #, fuzzy
 msgid "No Source Text"
 msgstr "Maandiko chanzo"
 
 # Priority 1
-#: Adapt_It.cpp:35675
+#: Adapt_It.cpp:35794
 #, fuzzy
 msgid "Clipboard"
 msgstr "Kata yaliyochaguliwa na kuweka sehemu ya kuficha"
 
-#: Adapt_It.cpp:35806 Adapt_It.cpp:35866
+#: Adapt_It.cpp:35925 Adapt_It.cpp:35985
 msgid "The clipboard could not be opened for writing."
 msgstr ""
 
-#: Adapt_It.cpp:35807 Adapt_It.cpp:35867
+#: Adapt_It.cpp:35926 Adapt_It.cpp:35986
 msgid "Clipboard Unavailable"
 msgstr ""
 
-#: Adapt_It.cpp:36636
+#: Adapt_It.cpp:36755
 #, c-format
 msgid ""
 "Warning: the consistent changes table number %d, and any further tables, "
@@ -1709,18 +1709,75 @@ msgstr ""
 "Onyo: namba ya jedwali la mabadiliko dhabiti %d, na majweli mengine yoyote, "
 "hayakupakiwa."
 
-#: Adapt_It.cpp:36758
+#: Adapt_It.cpp:36884
 msgid ""
-"Git appears to be installed on this computer already! If you think Git is "
-"not installed or needs to be reinstalled you can try installing it again "
-"using one of options on the next dialog. Do you want to continue?"
+"The computer will need to restart before Git will be activated and the "
+"document histories can be managed. After closing this dialog, quit Adapt It, "
+"and then restart your computer. The next time you run Adapt It the document "
+"history items will work on the Adapt It File menu."
 msgstr ""
 
-#: Adapt_It.cpp:36760 InstallGitOptionsDlg.cpp:195
+#: Adapt_It.cpp:36907
+msgid ""
+"Do NOT install Git. I'll use Adapt It without Git, or I will install Git "
+"later."
+msgstr ""
+
+#: Adapt_It.cpp:36908
+#, c-format
+msgid ""
+"This option installs Git version %s. This option requires access to the "
+"Internet and will download about 47MB of data. A copy of the Git installer "
+"is saved to the Adapt It installation directory."
+msgstr ""
+
+#: Adapt_It.cpp:36910
+msgid ""
+"This option installs Git using a previously downloaded Git installer. Git "
+"can be installed this way without accessing the Internet."
+msgstr ""
+
+#: Adapt_It.cpp:36915
+msgid "A Git installation is on this computer, but you still have options."
+msgstr ""
+
+#: Adapt_It.cpp:36924
+msgid "Git is NOT installed on this computer, but you still have options."
+msgstr ""
+
+#: Adapt_It.cpp:36959
+#, c-format
+msgid ""
+"The version of git that is already installed is the same as the version that "
+"is available for installation (version %s). If you think Git is not working "
+"properly or needs to be reinstalled you can try installing it again using "
+"one of options on the next dialog. Do you want to continue?"
+msgstr ""
+
+#: Adapt_It.cpp:36961
+#, c-format
+msgid ""
+"The version of git that is already installed (%s) is older than the "
+"available version (%s). We recommend that you install the available version "
+"%s. You can do so using one of the options on the next dialog. Do you want "
+"to continue?"
+msgstr ""
+
+#: Adapt_It.cpp:36963
+#, c-format
+msgid ""
+"The version of git that is already installed (%s) is newer than the version "
+"Adapt It can provide at this time (%s). If you really want to install the "
+"older %s version (not recommended), you could do so using one of the options "
+"on the next dialog. Do you want to continue?"
+msgstr ""
+
+#: Adapt_It.cpp:36972 Adapt_It.cpp:36977 Adapt_It.cpp:36983
+#: InstallGitOptionsDlg.cpp:163
 msgid "Git Installation Information"
 msgstr ""
 
-#: Adapt_It.cpp:36936
+#: Adapt_It.cpp:37172
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this "
@@ -1740,14 +1797,14 @@ msgstr ""
 
 # Priority 1
 # Do not change the number or order of the placeholders %s - %d of %d
-#: Adapt_It.cpp:36969 Adapt_ItDoc.cpp:1776 Adapt_ItDoc.cpp:3652
+#: Adapt_It.cpp:37205 Adapt_ItDoc.cpp:1776 Adapt_ItDoc.cpp:3652
 #: Adapt_ItDoc.cpp:4080
 #, fuzzy, c-format
 msgid "Saving File %s  - %d of %d Total words and phrases"
 msgstr "Jalada la Pitio la kwanza: %s - %d ya %d Jumla ya maneno na virai"
 
 # Priority 1
-#: Adapt_It.cpp:36972 Adapt_It.cpp:36976 Adapt_It.cpp:36984 Adapt_It.cpp:36995
+#: Adapt_It.cpp:37208 Adapt_It.cpp:37212 Adapt_It.cpp:37220 Adapt_It.cpp:37231
 #: Adapt_ItDoc.cpp:1783 Adapt_ItDoc.cpp:1798 Adapt_ItDoc.cpp:1805
 #: Adapt_ItDoc.cpp:1809 Adapt_ItDoc.cpp:5929 Adapt_ItDoc.cpp:5945
 #: Adapt_ItDoc.cpp:5950 Adapt_ItDoc.cpp:5956 Adapt_ItDoc.cpp:5959
@@ -1755,7 +1812,7 @@ msgstr "Jalada la Pitio la kwanza: %s - %d ya %d Jumla ya maneno na virai"
 msgid "Saving File"
 msgstr "Kutunza jalada"
 
-#: Adapt_It.cpp:36981
+#: Adapt_It.cpp:37217
 msgid ""
 "Could not save the current document. Restore Knowledge Base command "
 "aborted.\n"
@@ -1763,7 +1820,7 @@ msgid ""
 "relaunch, even if you loose your unsaved edits."
 msgstr ""
 
-#: Adapt_It.cpp:37018
+#: Adapt_It.cpp:37254
 #, fuzzy
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For "
@@ -1781,20 +1838,20 @@ msgstr ""
 "Je unapenda kujaribu ukombozi huu wa ziada?"
 
 # Priority 1
-#: Adapt_It.cpp:37054
+#: Adapt_It.cpp:37290
 #, fuzzy, c-format
 msgid "Restoring the KB - Step %d of %d"
 msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
 
 # Priority 1
-#: Adapt_It.cpp:37056 Adapt_It.cpp:37060 Adapt_It.cpp:37081 Adapt_It.cpp:37122
-#: Adapt_It.cpp:37177 Adapt_It.cpp:37183 Adapt_It.cpp:37241 Adapt_It.cpp:37292
-#: Adapt_It.cpp:37299 Adapt_It.cpp:37451 Adapt_It.cpp:37470 Adapt_It.cpp:37532
+#: Adapt_It.cpp:37292 Adapt_It.cpp:37296 Adapt_It.cpp:37317 Adapt_It.cpp:37358
+#: Adapt_It.cpp:37413 Adapt_It.cpp:37419 Adapt_It.cpp:37477 Adapt_It.cpp:37528
+#: Adapt_It.cpp:37535 Adapt_It.cpp:37687 Adapt_It.cpp:37706 Adapt_It.cpp:37768
 #, fuzzy
 msgid "Restoring Knowledge Base..."
 msgstr "Tengeneza Kamusi kutoka nakala kwenye akiba..."
 
-#: Adapt_It.cpp:37154 Adapt_It.cpp:47129 Retranslation.cpp:4565
+#: Adapt_It.cpp:37390 Adapt_It.cpp:47365 Retranslation.cpp:4565
 msgid ""
 "Sorry, there are no saved document files yet for this project. At least one "
 "document file is required for the operation you chose to be successful. The "
@@ -1805,7 +1862,7 @@ msgstr ""
 "iliyopo."
 
 # Priority 1
-#: Adapt_It.cpp:37477
+#: Adapt_It.cpp:37713
 #, fuzzy, c-format
 msgid ""
 "Your rebuilt knowledge base is now in operation. It was built from %d source "
@@ -1814,18 +1871,18 @@ msgstr ""
 "Kamusi yako iliyotengenezwa tena inafanya kazi sasa. Ina %d maneno chanzo na "
 "virai vilivyotolewa kutoka katika nyaraka za %d"
 
-#: Adapt_It.cpp:38002
+#: Adapt_It.cpp:38238
 msgid ""
 "There are no files in the '__SOURCE_INPUTS' folder.\n"
 "Therefore the user is not protected from folder navigation."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38003
+#: Adapt_It.cpp:38239
 msgid "No source text files for document creation"
 msgstr ""
 
-#: Adapt_It.cpp:38043
+#: Adapt_It.cpp:38279
 #, c-format
 msgid ""
 "Some of the '__SOURCE_INPUTS' folder's files are not suitable for creating "
@@ -1834,11 +1891,11 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:38045 Adapt_It.cpp:38054
+#: Adapt_It.cpp:38281 Adapt_It.cpp:38290
 msgid "Warning: do not input these files"
 msgstr ""
 
-#: Adapt_It.cpp:38052
+#: Adapt_It.cpp:38288
 #, c-format
 msgid ""
 "Folder navigation protection is not turned on, because none of the "
@@ -1847,17 +1904,17 @@ msgid ""
 "The unsuitable ones are: %s"
 msgstr ""
 
-#: Adapt_It.cpp:39530
+#: Adapt_It.cpp:39766
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr ""
 
-#: Adapt_It.cpp:39531
+#: Adapt_It.cpp:39767
 #, fuzzy
 msgid "Error parsing font information"
 msgstr "Kosa: Habari ya uchanganuzi wa mwandiko"
 
 # Priority 1
-#: Adapt_It.cpp:39983 Adapt_It.cpp:43278 Adapt_ItDoc.cpp:15723 XML.cpp:560
+#: Adapt_It.cpp:40219 Adapt_It.cpp:43514 Adapt_ItDoc.cpp:15723 XML.cpp:560
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -1869,17 +1926,17 @@ msgstr ""
 "Taarifa zako lazima kwanza zibadilishwe katika Unicode kwa kutumia TecKit\n"
 "na kisha lazima utumie toleo la Adapt It yenye Unicode."
 
-#: Adapt_It.cpp:39985
+#: Adapt_It.cpp:40221
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
 msgstr ""
 
-#: Adapt_It.cpp:39987 Adapt_It.cpp:43282 Adapt_ItDoc.cpp:15726 XML.cpp:563
+#: Adapt_It.cpp:40223 Adapt_It.cpp:43518 Adapt_ItDoc.cpp:15726 XML.cpp:563
 msgid "Warning: Invalid Characters Detected"
 msgstr "Onyo: Herufi batili zimegundulika"
 
-#: Adapt_It.cpp:41144
+#: Adapt_It.cpp:41380
 #, c-format
 msgid ""
 "Adapt It was not able to upgrade the collaboration settings for use in this "
@@ -1891,7 +1948,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41918
+#: Adapt_It.cpp:42154
 #, c-format
 msgid ""
 "Adapt It did not find your work folder at\n"
@@ -1907,44 +1964,44 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41920
+#: Adapt_It.cpp:42156
 #, fuzzy
 msgid "Failed to find the custom work folder"
 msgstr "Imeshindwa kutafuta mfuko wa %s"
 
 # Priority 1
-#: Adapt_It.cpp:41929
+#: Adapt_It.cpp:42165
 msgid "1. Plug in the missing external drive, then click OK here."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41930
+#: Adapt_It.cpp:42166
 msgid ""
 "2. Close the other application, or use a text editor to fix the path in the "
 "file CustomWorkFolderLocation; then click OK here."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41931
+#: Adapt_It.cpp:42167
 msgid ""
 "3. Ignore the custom work folder location, use the default location instead. "
 "(Then ask your administrator to help you.)"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41932
+#: Adapt_It.cpp:42168
 msgid ""
 "4. Forget the custom work folder location. The command Custom Work Folder "
 "Location will then run, use it to relocate the folder."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41933
+#: Adapt_It.cpp:42169
 msgid "Choose Recovery Action or Cancel (to abort)"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41934
+#: Adapt_It.cpp:42170
 msgid ""
 "Select from the list of recovery actions, then click OK. The Cancel button "
 "will abort the application. \n"
@@ -1959,7 +2016,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41948
+#: Adapt_It.cpp:42184
 msgid ""
 "The path to the custom work folder did not find a directory with the "
 "required name. Did you plug in the external drive containing the work folder "
@@ -1968,12 +2025,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41949
+#: Adapt_It.cpp:42185
 msgid "Recovery By Plugging In The Missing External Drive Failed"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41981
+#: Adapt_It.cpp:42217
 msgid ""
 "Failed to open the CustomWorkFolderLocation file at default work folder "
 "location. Is the CustomWorkFolderLocation file still open in another "
@@ -1983,7 +2040,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41992
+#: Adapt_It.cpp:42228
 msgid ""
 "The path to the custom work folder did not find a directory with the "
 "required name. Did you check the path specification using a file browser, to "
@@ -1994,12 +2051,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:41993
+#: Adapt_It.cpp:42229
 msgid "Recovery By Editing The Path Specificiation Failed"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:42068
+#: Adapt_It.cpp:42304
 msgid ""
 "You did not succeed in locating the work folder location. Aborting now. Next "
 "time you launch, you or your administrator will need to use the "
@@ -2007,12 +2064,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:42069
+#: Adapt_It.cpp:42305
 #, fuzzy
 msgid "One chance to relocate the work folder failed"
 msgstr "Adapt It haiwezi kutengeneza mfuko wa  kazi yake"
 
-#: Adapt_It.cpp:43280
+#: Adapt_It.cpp:43516
 #, fuzzy
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
@@ -2022,21 +2079,21 @@ msgstr ""
 "Project Configuration File's punctuation string (see below):"
 
 # Note: leave a space after the colon.
-#: Adapt_It.cpp:44051
+#: Adapt_It.cpp:44287
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr "Onyo: Katika Jalada la sifa ya mpango, sifa moja haijulikani. Ni: "
 
 # Refers to the type of configuration file.
-#: Adapt_It.cpp:45164
+#: Adapt_It.cpp:45400
 msgid "basic"
 msgstr "msingi"
 
 # Refers to the type of configuration file.
-#: Adapt_It.cpp:45166
+#: Adapt_It.cpp:45402
 msgid "project"
 msgstr "mpango"
 
-#: Adapt_It.cpp:45200
+#: Adapt_It.cpp:45436
 #, c-format
 msgid ""
 "The %s configuration file exists but it is empty (has no content). Default "
@@ -2046,7 +2103,7 @@ msgstr ""
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: Adapt_It.cpp:45216
+#: Adapt_It.cpp:45452
 #, fuzzy, c-format
 msgid ""
 "Unable to open the %s configuration file for reading. Default values will be "
@@ -2060,7 +2117,7 @@ msgstr ""
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: Adapt_It.cpp:45268
+#: Adapt_It.cpp:45504
 #, c-format
 msgid ""
 "Unable to read %s font data from the %s configuration file. Default values "
@@ -2071,7 +2128,7 @@ msgstr ""
 
 # Priority 1
 # Refers to the source (language) from which the translation is being made
-#: Adapt_It.cpp:45274 EditPreferencesDlg.cpp:572 EditPreferencesDlg.cpp:618
+#: Adapt_It.cpp:45510 EditPreferencesDlg.cpp:572 EditPreferencesDlg.cpp:618
 #: EditPreferencesDlg.cpp:766 EditPreferencesDlg.cpp:790
 #: EditPreferencesDlg.cpp:822
 msgid "source"
@@ -2079,7 +2136,7 @@ msgstr "chanzo"
 
 # Priority 1
 # Refers to the target (language) into which the translation is being made
-#: Adapt_It.cpp:45284 EditPreferencesDlg.cpp:585 EditPreferencesDlg.cpp:628
+#: Adapt_It.cpp:45520 EditPreferencesDlg.cpp:585 EditPreferencesDlg.cpp:628
 #: EditPreferencesDlg.cpp:776 EditPreferencesDlg.cpp:800
 #: EditPreferencesDlg.cpp:832
 msgid "target"
@@ -2087,23 +2144,23 @@ msgstr "lengo"
 
 # Priority 1
 # Refers to the navigation (language) that is used to display chapter and verse number, paragraph, etc above the text where those items begin
-#: Adapt_It.cpp:45294 EditPreferencesDlg.cpp:598
+#: Adapt_It.cpp:45530 EditPreferencesDlg.cpp:598
 msgid "navigation"
 msgstr "kutembelea"
 
-#: Adapt_It.cpp:46912 Adapt_ItDoc.cpp:4436 Adapt_ItDoc.cpp:6226 KB.cpp:2401
+#: Adapt_It.cpp:47148 Adapt_ItDoc.cpp:4436 Adapt_ItDoc.cpp:6226 KB.cpp:2401
 #, c-format
 msgid "Reading file %s - part %d of %d"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:46915 Adapt_It.cpp:46922 Adapt_It.cpp:46944 Adapt_It.cpp:47119
-#: Adapt_It.cpp:47145 Adapt_It.cpp:47202 Adapt_It.cpp:47272 Adapt_It.cpp:47322
+#: Adapt_It.cpp:47151 Adapt_It.cpp:47158 Adapt_It.cpp:47180 Adapt_It.cpp:47355
+#: Adapt_It.cpp:47381 Adapt_It.cpp:47438 Adapt_It.cpp:47508 Adapt_It.cpp:47558
 #, fuzzy
 msgid "Loading the Other Project's Knowledge Base"
 msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
 
-#: Adapt_It.cpp:46928
+#: Adapt_It.cpp:47164
 msgid ""
 "Error: the application could not find the other project's knowledge base, or "
 "failed to open and load it. The command has therefore been ignored."
@@ -2113,18 +2170,18 @@ msgstr ""
 
 # Priority 1
 # Do not change the number or order of the placeholders %s - %d of %d
-#: Adapt_It.cpp:47476
+#: Adapt_It.cpp:47712
 #, fuzzy, c-format
 msgid "Transforming File %s  - %d of %d Total words and phrases"
 msgstr "Jalada la Pitio la kwanza: %s - %d ya %d Jumla ya maneno na virai"
 
 # Priority 1
-#: Adapt_It.cpp:47479 Adapt_It.cpp:47514 Adapt_It.cpp:47528
+#: Adapt_It.cpp:47715 Adapt_It.cpp:47750 Adapt_It.cpp:47764
 msgid "Transformations To Glosses"
 msgstr "Uhamishaji kwenda katika Tafsiri Fafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:47536
+#: Adapt_It.cpp:47772
 #, c-format
 msgid ""
 "The document with pathname: %s, was not opened and therefore not processed."
@@ -2132,7 +2189,7 @@ msgstr ""
 "Waraka zenye jina la kupitisha: %s, haukufunguliwa na kuwa hiyo "
 "haukushughulikiwa."
 
-#: Adapt_It.cpp:47560
+#: Adapt_It.cpp:47796
 #, fuzzy, c-format
 msgid ""
 "The documents you chose from the other project have been transformed and "
@@ -2145,7 +2202,7 @@ msgstr ""
 "yalisafirishwa, na hii ilifanyika katika nyaraka %d"
 
 # Priority 1
-#: Adapt_It.cpp:47767
+#: Adapt_It.cpp:48003
 msgid ""
 "Automatic capitalization support will work only provided the source language "
 "distinguishes between upper case and lower case letters. A \"No\" response "
@@ -2158,7 +2215,7 @@ msgstr ""
 "iwe na herufi zote kubwa na ndogo?"
 
 # Priority 1
-#: Adapt_It.cpp:47799 Adapt_It.cpp:47820
+#: Adapt_It.cpp:48035 Adapt_It.cpp:48056
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. "
 "Until they do, automatic captialization cannot be turned on.\n"
@@ -2171,7 +2228,7 @@ msgstr ""
 "katika nembo ya \"Herufi\" "
 
 # Priority 1
-#: Adapt_It.cpp:47909 Adapt_It.cpp:48079
+#: Adapt_It.cpp:48145 Adapt_It.cpp:48315
 msgid ""
 "The Startup Wizard failed to open. Use the File menu's Open command to open "
 "a document."
@@ -2179,183 +2236,183 @@ msgstr ""
 "Kisanduku cha msaada kimeshindwa kufunguka. Fungua jalada kwa kuamuru "
 "'Fungua' iliyopo ndani ya sehemu Jalada hapo juu."
 
-#: Adapt_It.cpp:49489
+#: Adapt_It.cpp:49725
 #, c-format
 msgid "[Custom Work Folder Location] Project: %s"
 msgstr ""
 
-#: Adapt_It.cpp:49495
+#: Adapt_It.cpp:49731
 #, c-format
 msgid "[Temporary Work Folder Location] Project: %s"
 msgstr ""
 
-#: Adapt_It.cpp:49506
+#: Adapt_It.cpp:49742
 msgid "Collaborating with "
 msgstr ""
 
-#: Adapt_It.cpp:49517
+#: Adapt_It.cpp:49753
 #, c-format
 msgid "[Default Work Folder Location] Project: %s"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:49531
+#: Adapt_It.cpp:49767
 #, fuzzy
 msgid "from Book: "
 msgstr "kutoka:"
 
-#: Adapt_It.cpp:49569
+#: Adapt_It.cpp:49805
 msgid "Glossing & Sharing Glosses KB"
 msgstr ""
 
-#: Adapt_It.cpp:49591
+#: Adapt_It.cpp:49827
 msgid "Adapting & Sharing Adaptations KB"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:49595
+#: Adapt_It.cpp:49831
 msgid "Adapting"
 msgstr "Badiliko"
 
-#: Adapt_It.cpp:49609
+#: Adapt_It.cpp:49845
 msgid "Reviewing & Sharing Adaptations KB"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:49613
+#: Adapt_It.cpp:49849
 #, fuzzy
 msgid "Reviewing"
 msgstr "Kuhakiki"
 
 # Priority 1
-#: Adapt_It.cpp:49627 Adapt_It.cpp:49646 Adapt_It.cpp:49664
+#: Adapt_It.cpp:49863 Adapt_It.cpp:49882 Adapt_It.cpp:49900
 #, fuzzy
 msgid " : Clipboard Text"
 msgstr "Nakili kwenye sehemu ya kuficha"
 
 # Priority 1
-#: Adapt_It.cpp:49632 Adapt_It.cpp:49651 Adapt_It.cpp:49669
+#: Adapt_It.cpp:49868 Adapt_It.cpp:49887 Adapt_It.cpp:49905
 #, fuzzy, c-format
 msgid " %s"
 msgstr "&Tunza\tCtrl-S"
 
 # Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: Adapt_It.cpp:49636 Adapt_It.cpp:49656 Adapt_It.cpp:49673
+#: Adapt_It.cpp:49872 Adapt_It.cpp:49892 Adapt_It.cpp:49909
 #, fuzzy, c-format
 msgid "  Folder: %s"
 msgstr "  Mfuko uliotumika: %s"
 
 # Priority 1
-#: Adapt_It.cpp:49645 Adapt_ItView.cpp:7359
+#: Adapt_It.cpp:49881 Adapt_ItView.cpp:7359
 msgid " Undefined"
 msgstr "Haitafutiki"
 
-#: Adapt_It.cpp:49682
+#: Adapt_It.cpp:49918
 msgid "!! TRANSLITERATING !!"
 msgstr "!! KUNUKUU !!"
 
-#: Adapt_It.cpp:49696
+#: Adapt_It.cpp:49932
 msgid ""
 "Choose a translation from the drop-down list, or type a new translation. "
 "Press F8 for more options."
 msgstr ""
 
-#: Adapt_It.cpp:49762
+#: Adapt_It.cpp:49998
 #, c-format
 msgid "Deleting %d of %d"
 msgstr ""
 
-#: Adapt_It.cpp:52473
+#: Adapt_It.cpp:52709
 msgid ""
 "Setup of the chapter and verse range failed. This printing operation has "
 "been aborted. Perhaps the document does not contain chapter or verse numbers "
 "within the range you specified."
 msgstr ""
 
-#: Adapt_It.cpp:52509
+#: Adapt_It.cpp:52745
 msgid ""
 "Setup of your chosen range of pages for printing, failed. This printing "
 "operation has been aborted. Please alert the developers."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:52731
+#: Adapt_It.cpp:52967
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr ""
 
-#: Adapt_It.cpp:52847
+#: Adapt_It.cpp:53083
 #, c-format
 msgid ""
 "Adapt It needs to close the currently open project (%s) in order to set up "
 "collaboration with %s."
 msgstr ""
 
-#: Adapt_It.cpp:52889
+#: Adapt_It.cpp:53125
 msgid ""
 "There are no collaboration projects set up yet for this user. Use the "
 "\"Setup Or Remove Collaboration\" menu item on the Administrator menu to set "
 "up collaboration projects."
 msgstr ""
 
-#: Adapt_It.cpp:52890
+#: Adapt_It.cpp:53126
 msgid "No Adapt It collaboration projects found"
 msgstr ""
 
-#: Adapt_It.cpp:52945
+#: Adapt_It.cpp:53181
 #, c-format
 msgid ""
 "Chapter %s of the book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:52950
+#: Adapt_It.cpp:53186
 #, c-format
 msgid ""
 "The whole book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:52953 Adapt_It.cpp:53057
+#: Adapt_It.cpp:53189 Adapt_It.cpp:53293
 msgid "Command ignored"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:52962 Adapt_It.cpp:53066
+#: Adapt_It.cpp:53198 Adapt_It.cpp:53302
 #: CollabProtectEditorBulkSettingsDlg.cpp:1517 GetSourceTextFromEditor.cpp:302
 #, fuzzy
 msgid "Chapter"
 msgstr "Sura:"
 
-#: Adapt_It.cpp:52984
+#: Adapt_It.cpp:53220
 #, c-format
 msgid "Changes to %s will no longer be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:52986 Adapt_It.cpp:53090
+#: Adapt_It.cpp:53222 Adapt_It.cpp:53326
 msgid "Collaboration settings changed"
 msgstr ""
 
-#: Adapt_It.cpp:53049
+#: Adapt_It.cpp:53285
 #, c-format
 msgid ""
 "Chapter %s of the book %s is not marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:53054
+#: Adapt_It.cpp:53290
 #, c-format
 msgid ""
 "The whole book %s is not marked to prevent changes from being transferred to "
 "%s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:53088
+#: Adapt_It.cpp:53324
 #, c-format
 msgid "Changes to %s will now be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:53324 GuesserAffixesListsDlg.cpp:428 MainFrm.cpp:2522
+#: Adapt_It.cpp:53560 GuesserAffixesListsDlg.cpp:428 MainFrm.cpp:2522
 #, c-format
 msgid ""
 "Could not launch the default browser to open the HTML file's URL at:\n"
@@ -2369,20 +2426,20 @@ msgid ""
 "instead?"
 msgstr ""
 
-#: Adapt_It.cpp:53326 GuesserAffixesListsDlg.cpp:432 MainFrm.cpp:2526
+#: Adapt_It.cpp:53562 GuesserAffixesListsDlg.cpp:432 MainFrm.cpp:2526
 msgid "Browser launch error"
 msgstr ""
 
-#: Adapt_It.cpp:53330
+#: Adapt_It.cpp:53566
 msgid "Help for Administrators"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:53389
+#: Adapt_It.cpp:53625
 msgid "Type A Password"
 msgstr ""
 
-#: Adapt_It.cpp:53391
+#: Adapt_It.cpp:53627
 msgid ""
 "The password can be a mix of letters, numbers and punctuation. Less than "
 "five characters will not be accepted.\n"
@@ -2392,16 +2449,16 @@ msgid ""
 msgstr ""
 
 # Refers to the typed password having less than four characters
-#: Adapt_It.cpp:53438
+#: Adapt_It.cpp:53674
 msgid "Too short."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:53814
+#: Adapt_It.cpp:54050
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr ""
 
-#: Adapt_It.cpp:53865
+#: Adapt_It.cpp:54101
 #, c-format
 msgid ""
 "You have selected the following folder to be used as a custom work folder:\n"
@@ -2413,34 +2470,34 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54316
+#: Adapt_It.cpp:54552
 msgid ""
 "Someone just opened the project folder on the remote computer, so you have "
 "READ-ONLY access."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54316 ReadOnlyProtection.cpp:1082
+#: Adapt_It.cpp:54552 ReadOnlyProtection.cpp:1082
 msgid "Another process owns write permission"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:54822 Adapt_It_wdr.cpp:644
+#: Adapt_It.cpp:55058 Adapt_It_wdr.cpp:644
 msgid "Source Font Name"
 msgstr "Aina ya mwandiko Chanzo"
 
 # Priority 1
-#: Adapt_It.cpp:54907 Adapt_It_wdr.cpp:712
+#: Adapt_It.cpp:55143 Adapt_It_wdr.cpp:712
 msgid "Target Font Name"
 msgstr "Aina ya mwandiko Lengwa"
 
 # Priority 1
-#: Adapt_It.cpp:54992 Adapt_It_wdr.cpp:780
+#: Adapt_It.cpp:55228 Adapt_It_wdr.cpp:780
 msgid "Navigation Font Name"
 msgstr "Aina ya mwandiko ya Kutembelea"
 
 # Priority 1
-#: Adapt_It.cpp:55015
+#: Adapt_It.cpp:55251
 msgid ""
 "The following fonts (in the project configuration file) cannot be found on "
 "your computer:"
@@ -2449,7 +2506,7 @@ msgstr ""
 "kompyuta yako:"
 
 # Priority 1
-#: Adapt_It.cpp:55018
+#: Adapt_It.cpp:55254
 #, c-format
 msgid ""
 "\n"
@@ -2463,42 +2520,42 @@ msgstr ""
 "cha nembo ya Miandiko... (katika sehemu ya Hariri)"
 
 # Priority 1
-#: Adapt_It.cpp:55020
+#: Adapt_It.cpp:55256
 msgid "Font name in configuration file not found"
 msgstr "Jina la mwandiko halipatikani katika jalada la Utengenezaji"
 
 # Priority 1
-#: Adapt_It.cpp:55298 Adapt_It.cpp:55744 Adapt_It.cpp:55966 Adapt_It.cpp:56022
-#: Adapt_It.cpp:56069
+#: Adapt_It.cpp:55534 Adapt_It.cpp:55980 Adapt_It.cpp:56202 Adapt_It.cpp:56258
+#: Adapt_It.cpp:56305
 msgid "Unable to write updated config file, so just did nothing"
 msgstr ""
 "Haiwezi kuandika jalada la utengenezaji jipya, hivyo haikufanya chochote"
 
 # Priority 1
-#: Adapt_It.cpp:56170
+#: Adapt_It.cpp:56406
 #, fuzzy
 msgid "Export Knowledge Base"
 msgstr "Tumia Kamusi"
 
-#: Adapt_It.cpp:56171
+#: Adapt_It.cpp:56407
 msgid "Choose type of format for export of data from the Knowledge Base:"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:56267
+#: Adapt_It.cpp:56503
 #, fuzzy
 msgid "dictionary records"
 msgstr "kumbukumbu za kamusi.txt"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: Adapt_It.cpp:56271 Adapt_It.cpp:56317
+#: Adapt_It.cpp:56507 Adapt_It.cpp:56553
 #, fuzzy
 msgid "glossing"
 msgstr "Ufafanuzi"
 
 # Priority 1
-#: Adapt_It.cpp:56346
+#: Adapt_It.cpp:56582
 #, fuzzy
 msgid ""
 "SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
@@ -2506,22 +2563,22 @@ msgid ""
 msgstr "Utoaji wa Kamusi ya Adapt It (*.txt)|*.txt|All Files (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_It.cpp:56350
+#: Adapt_It.cpp:56586
 #, fuzzy
 msgid "XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "Utoaji wa Kamusi ya Adapt It (*.txt)|*.txt|All Files (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_It.cpp:56354
+#: Adapt_It.cpp:56590
 msgid "Filename For KB Export"
 msgstr "Jina la jalada linatoa kutoka kwenye Kamusi"
 
 # Priority 1
-#: Adapt_It.cpp:56406
+#: Adapt_It.cpp:56642
 msgid "Unable to open knowledge base export file."
 msgstr "Haiwezi  kufungua jalada linalotoa kutoka kwenye Kamusi."
 
-#: Adapt_It.cpp:56454 ExportFunctions.cpp:879 ExportFunctions.cpp:1923
+#: Adapt_It.cpp:56690 ExportFunctions.cpp:879 ExportFunctions.cpp:1923
 #: ExportFunctions.cpp:2094 ExportFunctions.cpp:8800 Retranslation.cpp:4807
 #, c-format
 msgid ""
@@ -2534,21 +2591,21 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Adapt_It.cpp:56457 ExportFunctions.cpp:1926 ExportFunctions.cpp:2098
+#: Adapt_It.cpp:56693 ExportFunctions.cpp:1926 ExportFunctions.cpp:2098
 #: ExportFunctions.cpp:8804 Retranslation.cpp:4810
 msgid "Export operation successful"
 msgstr ""
 
-#: Adapt_It.cpp:59384 MainFrm.cpp:2874
+#: Adapt_It.cpp:59620 MainFrm.cpp:2874
 msgid "No KBserver discovered. Ensure one is running and then try again."
 msgstr ""
 
-#: Adapt_It.cpp:60274
+#: Adapt_It.cpp:60516
 #, c-format
 msgid "Language name for 'glossing mode': %s"
 msgstr ""
 
-#: Adapt_It.cpp:60277
+#: Adapt_It.cpp:60519
 #, c-format
 msgid ""
 "The language for adapting mode is: %s\n"
@@ -2603,7 +2660,7 @@ msgstr ""
 "kwenye sehemu ya vifaa kwa kazi hizo"
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:2339 Adapt_ItView.cpp:24139 Adapt_ItView.cpp:24189
+#: Adapt_ItCanvas.cpp:2339 Adapt_ItView.cpp:24145 Adapt_ItView.cpp:24195
 msgid ""
 "Sorry, you are trying to select text of different types, such as a heading "
 "and verse text, or some other illegal combination. Combining verse text with "
@@ -2715,13 +2772,13 @@ msgstr ""
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1502 Adapt_ItDoc.cpp:1531 Adapt_ItDoc.cpp:1572
-#: Adapt_ItView.cpp:25095 Adapt_ItView.cpp:25110 Adapt_ItView.cpp:25147
+#: Adapt_ItView.cpp:25101 Adapt_ItView.cpp:25116 Adapt_ItView.cpp:25153
 #, c-format
 msgid "Error opening file %s."
 msgstr "Kosa kufungua jalada %s."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1515 Adapt_ItView.cpp:25108
+#: Adapt_ItDoc.cpp:1515 Adapt_ItView.cpp:25114
 msgid "The file you selected for input appears to be a binary file."
 msgstr ""
 
@@ -2743,22 +2800,22 @@ msgid "Adapt It input files must be plain text files."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1555 Adapt_ItView.cpp:25131
+#: Adapt_ItDoc.cpp:1555 Adapt_ItView.cpp:25137
 msgid "File read error: no data was read in"
 msgstr "Jalada la kuonesha makosa: hakuna taarifa yaliyooneshwa"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1565 Adapt_ItView.cpp:25140
+#: Adapt_ItDoc.cpp:1565 Adapt_ItView.cpp:25146
 msgid "The file you selected for input is a Unicode file."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1567 Adapt_ItView.cpp:25142
+#: Adapt_ItDoc.cpp:1567 Adapt_ItView.cpp:25148
 msgid "This Regular version of Adapt It cannot process Unicode text files."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1570 Adapt_ItView.cpp:25145
+#: Adapt_ItDoc.cpp:1570 Adapt_ItView.cpp:25151
 msgid ""
 "You should install and use the Unicode version of Adapt It to process "
 "Unicode text files."
@@ -3025,7 +3082,7 @@ msgid "Opening Document In Another Project"
 msgstr "Nyaraka zilizoko katika mifuko mingine"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4482 Adapt_ItDoc.cpp:6374 CollabUtilities.cpp:2860
+#: Adapt_ItDoc.cpp:4482 Adapt_ItDoc.cpp:6374 CollabUtilities.cpp:2809
 msgid ""
 "There was an error parsing in the XML file.\n"
 "If you edited the XML file earlier, you may have introduced an error.\n"
@@ -3946,58 +4003,58 @@ msgstr ""
 "huu. Amri itapuuzwa."
 
 # Priority 1
-#: Adapt_ItView.cpp:23056 Adapt_ItView.cpp:23147 Adapt_It_wdr.cpp:9974
+#: Adapt_ItView.cpp:23062 Adapt_ItView.cpp:23153 Adapt_It_wdr.cpp:9974
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "Pangilia Mpangilio wa Programa Kulia kwenda Kushoto\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:23072 Adapt_ItView.cpp:23126
+#: Adapt_ItView.cpp:23078 Adapt_ItView.cpp:23132
 #, fuzzy
 msgid "Layout Window Left To Right\tCtrl-Shift-1"
 msgstr "Pangilia Mwonekano wa Kompyuta Kushoto Kwenda Kulia\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:23074 Adapt_ItView.cpp:23128
+#: Adapt_ItView.cpp:23080 Adapt_ItView.cpp:23134
 msgid "Layout Window Left To Right\tCtrl-1"
 msgstr "Pangilia Mwonekano wa Kompyuta Kushoto Kwenda Kulia\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:23423
+#: Adapt_ItView.cpp:23429
 msgid "Stop Selection At Boundaries"
 msgstr "Simamisha Chaguo kwenye mipaka"
 
 # Priority 1
-#: Adapt_ItView.cpp:23525
+#: Adapt_ItView.cpp:23531
 msgid "Show Punctuation"
 msgstr "Onyesha alama za uandishi"
 
-#: Adapt_ItView.cpp:23687
+#: Adapt_ItView.cpp:23693
 msgid "Show Source And Target Text"
 msgstr "Onyesha Maandiko Chanzo na Lengwa"
 
 # Priority 1
-#: Adapt_ItView.cpp:23838
+#: Adapt_ItView.cpp:23844
 #, fuzzy
 msgid "No punctuation copy"
 msgstr "Hakuna nakala za alama za uandishi"
 
 # Priority 1
-#: Adapt_ItView.cpp:23859
+#: Adapt_ItView.cpp:23865
 msgid "Enable Punctuation Copy"
 msgstr "Wezesha Kuiga Vituo"
 
 # Priority 1
-#: Adapt_ItView.cpp:24501
+#: Adapt_ItView.cpp:24507
 #, fuzzy
 msgid "Import to Knowledge Base"
 msgstr "Agiza kwenye Kamusi..."
 
-#: Adapt_ItView.cpp:24502
+#: Adapt_ItView.cpp:24508
 msgid "Choose type of format for import of data into the Knowledge Base:"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItView.cpp:24630
+#: Adapt_ItView.cpp:24636
 #, fuzzy
 msgid ""
 "SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
@@ -4005,45 +4062,45 @@ msgid ""
 msgstr "Utoaji wa Kamusi ya Adapt It (*.txt)|*.txt|All Files (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_ItView.cpp:24635
+#: Adapt_ItView.cpp:24641
 #, fuzzy
 msgid "XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "Upokeaji wa Kamusi kutoka Adapt It (*.txt)|*.txt|All Files (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_ItView.cpp:24640
+#: Adapt_ItView.cpp:24646
 #, fuzzy
 msgid "Filename for KB import"
 msgstr "Jina la jalada linatoa kutoka kwenye Kamusi"
 
-#: Adapt_ItView.cpp:24674
+#: Adapt_ItView.cpp:24680
 msgid "Import KB Records from SFM File"
 msgstr ""
 
-#: Adapt_ItView.cpp:24681
+#: Adapt_ItView.cpp:24687
 msgid "Import KB Records from LIFT File"
 msgstr ""
 
-#: Adapt_ItView.cpp:24700
+#: Adapt_ItView.cpp:24706
 #, c-format
 msgid ""
 "Choose a file from the following list:\n"
 "(from the location: %s):"
 msgstr ""
 
-#: Adapt_ItView.cpp:24831
+#: Adapt_ItView.cpp:24837
 msgid ""
 "Import your edited version of the source text which belongs to the currently "
 "open document"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItView.cpp:24834
+#: Adapt_ItView.cpp:24840
 #, fuzzy
 msgid "SFM plain text import(*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "Upokeaji wa Kamusi kutoka Adapt It (*.txt)|*.txt|All Files (*.*)|*.*||"
 
-#: Adapt_ItView.cpp:24983
+#: Adapt_ItView.cpp:24989
 #, fuzzy
 msgid ""
 "Warning: there was no source language data in the file you imported, so the "
@@ -4065,7 +4122,7 @@ msgstr "Toleo hili lilipangiliwa kwa kutumia %s"
 
 #: Adapt_It_wdr.cpp:93
 #, fuzzy
-msgid "Copyright (C) 2020, Bruce Waters, Bill Martin, SIL International"
+msgid "Copyright (C) 2021, Bruce Waters, Bill Martin, SIL International"
 msgstr "Copyright (C) 2008, Bruce Waters, Bill Martin, SIL International"
 
 #: Adapt_It_wdr.cpp:110
@@ -10930,31 +10987,16 @@ msgstr ""
 msgid "Do not try to install Git at this time"
 msgstr ""
 
-#: Adapt_It_wdr.cpp:9180
-msgid ""
-"Only install Adapt It. I'll use Adapt It without Git, or I will install Git "
-"later."
+#: Adapt_It_wdr.cpp:9180 Adapt_It_wdr.cpp:9192 Adapt_It_wdr.cpp:9204
+msgid "(text assigned in InstallGitOptionsDlg.cpp)"
 msgstr ""
 
 #: Adapt_It_wdr.cpp:9185
 msgid "Download and install Git from the Internet"
 msgstr ""
 
-#: Adapt_It_wdr.cpp:9192
-msgid ""
-"This option requires access to the Internet and will download about 36MB of "
-"data. A copy of the Git installer is saved to the Adapt It installation "
-"directory."
-msgstr ""
-
 #: Adapt_It_wdr.cpp:9197
 msgid "Browse this computer to find a Git installer"
-msgstr ""
-
-#: Adapt_It_wdr.cpp:9204
-msgid ""
-"This option installs Git using a previously downloaded Git installer. Git "
-"can be installed this way without accessing the Internet."
 msgstr ""
 
 #: Adapt_It_wdr.cpp:9209
@@ -13108,100 +13150,100 @@ msgid "[Not used in 'Whole Book Documents' mode]"
 msgstr ""
 
 # Priority 1
-#: CollabUtilities.cpp:294 CollabUtilities.cpp:302
+#: CollabUtilities.cpp:293 CollabUtilities.cpp:301
 #, fuzzy
 msgid "chapter"
 msgstr "Sura:"
 
-#: CollabUtilities.cpp:294 CollabUtilities.cpp:302 CollabUtilities.cpp:335
-#: CollabUtilities.cpp:344
+#: CollabUtilities.cpp:293 CollabUtilities.cpp:301 CollabUtilities.cpp:334
+#: CollabUtilities.cpp:343
 msgid "details:"
 msgstr ""
 
-#: CollabUtilities.cpp:294 CollabUtilities.cpp:335
+#: CollabUtilities.cpp:293 CollabUtilities.cpp:334
 #, fuzzy
 msgid "The following verses have no target text:"
 msgstr "Fupisha muda wa Tafsiri huru"
 
 # Priority 1
-#: CollabUtilities.cpp:299 CollabUtilities.cpp:340
+#: CollabUtilities.cpp:298 CollabUtilities.cpp:339
 #, fuzzy
 msgid "Free translation details: "
 msgstr "Namna ya Tafsiri Huru"
 
-#: CollabUtilities.cpp:299 CollabUtilities.cpp:340
+#: CollabUtilities.cpp:298 CollabUtilities.cpp:339
 #, fuzzy
 msgid "The following verses have no free translations:"
 msgstr "Fupisha muda wa Tafsiri huru"
 
-#: CollabUtilities.cpp:302 CollabUtilities.cpp:344
+#: CollabUtilities.cpp:301 CollabUtilities.cpp:343
 #, fuzzy
 msgid "The following verses have no source text:"
 msgstr "Fupisha muda wa Tafsiri huru"
 
-#: CollabUtilities.cpp:622
+#: CollabUtilities.cpp:621
 #, fuzzy, c-format
 msgid "No translations (no verses of a total of %d have translation text yet)"
 msgstr "Fupisha muda wa Tafsiri huru"
 
-#: CollabUtilities.cpp:624
+#: CollabUtilities.cpp:623
 #, fuzzy, c-format
 msgid "No verses of a total of %d have free translations yet"
 msgstr "Fupisha muda wa Tafsiri huru"
 
-#: CollabUtilities.cpp:627
+#: CollabUtilities.cpp:626
 #, fuzzy, c-format
 msgid "No verses of a total of %d have source text"
 msgstr "Fupisha muda wa Tafsiri huru"
 
 # Priority 1
-#: CollabUtilities.cpp:634
+#: CollabUtilities.cpp:633
 #, fuzzy, c-format
 msgid "Partly drafted (%d of a total of %d verses have translation text)"
 msgstr "Tumia Maandiko ya Kutafsiri..."
 
 # Priority 1
-#: CollabUtilities.cpp:636
+#: CollabUtilities.cpp:635
 #, fuzzy, c-format
 msgid "%d of a total of %d verses have free translations"
 msgstr "Tumia Maandiko ya Kutafsiri..."
 
 # Priority 1
-#: CollabUtilities.cpp:639
+#: CollabUtilities.cpp:638
 #, fuzzy, c-format
 msgid "%d of a total of %d verses have source text"
 msgstr "Tumia Maandiko ya Kutafsiri..."
 
 # Priority 1
-#: CollabUtilities.cpp:651
+#: CollabUtilities.cpp:650
 #, fuzzy, c-format
 msgid "All %d verses have translation text"
 msgstr "Tumia Maandiko ya Kutafsiri..."
 
-#: CollabUtilities.cpp:653
+#: CollabUtilities.cpp:652
 #, fuzzy, c-format
 msgid "All %d verses have free translations"
 msgstr "Ondoa tafsir huru"
 
 # Priority 1
-#: CollabUtilities.cpp:656
+#: CollabUtilities.cpp:655
 #, fuzzy, c-format
 msgid "All %d verses have source text"
 msgstr "Tumia Maandiko ya Kutafsiri..."
 
 # Priority 1
-#: CollabUtilities.cpp:763
+#: CollabUtilities.cpp:762
 #, fuzzy, c-format
 msgid "Analyzing the %s project: %s"
 msgstr "Chagua mpango"
 
 # Priority 1
-#: CollabUtilities.cpp:772
+#: CollabUtilities.cpp:771
 #, fuzzy, c-format
 msgid "Analyzing book %s"
 msgstr "Chagua mpango"
 
-#: CollabUtilities.cpp:932 GetSourceTextFromEditor.cpp:999
+#: CollabUtilities.cpp:931 GetSourceTextFromEditor.cpp:999
 #, c-format
 msgid ""
 "Could not read data from the Bibledit projects.\n"
@@ -13212,62 +13254,62 @@ msgid ""
 "menu)."
 msgstr ""
 
-#: CollabUtilities.cpp:1942
+#: CollabUtilities.cpp:1891
 #, fuzzy
 msgid "<Create a new project instead>"
 msgstr "Unda waraka mpya"
 
-#: CollabUtilities.cpp:2824
+#: CollabUtilities.cpp:2773
 #, fuzzy, c-format
 msgid "Opening %s and merging with current document"
 msgstr "Fungua waraka"
 
 # Priority 1
-#: CollabUtilities.cpp:2827 CollabUtilities.cpp:2837 CollabUtilities.cpp:2864
-#: CollabUtilities.cpp:2872
+#: CollabUtilities.cpp:2776 CollabUtilities.cpp:2786 CollabUtilities.cpp:2813
+#: CollabUtilities.cpp:2821
 #, fuzzy
 msgid "Opening Document and Merging With Current Document"
 msgstr "Unga nyaraka kwa kuongeza katika waraka ulio wazi"
 
 # Priority 1
-#: CollabUtilities.cpp:2893
+#: CollabUtilities.cpp:2842
 #, fuzzy, c-format
 msgid "Merging Documents - Step %d of %d"
 msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
 
 # Priority 1
-#: CollabUtilities.cpp:2895 CollabUtilities.cpp:2932 CollabUtilities.cpp:2941
-#: CollabUtilities.cpp:2948 CollabUtilities.cpp:2959 CollabUtilities.cpp:2985
-#: CollabUtilities.cpp:2993 CollabUtilities.cpp:3005 CollabUtilities.cpp:3011
-#: CollabUtilities.cpp:3028 CollabUtilities.cpp:3051 CollabUtilities.cpp:3080
-#: CollabUtilities.cpp:3086 CollabUtilities.cpp:3166 CollabUtilities.cpp:3219
-#: CollabUtilities.cpp:3222
+#: CollabUtilities.cpp:2844 CollabUtilities.cpp:2881 CollabUtilities.cpp:2890
+#: CollabUtilities.cpp:2897 CollabUtilities.cpp:2908 CollabUtilities.cpp:2934
+#: CollabUtilities.cpp:2942 CollabUtilities.cpp:2954 CollabUtilities.cpp:2960
+#: CollabUtilities.cpp:2977 CollabUtilities.cpp:3000 CollabUtilities.cpp:3029
+#: CollabUtilities.cpp:3035 CollabUtilities.cpp:3115 CollabUtilities.cpp:3168
+#: CollabUtilities.cpp:3171
 #, fuzzy
 msgid "Merging Documents..."
 msgstr "Unganisha Hati..."
 
-#: CollabUtilities.cpp:2963
+#: CollabUtilities.cpp:2912
 msgid ""
 "Aborting document creation. A significant parsing error occurred. See View "
 "page of Preferences for how to produce a diagnostic log file on a retry."
 msgstr ""
 
-#: CollabUtilities.cpp:4380
+#: CollabUtilities.cpp:4329
 #, c-format
 msgid "Source project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4401
+#: CollabUtilities.cpp:4350
 #, c-format
 msgid "Target project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4422
+#: CollabUtilities.cpp:4371
 #, c-format
 msgid "Free Translation project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4743
+#: CollabUtilities.cpp:4692
 #, c-format
 msgid ""
 "Adapt It cannot find the helper application %s at the following location:\n"
@@ -13278,7 +13320,7 @@ msgid ""
 "Administrators (HTML) on the Help Menu."
 msgstr ""
 
-#: CollabUtilities.cpp:4751
+#: CollabUtilities.cpp:4700
 #, c-format
 msgid ""
 "Adapt It cannot execute the helper application %s at the following "
@@ -13292,56 +13334,56 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: CollabUtilities.cpp:7112
+#: CollabUtilities.cpp:7060
 #, fuzzy
 msgid "free translation"
 msgstr "Tafsiri huru"
 
 # Priority 1
-#: CollabUtilities.cpp:7162
+#: CollabUtilities.cpp:7110
 #, fuzzy
 msgid "translation"
 msgstr "Yenye utafsiri:"
 
-#: CollabUtilities.cpp:10556
+#: CollabUtilities.cpp:10508
 #, c-format
 msgid "Getting the chapter and laying out the document... step %d of %d"
 msgstr ""
 
-#: CollabUtilities.cpp:10560
+#: CollabUtilities.cpp:10512
 #, c-format
 msgid "Getting the book and laying out the document... step %d of %d"
 msgstr ""
 
 # Priority 1
-#: CollabUtilities.cpp:10566 CollabUtilities.cpp:10570
-#: CollabUtilities.cpp:10574 CollabUtilities.cpp:10619
-#: CollabUtilities.cpp:10656 CollabUtilities.cpp:10746
-#: CollabUtilities.cpp:10907 CollabUtilities.cpp:10998
-#: CollabUtilities.cpp:11067 CollabUtilities.cpp:11108
-#: CollabUtilities.cpp:11116 CollabUtilities.cpp:11152
-#: CollabUtilities.cpp:11186 CollabUtilities.cpp:11240
-#: CollabUtilities.cpp:11257 CollabUtilities.cpp:11269
-#: CollabUtilities.cpp:11323 CollabUtilities.cpp:11333
-#: CollabUtilities.cpp:11339 CollabUtilities.cpp:11418
-#: CollabUtilities.cpp:11429
+#: CollabUtilities.cpp:10518 CollabUtilities.cpp:10522
+#: CollabUtilities.cpp:10526 CollabUtilities.cpp:10571
+#: CollabUtilities.cpp:10607 CollabUtilities.cpp:10697
+#: CollabUtilities.cpp:10858 CollabUtilities.cpp:10949
+#: CollabUtilities.cpp:11018 CollabUtilities.cpp:11059
+#: CollabUtilities.cpp:11067 CollabUtilities.cpp:11103
+#: CollabUtilities.cpp:11137 CollabUtilities.cpp:11191
+#: CollabUtilities.cpp:11208 CollabUtilities.cpp:11220
+#: CollabUtilities.cpp:11274 CollabUtilities.cpp:11284
+#: CollabUtilities.cpp:11290 CollabUtilities.cpp:11369
+#: CollabUtilities.cpp:11380
 #, fuzzy
 msgid "Getting Document for Collaboration"
 msgstr "Tengeneza Rangi..."
 
-#: CollabUtilities.cpp:10632
+#: CollabUtilities.cpp:10584
 msgid ""
 "Could not read data from the Paratext/Bibledit projects. Please submit a "
 "problem report to the Adapt It developers (see the Help menu)."
 msgstr ""
 
-#: CollabUtilities.cpp:11103
+#: CollabUtilities.cpp:11054
 msgid ""
 "The document was corrupt, but we have successfully restored the last version "
 "saved in the history.  Please re-attempt what you were doing."
 msgstr ""
 
-#: CollabUtilities.cpp:11134
+#: CollabUtilities.cpp:11085
 msgid ""
 "The Copy Source (to Target) command on View Menu is temporarily turned off "
 "because the source text was edited outside of Adapt It.\n"
@@ -13352,7 +13394,7 @@ msgid ""
 "translation too."
 msgstr ""
 
-#: CollabUtilities.cpp:11254
+#: CollabUtilities.cpp:11205
 msgid ""
 "Unexpected (non-fatal) error when trying to load source text obtained from "
 "the external editor.\n"
@@ -13371,18 +13413,18 @@ msgid ""
 "likely a problem in the structure of the source text."
 msgstr ""
 
-#: CollabUtilities.cpp:11582
+#: CollabUtilities.cpp:11533
 msgid "[none assigned]"
 msgstr ""
 
-#: CollabUtilities.cpp:11583 ProjectPage.cpp:769
+#: CollabUtilities.cpp:11534 ProjectPage.cpp:769
 #, c-format
 msgid ""
 "When opening the %s project Adapt It detected the following error(s):\n"
 "\n"
 msgstr ""
 
-#: CollabUtilities.cpp:11587
+#: CollabUtilities.cpp:11538
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" was previously setup for collaboration with %s, "
@@ -13410,7 +13452,7 @@ msgid ""
 "Do you want to remove collaboration settings from this \"%s\" project?"
 msgstr ""
 
-#: CollabUtilities.cpp:11611 ProjectPage.cpp:772
+#: CollabUtilities.cpp:11562 ProjectPage.cpp:772
 msgid "This project's collaboration settings are invalid"
 msgstr ""
 
@@ -14901,24 +14943,7 @@ msgstr "Kufungua Waraka"
 msgid "Git Installation Options"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:101
-msgid ""
-"The computer will need to restart before Git will be activated and the "
-"document histories can be managed. After closing this dialog, quit Adapt It, "
-"and then restart your computer. The next time you run Adapt It the document "
-"history items will work on the Adapt It File menu."
-msgstr ""
-
-#: InstallGitOptionsDlg.cpp:132
-msgid ""
-"A working Git installation is on this computer, but you still have options."
-msgstr ""
-
-#: InstallGitOptionsDlg.cpp:133
-msgid "Adapt It will try to use the existing Git installation."
-msgstr ""
-
-#: InstallGitOptionsDlg.cpp:166
+#: InstallGitOptionsDlg.cpp:134
 msgid ""
 "You chose not to download and install the Git program as part of the Adapt "
 "It installation. Adapt It will still run, but it will not be able to track "
@@ -14926,7 +14951,7 @@ msgid ""
 "version) until you install the Git program on this computer. "
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:171
+#: InstallGitOptionsDlg.cpp:139
 #, c-format
 msgid ""
 "A Git installer is available on this computer at:\n"
@@ -14938,16 +14963,16 @@ msgid ""
 "\n"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:177
+#: InstallGitOptionsDlg.cpp:145
 msgid ""
-"If you have not previously downloaded the Git installer (40MB) and you have "
+"If you have not previously downloaded the Git installer (47MB) and you have "
 "Internet access, the recommended way to obtain the Git program is to run the "
 "Adapt It installer again and choose to have it automatically download and "
 "install the Git program with the correct settings.\n"
 "\n"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:184
+#: InstallGitOptionsDlg.cpp:152
 #, c-format
 msgid ""
 "You should know that the Adapt It installer now saves a copy of the Git "
@@ -14962,7 +14987,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:191
+#: InstallGitOptionsDlg.cpp:159
 #, c-format
 msgid ""
 "The Git installer can be downloaded separately (from: http://git-scm.com/"
@@ -14972,12 +14997,12 @@ msgid ""
 "     %s /SILENT"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:243 InstallGitOptionsDlg.cpp:287
-#: InstallGitOptionsDlg.cpp:356
+#: InstallGitOptionsDlg.cpp:212 InstallGitOptionsDlg.cpp:256
+#: InstallGitOptionsDlg.cpp:326
 msgid "Git Installation completed"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:255
+#: InstallGitOptionsDlg.cpp:224
 #, c-format
 msgid ""
 "A Git installer is available on this computer at: %s.\n"
@@ -14985,21 +15010,20 @@ msgid ""
 "Do you want Adapt It to install Git now using that installer?"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:259
+#: InstallGitOptionsDlg.cpp:228
 msgid "Found a Git installer"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:307
-msgid ""
-"Select a Git installer file, for example Git-2.18.0-32-bit.exe [version "
-"2.18.0 numbers may vary]"
+#: InstallGitOptionsDlg.cpp:276
+#, c-format
+msgid "Select a Git installer file, for example %s [version numbers may vary]"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:310
+#: InstallGitOptionsDlg.cpp:280
 msgid "Git Installer (Git*.exe)|*.exe|All Files (*.*)|*.*||"
 msgstr ""
 
-#: InstallGitOptionsDlg.cpp:362
+#: InstallGitOptionsDlg.cpp:332
 msgid ""
 "No Git Installer was selected. Git will not be installed if you continue.\n"
 "If you still want to install Git, after you click OK, you can try one of the "
@@ -17853,7 +17877,7 @@ msgstr ""
 
 # Priority 1
 # Refers to unknown location in a file
-#: XML.cpp:818 helpers.cpp:11454 helpers.cpp:11476
+#: XML.cpp:818 helpers.cpp:11456 helpers.cpp:11478
 msgid "unknown"
 msgstr "isiyojulikana"
 
@@ -17893,18 +17917,18 @@ msgstr ""
 msgid "XML Document Parsing Error"
 msgstr "Kosa katika kuchunguza jalada la XML "
 
-#: helpers.cpp:1789
+#: helpers.cpp:1790
 msgid "No table file"
 msgstr ""
 
-#: helpers.cpp:1791
+#: helpers.cpp:1792
 #, c-format
 msgid ""
 "The consistent changes table file: %s , does not exist in the folder "
 "_CCTABLE_INPUTS_OUTPUTS"
 msgstr ""
 
-#: helpers.cpp:1841
+#: helpers.cpp:1842
 #, fuzzy, c-format
 msgid ""
 "  Warning: the consistent changes table: %s, was not successfully loaded."
@@ -17912,50 +17936,50 @@ msgstr ""
 "Onyo: namba ya jedwali la mabadiliko dhabiti %d, na majweli mengine yoyote, "
 "hayakupakiwa."
 
-#: helpers.cpp:1846
+#: helpers.cpp:1847
 msgid "Table load failure"
 msgstr ""
 
-#: helpers.cpp:1860
+#: helpers.cpp:1861
 #, fuzzy, c-format
 msgid " Processing the CC table failed, for table: %s   Error code: %d"
 msgstr ""
 "Utengenezaji wa jedwali la CC haukufaulu. Ilipata tatizo la mfumo %d pamoja "
 "na jedwali lenye kigezo %d."
 
-#: helpers.cpp:3518
+#: helpers.cpp:3519
 msgid ""
 "No path to a folder is defined. Perhaps you cancelled the dialog for setting "
 "the destination folder."
 msgstr ""
 
-#: helpers.cpp:3519
+#: helpers.cpp:3520
 msgid "Error, empty path specification"
 msgstr ""
 
-#: helpers.cpp:3538
+#: helpers.cpp:3539
 #, c-format
 msgid ""
 "Failed to make the directory  %s  the current working directory prior to "
 "getting the directory's child directories; perhaps try again."
 msgstr ""
 
-#: helpers.cpp:3542 helpers.cpp:3729
+#: helpers.cpp:3543 helpers.cpp:3730
 msgid "Error, no working directory"
 msgstr ""
 
-#: helpers.cpp:3570
+#: helpers.cpp:3571
 msgid "Error, not a directory"
 msgstr ""
 
-#: helpers.cpp:3725
+#: helpers.cpp:3726
 #, c-format
 msgid ""
 "Failed to make the directory  %s  the current working directory prior to "
 "getting the folder's files; perhaps try again."
 msgstr ""
 
-#: helpers.cpp:9949
+#: helpers.cpp:9950
 msgid ""
 "Warning: the word or phrase was not stored in the knowledge base. This error "
 "is not destructive and can be ignored."
@@ -17963,11 +17987,11 @@ msgstr ""
 "Onyo: neno au kirai hakikutunzwa ndani ya kamusi. Kosa hili haliharibu kitu "
 "chochote na linaweza kupoozwa."
 
-#: helpers.cpp:11066
+#: helpers.cpp:11067
 msgid "Unsuccessful connection attempt"
 msgstr ""
 
-#: helpers.cpp:11067
+#: helpers.cpp:11068
 #, c-format
 msgid ""
 "Tried to connect to the KBserver with ipAddr: %s\n"
@@ -17976,25 +18000,25 @@ msgid ""
 "\"Setup Or Remove Knowledge Base Sharing\""
 msgstr ""
 
-#: helpers.cpp:11406 helpers.cpp:11424 helpers.cpp:11747 helpers.cpp:11767
-#: helpers.cpp:11947 helpers.cpp:11968
+#: helpers.cpp:11408 helpers.cpp:11426 helpers.cpp:11749 helpers.cpp:11769
+#: helpers.cpp:11949 helpers.cpp:11970
 msgid "Setup failed"
 msgstr ""
 
-#: helpers.cpp:11408 helpers.cpp:11748 helpers.cpp:11949
+#: helpers.cpp:11410 helpers.cpp:11750 helpers.cpp:11951
 msgid ""
 "The attempt to share the adaptations knowledge base failed.\n"
 "You can continue working, but sharing of this knowledge base will not happen."
 msgstr ""
 
-#: helpers.cpp:11426 helpers.cpp:11768 helpers.cpp:11970
+#: helpers.cpp:11428 helpers.cpp:11770 helpers.cpp:11972
 msgid ""
 "The attempt to share the glossing knowledge base failed.\n"
 "You can continue working, but sharing of of this glossing knowledge base "
 "will not happen."
 msgstr ""
 
-#: helpers.cpp:11626
+#: helpers.cpp:11628
 msgid ""
 "No KBserver is running on the local area network yet. Or possibly you forgot "
 "to set a KBserver running. Or maybe the machine hosting the KBserver has "
@@ -18004,31 +18028,31 @@ msgid ""
 " If necessary, ask your administrator to help you."
 msgstr ""
 
-#: helpers.cpp:11629
+#: helpers.cpp:11631
 msgid "A KBserver was not discovered"
 msgstr ""
 
-#: helpers.cpp:11856
+#: helpers.cpp:11858
 msgid "No password was typed, or you cancelled"
 msgstr ""
 
-#: helpers.cpp:11858
+#: helpers.cpp:11860
 msgid ""
 "No password was typed in, or you chose to Cancel. This will cancel the "
 "attempt to Authenticate. You can try again later."
 msgstr ""
 
-#: helpers.cpp:12539 helpers.cpp:12609
+#: helpers.cpp:12541 helpers.cpp:12611
 msgid "Possible loss of data"
 msgstr ""
 
-#: helpers.cpp:12540
+#: helpers.cpp:12542
 msgid ""
 "Writing out the file of escaped single quotes detected an error. Check your "
 "file's data is not truncated."
 msgstr ""
 
-#: helpers.cpp:12610
+#: helpers.cpp:12612
 msgid ""
 "Writing out the file of un-escaped single quotes detected an error. Check "
 "your file's data is not truncated."

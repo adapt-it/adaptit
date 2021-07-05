@@ -122,8 +122,9 @@
 
 //#endif
 
+// whm 4Jul2021 commented out all curl code reference
 // libcurl
-#include <curl/curl.h>
+//#include <curl/curl.h>
 
 wxMutex	kbsvr_arrays;
 
@@ -413,8 +414,9 @@ extern std::string str_CURLheaders;
 
 //#endif // _KBSERVER
 
+// whm 4Jul2021 commented out all curl code reference
 // whm added 8Oct12
-#include <curl/curl.h>
+//#include <curl/curl.h>
 
 #if wxCHECK_VERSION(2,9,1)
 // Use the built-in wxConvAuto from <wx/version.h>
@@ -5937,6 +5939,18 @@ wxString CAdapt_ItApp::GetAppVersionOfRunningAppAsString()
     str << VERSION_MINOR_PART;
     str += _T('.');
     str << VERSION_BUILD_PART;
+    return str;
+}
+
+wxString CAdapt_ItApp::GetVersionNumberAsString(int nVersionMajor, int nVersionMinor, int nVersionRevision, wxString separator)
+{
+    wxString str;
+    str.Empty();
+    str << nVersionMajor;
+    str += separator;
+    str << nVersionMinor;
+    str += separator;
+    str << nVersionRevision;
     return str;
 }
 
@@ -27935,11 +27949,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 29Apr16 curl_global_cleanup() cleans up - see OnExit()
 //#if defined (_KBSERVER)
 
-#if defined(__WXMSW__)
-    curl_global_init(CURL_GLOBAL_ALL);
-#else
-    curl_global_init(CURL_GLOBAL_SSL);
-#endif
+//#if defined(__WXMSW__)
+//    curl_global_init(CURL_GLOBAL_ALL);
+//#else
+//    curl_global_init(CURL_GLOBAL_SSL);
+//#endif
 //#else
 //#if defined(__WXMSW__)
 //    curl_global_init(CURL_GLOBAL_ALL);
@@ -29217,7 +29231,7 @@ int CAdapt_ItApp::OnExit(void)
 	// to OnExit() where it must be called now due to the fact that
 	// curl_global_init() was moved to the App's OnInit(). If not
 	// called here over 2,900 memory leaks occur at program shut down.
-    curl_global_cleanup();
+    //curl_global_cleanup();
 
     DestroyMenuStructure(m_pAI_MenuStructure);
 
@@ -33358,32 +33372,58 @@ bool CAdapt_ItApp::IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks)
     return FALSE;
 }
 
-bool CAdapt_ItApp::IsGitInstalled()
+// whm 29Jun2021 modified IsGitInstalled to return version number as reference parameter
+// when a git installation has been found. 
+bool CAdapt_ItApp::IsGitInstalled(wxString& versionNumStr)
 {
-    bool bGInstalled;
-    bGInstalled = FALSE;
+    bool bGInstalled = FALSE; // default in case things below fail
+    versionNumStr = _T("unknown"); // defaul value if check of registry fails
     wxString pathToExecutable;
     pathToExecutable.Empty();
 #ifdef __WXMSW__
+    wxString regValue;
+    regValue.Empty();
+
+    // for Windows, check first if the git.exe is at typical install location
+    if (wxIsPlatform64Bit())
+    {
+        pathToExecutable = _T("C:\\Program Files (x86)\\Git\\bin\\git.exe");
+    }
+    else
+    {
+        pathToExecutable = _T("C:\\Program Files\\Git\\bin\\git.exe");
+    }
+    if (wxFileExists(pathToExecutable))
+    {
+        bGInstalled = TRUE;
+    }
+    // Next check the registry for the git version number 
     wxLogNull logNo; // avoid spurious messages from the system if reg key is unreadable
-    wxRegKey keyWow_1(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
-    if (keyWow_1.Exists())
+    wxRegKey keyWow_1(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\GitForWindows"));
+    keyWow_1.QueryValue(_T("CurrentVersion"), regValue);
+    if (!regValue.IsEmpty())
     {
-        bGInstalled = TRUE;
+        versionNumStr = regValue;
     }
-    wxRegKey keyWOW_2(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
-    if (keyWOW_2.Exists())
+    else
     {
-        bGInstalled = TRUE;
+        versionNumStr = _T("unknown");
     }
-    wxRegKey key32(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
-    if (key32.Exists())
+    wxRegKey key32(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows"));
+    key32.QueryValue(_T("CurrentVersion"), regValue);
+    if (!regValue.IsEmpty())
     {
-        bGInstalled = TRUE;
+        versionNumStr = regValue;
+    }
+    else
+    {
+        versionNumStr = _T("unknown");
     }
     return bGInstalled;
 #endif
-
+    // TODO: Modify code below for Linux and Mac to get git version number
+    // probably can use wxExecute(_T("git --version"), outputMsg, errorsMsg) and examine 
+    // outputMsg string for version number - see commented out code below.
 #if defined(__WXGTK__)
     pathToExecutable = GetProgramLocationFromSystemPATH(_T("git")) + PathSeparator + _T("git");
     if (::wxFileExists(pathToExecutable))
@@ -33402,8 +33442,77 @@ bool CAdapt_ItApp::IsGitInstalled()
 
     return bGInstalled;
 #endif
-
 }
+    /*
+    ////////////////////////////////////////
+    wxString outputStr;
+    outputStr.Empty();
+    {
+        wxLogNull logNo; // avoid spurious messages from the system if reg key is unreadable
+        long result = -1;
+        wxString commandLine;
+        wxString winCmdProcessor;
+#if defined(__WXMSW__)
+        winCmdProcessor = _T("cmd.exe ");
+#else
+        winCmdProcessor.Empty();
+#endif
+        commandLine = winCmdProcessor + _T("git --version"); // outputs the full command in outputMsg
+                                                // if a mono application is running, nothing otherwise
+        wxArrayString outputMsg, errorsMsg;
+        // Use the wxExecute() override that takes the two wxStringArray parameters. This
+        // also redirects the output and suppresses the dos console window during execution.
+   // TODO: The wxExecute() call below on Windows hangs because it creates a hidden terminal window
+        // which is waiting for user input.
+        result = ::wxExecute(commandLine, outputMsg, errorsMsg);
+        int testCt;
+        for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
+        {
+            //outputStr += _T("\nOutput: ");
+            outputStr += outputMsg.Item(testCt);
+        }
+        for (testCt = 0; testCt < (int)errorsMsg.GetCount(); testCt++)
+        {
+            //outputStr += _T("\nErrors: ");
+            outputStr += errorsMsg.Item(testCt);
+        }
+    }
+    wxLogDebug(outputStr);
+    // Notes:
+    // When git is installed:
+    //   On Windows the cmd output will be something like "git version 2.32.0.windows.1
+    //   On Linux the terminal output will be something like "git version 2.7.4"
+    //   On the Mac the terminal output should be something similar to Linux "git version 2.31.0"
+    // When git is NOT installed the ::wxExecute() terminal output for all systems seems to always be an empty string 
+    // in both the output and error strings, even though in an actual terminal the output would be:
+    //   On Windows the cmd output will be something like "'git' is not recognized as an internal or external command,
+    //     operable program or batch file."
+    //   On Linux the terminal output will be something like "git: command not found"
+    //   On the Mac the terminal output should be something like it is on Linux "zsh: command not found: git"
+    // Therefore, I think we can assume that empty string returned at the wxExecute() call indicates that git is NOT installed
+    // and when git IS installed, the outputStr will contain "git version " followed by at lease a 3-digit version 
+    // in which the first and second digits at least are separated by dots.
+    // On all three platforms the first 17 characters of the output string has all the information we need "git version x.x.x"
+    // and characters 13-17 contain the version number
+
+    // if the outputStr is not empty, bGInstalled should be set to True, and we extract characters 13-17 for the version
+    // number string
+    if (!outputStr.IsEmpty())
+    {
+        bGInstalled = TRUE;
+        versionNumStr = versionNumStr.Mid(13, 5);
+        return bGInstalled;
+    }
+    else
+    {
+        bGInstalled = FALSE;
+        return bGInstalled;
+    }
+    ////////////////////////////////////////
+ 
+ */
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -36760,22 +36869,133 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 // whm created 24March2017
 void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
 {
+    // whm 29Jun2021 NOTE:
+    // The following instantiation of the gitInsDlg calls the CInstallGitOptionsDlg::InitDialog() function.
+    // However, no initialization is done there in InitDialog. All the of content and initialization of the 
+    // dialog's variables, radio buttons, and text controls is accomplished here at the beginning of 
+    // OnToolsInstallGit().
+    LogUserAction(_T("Initiated OnToolsInstallGit()"));
 
-    CAdapt_ItApp* pApp = &wxGetApp();
-    wxASSERT(pApp != NULL);
-    pApp->LogUserAction(_T("Initiated OnToolsInstallGit()"));
-    wxString msg;
-    if (IsGitInstalled())
+    CInstallGitOptionsDlg gitInsDlg(GetMainFrame());
+    
+    wxString verNumWithUnderscores = GetVersionNumberAsString(GIT_VERSION_MAJOR, GIT_VERSION_MINOR, GIT_REVISION, _T("_")); // 2_32_0
+    // Set up the gitInsDlg's data
+    gitInsDlg.verNumWithDots = GetVersionNumberAsString(GIT_VERSION_MAJOR, GIT_VERSION_MINOR, GIT_REVISION, _T(".")); // 2.32.0
+    gitInsDlg.GitInstallerFileName = _T("Git-") + gitInsDlg.verNumWithDots + _T("-32-bit.exe"); // currently Git-2.32.0-32-bit.exe
+    gitInsDlg.GitDownloadInstallerFileName = _T("Git_Downloader_") + verNumWithUnderscores + _T("_4AI.exe"); // currently Git_Downloader_2_32_0_4AI.exe
+    gitInsDlg.needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
+    gitInsDlg.bGitInstalled = FALSE;
+    gitInsDlg.PathToAIInstallation = m_appInstallPathOnly;
+    gitInsDlg.GitInstallerPathAndName = gitInsDlg.PathToAIInstallation + PathSeparator + gitInsDlg.GitInstallerFileName;
+    gitInsDlg.GitDownloadInstallerPathAndName = gitInsDlg.PathToAIInstallation + PathSeparator + gitInsDlg.GitDownloadInstallerFileName;
+    gitInsDlg.bGitInstallerExistsLocally = ::wxFileExists(gitInsDlg.GitInstallerPathAndName);
+
+    // Set the initial state of the dialog's radio buttons (adjusted below)
+    if (gitInsDlg.bGitInstallerExistsLocally)
     {
-        msg = _("Git appears to be installed on this computer already! If you think Git is not installed or needs to be reinstalled you can try installing it again using one of options on the next dialog. Do you want to continue?");
+        gitInsDlg.pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
+        gitInsDlg.pRadioBtnDownloadAndInstallGitFromInternet->SetValue(FALSE);
+        gitInsDlg.pRadioBtnBrowseForGitInstaller->SetValue(TRUE);
+    }
+    else
+    {
+        // Make the initial selection be to Download and install Git from the Internet"
+        gitInsDlg.pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
+        gitInsDlg.pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
+        gitInsDlg.pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
+    }
+
+    // Set up text for the dialog's radio button info text boxes
+    gitInsDlg.topStr = _("Do NOT install Git. I'll use Adapt It without Git, or I will install Git later.");
+    gitInsDlg.middleStr = _("This option installs Git version %s. This option requires access to the Internet and will download about 47MB of data. A copy of the Git installer is saved to the Adapt It installation directory.");
+    gitInsDlg.middleStr = gitInsDlg.middleStr.Format(gitInsDlg.middleStr, gitInsDlg.verNumWithDots.c_str());
+    gitInsDlg.bottomStr = _("This option installs Git using a previously downloaded Git installer. Git can be installed this way without accessing the Internet.");
+    gitInsDlg.bGitInstalled = IsGitInstalled(gitInsDlg.gitVerNumAlreadyInstalled);
+    if (gitInsDlg.bGitInstalled)
+    {
+        // A version of Git is already installed, adjust text in button windows and default button selection accordingly
+        gitInsDlg.topPreambleStr = _("A Git installation is on this computer, but you still have options.");
+        gitInsDlg.pStaticTextPreamble->ChangeValue(gitInsDlg.topPreambleStr);
+        gitInsDlg.pStaticDescTopBtn->ChangeValue(gitInsDlg.topStr);
+        gitInsDlg.pStaticDescMiddleBtn->ChangeValue(gitInsDlg.middleStr);
+        gitInsDlg.pStaticDescBottomBtn->ChangeValue(gitInsDlg.bottomStr);
+    }
+    else
+    {
+        // Git is not installed, so leave the default message descriptions unchanged set to default values
+        gitInsDlg.topPreambleStr = _("Git is NOT installed on this computer, but you still have options.");
+        gitInsDlg.pStaticTextPreamble->ChangeValue(gitInsDlg.topPreambleStr);
+        gitInsDlg.pStaticDescTopBtn->ChangeValue(gitInsDlg.topStr);
+        gitInsDlg.pStaticDescMiddleBtn->ChangeValue(gitInsDlg.middleStr);
+        gitInsDlg.pStaticDescBottomBtn->ChangeValue(gitInsDlg.bottomStr);
+    }
+
+    // *********************************** from the CInstallGitOptionsDlg::InitDialog() *************
+    
+    wxString gitVerAvailableToInstallWithDots = GetVersionNumberAsString(GIT_VERSION_MAJOR, GIT_VERSION_MINOR, GIT_REVISION, _T(".")); // get version number with dots
+    if (gitInsDlg.bGitInstalled)
+    {
+        wxString gitVerInstalledWithDots = gitInsDlg.gitVerNumAlreadyInstalled;
+        // Remove dots from version number strings so we can convert them to numbers
+        size_t numRepl;
+        wxString gitVerInstalledNoDots = gitInsDlg.gitVerNumAlreadyInstalled;
+        numRepl = gitVerInstalledNoDots.Replace(_T("."), _T(""), TRUE);
+        wxString gitVerAvailableToInstallNoDots = GetVersionNumberAsString(GIT_VERSION_MAJOR, GIT_VERSION_MINOR, GIT_REVISION, _T("")); // get version number without dots
+        // convert version strings to numbers to do newer, same, older calcs
+        long toLongAvailable = 0;
+        long toLongInstalled = 0;
+        bool bOK1 = gitVerAvailableToInstallNoDots.ToLong(&toLongAvailable);
+        if (!bOK1)
+        {
+            // Available git version should always be OK, do nothing
+            ;
+        }
+        bool bOK2 = gitVerInstalledNoDots.ToLong(&toLongInstalled);
+        if (!bOK2)
+        {
+            // failed to convert Installed git version number, which probably means that IsGitInstalled
+        }
+        wxString msg, msg1, msg2, msg3;
+
+        // construct messages about the git version situation for user's consideration
+        msg1 = _("The version of git that is already installed is the same as the version that is available for installation (version %s). If you think Git is not working properly or needs to be reinstalled you can try installing it again using one of options on the next dialog. Do you want to continue?");
+        msg1 = msg1.Format(msg1, gitInsDlg.gitVerNumAlreadyInstalled.c_str());
+        msg2 = _("The version of git that is already installed (%s) is older than the available version (%s). We recommend that you install the available version %s. You can do so using one of the options on the next dialog. Do you want to continue?");
+        msg2 = msg2.Format(msg2, gitInsDlg.gitVerNumAlreadyInstalled.c_str(), gitVerAvailableToInstallWithDots.c_str(), gitVerAvailableToInstallWithDots.c_str());
+        msg3 = _("The version of git that is already installed (%s) is newer than the version Adapt It can provide at this time (%s). If you really want to install the older %s version (not recommended), you could do so using one of the options on the next dialog. Do you want to continue?");
+        msg3 = msg3.Format(msg3, gitInsDlg.gitVerNumAlreadyInstalled.c_str(), gitVerAvailableToInstallWithDots.c_str(), gitVerAvailableToInstallWithDots.c_str());
         int result;
-        result = wxMessageBox(msg, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+        if (toLongAvailable != toLongInstalled)
+        {
+            // The version of git installed is different from the one available for installation.
+            if (toLongAvailable > toLongInstalled)
+            {
+                // The available version of git is newer than the installed version, recommend the user installs the newer version
+                result = wxMessageBox(msg2, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
+            }
+            else
+            {
+                // The available version of git is older than the installed version, recommend the user NOT install the older version
+                result = wxMessageBox(msg3, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+            }
+        }
+        else
+        {
+            // already installed git version is same as available version, user's choice to re-install the same version or not.
+            result = wxMessageBox(msg1, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+        }
         switch (result)
         {
             case wxYES:
             {
-                CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+                // The gitInsDlg is instantiated and initialized in order to set up some of its buttons from here rather than 
+                // in the CInstallGitOptionsDlg::InitDialog() function
+
                 gitInsDlg.Centre();
+                // Set the dialog's radio buttons to default to downloading from the Internet
+                gitInsDlg.pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
+                gitInsDlg.pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
+                gitInsDlg.pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
                 if (gitInsDlg.ShowModal() == wxID_OK)
                 {
                     ;
@@ -36792,8 +37012,14 @@ void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
     }
     else
     {
-        CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+        // Git is NOT already installed on the user's system,
+        // so just show the dialog and let user decide what to do from there.
+        //CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
         gitInsDlg.Centre();
+        // Set the dialog's radio buttons to default to downloading from the Internet
+        gitInsDlg.pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
+        gitInsDlg.pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
+        gitInsDlg.pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
         if (gitInsDlg.ShowModal() == wxID_OK)
         {
             ;

@@ -148,7 +148,8 @@ enum ClientAction {
 	changedSince,
 	getAll };
 
-#include <curl/curl.h>
+// whm 4Jul2021 commented out all curl code reference
+//#include <curl/curl.h>
 
 // forward references (we'll probably need these at some time)
 class CTargetUnit;
