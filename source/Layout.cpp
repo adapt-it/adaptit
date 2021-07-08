@@ -1934,6 +1934,12 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// scroll support...
 	// get a device context, and get the origin adjusted (gRectViewClient is ignored
 	// when printing)
+#if defined (_DEBUG)
+	if (gbShowTargetOnly)
+	{
+		int halt_here = 1;
+	}
+#endif
 	wxClientDC viewDC(m_pApp->GetMainFrame()->canvas);
 	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
 	// BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just

@@ -23745,6 +23745,18 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
 			GetLayout()->PlaceBox();
+			// BEW 5Jul21 add  ScrollIntoView(sequNum) call, so that the hidden
+			// src text line, or returning src text line, keeps the phrasebox visible
+			int sn = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+			CMainFrame* pFrame = pApp->GetMainFrame();
+			pFrame->canvas->ScrollIntoView(sn);
+			if (gbShowTargetOnly)
+			{
+				wxSize size = pFrame->GetCanvasClientSize();
+				//pFrame->canvas->Refresh(TRUE,&grectViewClient);
+				//wxSizeEvent dummy;
+				//this->OnSize(dummy);
+			}
 		}
 	}
 }
