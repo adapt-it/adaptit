@@ -197,7 +197,7 @@ copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo" /Y
 copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po" /Y 
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo" /Y 
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po" /Y 
-if exist "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Debug\" /Y
+if exist "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" "Unicode Debug\" /Y
 echo ********** EndPost-Build Event Batch Process **********</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -349,7 +349,7 @@ copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo" /Y
 copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po" /Y 
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo" /Y 
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po" /Y 
-if exist "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" "Unicode Release\" /Y
+if exist "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" "Unicode Release\" /Y
 echo ********** EndPost-Build Event Batch Process **********
 
 </Command>

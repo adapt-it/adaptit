@@ -44,6 +44,7 @@ public:
 	bool bEmailSendSuccessful;
 	bool bCurrentEmailReportWasLoadedFromFile;
 	wxString LoadedFilePathAndName;
+	wxString launchURLStr;
 
 	// The following are used to determine if changes have been made in the
 	// three editable fields of the report.
@@ -57,10 +58,10 @@ public:
 	wxString saveSubjectSummary;
 	wxString saveMyEmailAddress;
 	wxString saveSendersName;
-	wxString saveAttachDocLabel;
-	wxToolTip* pBtnAttachTooltip;
-	wxString saveAttachDocTooltip;
-	wxString packedDocInBase64;
+	//wxString saveAttachDocLabel;
+	//wxToolTip* pBtnAttachTooltip;
+	//wxString saveAttachDocTooltip;
+	//wxString packedDocInBase64;
 	wxString userLogInBase64;
 	CBString userLogInASCII;
 
@@ -72,7 +73,7 @@ public:
 	wxTextCtrl* pTextSendersName;
 	wxStaticBox* pStaticBoxTextDescription;
 	wxTextCtrl* pTextDescriptionBody;
-	wxCheckBox* pLetAIDevsKnowHowIUseAI;
+	//wxCheckBox* pLetAIDevsKnowHowIUseAI;
 	wxButton* pButtonViewUsageLog;
     wxStaticText* pTextFillOutYellowAreas;
 	wxStaticText* pStaticAIVersion;
@@ -85,31 +86,36 @@ public:
 	wxStaticText* pStaticSysLayoutDir;
 	wxStaticText* pStaticwxWidgetsVersion;
 	wxStaticText* pStaticOSVersion;
+	wxButton* pBtnSendToMyEmailPgm;
 	wxButton* pButtonSaveReportAsTextFile;
 	wxButton* pButtonLoadASavedReport;
 	wxButton* pButtonClose;
-	wxRadioButton* pRadioSendItDirectlyFromAI;
-	wxRadioButton* pRadioSendItToMyEmailPgm;
-    wxHyperlinkCtrl* pHTMLHyperLinkSendToEmailPgm;
-	wxButton* pButtonAttachAPackedDoc;
-	wxButton* pButtonSendNow;
+	wxButton* pBtnPreviewEmailReport;
+	//wxRadioButton* pRadioSendItDirectlyFromAI;
+	//wxRadioButton* pRadioSendItToMyEmailPgm;
+    //wxHyperlinkCtrl* pHTMLHyperLinkSendToEmailPgm;
+	//wxButton* pButtonAttachAPackedDoc;
+	//wxButton* pButtonSendNow;
 	wxSizer* pEmailReportDlgSizer;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnBtnSendNow(wxCommandEvent& WXUNUSED(event));
+	//void OnBtnSendNow(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event));
 	void OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event));
 	void OnBtnClose(wxCommandEvent& WXUNUSED(event));
-	void OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event));
+	//void OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event));
 	void OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event));
-    void OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event));
-    void OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event));
-    void OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event));
+	void OnBtnPreviewEmailReport(wxCommandEvent& WXUNUSED(event));
+    //void OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event));
+	void OnBtnSendToEmail(wxCommandEvent& WXUNUSED(event));
+    //void OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event));
+    //void OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event));
 	void OnYourEmailAddressEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSubjectSummaryEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnDescriptionBodyEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSendersNameEditBoxChanged(wxCommandEvent& WXUNUSED(event));
+	wxString BuildLaunchURLString(bool makePlainText = FALSE);
 	bool DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString nameSuffix, wxString& nameUsed);
 	//bool SendFileToServer(CURL *curl, CURLcode& res, const wxString localPathAndName);
 	bool BuildEmailReportXMLFile(wxString filePathAndName,bool bReplaceExistingReport);

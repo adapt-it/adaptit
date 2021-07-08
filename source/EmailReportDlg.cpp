@@ -58,10 +58,11 @@
 #include "base64.h"
 #endif
 
+// whm 4Jul2021 commented out all curl code reference
 // libcurl includes:
-#include <curl/curl.h>
+//#include <curl/curl.h>
 //#include <curl/types.h>
-#include <curl/easy.h>
+//#include <curl/easy.h>
 
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
@@ -113,15 +114,17 @@ CLogViewer::~CLogViewer() // destructor
 // event handler table
 BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEmailReportDlg::InitDialog)
-	EVT_BUTTON(ID_BUTTON_SEND_NOW, CEmailReportDlg::OnBtnSendNow)
+	//EVT_BUTTON(ID_BUTTON_SEND_NOW, CEmailReportDlg::OnBtnSendNow)
 	EVT_BUTTON(ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, CEmailReportDlg::OnBtnSaveReportAsXmlFile)
 	EVT_BUTTON(ID_BUTTON_LOAD_SAVED_REPORT, CEmailReportDlg::OnBtnLoadASavedReport)
 	EVT_BUTTON(ID_BUTTON_VIEW_USAGE_LOG, CEmailReportDlg::OnBtnViewUsageLog)
-	EVT_BUTTON(ID_BUTTON_ATTACH_PACKED_DOC, CEmailReportDlg::OnBtnAttachPackedDoc)
+	EVT_BUTTON(ID_BUTTON_PREVIEW_EMAIL_REPORT, CEmailReportDlg::OnBtnPreviewEmailReport)
+	//EVT_BUTTON(ID_BUTTON_ATTACH_PACKED_DOC, CEmailReportDlg::OnBtnAttachPackedDoc)
 	EVT_BUTTON(wxID_OK, CEmailReportDlg::OnBtnClose) // The "Close" button uses wxID_OK symbol
-    EVT_RADIOBUTTON(ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI, CEmailReportDlg::OnRadioBtnSendDirectlyFromAI)
-    EVT_RADIOBUTTON(ID_RADIOBUTTON_SEND_TO_MY_EMAIL, CEmailReportDlg::OnRadioBtnSendToEmail)
-    EVT_HYPERLINK(ID_HYPERLINK_MAILTO, CEmailReportDlg::OnHyperLinkMailToClicked)
+    //EVT_RADIOBUTTON(ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI, CEmailReportDlg::OnRadioBtnSendDirectlyFromAI)
+	//EVT_BUTTON(ID_RADIOBUTTON_SEND_TO_MY_EMAIL, CEmailReportDlg::OnRadioBtnSendToEmail)
+	EVT_BUTTON(ID_BUTTON_SEND_TO_MY_EMAIL, CEmailReportDlg::OnBtnSendToEmail)
+	//EVT_HYPERLINK(ID_HYPERLINK_MAILTO, CEmailReportDlg::OnHyperLinkMailToClicked)
     EVT_TEXT(ID_TEXTCTRL_MY_EMAIL_ADDR, CEmailReportDlg::OnYourEmailAddressEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_SUMMARY_SUBJECT, CEmailReportDlg::OnSubjectSummaryEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_DESCRIPTION_BODY, CEmailReportDlg::OnDescriptionBodyEditBoxChanged)
@@ -176,8 +179,8 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
     // Set background color of required fields to light yellow
     pTextDescriptionBody->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
 
-	pLetAIDevsKnowHowIUseAI = (wxCheckBox*)FindWindowById(ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE);
-	wxASSERT(pLetAIDevsKnowHowIUseAI != NULL);
+	//pLetAIDevsKnowHowIUseAI = (wxCheckBox*)FindWindowById(ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE);
+	//wxASSERT(pLetAIDevsKnowHowIUseAI != NULL);
 	
 	pButtonViewUsageLog = (wxButton*)FindWindowById(ID_BUTTON_VIEW_USAGE_LOG);
 	wxASSERT(pButtonViewUsageLog != NULL);
@@ -226,20 +229,26 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	pButtonClose = (wxButton*)FindWindowById(wxID_OK);
 	wxASSERT(pButtonClose != NULL);
 	
-	pRadioSendItDirectlyFromAI = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI);
-	wxASSERT(pRadioSendItDirectlyFromAI != NULL);
+	//pRadioSendItDirectlyFromAI = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI);
+	//wxASSERT(pRadioSendItDirectlyFromAI != NULL);
 	
-	pRadioSendItToMyEmailPgm = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_SEND_TO_MY_EMAIL);
-	wxASSERT(pRadioSendItToMyEmailPgm != NULL);
+	pBtnPreviewEmailReport = (wxButton*)FindWindowById(ID_BUTTON_PREVIEW_EMAIL_REPORT);
+	wxASSERT(pBtnPreviewEmailReport != NULL);
 
-    pHTMLHyperLinkSendToEmailPgm = (wxHyperlinkCtrl*)FindWindowById(ID_HYPERLINK_MAILTO);
-    wxASSERT(pHTMLHyperLinkSendToEmailPgm != NULL);
+	pBtnSendToMyEmailPgm = (wxButton*)FindWindowById(ID_BUTTON_SEND_TO_MY_EMAIL);
+	wxASSERT(pBtnSendToMyEmailPgm != NULL);
+
+	//pRadioSendItToMyEmailPgm = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_SEND_TO_MY_EMAIL);
+	//wxASSERT(pRadioSendItToMyEmailPgm != NULL);
+
+    //pHTMLHyperLinkSendToEmailPgm = (wxHyperlinkCtrl*)FindWindowById(ID_HYPERLINK_MAILTO);
+    //wxASSERT(pHTMLHyperLinkSendToEmailPgm != NULL);
 	
-	pButtonAttachAPackedDoc = (wxButton*)FindWindowById(ID_BUTTON_ATTACH_PACKED_DOC);
-	wxASSERT(pButtonAttachAPackedDoc != NULL);
+	//pButtonAttachAPackedDoc = (wxButton*)FindWindowById(ID_BUTTON_ATTACH_PACKED_DOC);
+	//wxASSERT(pButtonAttachAPackedDoc != NULL);
 	
-	pButtonSendNow = (wxButton*)FindWindowById(ID_BUTTON_SEND_NOW);
-	wxASSERT(pButtonSendNow != NULL);
+	//pButtonSendNow = (wxButton*)FindWindowById(ID_BUTTON_SEND_NOW);
+	//wxASSERT(pButtonSendNow != NULL);
 
 	// This dialog does not have the equivalent of an OK and Cancel button, hence
 	// we don't call ReverseOkCancelButtonsForMac(this) here.
@@ -263,20 +272,20 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	bSendersNameHasUnsavedChanges = FALSE;
 	bCurrentEmailReportWasLoadedFromFile = FALSE;
 	LoadedFilePathAndName = _T("");
-	saveAttachDocLabel= pButtonAttachAPackedDoc->GetLabel();
-	pBtnAttachTooltip = pButtonAttachAPackedDoc->GetToolTip();
-	saveAttachDocTooltip = pBtnAttachTooltip->GetTip();
+	//saveAttachDocLabel= pButtonAttachAPackedDoc->GetLabel();
+	//pBtnAttachTooltip = pButtonAttachAPackedDoc->GetToolTip();
+	//saveAttachDocTooltip = pBtnAttachTooltip->GetTip();
 
-	if (!::wxFileExists(pApp->m_usageLogFilePathAndName))
-	{
-		pLetAIDevsKnowHowIUseAI->SetValue(FALSE);
-		pLetAIDevsKnowHowIUseAI->Enable(FALSE);
-	}
-	else
-	{
-		pLetAIDevsKnowHowIUseAI->SetValue(TRUE);
-		pLetAIDevsKnowHowIUseAI->Enable(TRUE);
-	}
+	//if (!::wxFileExists(pApp->m_usageLogFilePathAndName))
+	//{
+	//	pLetAIDevsKnowHowIUseAI->SetValue(FALSE);
+	//	pLetAIDevsKnowHowIUseAI->Enable(FALSE);
+	//}
+	//else
+	//{
+	//	pLetAIDevsKnowHowIUseAI->SetValue(TRUE);
+	//	pLetAIDevsKnowHowIUseAI->Enable(TRUE);
+	//}
 
 	pTextDeveloperEmails->ChangeValue(pApp->m_aiDeveloperEmailAddresses);
 
@@ -294,7 +303,9 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
         templateText2 += _T("-- Note: Adapt It documents are .xml files located in the Adaptations folder of your project folder.");
         templateText2 += _T("\n");
         templateText2 += _T("-- Note: Your Adapt It user log is a UsageLog_user.txt file located in the _LOGS_EMAIL_REPORTS folder of your Adapt It Unicode Work folder.");
-        templateText1 += templateText2;
+		templateText2 += _T("\n\n");
+		templateText2 += _T("*** AFTER EDITING AND ATTACHING ANY FILES, CLICK ON YOUR EMAIL PROGRAM'S SEND BUTTON ***");
+		templateText1 += templateText2;
 		templateTextForDescription = templateText1; // can use this to compare a loaded report and know if it differs from the template
 	}
 	else if (reportType == Give_feedback)
@@ -307,7 +318,9 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 		templateText1 += _T("\n1. \n2. \n3. \n");
 		templateText2 = _("What suggestions do you have that would make Adapt It more helpful?");
 		templateText2 += _T("\n1. \n2. \n");
-        templateText1 += templateText2;
+		templateText2 += _T("\n\n");
+		templateText2 += _T("*** Thank you for your comments! CLICK ON YOUR EMAIL PROGRAM'S SEND BUTTON ***");
+		templateText1 += templateText2;
 		templateTextForDescription = templateText1; // can use this to compare a loaded report and know if it differs from the template
 	}
 	// load template text into the Description edit box
@@ -333,11 +346,11 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // Also, must eventually decide which radio button is to be the default once both email functions are working.
     // TODO: Enable the "Send directly from Adapt It radio button, the "Send Now" button and the "Attach this
     // document..." button in the dialog after Michael helps me get the php code working on the adapt-it.org server. 
-    pRadioSendItDirectlyFromAI->Disable();
-    pButtonSendNow->Enable(); // whm 7Feb2020 changed initially to Enable since it is the only option
-    pButtonAttachAPackedDoc->Disable();
-    pRadioSendItDirectlyFromAI->SetValue(FALSE); // this is not the default now
-    pRadioSendItToMyEmailPgm->SetValue(TRUE); // this is the default for now
+    //pRadioSendItDirectlyFromAI->Disable();
+    //pButtonSendNow->Enable(); // whm 7Feb2020 changed initially to Enable since it is the only option
+    //pButtonAttachAPackedDoc->Disable();
+    //pRadioSendItDirectlyFromAI->SetValue(FALSE); // this is not the default now
+    //pRadioSendItToMyEmailPgm->SetValue(TRUE); // this is the default for now
 
 	// Fill in the System Information fields
 	pStaticAIVersion->SetLabel(pApp->GetAppVersionOfRunningAppAsString()); //ID_TEXT_AI_VERSION
@@ -451,6 +464,9 @@ size_t curl_send_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 	wxLogDebug(msg);
     return size * nmemb; // Return amount processed
 }
+
+// whm 4Jul2021 commented out all curl code reference
+/*
 
 // OnBtnSendNow(), unless returned prematurely because of incomplete information,
 // or failure of the email to be sent, invokes EndModal(wxID_OK) to close the dialog.
@@ -925,6 +941,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 
 	EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
+*/
 
 void CEmailReportDlg::OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event))
 {
@@ -1183,6 +1200,11 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 				// If it no longer exists, notify user that it won't be sent via email unless
 				// it is created again by clicking on the "Attach a packed document" button before
 				// sending.
+				// whm 4July2021 removed check below for packed document, since email reports no
+				// longer support packed documents being attached from within Adapt It (users
+				// can still attach a document after the email report has been sent to their default
+				// email program).
+				/*
 				if (!wxFileExists(packedDocPathAndName))
 				{
 					wxString pdMsg1,pdMsg2,pdMsg3;
@@ -1203,6 +1225,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 						OnBtnAttachPackedDoc(evt);
 					}
 				}
+				*/
 			}
 			wxString userLogPathAndName;
 			userLogPathAndName = pApp->m_pEmailReportData->usageLogFilePathName;
@@ -1253,6 +1276,7 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 	EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
+/*
 void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 {
 	// If no document is open, tell user that he must open a document first that he
@@ -1327,6 +1351,7 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 	pBtnAttachTooltip->SetTip(_("Click to detach the packed adaptation document from this email"));
 	pButtonAttachAPackedDoc->SetToolTip(pBtnAttachTooltip);
 }
+*/
 
 void CEmailReportDlg::OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event))
 {
@@ -1336,6 +1361,59 @@ void CEmailReportDlg::OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event))
 	logDlg.ShowModal();
 }
 
+void CEmailReportDlg::OnBtnPreviewEmailReport(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBtnPreviewEmailReport()"));
+
+	// Build the launch string in plain text and display it in a wxMessageBox
+	launchURLStr = BuildLaunchURLString(TRUE);
+	wxMessageBox(launchURLStr, _T(""), wxICON_INFORMATION | wxOK);
+}
+
+void CEmailReportDlg::OnBtnSendToEmail(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnHyperLinkMailToClicked()"));
+	// Note: We want, I think, a click on this hyperlink itself to immediately send 
+	// the email text info to the user's email program - as most users would expect.
+	// So, I think it best to disable the "Send Now" button to prevent a subsequent
+	// click on that button while the user's email program is loading/displaying the email there.
+	// whm 4July2021 commented out the disabling of the pBtnSendToMyEmailPgm
+	//this->pBtnSendToMyEmailPgm->Disable();
+	// Also Note: Disabling the Send Now button here might be considered problematic, should the 
+	// user change their mind and decide to send the email directly from AI using the top radio button. 
+	// In that case the "Send Now" button would still be disabled. But, that is OK I think, 
+	// a change of mind would involve the user subsequently clicking the top radio button, and 
+	// the handler for that button will always enable the "Send Now" button.
+	// Probably we should just keep the email report dialog open and let the user click
+	// the dialog's "Close" button themselves after interacting with the hyperlink/email pgm.
+	//
+	launchURLStr = BuildLaunchURLString();
+
+	// The following curl function might be used, but would need to be tested first.
+	// Note: curl has a function called curl_easy_escape() that can be used to encode chars for this:
+	// CURL *curl = curl_easy_init();
+	//if (curl) {
+	//    char *output = curl_easy_escape(curl, "data to convert", 15);
+	//    if (output) {
+	//        printf("Encoded: %s\n", output);
+	//        curl_free(output);
+	//    }
+	//}
+
+	// Call wxLaunchDefaultBrowser() function to manually send the text info for the user's default email program.
+	bool bLaunchedOK = FALSE;
+	bLaunchedOK = wxLaunchDefaultBrowser(launchURLStr);
+	bLaunchedOK = bLaunchedOK; // avoid warning
+
+	// Note: the dialog stays open at end of this handler so the user can close it or
+	// other action such as "Save report as text file (xml)", etc.
+	//event.Skip(); // don't call Skip since we've handled the call of wxLaunchDefaultBrowser manually above
+}
+
+
+/*
 void CEmailReportDlg::OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event))
 {
     CAdapt_ItApp* pApp = &wxGetApp();
@@ -1352,6 +1430,7 @@ void CEmailReportDlg::OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event))
     pRadioSendItDirectlyFromAI->SetValue(FALSE);
     pRadioSendItToMyEmailPgm->SetValue(TRUE);
 }
+
 
 void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event))
 {
@@ -1381,7 +1460,7 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event)
     wxString sysInfo;
     sysInfo = FormatSysInfoIntoString();
 
-    wxString launchURLStr;
+    launchURLStr.Empty(); // start with empty launchURLStr
     // Note: The launchURLStr should contain all the text for the TO:, Subject:, and Body: fields of the
     // user's email. It could be formatted as plain text or as HTML for a nicer appearance.
     //
@@ -1446,6 +1525,7 @@ void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& WXUNUSED(event)
     // other action such as "Save report as text file (xml)", etc.
     //event.Skip(); // don't call Skip since we've handled the call of wxLaunchDefaultBrowser manually above
 }
+*/
 
 // Builds the xml report as Problem or Feedback report
 // Returns TRUE if the wxTextfile creation and opening process was successful
@@ -1766,6 +1846,104 @@ void CEmailReportDlg::OnSendersNameEditBoxChanged(wxCommandEvent& WXUNUSED(event
 	{
 		bSendersNameHasUnsavedChanges = FALSE;
 	}
+}
+
+wxString CEmailReportDlg::BuildLaunchURLString(bool makePlainText)
+{
+	wxString buildStr;
+	buildStr.Empty(); // start with empty launchURLStr
+
+	wxString emailSubject;
+	emailSubject = pTextEmailSubject->GetValue();
+	wxString emailBody;
+	emailBody = pTextDescriptionBody->GetValue();
+	wxString senderName;
+	senderName = pTextSendersName->GetValue();
+	wxString senderEmail;
+	senderEmail = pTextYourEmailAddr->GetValue();
+	wxString sysInfo;
+	sysInfo = FormatSysInfoIntoString();
+
+    // Note: The launchURLStr should contain all the text for the TO:, Subject:, and Body: fields of the
+	// user's email. It could be formatted as plain text or as HTML for a nicer appearance.
+	//
+	// Flesh out the URL call string for launchURLStr, then explicitly call the wx function 
+	// bool wxLaunchDefaultBrowser (const wxString & url, int flags = 0)
+	// Build the launchURLStr with the following text components concatenated together:
+	// 1. "mailto:developers@adapt-it.org"
+	// 2. "?subject=[Adapt%20It%20Problem%20report]%20" for Problem report, or "subject=[Adapt%20It%20Feedback]" for Feedback report
+	// 3. content of emailSubject field URL encoded where needed in user edits
+	// 4. "&body="
+	// 5. content of emailBody field URL encoded where needed in user edits
+	// 6. content of the sysInfo returned from the FormatSysInfoIntoString() function (preceeded and followed by 'do not remove' lines)
+	//  
+	wxString newLine = _T("\n");
+	if (makePlainText)
+	{
+		buildStr = _T("To: developers@adapt-it.org");
+		buildStr += newLine;
+		if (reportType == Report_a_problem)
+		{
+			buildStr += _T("Subject: [Adapt It Problem report] ");
+		}
+		else
+		{
+			buildStr += _T("Subject: [Adapt It Feedback report] ");
+		}
+		buildStr += emailSubject;
+		buildStr += newLine;
+		buildStr += _T("Email Body: ");
+		buildStr += newLine;
+		buildStr += emailBody;
+		buildStr += newLine;
+		buildStr += newLine;
+		buildStr += _T("--- Do not remove the following information ---");
+		buildStr += newLine;
+		buildStr += _T("Sender's Name: ");
+		buildStr += senderName;
+		buildStr += newLine;
+		buildStr += _T("Sender's Email: ");
+		buildStr += senderEmail;
+		buildStr += newLine;
+		buildStr += sysInfo;
+		buildStr += _T("--- Do not remove the information above ---");
+	}
+	else
+	{
+		buildStr = _T("mailto:developers@adapt-it.org");
+		if (reportType == Report_a_problem)
+		{
+			buildStr += _T("?subject=[Adapt%20It%20Problem%20report]%20");
+		}
+		else
+		{
+			buildStr += _T("?subject=[Adapt%20It%20Feedback]%20");
+		}
+		buildStr += FormatEditBoxStringInfoIntoURLSafeString(emailSubject);
+		buildStr += _T("&body=");
+		buildStr += FormatEditBoxStringInfoIntoURLSafeString(emailBody);
+		if (reportType == Report_a_problem)
+		{
+			buildStr += _T("%0%0A%2A%2A%2A%20AFTER%20EDITING%20AND%20ATTACHING%20ANY%20FILES,%20CLICK%20ON%20YOUR%20EMAIL%20PROGRAM'S%20SEND%20BUTTON%20%2A%2A%2A%0A%0A");
+		}
+		else
+		{
+			buildStr += _T("%0A%2A%2A%2A%20Thank%20you%20for%20your%20comments!%20CLICK%20ON%20YOUR%20EMAIL%20PROGRAM'S%20SEND%20BUTTON%20%2A%2A%2A%0A%0A");
+		}
+		buildStr += _T("---%20Do%20not%20remove%20the%20following%20information%20---%0A");
+		buildStr += _T("Sender's%20Name%3A%20");
+		buildStr += FormatEditBoxStringInfoIntoURLSafeString(senderName);
+		buildStr += _T("%0ASender's%20Email%3A%20");
+		buildStr += FormatEditBoxStringInfoIntoURLSafeString(senderEmail);
+		buildStr += _T("%0A");
+		buildStr += FormatEditBoxStringInfoIntoURLSafeString(sysInfo);
+		buildStr += _T("---%20Do%20not%20remove%20the%20information%20above%20---");
+	}
+	
+	// The following value for launchURLStr is a working example:
+	//launchURLStr = _T("mailto:support@adapt-it.org?subject=[Adapt%20It%20Problem%20report]&body=What%20steps%20will%20reproduce%20the%20problem%3F%20(Edit%20the%20steps%20below%3A)%0A1.%20%0A2.%20%0A3.%20%0AProvide%20any%20other%20information%20you%20think%20would%20be%20helpful%20(such%20as%20attaching%20an%20Adapt%20It%20document%2C%20user%20log%2C%20etc.)%3A%0A--%20Note%3A%20%20Adapt%20It%20documents%20are%20.xml%20files%20located%20in%20the%20Adaptations%20folder%20of%20your%20project%20folder.%0A--%20Note%3A%20%20Your%20Adapt%20It%20user%20log%20is%20a%20UsageLog_user.txt%20file%20located%20in%20the%20_LOGS_EMAIL_REPORTS%20folder%20of%20your%20Adapt%20It%20Unicode%20Work%20folder.%0A%0A--%20Do%20not%20remove%20the%20following%20information%20--%0AName%3A%20%20%20Bill%0AEmail:%20%20%20bill_martin%40sil.org%0AAI%20Version%3A%20%20%206.9.4%0ARelease%20Date%3A%20%20%202019-5-9%0AData%20type%3A%20%20%20UNICODE%0AFree%20Memory%20(MB)%3A%20%20%20301%0ASys%20Locale%3A%20%20%20English%20(U.S.)%20en_US%0AInterface%20Language%3A%20%20%20English%20(U.S.)%0ASys%20Encoding%3A%20%20%20UTF-8%0ASys%20Layout%20Dir%3A%20%20%20System%20Default%0AwxWidgets%20version%3A%20%20%203.0.2%0AOS%20version%3A%20%20%2064%20bit%20Linux%204.4%0A--%20Do%20not%20remove%20the%20information%20above%20--%0A"); // should also be able to use support@adapt-it.org - TEST!!
+
+	return buildStr;
 }
 
 wxString CEmailReportDlg::FormatSysInfoIntoString()

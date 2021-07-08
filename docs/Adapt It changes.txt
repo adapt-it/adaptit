@@ -1,4 +1,25 @@
 ﻿----------------------------------------------
+Version 6.10.4  1 July 2021
+----------------------------------------------
+Feature changes and new features in 6.10.4
+--------------------------------------------------------------------------------------------
+* The Adapt It installers have undergone revision to correct some problematic
+behaviour that prevented users from being able to download and install the git
+program during the installation of Adapt It. A newer version of git 2.32.0 is now
+downloaded by the installer.
+* The Help menu's email reporting of Problem Reports and/or Feedback Reports has 
+been somewhat simplified. All email reports are sent only to the user's default
+email program, where the user can edit the reports, attach documents or the 
+user log. The email reports can also be previewed before sending them to the user's
+email program while still within the Help menu's report creation dialog.
+
+---------------------------------------------
+Bug fixes in 6.10.4 update
+---------------------------------------------
+* Additional unhelpful debug error messages about not being able to change the working
+directory have been eliminated.
+
+----------------------------------------------
 Version 6.10.3  9 April 2021
 ----------------------------------------------
 Feature changes and new features in 6.10.3
