@@ -57,8 +57,8 @@
 
 #ifndef __WXGTK__
 // for Windows and Mac
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <boost\uuid\uuid_generators.hpp>
+#include <boost\uuid\uuid_io.hpp>
 #include <sstream>
 #include <string>
 #else

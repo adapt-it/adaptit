@@ -69,15 +69,15 @@ CInstallGitOptionsDlg::CInstallGitOptionsDlg(wxWindow* parent) // dialog constru
     wxASSERT(pRadioBtnDownloadAndInstallGitFromInternet != NULL);
     pRadioBtnBrowseForGitInstaller = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_BROWSE_FOR_GIT_INSTALLER);
     wxASSERT(pRadioBtnBrowseForGitInstaller != NULL);
-	//pStaticTextTop = (wxStaticText*)FindWindowById(ID_TEXT_PREAMBLE); //BEW 20Jun17
-	//changed it to a read only multiline text control (and removed the newline in the
-	//string contents)
-    pStaticTextTop = (wxTextCtrl*)FindWindowById(ID_TEXT_PREAMBLE);
-    wxASSERT(pStaticTextTop != NULL);
+    pStaticTextPreamble = (wxTextCtrl*)FindWindowById(ID_TEXT_PREAMBLE);
+    wxASSERT(pStaticTextPreamble != NULL);
 
-    // pStaticDescTopBtn = (wxStaticText*)FindWindowById(ID_TEXT_TOP_BTN_DESC); // ditto
     pStaticDescTopBtn = (wxTextCtrl*)FindWindowById(ID_TEXT_TOP_BTN_DESC);
     wxASSERT(pStaticDescTopBtn != NULL);
+    pStaticDescMiddleBtn = (wxTextCtrl*)FindWindowById(ID_TEXT_MIDDLE_BTN_DESC);
+    wxASSERT(pStaticDescMiddleBtn != NULL);
+    pStaticDescBottomBtn = (wxTextCtrl*)FindWindowById(ID_TEXT_BOTTOM_BTN_DESC);
+    wxASSERT(pStaticDescBottomBtn != NULL);
 
     // Set radio button defaults 
     pRadioBtnDoNotInstallGitNow->SetValue(TRUE);
@@ -92,61 +92,29 @@ CInstallGitOptionsDlg::~CInstallGitOptionsDlg() // destructor
 {
 
 }
+// NOTE: THE VERSION OF GIT and OUR AI GIT DOWNLOADER ADJUST is determined by the 3 DEFINES 
+// located just after the Adapt It version numbers in the Adapt_It.h header file. Those defines
+// are named GIT_VERSION_MAJOR, GIT_VERSION_MINOR, and  GIT_REVISION.
+// Make sure that the version numbers there MATCH THE VERSION NUMBERING SET WITHIN OUR
+// INNO SETUP iss SCRIPTS.
+// Those three defines are the only three lines that need updating when there is a new version
+// of git that we want to use within Adapt It. The coding below converts those defines into 
+// these filenames used here in InstallGitOptionsDlg.cpp:
+//   Git-2.32.0-32-bit.exe - the current git installer file at github downloadable from:
+//   https://github.com/git-for-windows/git/releases/download/v2.32.0.windows.1/Git-2.32.0-32-bit.exe
+//   Git_Downloader_2_32_0_4AI.exe - our current git downloader produced by our Adapt It 
+// Unicode Git.iss Inno Setup script.
 
 void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
     //InitDialog() is not virtual, no call needed to a base class
-    GitInstallerFileName = _T("Git-2.18.0-32-bit.exe");
-    GitDownloadInstallerFileName = _T("Git_Downloader_2_18_0_4AI.exe");
-    needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
-    bGitInstalled = FALSE;
-    GitSetupURL = _T("http://www.adapt-it.org/") + GitInstallerFileName;
-    PathToAIInstallation = m_pApp->m_appInstallPathOnly;
-    GitInstallerPathAndName = PathToAIInstallation + m_pApp->PathSeparator + GitInstallerFileName;
-    GitDownloadInstallerPathAndName = PathToAIInstallation + m_pApp->PathSeparator + GitDownloadInstallerFileName;
-    bGitInstallerExistsLocally = ::wxFileExists(GitInstallerPathAndName);
 
-    if (bGitInstallerExistsLocally)
-    {
-        pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
-        pRadioBtnDownloadAndInstallGitFromInternet->SetValue(FALSE);
-        pRadioBtnBrowseForGitInstaller->SetValue(TRUE);
-    }
-    else
-    {
-        // Make the initial selection be to Download and install Git from the Internet"
-        pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
-        pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
-        pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
-    }
-
-    bGitInstalled = m_pApp->IsGitInstalled();
-    if (bGitInstalled)
-    {
-        // Remove the top dialog text which doesn't apply when Git is already installed
-        //pStaticTextTop->SetLabel(_(""));
-        //pStaticDescTopBtn->SetLabel(_(""));
-        pStaticTextTop->ChangeValue(_T(""));
-		pStaticDescTopBtn->ChangeValue(_T(""));
-		// and replace the first two descriptions with suitable text
-		wxString descrTop = _("A working Git installation is on this computer, but you still have options.");
-		wxString descrNext = _("Adapt It will try to use the existing Git installation.");
-        pStaticTextTop->ChangeValue(descrTop);
-		pStaticDescTopBtn->ChangeValue(descrNext);
-		
-        // Make the initial selection be 'Do not try to install Git at this time"
-        pRadioBtnDoNotInstallGitNow->SetValue(TRUE);
-        pRadioBtnDownloadAndInstallGitFromInternet->SetValue(FALSE);
-        pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
-    }
-	else
-	{
-		// Git is not installed, so leave the default message descriptions unchanged and,
-        // make the initial selection be to install from the web
-        pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
-        pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
-        pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
-	}
+    // whm 29Jun2021 All initialization of this CInstallGitOptionsDlg dialog
+    // is now accomplished in the dialog's caller CAdapt_ItApp::OnToolsInstallGit()  
+    // rather than here in InitDialog(). That is because most of the user's choices 
+    // are determined there, and the code for determining whether git is installed
+    // and what version that installed git is, compared to available git versions is
+    // all contained in the caller CAdapt_ItApp::OnToolsInstallGit().
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -174,7 +142,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             else
             {
                 // 
-                msg = msg + _("If you have not previously downloaded the Git installer (40MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
+                msg = msg + _("If you have not previously downloaded the Git installer (47MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
             }
             // Remind the administrator/user that once Git has been downloaded once, that
             // installer will be preserved in the Adapt It installation folder where it could be
@@ -197,7 +165,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
     }
     else if (pRadioBtnDownloadAndInstallGitFromInternet->GetValue())
     {
-        // Note: Since Git_Downloader_2_18_0_4AI.exe is designed so that it can be used as a standalone
+        // Note: Since Git_Downloader_2_32_0_4AI.exe is designed so that it can be used as a standalone
         // downloader/installer is handles checking to see if Git is already installed, and it will
         // issue the following Yes/No confirmation prompt if Git is already installed:
         // "The Git program is already installed. If Git is not working properly, you can download 
@@ -209,8 +177,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
         // downloaded separately (from: http://git-scm.com/downloads) and installed at a later time 
         // after this installer has finished." [OK]
 
-        // Call our small Git_Downloader_2_18_0_4AI.exe Git program to download and install the 
-        // the actual Git installer. The local path of our small Git_Downloader_2_18_0_4AI.exe
+        // Call our small Git_Downloader_2_32_0_4AI.exe Git program to download and install the 
+        // the actual Git installer. The local path of our small Git_Downloader_2_32_0_4AI.exe
         // should be stored in GitDownloadInstallerPathAndName.
         wxString commandLine;
         // Our small installer doesn't need any command-line arguments. It internally uses the 
@@ -220,7 +188,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
         // which has a nice progress bar, but suppresses the usual wizard pages. The Git installer is supposed
         // to disappear automatically when installation is finished but may present a "Completed" page with
         // "Finish" button for the user to click.
-        commandLine = GitDownloadInstallerPathAndName; // typically: "C:\Program Files (x86)\Adapt It WX Unicode\Git_Downloader_2_18_0_4AI.exe"
+        commandLine = GitDownloadInstallerPathAndName; // typically: "C:\Program Files (x86)\Adapt It WX Unicode\Git_Downloader_2_32_0_4AI.exe"
         long result = -1;
         wxArrayString outputMsg;
         wxArrayString errorsMsg;
@@ -229,6 +197,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
         result = ::wxExecute(commandLine, outputMsg, errorsMsg);
         result = result;
         // TODO: Error checking
+
         if (!bGitInstalled)
         {
             // Show message only if Adapt It detected that Git was already installed when this option
@@ -304,7 +273,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             // User opted to not use the existing Git installer that we found, perhaps because
             // the user wants to use a different (updated) one from a thumb drive, so present 
             // the file dialog and allow navigating to the desired installer.
-            wxString Prompt = _("Select a Git installer file, for example Git-2.18.0-32-bit.exe [version 2.18.0 numbers may vary]");
+            wxString Prompt = _("Select a Git installer file, for example %s [version numbers may vary]");
+            Prompt = Prompt.Format(Prompt, GitInstallerFileName.c_str());
             wxString FileName = _T("Git-*.exe");
             wxString InitialDirectory = PathToAIInstallation;
             wxString Filter = _("Git Installer (Git*.exe)|*.exe|All Files (*.*)|*.*||");

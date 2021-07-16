@@ -906,13 +906,13 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		pDC->SetTextBackground(backcolor);
 	}
 
-#ifdef _DEBUG
-	if (m_pSrcPhrase->m_nSequNumber == 129)
-	{
-		int halt_here = 1;
-        halt_here = halt_here; // avoid gcc warning
-	}
-#endif
+//#ifdef _DEBUG
+//	if (m_pSrcPhrase->m_nSequNumber == 129)
+//	{
+//		int halt_here = 1;
+//        halt_here = halt_here; // avoid gcc warning
+//	}
+//#endif
 
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
@@ -1289,31 +1289,31 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			if (bHasFilterMarker)
 			{
 #ifdef _RTL_FLAGS
-				// we need to make extra space available for some data configurations
+// we need to make extra space available for some data configurations
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
 				{
 					// right to left layout
 					if (m_pLayout->m_pApp->m_bNavTextRTL)
-						rectBounding.Offset(-xOffset,-diff); // navText is RTL
+						rectBounding.Offset(-xOffset, -diff); // navText is RTL
 					else
-						rectBounding.Offset(0,-diff); // navText is LTR
+						rectBounding.Offset(0, -diff); // navText is LTR
 				}
 				else
 				{
 					// left to right layout
 					if (m_pLayout->m_pApp->m_bNavTextRTL)
-						rectBounding.Offset(0,-diff); // navText is RTL
+						rectBounding.Offset(0, -diff); // navText is RTL
 					else
-						rectBounding.Offset(xOffset,-diff); // navText is LTR
+						rectBounding.Offset(xOffset, -diff); // navText is LTR
 				}
 #else
-				rectBounding.Offset(xOffset, -diff);
+rectBounding.Offset(xOffset, -diff);
 #endif
 			}
 			else
 			{
-				// no filter marker, so we don't need to make extra space
-				rectBounding.Offset(0,-diff);
+			// no filter marker, so we don't need to make extra space
+			rectBounding.Offset(0, -diff);
 			}
 
 			// wx version sets layout direction directly on the pDC
@@ -1325,12 +1325,12 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// at ch:vs points, section headings, etc. For RTL the nav text could extend
 				// out and be clipped beyond the left margin.
 				// ** Draw RTL Actual Ch:Vs and/or m_inform Navigation Text **
-				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do
+				m_pCell[0]->DrawTextRTL(pDC, str, rectBounding); // any CCell pointer would do
 			}
 			else
 			{
 				// *** Draw LTR Actual Ch:Vs and/or m_inform Navigation Text ***
-				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
+				pDC->DrawText(str, rectBounding.GetLeft(), rectBounding.GetTop());
 			}
 			pDC->SetFont(aSavedFont);
 		}
@@ -1341,7 +1341,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			wxPoint ptNote;
 			TopLeft(ptNote);
 			// offset top left (-13,-9) for regular app
-			#ifdef _RTL_FLAGS
+#ifdef _RTL_FLAGS
 			if (m_pLayout->m_pApp->m_bRTL_Layout)
 			{
 				ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
@@ -1351,30 +1351,30 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			{
 				ptNote.x -= 13;
 			}
-			#else
+#else
 			ptNote.x -= 13;
-			#endif
+#endif
 			ptNote.y -= 9;
 
 			// create a brush
-            // whm note: According to wx docs, wxWidgets shows all brushes as white unless
-            // the colour is really black on monochrome displays, i.e., the OLPC screen in
-            // Black & White mode. In contrast, wxWidgets shows all non-white pens as black
-            // on monochrome displays.
+			// whm note: According to wx docs, wxWidgets shows all brushes as white unless
+			// the colour is really black on monochrome displays, i.e., the OLPC screen in
+			// Black & White mode. In contrast, wxWidgets shows all non-white pens as black
+			// on monochrome displays.
 #if wxCHECK_VERSION(2,9,0)					
-			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxBRUSHSTYLE_SOLID));
+			pDC->SetBrush(wxBrush(wxColour(254, 218, 100), wxBRUSHSTYLE_SOLID));
 #else
-			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
+			pDC->SetBrush(wxBrush(wxColour(254, 218, 100), wxSOLID));
 #endif
 			pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
-			wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
+			wxRect insides(ptNote.x, ptNote.y, ptNote.x + 9, ptNote.y + 9);
 			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the
 			// interior using the current brush
-			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a
+			pDC->DrawRectangle(ptNote.x, ptNote.y, 9, 9); // rectangles are drawn with a
 													   // black border
 			pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
-                    // the current brush to be selected out of the device context, and the
-                    // original brush restored.
+					// the current brush to be selected out of the device context, and the
+					// original brush restored.
 			// now the two spirals at the top - left one, then right one
 			pDC->DrawLine(ptNote.x + 3, ptNote.y + 1, ptNote.x + 3, ptNote.y + 3);
 			pDC->DrawLine(ptNote.x + 2, ptNote.y + 2, ptNote.x + 2, ptNote.y + 3);
@@ -1385,6 +1385,139 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetPen(wxNullPen);
 		}
 	}
+	// BEW 5Jul21 added the else block, so that limited amount of nav text information
+	// gets displayed in the whiteboard area when no source text is visible -- e.g. 
+	// chapter and verse, and the asterisks for where a retranslation is located
+	else
+	{
+		int xOffset = 0;
+		int diff;
+		//bool bHasFilterMarker = HasFilterMarker();  // we are not supporting wedges display
+													// when source is not shown
+#if defined (_DEBUG)
+		if ((gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == 4842) && gbShowTargetOnly)
+		{
+			int halt_here = 1;
+		}
+
+#endif
+		// if a message is to be displayed above this word, draw it too
+		if (m_pSrcPhrase->m_bNotInKB)
+		{
+			wxPoint pt;
+			TopLeft(pt); //pt = m_ptTopLeft;
+#ifdef _RTL_FLAGS
+			if (m_pLayout->m_pApp->m_bNavTextRTL)
+				pt.x += rectBounding.GetWidth(); // align right
+#endif
+			// whm: the wx version doesn't use negative offsets
+			diff = m_pLayout->GetNavTextHeight() - (m_pLayout->GetSrcTextHeight() / 4);
+			pt.y -= diff;
+			wxString str;
+			xOffset += 8;
+			if (m_pSrcPhrase->m_bBeginRetranslation)
+				str = _T("*# "); // visibly mark start of a retranslation section
+			else
+				str = _T("* ");
+			wxFont SaveFont;
+			wxFont* pNavTextFont2 = m_pLayout->m_pNavTextFont;
+			SaveFont = pDC->GetFont(); // save current font
+			pDC->SetFont(*pNavTextFont2);
+			if (!navColor.IsOk())
+			{
+				::wxBell();
+				wxASSERT(FALSE);
+			}
+			pDC->SetTextForeground(navColor);
+
+			rectBounding.Offset(0, -diff);
+
+
+			// wx version can only set layout direction directly on the whole pDC.
+			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
+			// right-to-left reading of the text, but we need to manually control
+			// the right-alignment of text when we have bRTLLayout. The upper-left
+			// x coordinate for RTL drawing of the m_phrase should be
+			if (bRTLLayout)
+			{
+				// *** Draw the RTL Retranslation section marks *# or * in Nav Text area ***
+				// whm note: nav text stuff can potentially be much wider than the width of
+				// the cell where it is drawn. This would not usually be a problem since nav
+				// text is not normally drawn above every cell but just at major markers like
+				// at ch:vs points, section headings, etc. For RTL the nav text could extend
+				// out and be clipped beyond the left margin.
+				m_pCell[0]->DrawTextRTL(pDC, str, rectBounding); // any CCell pointer would do here
+			}
+			else
+			{
+				// *** Draw the LTR Retranslation section marks *# or * in Navigation Text area ***
+				pDC->DrawText(str, rectBounding.GetLeft(), rectBounding.GetTop());
+			}
+			pDC->SetFont(SaveFont);
+
+			wxFont aSavedFont;
+			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
+			aSavedFont = pDC->GetFont();
+			pDC->SetFont(*pNavTextFont);
+			if (!navColor.IsOk())
+			{
+				::wxBell();
+				wxASSERT(FALSE);
+			}
+			pDC->SetTextForeground(navColor);
+
+/*
+		if (bHasFilterMarker)
+		{
+#ifdef _RTL_FLAGS
+			// we need to make extra space available for some data configurations
+			if (m_pLayout->m_pApp->m_bRTL_Layout)
+			{
+				// right to left layout
+				if (m_pLayout->m_pApp->m_bNavTextRTL)
+					rectBounding.Offset(-xOffset, -diff); // navText is RTL
+				else
+					rectBounding.Offset(0, -diff); // navText is LTR
+			}
+			else
+			{
+				// left to right layout
+				if (m_pLayout->m_pApp->m_bNavTextRTL)
+					rectBounding.Offset(0, -diff); // navText is RTL
+				else
+					rectBounding.Offset(xOffset, -diff); // navText is LTR
+			}
+#else
+			rectBounding.Offset(xOffset, -diff);
+#endif
+		}
+		else
+		{
+*/
+			// no filter marker, so we don't need to make extra space
+			rectBounding.Offset(0, -diff);
+//		}
+
+		// wx version sets layout direction directly on the pDC
+		if (bRTLLayout)
+		{
+			// whm note: nav text stuff can potentially be much wider than the width of
+			// the cell where it is drawn. This would not usually be a problem since nav
+			// text is not normally drawn above every cell but just at major markers like
+			// at ch:vs points, section headings, etc. For RTL the nav text could extend
+			// out and be clipped beyond the left margin.
+			// ** Draw RTL Actual Ch:Vs and/or m_inform Navigation Text **
+			m_pCell[0]->DrawTextRTL(pDC, str, rectBounding); // any CCell pointer would do
+		}
+		else
+		{
+			// *** Draw LTR Actual Ch:Vs and/or m_inform Navigation Text ***
+			pDC->DrawText(str, rectBounding.GetLeft(), rectBounding.GetTop());
+		}
+		pDC->SetFont(aSavedFont);
+		}
+	}
+
 }
 
 // return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker

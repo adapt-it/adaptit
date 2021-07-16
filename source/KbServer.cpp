@@ -34,7 +34,8 @@
 
 //#if defined(_KBSERVER)
 
-#include <curl/curl.h>
+// whm 4Jul2021 commented out all curl code reference
+//#include <curl/curl.h>
 
 static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
