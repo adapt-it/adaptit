@@ -301,11 +301,20 @@ void CLayout::Draw(wxDC* pDC)
 	// Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is
 	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
 #ifdef Do_Clipping
-	// temporary code for debugging
-	//wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
-	//wxLogDebug(_T("Draw() START: bFullWindowDraw is %s  and m_nCurBoxWidth  %d  and currBoxSize.x  %d"),
-	//			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
-	//			m_curBoxWidth, sizePhraseBox.x);
+	//BEW 12Jul21 the two booleans, m_bDoFullWindowDraw and m_bScrolling, appear to be FALSE always,
+	// and even if the first goes TRUE, it goes back to FALSE quickly. Whether in normal or
+	// hide-src text mode, the values are the same (FALSE), whether scrolling up or down.
+	// But in hide-src text mode, scrolling down has repeated gaps of invisible strips (clicking
+	// in the gap makes the strips return to visibility), when scrolling down; but scrolling up,
+	// all strips from the start of the scroll back to sn = 0 are visible. I've not yet tracked
+	// down why this scrolling strip visibility issue happens. It's certainly not due to
+	// either of these two booleans. Investigations continue...
+	// 	
+	// // temporary code for debugging
+//	wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
+//	wxLogDebug(_T("Draw() START: bFullWindowDraw is %s  and m_nCurBoxWidth  %d  and currBoxSize.x  %d"),
+//				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
+//				m_curBoxWidth, sizePhraseBox.x);
 #endif
 	// drawing is done based on the top of the first strip of a visible range of strips
 	// determined by the scroll car position; to have drawing include the phrase box, a
@@ -322,8 +331,27 @@ void CLayout::Draw(wxDC* pDC)
 	int nLastStripIndex = -1;
 	//int nActiveSequNum = -1; // set but unused
 
+#if defined (_DEBUG)
+	// BEW 14Jul21
+	if (gbShowTargetOnly)
+	{
+		if (nLastStripIndex > 9)
+		{
+			int halt_here = 1;
+		}
+		else
+		{
+			if (nLastStripIndex > 9)
+			{
+				int halt_here = 1;
+			}
+		}
+	}
+#endif
 	// work out the range of visible strips based on the phrase box location
 	//nActiveSequNum = m_pApp->m_nActiveSequNum;
+	// BEW 15Jul21 ensure the following starts off empty
+	m_invalidStripArray.Clear(); // ensure no now-bogus entry remains
 
 	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
 	// BEW added 10Jul09, GetVisibleStripsRange() assumes drawing is being done to the
@@ -348,17 +376,39 @@ void CLayout::Draw(wxDC* pDC)
 	}
 	else
 	{
-		// not printing nor print previewing
+		// not printing nor print previewing;  get the range - if the bottom
+		// of the last in the range would get below client rectange, add 1
+		// to ensure a clean result
+#if defined (_DEBUG)
+		int currentStripHeight = m_nStripHeight;
+		wxUnusedVar(currentStripHeight);
+#endif
 		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
+#if defined (_DEBUG)
+		if (gbShowTargetOnly)
+		{
+			wxLogDebug(_T("%s:%s():line %d, After GetVisibleStripsRange: first %d , last %d  gbShowTargetOnly TRUE"),
+				__FILE__, __FUNCTION__, __LINE__, nFirstStripIndex, nLastStripIndex);
+		}
+		else
+		{
+			wxLogDebug(_T("%s:%s():line %d, After GetVisibleStripsRange: first %d , last %d  gbShowTargetOnly FALSE"),
+				__FILE__, __FUNCTION__, __LINE__, nFirstStripIndex, nLastStripIndex);
+		}
+#endif
 	}
 
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// check for any invalid strips in the range to be drawn, and if one is found, call
-	// the CleanUpFromStripAt() function, doing it for a window's worth of strips, so that
+	// the CleanUpFromStripAt() function, doing it for the strips within the range + 1, so that
 	// no invalid strip will be visible to the user - either when displaying document
-	// editing results, or when scrolling up or down
+	// editing results, or when scrolling up or down. But be sure not to alter the
+	// nFirstStripIndex or nLastStripIndex values when doing the cleanup. Cleanup may
+	// internally slide piles to neighbouring strips, even to the point of losing a
+	// strip emptied of piles... so be careful
+
 	//
 	// BEW added 10Jul09, since RecalcLayout() with param create_strips_keep_piles is
 	// called before drawing when doing print, or print preview, there won't be invalid
@@ -373,7 +423,15 @@ void CLayout::Draw(wxDC* pDC)
 			if (aStripPtr->m_bValid == FALSE)
 			{
 				// fix a window's worth of strips from here on - do it only once per loop
-				CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, GetNumVisibleStrips());
+				int numVisibleStrips = GetNumVisibleStrips();
+#if defined (_DEBUG)
+				if (gbShowTargetOnly)
+				{
+					wxLogDebug(_T("%s:%s():line %d, m_bValid is FALSE: Calling CleanUpTheLayoutFromStripAt: %d , numVisibleStrips: %d"),
+						__FILE__, __FUNCTION__, __LINE__, aStripPtr->m_nStrip, numVisibleStrips);
+				}
+#endif
+				CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, numVisibleStrips);
 				break;
 			}
 		}
@@ -416,16 +474,29 @@ void CLayout::Draw(wxDC* pDC)
 	for (i = nFirstStripIndex; i <= nLastStripIndex; i++)
 	{
 		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
+#if defined (_DEBUG)
+		if (gbShowTargetOnly)
+		{
+
+			wxLogDebug(_T("%s:%s():line %d, for loop, just drawn Strip: i = %d "),
+				__FILE__, __FUNCTION__, __LINE__, i);
+		}
+#endif
 	}
 
-	m_invalidStripArray.Clear(); // initialize for next user edit operation
-
+#if defined (_DEBUG)
+//	if (gbShowTargetOnly)
+//	{
+		wxLogDebug(_T("%s:%s():line %d, loop done, clearing m_invalidStripArray"), __FILE__, __FUNCTION__, __LINE__);
+		m_invalidStripArray.Clear(); // initialize for next user edit operation
+//	}
+#endif
 #ifdef Do_Clipping
-								 //wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"),
-								 //			m_bScrolling ? _T("TRUE") : _T("FALSE"),
-								 //			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
-								 // initialize the clipping support flags, and clear the clip rectangle in both the
-								 // device context, and the one for the active strip in CLayout
+//	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"),
+//				m_bScrolling ? _T("TRUE") : _T("FALSE"),
+//				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
+	// initialize the clipping support flags, and clear the clip rectangle in both the
+	// device context, and the one for the active strip in CLayout
 	SetScrollingFlag(FALSE);
 	SetFullWindowDrawFlag(FALSE);
 	pDC->DestroyClippingRegion(); // makes it default to full-window drawing again
@@ -2702,6 +2773,18 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
 	// hide box  -- I think we'll support it by just recalculating the layout without a
 	// scroll, at the current thumb position for the scroll car
+#if defined (_DEBUG)
+	if (gbShowTargetOnly)
+	{
+		wxLogDebug(_T("%s:%s():line %d, external pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly TRUE"),
+			__FILE__, __FUNCTION__, __LINE__, m_nStripHeight);
+	}
+	else
+	{
+		wxLogDebug(_T("%s:%s():line %d, external pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly FALSE"),
+			__FILE__, __FUNCTION__, __LINE__, m_nStripHeight);
+	}
+#endif
 
 	// get the logical distance (pixels) that the scroll bar's thumb indicates to top
 	// of client area
@@ -2709,7 +2792,7 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 
 	// for the current client rectangle of the canvas, calculate how many strips will
 	// fit - a part strip is counted as an extra one
-	int nVisStrips = GetNumVisibleStrips();
+	int nVisStrips = CalcNumVisibleStrips();
 
 	// find the current total number of strips
 	int nTotalStrips = m_stripArray.GetCount();
@@ -2772,6 +2855,18 @@ void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
 	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
 	// hide box  -- I think we'll support it by just recalculating the layout without a
 	// scroll, at the current thumb position for the scroll car
+#if defined (_DEBUG)
+	if (gbShowTargetOnly)
+	{
+		wxLogDebug(_T("%s:%s():line %d, INTERNAL pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly TRUE"),
+			__FILE__, __FUNCTION__, __LINE__, m_nStripHeight);
+	}
+	else
+	{
+		wxLogDebug(_T("%s:%s():line %d, INTERNAL pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly FALSE"),
+			__FILE__, __FUNCTION__, __LINE__, m_nStripHeight);
+	}
+#endif
 
 	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
 	m_pCanvas->DoPrepareDC(aDC); // get origin adjusted
@@ -2836,8 +2931,9 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 {
 	// "upper" partition is the one with small sequence number, "lower" has larger
 	// sequence numbers
-	if (numTotalStrips < 64)
-		// don't need a binary chop if there are not heaps of strips
+	//if (numTotalStrips < 64)
+	if (numTotalStrips < 2)
+			// don't need a binary chop if there are not lots of strips
 		return 0;
 	int maxStripIndex = numTotalStrips - 1;
 	int nOneScreensWorthOfStrips = numVisStrips + 2; // LHS = usually about 12 or so
@@ -2848,6 +2944,13 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 	int nTop = 0;
 	int midway = 0;
 	int half = 0;
+#if defined (_DEBUG)
+	if (gbShowTargetOnly)
+	{
+		wxLogDebug(_T("%s:%s():line %d,Layout's GetStartingIndex_ByBinaryChop, passed in: thumb pixels %d , numVisStrips %d , numTotalStrips %d"),
+			__FILE__, __FUNCTION__, __LINE__, nThumbPos_InPixels, numVisStrips, numTotalStrips);
+	}
+#endif
 	while ((nUpperBound - nLowerBound) > nOneScreensWorthOfStrips)
 	{
 		half = (nUpperBound - nLowerBound) / 2;

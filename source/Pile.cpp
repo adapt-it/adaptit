@@ -870,7 +870,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 	//if (this == NULL) // whm 3Oct2018 removed - it generates gcc warning "nonnull argument 'this' compared to NULL
 	//	return;
-	GetPileRect(rectBounding); // get the bounding rectangle for this CCell instance
+	GetPileRect(rectBounding); // get the bounding rectangle for this CPile instance (top,left,width,height)
 #ifdef _RTL_FLAGS
 	if (m_pLayout->m_pApp->m_bNavTextRTL)
 	{
@@ -916,14 +916,32 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
-	if (!gbShowTargetOnly)
+	//if (!gbShowTargetOnly)  // BEW 9Jul21 we want this block also done when gbShowTargetOnly is TRUE
+	// and no harm in leaving the block scoped. Internally, we will use gbShowTargetOnly TRUE
+	// to provide a different response when the user clicks in a retranslation. I'm thinking
+	// of causing a temporary return to normal mode and showing the retranslation opened ready
+	// for editing, and then when the retrans dialog is dismissed, auto-returning to the hidden
+	// source text mode with the active pile set safely nearby to a non-retrans CSourcePhrase instance
 	{
 		int xOffset = 0;
 		int diff;
 		bool bHasFilterMarker = HasFilterMarker();
 
+		// BEW 16Jul21 when src text is not being shown, we want any placeholders to have
+		// three dots ( ... ) written to the nav text whileboard area, above the placeholder -
+		// since the 3 dots of the source text are not visible. But be careful, we don't want
+		// placeholders within a retranslation so marked. (Placeholders are still called
+		// NullSourcePhrase in our code, the latter is their legacy name.) The needed code
+		// for their color and placement in in the m_NotInKB block, so for efficiency I'll 
+		// just create a new boolean and add a second subtest to the block's test
+		bool bWriteDotsForPlaceholder = gbShowTargetOnly 
+			&& (m_pSrcPhrase->m_bNullSourcePhrase == TRUE)
+			&& (!m_pSrcPhrase->m_bRetranslation) 
+			&& (m_pSrcPhrase->m_key == _T("..."));
+
 		// if a message is to be displayed above this word, draw it too
-		if (m_pSrcPhrase->m_bNotInKB)
+		// BEw 16Jul21 added second subtest
+		if (m_pSrcPhrase->m_bNotInKB || bWriteDotsForPlaceholder)
 		{
 			wxPoint pt;
 			TopLeft(pt); //pt = m_ptTopLeft;
@@ -933,13 +951,38 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 #endif
 			// whm: the wx version doesn't use negative offsets
 			diff = m_pLayout->GetNavTextHeight() - (m_pLayout->GetSrcTextHeight()/4);
-			pt.y -= diff;
-			wxString str;
-			xOffset += 8;
-			if (m_pSrcPhrase->m_bBeginRetranslation)
-				str = _T("*# "); // visibly mark start of a retranslation section
+			if (!bWriteDotsForPlaceholder)
+			{
+				pt.y -= diff;
+			}
 			else
-				str = _T("* ");
+			{
+				diff += 8; // raises ... by 8 pixels so phrasebox top won't be near the ...
+				pt.y -= diff;
+			}
+			wxString str; // temp string for the writing
+			xOffset += 8;
+			// Define what to put in str
+			// BEW 16Jul21 refactored this block to show ... when src is hidden
+			if (bWriteDotsForPlaceholder)
+			{
+				// We are dealing with a placeholder
+				if (str.IsEmpty())
+					str = _T("...");
+				else
+				{
+					str += _T(' ');
+					str += _T("...");
+				}
+			}
+			else
+			{
+				// We are dealing with a retranslation
+				if (m_pSrcPhrase->m_bBeginRetranslation)
+					str = _T("*# "); // visibly mark start of a retranslation section
+				else
+					str = _T("* ");
+			}
 			wxFont SaveFont;
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			SaveFont = pDC->GetFont(); // save current font
@@ -952,7 +995,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetTextForeground(navColor);
 
 			rectBounding.Offset(0,-diff);
-
 
 			// wx version can only set layout direction directly on the whole pDC.
 			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
@@ -974,6 +1016,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// *** Draw the LTR Retranslation section marks *# or * in Navigation Text area ***
 				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
 			}
+
 			pDC->SetFont(SaveFont);
 		}
 
@@ -1198,14 +1241,20 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
             // now append anything which is in the m_inform member; there may not have been
             // a chapter and/or verse number already placed in str, so allow for this
             // possibility
-			if (!m_pSrcPhrase->m_inform.IsEmpty())
+			// BEW 10Jul21 m_inform never has chapter:verse info in it, so when displaying
+			// for gbShowTargetOnly = TRUE, m_inform information is just a distraction for 
+			// the read-and-check process, so refrain from including it when that bool is TRUE
+			if (!gbShowTargetOnly)
 			{
-				if (str.IsEmpty())
-					str = m_pSrcPhrase->m_inform;
-				else
+				if (!m_pSrcPhrase->m_inform.IsEmpty())
 				{
-					str += _T(' ');
-					str += m_pSrcPhrase->m_inform;
+					if (str.IsEmpty())
+						str = m_pSrcPhrase->m_inform;
+					else
+					{
+						str += _T(' ');
+						str += m_pSrcPhrase->m_inform;
+					}
 				}
 			}
 
@@ -1385,139 +1434,6 @@ rectBounding.Offset(xOffset, -diff);
 			pDC->SetPen(wxNullPen);
 		}
 	}
-	// BEW 5Jul21 added the else block, so that limited amount of nav text information
-	// gets displayed in the whiteboard area when no source text is visible -- e.g. 
-	// chapter and verse, and the asterisks for where a retranslation is located
-	else
-	{
-		int xOffset = 0;
-		int diff;
-		//bool bHasFilterMarker = HasFilterMarker();  // we are not supporting wedges display
-													// when source is not shown
-#if defined (_DEBUG)
-		if ((gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == 4842) && gbShowTargetOnly)
-		{
-			int halt_here = 1;
-		}
-
-#endif
-		// if a message is to be displayed above this word, draw it too
-		if (m_pSrcPhrase->m_bNotInKB)
-		{
-			wxPoint pt;
-			TopLeft(pt); //pt = m_ptTopLeft;
-#ifdef _RTL_FLAGS
-			if (m_pLayout->m_pApp->m_bNavTextRTL)
-				pt.x += rectBounding.GetWidth(); // align right
-#endif
-			// whm: the wx version doesn't use negative offsets
-			diff = m_pLayout->GetNavTextHeight() - (m_pLayout->GetSrcTextHeight() / 4);
-			pt.y -= diff;
-			wxString str;
-			xOffset += 8;
-			if (m_pSrcPhrase->m_bBeginRetranslation)
-				str = _T("*# "); // visibly mark start of a retranslation section
-			else
-				str = _T("* ");
-			wxFont SaveFont;
-			wxFont* pNavTextFont2 = m_pLayout->m_pNavTextFont;
-			SaveFont = pDC->GetFont(); // save current font
-			pDC->SetFont(*pNavTextFont2);
-			if (!navColor.IsOk())
-			{
-				::wxBell();
-				wxASSERT(FALSE);
-			}
-			pDC->SetTextForeground(navColor);
-
-			rectBounding.Offset(0, -diff);
-
-
-			// wx version can only set layout direction directly on the whole pDC.
-			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
-			// right-to-left reading of the text, but we need to manually control
-			// the right-alignment of text when we have bRTLLayout. The upper-left
-			// x coordinate for RTL drawing of the m_phrase should be
-			if (bRTLLayout)
-			{
-				// *** Draw the RTL Retranslation section marks *# or * in Nav Text area ***
-				// whm note: nav text stuff can potentially be much wider than the width of
-				// the cell where it is drawn. This would not usually be a problem since nav
-				// text is not normally drawn above every cell but just at major markers like
-				// at ch:vs points, section headings, etc. For RTL the nav text could extend
-				// out and be clipped beyond the left margin.
-				m_pCell[0]->DrawTextRTL(pDC, str, rectBounding); // any CCell pointer would do here
-			}
-			else
-			{
-				// *** Draw the LTR Retranslation section marks *# or * in Navigation Text area ***
-				pDC->DrawText(str, rectBounding.GetLeft(), rectBounding.GetTop());
-			}
-			pDC->SetFont(SaveFont);
-
-			wxFont aSavedFont;
-			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
-			aSavedFont = pDC->GetFont();
-			pDC->SetFont(*pNavTextFont);
-			if (!navColor.IsOk())
-			{
-				::wxBell();
-				wxASSERT(FALSE);
-			}
-			pDC->SetTextForeground(navColor);
-
-/*
-		if (bHasFilterMarker)
-		{
-#ifdef _RTL_FLAGS
-			// we need to make extra space available for some data configurations
-			if (m_pLayout->m_pApp->m_bRTL_Layout)
-			{
-				// right to left layout
-				if (m_pLayout->m_pApp->m_bNavTextRTL)
-					rectBounding.Offset(-xOffset, -diff); // navText is RTL
-				else
-					rectBounding.Offset(0, -diff); // navText is LTR
-			}
-			else
-			{
-				// left to right layout
-				if (m_pLayout->m_pApp->m_bNavTextRTL)
-					rectBounding.Offset(0, -diff); // navText is RTL
-				else
-					rectBounding.Offset(xOffset, -diff); // navText is LTR
-			}
-#else
-			rectBounding.Offset(xOffset, -diff);
-#endif
-		}
-		else
-		{
-*/
-			// no filter marker, so we don't need to make extra space
-			rectBounding.Offset(0, -diff);
-//		}
-
-		// wx version sets layout direction directly on the pDC
-		if (bRTLLayout)
-		{
-			// whm note: nav text stuff can potentially be much wider than the width of
-			// the cell where it is drawn. This would not usually be a problem since nav
-			// text is not normally drawn above every cell but just at major markers like
-			// at ch:vs points, section headings, etc. For RTL the nav text could extend
-			// out and be clipped beyond the left margin.
-			// ** Draw RTL Actual Ch:Vs and/or m_inform Navigation Text **
-			m_pCell[0]->DrawTextRTL(pDC, str, rectBounding); // any CCell pointer would do
-		}
-		else
-		{
-			// *** Draw LTR Actual Ch:Vs and/or m_inform Navigation Text ***
-			pDC->DrawText(str, rectBounding.GetLeft(), rectBounding.GetTop());
-		}
-		pDC->SetFont(aSavedFont);
-		}
-	}
-
 }
 
 // return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker
@@ -1670,10 +1586,15 @@ void CPile::Draw(wxDC* pDC)
 	// nav text whiteboard drawing for this pile...
 	// whm removed !gbIsPrinting from the following test to include nav text info and
 	// icons in print and print preview
-	if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
-	{
+//	if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
+//	{
 		DrawNavTextInfoAndIcons(pDC);
-	}
+//	}
+//	else
+//	{
+		// see what happens if the flag is TRUE, does the nav text stuff appear in the whiteboard area
+//		DrawNavTextInfoAndIcons(pDC);
+//	}
 
 	// draw the phrase box if it belongs to this pile
 	if (m_pLayout->m_pApp->m_bIsPrinting)

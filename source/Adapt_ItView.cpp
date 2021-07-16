@@ -23580,14 +23580,32 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
 	}
 	CLayout* pLayout = GetLayout();
+	int saveActiveSequNum = 0;
+	if (gbShowTargetOnly)
+	{
+		saveActiveSequNum = pApp->m_nActiveSequNum;
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	Invalidate();
-	GetLayout()->PlaceBox();
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		Invalidate();
+		GetLayout()->PlaceBox();
+		pApp->GetMainFrame()->canvas->ScrollIntoView(saveActiveSequNum);
+	}
+	else
+	{
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		Invalidate();
+		GetLayout()->PlaceBox();
+		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -33389,6 +33407,14 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 	// wxWidgets' wxView class does not itself have an Invalidate() method like MFC
 	// The wxWindow class has Refresh(), so we'll get the window associated with
 	// the current View and refresh it.
+#if defined (_DEBUG)
+	if (gbShowTargetOnly == TRUE) // && (m_pOwningPile->m_pSrcPhrase->m_nSequNumber == 4842))
+	{
+		wxLogDebug(_T("AT View's Invalidate() gbShowTargetOnly == TRUE ******************************"));
+		int halt_here = 1; // test for this being a suitable location to add nav text stuff
+		// TODO  -- 4842 is "dhu" two piles before a 2 word retranslation in Luke 3:3
+	}
+#endif
 
 #ifdef Do_Clipping
 	CLayout* pLayout = GetLayout();

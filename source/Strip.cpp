@@ -60,6 +60,7 @@ extern CAdapt_ItApp* gpApp;
 
 extern wxRect	grectViewClient; // used in OnDraw() below
 extern bool		gbRTL_Layout;
+extern bool	gbShowTargetOnly; // definition in Adapt_ItView.cpp
 
 /// This global is defined in Adapt_It.cpp.
 extern struct PageOffsets pgOffsets;
@@ -159,6 +160,9 @@ void CStrip::Draw(wxDC* pDC)
 		aPilePtr = ((CPile*)m_arrPiles[i]);
 		aPilePtr->Draw(pDC);
 	}
+
+	//wxLogDebug(_T("%s:%s():line %d, Drawing strip = %d  gbShowTargetOnly = %d @@@@@@@@@@@@@@@@@"), __FILE__, __FUNCTION__, __LINE__,
+	//	m_nStrip, gbShowTargetOnly); // <- Yes, the strips get drawn for gbShowTargetOnly set to TRUE, see if piles are same
 
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));

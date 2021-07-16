@@ -1002,36 +1002,59 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+			// toggling to no visible src does NOT ask for any re-drawing of the tgt cells 
+#if defined (_DEBUG)
+			if (gbShowTargetOnly == TRUE)
+			{
+				CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
+				//if (!pSrcPhrase->m_inform.IsEmpty())
+				if ( (pSrcPhrase->m_bNullSourcePhrase == TRUE) && (!pSrcPhrase->m_bRetranslation))
+				{
+					/* 
+					// BEW 10Jul21 uncomment out, and allow m_inform display in Pile.cpp ata 1209 - 1221 
+					// to see this stuff in Output window, in Unicode Debug build; reinstate line 1010 above too
+					wxLogDebug(_T("%s::%s(), line %d, target text: %s , sequNum = %d , m_inform: %s"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_adaption.c_str(),
+						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_inform.c_str());
+					*/
+					wxLogDebug(_T("%s::%s(), line %d, sequNum = %d, Placeholder: %s "),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str());
+				}
+				
+			}
+#endif
+
 // whm 5Nov16 testing the failure to print Kuni source text where font has special chars
 #if defined(__WXGTK__) && defined(_DEBUG)
 			if (m_pLayout->m_pApp->m_bIsPrinting && !m_pLayout->m_pApp->m_bIsPrintPreviewing)
-            {
-                CPile* pPile = GetPile();
-                int nPileIndex = pPile->GetPileIndex();
-                CStrip* pStrip = pPile->GetStrip();
-                int stripIndex = pStrip->GetStripIndex();
-                // effect a debugging break to examine sourcephrase of 1st pile in 3rd strip
-                // in the Kuni to English project document: KVG-611PE-Kuni-NoNotes - Original.xml
-                // The source text is:  No Pitá  and the Linux version built against WX2.8 is not
-                // rendering it correctly to a printer; the Linux version built against WX3.x does
-                // not render it at all when sent to a printer.
-                if (stripIndex == 3 && nPileIndex == 0 && m_nCell == 0)
-                {
-                   int dummy;
-                   dummy = 0;
-                   dummy = dummy;
-                }
-                if (stripIndex == 3 && nPileIndex == 0)
-                {
-                   // The following should log debug output for the Pile's cell[0], cell[1] and cell[2]
-                   // Curiously, only cell[1] and cell[2] are output/printed even though cell[0] has the
-                   // valid Kuni text  No Pitá
-                   // and even the wxLogDebug() call below doesn't output anything to the output terminal.
-                   wxString st;
-                   st = *pPhrase;
-                   wxLogDebug(_T("DrawCell: SrcPhrase[%s] rect: TOP %d LEFT %d strip %d pile %d cell %d"), 
-                      st.c_str(), enclosingRect.GetTop(), enclosingRect.GetLeft(), stripIndex, nPileIndex, m_nCell);
-                }
+			{
+				CPile* pPile = GetPile();
+				int nPileIndex = pPile->GetPileIndex();
+				CStrip* pStrip = pPile->GetStrip();
+				int stripIndex = pStrip->GetStripIndex();
+				// effect a debugging break to examine sourcephrase of 1st pile in 3rd strip
+				// in the Kuni to English project document: KVG-611PE-Kuni-NoNotes - Original.xml
+				// The source text is:  No Pitá  and the Linux version built against WX2.8 is not
+				// rendering it correctly to a printer; the Linux version built against WX3.x does
+				// not render it at all when sent to a printer.
+				if (stripIndex == 3 && nPileIndex == 0 && m_nCell == 0)
+				{
+					int dummy;
+					dummy = 0;
+					dummy = dummy;
+				}
+				if (stripIndex == 3 && nPileIndex == 0)
+				{
+					// The following should log debug output for the Pile's cell[0], cell[1] and cell[2]
+					// Curiously, only cell[1] and cell[2] are output/printed even though cell[0] has the
+					// valid Kuni text  No Pitá
+					// and even the wxLogDebug() call below doesn't output anything to the output terminal.
+					wxString st;
+					st = *pPhrase;
+					wxLogDebug(_T("DrawCell: SrcPhrase[%s] rect: TOP %d LEFT %d strip %d pile %d cell %d"),
+						st.c_str(), enclosingRect.GetTop(), enclosingRect.GetLeft(), stripIndex, nPileIndex, m_nCell);
+				}
+			}
         }
 #endif
 /*  Very useful if the display leaves a hole somewhere unexpectedly, and you know the m_nSequNumber value of the location
