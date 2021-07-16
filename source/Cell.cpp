@@ -1002,6 +1002,7 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+
 			// toggling to no visible src does NOT ask for any re-drawing of the tgt cells 
 #if defined (_DEBUG)
 			if (gbShowTargetOnly == TRUE)
@@ -1010,19 +1011,12 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 				//if (!pSrcPhrase->m_inform.IsEmpty())
 				if ( (pSrcPhrase->m_bNullSourcePhrase == TRUE) && (!pSrcPhrase->m_bRetranslation))
 				{
-					/* 
-					// BEW 10Jul21 uncomment out, and allow m_inform display in Pile.cpp ata 1209 - 1221 
-					// to see this stuff in Output window, in Unicode Debug build; reinstate line 1010 above too
-					wxLogDebug(_T("%s::%s(), line %d, target text: %s , sequNum = %d , m_inform: %s"),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_adaption.c_str(),
-						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_inform.c_str());
-					*/
 					wxLogDebug(_T("%s::%s(), line %d, sequNum = %d, Placeholder: %s "),
 						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str());
 				}
-				
 			}
 #endif
+
 
 // whm 5Nov16 testing the failure to print Kuni source text where font has special chars
 #if defined(__WXGTK__) && defined(_DEBUG)
