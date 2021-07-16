@@ -417,6 +417,11 @@ void CLayout::Draw(wxDC* pDC)
 	{
 		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
 	}
+#if defined( _DEBUG)
+	wxLogDebug(_T("%::%() line %d; Finished drawing visible strips: from %d to %d "),
+		__FILE__, __FUNCTION__, __LINE__, nFirstStripIndex, nLastStripIndex);
+#endif
+
 
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
@@ -472,6 +477,10 @@ void CLayout::Redraw(bool bFirstClear)
 		// erase the view rectangle
 		pDC->Clear();
 	}
+#if defined( _DEBUG)
+	wxLogDebug(_T("%::%() line %d; set wxClientDC for m_pCanvas, DoPrepareDC, clear maybe, starting Draw(pDC) for the Layout) : from %d to %d "),
+		__FILE__, __FUNCTION__, __LINE__);
+#endif
 	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
 				// based on the active location (default param bool bAtActiveLocation is TRUE)
 

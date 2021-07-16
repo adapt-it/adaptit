@@ -23680,6 +23680,11 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		if (tbi != NULL)
 		{
+#if defined( _DEBUG)
+			wxLogDebug(_T("%::%() line %d; tbi non null, gbShowTargetOnly = % "),
+				__FILE__, __FUNCTION__, __LINE__, (int)gbShowTargetOnly);
+#endif
+
             // whm comment 10Jan2018 to support quick selection of a translation equivalent.
             // I debated whether the phrasebox should have its popup list visible for this
             // mode. While it would be a bit strange for someone to adapt text while they cannot
@@ -23711,6 +23716,10 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		if (tbi != NULL)
 		{
+#if defined( _DEBUG)
+			wxLogDebug(_T("%::%() line %d; tbi non null, gbShowTargetOnly = % "),
+				__FILE__, __FUNCTION__, __LINE__, (int)gbShowTargetOnly);
+#endif
 			tbi->SetShortHelp(_("Show Target Text Only")); // what will happen if they click the button
 			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
 			switch(pApp->m_toolbarSize)
@@ -23745,6 +23754,15 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
 			GetLayout()->PlaceBox();
+			// BEW 5Jul21 add  ScrollIntoView(sequNum) call, so that the hidden
+			// src text line, or returning src text line, keeps the phrasebox visible
+			int sn = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+			CMainFrame* pFrame = pApp->GetMainFrame();
+			pFrame->canvas->ScrollIntoView(sn);
+#if defined( _DEBUG)
+			wxLogDebug(_T("%::%() line %d; after toolBar->Realise,RecalcLayout,active pile,view->Invalidate,PlaceBox,seqNum,scrollIntoView"),
+				__FILE__, __FUNCTION__, __LINE__);
+#endif
 		}
 	}
 }
@@ -33392,6 +33410,11 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 	{
 		// no clipping this time, either scrolling or full window draw wanted
 		pApp->GetMainFrame()->canvas->Refresh();
+#if defined( _DEBUG)
+		wxLogDebug(_T("%::%() line %d; Refreshing canvas #1, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+			__FILE__,__FUNCTION__,__LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+			pApp->m_nActiveSequNum);
+#endif
 	}
 	else
 	{
@@ -33418,18 +33441,33 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 
 			// we clip to update only the innards of the phrase box control
 			pLayout->m_pMainFrame->canvas->Refresh(TRUE,&r);
+#if defined( _DEBUG)
+			wxLogDebug(_T("%::%() line %d; Refreshing canvas #2, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+				pApp->m_nActiveSequNum);
+#endif
 		}
 		else
 		{
 			// no clipping this time, refresh whole client area (control should never
 			// enter this block)
 			pApp->GetMainFrame()->canvas->Refresh();
+#if defined( _DEBUG)
+			wxLogDebug(_T("%::%() line %d; Refreshing canvas #3, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+				pApp->m_nActiveSequNum);
+#endif
 		}
 	}
 #else
 	// no clipping support, refresh whole client area every time
 	// RecalcLayout() is called
 	pApp->GetMainFrame()->canvas->Refresh();
+#if defined( _DEBUG)
+	wxLogDebug(_T("%::%() line %d; Refreshing canvas #4, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+		__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+		pApp->m_nActiveSequNum);
+#endif
 #endif
 }
 

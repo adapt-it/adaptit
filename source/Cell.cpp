@@ -1002,6 +1002,18 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+
+			// BEW 8Jul21 added code for nav text info in whiteboard when no source text is visible
+			if (gbShowTargetOnly)
+			{
+				// TODO put the gbShowTargetOnly TRUE additions here  -- pulling from the DrawNavTextInfoAndIcons(wxDC* pDC) here
+
+#if defined( _DEBUG)
+				wxLogDebug(_T("%::%() line %d; add gbShowTargetOnly tweaks here"),
+					__FILE__, __FUNCTION__, __LINE__);
+#endif
+			}
+
 // whm 5Nov16 testing the failure to print Kuni source text where font has special chars
 #if defined(__WXGTK__) && defined(_DEBUG)
 			if (m_pLayout->m_pApp->m_bIsPrinting && !m_pLayout->m_pApp->m_bIsPrintPreviewing)
