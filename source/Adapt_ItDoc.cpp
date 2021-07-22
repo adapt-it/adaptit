@@ -10204,11 +10204,11 @@ g:				bIsUnknownMkr = FALSE;
 
 
     // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
-    // retranslation), sets the view's m_nActiveSequNumber member to that value, and
+    // retranslation), sets the app's m_nActiveSequNum member to that value, and
     // calculates and sets m_targetPhrase to agree with what will be the new phrase box
 	// location; it doesn't move the location if it is already safe; in either case it
-	// sets the box text to be the m_adaption contents for the current active location
-	// at the time this call is made
+	// sets the box text to be the m_adaption contents for the current or new active
+	// location after this call is made
 	gpApp->GetSafePhraseBoxLocationUsingList(pView);
 
 	// remove the progress window, clear out the sublist from memory

@@ -6538,7 +6538,7 @@ int AIModalDialog::ShowModal()
     // whm 17May2020 added - set the App's m_bUserDlgOrMessageRequested flag to TRUE for all
     // modal dialogs based on AIModalDialog
     CAdapt_ItApp* pApp = &wxGetApp();
-    wxLogDebug(_T("AIModalDialog::ShowModal() setting m_bUserDlgOrMessageRequested to FALSE"));
+    wxLogDebug(_T("AIModalDialog::ShowModal() setting m_bUserDlgOrMessageRequested to TRUE"));
     pApp->m_bUserDlgOrMessageRequested = TRUE;
 
     // override of wxDialog's ShowModal() method to stop all idle processing including
@@ -21483,6 +21483,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_entryCount_updateHandler = 0; // augment every time the OnUpdateButtonNullSource() func is called
 	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
+    m_bUserClickedTgtWordInRetranslation = FALSE; // default
 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
@@ -31252,6 +31253,115 @@ enum Reparse reparseDoc)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an int value representing the active sequence number of a safe phrase
+///             box location (possibly different than location of m_nActiveSequNum earlier).
+///             Return -1 if no success in finding a valid index
+/// \param      pView       ->  pointer to the View
+/// \param      pFirstSP    <-  pointer to the first CSourcePhrase instance of the list
+///                             of instances comprising the retranslation span. These
+///                             are computed internally, and stored in local list pList
+/// \remarks
+/// Called from: AI.cpp's EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase) only
+/// BEW 20Jul21 cloned and tweaked from GetSafePhraseBoxLocationUsingList to support
+/// when the user clicks on a word of a retranslation in order to get the retranslation 
+/// editor opened for editing. It passes back the integer location for what the 
+/// calculated new active location should be - and lets the caller set m_nActiveSequNum
+/// from that value. As a security it also caches few values in AI.h, in case resetting
+/// the target text value for the old active location needs to be restored. These values
+/// are: int m_nSavedActiveSequNum, wxString m_strMyCachedActiveTgtText, and
+///      int m_nCacheNewActiveSequNum. 
+/// The function will try to set the new active location preceding the retranslation, 
+/// but it may set if either after, or within (unlikely), if impossible to do otherwise.
+////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetSafeLocationForRetransTgtClick(CAdapt_ItView* pView, CSourcePhrase* pFirstSP)
+{
+    // BEW 20Jul21, used only in EditRetranslationByTgtClick(pSrcPhrase), & 
+    // the app boolean m_bUserClickedTgtWordInRetranslation will be TRUE
+    //
+    // get the sourcephrase which is at the potential active location
+    CSourcePhrase* pSrcPhrase = NULL; // shadow the passed in value with this one
+    int nNewActiveSN = -1; // this will hold the +ve value to pass back to the caller
+    if (m_bUserClickedTgtWordInRetranslation)
+    {
+        // For this use, the passed in pFirstSP value is the first in the
+        // retranslation in which the user clicked a target text word       
+        pSrcPhrase = pFirstSP;
+        wxASSERT(pSrcPhrase != NULL);
+    }
+    else
+    {
+        // Error, this function should not be called when m_bUserClickedTgtWordInRetranslation
+        // is FALSE
+        wxString msg = _T("AI.cpp line %d, GetSafeLocationForRetransTgtClick() called, but boolean m_bUserClickedTgtWordInRetranslation is FALSE");
+        msg = msg.Format(msg, __LINE__);
+        LogUserAction(msg);
+        return -1;
+    }  
+
+    // the passed in location is in a retranslation, save it locally,
+    // and set nStartingSequNum which will be where scanning starts
+    // from, to its sequ num
+    CSourcePhrase* pSaveSrcPhrase = pSrcPhrase;
+    int nStartingSequNum = pSrcPhrase->m_nSequNumber;
+    // initialize nNewActiveSN (where we want the safe location to be
+    // by the scanning done below) to start off at the clicked location
+    nNewActiveSN = nStartingSequNum;
+    // Every CSourcePhrase instance in a retranslation will have the
+    // m_bRetranslation value set TRUE; outside the retranslation span,
+    // this bool will be FALSE - that's how we test for a safe location
+    if (pSrcPhrase->m_bRetranslation)
+    {
+        // its a retranslation location, so move active location to an earlier sequence
+        // number until we find a sourcePhrase which is not in the retranslation
+        int nPrevSequNum = nStartingSequNum - 1;
+        CSourcePhrase* pNextSrcPhrase = NULL;
+        if (nPrevSequNum < 0)
+        {
+            // we are at the start of the document and still within a
+            // retranslation, so search forward instead
+a:	        pNextSrcPhrase = pSaveSrcPhrase;
+            int nNextSequNum = nStartingSequNum; // back to first of retransln, or to old active loc'n
+            while (pNextSrcPhrase->m_bRetranslation)
+            {
+                ++nNextSequNum;
+                if (nNextSequNum > GetMaxIndex())
+                {
+                    // there is nowhere where there is no retranslation so go to the start
+                    // & just too bad - put the box in a retranslation!!!! It's naughty,
+                    // but the app will not die.
+                    {
+                        nNextSequNum = nStartingSequNum;
+                        pNextSrcPhrase = pView->GetSrcPhrase(nNextSequNum);
+                        break;
+                    }
+                }
+                pNextSrcPhrase = pView->GetSrcPhrase(nNextSequNum);
+            } // loop end
+            pSrcPhrase = pNextSrcPhrase;
+            nNewActiveSN = pNextSrcPhrase->m_nSequNumber;
+        }
+        else
+        {
+            // not yet at the doc start, so we can search back further
+            CSourcePhrase* pPrevSrcPhrase = pView->GetSrcPhrase(nPrevSequNum);
+            while (pPrevSrcPhrase->m_bRetranslation)
+            {
+                --nPrevSequNum;
+                if (nPrevSequNum < 0)
+                {
+                    goto a;
+                }
+                pPrevSrcPhrase = pView->GetSrcPhrase(nPrevSequNum);
+            } // loop end
+            pSrcPhrase = pPrevSrcPhrase;
+            nNewActiveSN = pSrcPhrase->m_nSequNumber;
+        }
+    }
+    return nNewActiveSN; // could be in the span (but only if our scans
+                         // could find no acceptable safe location)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int value representing the active sequence number of a safe phrase
 ///             box location
 /// \param      pView   -> pointer to the View
 /// \remarks
@@ -31268,7 +31378,7 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     // called; and likewise for the view's maximum index value
     //
     // get the sourcephrase which is at the potential active location
-    CSourcePhrase*  pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
+    CSourcePhrase* pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 
     // this location could be in a retranslation, so adjust the sequence number
     // and its sourcephrase if that is the case
@@ -31283,7 +31393,7 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
         {
             // we are at the start of the document and still within a
             // retranslation, so search forward instead
-        a:			pNextSrcPhrase = pSaveSrcPhrase;
+ a:			pNextSrcPhrase = pSaveSrcPhrase;
             int nNextSequNum = m_nActiveSequNum;
             while (pNextSrcPhrase->m_bRetranslation)
             {
@@ -31342,7 +31452,7 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     m_nEndChar = len;
     if (m_pTargetBox != NULL)
     {
-       this->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        this->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
     }
 
     return m_nActiveSequNum;

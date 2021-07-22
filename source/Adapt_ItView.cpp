@@ -18187,7 +18187,24 @@ int CAdapt_ItView::TokenizeTargetTextString(SPList* pNewList, wxString& str,
 	int	length = str.Length();
 	if (!str.IsEmpty())
 	{
-		return pDoc->TokenizeText(nInitialSequNum,pNewList,str,length,bUseTargetTextPuncts);
+//#if defined (_DEBUG)
+//		{
+//			CPile* pmyPile = this->GetPile(2322);
+//			wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//			wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//		}
+//#endif
+
+		int number = pDoc->TokenizeText(nInitialSequNum,pNewList,str,length,bUseTargetTextPuncts);
+
+//#if defined (_DEBUG)
+//		{
+//			CPile* pmyPile = this->GetPile(2322);
+//			wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//			wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//		}
+//#endif
+		return number;
 	}
 	else
 		return 0;
@@ -23698,10 +23715,6 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		if (tbi != NULL)
 		{
-#if defined( _DEBUG)
-			wxLogDebug(_T("%::%() line %d; tbi non null, gbShowTargetOnly = % "),
-				__FILE__, __FUNCTION__, __LINE__, (int)gbShowTargetOnly);
-#endif
 
             // whm comment 10Jan2018 to support quick selection of a translation equivalent.
             // I debated whether the phrasebox should have its popup list visible for this
@@ -23734,10 +23747,10 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		if (tbi != NULL)
 		{
-#if defined( _DEBUG)
-			wxLogDebug(_T("%::%() line %d; tbi non null, gbShowTargetOnly = % "),
-				__FILE__, __FUNCTION__, __LINE__, (int)gbShowTargetOnly);
-#endif
+//#if defined( _DEBUG)
+//			wxLogDebug(_T("%::%() line %d; tbi non null, gbShowTargetOnly = %d "),
+//				__FILE__, __FUNCTION__, __LINE__, (int)gbShowTargetOnly);
+//#endif
 			tbi->SetShortHelp(_("Show Target Text Only")); // what will happen if they click the button
 			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
 			switch(pApp->m_toolbarSize)
@@ -23777,10 +23790,6 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 			int sn = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 			CMainFrame* pFrame = pApp->GetMainFrame();
 			pFrame->canvas->ScrollIntoView(sn);
-#if defined( _DEBUG)
-			wxLogDebug(_T("%::%() line %d; after toolBar->Realise,RecalcLayout,active pile,view->Invalidate,PlaceBox,seqNum,scrollIntoView"),
-				__FILE__, __FUNCTION__, __LINE__);
-#endif
 		}
 	}
 }
@@ -33413,14 +33422,19 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 	// wxWidgets' wxView class does not itself have an Invalidate() method like MFC
 	// The wxWindow class has Refresh(), so we'll get the window associated with
 	// the current View and refresh it.
-#if defined (_DEBUG)
-	if (gbShowTargetOnly == TRUE) // && (m_pOwningPile->m_pSrcPhrase->m_nSequNumber == 4842))
-	{
-		wxLogDebug(_T("AT View's Invalidate() gbShowTargetOnly == TRUE ******************************"));
-		int halt_here = 1; // test for this being a suitable location to add nav text stuff
-		// TODO  -- 4842 is "dhu" two piles before a 2 word retranslation in Luke 3:3
-	}
-#endif
+//#if defined (_DEBUG)
+//	if (gbShowTargetOnly == TRUE) // && (m_pOwningPile->m_pSrcPhrase->m_nSequNumber == 4842))
+//	{
+//		wxLogDebug(_T("At View's Invalidate() gbShowTargetOnly == TRUE ******************************"));
+//	}
+//#endif
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = this->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif
 
 #ifdef Do_Clipping
 	CLayout* pLayout = GetLayout();
@@ -33436,11 +33450,6 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 	{
 		// no clipping this time, either scrolling or full window draw wanted
 		pApp->GetMainFrame()->canvas->Refresh();
-#if defined( _DEBUG)
-		wxLogDebug(_T("%::%() line %d; Refreshing canvas #1, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
-			__FILE__,__FUNCTION__,__LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
-			pApp->m_nActiveSequNum);
-#endif
 	}
 	else
 	{
@@ -33467,34 +33476,41 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 
 			// we clip to update only the innards of the phrase box control
 			pLayout->m_pMainFrame->canvas->Refresh(TRUE,&r);
-#if defined( _DEBUG)
-			wxLogDebug(_T("%::%() line %d; Refreshing canvas #2, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
-				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
-				pApp->m_nActiveSequNum);
-#endif
+//#if defined( _DEBUG)
+//			wxLogDebug(_T("%::%() line %d; Refreshing canvas #2, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+//				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+//				pApp->m_nActiveSequNum);
+//#endif
 		}
 		else
 		{
 			// no clipping this time, refresh whole client area (control should never
 			// enter this block)
 			pApp->GetMainFrame()->canvas->Refresh();
-#if defined( _DEBUG)
-			wxLogDebug(_T("%::%() line %d; Refreshing canvas #3, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
-				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
-				pApp->m_nActiveSequNum);
-#endif
+//#if defined( _DEBUG)
+//			wxLogDebug(_T("%::%() line %d; Refreshing canvas #3, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+//				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+//				pApp->m_nActiveSequNum);
+//#endif
 		}
 	}
 #else
 	// no clipping support, refresh whole client area every time
 	// RecalcLayout() is called
 	pApp->GetMainFrame()->canvas->Refresh();
-#if defined( _DEBUG)
-	wxLogDebug(_T("%::%() line %d; Refreshing canvas #4, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
-		__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
-		pApp->m_nActiveSequNum);
+//#if defined( _DEBUG)
+//	wxLogDebug(_T("%::%() line %d; Refreshing canvas #4, bCurrentlyScrolling %d, bDoFullWindowDraw %d, sn %d"),
+//		__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_nActiveSequNum, (int)pApp->m_bFreeTranslationMode,
+//		pApp->m_nActiveSequNum);
+//#endif
 #endif
-#endif
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = this->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif
 }
 
 // whm added 12Jun07

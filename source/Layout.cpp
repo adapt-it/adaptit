@@ -330,7 +330,7 @@ void CLayout::Draw(wxDC* pDC)
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
 	//int nActiveSequNum = -1; // set but unused
-
+/*
 #if defined (_DEBUG)
 	// BEW 14Jul21
 	if (gbShowTargetOnly)
@@ -348,6 +348,7 @@ void CLayout::Draw(wxDC* pDC)
 		}
 	}
 #endif
+*/
 	// work out the range of visible strips based on the phrase box location
 	//nActiveSequNum = m_pApp->m_nActiveSequNum;
 	// BEW 15Jul21 ensure the following starts off empty
@@ -542,10 +543,6 @@ void CLayout::Redraw(bool bFirstClear)
 		// erase the view rectangle
 		pDC->Clear();
 	}
-#if defined( _DEBUG)
-	wxLogDebug(_T("%::%() line %d; set wxClientDC for m_pCanvas, DoPrepareDC, clear maybe, starting Draw(pDC) for the Layout) : from %d to %d "),
-		__FILE__, __FUNCTION__, __LINE__);
-#endif
 	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
 				// based on the active location (default param bool bAtActiveLocation is TRUE)
 
@@ -676,17 +673,17 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	bool bSetTextColor = FALSE; // initialize, governs whether or not we reset
 								// the box's text colour
 
-								// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there
-								// the phrase box is to be located
+	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there
+	// the phrase box is to be located
 	wxPoint ptPhraseBoxTopLeft;
 	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile
-												  // instead; but this will work even if we have forgotten to
-												  // update it in the edit operation's handler
+			// instead; but this will work even if we have forgotten to
+			// update it in the edit operation's handler
 
-												  // BEW 25Jul18 If the location being left behind is narrow in terms of width of box
-												  // and list, the box gap may also be much smaller than it needs to be - so while
-												  // we have a valid pActivePile, get the gap and box width calculations refreshed
-												  // before they get used in a RecalcLayout() call.
+	// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
+	// and list, the box gap may also be much smaller than it needs to be - so while
+	// we have a valid pActivePile, get the gap and box width calculations refreshed
+	// before they get used in a RecalcLayout() call.
 	pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18
 
 	pActivePile->SetPhraseBoxWidth(); // this is the legacy call - always been here
@@ -1910,8 +1907,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		selectorPassedIn = selector_3;
 	}
-//	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"),
-//		selectorPassedIn.c_str(), modePassedIn.c_str());
+	//	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"),
+	//		selectorPassedIn.c_str(), modePassedIn.c_str());
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
@@ -1939,8 +1936,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (!m_pApp->m_bIsPrinting)
 	{
@@ -1981,7 +1978,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	}
 	wxRect rectFrame(0, 0, 0, 0);
-	CMainFrame *pFrame = NULL;
+	CMainFrame* pFrame = NULL;
 	if (!m_pApp->m_bIsPrinting)
 	{
 		// send the app the current size & position data, for saving to config file on closure
@@ -2008,12 +2005,12 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// scroll support...
 	// get a device context, and get the origin adjusted (gRectViewClient is ignored
 	// when printing)
-#if defined (_DEBUG)
-	if (gbShowTargetOnly)
-	{
-		int halt_here = 1;
-	}
-#endif
+//#if defined (_DEBUG)
+//	if (gbShowTargetOnly)
+//	{
+//		int halt_here = 1;
+//	}
+//#endif
 	wxClientDC viewDC(m_pApp->GetMainFrame()->canvas);
 	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
 	// BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just
@@ -2198,17 +2195,17 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	}
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-	// the loop which builds the strips & populates them with the piles
+		// the loop which builds the strips & populates them with the piles
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
 		|| selector == create_strips_update_pile_widths)
 	{
 		CreateStrips(nStripWidth, gap);
 	}
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (selector == keep_strips_keep_piles)
 	{
@@ -2226,8 +2223,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// and returns FALSE; otherwise TRUE is returned
 		bLayoutTweakingWasSuccessful = AdjustForUserEdits(nStripWidth, gap);
 
-//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+		//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+		//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 		if (bLayoutTweakingWasSuccessful == FALSE)
 		{
@@ -2255,23 +2252,23 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	#endif
 	*/
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (!m_pApp->m_bIsPrinting)
 	{
 		// the height of the document can now be calculated
 		SetLogicalDocHeight();
 
-//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+		//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+		//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-		// next line for debugging...
-		//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
+				// next line for debugging...
+				//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
-		// more scrolling support...
-		// whm: SetVirtualSize() is the equivalent of MFC's SetScrollSizes.
-		// SetVirtualSize() sets the virtual size of the window in pixels.
+				// more scrolling support...
+				// whm: SetVirtualSize() is the equivalent of MFC's SetScrollSizes.
+				// SetVirtualSize() sets the virtual size of the window in pixels.
 		m_pApp->GetMainFrame()->canvas->SetVirtualSize(m_logicalDocSize);
 
 		// inform the application of the document's logical size... -- the canvas
@@ -2302,24 +2299,24 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 
 	if (!m_pApp->m_bIsPrinting)
 	{
-//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+		//		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+		//			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-		// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
-		// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
-		// is evident that they are used to set the scrolling parameters within the scrolled
-		// view in the MFC app. We'll convert the values to the proper units and use
-		// SetScrollbars() to set the scrolling parameters.
-		//wxSize nSize = m_pageDev; // m_pageDev is "per page scroll size in device units"
-		//wxSize mSize = m_lineDev; // m_lineDev is "per line scroll size in device units"
-		// wx note: the m_lineDev value in MFC is equivalent to the first two parameters of
-		// wxScrollWindow's SetScrollbars (pixelsPerUnitX, and pixelsPerUnitY). Both MFC and
-		// WX values are in pixels.
-		// The m_pageDev value in MFC is set below as twice the height of a strip (including
-		// leading). In WX the height of a page of scrolled stuff should be determined
-		// automatically from the length of the document (in scroll units), divided by the
-		// height of the client view (also in scroll units).
-		// The parameters needed for SetScrollbars are:
+				// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
+				// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
+				// is evident that they are used to set the scrolling parameters within the scrolled
+				// view in the MFC app. We'll convert the values to the proper units and use
+				// SetScrollbars() to set the scrolling parameters.
+				//wxSize nSize = m_pageDev; // m_pageDev is "per page scroll size in device units"
+				//wxSize mSize = m_lineDev; // m_lineDev is "per line scroll size in device units"
+				// wx note: the m_lineDev value in MFC is equivalent to the first two parameters of
+				// wxScrollWindow's SetScrollbars (pixelsPerUnitX, and pixelsPerUnitY). Both MFC and
+				// WX values are in pixels.
+				// The m_pageDev value in MFC is set below as twice the height of a strip (including
+				// leading). In WX the height of a page of scrolled stuff should be determined
+				// automatically from the length of the document (in scroll units), divided by the
+				// height of the client view (also in scroll units).
+				// The parameters needed for SetScrollbars are:
 		int pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY;
 		int xPos, yPos; // xPos and yPos default to 0 if unspecified
 		bool noRefresh; // noRefresh defaults to FALSE if unspecified
@@ -2376,8 +2373,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			m_pApp->m_bFreeTranslationMode, m_pApp->m_bIsPrinting, gbCheckInclFreeTransText);
 	}
 #endif
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s   *** THE IMPORTANT ONE"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s   *** THE IMPORTANT ONE"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bSuppressFreeTransRestoreAfterPrint
 		&& !gbCheckInclFreeTransText)
@@ -2405,8 +2402,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			}
 		}
 	}
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 
@@ -2418,6 +2415,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %d  <<--passed to m_lastLayoutSelector (in CLayout) for Draw() to use"), (int)selector);
 #endif
 */
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = m_pView->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif
 	return TRUE;
 }
 
@@ -4098,10 +4102,10 @@ void CLayout::CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowMa
 	bool bDeletedFollowingStrip;
 	int nLastStrip = m_stripArray.GetCount() - 1; // index of last strip in the document
 
-												  // check for proximity to the beginning of the document - we'll want to do a full
-												  // window's worth of cleanup if the active location gets to be less than half the
-												  // number of visible strips' distance from the doc's start; don't do the adjustment if
-												  // the number of visible strips' value passed in is a full window's worth already
+	// check for proximity to the beginning of the document - we'll want to do a full
+	// window's worth of cleanup if the active location gets to be less than half the
+	// number of visible strips' distance from the doc's start; don't do the adjustment if
+	// the number of visible strips' value passed in is a full window's worth already
 	if (nHowManyToDo < GetNumVisibleStrips())
 	{
 		int numOfStripsInAHalfWindow = GetNumVisibleStrips() / 2;

@@ -2726,6 +2726,670 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     m_pApp->m_nOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
+void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase)
+{
+	CSourcePhrase* pSrcPhrase = pClickedSourcePhrase;
+	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	m_pView->RemoveSelection(); // remove any selection, we clicked on a word
+	CLayout* pLayout = m_pApp->GetLayout();
+
+	if (gbIsGlossing)
+	{
+		// whm 15May2020 added below to supress phrasebox run-on due to 
+		// handling of ENTER in CPhraseBox::OnKeyUp()
+		m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+
+		wxMessageBox(_(
+			"This particular operation is not available when you are glossing."),
+			_T(""), wxICON_INFORMATION | wxOK);
+		return;
+	}
+	SPList* pList = new SPList; // list of the CSourcePhrase objects in the retranslation section
+	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
+	CPile* pStartingPile = NULL;
+	//CSourcePhrase* pSrcPhrase;
+	// Use these cached values after the edit dialog has returned, to stop a changed active
+	// location's target text migrating to an old active pile and causing doc error in meaning
+	int nSaveActiveSequNum = m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	m_pApp->m_nSavedActiveSequNum = nSaveActiveSequNum; // cache it
+	m_pApp->m_strMyCachedActiveTgtText = m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption; // cache it
+
+	// BEW 10Jul21 set pStartingPile to the pile whose CSourcePhrase 
+	// instance's tgt word was clicked
+	pStartingPile = pLayout->GetPile(pSrcPhrase->m_nSequNumber);
+	wxASSERT(pStartingPile->GetSrcPhrase()->m_bRetranslation == TRUE);
+
+	// we are in a single retranslation section, so get the source phrases into pList
+	CPile* pFirstPile = 0; // next call sets this, scans back to first in the retranslation
+
+	GetRetranslationSourcePhrasesStartingAnywhere(pStartingPile, pFirstPile, pList);
+	// BEW comment 21Jul14 re ZWSP support for docVersion 9. The set of CSourcePhrase
+	// instances will have content in their m_tgtWordBreak wxString member - we must not
+	// clobber these members' contents until we have finished using them to reconstitute
+	// the target text which is to be edited in the dialog
+
+	// Work out where the last non-placeholder CSourcePhrase in the retranslation is - we
+	// will copy it's m_srcWordBreak to the member m_lastNonPlaceholderSrcWordBreak, so that
+	// it can be copied to both m_srcWordBreak and m_tgtWordBreak of any padding
+	// placeholders that may need to be created and inserted into the document
+	size_t indx;
+	size_t cnt = pList->GetCount();
+	CSourcePhrase* pLastNonPlaceholder = NULL;
+	CSourcePhrase* pMySPh = NULL;
+	// syntax of this loop is clumsy, but it works & I'm too tired to rethink it
+	for (indx = 0; indx < cnt; indx++)
+	{
+		pLastNonPlaceholder = pMySPh;
+		SPList::Node* pos = pList->Item(indx);
+		pMySPh = pos->GetData();
+		if (pMySPh->m_bNullSourcePhrase)
+		{
+			break;
+		}
+		if (indx == cnt - 1 && !pMySPh->m_bNullSourcePhrase)
+		{
+			pLastNonPlaceholder = pMySPh;
+		}
+	}
+	m_lastNonPlaceholderSrcWordBreak = pLastNonPlaceholder->GetSrcWordBreak();
+
+	int nSaveSequNum = pFirstPile->GetSrcPhrase()->m_nSequNumber; // save its sequ number,
+	// everything depends on this - its the first in the sublist
+
+	// copy the list to a 2nd list for saving the original state, in case the user hits the
+	// Cancel button in the dialog, and save the old sequ num value for the active
+	// location; we don't save copies of the pointers, but instead use the copy constructor
+	// to make fresh copies of the original selection's source phrases - but note, in the
+	// m_pSavedWords sublists, if they have something, the copy constructor only copies the
+	// pointers, & doesn't make new copies, so beware that some source phrases might be
+	// pointed at from more than one place - which affects how we delete
+	SPList* pSaveList = new SPList;  // we use this after the dlg has finished, and a new 
+									 // list made (shallow ptrs) with which we compare
+	CopySourcePhraseList(pList, pSaveList);
+
+	// BEW added 20Mar07: to suppress removing of KB entries during edit
+	// of the retranslation
+	m_bIsRetranslationCurrent = TRUE;
+
+	SPList::Node* pos = 0;
+	bool bInSpan = FALSE; // default
+	if (m_pApp->m_pActivePile != NULL)
+	{
+		CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+		pos = pList->GetFirst();
+		
+		while (pos != NULL)
+		{
+			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetNext();
+			if (pSP == pActiveSrcPhrase)
+			{
+				bInSpan = TRUE;
+				break;
+			}
+		}
+		// BEW 21Jul21, Allow the above calculation, normally the active location would be
+		// outside the clicked span, so bInSpan should be FALSE
+		wxASSERT(bInSpan == FALSE);
+	}
+
+	// we have to accumulate now the text comprising the current retranslation, since we
+	// won't be able to recover it fully after we throw away any null source phrases which
+	// may be present.
+	wxString strAdapt; // accumulates the existing adaptation text for the selection
+	strAdapt.Empty();
+	wxString str; // a temporary storage string
+	str.Empty();
+	wxString str2; // second temporary storage
+	str2.Empty();
+	wxString strSource; // the source text which is to be retranslated (now line 1, not line 2)
+	strSource.Empty();
+	// BEW 21Jul14, refactored the next function to support ZWSP storage and replacement, using
+	// the new CSourcePhrase member m_tgtWordBreak wxString (only retranslations use this member,
+	// everything else uses the new member, m_srcWordBreak)
+	AccumulateText(pList, strSource, strAdapt);
+
+	// BEW 21Jul21, determine the value for the active sequ number on exit, so we will know
+	// where to place the phrase box on return to the caller; we'll place the phrase box at
+	// the first non-retranslation pile before the retranslation. If that can't be done,
+	// the function will try for one after the retranslation. If all else fails, it
+	// will point at an instance within the retranslation.
+	
+	// BEW 21Jul21, Need a small refactor of GetSafePhraseBoxLocationUsingList(pView), to be
+	// prototyped as GetSafeLocationForRetransTgtClick(pView, pFirstSrcPhrase)
+	// nSaveSequNum has the int value for calculating pFirstSrcPhrase of the retranslation,
+	// Internally it will access the SPList* m_pSourcePhrases list defining the doc.
+
+	// BEW 21Jul21, Allowing the user to get the retranslation opened by clicking a target 
+	// text word within it, has a couple of important ramifications...
+	// (1) It normalizes clicking a word as a simple what to edit whatever that word
+	// belongs to, whether a phrase adaptation, single word adaptation, placeholder, or
+	// a retranslation.
+	//  (2) It removes a nuisance advisory message telling the user not to click on a
+	// target text word in a retranslation.
+	// (Creating and Removing retranslations will still work the legacy way, via selecting
+	// a source text word. We could change this if there is a demand.)
+
+	CPile* pMyFirstPile = pLayout->GetPile(nSaveSequNum);
+	CSourcePhrase* pFirstSrcPhrase = pMyFirstPile->GetSrcPhrase();
+
+	// Find a safe location, preferably preceding the retranslation, that can become the
+	// place where the phrasebox is located after the edit dialog is dismissed
+	int nNewActiveSequNum = m_pApp->GetSafeLocationForRetransTgtClick(m_pView, pFirstSrcPhrase);
+
+	m_pApp->m_nCacheNewActiveSequNum = nNewActiveSequNum; // cache this value on the app
+
+	SPList::Node* spos = pList->GetLast(); // last CSourcePhrase of the retranslation
+	int nEndSequNum = spos->GetData()->m_nSequNumber;
+
+	bool bActiveLocWithinRetrans = FALSE; // initialise
+	if (nNewActiveSequNum >= nSaveSequNum && nNewActiveSequNum <= nEndSequNum)
+		bActiveLocWithinRetrans = TRUE;
+
+	bool bActiveLocAfterRetrans = FALSE; // initialize
+	if (nNewActiveSequNum > nEndSequNum)
+		bActiveLocAfterRetrans = TRUE;
+	// normally, we'd expect both these booleans to be set to FALSE
+
+	// we can now clear the m_bEndRetranslation flag on the last entry of the list,
+	// which might be a placeholder - we'll recompute where the m_bEndRetranslation
+	// should be, in the code below
+	spos = pList->GetLast();
+	pSrcPhrase = (CSourcePhrase*)spos->GetData();
+	wxASSERT(pSrcPhrase);
+	pSrcPhrase->m_bEndRetranslation = FALSE;
+
+	// any null source phrases have to be thrown away, and the layout recalculated after
+	// updating the sequence numbers of the source phrases remaining
+	pos = pList->GetFirst();
+	wxASSERT(pos != NULL);
+	int nCount = pList->GetCount();
+
+	// BEW addition 08Sep08 for support of vertical editing
+	bool bVerticalEdit_SuppressPhraseBox = FALSE;
+	int nVerticalEdit_nExtras = 0;
+	int nOriginalCount = nCount;
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("\n\nOnButtonEditRetranslation() has begun"));
+#endif
+
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = pLayout->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif	// put up the CRetranslationDlg dialog
+
+	CRetranslationDlg dlg(m_pApp->GetMainFrame());
+
+	// initialize the edit boxes
+	dlg.m_sourceText = strSource;
+	dlg.m_retranslation = strAdapt;
+	wxString preceding;
+	preceding.Empty();
+	wxString following;
+	following.Empty();
+	wxString precedingTgt;
+	precedingTgt.Empty();
+	wxString followingTgt;
+	followingTgt.Empty();
+	GetContext(nSaveSequNum, nEndSequNum, preceding, following, precedingTgt, followingTgt);
+	dlg.m_preContextSrc = preceding;
+	dlg.m_preContextTgt = precedingTgt;
+	dlg.m_follContextSrc = following;
+	dlg.m_follContextTgt = followingTgt;
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = pLayout->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif	// put up the CRetranslationDlg dialog
+
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		SPList* pRetransList = new SPList;
+		wxASSERT(pRetransList);
+		wxString retrans = dlg.m_retranslation;
+		int nNewCount = 0; // number of CSourcePhrase instances returned from the
+						   // tokenization operation
+		// BEW added 01Aug05, to support free translations -- removing null source phrases also
+		// removes m_bHasFreeTrans == TRUE instances as well, so the only thing we need check
+		// for is whether or not there is m_bEndFreeTrans == TRUE on the last null source
+		// phrase removed -- if so, we must set the same bool value to TRUE on the last
+		// pSrcPhrase remaining in the list after all the null ones have been deleted. We do
+		// this by setting a flag in the block below, and then using the set flag value in the
+		// block which follows it
+		// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
+		// had an final endmarkers moved to the last placeholder, so we have to check for a
+		// non-empty member on the last placeholder, and if non-empty, save it's contents to a
+		// wxString, set a flag to signal this condition obtained, and in the block which
+		// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
+		wxString endmarkersStr = _T("");
+		bool bEndHasEndMarkers = FALSE;
+		bool bEndIsAlsoFreeTransEnd = FALSE;
+		while (pos != NULL)
+		{
+			SPList::Node* savePos = pos;
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetNext();
+			// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+			// removed, only normal placeholders
+			if (pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
+				// on every one, or if not so, then only the last will have a TRUE value
+				if (pSrcPhrase->m_bEndFreeTrans)
+					bEndIsAlsoFreeTransEnd = TRUE;
+
+				// likewise, test for a non-empty m_endMarkers member at the end - there can
+				// only be one such member which has content - the last one
+				if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+				{
+					endmarkersStr = pSrcPhrase->GetEndMarkers();
+					bEndHasEndMarkers = TRUE;
+				}
+
+				// null source phrases in a retranslation are never stored in the KB, so we
+				// need only remove their pointers from the lists and delete them from the heap
+				SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
+				wxASSERT(pos1 != NULL); // it has to be there
+				pSrcPhrases->DeleteNode(pos1);	// remove its pointer from m_pSourcePhrases list
+				// on the doc
+				// BEW added 13Mar09 for refactor of layout; delete its partner pile too
+				m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
+
+				if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+					delete pSrcPhrase; // delete the null source phrase itself
+				pList->DeleteNode(savePos); // also remove its pointer from the local sublist
+
+				nCount -= 1; // since there is one less source phrase in the selection now
+				nEndSequNum -= 1;
+				if (bActiveLocAfterRetrans)
+					nSaveActiveSequNum -= 1;
+			}
+			else
+			{
+				// of those source phrases which remain, throw away the contents of their
+				// m_adaption and m_targetStr members
+				pSrcPhrase->m_adaption.Empty();
+				pSrcPhrase->m_targetStr.Empty();
+				pSrcPhrase->m_bBeginRetranslation = FALSE;
+				pSrcPhrase->m_bEndRetranslation = FALSE;
+			}
+		}
+
+		// handle transferring the indication of the end of a free translation
+		if (bEndIsAlsoFreeTransEnd)
+		{
+			SPList::Node* tpos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
+			pSPend->m_bEndFreeTrans = TRUE;
+		}
+		// handle transferring of m_endMarkers content
+		if (bEndHasEndMarkers)
+		{
+			SPList::Node* tpos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
+			pSPend->SetEndMarkers(endmarkersStr);
+		}
+
+		// update the sequence numbers in the whole source phrase list on the app & update
+		// indices for bounds
+		m_pView->UpdateSequNumbers(0); // ensure's view's GetPile(nSequNum) works right
+
+		// now we can work out where to place the phrase box on exit from this function - it is
+		// currently the nNewActiveSequNum value, unless the active location was forced  to be
+		// within the retranslation, in which case we must make the active location the first pile 
+		// before the retranslation, or failing that, after the end of the new retranslation - or
+		// if there are 2 or more in immediate sequence, then after the end of the last of them.
+		// GetSafeLocationForRetransTgtClick() on tests m_bRetranslation flag, so it's scan for
+		// an end will work equally well for one or several in sequence.
+		if (bActiveLocWithinRetrans)
+		{
+			spos = pList->GetFirst();
+			CSourcePhrase* pBeginningSPinList = (CSourcePhrase*)spos->GetData();
+			int nBeginSequNum = pBeginningSPinList->m_nSequNumber;
+			wxUnusedVar(nBeginSequNum);
+			nNewActiveSequNum = nBeginSequNum - 1;
+		}
+
+		m_pApp->m_nActiveSequNum = nNewActiveSequNum; // may need further resetting below
+
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+
+		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
+		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
+		// '/' inserted where the wordbreak should be located.
+		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
+
+		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
+
+		// ensure any call to InsertNullSrcPhrase() will work right - that function saves
+		// the m_pApp->m_nActiveSequNum value, and increments it by how many null source
+		// phrases were inserted; so we have to present it with the decremented value
+		// agreeing with the present state of the layout (which now lacks the deleted null
+		// src phrases - if any)
+		if (bActiveLocAfterRetrans && nNewCount > nCount)
+		{
+			nNewActiveSequNum += nNewCount - nCount;
+		}
+		else
+		{
+			// augment it also if the active location lay within the selection
+			// and null source phrases were inserted
+			if (bActiveLocWithinRetrans && nNewCount > nCount)
+				nNewActiveSequNum += nNewCount - nCount;
+		}
+
+		// get a new valid starting pile pointer
+		pStartingPile = m_pView->GetPile(nSaveSequNum);
+		wxASSERT(pStartingPile != NULL);
+
+
+		// BEW 28Sep17, support m_bEndRetranslation being set when src & tgt are just
+		// single words, or src is single and tgt is empty
+		int aCount = pRetransList->GetCount(); // it's a count of source text words too
+		m_bSourceIsASingleWord = FALSE; // initialize
+		m_pFirstSrcPhrase = NULL; // initialize
+		if (aCount == 1)
+		{
+			m_bSourceIsASingleWord = TRUE;
+			m_pFirstSrcPhrase = pStartingPile->GetSrcPhrase();
+		}
+
+		// m_pApp->m_nActiveSequNum = nSaveActiveSequNum; Commented out BEW 29Sep17 because
+		// it sets the active pile sequ num in **anticipation* of what it will be *AFTER*
+		// PadWithNullSourcePhrasesAtEnd() needs to do - but the latter call needs the
+		// pre-padding active location's sequ number, and so we'd generate an incorrect
+		// active value. Historically, this has not been a problem because our documents
+		// are large - but if the document has a one-src-word retranslation followed by
+		// a second word which is at the end of the document, then the sequ number that
+		// gets gnerated for the active location is 1 greater than there are CSourcePhrase
+		// instances in the doc - leading to a crash. So relocate this line to after the
+		// Pad... call, so that it brings the active sequ num value into line with what
+		// the Pad call does internally
+
+		// determine if we need extra null source phrases inserted, and insert them if we do
+		PadWithNullSourcePhrasesAtEnd(pDoc, pSrcPhrases, nEndSequNum, nNewCount, nCount);
+
+		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; //BEW 29Sep17 relocated this line from
+				// being preceding the Padd...() call. See comment above for reason
+		// BEW 22Jul21 added the following because the new active location, at nNewActiveSequNum,
+		// might be different to the old location given by nSaveActiveSequNum. The new value
+		// has been cached, so use that if its different.
+		if (nSaveActiveSequNum != m_pApp->m_nCacheNewActiveSequNum)
+		{
+			m_pApp->m_nActiveSequNum = m_pApp->m_nCacheNewActiveSequNum;
+		}
+
+		// copy the retranslation's words, one per source phrase, to the constituted sequence of
+		// source phrases (including any null ones) which are to display it
+		int nFinish = -1; // it gets set to a correct value in the following call
+		BuildRetranslationSourcePhraseInstances(pRetransList, nSaveSequNum, nNewCount,
+			nCount, nFinish);
+
+		// BEW 28Sep17 complete the logic for ensuring m_bEndRetranslation is set for
+		// a single source text word with empty translation or single word translation
+		// (This is a hack, probably I should refactor BuildRetranslationSourcePhraseInstances()
+		// because that is where the retranslation flags get set, but the following should suffice
+		if (m_bSourceIsASingleWord && (m_pFirstSrcPhrase != NULL) && (retrans.IsEmpty() || nNewCount == 1))
+		{
+			m_pFirstSrcPhrase->m_bEndRetranslation = TRUE;
+		}
+
+		// delete the temporary list and delete the pointers to the CSourcePhrase instances
+		// on the heap
+		m_pView->DeleteTempList(pRetransList);
+
+		// remove the unused saved original source phrase copies & their list too this
+		// pSaveList list will possibly have copies which contain non-empty sublists,
+		// especially in m_pSavedWords, and the source phrases pointed to by that list will
+		// only have had their pointers copied, so we must not delete those pointers,
+		// otherwise the originals will contain hanging pointers & we'll crash if we were
+		// to retry the retranslation on the same data
+		DeleteSavedSrcPhraseSublist(pSaveList);
+
+		// set the active pile pointer - do it here (not earlier), after any null source
+		// phrases have been inserted, otherwise if we are near the end of file, the
+		// pointer could be invalid because no such pile exists yet
+		// BEW addition 08Sep08 for support of vertical editing
+		if (!gbVerticalEditInProgress)
+		{
+			// legacy behaviour
+			m_bSuppressRemovalOfRefString = TRUE;
+			bool bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp, pSrcPhrases, 
+				m_pApp->m_nActiveSequNum, m_pApp->m_nActiveSequNum, nFinish);
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent
+												   // PlacePhraseBox() calls
+			m_bIsRetranslationCurrent = FALSE;
+			if (!bSetSafely)
+			{
+				// IDS_ALL_RETRANSLATIONS
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+				wxString msg = _("Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document.");
+				wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+				m_pApp->LogUserAction(msg);
+				// BEW changed 19Mar09 for refactored layout, to comment out & so allow the
+				// phrase box to be shown at the last pile of the document whether there's
+				// a retranslation there or not
+			}
+		}
+		else
+		{
+			// we are in adaptationsStep of vertical editing process, so we want the active
+			// pile to be the one immediately following the retranslation; but if that is
+			// in the gray text area beyond the end of the editable span, we set a boolean
+			// so we can later suppress the reconstruction of the phrase box in the gray
+			// area, and just instead immediately cause the dialog asking the user what to
+			// do for the next step to be displayed; we also need to deal with the
+			// possibility the user's retranslation may make the editable span longer, and
+			// update the relevant parameters in gEditRecord
+			nVerticalEdit_nExtras = nNewCount - nOriginalCount; // can be -ve, 0 or +ve
+
+			// update the relevant parts of the gEditRecord
+			gEditRecord.nAdaptationStep_ExtrasFromUserEdits += nVerticalEdit_nExtras;
+			gEditRecord.nAdaptationStep_NewSpanCount += nVerticalEdit_nExtras;
+			gEditRecord.nAdaptationStep_EndingSequNum += nVerticalEdit_nExtras;
+
+			// set the potential active location to the CSourcePhrase immediately following
+			// the end of the retranslation
+			int nPotentialActiveSequNum = nSaveSequNum + nNewCount;
+
+			// determine if this location is within the editable span, if it is, we permit
+			// the later restoration of the phrase box there; if not, we suppress the
+			// restoration of the phrase box (otherwise it would be in the gray text area)
+			if (!(nPotentialActiveSequNum >= gEditRecord.nAdaptationStep_StartingSequNum &&
+				nPotentialActiveSequNum <= gEditRecord.nAdaptationStep_EndingSequNum))
+			{
+				bVerticalEdit_SuppressPhraseBox = TRUE;
+			}
+			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
+			// even if we suppress reconstituting of the phrase box
+			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within
+			// PlacePhraseBox()
+			bool bSetSafely;
+			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp, pSrcPhrases, nSaveActiveSequNum,
+				m_pApp->m_nActiveSequNum, nFinish);
+			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures? (No, processing
+									 // must continue regardless BEW 2Jan12)
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent
+												   // PlacePhraseBox() calls
+			m_bIsRetranslationCurrent = FALSE;
+		}
+
+		// we must have a valid layout, so we have to recalculate it before we go any
+		// further, because if preceding code deleted or changed the inventory of padding
+		// placeholders, then some of the layout's pointers in m_stripArray will be clobbered
+#ifdef _NEW_LAYOUT
+		// BEW 1Sep14 use create_strips_keep_piles here, so that m_stripArray only has
+		// valid pile pointers (the user's edits may have added a lot of new CPile instances,
+		// or changed there number, etc)
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+	}
+	// OR CANCEL...
+	else
+	{
+		wxASSERT(pSaveList);
+		// remove the pointers in the saved list, and delete the list, but leave the
+		// instances undeleted since they are now pointed at by elements in the pSrcPhrases
+		// list
+		if (pSaveList->GetCount() > 0)
+		{
+			pSaveList->Clear();
+		}
+		if (pSaveList != NULL) // whm 11Jun12 added NULL test
+			delete pSaveList; // don't leak memory
+		m_pView->RemoveSelection(); // make sure there is no selection in force
+
+		// recalculate the layout from the first strip in the selection,
+		// to force the text to change color; use keep_strips_keep_piles here
+		m_pApp->m_nActiveSequNum = nNewActiveSequNum;
+#ifdef _NEW_LAYOUT
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+		m_pApp->m_pActivePile = m_pView->GetPile(nNewActiveSequNum);
+	} // end of user cancelled block
+
+	// delete the temporary list after removing its pointer copies
+	pList->Clear();
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
+
+	// get the CSourcePhrase at the active location
+	pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+	wxASSERT(pSrcPhrase != NULL);
+
+	// determine the text to be shown, if any, in the target box when it is recreated
+	// BEW additions 08Sep08 for support of vertical editing mode
+	wxString str3; // use this one for m_targetStr contents
+
+	m_pLayout->m_docEditOperationType = edit_retranslation_op;
+	if (gbVerticalEditInProgress && bVerticalEdit_SuppressPhraseBox)
+	{
+		// vertical edit mode is in operation, and a recalc of the layout has been done, so
+		// it remains just to determine whether or not to suppress the phrase box and if so
+		// to transition to the next step, otherwise send control to the legacy code to
+		// have the phrase box created at the active location
+
+		// the active location is in the gray text area, so don't build the phrase box
+		// (in wxWidgets, instead hide the phrase box at this point); and instead
+		// transition to the next step
+		bool bCommandPosted;
+		bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(-1, nextStep, TRUE);
+		// no Invalidate() call made in this block, because a later point in the process
+		// should draw the layout anew (I'm guessing, but I think it's a safe guess)
+		bCommandPosted = bCommandPosted; // avoid warning (& keep truckin')
+	}
+	else
+	{
+		str3.Empty();
+
+		// we want text with punctuation, for the 4-line version
+		if (!pSrcPhrase->m_targetStr.IsEmpty() &&
+			(pSrcPhrase->m_bHasKBEntry || pSrcPhrase->m_bNotInKB))
+		{
+			str3 = pSrcPhrase->m_targetStr;
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		}
+		else
+		{
+			// the Jump( ) call embedded in the PlacePhraseBox( ) which is in turn within
+			// SetActivePilePointerSafely( ) will clear the adaptation (or reduce its ref
+			// count,) if it exists at the active location; which will cause the above test
+			// to land control in this block; so we don't want to do a lookup (it would not
+			// find anything if the jump removed the adaptation, and then the source would
+			// be copied) because we could then lose the phrasebox contents when in fact
+			// they are still good - so if the sourcephrase at the active location has a
+			// nonempty target string, we'll use that. Otherwise, get it by a lookup.
+			if (pSrcPhrase->m_targetStr.IsEmpty())
+			{
+#if defined (ABANDON_NOT)
+				m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
+				m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
+				RestoreTargetBoxText(pSrcPhrase, str3); // for getting a suitable
+				// m_targetStr contents
+			}
+			else
+			{
+				str3 = pSrcPhrase->m_targetStr;
+				m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			}
+		}
+
+		wxString emptyStr = _T("");
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
+
+		m_pApp->m_targetPhrase = str3;
+		if (m_pApp->m_pTargetBox != NULL)
+		{
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(str3);
+		}
+
+		// layout , so that the targetBox won't encroach on the next cell's adaption
+		// text (can't just layout the strip, because if the text is long then source
+		// phrases get pushed off into limbo and we get access violation & null pointer
+		// returned in the GetPile call)
+#ifdef _NEW_LAYOUT
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+
+		// get a new valid active pile pointer
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+
+		// BEW 19Oct15 No transition of vert edit modes,
+		// so we can store this location on the app, provided
+		// we are in bounds -- do the following just to be sure
+		if (gbVerticalEditInProgress)
+		{
+			if (gEditRecord.nAdaptationStep_StartingSequNum <= m_pApp->m_nActiveSequNum &&
+				gEditRecord.nAdaptationStep_EndingSequNum >= m_pApp->m_nActiveSequNum)
+			{
+				// BEW 19Oct15, store new active loc'n on app
+				m_pApp->m_vertEdit_LastActiveSequNum = m_pApp->m_nActiveSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, OnButtonEditRetranslation() storing loc'n: %d "), m_pApp->m_nActiveSequNum);
+#endif
+			}
+		}
+
+		m_pApp->m_nStartChar = -1;
+		m_pApp->m_nEndChar = -1;
+
+		// remove selection and update the display
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+	}
+
+	// ensure respect for boundaries is turned back on
+	if (!m_pApp->m_bRespectBoundaries)
+	{
+		wxCommandEvent dummy;
+		m_pView->OnToggleRespectBoundary(dummy); // BEW 19jul21, This call does not make use of the event
+	}
+	m_bInsertingWithinFootnote = FALSE; // restore default value
+
+	// Clear the cache variables
+	m_pApp->m_nSavedActiveSequNum = -1;
+	m_pApp->m_strMyCachedActiveTgtText.Empty(); 
+	m_pApp->m_nCacheNewActiveSequNum = -1; 
+}
+
+
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders, prior to showing the dialog)
@@ -2760,7 +3424,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// Return if this toolbar item is disabled
 	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_EDIT_RETRANSLATION))
 	{
-		::wxBell();
+		//::wxBell(); // BEW 19Jul21 remove the bell, it's not needed
 		return;
 	}
 
@@ -3496,7 +4160,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// ensure respect for boundaries is turned back on
 	if (!m_pApp->m_bRespectBoundaries)
 	{
-		m_pView->OnToggleRespectBoundary(event);
+		m_pView->OnToggleRespectBoundary(event); // BEW 19jul21, This call does not make use of the event
 	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 }

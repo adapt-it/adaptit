@@ -1797,9 +1797,39 @@ x:					CCell* pCell = 0;
 					// phraseBox in that cell clicked, unless the cell is part of a
 					// retranslation
 					CPile* pClickedPile = pCell->GetPile();
+					CSourcePhrase* pSP = pClickedPile->GetSrcPhrase();
 					wxASSERT(pClickedPile);
-					if (!gbIsGlossing && pClickedPile->GetSrcPhrase()->m_bRetranslation)
+
+					if (!gbIsGlossing && pSP->m_bRetranslation)
 					{
+						// BEW 19Jul21 refactoring normal layout and no-visible-src layout
+						// so that a click on any target text word in a retranslation no
+						// longer shows a message, but instead, just opens the retranslation
+						// for editing, and returns when the user is done, whether cancelling
+						// the edit or having done editing, to have the active pile be the
+						// nearest previous location not in the retranslation span. (If there
+						// no safe previous location, it will be placed at safest location after
+						// the span, and if THAT fails, the in the retranslation itself - this
+						// is the legacy protocol for GetSafePhraseBoxLocatioanUsingList(), a
+						// function defined in AI.cpp. Since the user may do editing, and the
+						// old active location may change, the return musts do actions like
+						// view's Invalidate() followed by ScrollIntoView() followed by PlaceBox()
+						// and setting the focus and targetBox and its selection - there are plenty
+						// places in our code where these actions can be copied to here.
+						
+						pApp->m_bUserClickedTgtWordInRetranslation = TRUE;
+						pApp->GetRetranslation()->EditRetranslationByTgtClick(pSP);
+						// Now update to get the GUI consistent with what was done						
+//#if defined (_DEBUG)
+//						{
+//							CPile* pmyPile = pApp->GetView()->GetPile(2322);
+//							wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//							wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//						}
+//#endif
+						pApp->m_bUserClickedTgtWordInRetranslation = FALSE; // restore default
+						return;
+						/* BEW 20Jul21 deprecated, now a tgt word clicked opens the retrans editor
 						// make any single pile within a retranslation (other than a click in
 						// line 0 which causes a selection) inaccessible - user should
 						// treat a retranslation as a whole, & access it via toolbar buttons
@@ -1808,9 +1838,11 @@ x:					CCell* pCell = 0;
 												// a free translation by a click
 						{
 							// IDS_NO_ACCESS_TO_RETRANS
-							::wxBell(); // a ding here might help too
-                                        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+							//::wxBell(); // a ding here might help too
+							
+                            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                             pApp->m_bUserDlgOrMessageRequested = TRUE;
+
                             wxMessageBox(_(
 	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
 							wxICON_INFORMATION | wxOK);
@@ -1824,6 +1856,7 @@ x:					CCell* pCell = 0;
                             }
 							return;
 						}
+						*/
 					}
 
 					// BEW 27May14, the following actions, in free translation mode,

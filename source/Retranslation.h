@@ -59,6 +59,8 @@ public:
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 	int  CountRetransPiles(SPList* pList, int beginSequNum); // BEW added 31Mar21 to support Find retranslations
 
+	void		EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase);
+
 	/* BEW deprecated 9Mar11
 	// a function for use when converting a sublist of (modified) CSourcePhrase instances
 	// generated when the user has changed punctuation settings, to a retranslation -

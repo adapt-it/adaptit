@@ -885,7 +885,7 @@ CLayout* CPhraseBox::GetLayout()
 // shows an informative message to the user, enables the button for copying punctuation,
 // and returns FALSE
 // BEW 13Apr10, no changes needed for support of doc version 5
-// BEW 9Apr12, changed to support discontinuous hightlight spans for auto-inserts
+// BEW 9Apr12, changed to support discontinuous highlight spans for auto-inserts
 bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView,
 												CPile* pNextEmptyPile, CPile* pCurPile)
 {
@@ -3833,6 +3833,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 #endif
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = gpApp->GetView()->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif
 	// destroys the phrase box and recreates it with a different size, depending on the
 	// nSelector value.
 	// nSelector == 0, increment the box width using a pre-calculated value
@@ -4093,6 +4100,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 //	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
 //		__FUNCTION__, __LINE__);
 #endif
+//#if defined (_DEBUG)
+//	{
+//		CPile* pmyPile = gpApp->GetView()->GetPile(2322);
+//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
+//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
+//	}
+//#endif
 }
 
 

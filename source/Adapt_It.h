@@ -3545,6 +3545,10 @@ public:
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
+	// BEW 20Jul21, added boolean to support user clicks in tgt text of a retranslation causing
+	// the retranslation edit dlg to open for editing
+	bool	 m_bUserClickedTgtWordInRetranslation; // if TRUE OnLButtonDown() opens the dlg, bypasses auiToolbar
+
 //#if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
 	void StatusBar_ProgressOfKbDeletion();
@@ -5357,7 +5361,17 @@ public:
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);
 	void	GetPossibleAdaptionCollabProjects(wxArrayString* aiCollabProjectNamesArray);
 	void	GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPunctuation);
+	// BEW 20Jul21 refactored to have a second parameter, pSrcPhrase, which will be
+	// default NULL for legacy calls, but set to a valid pSrcPhrase when used in support
+	// of the user clicking a target text word in the retranslation in order to get the
+	// retranslation dialog opened for editing
 	int		GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView);
+	int		GetSafeLocationForRetransTgtClick(CAdapt_ItView* pView, CSourcePhrase* pFirstSP);
+	int		m_nSavedActiveSequNum; // for use after the above GetSafe...() has returned 
+	wxString m_strMyCachedActiveTgtText; // cache the target text at m_nSavedActiveSequNum in this member
+	int		m_nCacheNewActiveSequNum; // cache the calculated new location after 
+				// GetSafePhraseBoxLocationUsingList(m_pView, pFirstSrcPhrase) has determined it
+
 	CAdapt_ItView* GetView();		// convenience function for accessing the View
 	void	InitializeFonts(); // whm added
 	void	InitializePunctuation(); // whm added
