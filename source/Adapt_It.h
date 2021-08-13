@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			Adapt_It.h
-/// \author			Bill Martin
+/// \file		Adapt_It.h
+/// \author		Bill Martin
 /// \date_created	05 January 2004
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
