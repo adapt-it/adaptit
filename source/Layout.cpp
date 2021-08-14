@@ -64,7 +64,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "MainFrm.h"
 #include "helpers.h"
 // don't mess with the order of the following includes, Strip must precede View must precede
-// Pile must precede Layout and Cell can usefully by last
+// Pile must precede Layout and Cell can usefully be last
 #include "Strip.h"
 #include "Adapt_ItView.h"
 #include "Pile.h"
@@ -282,6 +282,23 @@ void CLayout::Draw(wxDC* pDC)
 		// not in a consistent state that would allow it
 		return;
 	}
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 	// BEW 21May15 added
 	if (m_pApp->m_bSupportFreeze)
 	{
@@ -386,7 +403,7 @@ void CLayout::Draw(wxDC* pDC)
 #endif
 		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 #if defined (_DEBUG)
-		if (gbShowTargetOnly)
+/*		if (gbShowTargetOnly)
 		{
 			wxLogDebug(_T("%s:%s():line %d, After GetVisibleStripsRange: first %d , last %d  gbShowTargetOnly TRUE"),
 				__FILE__, __FUNCTION__, __LINE__, nFirstStripIndex, nLastStripIndex);
@@ -396,6 +413,7 @@ void CLayout::Draw(wxDC* pDC)
 			wxLogDebug(_T("%s:%s():line %d, After GetVisibleStripsRange: first %d , last %d  gbShowTargetOnly FALSE"),
 				__FILE__, __FUNCTION__, __LINE__, nFirstStripIndex, nLastStripIndex);
 		}
+*/
 #endif
 	}
 
@@ -425,13 +443,13 @@ void CLayout::Draw(wxDC* pDC)
 			{
 				// fix a window's worth of strips from here on - do it only once per loop
 				int numVisibleStrips = GetNumVisibleStrips();
-#if defined (_DEBUG)
-				if (gbShowTargetOnly)
-				{
-					wxLogDebug(_T("%s:%s():line %d, m_bValid is FALSE: Calling CleanUpTheLayoutFromStripAt: %d , numVisibleStrips: %d"),
-						__FILE__, __FUNCTION__, __LINE__, aStripPtr->m_nStrip, numVisibleStrips);
-				}
-#endif
+//#if defined (_DEBUG)
+//				if (gbShowTargetOnly)
+//				{
+//					wxLogDebug(_T("%s:%s():line %d, m_bValid is FALSE: Calling CleanUpTheLayoutFromStripAt: %d , numVisibleStrips: %d"),
+//						__FILE__, __FUNCTION__, __LINE__, aStripPtr->m_nStrip, numVisibleStrips);
+//				}
+//#endif
 				CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, numVisibleStrips);
 				break;
 			}
@@ -475,22 +493,8 @@ void CLayout::Draw(wxDC* pDC)
 	for (i = nFirstStripIndex; i <= nLastStripIndex; i++)
 	{
 		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
-#if defined (_DEBUG)
-		if (gbShowTargetOnly)
-		{
-			wxLogDebug(_T("%s:%s():line %d, for loop, just drawn Strip: i = %d "),
-				__FILE__, __FUNCTION__, __LINE__, i);
-		}
-#endif
 	}
 
-#if defined (_DEBUG)
-//	if (gbShowTargetOnly)
-//	{
-		wxLogDebug(_T("%s:%s():line %d, loop done, clearing m_invalidStripArray"), __FILE__, __FUNCTION__, __LINE__);
-		m_invalidStripArray.Clear(); // initialize for next user edit operation
-//	}
-#endif
 #ifdef Do_Clipping
 //	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"),
 //				m_bScrolling ? _T("TRUE") : _T("FALSE"),
@@ -509,8 +513,22 @@ void CLayout::Draw(wxDC* pDC)
 	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero
 	m_pApp->m_nCurSequNum_ForPlacementDialog = -1; // reset to default -1 "undefined" value
 
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -524,6 +542,22 @@ void CLayout::Draw(wxDC* pDC)
 // BEW 21May15 added freeze/thaw support
 void CLayout::Redraw(bool bFirstClear)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	// BEW 21May15 added
 	if (m_pApp->m_bSupportFreeze)
 	{
@@ -548,6 +582,22 @@ void CLayout::Redraw(bool bFirstClear)
 
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
+#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
 #endif
 }
 
@@ -633,7 +683,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
 	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only.
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
-#if defined(_DEBUG) && defined (_NEWDRAW)
+#if defined(_DEBUG) //&& defined (_NEWDRAW)
 { // set a temporary scope
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
 	CPile* pActivePile = GetPile(nActiveSequNum);
@@ -645,6 +695,17 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	}
 }
 #endif
+#if defined (_DEBUG)
+{
+	CSourcePhrase* pSP = m_pApp->m_pActivePile->GetSrcPhrase();
+	int sn = pSP->m_nSequNumber;
+	if (sn >= 2770 && sn <= 2785)
+	{
+		int halt_here = 1;
+	}
+}
+#endif
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 559,
 	gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
@@ -679,16 +740,16 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile
 			// instead; but this will work even if we have forgotten to
 			// update it in the edit operation's handler
-
 	// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
 	// and list, the box gap may also be much smaller than it needs to be - so while
 	// we have a valid pActivePile, get the gap and box width calculations refreshed
 	// before they get used in a RecalcLayout() call.
-	pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18
-
 	pActivePile->SetPhraseBoxWidth(); // this is the legacy call - always been here
 
 	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
+
+	//pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18
+
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 600);
@@ -984,6 +1045,37 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	//	wxLogDebug(_T("CLayout::PlaceBox() line 888: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 	//#endif
 
+	/* BEW 13Aug21, Deprecated, this use of bUseLegacyCalc is not wanted
+	// BEW 6Aug21 add support for Layout's bUseLegacyCalc boolean
+	CLayout* pLayout = m_pApp->GetLayout();
+	int listWidth = pActivePile->CalcPhraseBoxListWidth(); // returns 0 or a valid width
+	if (listWidth == 0)
+	{
+		pLayout->bUseLegacyCalc = TRUE;
+	}
+	else
+	{
+		pLayout->bUseLegacyCalc = FALSE;
+	}
+	if (pLayout->bUseLegacyCalc)
+	{
+		// We need to add the slop to the box's width
+		phraseBoxWidth += pLayout->slop;
+	}
+	else
+	{
+		// Calc width by basing on listWidth, add it's held-slop, and subtract (1 + buttonWidth
+		// - the last is pLayout's ExtraWidth() which includes the +1
+		listWidth = listWidth + (pLayout->slop / 2);
+		phraseBoxWidth = listWidth + (pLayout->slop / 2) - pLayout->ExtraWidth();
+		// adjust a little, if needed
+		int buttonPlus1 = pLayout->ExtraWidth(); // 23 
+		int x = listWidth - phraseBoxWidth - buttonPlus1; // if box is not right, x +ve will
+				// increase the box length, -ve will decrease it
+		phraseBoxWidth += x;
+	}
+	*/
+
 	// make the phrase box size adjustments, set the colour of its text, tell it where it
 	// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
 	// causes it to be visible again; CPhraseBox has a color variable & uses reflected
@@ -1002,6 +1094,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 			pActivePile);
 		m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
 	}
+
+	pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18  (moved from 751 to here, 13Aug21)
+
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 910);
 #endif
@@ -1155,10 +1251,11 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
 #endif
-}
-m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
-										  // whm 8Aug2018 added. Assign phrasebox contents to initialPhraseBoxContentsOnLanding on landing at this location
-m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+} // end of TRUE block for test: if (!m_bLayoutWithoutVisiblePhraseBox)
+
+	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+	// whm 8Aug2018 added. Assign phrasebox contents to initialPhraseBoxContentsOnLanding on landing at this location
+	m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 
 // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
 // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the
@@ -1166,6 +1263,17 @@ m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->
 // is FALSE at each location of the phrasebox.
 m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE;
 
+}
+
+// BEW added 3Aug21, when the legacy boxWidth needed to
+// be calculated in CalcPhraseBoxWidth() because at a hole or KB has only
+// a single CRefString, so that the listWidth cannot be calculated (set as 0),
+// the active pile's width needs to be augmented by (1 + buttonWidth) because
+// the button will be shown but disabled
+int CLayout::ExtraWidth()
+{
+	int buttonPlus1 = 1 + (*this).buttonWidth;
+	return buttonPlus1;
 }
 
 bool CLayout::GetBoxVisibilityFlag()
@@ -1298,7 +1406,32 @@ int CLayout::GetSavedLeading()
 
 int CLayout::GetSavedGapWidth()
 {
-	return m_nCurGapWidth;
+	return  m_nCurGapWidth;
+}
+
+// BEW 27Jul21 added m_layoutCache, public, with a public accessor too
+//struct LayoutCache
+//{
+//	int	nActiveSequNum;
+//	wxString strActiveAdaption;
+//	int nDropdownWidth;
+//	int nDropdownHeight;
+//	int nTextBoxWidth;
+//};
+LayoutCache* CLayout::GetLayoutCache()
+{
+	return &m_layoutCache;
+}
+
+// BEW 27Jul2 use this to clear to default meaningless values prior
+// to being refilled with new values at the same or different active loc
+void CLayout::InitializeLayoutCache()
+{
+	m_layoutCache.nActiveSequNum = -1;
+	m_layoutCache.strActiveAdaption.Empty();
+	m_layoutCache.nDropdownWidth = 0;
+	m_layoutCache.nDropdownHeight = 0;
+	m_layoutCache.nTextBoxWidth = 0;
 }
 
 void CLayout::SetSavedLeading(int nCurLeading)
@@ -1306,6 +1439,22 @@ void CLayout::SetSavedLeading(int nCurLeading)
 	m_nCurLeading = nCurLeading;
 }
 
+// BEW 30Jul21 repurposed this and the Get... accessor too. m_nSaveGap is private, and in
+// and in this member the 'normal strips' view's gap is stored. App member,
+// m_nCurGapWidth (public) is restored using m_nSaveGap value when returning
+// from "ShowTargetOnly" mode, via the toggle command in view class.
+// I was able to repurpose these two because although I had created these accessors
+// years ago, I never up to the present had used them anywhere.
+// When only the target text is being viewed, the user can access the Preferences
+// while bool gbShowTargetOnly is TRUE, and set a different (usually smaller)
+// interpile gap value, more suited to reading, and that gap will be stored
+// in Layout's bool member, m_nSaveGap_TgtOnly. The latter is public, and it is
+// not preserved in either of AI's configuration files - so it lasts only for
+// the current session. A new boolean is also created, a public member of CLayout class,
+// called m_bNewGapRequested_TgtOnly; this goes back to default FALSE after it has been
+// used - so that if Preferences are again used to reset the "show target only"'s gap
+// width, the again TRUE value can be used to force a layout recalculation with the
+// changed gap width
 void CLayout::SetSavedGapWidth(int nGapWidth)
 {
 	m_nCurGapWidth = nGapWidth;
@@ -1422,6 +1571,22 @@ void CLayout::SetPileAndStripHeight()
 
 void CLayout::RecalcPileWidths(PileList* pPiles)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	PileList::Node* pos = pPiles->GetFirst();
 	wxASSERT(pos != NULL);
 	CPile* pPile = NULL;
@@ -1435,6 +1600,22 @@ void CLayout::RecalcPileWidths(PileList* pPiles)
 		pos = pos->GetNext();
 	}
 	SetPileAndStripHeight(); // it may be changing, eg to or from "See Glosses"
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 }
 
 int CLayout::GetStripCount()
@@ -1489,6 +1670,25 @@ wxArrayPtrVoid* CLayout::GetStripArray()
 // m_logicalDocSize.y set
 void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
+		{
+			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+			if (pSPhr->m_nSequNumber == nTestSN)
+			{
+				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+				int boxWidth = pTxtBox->GetClientRect().width;
+				wxSize sizeList = pListBox->GetClientSize();
+				int listWidth = sizeList.x;
+				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+			}
+		}
+	}
+#endif
 	// GetClientRect gets a rectangle in which upper left coords are always 0,0
 	//pApp->GetMainFrame()->canvas->GetClientSize(&fwidth,&fheight); // get width & height
 	//in pixels wx note: calling GetClientSize on the canvas produced different results in
@@ -1515,6 +1715,26 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 		// strip, having the end of the nav text drawn off-window
 	}
 	m_logicalDocSize = docSize; // initialize the private member, CLayout::m_logicalDocSize
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
+		{
+			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+			if (pSPhr->m_nSequNumber == nTestSN)
+			{
+				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+				int boxWidth = pTxtBox->GetClientRect().width;
+				wxSize sizeList = pListBox->GetClientSize();
+				int listWidth = sizeList.x;
+				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+			}
+		}
+	}
+#endif
+
 }
 
 // sets m_logicalDocSize.y value to the logical height (in pixels) of the laid out strips, or to
@@ -1864,6 +2084,26 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
+		{
+			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+			if (pSPhr->m_nSequNumber == nTestSN)
+			{
+				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+				int boxWidth = pTxtBox->GetClientRect().width;
+				wxSize sizeList = pListBox->GetClientSize();
+				int listWidth = sizeList.x;
+				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+			}
+		}
+	}
+#endif
+
 	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	gpApp->MyLogger();
@@ -2415,13 +2655,25 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %d  <<--passed to m_lastLayoutSelector (in CLayout) for Draw() to use"), (int)selector);
 #endif
 */
-//#if defined (_DEBUG)
-//	{
-//		CPile* pmyPile = m_pView->GetPile(2322);
-//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
-//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
-//	}
-//#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
+		{
+			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+			if (pSPhr->m_nSequNumber == nTestSN)
+			{
+				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+				int boxWidth = pTxtBox->GetClientRect().width;
+				wxSize sizeList = pListBox->GetClientSize();
+				int listWidth = sizeList.x;
+				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+			}
+		}
+	}
+#endif
 	return TRUE;
 }
 
@@ -2496,6 +2748,22 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 	wxASSERT(pActivePile != NULL);
 	if (nActiveStripIndex < 0)
 		return;
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	CStrip* pActiveStrip = NULL;
 	pActiveStrip = (CStrip*)m_stripArray.Item(nActiveStripIndex);
 	wxASSERT(pActiveStrip);
@@ -2543,6 +2811,23 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 		pActiveStrip->m_arrPileOffsets.Add(nextOffset);
 		nextOffset += width + gap;
 	}
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -2640,6 +2925,19 @@ wxArrayInt* CLayout::GetInvalidStripArray()
 	return &m_invalidStripArray;
 }
 
+// BEW 12Aug21 added
+void CLayout::SetCurBoxWidth(int curBoxWidth)
+{
+	this->m_curBoxWidth = curBoxWidth; // view.cpp will use this
+}
+
+// BEW 12Aug21 added
+int CLayout::GetCurBoxWidth()
+{
+	return this->m_curBoxWidth; // dunno if ever needed, but here it is in case
+}
+
+
 void CLayout::CreateStrips(int nStripWidth, int gap)
 {
 	int nIndexOfFirstPile = 0;
@@ -2656,34 +2954,33 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 		pStrip->m_nStrip = nStripIndex; // set it's index
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 								  // set up the strip's pile (and cells) contents
-
-								  //if (gbIsPrinting)
-								  //	wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
-								  //	 nStripIndex, nStripWidth);
+		//if (gbIsPrinting)
+		//	wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
+		//	 nStripIndex, nStripWidth);
 
 		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles
-															/*
-															if (gbIsPrinting)
-															{
-															int nStripIndex = pStrip->m_nStrip;
-															int free = pStrip->m_nFree;
-															int numPiles = pStrip->m_arrPileOffsets.GetCount();
-															wxLogDebug(_T("CreateStrip(): Num Piles %d  :  strip index %d, free %d"),numPiles, nStripIndex, free);
-															int i;
-															for (i=0;i<numPiles;i++)
-															{
-															wxLogDebug(_T("        index [%d] has offset %d , for srcPhrase:  %s"),
-															i,pStrip->m_arrPileOffsets[i], ((CPile*)pStrip->m_arrPiles[i])->GetSrcPhrase()->m_srcPhrase);
-															}
-															}
-															else
-															{
-															int nStripIndex = pStrip->m_nStrip;
-															int free = pStrip->m_nFree;
-															int numPiles = pStrip->m_arrPileOffsets.GetCount();
-															wxLogDebug(_T("CreateStrip(): NOT PRINTING Num Piles %d  :  strip index %d, free %d"),numPiles, nStripIndex, free);
-															}
-															*/
+		/*
+		if (m_pApp->m_bIsPrinting)
+		{
+			int nStripIndex = pStrip->m_nStrip;
+			int free = pStrip->m_nFree;
+			int numPiles = pStrip->m_arrPileOffsets.GetCount();
+			wxLogDebug(_T("CreateStrip(): Num Piles %d  :  strip index %d, free %d"),numPiles, nStripIndex, free);
+			int i;
+			for (i=0;i<numPiles;i++)
+			{
+			wxLogDebug(_T("        index [%d] has offset %d , for srcPhrase:  %s"),
+			i,pStrip->m_arrPileOffsets[i], ((CPile*)pStrip->m_arrPiles[i])->GetSrcPhrase()->m_srcPhrase);
+			}
+		}
+		else
+		{
+			int nStripIndex = pStrip->m_nStrip;
+			int free = pStrip->m_nFree;
+			int numPiles = pStrip->m_arrPileOffsets.GetCount();
+			wxLogDebug(_T("CreateStrip(): Num Piles %d:strip index %d, free %d"),numPiles, nStripIndex, free);
+		}
+		*/
 		nStripIndex++;
 	}
 	// layout is built, we should call Shrink() to reclaim memory space unused
@@ -2781,6 +3078,7 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 	// hide box  -- I think we'll support it by just recalculating the layout without a
 	// scroll, at the current thumb position for the scroll car
 #if defined (_DEBUG)
+/*
 	if (gbShowTargetOnly)
 	{
 		wxLogDebug(_T("%s:%s():line %d, external pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly TRUE"),
@@ -2791,6 +3089,7 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 		wxLogDebug(_T("%s:%s():line %d, external pDC:  Layout's m_nStripHeight: %d  for gbShowTargetOnly FALSE"),
 			__FILE__, __FUNCTION__, __LINE__, m_nStripHeight);
 	}
+*/
 #endif
 
 	// get the logical distance (pixels) that the scroll bar's thumb indicates to top
@@ -2843,8 +3142,8 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 	if (nLastStripIndex > nTotalStrips - 1)
 		nLastStripIndex = nTotalStrips - 1; // protect from bounds error
 
-											// check the bottom of the last visible strip is lower than the bottom of the
-											// client area, if not, add an additional strip
+	// check the bottom of the last visible strip is lower than the bottom of the
+	// client area, if not, add an additional strip
 	pStrip = (CStrip*)m_stripArray.Item(nLastStripIndex);
 	bottom = pStrip->Top() + GetStripHeight();
 	if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y))
@@ -2920,8 +3219,8 @@ void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
 	if (nLastStripIndex > nTotalStrips - 1)
 		nLastStripIndex = nTotalStrips - 1; // protect from bounds error
 
-											// check the bottom of the last visible strip is lower than the bottom of the
-											// client area, if not, add an additional strip
+	// check the bottom of the last visible strip is lower than the bottom of the
+	// client area, if not, add an additional strip
 	pStrip = (CStrip*)m_stripArray.Item(nLastStripIndex);
 	bottom = pStrip->Top() + GetStripHeight();
 	if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y))
@@ -2936,6 +3235,22 @@ void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
 int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips,
 	int numTotalStrips)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	// "upper" partition is the one with small sequence number, "lower" has larger
 	// sequence numbers
 	//if (numTotalStrips < 64)
@@ -2951,6 +3266,7 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 	int nTop = 0;
 	int midway = 0;
 	int half = 0;
+	/*
 #if defined (_DEBUG)
 	if (gbShowTargetOnly)
 	{
@@ -2958,6 +3274,7 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 			__FILE__, __FUNCTION__, __LINE__, nThumbPos_InPixels, numVisStrips, numTotalStrips);
 	}
 #endif
+	*/
 	while ((nUpperBound - nLowerBound) > nOneScreensWorthOfStrips)
 	{
 		half = (nUpperBound - nLowerBound) / 2;
@@ -2976,17 +3293,49 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 		}
 		nIndexToStartFrom = nLowerBound;
 	}
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	return nIndexToStartFrom;
 }
 
 void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 	int nCountValueForTooFar)
 {
-	// always get the active strip - it may or may not be within the strips whole indices
-	// are in the m_invalidStripArray, but we'll include it in the calculations to be sure
-	// the layout is correct everwhere related to the user's last editing operation (the
-	// active strip may stay the active strip, or it may not, and we don't want to waste
-	// time trying to figure out which is the case)
+	// BEW 24Jul21 In this function, "Invalid" just means "a region of the docs,
+	// particularly the range of contiguous strips which have become different in
+	// CPiles content due to something the user has done" - eg. an unmerger, and 
+	// "Active" in the variable names just means the set of piles in such a region,
+	// which need to be accomodated in the update of the document. Such a region is
+	// nearly always confined to a single strip, or perhaps two. But being bigger
+	// cannot be entirely ruled out. So the values returned for nIndexOfFirst and
+	// nIndexOfLast, if the messed up region is just a single strip, will be the same
+	// and will indicate what the active strip is; but if first and last are far
+	// separated, the values returned will be -1 for each; but if not too far apart,
+	// go with nIndexOfFirst as the probable 'real' active strip. If toggling to
+	// gbShowTargetOnly = TRUE mode, or back again to normal layout, no edit of the
+	// doc is being done, and so the active strip will be one, and the indices can
+	// be relied on. Toggling to or from between normal and no-src mode, can then
+	// rely on an accurate determination of the active strip.
+	 
+	// Legacy commment: always try get the active strip - it may or may not be within
+	// the strips whole indices are in the m_invalidStripArray, but we'll include it 
+	// in the calculations to be sure the layout is correct everwhere related to the user's
+	// last editing operation (the active strip may stay the active strip, or it may not,
+	// and we don't want to waste time trying to figure out which is the case)
 	int nIndexOfActiveStrip = -1;
 	int nIndexOfFirst_Active = -1; // indicates no value was set (caller can check for != -1)
 	int nIndexOfLast_Active = -1;  // ditto
@@ -3021,9 +3370,9 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		// get the active location information, but rely on the strip indices in
 		// CLayout::m_invalidStripArray instead.
 		nIndexOfActiveStrip = m_pApp->m_pActivePile->GetStripIndex(); // returns -1 if
-																	  // the active pile is one newly created (eg. at an Unmerge operation)
-																	  // (because it has its m_pOwningStrip member set to NULL); otherwise returns a
-																	  // valid strip index
+		// the active pile is one newly created (eg. at an Unmerge operation)
+		// (because it has its m_pOwningStrip member set to NULL); otherwise returns a
+		// valid strip index
 	}
 	bool bActiveStripSet = TRUE;
 	if (nIndexOfActiveStrip != -1)
@@ -3041,6 +3390,12 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 	{
 		nIndexOfFirst = nIndexOfFirst_Active;
 		nIndexOfLast = nIndexOfLast_Active;
+/* #if defined (_DEBUG)
+		{
+			wxLogDebug(_T("%s:%s():line %d, 1. Calc active strip region: nIndexOfFirst %d , numVisStrips %d , nCountValueForTooFar %d"),
+				__FILE__, __FUNCTION__, __LINE__, nIndexOfFirst, nIndexOfLast, nCountValueForTooFar);
+		}
+#endif */
 		return;
 	}
 	else
@@ -3072,6 +3427,12 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		// or we got the active strip, and return its index
 		nIndexOfFirst = nIndexOfFirst_Active; // = -1 or the index of the active strip
 		nIndexOfLast = nIndexOfLast_Active; // = -1 or the index of the active strip
+/* #if defined (_DEBUG)
+		{
+			wxLogDebug(_T("%s:%s():line %d, 2. Calc active strip region: nIndexOfFirst %d , numVisStrips %d , nCountValueForTooFar %d"),
+				__FILE__, __FUNCTION__, __LINE__, nIndexOfFirst, nIndexOfLast, nCountValueForTooFar);
+		}
+#endif */
 		return;
 	}
 	else if (abs(nLast - nFirst) > nCountValueForTooFar)
@@ -3090,12 +3451,18 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 			// so we must do what we can with the huge range we've calculated - we'll just
 			// ignore it and instead use the visible strips, hoping that that will cover
 			// the area needing to be relaid out
-		a:			int nFirstStripIndex = -1;
+a:			int nFirstStripIndex = -1;
 			int nLastStripIndex = -1;
 			GetVisibleStripsRange(nFirstStripIndex, nLastStripIndex);
 			nIndexOfFirst = nFirstStripIndex;
 			nIndexOfLast = nLastStripIndex;
 		}
+/* #if defined (_DEBUG)
+		{
+			wxLogDebug(_T("%s:%s():line %d, 3. Calc active strip region: nIndexOfFirst %d , numVisStrips %d , nCountValueForTooFar %d"),
+				__FILE__, __FUNCTION__, __LINE__, nIndexOfFirst, nIndexOfLast, nCountValueForTooFar);
+		}
+#endif */
 		return;
 	}
 	else // active loc and user edits area are locations close to each other
@@ -3106,7 +3473,7 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		if (!bActiveStripSet)
 			goto a; // if we didn't get an active strip, return the
 					// range of visible strips instead
-					// we've got a valid active strip, so use it in the calculations below
+		// we've got a valid active strip, so use it in the calculations below
 		nIndexOfFirst = nFirst;
 		nIndexOfLast = nLast;
 		if (nIndexOfFirst_Active < nIndexOfFirst)
@@ -3115,8 +3482,14 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 				return; // it's too far away from the edit location for us to be bothered,
 						// so return the values we have found already and ignore the active
 						// strip
-						// otherwise, extend the index range to include the active strip
+			// otherwise, extend the index range to include the active strip
 			nIndexOfFirst = nIndexOfFirst_Active;
+/* #if defined (_DEBUG)
+			{
+				wxLogDebug(_T("%s:%s():line %d, 4. Calc active strip region: nIndexOfFirst %d , numVisStrips %d , nCountValueForTooFar %d"),
+					__FILE__, __FUNCTION__, __LINE__, nIndexOfFirst, nIndexOfLast, nCountValueForTooFar);
+			}
+#endif */
 			return;
 		}
 		if (nIndexOfLast_Active > nIndexOfLast)
@@ -3125,9 +3498,15 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 				return; // it's too far away from the edit location for us to be bothered,
 						// so return the values we have found already and ignore the active
 						// strip
-						// otherwise, extend the index range to include the active strip
+			// otherwise, extend the index range to include the active strip
 			nIndexOfLast = nIndexOfLast_Active;
 		}
+/* #if defined (_DEBUG)
+		{
+			wxLogDebug(_T("%s:%s():line %d, 5. Calc active strip region: nIndexOfFirst %d , numVisStrips %d , nCountValueForTooFar %d"),
+				__FILE__, __FUNCTION__, __LINE__, nIndexOfFirst, nIndexOfLast, nCountValueForTooFar);
+		}
+#endif */
 	}
 }
 
@@ -3185,6 +3564,24 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidStrip,
 	int& nFirstPileIndex, int& nEndPileIndex)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
+
 	if (nFirstInvalidStrip == -1 || nLastInvalidStrip == -1)
 	{
 		// a range of invalid strips was not calculated by the caller, so reenter
@@ -3192,6 +3589,12 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 		// layout that way instead
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+/* #if defined (_DEBUG)	
+		{
+			wxLogDebug(_T("%s:%s():line %d, user edits strip range: nFirstInvalidStrip %d , numVisStrips %d , RecalcLayout create strips"),
+				__FILE__, __FUNCTION__, __LINE__, nFirstInvalidStrip, nLastInvalidStrip);
+		}
+#endif */
 		return FALSE;
 	}
 
@@ -3251,6 +3654,28 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 		nEndPileIndex = m_pileList.IndexOf(pFirstAfterPile) - 1;
 		wxASSERT(nEndPileIndex >= 0);
 	}
+/* #if defined (_DEBUG)	
+	{
+		wxLogDebug(_T("%s:%s():line %d, user edits ADJUSTED range: nFirstPileIndex %d , numVisStrips %d , RecalcLayout KEEP strips"),
+			__FILE__, __FUNCTION__, __LINE__, nFirstInvalidStrip, nEndPileIndex);
+	}
+#endif */
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	return TRUE;
 }
 
@@ -3324,6 +3749,23 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nStripWidth,
 	int gap, int nFirstPileIndex, int nEndPileIndex, int nInitialStripCount)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 	int nFinalStripCount = nInitialStripCount; // initialize to the value passed in
 	int nStripCount = 0;
 	int stripIndex = nFirstStrip;
@@ -3606,15 +4048,16 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			// m_nMinWidth which is based on the max width of the text in the cells
 			// DebugIndexMismatch(111, 106);
 			int sequNumOfBoundingPile = pAfterPile->m_pSrcPhrase->m_nSequNumber;
-			int pileWidth = m_pApp->m_nMinPileWidth + 10;  // was 40; BEW changed 19May15
+			int pileWidth = m_pApp->m_nMinPileWidth;  // BEW changed 28Jul21
 			if (sequNumOfBoundingPile == m_pApp->m_nActiveSequNum)
 			{
-				// this is the active location, so get the phrase box's "gap with" instead
-				pileWidth = pAfterPile->CalcPhraseBoxGapWidth();
+				// this is the active location, so get the phrase box's "gap width" instead
+				pileWidth = 200; // temp to get past aa link failure
+				//pileWidth = pAfterPile->CalcPhraseBoxGapWidth();
 			}
 			else
 			{
-				// this is not the active location, so use the m_nMinWidth valuee
+				// this is not the active location, so use the m_nMinWidth value
 				pileWidth = pAfterPile->m_nMinWidth;
 			}
 			if (pileWidth <= pLastStripFilled->m_nFree)
@@ -3646,6 +4089,23 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	}
 #endif
 #endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 	return nFinalStripCount; // the caller will renumber strip indices if that is necessary
 }
 
@@ -4702,6 +5162,8 @@ m_SaveTargetPhrase = pApp->m_targetPhrase;
 // to effect a widening or contracting of the phrasebox width when
 // user editing actions in the phrasebox result in the box and layout
 // needing a quick coordinated adjustment
+// BEW 24Jul21 currently this function is never called, every earlier
+// call is now in a commented out block of code, including in FixBox()
 bool CLayout::DoPhraseBoxWidthUpdate()
 {
 	bool bSuccess = TRUE;
@@ -4778,7 +5240,9 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max))
 	{
 		// the gap for the phrase box needs widening in order to avoid encroachment on next pile's adaptation
-		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		// BEW 29Jul21 changed the box gap with to add, in this block,
+		// 2 times the pileGap, not one - to agree with the 'else' calculations in lower blocks
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + 2 * pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
 		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, expanding);
 	}
@@ -4797,7 +5261,24 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 	return bSuccess;
 }
 
-
+void CLayout::ClearLayoutCacheVariables()
+{
+	/* BEW 11Aug21 I don't think  this is needed, and only so far used in OnLButtonDown() - leave it, it now does nothing
+	m_MinPileWidth = 0;
+	m_curListWidth = 0;
+	m_curBoxWidth = 0;
+	m_tempListWidth = 0;
+	m_nSaveGap_TgtOnly = 0;
+	bUseLegacyCalc = TRUE;
+	m_nBoxPlusBtnWidth = 0;
+	m_nMinListWidth = 0;
+	aWidth = 0;
+	widthAugment = 0;
+	m_nSrcTgtWidth = 0;
+	m_nWideSrcTgtWidth = 0; // unused so far
+	m_nFinalPhraseBoxGapWidth = 0;
+	*/
+}
 
 /*
 // created for identifying where some piles didn't get their m_nPile values updated -- turned out

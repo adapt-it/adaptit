@@ -64,6 +64,7 @@
 #endif
 //#define _NEWDRAW
 //#define _EXPAND
+//#define _OVERLAP
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
@@ -795,6 +796,21 @@ struct PageOffsets
 				 // logical/virtual document)
 	int nFirstStrip; // 0-based index of the first strip to appear on the current page
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
+};
+
+// BEW 27Jul21 added this struct to support refactored layout now that dropdown
+// list has to be factored into the overall design. See detailed comments preceding
+// the ResizeBox() function, in Adapt_ItView.cpp
+// A permanent public instance of this struct will be added to the CLayout instance, and
+// writing values to it etc will happen, (after clearing,) dynamically after the layout
+// is recalculated and before that is followed up by being drawn.
+struct LayoutCache
+{
+	int	nActiveSequNum;
+	wxString strActiveAdaption;
+	int nDropdownWidth;
+	int nDropdownHeight;
+	int nTextBoxWidth;
 };
 
 /// wxList declaration and partial implementation of the POList class being

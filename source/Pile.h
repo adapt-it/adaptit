@@ -24,7 +24,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "Pile.h"
+#pragma interface "Pile.h"
 #endif
 
 // forward references:
@@ -56,7 +56,7 @@ enum phraseBoxWidthAdjustMode {
 /// displays the Gloss, when used. In glossing mode, second displays gloss and third
 /// displays target text.
 /// \derivation		The CPile class is derived from wxObject.
-class CPile : public wxObject  
+class CPile : public wxObject
 {
 	friend class CStrip;
 	friend class CCell;
@@ -69,16 +69,16 @@ public:
 
 	// operations
 public:
-	CSourcePhrase*	GetSrcPhrase();
+	CSourcePhrase* GetSrcPhrase();
 	void	SetSrcPhrase(CSourcePhrase* pSrcPhrase);
 
 	// attributes
 
 private:
-	CLayout*		m_pLayout;
-	CSourcePhrase*	m_pSrcPhrase;
-	CStrip*			m_pOwningStrip;
-	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
+	CLayout* m_pLayout;
+	CSourcePhrase* m_pSrcPhrase;
+	CStrip* m_pOwningStrip;
+	CCell* m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nPile; // what my index is in the strip object
 	int				m_nWidth; // stores width as calculated from PhraseBox width, so is valid only at active
 							  // location; at other piles it stores -1
@@ -138,9 +138,9 @@ public:
 	void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
 
 //GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
-	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); 
-											// sets m_nWidth (the width to be used at active 
-											//location, calls CalcPhraseBoxGapWidth())
+	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+	// sets m_nWidth (the width to be used at active 
+	//location, calls CalcPhraseBoxGapWidth())
 	void		SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
 	int			GetMinWidth(); // returns value of m_nMinWidth
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
@@ -158,11 +158,11 @@ public:
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 
-	DECLARE_DYNAMIC_CLASS(CPile) 
+	DECLARE_DYNAMIC_CLASS(CPile)
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information. MFC uses DECLARE_DYNCREATE(CClassName)
-	
+
 };
 
 #endif // Pile_h

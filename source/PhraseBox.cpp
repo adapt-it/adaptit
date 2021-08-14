@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			PhraseBox.cpp
 /// \author			Bill Martin
@@ -2446,19 +2446,47 @@ void CPhraseBox::PopupDropDownList()
     // Note: Button is not hidden, just show the list
     //this->GetDropDownList()->Show();
     CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
     wxASSERT(pApp != NULL);
-    int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
+	int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
+
     // whm 24Jul2018 added. Extend the list horizontally so it spans the whole
     // area under the edit box and the dropdown button.
     int buttonWidth = this->GetPhraseBoxButton()->GetRect().GetWidth();
-    rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
+    rectWidth += (buttonWidth + 1); // increment rectWidth by width of button and 1-pixel space between.
 
-    // TODO for BEW: Check the following addition of a canvas Refresh() call to see if
+	//this->GetTextCtrl()->GetRect().GetWidth()   // TODO for BEW: Check the following addition of a canvas Refresh() call to see if
     // it helps prevent the list from registering a wrong index for list item click.
     pApp->GetMainFrame()->canvas->Refresh();
 
-    this->SetSizeAndHeightOfDropDownList(rectWidth);
+#if defined(_DEBUG)
+	{
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: *BEFORE* SetSizeAndH: curr boxWidth %d , rectWidth  %d , (my calc) listWidth  %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, rectWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
+	this->SetSizeAndHeightOfDropDownList(rectWidth);
+
+
+#if defined(_DEBUG)
+	{
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		{
+			wxLogDebug(_T("%s::%s() line %d: *AFTER* SetSizeAndH... , rectWidth should still be: %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, rectWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+	pLayout->m_bLeavingResizeBox = FALSE; // restore default value
     this->GetDropDownList()->Show();
 }
 
@@ -2485,15 +2513,34 @@ void CPhraseBox::HidePhraseBox()
 // scrolling.
 void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 {
-    // The incoming width parameter is set by the caller in the View's ResizeBox, and is 
-    // the width of the phrasebox's edit box at the time this function is called.
-    // We use the width value as it comes it, but we have to calculate the height value that
+#if defined(_DEBUG) && defined(_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box WIDTH %d, PASSED IN WIDTH %d , listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, width, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+	// BEW 27July21, refactored to change the width value to encompass the widest string of the list
+	// 
+	// Legacy Comment: The incoming width parameter is set by the caller in the View's ResizeBox,  
+    // and is the width of the phrasebox's edit box at the time this function is called.
+    // We use the width value as it comes in, but we have to calculate the height value that
     // will fit the number of items, or the space available below the phrasebox on the screen.
     // The wxListBox automatically shows a scroll bar at right if the list cannot open tall
     // enough to fit all item in the max height available.
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
-    // Get the text extent height of each of the combobox items - all should have same height -
+
+	// Get the text extent height of each of the combobox items - all should have same height -
     // and get a total height needed for the list. The total height is a sum of all vertical
     // text extents, plus an approximation of the amount of leading above, below and between
     // each item in the list.
@@ -2516,11 +2563,11 @@ void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
     {
         theItem = this->GetDropDownList()->GetString(ct);
         dC.GetTextExtent(theItem, &textExtent.x, &textExtent.y); // measure using the current font
-        totalX += textExtent.x;
+        totalX += textExtent.x; // we don't use this 
         totalY += textExtent.y;
     }
     // whm 13Jul2018 Note: The default leading/spacing between the items in a wxListBox varies widely between
-    // Windows and Linux. On Window a value of 3 pixels is enough to open the list with some empty space at
+    // Windows and Linux. On Windows a value of 3 pixels is enough to open the list with some empty space at
     // the bottom. However, on Linux a value of even 10 pixels is too small to see all the list items. 
     // What about the Mac? TODO: Graeme will need to test by experimenting with the nLeadingPixels value below.
     // For now, we'll conditionally compile an approximate value for all platforms:
@@ -2536,8 +2583,25 @@ void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
     // spaces is nItems + 1.
     // TODO: Test the 3-pixel leading value on Linux and Mac.
     totalY = totalY + ((nItems + 1) * nLeadingPixels);
-    // Finally call SetSize() with the new value
-    pApp->m_pTargetBox->GetDropDownList()->SetSize(width, totalY);
+    // Finally call SetSize() with the new values
+	// Finally call SetSize() with the new value
+	pApp->m_pTargetBox->GetDropDownList()->SetSize(width, totalY);
+
+#if defined(_DEBUG) //&& defined(_OVERLAP)
+	{
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			//CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			//wxSize sizeList = pListBox->GetClientSize();
+			//int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: EXITING:  curr boxWidth %d, list rectWidth passed in: %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, width, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 }
 
 // whm 17Jul2018 added the following function to return the selected dropdown list
@@ -2969,7 +3033,23 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 // BEW 8July10, no changes needed for support of kbVersion 2
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
-	#ifdef _FIND_DELAY
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+}
+#endif
+#ifdef _FIND_DELAY
 		wxLogDebug(_T("9. Start of JumpForward"));
 	#endif
 	// refactored 25Mar09
@@ -3018,12 +3098,12 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					theText += pSrcPhr->GetFollowingOuterPunct();
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = theText;
-#if defined(_DEBUG)
-				CSourcePhrase* mySrcPhrasePtr = pApp->m_pActivePile->GetSrcPhrase();
-				wxLogDebug(_T("VerticalEdit: JumpForward() at start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-					mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
-					mySrcPhrasePtr->m_targetStr.c_str(), pApp->m_targetPhrase.c_str());
-#endif
+//#if defined(_DEBUG)
+//				CSourcePhrase* mySrcPhrasePtr = pApp->m_pActivePile->GetSrcPhrase();
+//				wxLogDebug(_T("VerticalEdit: JumpForward() at start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+//					mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+//					mySrcPhrasePtr->m_targetStr.c_str(), pApp->m_targetPhrase.c_str());
+//#endif
 			}
 		}
 		pApp->m_pTargetBox->m_bAbandonable = FALSE;
@@ -3479,6 +3559,22 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("12. End of JumpForward"));
 	#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+		{
+			int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+			if (pSPhr->m_nSequNumber == nTestSN)
+			{
+				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+				int boxWidth = pTxtBox->GetClientRect().width;
+				wxSize sizeList = pListBox->GetClientSize();
+				int listWidth = sizeList.x;
+				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+			}
+		}
+#endif
 }
 
 // internally calls CPhraseBox::FixBox() to see if a resizing is needed; this function
@@ -3489,6 +3585,22 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	// whm Note: This phrasebox handler is necessary in the wxWidgets version because the
 	// OnChar() handler does not have access to the changed value of the new string
 	// within the control reflecting the keystroke that triggers OnChar(). Because
@@ -3685,6 +3797,22 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+	int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+	CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr->m_nSequNumber == nTestSN)
+	{
+		wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+		CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+		int boxWidth = pTxtBox->GetClientRect().width;
+		wxSize sizeList = pListBox->GetClientSize();
+		int listWidth = sizeList.x;
+		wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+			__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+	}
+}
+#endif
 
 }
 
@@ -3829,6 +3957,26 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 	wxSize& textExtent, int nSelector)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		/*
+		// to use this at sequence numbers different from 2370, changes need to be made
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+		*/
+}
+#endif
+
 #if defined (FREETRMODE)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
@@ -4100,13 +4248,25 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 //	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
 //		__FUNCTION__, __LINE__);
 #endif
-//#if defined (_DEBUG)
-//	{
-//		CPile* pmyPile = gpApp->GetView()->GetPile(2322);
-//		wxString mytgt = pmyPile->GetSrcPhrase()->m_adaption;
-//		wxLogDebug(_T("%s::%s() line %d, pile for walala, tgt = %s"), __FILE__, __FUNCTION__, __LINE__, mytgt.c_str());
-//	}
-//#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		/*
+		// to use this at sequence numbers different from 2370, changes need to be made
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+		*/
+	}
+#endif
 }
 
 
@@ -4163,9 +4323,23 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItView* pView = pLayout->m_pView;
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
-//#if defined(_DEBUG) && defined(_EXPAND)
-//	pApp->MyLogger();
-//#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 
 	// wx version note: In MFC this OnChar() function is NOT called for system key events,
 	// however in the wx version it IS called for combination system key events such as
@@ -4572,6 +4746,22 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+	int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+	CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr->m_nSequNumber == nTestSN)
+	{
+		wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+		CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+		int boxWidth = pTxtBox->GetClientRect().width;
+		wxSize sizeList = pListBox->GetClientSize();
+		int listWidth = sizeList.x;
+		wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+			__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+	}
+}
+#endif
 }
 
 // returns TRUE if the move was successful, FALSE if not successful
@@ -5439,7 +5629,23 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 {
-    //wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+	//wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
 
     // wx Note: This routine handles Adapt It's AltDown key events
 	// and CmdDown events (= ControlDown on PCs; Apple Command key events on Macs).
@@ -6412,6 +6618,22 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
     }
     // whm Note: no event.Skip() from OnSysKeyUP()
 */
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+	int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+	CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr->m_nSequNumber == nTestSN)
+	{
+		wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+		CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+		int boxWidth = pTxtBox->GetClientRect().width;
+		wxSize sizeList = pListBox->GetClientSize();
+		int listWidth = sizeList.x;
+		wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+			__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+	}
+}
+#endif
 }
 
 // return TRUE if we traverse this function without being at the end of the file, or
@@ -6422,7 +6644,23 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
 bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 {
-	#ifdef _FIND_DELAY
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+}
+#endif
+#ifdef _FIND_DELAY
 		wxLogDebug(_T("1. Start of OnePass"));
 	#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -6729,6 +6967,22 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 	pApp->m_bUserDlgOrMessageRequested = FALSE;
 	pApp->m_bUserHitEnterOrTab = FALSE;
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
 	return TRUE; // all was okay
 }
@@ -6855,6 +7109,22 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
     // wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode()); 
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
     CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -7207,7 +7477,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // UpdatePhraseBoxWidth() below the 27 value gets translated to a positive width of 12 (in inStrWidth),
     // lengthening the string. Using the example in the wxWidgets docs for wxKeyEvent as a guide (see:
     // http://docs.wxwidgets.org/3.1/classwx_key_event.html#a3dccc5a254770931e5d8066ef47e7fb0 )
-    // I'm instituding a filter to eliminate control char codes from being processed by the 
+    // I'm instituting a filter to eliminate control char codes from being processed by the 
     // UpdatePhraseBoxWidth_Expanding() call below.
     wxChar typedChar = event.GetUnicodeKey();
     if (typedChar != WXK_NONE)
@@ -7246,6 +7516,22 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
 } // end of OnKeyUp()
 
@@ -7277,6 +7563,22 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
     //wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
     // refactored 2Apr09
 	//wxLogDebug(_T("OnKeyDown() %d called from PhraseBox"),event.GetKeyCode());
@@ -7616,6 +7918,23 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 }
 
 void CPhraseBox::ClearDropDownList()
@@ -7640,11 +7959,11 @@ bool CPhraseBox::GetModify()
 }
 
 // whm 22Mar2018 Notes: 
-// The SetupDropDownPhraseBox() is used once - near the end of the Layout's PlaceBox() 
-// function. At that location in PlaceBox() the path of code execution may often pass 
-// that point multiple times, especially when auto-inserting target entries. To reduce
-// the number of spurious calls of this function, it employs three boolean flags that
-// prevent execution of the code within this function unless all three flags are FALSE.
+// SetupDropDownPhraseBoxForThisLocation() is used once - near the end of the Layout's 
+// PlaceBox() function. At that location in PlaceBox() the path of code execution may  
+// often pass that point multiple times, especially when auto-inserting target entries. 
+// To reduce the number of spurious calls of this function, it employs three boolean flags
+// that prevent execution of the code within this function unless all three flags are FALSE.
 // By allowing the execution path to do the dropdown setup and list population 
 // operations below only when the App's bLookAheadMerge, m_bAutoInsert, and
 // m_bMovingToDifferentPile flags are all FALSE, we are able to restrict code execution
@@ -7655,7 +7974,39 @@ bool CPhraseBox::GetModify()
 // result.
 void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 {
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CLayout* pLayout = pApp->GetLayout();
+#if defined (_DEBUG) //&& defined (_ABANDONABLE)
+	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered, line %d"), _T("PhraseBox.cpp"), __LINE__);
+#endif
+
+	int width = 0; // for use in the wxLogDebug call at function end
+	int listWidth = 0;
+	wxUnusedVar(width); 
+#if defined(_DEBUG) //&& defined(_OVERLAP)
+	{
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		int sn = pSPhr->m_nSequNumber;
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			//CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			//wxSize sizeList = pListBox->GetClientSize();
+			//int listWidth = sizeList.x;
+			listWidth = pLayout->m_curListWidth;
+			wxLogDebug(_T("%s::%s() line %d: OPENING WIDTHS: m_pTargetBox boxWidth %d, pLayout->m_curListWidth %d , sequNum %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, sn, pSPhr->m_adaption.c_str());
+		}
+#if defined (_DEBUG)
+		if (sn >= 2700 && sn <= 2785)
+		{
+			int halt_here = 1;
+		}
+#endif
+	}
+#endif
+	// whm added 10Jan2018 to support quick selection of a translation equivalent.
     // The Layout's PlaceBox() function is always called just before the phrasebox 'rests' 
     // and can be interacted with by the user. Hence the location in PlaceBox() is the  
     // location in the application where we execute this function to set up the content 
@@ -7704,12 +8055,12 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //          When nRefStrCount == 1, that ref String must be an empty string, i.e., represented as
     //            "<no adaptation" as the single list item (with indexOfNoAdaptation == 0). 
     //            Here we avoid calling SetSelection() in this case to avoid the unwanted side effect of 
-    //            a "<no adaptation" string being copied into the dropdown's edit box. We just ensure that
+    //            a "<no adaptation>" string being copied into the dropdown's edit box. We just ensure that
     //            the m_targetPhrase's (empty) value is assigned in the m_pTargetBox, and that SetFocus()
     //            is on the phrasebox (SetFocus probably not needed but doesn't hurt).
     //          When nRefStrCount > 1, we know that there is more than 1 ref string in the list, and
     //            one of them should be a "<no adaptation>" item. The PopulateDropDownList() call will
-    //            have determined the index stored in indesOfNoAdaptation, so we call
+    //            have determined the index stored in indexOfNoAdaptation, so we call
     //            SetSelection(indexOfNoAdaptation), and ensure that m_targetPhrase is assigned in the
     //            m_pTargetBox.
     //        If the bNoAdaptationFlagPresent == FALSE we ensure the following:
@@ -7719,7 +8070,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //              Call GetString(0) and assign that item's string to the App's m_targetPhrase.
     //              Change the value in the m_pTargetBox to become the value now in m_targetPhrase.
     //              Call SetSelection(0) to select/highlight the list item (also copies it to the edit box).
-    //          When nRefStrCount > 1, we know that there is more than 1 ref String none of which are 
+    //          When nRefStrCount > 1, we know that there is more than 1 refString none of which are 
     //            empty ("<no adaptation>"). Do the following:
     //            If the selectionIndex is -1, set index to 0, otherwise set index to value of selectionIndex.
     //            Call GetString(index) and assign it to the App's m_targetPhrase.
@@ -7747,11 +8098,6 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //
     // 5. Reset the App's pCurTargetUnit to NULL to prepare for the next location or manual calling 
     //    up of the ChooseTranslation dialog.
-    CAdapt_ItApp* pApp = &wxGetApp();
-    wxASSERT(pApp != NULL);
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered"), _T("PhraseBox.cpp"), 6016);
-#endif
 
     // Here we restrict execution for when all 3 flags below are FALSE. This reduces/eliminates
     // spurios execution when PlaceBox() is called during merging and moving operations.
@@ -7770,18 +8116,16 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         {
             pApp->m_bChooseTransInitializePopup = TRUE;
         }
-		/* //no, BEW 27Apr18 - I expect the flag to be FALSE here, it should not be unilaterally 
-		   //set TRUE in this function - I've left Bill's comment here to warn against an error.
         // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
         // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
         // abandonable at least here when setting up the dropdown phrasebox for display to the user.
         // Certain actions at the current location may change the flag to FALSE before the phrasebox
         // moves - such as any key press that changes the phrasebox contents. 
-        //this->m_bAbandonable = TRUE; keep it FALSE BEW 31May19
-		*/
+        this->m_bAbandonable = TRUE;
+		
         // If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before
         // this SetupDropDownPhraseBoxForThisLocation() call, the global pCurTargetUnit will have been 
-        // defined at this point, and we should use it. If it is NULL we determine pCurTargetUnit at 
+        // defined at this point, and we should use it. If it is NULL we calculate pCurTargetUnit at 
         // this location and use it.
         if (pApp->pCurTargetUnit == NULL)
         {
@@ -7847,6 +8191,14 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				// govern the flag setting more carefully -- BEW 4Apr19, setting it here appears to be fine
 				pApp->m_bLandingBox = TRUE;
                 pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, indexOfNoAdaptation);
+#if defined (_DEBUG) //&& defined (_OVERLAP)
+				{
+					// for the ending wxLogDebug call, I want a calc of the listWidth to use in it.
+					// Pile.cpp has the needed call, at the active pile location
+					CPile* pPile = pApp->m_pActivePile;
+					width = pPile->CalcPhraseBoxListWidth();
+				}
+#endif
             }
 
             // Clear the current target unit pointer
@@ -8245,6 +8597,21 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         // Clear the current target unit pointer
         pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
     }
+#if defined(_DEBUG) //&& defined(_OVERLAP)
+	{
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		wxUnusedVar(pSPhr);
+		wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+		wxString adaption = pTxtBox->GetValue();
+
+		//CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+		//int boxWidth = pTxtBox->GetClientRect().width;
+		//wxSize sizeList = pListBox->GetClientSize();
+		//int listWidth = sizeList.x;
+		wxLogDebug(_T("%s::%s() line %d: At FUNCTION END, listWidth %d , for tgt = %s"),
+			__FILE__, __FUNCTION__, __LINE__, width, adaption.c_str());
+	}
+#endif
 }
 
 // BEW created 30Mar19, for use in re-inserting into the dropdown
@@ -8465,6 +8832,23 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 // bRemovedAdaptionReadyForInserting has been set TRUE
 void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation)
 {
+#if defined(_DEBUG) && defined(_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 #if defined(_DEBUG) && defined(DROPDOWN)
 	wxLogDebug(_T("PopulateDropDownList: line %d, On Entry to PopulateDropDownList(), m_bLandingBox= %d"),
 		__LINE__, (int)gpApp->m_bLandingBox);
@@ -8754,12 +9138,44 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 #endif
+#if defined(_DEBUG) && defined(_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
     wxLogDebug(_T("CPhraseBox::::OnLButtonDown() triggered"));
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen.
@@ -8830,6 +9246,22 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
     //wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered with flag m_bAbandonable = FALSE"));
 	event.Skip();
     GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
@@ -9313,6 +9745,22 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 // for glossing KB
 bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase)
 {
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = pApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = pApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK = TRUE;
 	CRefString* pRefStr = NULL;
@@ -9382,6 +9830,23 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = TRUE;
 		}
 	}
+#if defined(_DEBUG) && defined (_OVERLAP)
+	{
+		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
+		CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+		if (pSPhr->m_nSequNumber == nTestSN)
+		{
+			wxTextCtrl* pTxtBox = pApp->m_pTargetBox->GetTextCtrl();
+			CMyListBox* pListBox = pApp->m_pTargetBox->GetDropDownList();
+			int boxWidth = pTxtBox->GetClientRect().width;
+			wxSize sizeList = pListBox->GetClientSize();
+			int listWidth = sizeList.x;
+			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
+		}
+	}
+#endif
+
 	return bOK;
 }
 

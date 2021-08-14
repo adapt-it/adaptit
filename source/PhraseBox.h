@@ -227,6 +227,7 @@ public:
     //void OnListBoxItemSelected(wxCommandEvent& event);
 
 	int indexOfNoAdaptation;
+
 private:
     // The private pointers of the components that make up the PhraseBox:
     wxTextCtrl* m_pTextCtrl;
