@@ -1049,8 +1049,9 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 						st.c_str(), enclosingRect.GetTop(), enclosingRect.GetLeft(), stripIndex, nPileIndex, m_nCell);
 				}
 			}
-        }
 #endif
+        } // whm 17Aug2021 close off else block here to fix broken Linux build
+
 /*  Very useful if the display leaves a hole somewhere unexpectedly, and you know the m_nSequNumber value of the location
 #if defined (_DEBUG) 
 			// BEW 16May18 checking DrawCell() gets called at sn = 40 when phrasebox has moved on
@@ -1097,7 +1098,6 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			}
 #endif
 */
-		}
 	}
 }
 
