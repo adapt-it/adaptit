@@ -55,10 +55,18 @@
 #include <wx/wx.h>
 #endif
 
-#ifndef __WXGTK__
-// for Windows and Mac
+#ifdef __WXMSW__
 #include <boost\uuid\uuid_generators.hpp>
 #include <boost\uuid\uuid_io.hpp>
+#endif
+
+#ifdef __WXMAC__
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#endif
+
+#ifndef __WXGTK__
+// for Windows and Mac
 #include <sstream>
 #include <string>
 #else
