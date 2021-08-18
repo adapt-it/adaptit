@@ -245,6 +245,7 @@ void CLayout::InitializeCLayout()
 	// the session-persistent m_pLayout pointer on the app class have the basic info it
 	// needs, other document-related initializations can be done in SetupLayout()
 	slop = 40; // low, default value
+	//m_defaultActivePileWidth = SetDefaultActivePileWidth(); // value will change if font size changes
 }
 
 // for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
@@ -678,30 +679,33 @@ bool CLayout::GetFullWindowDrawFlag()
 }
 #endif
 
+int CLayout::SetDefaultActivePileWidth()
+{
+	// Use this to set the public m_defaultActivePileWidth Layout member int
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	int width = (pApp->m_width_of_w * 4); // 4 times about 13 pixels for font around 14 to 16 pts size
+	// Note, this calculation is only used from CalcPileWidth() when the pile is the active one
+	// The idea behind this is that without it, very narrow source & target strings, result in
+	// a very narrow (unhelpfully so) min pile width. And using this, which should be done at
+	// the place where the phrasebox is being set up for width, accompanied by adding the slop -
+	// otherwise, a dropdown list gets squashed and some entries may then extend beyond RHSide
+	return width;
+}
+
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
 	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only.
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
-#if defined(_DEBUG) //&& defined (_NEWDRAW)
+#if defined(_DEBUG) && defined (_NEWDRAW)
 { // set a temporary scope
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
 	CPile* pActivePile = GetPile(nActiveSequNum);
 	if (pActivePile != NULL)
 	{
-		wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+		wxLogDebug(_T("\n\n*** Entering PlaceBox() line %d,  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+			__LINE__, m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
 			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
-	}
-}
-#endif
-#if defined (_DEBUG)
-{
-	CSourcePhrase* pSP = m_pApp->m_pActivePile->GetSrcPhrase();
-	int sn = pSP->m_nSequNumber;
-	if (sn >= 2770 && sn <= 2785)
-	{
-		int halt_here = 1;
 	}
 }
 #endif
@@ -715,8 +719,6 @@ wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase =
 // get the phrase box placed in the active location and made visible, and suitably
 // prepared - unless it should not be made visible (eg. when updating the layout
 // in the middle of a procedure, before the final update is done at a later time)
-//if (!pLayout->GetBoxVisibilityFlag())
-
 //wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //	(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
@@ -740,6 +742,17 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile
 			// instead; but this will work even if we have forgotten to
 			// update it in the edit operation's handler
+#if defined (_DEBUG) && defined(_OVERLAP)
+	{
+		CSourcePhrase* pSP = m_pApp->m_pActivePile->GetSrcPhrase();
+		int sn = pSP->m_nSequNumber;
+		if (sn >= 2770 && sn <= 2795)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
+
 	// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
 	// and list, the box gap may also be much smaller than it needs to be - so while
 	// we have a valid pActivePile, get the gap and box width calculations refreshed
@@ -748,22 +761,14 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
-	//pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18
-
-
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 600);
+	m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 765);
 #endif
 
 	// get the pile width at the active location, using the value in
 	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
-	int phraseBoxWidth = pActivePile->GetPhraseBoxWidth();
-	// returns returns the width of the box text, plus width of the slop as a multiple of
-	// 'f' character widths less 1 pixel, plus the dropdown button width.
-	// I think the best design is to only use the value stored in CLayout::m_curBoxWidth for
-	// the width of the control (with its slop) plus the button +1 for the gap between button
-	// and the control.
-	//That frees m_nWidth for the active pile to be for the phrasebox gap width
+	int phraseBoxWidth = pActivePile->CalcPhraseBoxWidth(); //BEW 17Aug21, this is the correct call 
+		// for here, and returns the width of the box text, without the slop and buttonWidth + 1 added.
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 	// range specification get set by the SetupCursorGlobals() calls in the switch below
@@ -807,20 +812,6 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	{
 		bSetModify = FALSE;
 		bSetTextColor = TRUE;
-		/* whm 13Aug2018 removed. SetSelection(len,len) is done elsewhere
-		// BEW 25Jun18, put cursor at end of box contents if the text is non-empty
-		wxString text;
-		text = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
-		if (!text.IsEmpty())
-		{
-		long len = (long)text.Length();
-		m_pApp->m_nStartChar = len;
-		m_pApp->m_nEndChar = len;
-		// whm 3Aug2018 No adjustment for any 'select all' here
-		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-		bSetModify = TRUE;
-		}
-		*/
 		break;
 	}
 	/*		case merge_op:
@@ -833,7 +824,8 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	break;
 	}
-	*/		case retranslate_op:
+	*/		
+	case retranslate_op:
 	{
 		SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 		bSetModify = FALSE;
@@ -905,7 +897,8 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	break;
 	}
-	*/		case retokenize_text_op:
+	*/		
+	case retokenize_text_op:
 	{
 		SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_text_end);
 		bSetModify = FALSE;
@@ -961,7 +954,8 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	break;
 	}
-	*/		case vert_edit_exit_op:
+	*/		
+	case vert_edit_exit_op:
 	{
 		SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 		bSetModify = FALSE;
@@ -1023,14 +1017,15 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	break;
 	}
-	*/		default: // do the same as default_op
+	*/		
+	default: // do the same as default_op
 	case no_edit_op:
 	{
 		// do nothing additional
 		break;
 	}
 	}
-	//*/
+	
 	// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
 	// the user's editing operation, or programmatic operation, the default: case will
 	// fall through to the no_edit_op case, which does nothing
@@ -1042,39 +1037,8 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	// wx Note: we don't destroy the target box, just set its text to null
 	m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 	//#if defined(_DEBUG)
-	//	wxLogDebug(_T("CLayout::PlaceBox() line 888: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+	//	wxLogDebug(_T("CLayout::PlaceBox() line %d: PhraseBox contents:   %s"), __LINE__, m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 	//#endif
-
-	/* BEW 13Aug21, Deprecated, this use of bUseLegacyCalc is not wanted
-	// BEW 6Aug21 add support for Layout's bUseLegacyCalc boolean
-	CLayout* pLayout = m_pApp->GetLayout();
-	int listWidth = pActivePile->CalcPhraseBoxListWidth(); // returns 0 or a valid width
-	if (listWidth == 0)
-	{
-		pLayout->bUseLegacyCalc = TRUE;
-	}
-	else
-	{
-		pLayout->bUseLegacyCalc = FALSE;
-	}
-	if (pLayout->bUseLegacyCalc)
-	{
-		// We need to add the slop to the box's width
-		phraseBoxWidth += pLayout->slop;
-	}
-	else
-	{
-		// Calc width by basing on listWidth, add it's held-slop, and subtract (1 + buttonWidth
-		// - the last is pLayout's ExtraWidth() which includes the +1
-		listWidth = listWidth + (pLayout->slop / 2);
-		phraseBoxWidth = listWidth + (pLayout->slop / 2) - pLayout->ExtraWidth();
-		// adjust a little, if needed
-		int buttonPlus1 = pLayout->ExtraWidth(); // 23 
-		int x = listWidth - phraseBoxWidth - buttonPlus1; // if box is not right, x +ve will
-				// increase the box length, -ve will decrease it
-		phraseBoxWidth += x;
-	}
-	*/
 
 	// make the phrase box size adjustments, set the colour of its text, tell it where it
 	// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
@@ -1099,10 +1063,11 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 910);
+	m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 1066);
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// set the color - CPhraseBox has a color variable & uses reflected notification
 	if (bSetTextColor)
 	{
@@ -1160,10 +1125,11 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 		m_pApp->m_pTargetBox->SetModify(FALSE);
 	}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 962);
+	m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 1128);
 #endif
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// put focus in compose bar's edit box if in free translation mode
 	if (m_pApp->m_bFreeTranslationMode)
 	{
@@ -1203,17 +1169,17 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
     // whm 11Mar2020 revised according to BEW after input from Roland Fumey, review mode should also populate
     // the dropdown phrasebox list, so I'm here commenting out the m_bDrafting test.
 	//if (m_pApp->m_bDrafting)
-	//{
-		if (placeboxsetup == initializeDropDown)
-		{
-			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
-		}
-		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
-		//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
-		//wxWindow* fwin = wxWindow::FindFocus();
-		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"),
-		//    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
-	//}
+	
+	if (placeboxsetup == initializeDropDown)
+	{
+		m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
+	}
+	m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+	//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
+	//wxWindow* fwin = wxWindow::FindFocus();
+	//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"),
+	//    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
+	
 //	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
@@ -1418,13 +1384,14 @@ int CLayout::GetSavedGapWidth()
 //	int nDropdownHeight;
 //	int nTextBoxWidth;
 //};
-LayoutCache* CLayout::GetLayoutCache()
-{
-	return &m_layoutCache;
-}
+//LayoutCache* CLayout::GetLayoutCache()  // BEW removed, 17Aug21
+//{
+//	return &m_layoutCache;
+//}
 
 // BEW 27Jul2 use this to clear to default meaningless values prior
 // to being refilled with new values at the same or different active loc
+/*   // BEW removed, 17Aug21
 void CLayout::InitializeLayoutCache()
 {
 	m_layoutCache.nActiveSequNum = -1;
@@ -1433,6 +1400,7 @@ void CLayout::InitializeLayoutCache()
 	m_layoutCache.nDropdownHeight = 0;
 	m_layoutCache.nTextBoxWidth = 0;
 }
+*/
 
 void CLayout::SetSavedLeading(int nCurLeading)
 {
@@ -2084,6 +2052,8 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
+
+
 #if defined(_DEBUG) && defined (_OVERLAP)
 	{
 		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
@@ -2103,7 +2073,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	}
 #endif
-
+	m_defaultActivePileWidth = SetDefaultActivePileWidth(); // value will change if font size changes
 	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	gpApp->MyLogger();
@@ -5259,25 +5229,6 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 													// whm 3Aug2018 Note: No suppression of 'select all' needed for the call below.
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
-}
-
-void CLayout::ClearLayoutCacheVariables()
-{
-	/* BEW 11Aug21 I don't think  this is needed, and only so far used in OnLButtonDown() - leave it, it now does nothing
-	m_MinPileWidth = 0;
-	m_curListWidth = 0;
-	m_curBoxWidth = 0;
-	m_tempListWidth = 0;
-	m_nSaveGap_TgtOnly = 0;
-	bUseLegacyCalc = TRUE;
-	m_nBoxPlusBtnWidth = 0;
-	m_nMinListWidth = 0;
-	aWidth = 0;
-	widthAugment = 0;
-	m_nSrcTgtWidth = 0;
-	m_nWideSrcTgtWidth = 0; // unused so far
-	m_nFinalPhraseBoxGapWidth = 0;
-	*/
 }
 
 /*

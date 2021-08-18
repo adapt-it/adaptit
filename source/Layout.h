@@ -163,17 +163,6 @@ public:
 	// to avoid accumulating empty space at the end of the document.
 	int m_nCachedDocHeight;
 
-	int m_nLongSrcGapIncrement; // BEW added 29Jul21, since the phrasebox & button are
-			// now coordinating with the dropdown's listWidth, we don't want a very long
-			// source  text extent to cause the m_pTargetBox->GetTextCtrl()'s width to
-			// dragged wider than is needed. Instead, set a value in this member which,
-			// by adding it to the box's gap width at the active location, keeps the 
-			// interlinear layout's src line and tgt line (or gloss line) vertically
-			// aligned. It should not often be a value greater than 0. Initialize to 0
-			// at the beginning of CalcPhraseBoxWidth(), and internally in that, set
-			// it to the difference between the text-based extent and the listWidth,
-			// when the former is greater than the latter.
-
 	wxString	m_inputString;  // BEW 31Jul18, holds last character typed, or a char or string pasted
 										// for use when expanding or contracting the phrasebox
 	// booleans that track what kind of changes were made within the Preferences dialog -
@@ -238,12 +227,6 @@ public: // BEW made public on 7Sep15 because View's DoGLosbalREstoreOfSaveToKB()
     // procedures when strips have to be updated but we've not yet got to the final layout
     bool		m_bLayoutWithoutVisiblePhraseBox;
 
-	int			m_nCacheNormalGap; // what the gap was in src/tgt layout
-
-	bool		m_bLeavingResizeBox; // once TRUE, ResizeBox() will have done any phrasebox widening
-					// and so calling Calc...() functions must use values already stored; reset to
-					// FALSE in View's Invalidate() function (Another could be at start of ScrollIntoView())
-
 private:
 	// private copies of the src, tgt &navText colors stored in app class
 	wxColour	m_srcColor;
@@ -282,20 +265,18 @@ public:
 
 	int			m_MinPileWidth; // this is a mirror in Layout class for Pile's m_nMinWidth
 	int			m_curBoxWidth;  // BEW 28Jul21 
+	int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
+	int			SetDefaultActivePileWidth(); // BEW 17Aug21 created (public:)
 	int			m_curListWidth; // BEW refactored 9Aug21, to be the width value returned 
 						// by calculating string extents from the list's contents
 	int			m_tempListWidth; // to make this value accessible to the gap calc
 	int			m_nSaveGap_TgtOnly;
 	bool		m_bNewGapRequested_TgtOnly;
-	bool		bUseLegacyCalc;
 	int			m_nBoxPlusBtnWidth; // BEW 9Aug21 changed boxWidth_btn to this name. 
 					// Calc of phrbox gap with will use this. Set by adding result of
 					// int ExtraWidth() <<-- a public Layout member
 	int			m_nMinListWidth; // BEW 9Aug21 added, phrasebox size may be enough to widen the m_curListWidth's 
 								 // calculated value, to keep src/tgt alignment of box+button & list width synced
-	int			aWidth;  // BEW 9Aug21, was formerly only local to View's ResizeBox() call when working out how
-						 // much to lengthen the phrasebox's drawing rectangle; but now we want this value to
-						 // be accessible to other width function calls that will want it for their calculations **** this may be not needed, I just need an augment
 	int         widthAugment; // BEW added 10Aug21 the difference between a long list width and the value
 							  // based on the pilewidth (if longer) determined by SetPileWidth
 	int			m_nSrcTgtWidth; // BEW 9Aug21, formerly just the CalcPileWidth() value, based on text extents;
@@ -310,7 +291,6 @@ public:
 						// because m_nMinWidth was set very large due to long src or tgt strings, this member does
 						// NOT cause widening or list or phrasebox; it just ensures that any changes to list or
 						// phrasebox widths can be accomadated within the m_nFinalPhraseBoxGapWidth's span
-	void		ClearLayoutCacheVariables();
 
 private:
 
@@ -347,18 +327,6 @@ public:
 									   // view classes; that is, it hooks up CLayout to the
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
-	// BEW 27Jul21 add a new public member - a caching struct for helping get robust behaviours
-	// when computing the phrasebox gap size when the layout is being updated and redrawn
-	//struct LayoutCache
-	//{
-	//	int	nActiveSequNum;
-	//	wxString strActiveAdaption;
-	//	int nDropdownWidth;
-	//	int nDropdownHeight;
-	//	int nTextBoxWidth;
-	//};
-	LayoutCache m_layoutCache;
-	void InitializeLayoutCache();
 
 	int	ExtraWidth(); // BEW added 3Aug21, when the legacy boxWidth needed to
 				// be calculated in CalcPhraseBoxWidth() because at a hole or KB has only
@@ -415,7 +383,7 @@ public:
 	int			GetSavedGapWidth();
 	void		SetSavedLeading(int nCurLeading);
 	void		SetSavedGapWidth(int nGapWidth);
-	LayoutCache* GetLayoutCache(); // gets ptr to public m_layoutCache struct
+	//LayoutCache* GetLayoutCache();  // BEW removed, 17Aug21
 
 	// setters and getters for text colors
 	void		SetSrcColor(CAdapt_ItApp* pApp);

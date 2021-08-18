@@ -804,6 +804,7 @@ struct PageOffsets
 // A permanent public instance of this struct will be added to the CLayout instance, and
 // writing values to it etc will happen, (after clearing,) dynamically after the layout
 // is recalculated and before that is followed up by being drawn.
+/* BEW 17Aug21 unused now, remove it 
 struct LayoutCache
 {
 	int	nActiveSequNum;
@@ -812,6 +813,7 @@ struct LayoutCache
 	int nDropdownHeight;
 	int nTextBoxWidth;
 };
+*/
 
 /// wxList declaration and partial implementation of the POList class being
 /// a list of pointers to PageOffsets objects
@@ -2957,6 +2959,7 @@ public:
 	CPile* m_pActivePile;	// where the phrase box is to be located
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
+	int m_width_of_w; // BEW 15Aug21 added, for defining a multiple of this value as a default pile width
 
     // For "The HACK", BEEW 8Aug13, trying to diagnose & fix a rare m_targetStr value 'non
     // stick' bug after edited phrase box value was edited; observed first by RossJones on

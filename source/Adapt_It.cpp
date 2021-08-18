@@ -27915,6 +27915,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxSize charSize;
 	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 	GetLayout()->slop = m_nExpandBox*charSize.x;
+    m_width_of_w = charSize.x; // BEW 15Aug21
 
     // Set up the rapid access data strings for wrap markers, sectionHead markers,
     // inLine markers, and filter markers.

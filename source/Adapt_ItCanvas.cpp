@@ -2115,9 +2115,6 @@ x:					CCell* pCell = 0;
                             pApp->m_pTargetBox->m_Translation = sp->m_adaption;
 							sp->m_targetStr = sp->m_adaption;
 
-							CLayout* pLayout = pApp->GetLayout();
-							pLayout->m_bLeavingResizeBox = FALSE; //restore default
-
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
 							// will be done at the landing location
@@ -2131,8 +2128,6 @@ x:					CCell* pCell = 0;
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1882);
 #endif
-							CLayout* pLayout = pApp->GetLayout();
-							pLayout->m_bLeavingResizeBox = FALSE; //restore default
 
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
@@ -2150,9 +2145,6 @@ x:					CCell* pCell = 0;
 							// PlacePhraseBox() call if that is the case
 							if (pApp->m_nOldSequNum == -1)
 							{
-								CLayout* pLayout = pApp->GetLayout();
-								pLayout->m_bLeavingResizeBox = FALSE; //restore default
-
 								pView->PlacePhraseBox(pCell, 2); // selector = 2 (meaning
 									// KB access is not done at the leaving location, but
 									// is done at the landing location
@@ -2175,10 +2167,7 @@ x:					CCell* pCell = 0;
 
 								pApp->m_bLandingBox = TRUE;
 
-								CLayout* pLayout = pApp->GetLayout();
-								pLayout->m_bLeavingResizeBox = FALSE; //restore default
-
-									// Now get the phrasebox placed
+								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -2257,8 +2246,7 @@ x:					CCell* pCell = 0;
 //			wxString amsg = _T("Line 1983, OnLButtonDown(), in Adapt_ItCanvas.cpp");
 //			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
 #endif
-						if (pApp->m_nActiveSequNum >= 0 &&
-												pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
+						if (pApp->m_nActiveSequNum >= 0 && pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 						{
 							ScrollIntoView(pApp->m_nActiveSequNum);
 						}
@@ -2267,11 +2255,6 @@ x:					CCell* pCell = 0;
                     // the return statement. It makes no difference; a click within the
                     // phrasebox to remove the highlight doesn't pass through here.
                     //event.Skip();
-
-					// BWW 10Aug21 clear the Layout class's cache variables, so that a click in a new location
-					// brings with it no old cached values
-					pApp->GetLayout()->ClearLayoutCacheVariables();
-
 					return;
 
 				} // end block for test: pCell->GetCellIndex() == 1
@@ -2628,7 +2611,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	// turn the flag off so that clipping becomes possible (provided the CLayout bool
 	// m_bAllowScrolling is also TRUE)
 	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
-	pLayout->m_bLeavingResizeBox = FALSE; // restore default value, also done in Invalidate() and PopupPhraseBoxList()
+
 #endif
 	//#ifdef _debugLayout
 	//ShowSPandPile(393, 50);

@@ -2446,7 +2446,7 @@ void CPhraseBox::PopupDropDownList()
     // Note: Button is not hidden, just show the list
     //this->GetDropDownList()->Show();
     CAdapt_ItApp* pApp = &wxGetApp();
-	CLayout* pLayout = pApp->GetLayout();
+	//CLayout* pLayout = pApp->GetLayout();
     wxASSERT(pApp != NULL);
 	int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
 
@@ -2486,7 +2486,6 @@ void CPhraseBox::PopupDropDownList()
 		}
 	}
 #endif
-	pLayout->m_bLeavingResizeBox = FALSE; // restore default value
     this->GetDropDownList()->Show();
 }
 
@@ -7976,25 +7975,24 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	CLayout* pLayout = pApp->GetLayout();
-#if defined (_DEBUG) //&& defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered, line %d"), _T("PhraseBox.cpp"), __LINE__);
+	//CLayout* pLayout = pApp->GetLayout();
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	//pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered, line %d"), _T("PhraseBox.cpp"), __LINE__);
 #endif
 
 	int width = 0; // for use in the wxLogDebug call at function end
-	int listWidth = 0;
+	//int listWidth = 0;
 	wxUnusedVar(width); 
-#if defined(_DEBUG) //&& defined(_OVERLAP)
+#if defined(_DEBUG) && defined(_OVERLAP)
 	{
 		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
 		int sn = pSPhr->m_nSequNumber;
 		{
 			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			//CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
+			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
 			int boxWidth = pTxtBox->GetClientRect().width;
-			//wxSize sizeList = pListBox->GetClientSize();
-			//int listWidth = sizeList.x;
-			listWidth = pLayout->m_curListWidth;
+			wxSize sizeList = pListBox->GetClientSize();
+			listWidth = sizeList.x;
 			wxLogDebug(_T("%s::%s() line %d: OPENING WIDTHS: m_pTargetBox boxWidth %d, pLayout->m_curListWidth %d , sequNum %d , tgt = %s"),
 				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, sn, pSPhr->m_adaption.c_str());
 		}
@@ -8191,7 +8189,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				// govern the flag setting more carefully -- BEW 4Apr19, setting it here appears to be fine
 				pApp->m_bLandingBox = TRUE;
                 pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, indexOfNoAdaptation);
-#if defined (_DEBUG) //&& defined (_OVERLAP)
+#if defined (_DEBUG) && defined (_OVERLAP)
 				{
 					// for the ending wxLogDebug call, I want a calc of the listWidth to use in it.
 					// Pile.cpp has the needed call, at the active pile location
@@ -8254,30 +8252,6 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 			// of the item string being put into the m_pApp->m_pTargetBox (the phrasebox). 
 			// If case is not handled elsewhere we would need to handle case changes here. 
 			// Note: testing indicates that the case changes are indeed handled elsewhere.
-
-            // Note: If we need to handle case issues, the code for gbAutoCaps from PlacePhraseBox() 
-            // is shown commented out below for reference (BEW note; this commented code is only
-			// for changing lower to upper case; there are extra globals that can be used for
-			// changing from upper to lower case):
-            /*
-            // Therefore, we'll process the target box contents here for case depending on the
-            // value of gbAutoCaps - using the same block of code that was used in
-            // PlacePhraseBox (at the a: label).
-            bool bNoError = TRUE;
-            if (gbAutoCaps)
-            {
-                if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-                {
-                    bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_targetPhrase, FALSE);
-                    if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-                    {
-                        // change to upper case initial letter
-                        pApp->m_targetPhrase.SetChar(0, gcharNonSrcUC);
-                    }
-                }
-            }
-            pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
-            */
 
             // Within this block we know that nRefStrCount > 0 ; or it could 
 			// be > 1 if the insertion of deleted (saved) adaptation of refCount 1
@@ -8597,7 +8571,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         // Clear the current target unit pointer
         pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
     }
-#if defined(_DEBUG) //&& defined(_OVERLAP)
+#if defined(_DEBUG) && defined(_OVERLAP)
 	{
 		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
 		wxUnusedVar(pSPhr);
