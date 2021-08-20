@@ -3767,6 +3767,9 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// list's last element
 			CCellList* pCellList = &m_pApp->m_selection;
 			CCellList::Node* cpos = pCellList->GetLast();
+			// whm 19Aug2021 modified line below: edb noted a bug in following assignment when last source pile is selected and user tries
+			// to insert a placeholder AFTER that location. In this case the assignment statement should be assigning to pInsertLocPile2 
+			// instead of the passed in param pInsertLocPile. Compare with the if (bInsertingBefore) block at about lines 3246-3277 above.
 			pInsertLocPile2 = cpos->GetData()->GetPile();
 			if (pInsertLocPile2 == NULL)
 			{
