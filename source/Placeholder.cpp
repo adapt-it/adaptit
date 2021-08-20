@@ -294,10 +294,9 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
         m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
-		bool bOK;
+		bool bOK = TRUE;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
-		bOK = bOK; // avoid warning
         m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
@@ -400,9 +399,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
         m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
-		bool bOK;
+		bool bOK = TRUE;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
-		bOK = bOK; // avoid warning
         m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
@@ -430,9 +428,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		// be computed
 		pDummySrcPhrase->m_key = pDummySrcPhrase->m_srcPhrase;
 		pDummySrcPhrase->m_nSequNumber = m_pApp->GetMaxIndex() + 1;
-		SPList::Node* posTail;
+		SPList::Node* posTail = NULL;
 		posTail = pSrcPhrases->Append(pDummySrcPhrase);
-		posTail = posTail; // avoid warning
 		// create a partner pile for this dummy CSourcePhrase instance
 		pDoc->CreatePartnerPile(pDummySrcPhrase);
 		
@@ -3308,9 +3305,8 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
-			bool bOK;
+			bool bOK = FALSE;
 			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
-			bOK = bOK; // avoid warning
 			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 
@@ -3771,7 +3767,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// list's last element
 			CCellList* pCellList = &m_pApp->m_selection;
 			CCellList::Node* cpos = pCellList->GetLast();
-			pInsertLocPile = cpos->GetData()->GetPile();
+			pInsertLocPile2 = cpos->GetData()->GetPile();
 			if (pInsertLocPile2 == NULL)
 			{
 				wxMessageBox(_T(
@@ -3839,9 +3835,8 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			// store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
-			bool bOK;
+			bool bOK = TRUE;
 			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
-			bOK = bOK; // avoid warning
 			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		wxASSERT(bAssociateLeftwards == TRUE);
@@ -4588,11 +4583,18 @@ void CPlaceholder::OnButtonNullSrcLeft(wxCommandEvent& event)
 	}
 	// whm 20Mar2020 modified test below to detect whether the insert placeholder 
 	// to left button is disabled, if so abort insertion
-	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_LEFT))
-	{
-		::wxBell();
-		return;
-	}
+    // edb 19Aug2021: event order is different on the Mac (M1 in particular); the placeholder button
+    // was getting the focus before our test here, which caused the "is the current focus the target"
+    // test in OnUpdateButtonNullSrc() to fail... causing the toolbar button to become disabled.
+    // The solution here is to bypass the button enabled check -- I'm not seeing disabled buttons triggering
+    // button click events on the Mac.
+#ifndef __WXMAC__
+    if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_LEFT))
+    {
+        ::wxBell();
+        return;
+    }
+#endif
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
@@ -4635,11 +4637,19 @@ void CPlaceholder::OnButtonNullSrcRight(wxCommandEvent& event)
 	}
 	// whm 20Mar2020 modified test below to detect whether the insert placeholder 
 	// to right button is disabled, if so abort insertion
+    // edb 19Aug2021: event order is different on the Mac (M1 in particular); the placeholder button
+    // was getting the focus before our test here, which caused the "is the current focus the target"
+    // test in OnUpdateButtonNullSrc() to fail... causing the toolbar button to become disabled.
+    // The solution here is to bypass the button enabled check -- I'm not seeing disabled buttons triggering
+    // button click events on the Mac.
+#ifndef __WXMAC__
 	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_NULL_SRC_RIGHT))
 	{
 		::wxBell();
 		return;
 	}
+#endif
+    
 	if (gbIsGlossing)
 	{
 		//IDS_NOT_WHEN_GLOSSING
