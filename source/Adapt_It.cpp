@@ -23045,47 +23045,83 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // fails. We have our own message.
         wxLogNull logNo;	// eliminates any spurious messages from the system while
                             // reading read-only folders/files
-        wxString secPath, secPath32, secPath64;
-        secPath32 = _T("C:\\Program Files\\Common Files\\SIL") + PathSeparator + LIB_NAME;
-        secPath64 = _T("C:\\Program Files (x86)\\Common Files\\SIL") + PathSeparator + LIB_NAME;
-        if (::wxFileExists(secPath64))
+        // whm 27Aug2021 revision of code below to deal with ECDriver.dll nuisance message.
+        // I recently noticed (and some users have reported) that Adapt It is issuing
+        // a message about the ECDriver.dll being out-of-date every time AI launches. Ugh!
+        // My investigation into it indicates that Paratext 9 and possibly Paratext 8 on
+        // Windows are installing a newer version of ECDriver.dll into the 
+        // c:\Program Files\Common Files\SIL\ folder with the date 06/02/2018. From
+        // experimentation I've noted that the actual SIL Encoding Converters 4.0 installs
+        // an older copy of ECDriver.dll dated 5/8/2015 that gets installed into this folder:
+        // c:\Program Files (x86)\Common Files\SIL\. The newer ECDriver.dll that Paratext
+        // installs won't load successfully into Adapt It at the ecDriverDynamicLibrary.Load()
+        // call below. But, the older ECDriver.dll that SIL Encoding Converters 4.0 installs
+        // will load at that ecDriverDynamicLibrary.Load() call.
+        //  
+        // TODO: Ask Bob Eaton what we need to do to be able to load the newer ECDriver.dll 
+        // that Paratext installs.
+        // 
+        // Since the ECDriver.dll out-of-date message happens at every launch, we should
+        // go ahead and test any available ECDriver.dll files that exist to see if one
+        // of them will load successfully, and use that one.
+        // Previously we assumed that the 64-bit 'Program Files (x86)' folder would have the 
+        // latest/preferred installation of ECDriver.dll for the user's computer and should 
+        // be loaded before loading any ECDriver.dll in the 32-bit Program Files path. But 
+        // looking at the installation directions for the SIL Encoding Converters 
+        // (at: https://software.sil.org/downloads/r/silconverters/SILConverters40Install.pdf)
+        // it appears that they have had a lot of problems with out-dated .dlls littering
+        // user's systems - now compounded by Paratext installing a dll that is incompatible 
+        // with Adapt It!
+        // We could compare dates of ECDriver.dll files to see which one is the oldest/newest, but
+        // probably the best thing to just test any available ECDriver.dll files to see if
+        // at least one of them will load successfully, and just be satisfied to load that one.
+        wxArrayString secPathStr;
+        secPathStr.Clear();
+        secPathStr.Add(_T("C:\\Program Files\\Common Files\\SIL") + PathSeparator + LIB_NAME); // 32-bit path
+        secPathStr.Add(_T("C:\\Program Files (x86)\\Common Files\\SIL") + PathSeparator + LIB_NAME); // 64-bit path
+        //secPathStr.Add(LIB_NAME); // just the ECDriver.dll file name, no explicit path to it
+        int ct;
+        int tot = secPathStr.GetCount();
+        bool bDriverDLLExists = FALSE;
+        bool bLoadSuccess = FALSE;
+        for (ct = 0; ct < tot; ct++)
         {
-            secPath = secPath64;
-        }
-        else if (::wxFileExists(secPath32))
-        {
-            secPath = secPath32;
-        }
-        else
-        {
-            // SIL Encoding Converters could have been installed in a non-default location, in
-            // which case Bob E says the wxDynamicLibrary::Load() call below should be able to
-            // find it because the Encoding Conv installation sets the path to be able to locate
-            // the dll. If the Load() call still fails, we won't bother the user in that case
-            // with the error message.
-            secPath = LIB_NAME;
-        }
-		//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
-		//	__LINE__, m_szView.x, m_szView.y);
-
-        bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPath);
-        if (!ecDriverDynamicLibrary.IsLoaded())
-        {
-            // the ECDriver.dll file was not found
-            bECDriverDLLLoaded = FALSE;
-            if (!(secPath == LIB_NAME)) // see the comment in the last else block above
+            if (::wxFileExists(secPathStr.Item(ct)))
             {
-                // Only show the error message when the ECDriver.dll was found, but the Load()
-                // call above failed
-                wxString msg;
-                // This error shouldn't happen with normal install, so it can remain in English
-                msg = msg.Format(_T(
-                    "Could not load the %s dynamic library file. SIL Encoding Converters will not be available, however the rest of Adapt It will work fine.\n(The SIL Encoding Converters that is currently installed is apparently not compatible with Adapt It.)"),
-                    LIB_NAME);
-                wxMessageBox(msg, _T("Incompatible version of SIL Encoding Converters"), wxICON_INFORMATION | wxOK);
+                // a ECDriver.dll file exists, will it load?
+                bDriverDLLExists = TRUE;
+                bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPathStr.Item(ct));
+                if (ecDriverDynamicLibrary.IsLoaded())
+                {
+                    bLoadSuccess = TRUE;
+                    break; // break out while bLoadSuccess is TRUE
+                }
             }
         }
-    }
+
+        // If an ECDriver.dll file exists in an installation location but it could not be loaded
+        // record that fact in the user log file. Don't bother the user with a message about it
+        // here at program startup.
+        if (bDriverDLLExists && !bLoadSuccess)
+        {
+            wxString msg;
+            // This error shouldn't happen with normal install, so it can remain in English
+            msg = msg.Format(_T(
+                "Could not load the %s dynamic library file. SIL Encoding Converters will not be available, however the rest of Adapt It will work fine.\n(The SIL Encoding Converters that is currently installed is apparently not compatible with Adapt It.)"),
+                LIB_NAME);
+            // whm 26Aug2021 modification
+            // Apparently Paratext 9.x, during installation, puts an incompatible SIL Encoding 
+            // converters ECDriver.dll file into the user's C:\Program Files\Common Files\SIL directory even when SIL Converters has not
+            // even been installed on the machine! Ugh! This results in Adapt It nagging the user
+            // about a missing ECDriver.dll file every time Adapt It is launched. This nuisance
+            // can be stopped by actually installing the latest SIL Encoding Converters 4.0,
+            // but we shouldn't allow the old ECDriver.dll file's presence to bother users who
+            // wouldn't likely have ever even used the SIL Converters. Just comment out the following
+            // message which is just a nuisance. Instead we'll log the dll load failure.
+            //wxMessageBox(msg, _T("Incompatible version of SIL Encoding Converters"), wxICON_INFORMATION | wxOK);
+            LogUserAction(msg);
+        }
+    } // end of if ((sysID == wxOS_WINDOWS || sysID == wxOS_WINDOWS_NT) && majorVersion >= 5)
 #else
     bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but
                                              // not referenced" warning when define is not set
@@ -23157,6 +23193,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bWantSourcePhrasesOnly = FALSE; // Added by JF.
 
     // *** Initializations above were originally in the Doc in the MFC version ***
+
+    m_bUsingAutoCorrect = FALSE; // whm 23Aug2021 added
+    m_bAutoCorrectIsMalformed = FALSE; // whm 23Aug2021 added
+    m_longestAutoCorrectKeyLen = 0; // whm 23Aug2021 added
 
                                       // TokenizeText() makes use of these
     m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");

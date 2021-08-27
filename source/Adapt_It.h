@@ -1740,6 +1740,16 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringEqual,
                     MapWholeMkrToFilterStatus ); // the name of the map class declared by this macro
 
+/// whm 23Aug2021 added the following for the AutoCorrect feature.
+/// wxHashMap declaration for the MapAutoCorrectStrings class - a mapped association of 
+/// left-hand sub-strings to right-hand replacements/corrections that are read from any
+/// autocorrect.txt file stored in a user's project folder.
+WX_DECLARE_HASH_MAP(wxString,		// the map key is the left-hand string of an autocorrect.txt rule
+					wxString,		// the map value is the right-hand string of an autocorrect.txt rule
+					wxStringHash,
+					wxStringEqual,
+					MapAutoCorrectStrings); // the name of the map class declared by this macro
+
 enum box_cursor {
 	select_all,
 	cursor_at_text_end,
@@ -2871,6 +2881,15 @@ public:
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
 
+	MapAutoCorrectStrings m_AutoCorrectMap; // whm 23Aug2021 added
+				// This hash map is used to map typed sub-strings of target text to replace
+				// with their "corrected" counterpart by the replacement rules stored in
+				// any existing autocorrect.txt file found in the user's project folder.
+				// This is designed to be equivalent to the same feature that is available
+				// in Paratext 8 and 9.
+	bool		m_bUsingAutoCorrect; // whm 23Aug2021 added
+	bool		m_bAutoCorrectIsMalformed; // whm 23Aug2021 added
+	int			m_longestAutoCorrectKeyLen; // whm 23Aug2021 added
 
 	// mrh 2012-04-17 The current user of AI, introduced for version control.  This will
 	//  probably be the user name + machine name.  "****" means "no owner, up for grabs".
