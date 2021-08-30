@@ -26898,7 +26898,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
         // whm 22Feb2021 added line below
-        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_dataKBsharingFolderName; // App member m_dataKBsharingPath is assigned below - ends with PathSeparator
+        // whm 30Aug2021 added + PathSeparator to end of AIDistKBsharingFolderPath below, since m_dataKBsharingFolderName doesn't end with a PathSeparator
+        AIdistKBsharingFolderPath = m_customWorkFolderPath + PathSeparator + m_dataKBsharingFolderName + PathSeparator; // App member m_dataKBsharingPath is assigned below - ends with PathSeparator
     }
     else
     {
