@@ -29063,7 +29063,13 @@ int CAdapt_ItApp::OnExit(void)
 		{
 			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
 		}
-		wxCHECK_MSG(bOK, 0, _T("OnExit(): WriteConfigurationFile() returned FALSE, either project one or admin project one"));
+        // whm 29Aug2021 added test for empty m_curProjectPath, and only call the wxCHECK_MSG() below if m_curProjectPath is NOT empty.
+        // The m_curProjectPath can be empty if a user Created a custom work folder, then exited after Canceling 
+        // out at the Project Page of the Wizard. At that point the m_curProjectPath can be empty. 
+        if (!m_curProjectPath.IsEmpty())
+        {
+            wxCHECK_MSG(bOK, 0, _T("OnExit(): WriteConfigurationFile() returned FALSE, either project one or admin project one"));
+        }
 		// below is original
 		//if (::wxDirExists(m_curProjectPath))
 		//{
@@ -45346,7 +45352,21 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
     // this clobbered the restoration of a KB from the 2nd doc file accessed
     wxString strSaveCurrentDirectoryFullPath = GetDocument()->GetCurrentDirectory();
 
-    wxString fName = configFilename + _T(".aic"); // extension for config files
+    // whm 29Aug2021 modification. I observed that in at least one scenario, the incoming configFilename parameter
+    // already has the .aic extension on the right end, so I'm adding a test for its existence, so that the code
+    // here will only add the .aic extension if it is not already present on configFilename. Otherwise the fName
+    // string below will have two .aic extensions i.e., <name>.aic.aic, and code back in the calling routine my
+    // then not be able to find the configFile with two .aic extensions on it.
+    wxString fName;
+    if (configFilename.AfterLast(_T('.')) != _T("aic"))
+    {
+        // configFilename parameter doesn't already have .aic extension affixed, so add it
+        fName = configFilename + _T(".aic"); // extension for config files
+    }
+    else
+    {
+        fName = configFilename;
+    }
 
                                                   // exit if there is no path yet
     if (destinationFolder.IsEmpty())
