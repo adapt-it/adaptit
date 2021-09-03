@@ -1,4 +1,4 @@
-ID	Print_Name IANA data File-Date: 2018-11-30 - download date: 2019-02-09@13:32:59
+ID	Print_Name IANA data File-Date: 2021-08-06 - download date: 2021-09-03@14:49:09
 aa	Afar
 ab	Abkhazian Suppress-Script: Cyrl
 ae	Avestan
@@ -260,7 +260,7 @@ acx	Omani Arabic Macrolanguage: ar
 acy	Cypriot Arabic Macrolanguage: ar
 acz	Acheron
 ada	Adangme
-adb	Adabe
+adb	Atauran
 add	Lidzonka Dzodinka
 ade	Adele
 adf	Dhofari Arabic Macrolanguage: ar
@@ -370,7 +370,7 @@ aio	Aiton
 aip	Burumakok
 aiq	Aimaq
 air	Airoran
-ais	Nataoran Amis
+ais	Nataoran Amis Deprecated: 2019-04-16 Comments: see ami, szy
 ait	Arikem
 aiw	Aari
 aix	Aighon
@@ -476,7 +476,7 @@ anp	Angika
 anq	Jarawa (India)
 anr	Andh
 ans	Anserma
-ant	Antakarinya
+ant	Antakarinya Antikarinya
 anu	Anuak
 anv	Denya
 anw	Anaang
@@ -490,7 +490,7 @@ aod	Andarum
 aoe	Angal Enen
 aof	Bragat
 aog	Angoram
-aoh	Arma
+aoh	Arma Deprecated: 2020-03-28
 aoi	Anindilyakwa
 aoj	Mufian
 aok	Arhö
@@ -533,6 +533,7 @@ aqa	Alacalufan languages Scope: collection
 aqc	Archi
 aqd	Ampari Dogon
 aqg	Arigidi
+aqk	Aninka
 aql	Algic languages Scope: collection
 aqm	Atohwaim
 aqn	Northern Alta
@@ -565,7 +566,7 @@ arz	Egyptian Arabic Macrolanguage: ar
 asa	Asu (Tanzania)
 asb	Assiniboine
 asc	Casuarina Coast Asmat
-asd	Asas
+asd	Asas Deprecated: 2019-04-16 Preferred-Value: snz
 ase	American Sign Language
 asf	Auslan Australian Sign Language
 asg	Cishingini
@@ -695,7 +696,7 @@ ays	Sorsogon Ayta
 ayt	Magbukun Ayta
 ayu	Ayu
 ayx	Ayi (China) Deprecated: 2011-08-16 Preferred-Value: nun
-ayy	Tayabas Ayta
+ayy	Tayabas Ayta Deprecated: 2020-03-28
 ayz	Mai Brat
 aza	Azha
 azb	South Azerbaijani Macrolanguage: az
@@ -756,7 +757,7 @@ bbv	Karnai
 bbw	Baba
 bbx	Bubia
 bby	Befang
-bbz	Babalia Creole Arabic Macrolanguage: ar
+bbz	Babalia Creole Arabic Deprecated: 2020-03-28 Macrolanguage: ar
 bca	Central Bai
 bcb	Bainouk-Samik
 bcc	Southern Balochi Macrolanguage: bal
@@ -767,7 +768,7 @@ bcg	Baga Pokur
 bch	Bariai
 bci	Baoulé
 bcj	Bardi
-bck	Bunaba
+bck	Bunuba
 bcl	Central Bikol Macrolanguage: bik
 bcm	Bannoni
 bcn	Bali (Nigeria)
@@ -910,12 +911,12 @@ bhy	Bhele
 bhz	Bada (Indonesia)
 bia	Badimaya
 bib	Bissa Bisa
-bic	Bikaru
+bic	Bikaru Deprecated: 2021-02-20 Preferred-Value: bir
 bid	Bidiyo
 bie	Bepour
 bif	Biafada
 big	Biangai
-bij	Vaghat-Ya-Bijim-Legeri
+bij	Vaghat-Ya-Bijim-Legeri Deprecated: 2021-02-20 Comments: see dkg, jbm, tyy
 bik	Bikol Scope: macrolanguage
 bil	Bile
 bim	Bimoba
@@ -988,7 +989,7 @@ blc	Bella Coola
 bld	Bolango
 ble	Balanta-Kentohe
 blf	Buol
-blg	Balau
+blg	Balau Deprecated: 2021-02-20 Preferred-Value: iba
 blh	Kuwaa
 bli	Bolia
 blj	Bolongan
@@ -1082,8 +1083,9 @@ box	Buamu
 boy	Bodo (Central African Republic)
 boz	Tiéyaxo Bozo
 bpa	Daakaka
-bpb	Barbacoas
+bpb	Barbacoas Deprecated: 2020-03-28
 bpd	Banda-Banda
+bpe	Bauni
 bpg	Bonggo
 bph	Botlikh
 bpi	Bagupi
@@ -1133,7 +1135,7 @@ bra	Braj
 brb	Lave
 brc	Berbice Creole Dutch
 brd	Baraamu
-brf	Bera
+brf	Bira
 brg	Baure
 brh	Brahui
 bri	Mokpwe
@@ -1314,7 +1316,7 @@ byi	Buyu
 byj	Bina (Nigeria)
 byk	Biao
 byl	Bayono
-bym	Bidyara
+bym	Bidjara
 byn	Bilin Blin
 byo	Biyo
 byp	Bumaji
@@ -1399,7 +1401,7 @@ cbu	Candoshi-Shapra
 cbv	Cacua
 cbw	Kinabalian
 cby	Carabayo
-cca	Cauca
+cca	Cauca Deprecated: 2020-03-28
 ccc	Chamicuro
 ccd	Cafundo Creole
 cce	Chopi
@@ -1419,7 +1421,7 @@ cdc	Chadic languages Scope: collection
 cdd	Caddoan languages Scope: collection
 cde	Chenchu
 cdf	Chiru
-cdg	Chamari
+cdg	Chamari Deprecated: 2020-03-28
 cdh	Chambeali
 cdi	Chodri
 cdj	Churahi
@@ -1437,6 +1439,7 @@ cek	Eastern Khumi Chin
 cel	Celtic languages Scope: collection
 cen	Cen
 cet	Centúúm
+cey	Ekai Chin
 cfa	Dijim-Bwilim
 cfd	Cara
 cfg	Como Karim
@@ -1495,6 +1498,7 @@ cka	Khumi Awa Chin Deprecated: 2012-08-12 Preferred-Value: cmr
 ckb	Central Kurdish Macrolanguage: ku
 ckh	Chak
 ckl	Cibak
+ckm	Chakavian
 ckn	Kaang Chin
 cko	Anufo
 ckq	Kajakse
@@ -1543,6 +1547,7 @@ cni	Asháninka
 cnk	Khumi Chin
 cnl	Lalana Chinantec
 cno	Con
+cnp	Northern Ping Chinese Northern Pinghua Macrolanguage: zh
 cnr	Montenegrin Macrolanguage: sh Comments: see sr for Serbian
 cns	Central Asmat
 cnt	Tepetotutla Chinantec
@@ -1627,6 +1632,7 @@ csl	Chinese Sign Language
 csm	Central Sierra Miwok
 csn	Colombian Sign Language
 cso	Sochiapam Chinantec Sochiapan Chinantec
+csp	Southern Ping Chinese Southern Pinghua Macrolanguage: zh
 csq	Croatia Sign Language
 csr	Costa Rican Sign Language
 css	Southern Ohlone
@@ -1634,6 +1640,7 @@ cst	Northern Ohlone
 csu	Central Sudanic languages Scope: collection
 csv	Sumtu Chin
 csw	Swampy Cree Macrolanguage: cr
+csx	Cambodian Sign Language
 csy	Siyin Chin
 csz	Coos
 cta	Tataltepec Chatino
@@ -1650,6 +1657,7 @@ ctp	Western Highland Chatino
 cts	Northern Catanduanes Bikol Macrolanguage: bik
 ctt	Wayanad Chetti
 ctu	Chol
+cty	Moundadan Chetty
 ctz	Zacatepec Chatino
 cua	Cua
 cub	Cubeo
@@ -1773,10 +1781,10 @@ dgk	Dagba
 dgl	Andaandi Dongolawi
 dgn	Dagoman
 dgo	Dogri (individual language) Macrolanguage: doi
-dgr	Dogrib
+dgr	Dogrib Tłı̨chǫ
 dgs	Dogoso
 dgt	Ndra'ngith
-dgu	Degaru
+dgu	Degaru Deprecated: 2020-03-28
 dgw	Daungwurrung
 dgx	Doghoro
 dgz	Daga
@@ -1798,7 +1806,7 @@ dia	Dia
 dib	South Central Dinka Macrolanguage: din
 dic	Lakota Dida
 did	Didinga
-dif	Dieri
+dif	Dieri Diyari
 dig	Digo Chidigo
 dih	Kumiai
 dii	Dimbong
@@ -1812,7 +1820,7 @@ dip	Northeastern Dinka Macrolanguage: din
 diq	Dimli (individual language) Macrolanguage: zza
 dir	Dirim
 dis	Dimasa
-dit	Dirari
+dit	Dirari Deprecated: 2019-04-29 Preferred-Value: dif
 diu	Diriku
 diw	Northwestern Dinka Macrolanguage: din
 dix	Dixon Reef
@@ -1821,7 +1829,7 @@ diz	Ding
 dja	Djadjawurrung
 djb	Djinba
 djc	Dar Daju Daju
-djd	Djamindjung
+djd	Djamindjung Ngaliwurru
 dje	Zarma
 djf	Djangun
 dji	Djinang
@@ -1829,12 +1837,13 @@ djj	Djeebbana
 djk	Eastern Maroon Creole Businenge Tongo Nenge
 djl	Djiwarli Deprecated: 2013-09-10 Comments: see dze, iin
 djm	Jamsay Dogon
-djn	Djauan
+djn	Jawoyn Djauan
 djo	Jangkang
 djr	Djambarrpuyngu
 dju	Kapriman
 djw	Djawi
 dka	Dakpakha
+dkg	Kadung
 dkk	Dakka
 dkl	Kolum So Dogon Deprecated: 2011-08-16 Comments: see aqd, dmb
 dkr	Kuijau
@@ -1849,6 +1858,7 @@ dmb	Mombo Dogon
 dmc	Gavak
 dmd	Madhi Madhi
 dme	Dugwor
+dmf	Medefaidrin
 dmg	Upper Kinabatangan
 dmk	Domaaki
 dml	Dameli
@@ -1911,7 +1921,7 @@ drl	Paakantyi
 drn	West Damar
 dro	Daro-Matu Melanau
 drq	Dura
-drr	Dororo
+drr	Dororo Deprecated: 2020-03-28 Preferred-Value: kzk
 drs	Gedeo
 drt	Drents
 dru	Rukai
@@ -1943,7 +1953,7 @@ dty	Dotyali Macrolanguage: ne
 dua	Duala
 dub	Dubli
 duc	Duna
-dud	Hun-Saare
+dud	Hun-Saare Deprecated: 2019-04-16 Comments: see uth, uss
 due	Umiray Dumaget Agta
 duf	Dumbea Drubea
 dug	Duruma Chiduruma
@@ -1967,6 +1977,7 @@ duy	Dicamay Agta
 duz	Duli-Gey
 dva	Duau
 dwa	Diri
+dwk	Dawik Kui
 dwl	Walo Kumbe Dogon Deprecated: 2012-08-12 Comments: see dbt, dbw
 dwr	Dawro
 dws	Dutton World Speedwords
@@ -1980,10 +1991,10 @@ dyd	Dyugun
 dyg	Villa Viciosa Agta
 dyi	Djimini Senoufo
 dym	Yanda Dom Dogon
-dyn	Dyangadi
+dyn	Dyangadi Dhanggatti
 dyo	Jola-Fonyi
 dyu	Dyula
-dyy	Dyaabugay
+dyy	Djabugay Dyaabugay
 dza	Tunzu
 dzd	Daza Deprecated: 2015-02-12
 dze	Djiwarli
@@ -1991,6 +2002,7 @@ dzg	Dazaga
 dzl	Dzalakha
 dzn	Dzando
 eaa	Karenggapa
+ebc	Beginci
 ebg	Ebughu
 ebk	Eastern Bontok Macrolanguage: bnc
 ebo	Teke-Ebo
@@ -2008,13 +2020,14 @@ egl	Emilian
 ego	Eggon
 egx	Egyptian languages Scope: collection
 egy	Egyptian (Ancient)
+ehs	Miyakubo Sign Language
 ehu	Ehueun
 eip	Eipomek
 eit	Eitiep
 eiv	Askopan
 eja	Ejamat
 eka	Ekajuk
-ekc	Eastern Karnic
+ekc	Eastern Karnic Deprecated: 2020-03-28
 eke	Ekit
 ekg	Ekari
 eki	Eki
@@ -2044,11 +2057,13 @@ emm	Mamulique
 emn	Eman
 emo	Emok Deprecated: 2014-02-28
 emp	Northern Emberá
+emq	Eastern Minyag
 ems	Pacific Gulf Yupik
 emu	Eastern Muria
 emw	Emplawas
 emx	Erromintxela
 emy	Epigraphic Mayan
+emz	Mbessa
 ena	Apali
 enb	Markweeta Macrolanguage: kln
 enc	En
@@ -2139,6 +2154,7 @@ ffm	Maasina Fulfulde Macrolanguage: ff
 fgr	Fongoro
 fia	Nobiin
 fie	Fyer
+fif	Faifi
 fil	Filipino Pilipino
 fip	Fipa
 fir	Firan
@@ -2229,7 +2245,7 @@ gaz	West Central Oromo Macrolanguage: om
 gba	Gbaya (Central African Republic) Scope: macrolanguage
 gbb	Kaytetye
 gbc	Garawa Deprecated: 2012-08-12 Comments: see wny, wrk
-gbd	Karadjeri
+gbd	Karajarri
 gbe	Niksek
 gbf	Gaikundi
 gbg	Gbanziri
@@ -2266,7 +2282,7 @@ gdd	Gedaged
 gde	Gude
 gdf	Guduf-Gava
 gdg	Ga'dang
-gdh	Gadjerawang
+gdh	Gadjerawang Gajirrabeng
 gdi	Gundi
 gdj	Gurdjar
 gdk	Gadang
@@ -2284,6 +2300,7 @@ gea	Geruma
 geb	Kire
 gec	Gboloo Grebo Macrolanguage: grb
 ged	Gade
+gef	Gerai
 geg	Gengle
 geh	Hutterite German Hutterisch
 gei	Gebe
@@ -2304,7 +2321,7 @@ gfx	Mangetti Dune ǃXung Deprecated: 2015-02-12 Preferred-Value: vaj
 gga	Gao
 ggb	Gbii
 ggd	Gugadj
-gge	Guragone
+gge	Gurr-goni
 ggg	Gurgula
 ggk	Kungarakany
 ggl	Ganglau
@@ -2325,13 +2342,14 @@ gho	Ghomara
 ghr	Ghera
 ghs	Guhu-Samane
 ght	Kuke Kutang Ghale
-gia	Kitja
+gia	Kija
 gib	Gibanawa
 gic	Gail
 gid	Gidar
 gie	Gaɓogbo Guébie
 gig	Goaria
 gih	Githabul
+gii	Girirra
 gil	Gilbertese
 gim	Gimi (Eastern Highlands)
 gin	Hinukh
@@ -2346,7 +2364,7 @@ giw	White Gelao
 gix	Gilima
 giy	Giyug
 giz	South Giziga
-gji	Geji
+gji	Geji Deprecated: 2021-02-20 Comments: see gyz, zbu
 gjk	Kachi Koli
 gjm	Gunditjmara
 gjn	Gonja
@@ -2359,10 +2377,11 @@ gkn	Gokana
 gko	Kok-Nar
 gkp	Guinea Kpelle Macrolanguage: kpe
 gku	ǂUngkue
+glb	Belning
 glc	Bon Gula
 gld	Nanai
 glh	Northwest Pashai Northwest Pashayi
-gli	Guliguli
+gli	Guliguli Deprecated: 2020-03-28 Preferred-Value: kzk
 glj	Gula Iro
 glk	Gilaki
 gll	Garlali
@@ -2381,6 +2400,7 @@ gml	Middle Low German
 gmm	Gbaya-Mbodomo Macrolanguage: gba
 gmn	Gimnime
 gmq	North Germanic languages Scope: collection
+gmr	Mirning Mirniny
 gmu	Gumalu
 gmv	Gamo
 gmw	West Germanic languages Scope: collection
@@ -2477,7 +2497,7 @@ gua	Shiki
 gub	Guajajára
 guc	Wayuu
 gud	Yocoboué Dida
-gue	Gurinji
+gue	Gurindji
 guf	Gupapuyngu
 gug	Paraguayan Guaraní Macrolanguage: gn
 guh	Guahibo
@@ -2512,7 +2532,7 @@ gvs	Gumawana
 gvy	Guyani
 gwa	Mbato
 gwb	Gwa
-gwc	Kalami
+gwc	Gawri Kalami
 gwd	Gawwada
 gwe	Gweno
 gwf	Gowro
@@ -2540,6 +2560,7 @@ gyn	Guyanese Creole English
 gyo	Gyalsumdo
 gyr	Guarayu
 gyy	Gunya
+gyz	Geji Gyaazi
 gza	Ganza
 gzi	Gazi
 gzn	Gane
@@ -2607,6 +2628,7 @@ hix	Hixkaryána
 hji	Haji Macrolanguage: ms
 hka	Kahe
 hke	Hunde
+hkh	Khah Poguli
 hkk	Hunjara-Kaina Ke
 hkn	Mel-Khaonh
 hks	Hong Kong Sign Language Heung Kong Sau Yue
@@ -2644,6 +2666,7 @@ hmz	Hmong Shua Sinicized Miao Macrolanguage: hmn
 hna	Mina (Cameroon)
 hnd	Southern Hindko Macrolanguage: lah
 hne	Chhattisgarhi
+hng	Hungu
 hnh	ǁAni
 hni	Hani
 hnj	Hmong Njua Mong Leng Mong Njua Macrolanguage: hmn
@@ -2697,7 +2720,7 @@ hts	Hadza
 htu	Hitu
 htx	Middle Hittite
 hub	Huambisa
-huc	ǂHua
+huc	ǂHua ǂʼAmkhoe
 hud	Huaulu
 hue	San Francisco Del Mar Huave
 huf	Humene
@@ -2924,12 +2947,13 @@ jas	New Caledonian Javanese
 jat	Jakati Macrolanguage: lah
 jau	Yaur
 jax	Jambi Malay Macrolanguage: ms
-jay	Yan-nhangu
+jay	Yan-nhangu Nhangu
 jaz	Jawe
 jbe	Judeo-Berber
 jbi	Badjiri
 jbj	Arandai
 jbk	Barikewa
+jbm	Bijim
 jbn	Nafusi
 jbo	Lojban
 jbr	Jofotek-Bromnya
@@ -2961,9 +2985,9 @@ jhs	Jhankot Sign Language
 jia	Jina
 jib	Jibu
 jic	Tol
-jid	Bu
+jid	Bu (Kaduna State)
 jie	Jilbe
-jig	Djingili
+jig	Jingulu Djingili
 jih	sTodsde Shangzhai
 jii	Jiiddu
 jil	Jilim
@@ -2981,6 +3005,7 @@ jkm	Mobwa Karen
 jko	Kubo
 jkp	Paku Karen
 jkr	Koro (India)
+jks	Amami Koniya Sign Language
 jku	Labir
 jle	Ngile
 jls	Jamaican Sign Language
@@ -3015,7 +3040,7 @@ jqr	Jaqaru
 jra	Jarai
 jrb	Judeo-Arabic Scope: macrolanguage
 jrr	Jiru
-jrt	Jorto
+jrt	Jakattoe
 jru	Japrería
 jsl	Japanese Sign Language
 jua	Júma
@@ -3042,7 +3067,7 @@ jwi	Jwira-Pepesa
 jya	Jiarong
 jye	Judeo-Yemeni Arabic Macrolanguage: jrb
 jyy	Jaya
-kaa	Kara-Kalpak
+kaa	Kara-Kalpak Karakalpak
 kab	Kabyle
 kac	Kachin Jingpho
 kad	Adara
@@ -3268,7 +3293,7 @@ kjb	Q'anjob'al Kanjobal
 kjc	Coastal Konjo
 kjd	Southern Kiwai
 kje	Kisar
-kjf	Khalaj
+kjf	Khalaj [Indo-Iranian] Deprecated: 2020-03-28
 kjg	Khmu
 kjh	Khakas
 kji	Zabana
@@ -3303,8 +3328,8 @@ kkl	Kosarek Yale
 kkm	Kiong
 kkn	Kon Keu
 kko	Karko
-kkp	Gugubera
-kkq	Kaiku
+kkp	Gugubera Koko-Bera
+kkq	Kaeku
 kkr	Kir-Balar
 kks	Giiwo
 kkt	Koi
@@ -3312,7 +3337,7 @@ kku	Tumi
 kkv	Kangean
 kkw	Teke-Kukuya
 kkx	Kohin
-kky	Guguyimidjir
+kky	Guugu Yimidhirr Guguyimidjir
 kkz	Kaska
 kla	Klamath-Modoc
 klb	Kiliwa
@@ -3323,7 +3348,7 @@ klf	Kendeje
 klg	Tagakaulo
 klh	Weliki
 kli	Kalumpang
-klj	Turkic Khalaj
+klj	Khalaj
 klk	Kono (Nigeria)
 kll	Kagan Kalagan
 klm	Migum
@@ -3394,7 +3419,7 @@ knz	Kalamsé
 koa	Konomala
 koc	Kpati
 kod	Kodi
-koe	Kacipo-Balesi
+koe	Kacipo-Bale Suri
 kof	Kubi
 kog	Cogui Kogi
 koh	Koyo
@@ -3518,7 +3543,7 @@ ksz	Kodaku
 kta	Katua
 ktb	Kambaata
 ktc	Kholok
-ktd	Kokata
+ktd	Kokata Kukatha
 kte	Nubri
 ktf	Kwami
 ktg	Kalkutung
@@ -3548,7 +3573,7 @@ kue	Kuman (Papua New Guinea)
 kuf	Western Katu
 kug	Kupa
 kuh	Kushi
-kui	Kuikúro-Kalapálo
+kui	Kuikúro-Kalapálo Kalapalo
 kuj	Kuria
 kuk	Kepo'
 kul	Kulere
@@ -3627,7 +3652,7 @@ kxh	Karo (Ethiopia)
 kxi	Keningau Murut
 kxj	Kulfa
 kxk	Zayein Karen
-kxl	Nepali Kurux
+kxl	Nepali Kurux Deprecated: 2020-03-28 Preferred-Value: kru
 kxm	Northern Khmer
 kxn	Kanowit-Tanjong Melanau
 kxo	Kanoé
@@ -3636,7 +3661,7 @@ kxq	Smärky Kanum
 kxr	Koro (Papua New Guinea)
 kxs	Kangjia
 kxt	Koiwat
-kxu	Kui (India)
+kxu	Kui (India) Deprecated: 2020-03-28 Comments: see dwk, uki
 kxv	Kuvi
 kxw	Konai
 kxx	Likuba
@@ -3717,7 +3742,7 @@ law	Lauje
 lax	Tiwa
 lay	Lama Bai
 laz	Aribwatsa
-lba	Lui
+lba	Lui Deprecated: 2019-04-16
 lbb	Label
 lbc	Lakkia
 lbe	Lak
@@ -3728,7 +3753,7 @@ lbj	Ladakhi
 lbk	Central Bontok Macrolanguage: bnc
 lbl	Libon Bikol Macrolanguage: bik
 lbm	Lodhi
-lbn	Lamet
+lbn	Rmeet
 lbo	Laven
 lbq	Wampar
 lbr	Lohorung
@@ -3738,7 +3763,7 @@ lbu	Labu
 lbv	Lavatbura-Lamusong
 lbw	Tolaki
 lbx	Lawangan
-lby	Lamu-Lamu
+lby	Lamalama Lamu-Lamu
 lbz	Lardil
 lcc	Legenyem
 lcd	Lola
@@ -3877,7 +3902,7 @@ llk	Lelak
 lll	Lilau
 llm	Lasalimu
 lln	Lele (Chad)
-llo	Khlor
+llo	Khlor Deprecated: 2019-04-16 Preferred-Value: ngt
 llp	North Efate
 llq	Lolak
 lls	Lithuanian Sign Language
@@ -3906,7 +3931,7 @@ lmv	Lomaiviti
 lmw	Lake Miwok
 lmx	Laimbue
 lmy	Lamboya
-lmz	Lumbee
+lmz	Lumbee Deprecated: 2020-03-28
 lna	Langbashe
 lnb	Mbalanhu
 lnd	Lundayeh Lun Bawang
@@ -3967,6 +3992,7 @@ lrt	Larantuka Malay
 lrv	Larevat
 lrz	Lemerig
 lsa	Lasgerdi
+lsb	Burundian Sign Language Langue des Signes Burundaise
 lsd	Lishana Deni
 lse	Lusengo
 lsg	Lyons Sign Language Deprecated: 2018-03-08
@@ -3974,11 +4000,13 @@ lsh	Lish
 lsi	Lashi
 lsl	Latvian Sign Language
 lsm	Saamia Olusamia Macrolanguage: luy
+lsn	Tibetan Sign Language
 lso	Laos Sign Language
 lsp	Panamanian Sign Language Lengua de Señas Panameñas
 lsr	Aruop
 lss	Lasi
 lst	Trinidad and Tobago Sign Language
+lsv	Sivia Sign Language
 lsy	Mauritian Sign Language
 ltc	Late Middle Chinese
 ltg	Latgalian Macrolanguage: lv
@@ -4011,6 +4039,7 @@ luw	Luo (Cameroon)
 luy	Luyia Oluluyia Scope: macrolanguage
 luz	Southern Luri
 lva	Maku'a
+lvi	Lavi
 lvk	Lavukaleve
 lvs	Standard Latvian Macrolanguage: lv
 lvu	Levuka
@@ -4025,6 +4054,7 @@ lws	Malawian Sign Language
 lwt	Lewotobi
 lwu	Lawu
 lww	Lewo
+lxm	Lakurumau
 lya	Layakha
 lyg	Lyngngam
 lyn	Luyana
@@ -4130,7 +4160,7 @@ mdy	Male (Ethiopia)
 mdz	Suruí Do Pará
 mea	Menka
 meb	Ikobi
-mec	Mara
+mec	Marra
 med	Melpa
 mee	Mengen
 mef	Megam
@@ -4143,7 +4173,7 @@ mel	Central Melanau
 mem	Mangala
 men	Mende (Sierra Leone) Suppress-Script: Latn
 meo	Kedah Malay Macrolanguage: ms
-mep	Miriwung
+mep	Miriwoong
 meq	Merey
 mer	Meru
 mes	Masmaje
@@ -4170,7 +4200,7 @@ mfn	Cross River Mbembe
 mfo	Mbe
 mfp	Makassar Malay
 mfq	Moba
-mfr	Marithiel
+mfr	Marrithiyel
 mfs	Mexican Sign Language
 mft	Mokerang
 mfu	Mbwela
@@ -4382,7 +4412,7 @@ mnz	Moni
 moa	Mwan
 moc	Mocoví
 mod	Mobilian
-moe	Montagnais
+moe	Innu Montagnais
 mof	Mohegan-Montauk-Narragansett Deprecated: 2010-03-11 Comments: see xnt, xpq
 mog	Mongondow
 moh	Mohawk
@@ -4403,14 +4433,14 @@ mox	Molima
 moy	Shekkacho
 moz	Mukulu Gergiko
 mpa	Mpoto
-mpb	Mullukmulluk
-mpc	Mangarayi
+mpb	Malak Malak Mullukmulluk
+mpc	Mangarrayi
 mpd	Machinere
 mpe	Majang
 mpg	Marba
 mph	Maung
 mpi	Mpade
-mpj	Martu Wangka
+mpj	Martu Wangka Wangkajunga
 mpk	Mbara (Chad)
 mpl	Middle Watut
 mpm	Yosondúa Mixtec
@@ -4561,7 +4591,7 @@ mvh	Mulgi
 mvi	Miyako
 mvk	Mekmek
 mvl	Mbara (Australia)
-mvm	Muya
+mvm	Muya Deprecated: 2021-02-20 Comments: see emq, wmg
 mvn	Minaveha
 mvo	Marovo
 mvp	Duri
@@ -4629,12 +4659,12 @@ mxy	Southeastern Nochixtlán Mixtec
 mxz	Central Masela
 myb	Mbay
 myc	Mayeka
-myd	Maramba
+myd	Maramba Deprecated: 2019-04-16 Preferred-Value: aog
 mye	Myene
 myf	Bambassi
 myg	Manta
 myh	Makah
-myi	Mina (India)
+myi	Mina (India) Deprecated: 2019-04-16
 myj	Mangayat
 myk	Mamara Senoufo
 myl	Moma
@@ -4699,7 +4729,7 @@ nas	Naasioi
 nat	Ca̱hungwa̱rya̱ Hungworo
 naw	Nawuri
 nax	Nakwi
-nay	Narrinyeri
+nay	Ngarrindjeri
 naz	Coatepec Nahuatl
 nba	Nyemba
 nbb	Ndoe
@@ -4710,14 +4740,14 @@ nbf	Naxi Deprecated: 2011-08-16 Comments: see nru, nxq
 nbg	Nagarchal
 nbh	Ngamo
 nbi	Mao Naga
-nbj	Ngarinman
+nbj	Ngarinyman
 nbk	Nake
 nbm	Ngbaka Ma'bo
 nbn	Kuri
 nbo	Nkukoli
 nbp	Nnam
 nbq	Nggem
-nbr	Numana-Nunku-Gbantu-Numbu
+nbr	Numana
 nbs	Namibian Sign Language
 nbt	Na
 nbu	Rongmei Naga
@@ -4735,7 +4765,7 @@ ncg	Nisga'a
 nch	Central Huasteca Nahuatl
 nci	Classical Nahuatl
 ncj	Northern Puebla Nahuatl
-nck	Nakara
+nck	Na-kara
 ncl	Michoacán Nahuatl
 ncm	Nambo
 ncn	Nauna
@@ -4808,14 +4838,14 @@ ngd	Ngando (Central African Republic)
 nge	Ngemba
 ngf	Trans-New Guinea languages Scope: collection
 ngg	Ngbaka Manza
-ngh	Nǀu
+ngh	Nǁng
 ngi	Ngizim
 ngj	Ngie
 ngk	Dalabon
 ngl	Lomwe
 ngm	Ngatik Men's Creole
 ngn	Ngwo
-ngo	Ngoni
+ngo	Ngoni Deprecated: 2021-02-20 Comments: see xnj, xnq
 ngp	Ngulu
 ngq	Ngurimi Ngoreme
 ngr	Engdewu
@@ -4856,7 +4886,7 @@ nic	Niger-Kordofanian languages Scope: collection
 nid	Ngandi
 nie	Niellim
 nif	Nek
-nig	Ngalakan
+nig	Ngalakgan
 nih	Nyiha (Tanzania)
 nii	Nii
 nij	Ngaju
@@ -4978,7 +5008,7 @@ nnn	Ngete
 nnp	Wancho Naga
 nnq	Ngindo
 nnr	Narungga
-nns	Ningye
+nns	Ningye Deprecated: 2019-04-16 Preferred-Value: nbr
 nnt	Nanticoke
 nnu	Dwang
 nnv	Nugunu (Australia)
@@ -5028,6 +5058,7 @@ nqm	Ndom
 nqn	Nen
 nqo	N'Ko N’Ko Suppress-Script: Nkoo
 nqq	Kyan-Karyaw Naga
+nqt	Nteng
 nqy	Akyaung Ari Naga
 nra	Ngom
 nrb	Nara
@@ -5047,6 +5078,7 @@ nru	Narua
 nrx	Ngurmbur
 nrz	Lala
 nsa	Sangtam Naga
+nsb	Lower Nossob
 nsc	Nshi
 nsd	Southern Nisu
 nse	Nsenga
@@ -5138,7 +5170,7 @@ nxn	Ngawun
 nxo	Ndambomo
 nxq	Naxi
 nxr	Ninggerum
-nxu	Narau
+nxu	Narau Deprecated: 2020-03-28 Preferred-Value: bpp
 nxx	Nafri
 nyb	Nyangbo
 nyc	Nyanga-li
@@ -5146,7 +5178,7 @@ nyd	Nyore Olunyole Macrolanguage: luy
 nye	Nyengo
 nyf	Giryama Kigiryama
 nyg	Nyindu
-nyh	Nyigina
+nyh	Nyikina
 nyi	Ama (Sudan)
 nyj	Nyanga
 nyk	Nyaneka
@@ -5157,7 +5189,7 @@ nyo	Nyoro
 nyp	Nyang'i
 nyq	Nayini
 nyr	Nyiha (Malawi)
-nys	Nyunga
+nys	Nyungar
 nyt	Nyawaygi
 nyu	Nyungwe
 nyv	Nyulnyul
@@ -5188,6 +5220,7 @@ obt	Old Breton
 obu	Obulom
 oca	Ocaina
 och	Old Chinese
+ocm	Old Cham
 oco	Old Cornish
 ocu	Atzingo Matlatzinca
 oda	Odut
@@ -5216,6 +5249,7 @@ ojv	Ontong Java
 ojw	Western Ojibwa Macrolanguage: oj
 oka	Okanagan
 okb	Okobo
+okc	Kobo
 okd	Okodia
 oke	Okpe (Southwestern Edo)
 okg	Koko Babangk
@@ -5232,6 +5266,7 @@ oks	Oko-Eni-Osayen
 oku	Oku
 okv	Orokaiva
 okx	Okpe (Northwestern Edo)
+okz	Old Khmer
 ola	Walungge
 old	Mochi
 ole	Olekha
@@ -5259,6 +5294,7 @@ omu	Omurano
 omv	Omotic languages Scope: collection
 omw	South Tairora
 omx	Old Mon
+omy	Old Malay
 ona	Ona
 onb	Lingao
 one	Oneida
@@ -5305,6 +5341,7 @@ orz	Ormu
 osa	Osage
 osc	Oscan
 osi	Osing
+osn	Old Sundanese
 oso	Ososo
 osp	Old Spanish
 ost	Osatu
@@ -5360,7 +5397,7 @@ pap	Papiamento
 paq	Parya
 par	Panamint Timbisha
 pas	Papasena
-pat	Papitalai
+pat	Papitalai Deprecated: 2021-02-20 Preferred-Value: kxr
 pau	Palauan
 pav	Pakaásnovos
 paw	Pawnee
@@ -5431,7 +5468,7 @@ pex	Petats
 pey	Petjo
 pez	Eastern Penan
 pfa	Pááfang
-pfe	Peere
+pfe	Pere
 pfl	Pfaelzisch
 pga	Sudanese Creole Arabic Macrolanguage: ar
 pgd	Gāndhārī
@@ -5510,7 +5547,7 @@ plk	Kohistani Shina
 pll	Shwe Palaung
 pln	Palenquero
 plo	Oluta Popoluca
-plp	Palpa
+plp	Palpa Deprecated: 2020-03-28
 plq	Palaic
 plr	Palaka Senoufo
 pls	San Marcos Tlacoyalco Popoloca San Marcos Tlalcoyalco Popoloca
@@ -5546,8 +5583,9 @@ pmz	Southern Pame
 pna	Punan Bah-Biau
 pnb	Western Panjabi Macrolanguage: lah
 pnc	Pannei
+pnd	Mpinda
 pne	Western Penan
-png	Pongu
+png	Pangu Pongu
 pnh	Penrhyn
 pni	Aoheng
 pnj	Pinjarup
@@ -5563,7 +5601,7 @@ pns	Ponosakan
 pnt	Pontic
 pnu	Jiongnai Bunu
 pnv	Pinigura
-pnw	Panytyima
+pnw	Banyjima Panytyima
 pnx	Phong-Kniang
 pny	Pinyin Comments: a Niger-Congo language spoken in Cameroon; not to be confused with the Pinyin romanization systems used for Chinese and Tibetan
 pnz	Pana (Central African Republic)
@@ -5650,7 +5688,7 @@ psw	Port Sandwich
 psy	Piscataway
 pta	Pai Tavytera
 pth	Pataxó Hã-Ha-Hãe
-pti	Pintiini
+pti	Pindiini Wangkatha
 ptn	Patani
 pto	Zo'é
 ptp	Patep
@@ -5815,11 +5853,11 @@ rhp	Yahang
 ria	Riang (India)
 rie	Rien Deprecated: 2017-02-23
 rif	Tarifit
-ril	Riang (Myanmar)
+ril	Riang Lang Riang (Myanmar)
 rim	Nyaturu
 rin	Nungu
 rir	Ribun
-rit	Ritarungo
+rit	Ritharrngu
 riu	Riung
 rjg	Rajong
 rji	Raji
@@ -5832,7 +5870,7 @@ rkm	Marka
 rkt	Rangpuri Kamta
 rkw	Arakwal
 rma	Rama
-rmb	Rembarunga
+rmb	Rembarrnga
 rmc	Carpathian Romani Macrolanguage: rom
 rmd	Traveller Danish
 rme	Angloromani
@@ -5909,11 +5947,12 @@ ruy	Mala (Nigeria)
 ruz	Ruma
 rwa	Rawo
 rwk	Rwa
+rwl	Ruwila
 rwm	Amba (Uganda)
 rwo	Rawa
 rwr	Marwari (India) Macrolanguage: mwr
 rxd	Ngardi
-rxw	Karuwali
+rxw	Karuwali Garuwali
 ryn	Northern Amami-Oshima
 rys	Yaeyama
 ryu	Central Okinawan
@@ -5997,10 +6036,11 @@ sdh	Southern Kurdish Macrolanguage: ku
 sdj	Suundi
 sdk	Sos Kundi
 sdl	Saudi Arabian Sign Language
-sdm	Semandang
+sdm	Semandang Deprecated: 2020-03-28 Comments: see ebc, gef, sdq
 sdn	Gallurese Sardinian Macrolanguage: sc
 sdo	Bukar-Sadung Bidayuh
 sdp	Sherdukpen
+sdq	Semandang
 sdr	Oraon Sadri
 sds	Sened
 sdt	Shuadit
@@ -6219,7 +6259,7 @@ snv	Sa'ban
 snw	Selee
 snx	Sam
 sny	Saniyo-Hiyewe
-snz	Sinsauru
+snz	Kou
 soa	Thai Song
 sob	Sobei
 soc	So (Democratic Republic of Congo)
@@ -6275,6 +6315,7 @@ sqr	Siculo Arabic
 sqs	Sri Lankan Sign Language
 sqt	Soqotri
 squ	Squamish
+sqx	Kufr Qassem Sign Language (KQSL)
 sra	Saruga
 srb	Sora
 src	Logudorese Sardinian Macrolanguage: sc
@@ -6352,11 +6393,12 @@ suc	Western Subanon
 sue	Suena
 sug	Suganga
 sui	Suki
-suj	Shubi
+suj	Shubi Comments: see also xsj
 suk	Sukuma
 sul	Surigaonon Deprecated: 2010-03-11 Comments: see sgd, tgn
 sum	Sumo-Mayangna Deprecated: 2010-03-11 Comments: see ulw, yan
-suq	Suri
+suo	Bouni
+suq	Tirmaga-Chai Suri Suri
 sur	Mwaghavul
 sus	Susu
 sut	Subtiaba
@@ -6436,6 +6478,7 @@ szp	Suabo
 szs	Solomon Islands Sign Language
 szv	Isu (Fako Division)
 szw	Sawai
+szy	Sakizaya
 taa	Lower Tanana
 tab	Tabassaran
 tac	Lowland Tarahumara
@@ -6460,13 +6503,13 @@ tax	Tamki
 tay	Atayal
 taz	Tocho
 tba	Aikanã
-tbb	Tapeba
+tbb	Tapeba Deprecated: 2020-03-28
 tbc	Takia
 tbd	Kaki Ae
 tbe	Tanimbili
 tbf	Mandara
 tbg	North Tairora
-tbh	Thurawal
+tbh	Dharawal Thurawal
 tbi	Gaam
 tbj	Tiang
 tbk	Calamian Tagbanwa
@@ -6501,7 +6544,7 @@ tcn	Tichurong
 tco	Taungyo
 tcp	Tawr Chin
 tcq	Kaiy
-tcs	Torres Strait Creole
+tcs	Torres Strait Creole Yumplatok
 tct	T'en
 tcu	Southeastern Tarahumara
 tcw	Tecpatlán Totonac
@@ -6584,7 +6627,7 @@ tgx	Tagish
 tgy	Togoyo
 tgz	Tagalaka
 thc	Tai Hang Tong Deprecated: 2016-05-30 Preferred-Value: tpo
-thd	Thayore
+thd	Kuuk Thaayorre Thayore
 the	Chitwania Tharu
 thf	Thangmi
 thh	Northern Tarahumara
@@ -6600,7 +6643,7 @@ ths	Thakali
 tht	Tahltan
 thu	Thuri
 thv	Tahaggart Tamahaq Macrolanguage: tmh
-thw	Thudam
+thw	Thudam Deprecated: 2020-06-08 Preferred-Value: ola
 thx	The Deprecated: 2015-02-12 Preferred-Value: oyb
 thy	Tha
 thz	Tayart Tamajeq Macrolanguage: tmh
@@ -6631,10 +6674,12 @@ tiz	Tai Hongjin
 tja	Tajuasohn
 tjg	Tunjung
 tji	Northern Tujia
+tjj	Tjungundji
 tjl	Tai Laing
 tjm	Timucua
 tjn	Tonjon
 tjo	Temacine Tamazight
+tjp	Tjupany
 tjs	Southern Tujia
 tju	Tjurruru
 tjw	Djabwurrung
@@ -6898,6 +6943,7 @@ tvs	Taveta
 tvt	Tutsa Naga
 tvu	Tunen
 tvw	Sedoa
+tvx	Taivoan
 tvy	Timor Pidgin
 twa	Twana
 twb	Western Tawbuid
@@ -6951,6 +6997,7 @@ tyt	Tày Tac
 tyu	Kua
 tyv	Tuvinian
 tyx	Teke-Tyee
+tyy	Tiyaa
 tyz	Tày
 tza	Tanzanian Sign Language
 tzh	Tzeltal
@@ -6993,12 +7040,14 @@ uji	Tanjijili
 uka	Kaburi
 ukg	Ukuriguma
 ukh	Ukhwejo
+uki	Kui (India)
 ukk	Muak Sa-aak
 ukl	Ukrainian Sign Language
 ukp	Ukpe-Bayobiri
 ukq	Ukwa
 uks	Urubú-Kaapor Sign Language Kaapor Sign Language
 uku	Ukue
+ukv	Kuku
 ukw	Ukwuani-Aboh-Ndoni
 uky	Kuuk-Yak
 ula	Fungwa
@@ -7007,7 +7056,7 @@ ulc	Ulch
 ule	Lule
 ulf	Usku Afra
 uli	Ulithian
-ulk	Meriam
+ulk	Meriam Mir
 ull	Ullatan
 ulm	Ulumanda'
 uln	Unserdeutsch
@@ -7017,7 +7066,7 @@ uma	Umatilla
 umb	Umbundu
 umc	Marrucinian
 umd	Umbindhamu
-umg	Umbuygamu
+umg	Morrobalama Umbuygamu
 umi	Ukit
 umm	Umon
 umn	Makyan Naga
@@ -7030,6 +7079,7 @@ una	North Watut
 und	Undetermined Scope: special
 une	Uneme
 ung	Ngarinyin
+uni	Uni
 unk	Enawené-Nawé
 unm	Unami Macrolanguage: del
 unn	Kurnai
@@ -7069,9 +7119,11 @@ ush	Ushojo
 usi	Usui
 usk	Usaghade
 usp	Uspanteco
+uss	us-Saare
 usu	Uya
 uta	Otank
 ute	Ute-Southern Paiute
+uth	ut-Hun
 utp	Amba (Solomon Islands)
 utr	Etulo
 utu	Utu
@@ -7124,15 +7176,17 @@ vis	Vishavan
 vit	Viti
 viv	Iduna
 vka	Kariyarra
-vki	Ija-Zuba
+vki	Ija-Zuba Deprecated: 2021-02-20 Comments: see vkn, vkz
 vkj	Kujarge
 vkk	Kaur Macrolanguage: ms
 vkl	Kulisusu
 vkm	Kamakan
+vkn	Koro Nulu
 vko	Kodeoha
 vkp	Korlai Creole Portuguese
 vkt	Tenggarong Kutai Malay Macrolanguage: ms
 vku	Kurrama
+vkz	Koro Zuba
 vlp	Valpei
 vls	Vlaams
 vma	Martuyhunira
@@ -7178,7 +7232,7 @@ vwa	Awa (China)
 waa	Walla Walla
 wab	Wab
 wac	Wasco-Wishram
-wad	Wandamen
+wad	Wamesa Wondama
 wae	Walser
 waf	Wakoná
 wag	Wa'ema
@@ -7191,7 +7245,7 @@ wam	Wampanoag
 wan	Wan
 wao	Wappo
 wap	Wapishana
-waq	Wageman
+waq	Wagiman
 war	Waray (Philippines)
 was	Washo
 wat	Kaninuwa
@@ -7215,7 +7269,7 @@ wbp	Warlpiri
 wbq	Waddar
 wbr	Wagdi Macrolanguage: raj
 wbs	West Bengal Sign Language
-wbt	Wanman
+wbt	Warnman
 wbv	Wajarri
 wbw	Woi
 wca	Yanomámi
@@ -7244,7 +7298,7 @@ wew	Wejewa
 wfg	Yafi Zorop
 wga	Wagaya
 wgb	Wagawaga
-wgg	Wangganguru
+wgg	Wangkangurru Wangganguru
 wgi	Wahgi
 wgo	Waigeo
 wgu	Wirangu
@@ -7258,7 +7312,7 @@ wib	Southern Toussian
 wic	Wichita
 wie	Wik-Epa
 wif	Wik-Keyangan
-wig	Wik-Ngathana
+wig	Wik Ngathan
 wih	Wik-Me'anha
 wii	Minidien
 wij	Wik-Iiyanh
@@ -7278,6 +7332,7 @@ wka	Kw'adza
 wkb	Kumbaran
 wkd	Wakde Mo
 wkl	Kalanadi
+wkr	Keerray-Woorroong
 wku	Kunduvadi
 wkw	Wakawaka
 wky	Wangkayutyuru
@@ -7285,6 +7340,7 @@ wla	Walio
 wlc	Mwali Comorian
 wle	Wolane
 wlg	Kunbarlang
+wlh	Welaun
 wli	Waioli
 wlk	Wailaki
 wll	Wali (Sudan)
@@ -7302,6 +7358,7 @@ wmb	Wambaya
 wmc	Wamas
 wmd	Mamaindé
 wme	Wambule
+wmg	Western Minyag
 wmh	Waima'a
 wmi	Wamin
 wmm	Maiwa (Indonesia)
@@ -7324,8 +7381,8 @@ wno	Wano
 wnp	Wanap
 wnu	Usan
 wnw	Wintu
-wny	Wanyi
-woa	Tyaraity
+wny	Wanyi Waanyi
+woa	Kuwema Tyaraity
 wob	Wè Northern
 woc	Wogeo
 wod	Wolani
@@ -7342,11 +7399,11 @@ wos	Hanga Hundi
 wow	Wawonii
 woy	Weyto
 wpc	Maco
-wra	Warapu
-wrb	Warluwara
+wra	Warapu Deprecated: 2021-02-20 Comments: see bpe, suo, uni
+wrb	Waluwarra Warluwara
 wrd	Warduji
-wrg	Warungu
-wrh	Wiradhuri
+wrg	Warungu Gudjal
+wrh	Wiradjuri
 wri	Wariyangga
 wrk	Garrwa
 wrl	Warlmanpa
@@ -7439,7 +7496,7 @@ xbp	Bibbulman
 xbr	Kambera
 xbw	Kambiwá
 xbx	Kabixí Deprecated: 2016-05-30
-xby	Batyala
+xby	Batjala Batyala
 xcb	Cumbric
 xcc	Camunic
 xce	Celtiberian
@@ -7549,7 +7606,7 @@ xmd	Mbudum
 xme	Median
 xmf	Mingrelian
 xmg	Mengaka
-xmh	Kuku-Muminh
+xmh	Kugu-Muminh
 xmj	Majera
 xmk	Ancient Macedonian
 xml	Malaysian Sign Language
@@ -7573,9 +7630,12 @@ xnd	Na-Dene languages Scope: collection
 xng	Middle Mongolian
 xnh	Kuanhua
 xni	Ngarigu
+xnj	Ngoni (Tanzania)
 xnk	Nganakarti
+xnm	Ngumbarl
 xnn	Northern Kankanay
 xno	Anglo-Norman
+xnq	Ngoni (Mozambique)
 xnr	Kangri Macrolanguage: doi
 xns	Kanashi
 xnt	Narragansett
@@ -7594,12 +7654,17 @@ xop	Kopar
 xor	Korubo
 xow	Kowaki
 xpa	Pirriya
+xpb	Northeastern Tasmanian Pyemmairrener
 xpc	Pecheneg
+xpd	Oyster Bay Tasmanian
 xpe	Liberia Kpelle Macrolanguage: kpe
+xpf	Southeast Tasmanian Nuenonne
 xpg	Phrygian
+xph	North Midlands Tasmanian Tyerrenoterpanner
 xpi	Pictish
 xpj	Mpalitjanh
 xpk	Kulina Pano
+xpl	Port Sorell Tasmanian
 xpm	Pumpokol
 xpn	Kapinawá
 xpo	Pochutec
@@ -7609,7 +7674,11 @@ xpr	Parthian
 xps	Pisidian
 xpt	Punthamara
 xpu	Punic
+xpv	Northern Tasmanian Tommeginne
+xpw	Northwestern Tasmanian Peerapper
+xpx	Southwestern Tasmanian Toogee
 xpy	Puyo
+xpz	Bruny Island Tasmanian
 xqa	Karakhanid
 xqt	Qatabanian
 xra	Krahô
@@ -7620,7 +7689,7 @@ xrg	Minang
 xri	Krikati-Timbira
 xrm	Armazic
 xrn	Arin
-xrq	Karranga
+xrq	Karranga Deprecated: 2020-03-28 Preferred-Value: dmw
 xrr	Raetic
 xrt	Aranama-Tamique
 xru	Marriammu
@@ -7632,7 +7701,7 @@ xsd	Sidetic
 xse	Sempan
 xsh	Shamang
 xsi	Sio
-xsj	Subi Deprecated: 2015-02-12 Preferred-Value: suj
+xsj	Subi Comments: see also suj
 xsl	South Slavey Macrolanguage: den
 xsm	Kasem
 xsn	Sanga (Nigeria)
@@ -7666,13 +7735,13 @@ xtu	Cuyamecalco Mixtec
 xtv	Thawa
 xtw	Tawandê
 xty	Yoloxochitl Mixtec
-xtz	Tasmanian
+xtz	Tasmanian Deprecated: 2020-03-28 Comments: see xpb, xpd, xpf, xph, xpl, xpv, xpw, xpx, xpz
 xua	Alu Kurumba
 xub	Betta Kurumba
 xud	Umiida
 xug	Kunigami
 xuj	Jennu Kurumba
-xul	Ngunawal
+xul	Ngunawal Nunukul
 xum	Umbrian
 xun	Unggaranggu
 xuo	Kuo
@@ -7797,7 +7866,7 @@ yij	Yindjibarndi
 yik	Dongshanba Lalo
 yil	Yindjilandji
 yim	Yimchungru Naga
-yin	Yinchia
+yin	Riang Lai Yinchia
 yip	Pholo
 yiq	Miqie
 yir	North Awyu
@@ -7901,6 +7970,7 @@ ysc	Yassic
 ysd	Samatao
 ysg	Sonaga
 ysl	Yugoslavian Sign Language
+ysm	Myanmar Sign Language
 ysn	Sani
 yso	Nisi (China)
 ysp	Southern Lolopo
@@ -7981,10 +8051,12 @@ zaw	Mitla Zapotec Macrolanguage: zap
 zax	Xadani Zapotec Macrolanguage: zap
 zay	Zayse-Zergulla Zaysete
 zaz	Zari
+zba	Balaibalan
 zbc	Central Berawan
 zbe	East Berawan
 zbl	Blissymbols Bliss Blissymbolics Suppress-Script: Blis
 zbt	Batui
+zbu	Bu (Bauchi State)
 zbw	West Berawan
 zca	Coatecas Altas Zapotec Macrolanguage: zap
 zch	Central Hongshuihe Zhuang Macrolanguage: za
@@ -8011,7 +8083,7 @@ zik	Zimakani
 zil	Zialo
 zim	Mesme
 zin	Zinza
-zir	Ziriya
+zir	Ziriya Deprecated: 2020-03-28 Preferred-Value: scv
 ziw	Zigula
 ziz	Zizilivakan
 zka	Kaimbulawa
@@ -8028,6 +8100,7 @@ zkt	Kitan
 zku	Kaurna
 zkv	Krevinian
 zkz	Khazar
+zla	Zula
 zle	East Slavic languages Scope: collection
 zlj	Liujiang Zhuang Macrolanguage: za
 zlm	Malay (individual language) Macrolanguage: ms
@@ -8046,8 +8119,8 @@ zmh	Makolkol
 zmi	Negeri Sembilan Malay Macrolanguage: ms
 zmj	Maridjabin
 zmk	Mandandanyi
-zml	Madngele
-zmm	Marimanindji
+zml	Matngala
+zmm	Marimanindji Marramaninyshi
 zmn	Mbangwe
 zmo	Molo
 zmp	Mpuono
@@ -8174,7 +8247,7 @@ ayh	Hadrami Arabic Preferred-Value: ayh Prefix: ar Macrolanguage: ar
 ayl	Libyan Arabic Preferred-Value: ayl Prefix: ar Macrolanguage: ar
 ayn	Sanaani Arabic Preferred-Value: ayn Prefix: ar Macrolanguage: ar
 ayp	North Mesopotamian Arabic Preferred-Value: ayp Prefix: ar Macrolanguage: ar
-bbz	Babalia Creole Arabic Preferred-Value: bbz Prefix: ar Macrolanguage: ar
+bbz	Babalia Creole Arabic Deprecated: 2020-03-28 Preferred-Value: bbz Prefix: ar Macrolanguage: ar
 bfi	British Sign Language Preferred-Value: bfi Prefix: sgn
 bfk	Ban Khor Sign Language Preferred-Value: bfk Prefix: sgn
 bjn	Banjar Preferred-Value: bjn Prefix: ms Macrolanguage: ms
@@ -8190,6 +8263,7 @@ cdo	Min Dong Chinese Preferred-Value: cdo Prefix: zh Macrolanguage: zh
 cds	Chadian Sign Language Preferred-Value: cds Prefix: sgn
 cjy	Jinyu Chinese Preferred-Value: cjy Prefix: zh Macrolanguage: zh
 cmn	Mandarin Chinese Preferred-Value: cmn Prefix: zh Macrolanguage: zh
+cnp	Northern Ping Chinese Northern Pinghua Preferred-Value: cnp Prefix: zh Macrolanguage: zh
 coa	Cocos Islands Malay Preferred-Value: coa Prefix: ms Macrolanguage: ms
 cpx	Pu-Xian Chinese Preferred-Value: cpx Prefix: zh Macrolanguage: zh
 csc	Catalan Sign Language Lengua de señas catalana Llengua de Signes Catalana Preferred-Value: csc Prefix: sgn
@@ -8199,8 +8273,10 @@ csf	Cuba Sign Language Preferred-Value: csf Prefix: sgn
 csg	Chilean Sign Language Preferred-Value: csg Prefix: sgn
 csl	Chinese Sign Language Preferred-Value: csl Prefix: sgn
 csn	Colombian Sign Language Preferred-Value: csn Prefix: sgn
+csp	Southern Ping Chinese Southern Pinghua Preferred-Value: csp Prefix: zh Macrolanguage: zh
 csq	Croatia Sign Language Preferred-Value: csq Prefix: sgn
 csr	Costa Rican Sign Language Preferred-Value: csr Prefix: sgn
+csx	Cambodian Sign Language Preferred-Value: csx Prefix: sgn
 czh	Huizhou Chinese Preferred-Value: czh Prefix: zh Macrolanguage: zh
 czo	Min Zhong Chinese Preferred-Value: czo Prefix: zh Macrolanguage: zh
 doq	Dominican Sign Language Preferred-Value: doq Prefix: sgn
@@ -8208,6 +8284,7 @@ dse	Dutch Sign Language Preferred-Value: dse Prefix: sgn
 dsl	Danish Sign Language Preferred-Value: dsl Prefix: sgn
 dup	Duano Preferred-Value: dup Prefix: ms Macrolanguage: ms
 ecs	Ecuadorian Sign Language Preferred-Value: ecs Prefix: sgn
+ehs	Miyakubo Sign Language Preferred-Value: ehs Prefix: sgn
 esl	Egypt Sign Language Preferred-Value: esl Prefix: sgn
 esn	Salvadoran Sign Language Preferred-Value: esn Prefix: sgn
 eso	Estonian Sign Language Preferred-Value: eso Prefix: sgn
@@ -8247,6 +8324,7 @@ jak	Jakun Preferred-Value: jak Prefix: ms Macrolanguage: ms
 jax	Jambi Malay Preferred-Value: jax Prefix: ms Macrolanguage: ms
 jcs	Jamaican Country Sign Language Preferred-Value: jcs Prefix: sgn
 jhs	Jhankot Sign Language Preferred-Value: jhs Prefix: sgn
+jks	Amami Koniya Sign Language Preferred-Value: jks Prefix: sgn
 jls	Jamaican Sign Language Preferred-Value: jls Prefix: sgn
 jos	Jordanian Sign Language Preferred-Value: jos Prefix: sgn
 jsl	Japanese Sign Language Preferred-Value: jsl Prefix: sgn
@@ -8262,11 +8340,14 @@ lce	Loncong Sekak Preferred-Value: lce Prefix: ms Macrolanguage: ms
 lcf	Lubu Preferred-Value: lcf Prefix: ms Macrolanguage: ms
 liw	Col Preferred-Value: liw Prefix: ms Macrolanguage: ms
 lls	Lithuanian Sign Language Preferred-Value: lls Prefix: sgn
-lsg	Lyons Sign Language Deprecated: 2018-03-08 Prefix: sgn
+lsb	Burundian Sign Language Langue des Signes Burundaise Preferred-Value: lsb Prefix: sgn
+lsg	Lyons Sign Language Deprecated: 2018-03-08 Preferred-Value: lsg Prefix: sgn
 lsl	Latvian Sign Language Preferred-Value: lsl Prefix: sgn
+lsn	Tibetan Sign Language Preferred-Value: lsn Prefix: sgn
 lso	Laos Sign Language Preferred-Value: lso Prefix: sgn
 lsp	Panamanian Sign Language Lengua de Señas Panameñas Preferred-Value: lsp Prefix: sgn
 lst	Trinidad and Tobago Sign Language Preferred-Value: lst Prefix: sgn
+lsv	Sivia Sign Language Preferred-Value: lsv Prefix: sgn
 lsy	Mauritian Sign Language Preferred-Value: lsy Prefix: sgn
 ltg	Latgalian Preferred-Value: ltg Prefix: lv Macrolanguage: lv
 lvs	Standard Latvian Preferred-Value: lvs Prefix: lv Macrolanguage: lv
@@ -8316,7 +8397,7 @@ psp	Philippine Sign Language Preferred-Value: psp Prefix: sgn
 psr	Portuguese Sign Language Preferred-Value: psr Prefix: sgn
 pys	Paraguayan Sign Language Lengua de Señas del Paraguay Preferred-Value: pys Prefix: sgn
 rms	Romanian Sign Language Preferred-Value: rms Prefix: sgn
-rsi	Rennellese Sign Language Deprecated: 2017-02-23 Prefix: sgn
+rsi	Rennellese Sign Language Deprecated: 2017-02-23 Preferred-Value: rsi Prefix: sgn
 rsl	Russian Sign Language Preferred-Value: rsl Prefix: sgn
 rsm	Miriwoong Sign Language Preferred-Value: rsm Prefix: sgn
 sdl	Saudi Arabian Sign Language Preferred-Value: sdl Prefix: sgn
@@ -8329,6 +8410,7 @@ slf	Swiss-Italian Sign Language Preferred-Value: slf Prefix: sgn
 sls	Singapore Sign Language Preferred-Value: sls Prefix: sgn
 sqk	Albanian Sign Language Preferred-Value: sqk Prefix: sgn
 sqs	Sri Lankan Sign Language Preferred-Value: sqs Prefix: sgn
+sqx	Kufr Qassem Sign Language (KQSL) Preferred-Value: sqx Prefix: sgn
 ssh	Shihhi Arabic Preferred-Value: ssh Prefix: ar Macrolanguage: ar
 ssp	Spanish Sign Language Preferred-Value: ssp Prefix: sgn
 ssr	Swiss-French Sign Language Preferred-Value: ssr Prefix: sgn
@@ -8364,10 +8446,11 @@ xki	Kenyan Sign Language Preferred-Value: xki Prefix: sgn
 xml	Malaysian Sign Language Preferred-Value: xml Prefix: sgn
 xmm	Manado Malay Preferred-Value: xmm Prefix: ms Macrolanguage: ms
 xms	Moroccan Sign Language Preferred-Value: xms Prefix: sgn
-yds	Yiddish Sign Language Deprecated: 2015-02-12 Prefix: sgn
+yds	Yiddish Sign Language Deprecated: 2015-02-12 Preferred-Value: yds Prefix: sgn
 ygs	Yolŋu Sign Language Preferred-Value: ygs Prefix: sgn
 yhs	Yan-nhaŋu Sign Language Preferred-Value: yhs Prefix: sgn
 ysl	Yugoslavian Sign Language Preferred-Value: ysl Prefix: sgn
+ysm	Myanmar Sign Language Preferred-Value: ysm Prefix: sgn
 yue	Yue Chinese Cantonese Preferred-Value: yue Prefix: zh Macrolanguage: zh
 zib	Zimbabwe Sign Language Preferred-Value: zib Prefix: sgn
 zlm	Malay (individual language) Preferred-Value: zlm Prefix: ms Macrolanguage: ms
