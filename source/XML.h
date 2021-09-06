@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			XML.h
-/// \author			Bruce Waters, revised for wxWidgets by Bill Martin
+/// \author			Bruce Waters, revised for wxWidgets by Bill Martin 
 /// \date_created	6 January 2005
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
