@@ -557,6 +557,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->LogUserAction(msg);
 
 				pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+				pApp->m_bJustKeyedBackspace = FALSE;
 
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
@@ -784,6 +785,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 						delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
 				}
@@ -793,6 +795,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->LogUserAction(_T("User cancelled OnNewDocument() while bUseSourceDataFolderOnly"));
 
 				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14, restore default
+
+				pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+				
 
 				return TRUE;
 			}
@@ -856,6 +861,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_pTargetBox->GetTextCtrl()->SetValue(_T("")); // whm 12Jul2018 added GetTextCtrl()-> part
 						if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 							delete pApp->m_pBuffer;
+												
+						pApp->m_bJustKeyedBackspace = FALSE;  // initialise,  (altering box width uses this)
+						
+
 						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 						pView->Invalidate();
 						GetLayout()->PlaceBox();
@@ -868,6 +877,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// BEW 7Oct14, restore default
 					pApp->m_bZWSPinDoc = FALSE;
 
+					
+					
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					
 					return TRUE;
 				}
 				else // must be wxID_OK
@@ -989,6 +1002,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 							pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
+							
+							
+							pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+							
 							return TRUE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
@@ -1076,12 +1093,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_curOutputPath = _T("");
 						pApp->m_curOutputBackupFilename = _T("");
 						pView->Invalidate(); // our own
+
+						pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 						GetLayout()->PlaceBox();
 						//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
 						//doc/view black box on which we rely, leading to our event handlers
 						//failing to be called, so return TRUE instead
-						pApp->LogUserAction(_T("No output document name entered in OnNewDocument()"));
-
+						
+						
+						pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+						
 						pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
 
 						return TRUE;
@@ -1111,6 +1132,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputFilename = _T("");
 					pApp->m_curOutputPath = _T("");
 					pApp->m_curOutputBackupFilename = _T("");
+					
+					
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
 					//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
@@ -1282,6 +1307,10 @@ bool CAdapt_ItDoc::OnNewDocument()
                     // Do a diagnostic run (see View page of Preferences)
                     pApp->LogUserAction(msgEnglish);
                     wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					
+					
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					
                     return TRUE;
                 }
             }
@@ -1329,6 +1358,10 @@ bool CAdapt_ItDoc::OnNewDocument()
                     pApp->m_bParsingSource = FALSE;
                     pApp->m_bMakeDocCreationLogfile = FALSE;
                     wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					
+					
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					
                     return TRUE;
                 }
             }
@@ -1399,13 +1432,20 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->LogUserAction(_T("No source language data in input file in OnNewDocument()"));
 
 				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
-
+				
+				
+				pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+				
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
 			}
 
 			// try this for the refactored layout design....
 			CLayout* pLayout = GetLayout();
+			
+			
+			pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+			
 			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and
 						// UpdateTextHeights() and calls other relevant setters
 #ifdef _NEW_LAYOUT
@@ -1457,6 +1497,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 					pView->Invalidate();
 					pApp->m_nActiveSequNum = 0;
+					
+					
+					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					
                     pApp->m_nOldSequNum = -1; // no previous location exists yet
 					// get rid of the stored rebuilt source text, leave a space there instead
 					if (pApp->m_pBuffer)
@@ -1699,8 +1743,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+	
+	
+	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	
 	return TRUE;
 }
+
 /*
 void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse)
 {
@@ -6408,6 +6457,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
 		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+		
+		
+		pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+		
+
 		return TRUE; // Added by JF.
 	}
 
@@ -6485,10 +6539,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	}
 	// Sequence numbers are properly advancing, from 0
 #endif
-
+	
+	
+	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	
+	
 #ifdef _NEW_LAYOUT
+
 	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
+
 	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #endif
 	if (!bIsOK)
@@ -6805,6 +6865,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	}
 //#endif
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+	
+	
+	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	
+
 	return TRUE;
 }
 

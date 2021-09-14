@@ -3080,6 +3080,10 @@ public:
 	int	m_curGapWidth;	 // inter-pile gap, measured in pixels (follows a pile)
 	int m_saveCurGapWidth; // put normal width in here when free translating (which uses different gap)
 
+	// BEW 24Aug21 restoring a boolean deleted years ago, it resufaced in Bill's old code for
+	// updating a changed box width -- one call, sets it FALSE at one call in OnKeyDown() in PhraseBox.cpp line 7667, no idea if ever it's TRUE - ask Bill
+	bool m_bSuppressRecalcLayout;
+
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int	m_nSrcHeight;	// line height for source language text
 	int	m_nTgtHeight;	// ditto for target lines & the pApp->m_targetBox
@@ -4303,6 +4307,7 @@ public:
     bool        m_bMovingToDifferentPile;
 
     short       m_nExpandBox;
+	bool		m_bFinalGapWidthReady; // False, until set TRUE by a RecalcLayout() call.
 
     /// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so
     /// that expansion becomes necessary - see the FixBox() function in CPhraseBox class.
@@ -5589,6 +5594,10 @@ private:
 	bool	SetupCustomWorkFolderLocation();
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
+
+	bool    m_bJustKeyedBackspace; // BEW 3Sep21
+	int		m_nGapChangeIncrement; // BEW 4Sep21 takes -ve value (gap decreasing), 0 (no change), +ve (gap increasing)
+									// add it always to CreateStrip when at active pile and value is not zero
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
 #endif

@@ -210,7 +210,8 @@ private:
 	wxArrayPtrVoid		m_stripArray;
 	wxArrayInt			m_invalidStripArray;
 	enum layout_selector	m_lastLayoutSelector; // RecalcLayout() sets it, Draw() uses it
-
+public:
+	enum layout_selector	m_chosenSelector; // RecalcLayout() sets it, CreateStrip() uses it
 private:
 #ifdef Do_Clipping
 	// four ints define the clip rectange top, left, width & height for erasure
@@ -262,6 +263,8 @@ private:
 	int			m_nSaveGap;
 	int			m_numVisibleStrips;
 public:
+	enum phraseBoxWidthAdjustMode cachedBoxMode; // BEW added 25Aug21 - to pass value to RecalcLayout() calls
+	enum phraseBoxWidthAdjustMode GetCachedBoxMode(); // BEW added 26Aug21 - I just like accessors
 
 	int			m_MinPileWidth; // this is a mirror in Layout class for Pile's m_nMinWidth
 	int			m_curBoxWidth;  // BEW 28Jul21 
@@ -286,10 +289,10 @@ public:
 						// more interim values accessible from Layout class, as below...
 	int			m_nWideSrcTgtWidth; // Possibly wider than m_nSrcTgtWidth if phrasebox +  button width got widened
 						// enough to require widening for gap purposes, and/or for list slop widening
-	int			m_nFinalPhraseBoxGapWidth; // This one should be m_nWideSrcTgtWidth + 2 times the interpile gap width
+	int			m_nFinalPhraseBoxGapWidth; // This one should be m_nWideSrcTgtWidth +  the interpile gap width
 						// and this one then sets the phrase box's gap width. Note, if this one is very large
 						// because m_nMinWidth was set very large due to long src or tgt strings, this member does
-						// NOT cause widening or list or phrasebox; it just ensures that any changes to list or
+						// NOT cause widening of list or phrasebox; it just ensures that any changes to list or
 						// phrasebox widths can be accomadated within the m_nFinalPhraseBoxGapWidth's span
 
 private:
@@ -345,9 +348,11 @@ public:
 	// BEW 13Aug18, deprecated my version below, as Bill says focus is not handled uniformly across all platforms
 	//bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
 									  // - for use in the refactored FixBox(), and moved to CLayout class
+
+
 	bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
 								   // to effect a widening or contracting of the phrasebox width	
-
+	
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these
 										 // are managed by m_pPiles list & must persist
@@ -482,8 +487,10 @@ public:
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
 //GDLC Added third parameter to RecalcLayout with default value steadyAsSheGoes
-	bool		RecalcLayout(SPList* pList, enum layout_selector selector,
-					enum phraseBoxWidthAdjustMode = steadyAsSheGoes);
+//	bool		RecalcLayout(SPList* pList, enum layout_selector selector); // BEW 1Sep21 removed the unneeded widthMode final param
+// test with 2016 version of RecalcLayout
+	bool		RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode = steadyAsSheGoes);
+	
 	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
 									int nStripWidth); // doesn't change the pile composition,
 											// just lays them out, ensuring  proper spacing

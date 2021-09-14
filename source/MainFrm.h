@@ -277,7 +277,8 @@ public:
 	bool m_bKbSvrGlossesTicked;
 
 //#endif // _KBSERVER
-	// bool DoPhraseBoxWidthUpdate(); BEW 14Aug18 - might not need this
+
+	bool DoPhraseBoxWidthUpdate();
 
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar

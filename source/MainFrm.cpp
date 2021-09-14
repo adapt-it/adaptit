@@ -5244,9 +5244,6 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 #endif
 
 // BEW added 30July18, this is aa handler for doing a box width update.
-// BEW 14Aug18 Actually, it may not be needed in my latest code, so I'll comment it
-// out for now
-/*
 bool CMainFrame::DoPhraseBoxWidthUpdate()
 {
 	bool bSuccess = TRUE;
@@ -5258,7 +5255,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	CLayout* pLayout = pApp->GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
+	//enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
 
 	// mark invalid the strip following the new active strip
 	if (pApp->m_nActiveSequNum != -1)
@@ -5279,11 +5276,14 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 			}
 		}
 	}
-	// Renew the layout
+	// Renew the layout - at this stage, do it without any attempt to widen or
+	// contract the phrasebox gap. Those two options will be dealt with below.
+	// RecalcLayout()'s 3rd param is a boxMode of steadyAsSheGoes, which matches
+	// the use of keep_strips_keep_piles
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 	// update the active pile pointer 
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -5316,13 +5316,45 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	int a = pApp->GetLayout()->m_curBoxWidth;
 	int b = pApp->GetLayout()->m_curListWidth;
 	int max = ::wxMax(a, b);
-	int pileGap = pApp->GetLayout()->GetGapWidth();
-	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	// BEW 25Aug21, in case m_curBoxWidth (pre-expansion) is not uptodate, get the box rectangle's
+	// width and compare that with max. If it's greater, then reset max to that value
+	wxRect boxRect = gpApp->m_pTargetBox->GetRect();
+	int rectWidth = boxRect.GetWidth();
+	max = ::wxMax(max, rectWidth);
+	int pileGap = pApp->GetLayout()->GetGapWidth(); // is the interPileGap (eg. approx 12 + or - a bit)
+													// as set from Preferences...
+	// BEW 25Aug21 the old calculation for need of expansion follows, commented out:
+	// if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	// it's logically flawed. Both sides of the OR typically give a FALSE result. The code that determines if an expansion is
+	// needed, is identical to the code in UpdatePhraseBoxWidth_Expanding(), which examines text extent for ever character typed,
+	// so that code is what needs to replace the legacy (commented out here) test. A further problem is within the TRUE block,
+	// as the gap width calculation is a mickey mouse small number of pixels - inadequate when the increase to the width was
+	// to add the slop value, so a fix for that is needed too.
+	wxString inStr = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
+
+	bool bUpdateNeeded = pApp->m_pTargetBox->CalcNeedForExpansionUpdate(inStr, bUpdateNeeded); 
+
+	if (bUpdateNeeded) // This is the crucial test
 	{
 		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
-		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		
+		// BEW 25Aug21 The next line is useless. Setting the gap to the pre-expansion box or list width (whichever
+		// is wider) plus the interpile gap width (usually something like 8 to 16 pixels) leaves the gap hopelessly
+		// short of the gap that needs to be calculated. The expansion was by a whole slop value (dozens of pixels),
+		// so without a better calculation here, the gap is left small and the new width of the phrase box will
+		// overlap some of what piles follow. Instead, we need to get the phrasebox width (pre-expansion, from its
+		// width of the wxRect for the phrasebox), and add the slop, and other things to get the right phrasebox
+		// // gap with. The max value above should fit the bill for the pre-expansion width, and then 
+		// SetPhraseBoxGapWidth() should do the job, after the passed in param is passed in with slop and button
+		// width added, and (of course) the value of the interPileGap. So .....
+		//pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap);  <<-- deprecated, mickey mouse put that together
+		int theSlop = pApp->GetLayout()->slop;
+		int buttonWidth = pApp->GetLayout()->buttonWidth + 1; // constant width, +1 for the gap between box & button
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + theSlop + buttonWidth + pileGap); // set by this accessor, no internal calcs done
+
+		// BEW 25Aug21 The rest should be okay now
 		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
-		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles); // gotta ensure strips are rebuilt
 	}
     // whm 13Aug2018 Note: SetFocus() call below is correctly set before the 
     // SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar) call below.
@@ -5333,7 +5365,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
 }
-*/
+
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //

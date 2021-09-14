@@ -2591,7 +2591,8 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		int boxWidth = pTxtBox->GetClientRect().width;
 		wxLogDebug(_T("%s::%s() line %d: just ENTERED: boxWidth from wxRect's width: %d, Initial tgt str value: %s , slop %d , tgt = %s"),
 			__FILE__, __FUNCTION__, __LINE__, boxWidth, str.c_str(), pApp->GetLayout()->slop,  pSPhr->m_adaption.c_str());
-		if (pSPhr->m_nSequNumber >= 2775 || pSPhr->m_nSequNumber <= 2795)
+		//if (pSPhr->m_nSequNumber > 0 || pSPhr->m_nSequNumber <= 411)
+		if (pSPhr->m_nSequNumber > 0 && pSPhr->m_nSequNumber == 2)
 		{
 			int halt_here = 1;
 		}
@@ -3801,8 +3802,17 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		int boxWidth = pLayout->GetCurBoxWidth(); // gets m_curBoxWidth
 		int listWidth = pLayout->m_curListWidth;
 		int gapWidth = pLayout->GetSavedGapWidth(); // gets m_nCurGapWidth
-		wxLogDebug(_T("%s::%s():line %d, in PLACE_PHRASE_BOX: phrasebox width %d , listWidth %d , and button %d , twice interpile gap  %d "),
-			__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth , pLayout->ExtraWidth(), (2 * gapWidth));
+		if (listWidth >= 0)
+		{
+			// it's undefined if negative, so don't try to log here
+			wxLogDebug(_T("%s::%s():line %d, BEFORE DoGetSuitableText_For...(): phrasebox width %d , listWidth %d , and button %d , interpile gap  %d "),
+				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pLayout->ExtraWidth(), gapWidth);
+			int halt_here = 1;
+		}
+		else
+		{
+			wxLogDebug(_T("%s::%s():line %d, BEFORE DoGetSuitableText_For...(): LIST WIDTH UNDEFINED - correct "),__FILE__, __FUNCTION__, __LINE__);
+		}
 #endif
 
 		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
@@ -3972,20 +3982,26 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		CPile* pile = GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pile != NULL);
-		int stripIndex = pile->GetStripIndex();
-		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		int stripArrayCount = (int)pLayout->GetStripArray()->GetCount();
+		if (stripArrayCount > 0)
 		{
-			stripIndex++;
-			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
-			int stripWidth = pStrip->Width();
-			int freeS = pStrip->GetFree();
-			if (freeS > stripWidth / 4)
+			int activeStripIndex = pile->GetStripIndex(); // returns m_pOwningStrip->m_nStrip if Owner strip is not NULL
+			if (activeStripIndex >= 0) // do this TRUE block
 			{
-				// BEW changed 20Jan11, we want only unique indices in the array
-				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
+				// There is an owning strip for the active pile, it's the 'active' strip, so point to it
+				CStrip* pStrip = pLayout->GetStripByIndex(activeStripIndex);
+				int stripWidth = pStrip->Width();
+				int freeS = pStrip->GetFree();
+				if (freeS > stripWidth / 4)
+				{
+					// BEW changed 20Jan11, we want only unique indices in the array
+					AddUniqueInt(pLayout->GetInvalidStripArray(), activeStripIndex);
+				}
+				// That prepares for the RecalcLayout() to know which strip is active one
 			}
-		}
-	}
+		} // end of TRUE block for test: if (stripArrayCount > 0)
+	} // end of TRUE block for test: if (pApp->m_nActiveSequNum != -1)
+
     // recalculate the layout; before the actual strips are rebuilt, doc class member
     // ResetPartnerPileWidth(), with bool param, bNoActiveLocationCalculation, default
     // FALSE is called, to get a fresh active pile pointer in m_pileList, and a new gap
@@ -4083,11 +4099,14 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 #endif
 	// BEW 27Jul18 set the phrasebox gap correctly
 
-	CSourcePhrase* pSPhr2 = pApp->m_pActivePile->GetSrcPhrase();
+	CPile* pilePtr = this->GetPile(pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+	CSourcePhrase* pSPhr2 = pilePtr->GetSrcPhrase();
+	//CSourcePhrase* pSPhr2 = pApp->m_pActivePile->GetSrcPhrase();
 	int sn = pSPhr2->m_nSequNumber;
 	wxUnusedVar(sn);
 #if defined (_DEBUG) && defined(_OVERLAP)
-	if (sn >= 2770 && sn <= 2795)
+	//if (sn > 0 && sn <= 411)
+	if (sn > 0 && sn == 2)
 	{
 		int halt_here = 1;
 	}
@@ -4129,8 +4148,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// Set the gap for the phrasebox and its button...
 
 	// Force the recalculation of the gap width, don't just put max into the parameter list
-	pApp->m_pActivePile->SetPhraseBoxGapWidth(steadyAsSheGoes); // sets m_nWidth, which belongs to the active pile
-	int mnWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth();
+	int mnWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth(); // accessor, returns current value
+	pApp->m_pActivePile->SetPhraseBoxGapWidth(); // sets m_nWidth, which belongs to the active pile
+	
 	wxUnusedVar(mnWidth);
 
 	//wxLogDebug(_T("%s::%s() line %d: max box or list = %d : Layout's m_nCurGapWidth %d, active pile's m_nWidth %d, listWidth %d , tgt = %s"),
@@ -6641,50 +6661,33 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
-
-
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("      %s::%s() line %d : RESIZE BOX entered, const nWidth %d , for text = %s , active SN %d"),
+			__FILE__, __FUNCTION__, __LINE__, nWidth, text.c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber);
+	}
+#endif
 	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-	#if defined(_DEBUG) // && defined(_OVERLAP)
+	#if defined(_DEBUG) && defined(_OVERLAP)
 		//pApp->MyLogger();
 	#endif
 	int sequNum = 0; // initialise - for logging
 	wxUnusedVar(sequNum);
 	
-#if defined (_DEBUG) && defined(_OVERLAP)
+#if defined (_DEBUG) //&& defined(_OVERLAP)
 	{
 		CSourcePhrase* pSP = pActivePile->GetSrcPhrase();
 		int sn = pSP->m_nSequNumber;
 		sequNum = sn;
-		if (sn >= 2765 && sn <= 2795)  // 30 piles - enough for testing in the 1 chapter of Luke ch 1 near end
+		if (sn == 2)
 		{
 			int halt_here = 1;
 		}
 	}
 #endif
 
-#if defined(_DEBUG) && defined(_EXPAND)
-		{
-			wxString srcStr = pActivePile->GetSrcPhrase()->m_key;
-			wxString glossStr = pActivePile->GetSrcPhrase()->m_gloss;
-			wxString adaptionStr = pActivePile->GetSrcPhrase()->m_adaption;
-			CSourcePhrase* pSPhr = pActivePile->GetSrcPhrase();
-			sequNum = pSPhr->m_nSequNumber;
-			//pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-			if (gbIsGlossing)
-			{
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , passed in box text: %s , const nWidth = %d  *****"),
-					__FILE__, __FUNCTION__, __LINE__, sequNum, srcStr.c_str(), glossStr.c_str(), text.c_str(), nWidth);
-			}
-			else
-			{  // adapting
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , adaption = %s , passed in box text: %s , const nWidth = %d  *****"),
-					__FILE__, __FUNCTION__, __LINE__, sequNum, srcStr.c_str(), adaptionStr.c_str(), text.c_str(), nWidth);
-			}
-		}
-	#endif
-	
 
 	// Check that m_nWidth (the phrasebox at gap's width) has not become less than 
 	// the m_nMinWidth value (the box contents's width as shown at non-active locations)
@@ -6695,37 +6698,33 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	CLayout* pLayout = GetLayout(); // BEW 11Aug21 in case needed within
 	wxUnusedVar(pLayout); // avoid compiler warning if unused
 	
-	int gottenMinWidth = pActivePile->GetMinWidth(); // BEW Added 16Aug21 - make it simpler for debugger stepping
-	if (nWidth < pActivePile->GetMinWidth())
-	{
-		aWidth = gottenMinWidth; // redo the calculation (BEW 29Jul21, now refactored)
-	}
-
-	// BEW 16Aug21, Do we need to take listWidth into consideration here, to extend the width before the
-	// rectBox change is done next? Any such fiddle should be done beforehand in CalcPhraseBoxWidth()?
 	
-	// BEW 28Jul21 need the aWidth calculation above for the rectBox calc below
-	// pLoc, nWidth and nHeight are passed in as const & so ar immutable. This local rectBox
-	// is setup to grab those values, and set new width and height values as desired, for
-	// altering m_pTargetBox's width and height - gotta be done in logical coords, and then
-	// we can convert to device coords.
-	// BEW 16Aug21 a local var to help when checking values when stepping thru the code
-	int preResizeWidth = nWidth;
-	wxUnusedVar(preResizeWidth);
+	// BEW 1Sep21 Phrasebox resizes are caused in two different ways. 
+	// Way 1: for every character typed, OnChar() will set the Layout boolean m_bJustKeyedBackspace
+	// to FALSE for normal characters typed into the box, or TRUE when backspace was typed. Typing into
+	// the box can lengthen the adaptation till it gets dangerously close to the end of the box. Or,
+	// we detect that repeated backspaces have reduced the text extent sufficiently that enough
+	// free space exists to allow a box contraction (but disallow contraction less than the dropdown list's
+	// width). Since OnPhraseBoxChanged() fires at every character or backspace typed, in that function
+	// we interrogate for when expanding or contracting must fire - and do the adjustment, and then call
+	// ResizeBox() to get the change updated.
+	// Way 2: OnPhraseBoxChanged() might not be called, for instance, PlacePhraseBox() might be called,
+	// when the phrasebox moves to a new active location. Typing, therefore, may not happen, but resizing
+	// might be needed. So FixBox() and PlaceBox() will have similar code to work out what should happen
+	// and call ResizeBox() and follow with a RecalcLayout() call & then view's Invalidate() etc.
+
+	// BEW 1Sep21, the important note to recall is that if a newWidth value for the phrasebox is
+	// needed, it must be calculated correctly BEFORE ResizeBox() is called, because the latter
+	// takes in a nWidth value which is constant
 
 	// Do the resize
 	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
 		(*pLoc).y + nHeight + 4)); // logical coords
 
-	// BEW 16Aug21 send the new width to Layout's m_curBoxWidth
-	pLayout->m_curBoxWidth = (*pLoc).x + aWidth;
-
-#if defined (_DEBUG) && defined(_OVERLAP)
-	{  // adapting
-		wxLogDebug(_T("%s:%s():line %d, Pre-RESIZE of box width: %d  Post_RESIZE of box width: %d      AND POST VALUE SENT TO LAYOUT m_curBoxWidth"),
-			__FILE__, __FUNCTION__, __LINE__, preResizeWidth, pLayout->m_curBoxWidth);
-	}
-#endif
+	// BEW 16Aug21 send the new width to Layout's m_curBoxWidth -- 20Aug21 No no! This
+	// function might be reentered several times at this active location, so comment
+	// out next line because each reentry would set the box width wider
+	//pLayout->m_curBoxWidth = (*pLoc).x + aWidth;
 
 	// convert to device coords
 	wxClientDC aDC(pApp->GetMainFrame()->canvas);
@@ -6783,7 +6782,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 
 #if defined (_DEBUG) && defined(_OVERLAP)
 	{
-		wxLogDebug(_T("%s::%s() line %d, RESIZEBOX'S rectBox WIDTH after resizing = %d     *********** From BILL's Legacy code"),
+		wxLogDebug(_T("%s::%s() line %d, RESIZEBOX'S rectBox WIDTH after resizing = %d   from rectBox.GetWidth()"),
 			__FILE__, __FUNCTION__, __LINE__, rectBox.GetWidth());
 	}
 #endif
@@ -6796,10 +6795,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	if (gnVerticalBoxBloat > 0)
 		rectBox.SetHeight(rectBox.GetHeight() + gnVerticalBoxBloat); // allow for the leadings on the font
 
-#if defined (_DEBUG) && defined(_OVERLAP)
+#if defined (_DEBUG) //&& defined(_OVERLAP)
 	{
 		// log where the top,left is, and the above calc of the width, and height
-		wxLogDebug(_T("%s::%s() line %d, TopLeft [ Top %d , Left %d ] Width %d  Height %d  In logical coords"),
+		wxLogDebug(_T("   TWEAKED RECTBOX   %s::%s() line %d, TopLeft [ Top %d , Left %d ] Width %d  Height %d  In logical coords"),
 			__FILE__, __FUNCTION__, __LINE__, rectBox.GetTop(), rectBox.GetLeft(),
 			rectBox.GetWidth(), rectBox.GetHeight());
 	}
@@ -6983,7 +6982,14 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+	pLayout->cachedBoxMode = steadyAsSheGoes; // BEW added 28Aug21
 
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("      %s::%s() line %d : RESIZE BOX leaving, const nWidth %d , contains text = %s , active SN %d"),
+			__FILE__, __FUNCTION__, __LINE__, nWidth, pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber);
+	}
+#endif
 }
 
 void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
