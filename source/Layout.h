@@ -266,6 +266,8 @@ public:
 	enum phraseBoxWidthAdjustMode cachedBoxMode; // BEW added 25Aug21 - to pass value to RecalcLayout() calls
 	enum phraseBoxWidthAdjustMode GetCachedBoxMode(); // BEW added 26Aug21 - I just like accessors
 
+	bool		m_bAmWithinPhraseBoxChanged;
+
 	int			m_MinPileWidth; // this is a mirror in Layout class for Pile's m_nMinWidth
 	int			m_curBoxWidth;  // BEW 28Jul21 
 	int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)

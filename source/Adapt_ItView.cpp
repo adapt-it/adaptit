@@ -6661,12 +6661,14 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
+	/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 	{
 		wxLogDebug(_T("      %s::%s() line %d : RESIZE BOX entered, const nWidth %d , for text = %s , active SN %d"),
 			__FILE__, __FUNCTION__, __LINE__, nWidth, text.c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber);
 	}
 #endif
+*/
 	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 

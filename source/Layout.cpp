@@ -237,6 +237,8 @@ void CLayout::InitializeCLayout()
 	m_pOffsets = NULL;
 	m_pSavePileList = NULL;
 	m_bInhibitDraw = FALSE;
+
+	m_bAmWithinPhraseBoxChanged = FALSE;
 	m_pApp->m_bJustKeyedBackspace = FALSE;  // Set TRUE or FALSE in CPhraseBox's OnChar()
 	cachedBoxMode = steadyAsSheGoes; // ( = 1 ) the default, except when contracting or expanding <<-- m_bJustKeyedBackspace should enable me to remove all use of the WidthMode enum in the app
 #ifdef Do_Clipping

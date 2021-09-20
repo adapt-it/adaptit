@@ -790,7 +790,7 @@ int CPile::CalcPileWidth()
 				// the width must be decreased. The int member will be +ve for an expansion, and
 				// -ve for a contraction. 
 
-				int defaultWidth = m_pLayout->m_defaultActivePileWidth; // 4 times the width of 'w'
+				int defaultWidth = m_pLayout->SetDefaultActivePileWidth(); // 4 times the width of 'w'
 				// pileWidth, based on src/tgt etc text extents is already calculated above;
 				// if it is less than defaultWidth, widen to be same as defaultWidth
 				int storeOldWidth = pileWidth;
@@ -839,7 +839,7 @@ int CPile::CalcPhraseBoxWidth()
 
 	// int currBoxWidth = m_pLayout->m_curBoxWidth; // <<-- do not initialize this way,
 	//                                              // and especially do not update it at end
-	int currBoxWidth = m_pLayout->m_defaultActivePileWidth; // safe to start at this width (4 times 'w' width)
+	int currBoxWidth = m_pLayout->SetDefaultActivePileWidth(); // safe to start at this width (4 times 'w' width)
 
 #if defined(_DEBUG) && defined(_EXPAND)
 	//	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (might get augmented by FixBox):  %d , for box text [ %s ]"),
@@ -971,7 +971,7 @@ int CPile::CalcPhraseBoxWidth()
 
 int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
-	wxUnusedVar(widthMode);
+	wxUnusedVar(widthMode); // BEW17Sep21 withMode is customarily set to steadyAsSheGoes, but it is not used here
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// BEW 4Aug21 retain this legacy comment; it's true only for when there is no valid
 	// dropdown list sizeable.
@@ -983,6 +983,9 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// wxTextCtrl itself; note, for version 2 which supports
 	// a glossing line, the box will contain a gloss rather than an adaptation whenever
 	// gbIsGlossing is TRUE. Glossing could be using the target font, or the navText font.
+
+	int miniSlop = pApp->GetMiniSlop(); // use the miniSlop value for both expand or contract
+	CPhraseBox* pBox = pApp->m_pTargetBox;
 
 	int boxGapWidth = 0; //  what we will return
 	int phraseBoxWidth = this->CalcPhraseBoxWidth(); // this has slop and any dropdown list width
@@ -1020,7 +1023,6 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 					__FILE__, __FUNCTION__, __LINE__, phraseBoxWidth, afterExtra, boxGapWidth, pSP->m_srcPhrase.c_str());
 			}
 #endif
-
 			int gtkAugment = 0;
 			wxUnusedVar(gtkAugment); // prevent compiler warning in Win or OSX builds
 #ifdef __wxGTK__
@@ -1028,28 +1030,6 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			boxGapWidth += gtkAugment;
 #endif
 		}
-
-		// BEW 8Sep21 encapsulate a box expansion or contraction here, if app's m_nGapWidthIncrement value has just
-		// been set to a value different than 0, by PhraseBox.cpp's call of OnPhraseBoxChanged(wxCommandEvent event)
-		if (pApp->m_nGapChangeIncrement != 0) // LHS could be -ve (contracting) or 0 or +ve (expanding)
-		{
-			// PhraseBox.cpp's OnPhraseBoxChanged(wxCommandEvent event) has triggered an expand or contract of the
-			// app's m_pTargetBox, by the amount in app's m_nGapChangeIncrement; so expand or contract by that amount,
-			// and make the same change to the gap width here, before ResizeBox() and RecaclLayout with selector
-			// create_strips_keep_piles, are called
-			int newSrcPhraseGap = 0; // initialise
-			int oldSrcPhraseGap = this->GetPhraseBoxGapWidth();
-			int changedGap = oldSrcPhraseGap + pApp->m_nGapChangeIncrement;
-			newSrcPhraseGap = SetPhraseBoxGapWidth(changedGap); // resets m_nWidth, and returns newSrcPhraseGap
-#if defined(_DEBUG) //&& defined(_OVERLAP)
-			if (!gbDoingInitialSetup)
-			{
-				wxString src = m_pSrcPhrase->m_key;
-				wxLogDebug(_T("%s::%s():line %d, AT PHRASE BOX CHANGED, oldSrcPhraseGap %d ,  changedGap %d , newSrcPhraseGap = %d , increment %d , for src: %s "),
-					__FILE__, __FUNCTION__, __LINE__, phraseBoxWidth, changedGap, newSrcPhraseGap, pApp->m_nGapChangeIncrement, src.c_str());
-			}
-#endif
-		} // end of TRUE block for test: if (pApp->m_nGapChangeIncrement != 0)
 	}
 	else
 	{

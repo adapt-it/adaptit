@@ -267,6 +267,22 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		// between Choose Translation's list and the phrasebox dropdown's (open) list
 		int curIndex = gpApp->m_pTargetBox->GetDropDownList()->GetSelection(); // the current index for the dropdown list selection
 
+		// BEW 16Sep21 I was able to cause a crash here. What I did was I expanding and contracted the phrasebox, and had two list
+		// entries: "it" was at index 0, and "it1234" was at index 1, and src text was "it". I chose the "it1234" for the phrasebox. 
+		// Then I clicked on the next pile (src & tgt = "came"), all was well. Then I clicked back at the "it" pile, and then clicked
+		// the ChooseTranslation() command from the command bar, and got a crash. There was now only one entry in the dropdown list,
+		// and it was "it1234"; the "it" entry had disappeared, so InitDialog() here crashed, because index 1 was now invalid.
+		// I'll try a protection hack here
+		if (!m_pMyListBox->IsEmpty())
+		{
+			int numEntries = m_pMyListBox->GetCount();
+			if (curIndex != wxNOT_FOUND && curIndex >= numEntries)
+			{
+				// curIndex is too large, decrease it to a safe value
+				curIndex = numEntries - 1;
+			}
+		}
+
         if (curIndex != wxNOT_FOUND)
         {
 			m_pMyListBox->SetSelection(curIndex);

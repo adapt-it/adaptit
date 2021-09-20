@@ -27918,6 +27918,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 	GetLayout()->slop = m_nExpandBox*charSize.x;
     m_width_of_w = charSize.x; // BEW 15Aug21
+    SetMiniSlop(m_width_of_w * 6); // Putting the setter here in OnInit(), means that if the user
+        // changes the font size, then on next entry to the app the width of miniSlop will automatically
+        // adjust everywhere used (about 17 places in 7 files so far)
 
     // Set up the rapid access data strings for wrap markers, sectionHead markers,
     // inLine markers, and filter markers.
@@ -62034,5 +62037,15 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 // TODO - the rest
 		}
 	}
+}
+
+// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too
+void CAdapt_ItApp::SetMiniSlop(int width)
+{
+    miniSlop = width;
+}
+int CAdapt_ItApp::GetMiniSlop()
+{
+    return miniSlop;
 }
 

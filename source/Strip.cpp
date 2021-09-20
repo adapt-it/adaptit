@@ -61,6 +61,9 @@ extern CAdapt_ItApp* gpApp;
 extern wxRect	grectViewClient; // used in OnDraw() below
 extern bool		gbRTL_Layout;
 extern bool	gbShowTargetOnly; // definition in Adapt_ItView.cpp
+/// This global is defined in Adapt_It.cpp. (default is FALSE)
+extern bool gbDoingInitialSetup;
+
 
 /// This global is defined in Adapt_It.cpp.
 extern struct PageOffsets pgOffsets;
@@ -178,7 +181,7 @@ void CStrip::Draw(wxDC* pDC)
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
-
+	/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 	{
 	int nStripIndex = this->GetStripIndex();
@@ -188,7 +191,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	}
 
 #endif
-
+	*/
 	//boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
 
 	CPile* pPile = NULL;
@@ -199,6 +202,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
     // m_size a huge number & m_count a huge number) & so get app crash
 	m_arrPiles.Clear();
 	m_arrPileOffsets.Clear();
+
+	// BEW 16Sep21 refresh the active pile ptr
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItView* pView = pApp->GetView();
+	//pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 
 	// lay out the piles
 /*
@@ -288,7 +296,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pileIndex_InStrip++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
-
+		/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 		{
 			int stripIndex = this->GetStripIndex();
@@ -296,6 +304,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				__FILE__,__FUNCTION__,__LINE__, stripIndex, nWidthOfPreviousPile, pileIndex_InStrip, nHorzOffset_FromLeft);
 		}
 #endif
+		*/
 		// if m_nFree went negative or zero, we can't fit any more piles, so declare
 		// the strip full
 		if (m_nFree <= 0)
@@ -347,34 +356,63 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					// width all at the same time
 					//boxMode = m_pLayout->m_boxMode;
 					//pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-					if (m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
+					if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand )
 					{
-						int gapIncrement = m_pLayout->m_pApp->m_nGapChangeIncrement;
-						//bool bAmExpanding = m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand;
-
-						int do_nothing = 1; // in case I want a break point here
-						wxUnusedVar(do_nothing);
+						// was: if (m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
+						
+						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
+						int curBoxWidth = m_pLayout->m_curBoxWidth;
+						int curListWidth = m_pLayout->m_curListWidth;
+						// Take the larger of the two
+						int theMax = wxMax(curBoxWidth, curListWidth);
+						// Make both agree
+						m_pLayout->m_curBoxWidth = theMax;
+						m_pLayout->m_curListWidth = theMax;
+						// Add the miniSlop to each, making box longer,
+						// (list must agree too)
+						m_pLayout->m_curBoxWidth += miniSlop;
+						m_pLayout->m_curListWidth += miniSlop;
 
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth() + gap;
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
 						
 					}
-					else if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
+					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 					{ 
-						int gapIncrement = -m_pLayout->m_pApp->m_nGapChangeIncrement; // negative
-
-						int do_nothing = 1; // in case I want a break point here
-						wxUnusedVar(do_nothing);
+						// BEW 16Sep21 test was: if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
+						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
+						int curBoxWidth = m_pLayout->m_curBoxWidth;
+						int curListWidth = m_pLayout->m_curListWidth;
+						// Take the larger of the two
+						int theMax = wxMax(curBoxWidth, curListWidth);
+						// Make both agree
+						m_pLayout->m_curBoxWidth = theMax;
+						m_pLayout->m_curListWidth = theMax;
+						// Subract the miniSlop but add 2 'w' widths, to each, making box 
+						// a little longer (list must agree too); do it provided the ccurrBoxWidth
+						// does not got less than or equal to layout's m_defaultActivePileWidth value
+						m_pLayout->m_curBoxWidth -= miniSlop; 
+						m_pLayout->m_curBoxWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
+						m_pLayout->m_curListWidth -= miniSlop;
+						m_pLayout->m_curListWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
 
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth() + gap;
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
+						pileWidth += (2 * m_pLayout->m_pApp->m_width_of_w) + 2 *gap + 4;
 
 					}
 					else
 					{
-						pileWidth = pPile->m_nMinWidth;
+						if (m_pLayout->m_bAmWithinPhraseBoxChanged == TRUE)
+						{
+							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); // +gap;
+						}
+						else
+						{
+							pileWidth = pPile->m_nMinWidth;
+						}
 					}
 
 					/* BEW 14Sep21 remove asap - we don't use boxMode any more, except in a few places - but not here
@@ -404,7 +442,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					pileWidth = pPile->m_nMinWidth;
 				}
 			}
-			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
+			nCurrentSpan = pileWidth; // +gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)
 			{
@@ -428,7 +466,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
 				m_bValid = TRUE;
-
+/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 				{
 					int nStripIndex = this->GetStripIndex();
@@ -437,6 +475,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						__FILE__, __FUNCTION__, __LINE__, nStripIndex);
 				}
 #endif
+				*/
 				return pos;
 			}
 
@@ -474,7 +513,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	// document or the first pile was wider than the whole strip - in either case we must declare
 	// this strip filled and we are done
 	m_bValid = TRUE;
-
+	/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 	{
 		int nStripIndex = this->GetStripIndex();
@@ -483,7 +522,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			__FILE__, __FUNCTION__, __LINE__, nStripIndex);
 	}
 #endif
-
+	*/
 	return pos; // the iterator value where we start when we create the next strip
 }
 
@@ -498,7 +537,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
-
+	/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 	{
 		int nStripIndex = this->GetStripIndex();
@@ -507,6 +546,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	}
 #endif	
 	//boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
+	*/
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
@@ -557,16 +597,16 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			boxMode = m_pLayout->m_boxMode;
 			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-
+			/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 			{
 				int nStripIndex = this->GetStripIndex();
-				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, for strip index %d, at line 505 pileWidth calced by CalcPhraseBoxGapWidth(boxMode) = %d"), 
+				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, for strip index %d,  pileWidth calced by CalcPhraseBoxGapWidth(boxMode) = %d"), 
 					__FILE__, __FUNCTION__, __LINE__, nStripIndex , pileWidth);
 			}
 #endif	
-
-/* keep
+			*/
+/* keep ?? not much use is made of boxMode now, but it persists in some places (16Sep21) BEW
 #if defined(_DEBUG) && defined(_EXPAND)
 			// currently boxMode is unused, except for logging purposes
 			if (boxMode == expanding)
@@ -697,7 +737,9 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				boxMode = m_pLayout->m_boxMode;
+				boxMode = m_pLayout->m_boxMode; // it's probably steadyAsSheGoes, but it doesn't matter
+							// what value it has, because boxMode is no longer used internally
+							// in the call of CalcPhraseBoxGapWidth
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
 /* keep this				
 #if defined(_DEBUG) && defined(_EXPAND)
@@ -755,6 +797,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			// this pile won't fit, so the strip is full - declare it full and return
 			// the pile list's index for use in the next strip's creation
+			/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 			{
 				int nStripIndex = this->GetStripIndex();
@@ -762,7 +805,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 					__FILE__, __FUNCTION__, __LINE__, nStripIndex , m_nFree);
 			}
 #endif	
-
+			*/
 			m_bValid = TRUE;
 			return numPlaced;
 		}
@@ -833,7 +876,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	// width of a strip)
 	m_bValid = TRUE;
 
-
+	/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 	{
 		int nStripIndex = this->GetStripIndex();
@@ -841,6 +884,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			__FILE__, __FUNCTION__, __LINE__, nStripIndex, m_nFree);
 	}
 #endif	
+	*/
 	return numPlaced;
 }
 

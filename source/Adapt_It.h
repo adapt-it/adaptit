@@ -2959,7 +2959,6 @@ public:
 	CPile* m_pActivePile;	// where the phrase box is to be located
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
-	int m_width_of_w; // BEW 15Aug21 added, for defining a multiple of this value as a default pile width
 
     // For "The HACK", BEEW 8Aug13, trying to diagnose & fix a rare m_targetStr value 'non
     // stick' bug after edited phrase box value was edited; observed first by RossJones on
@@ -3177,6 +3176,15 @@ public:
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
+
+	int				m_width_of_w; // BEW 15Aug21 added, for defining a multiple of this value as a default pile width
+								  // and other things, eg. the miniSlop, and calculations for expand or contract
+								  // of the phrasebox...
+	// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too;
+	// but I set both that and m_width_of_w in OnInit()
+	int				miniSlop;
+	void			SetMiniSlop(int width);
+	int				GetMiniSlop();
 
     // whm modified 10Jan2018 after implementing CPhraseBox dropdown list
     bool m_bChooseTransInitializePopup;
