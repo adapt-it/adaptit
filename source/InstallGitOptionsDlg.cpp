@@ -93,17 +93,15 @@ CInstallGitOptionsDlg::~CInstallGitOptionsDlg() // destructor
 
 }
 // NOTE: THE VERSION OF GIT and OUR AI GIT DOWNLOADER ADJUST is determined by the 3 DEFINES 
-// located just after the Adapt It version numbers in the Adapt_It.h header file. Those defines
-// are named GIT_VERSION_MAJOR, GIT_VERSION_MINOR, and  GIT_REVISION.
-// Make sure that the version numbers there MATCH THE VERSION NUMBERING SET WITHIN OUR
-// INNO SETUP iss SCRIPTS.
-// Those three defines are the only three lines that need updating when there is a new version
-// of git that we want to use within Adapt It. The coding below converts those defines into 
-// these filenames used here in InstallGitOptionsDlg.cpp:
-//   Git-2.32.0-32-bit.exe - the current git installer file at github downloadable from:
-//   https://github.com/git-for-windows/git/releases/download/v2.32.0.windows.1/Git-2.32.0-32-bit.exe
-//   Git_Downloader_2_32_0_4AI.exe - our current git downloader produced by our Adapt It 
-// Unicode Git.iss Inno Setup script.
+// located in the _AIandGitVersionNumbers.h header file.
+// Those defines are named GIT_VERSION_MAJOR, GIT_VERSION_MINOR, and  GIT_REVISION.
+// The version number defines in _AIandGitVersionNumbers.h are the only location in the
+// code base where those version numbers are defined.
+// The coding below converts those defines into these filenames used here in InstallGitOptionsDlg.cpp:
+// 1. Git-2.32.0-32-bit.exe - the current git installer file at github downloadable from:
+//    https://github.com/git-for-windows/git/releases/download/v2.32.0.windows.1/Git-2.32.0-32-bit.exe
+// 2. Git_Downloader_2_32_0_4AI.exe - our current git downloader produced by our Adapt It 
+//    Unicode Git.iss Inno Setup script.
 
 void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {

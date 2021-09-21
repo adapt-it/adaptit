@@ -108,10 +108,12 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	//bool bOK;
 	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	//bOK = bOK; // avoid warning
-	pEditNote = (wxTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
-	wxASSERT(pEditNote != NULL);
 
-	pEditSearch = (wxTextCtrl*)FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
+	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's NoteDlgFunc() dialog.
+	pEditNote = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
+	wxASSERT(pEditNote != NULL);
+	pEditSearch = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
 	wxASSERT(pEditSearch != NULL);
 	
 	pFindNextBtn = (wxButton*)FindWindowById(IDC_FIND_NEXT_BTN);

@@ -106,7 +106,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	m_pEditSrcName = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_NAME);
 	wxASSERT(m_pEditSrcName != NULL);
 
-	m_pEditTgtName = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_NAME);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's BackupsAndKBPageFunc() dialog.
+	m_pEditTgtName = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT_NAME);
 	wxASSERT(m_pEditTgtName != NULL);
 
 	m_pEditGlsName = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLS_NAME);
@@ -127,7 +129,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	pSrcLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE); // whm added 10May10
 	wxASSERT(pSrcLangCodeBox != NULL);
 
-	pTgtLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's BackupsAndKBPageFunc() dialog.
+	pTgtLangCodeBox = (AutoCorrectTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
 	wxASSERT(pTgtLangCodeBox != NULL);
 
 	pGlsLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_GLOSS_LANG_CODE); // whm added 5Dec11

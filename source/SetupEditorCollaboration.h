@@ -99,6 +99,7 @@ protected:
 	void OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event)); // whm added 4Apr12
     // whm 4Feb2020 added functions below
     void SetRadioBoxCollabEditorSelection();
+	bool PTProjectHasAutoCorrectFile(wxString ptProjShortName, wxString& autoCorrectPath); // whm 1Sep2021 added
 
 private:
 

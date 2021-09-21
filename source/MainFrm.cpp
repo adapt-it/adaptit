@@ -2121,11 +2121,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	// Create the version number from the defines in Adapt_It.h:
 	wxString strVersionNumber;
 	strVersionNumber.Empty();
-	strVersionNumber << VERSION_MAJOR_PART;
+	strVersionNumber << AI_VERSION_MAJOR;
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_MINOR_PART;
+	strVersionNumber << AI_VERSION_MINOR;
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_BUILD_PART;
+	strVersionNumber << AI_VERSION_BUILD_PART;
 	strVersionNumber += _T(".");
 	strVersionNumber << GetAISvnVersion();
 	if (PRE_RELEASE != 0)

@@ -421,6 +421,8 @@ protected:
 	void OnUpdateButtonRestore(wxUpdateUIEvent& event);
 	void OnButtonRestore(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditPreferences(wxUpdateUIEvent& event);
+	void OnUpdateCheckUseAutoCorrect(wxUpdateUIEvent& event);
+	void OnCheckUseAutoCorrect(wxCommandEvent& event);
 	void OnCheckSingleStep(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateCheckSingleStep(wxUpdateUIEvent& event);
 	void OnCheckKBSave(wxCommandEvent& WXUNUSED(event));

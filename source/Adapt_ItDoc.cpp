@@ -4674,6 +4674,11 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		return;
 	}
 
+	// whm 2Sep2021 added. Here seems to be a location that gets executed when
+	// a document is closed, both for regular non-collab docs and for collab docs.
+	// We need to clear the auto-correct has map when the document closes.
+	pApp->EmptyMapAndInitializeAutoCorrect();
+
     // whm 19Sep11 moved this block here from above the OnSaveModified() call. See
 	// comment where the code is commented out above for reason for the move.
 	// Remove KBs from the heap, when colloborating with an external editor
@@ -6862,6 +6867,15 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pApp->m_bEnteringKBserverProject = TRUE;
 	}
 //#endif
+
+	// whm 2Sept2021 added support for setting up an AutoCorrect feature to operate within 
+	// the opened non-collaboration document.
+	// NOTE: OnOpenDocument() only handles the opening of non-Collaboration documents. 
+	// The setup up of AutoCorrect for collaboration document openings is done at the
+	// end of the OK_btn_delayedHandler_GetSourceTextFromEditor() function in the 
+	// CollabUtilities.cpp file.
+	SetupAutoCorrectHashMap();
+
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	
 	
@@ -11538,6 +11552,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 	if (aSequNum >= 1367)
 	{
 		int halt_here = 1;
+		wxUnusedVar(halt_here);
 	}
 #endif
 
@@ -11849,6 +11864,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	if (aSequNum >= 1367)
 	{
 		int halt_here = 1;
+		wxUnusedVar(halt_here);
 	}
 #endif
 	// Find where ~ is, if present; we can't just call .Find() in the string defined by
@@ -16056,7 +16072,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-        halt_here = halt_here; // avoid gcc warning
+		wxUnusedVar(halt_here);
 	}
 #endif
 
@@ -16166,7 +16182,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar *pChar,
 			if (pSrcPhrase->m_nSequNumber >= 1)
 			{
 				int halt_here = 1;
-                halt_here = halt_here; // avoid gcc warning
+				wxUnusedVar(halt_here);
             }
 #endif
 			// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
@@ -17831,7 +17847,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				if (sequNumber >= 2)
 				{
 					int halt_here = 1;
-                    halt_here = halt_here; // avoid gcc warning
+					wxUnusedVar(halt_here);
                 }
 #endif
 				// Neither verse nor chapter, but some other marker
@@ -26749,7 +26765,305 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 	wxLogDebug(_T(" Remove: 1. %s		2. %s		3. %s		4. %s		5. %s		6. %s		7. %s		8. %s		9. %s"),
 		remove[0].c_str(), remove[1].c_str(), remove[2].c_str(), remove[3].c_str(), remove[4].c_str(), remove[5].c_str(), remove[6].c_str(), remove[7].c_str(), remove[8].c_str());
 }
+
 #endif
+
+// whm 23Aug2021 added support for an AutoCorrect feature for Adapt It.
+// This SetupAutoCorrectHashMap() function first initializes the App members that
+// are used for the Auto Correct functions by calling the App's 
+// EmptyMapAndInitializeAutoCorrect() function which initializes these App values:
+//		m_AutoCorrectMap.empty();
+//		m_bAutoCorrectIsMalformed = FALSE;
+//		m_bUsingAutoCorrect = FALSE;
+//		m_longestAutoCorrectKeyLen = 0;
+// When a document is opened, this function checks to see if an autocorrect.txt 
+// file exists within that document's project folder. If such a file exists, it is read 
+// and parsed for any valid mapping rules which, if found, are mapped to the 
+// App's m_AutoCorrectMap, and the App member flag m_bAutoCorrect is set to TRUE.
+// The m_bAutoCorrect map is cleared and m_bAutoCorrect set back to FALSE when 
+// the document is closed, so that the map is only available while a document is open for
+// a project containing the autocorrect.txt file.
+// This function sets the App's m_bUsingAutoCorrect flag TRUE only if an autocorrect.txt 
+// file is found in the currently open document's project folder, and that autocorrect.txt 
+// file contains at least one valid replacement rule, otherwise it is set to FALSE.
+// The App's m_longestAutoCorrectKeyLen is set to the length of the longest key
+// string saved in the map.
+// The App's m_bAutoCorrectIsMalformed flag is set to TRUE if it detects that the 
+// autocorrect.txt file is malformed, i.e., it has a rule line that tries to add 
+// an  auto-correct rule for an empty string on the left-hand-side of the --> symbol.
+// This function is called from two places:
+// (1) From the CAdapt_ItDoc::OnOpenDocument() handler - for non-collaboration documents
+// (2) From the CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() 
+//     functionn for collaboration documents.
+void CAdapt_ItDoc::SetupAutoCorrectHashMap()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// Initialize the AutoCorrect App values to defaults:
+	// Always start with an empty hashmap
+	pApp->EmptyMapAndInitializeAutoCorrect();
+	
+	bool bFileExistsAndOpensOK = FALSE;
+	wxString lineNumStr = _T("");
+
+	// The path to the current project is stored in App's m_curProjectPath, so we're looking
+	// for m_currProjectPath + PathSeparator + _T("autocorrect.txt");
+	wxString filePath = pApp->m_curProjectPath + pApp->PathSeparator + _T("autocorrect.txt");
+	if (wxFileExists(filePath))
+	{
+		// The autocorrect.txt file exists in this document's project folder, so open it and read its
+		// content into a wxTextFile
+		wxTextFile tfile;
+		if (tfile.Open(filePath))
+		{
+			int lineNum = 0;
+			bFileExistsAndOpensOK = TRUE;
+			MapAutoCorrectStrings::iterator iter;
+			wxString strBuf;
+			wxString replaceSymbol = _T("-->");
+			wxString longestKeyStr = _T("");
+			wxString LHS = _T("");
+			wxString convertedLHS;
+			wxString RHS = _T("");
+			wxString convertedRHS = _T("");
+			strBuf = tfile.GetFirstLine();
+			while (!tfile.Eof())
+			{
+				lineNum++;
+				if (!strBuf.IsEmpty() && !(strBuf.GetChar(0) == _T('#'))) // bypass empty and # comment lines 
+				{
+					int posSymbol = strBuf.Find(replaceSymbol);
+					if (posSymbol != wxNOT_FOUND)
+					{
+						LHS = _T("");
+						convertedLHS = _T("");
+						RHS = _T("");
+						convertedRHS = _T("");
+						if (posSymbol != 0) // if --> is at beginning of line the line is malformed (can't correct an empty string to something else!)
+						{
+							// Found a line containing --> so extract the left-hand-side and right-hand-side substrings from this line
+							LHS = strBuf.Mid(0, posSymbol);
+							wxString lcLHS = LHS;
+							lcLHS.MakeLower(); // so we don't have to deal separately with \U and \u
+							// The wxString constructor (below) recognizes \uxxxx sequences of hex chars
+							// within the lcLHS string and automatically converts them for us to actual
+							// Unicode chars within the string.
+							bool bSuccessfulLHS = TRUE;
+							bool bSuccessfulRHS = TRUE;
+							if (lcLHS.Find(_T("\\u")) != wxNOT_FOUND)
+							{
+								convertedLHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(lcLHS, bSuccessfulLHS);
+								if (!bSuccessfulLHS)
+								{
+									// Couldn't convert the lcLHS string so log this fact in the UserActionLog
+									wxLogDebug("Error in autocorrect.txt LHS: LHS = [%s] RHS = [%s] convertedLHS = [%s] convertedRHS = [%s]", LHS.c_str(), RHS.c_str(), convertedLHS.c_str(), convertedRHS.c_str());
+									wxString msg = _T("  SetupAutoCorrectHashMap error: Could not convert left-hand-side of --> rule string: %s");
+									msg = msg.Format(msg, LHS.c_str());
+									wxLogDebug(msg);
+									pApp->LogUserAction(msg);
+								}
+							}
+							else
+							{
+								// There are no \uxxxx within the lcLHS, so assign lcLHS to convertedLHS without conversion
+								convertedLHS = lcLHS; 
+							}
+							RHS = strBuf.Mid(posSymbol + 3);
+							wxString lcRHS = RHS;
+							lcRHS.MakeLower();
+							if (lcRHS.Find(_T("\\u")) != wxNOT_FOUND)
+							{
+								convertedRHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(lcRHS, bSuccessfulRHS);
+								if (!bSuccessfulRHS)
+								{
+									// Couldn't convert the lcLHS string so log this fact in the UserActionLog
+									wxLogDebug("Error in autocorrect.txt RHS: LHS = [%s] RHS = [%s] convertedLHS = [%s] convertedRHS = [%s]", LHS.c_str(), RHS.c_str(), convertedLHS.c_str(), convertedRHS.c_str());
+									wxString msg = _T("  SetupAutoCorrectHashMap error: Could not convert right-hand-side of --> rule string: %s");
+									msg = msg.Format(msg, RHS.c_str());
+									wxLogDebug(msg);
+									pApp->LogUserAction(msg);
+								}
+							}
+							else
+							{
+								// There are no \uxxxx within the lcRHS, so assign lcRHS to convertedRHS without conversion
+								convertedRHS = lcRHS;
+							}
+							if (!bSuccessfulLHS || !bSuccessfulRHS)
+							{
+								strBuf = tfile.GetNextLine(); // must iterate before the continue call below otherwise we get an endless loop!
+								continue; // continue parsing any other rules in the autocorrect.txt file 
+							}
+							
+							// Store the substrings in our m_AutoCorrectMap on the App
+							// Enter the LHS key and RHS replacement strings into the map
+							wxString key = convertedLHS;
+							iter = pApp->m_AutoCorrectMap.find(key);
+							if (iter != pApp->m_AutoCorrectMap.end())
+							{
+								// key exists in the map
+								pApp->m_AutoCorrectMap.insert(*iter);
+							}
+							else
+							{
+								// key not in the map
+								pApp->m_AutoCorrectMap[key] = convertedRHS;
+							}
+						}
+						else
+						{
+							pApp->m_bAutoCorrectIsMalformed = TRUE;
+							if (lineNumStr.IsEmpty())
+							{
+								lineNumStr << lineNum;
+							}
+							else
+							{
+								lineNumStr += _T(", ");
+								lineNumStr << lineNum;
+							}
+						}
+					}
+				}
+				strBuf = tfile.GetNextLine();
+			}
+			tfile.Close();
+
+			if (pApp->m_AutoCorrectMap.size() == 0)
+			{
+				// The m_AutoCorrectMap is still empty so set App's m_bUsingAutoCorrect to FALSE
+				pApp->m_bUsingAutoCorrect = FALSE;
+			}
+			else
+			{
+				// There is at least one auto-correct rule in the map so set App's m_bUsingAutoCorrect to TRUE
+				pApp->m_bUsingAutoCorrect = TRUE;
+			}
+
+			// testing below. Actual messages done in the caller Adapt_ItDoc.cpp
+			//if (pApp->m_AutoCorrectMap.size() == 0) // the .size method gets the total number of keys/elements in the hashmap
+			//{
+			//	// autocorrect.txt file exists, but has no parseable rules within it. Log this state, but don't
+			//	// bother the user about it.
+			//	pApp->LogUserAction(_T("The autocorrect.txt file exists but has no auto-correct rules within it!"));
+			//}
+			//else
+			//{
+			//	// dump the map contents for testing
+			//	int ct = 0;
+			//	for (iter = pApp->m_AutoCorrectMap.begin(); iter != pApp->m_AutoCorrectMap.end(); ++iter)
+			//	{
+			//		ct++;
+			//		wxLogDebug(_T("autocorrect.txt rule #%d. iter->first = %s, iter->second = %s"), ct, iter->first.c_str(), iter->second.c_str());
+			//	}
+			//}
+		}
+	}
+	// inform user and user log of existence and state of any autocorrect.txt file
+	if (pApp->m_bUsingAutoCorrect)
+	{
+		int totRules = (int)pApp->m_AutoCorrectMap.size();
+		wxString msg;
+		wxString userMsg;
+		if (pApp->m_bAutoCorrectIsMalformed)
+		{
+			msg = _T("An autocorrect.txt file found for the \"%s\" project. It has %d mapping rules.");
+			msg = msg.Format(msg, pApp->m_curProjectName.c_str(),totRules);
+			msg += _T(" ERROR: The autocorrect.txt file is MALFORMED (empty string on left side of --> at line(s): %s)!!");
+			msg = msg.Format(msg, lineNumStr.c_str());
+		}
+		pApp->LogUserAction(msg);
+		if (pApp->m_bAutoCorrectIsMalformed)
+		{
+			// notify the user of the autocorrect.txt error with localizable message
+			userMsg = _("A bad autocorrect.txt file was found for the \"%s\" project.\nIn that autocorrect.txt file there are no text characters on the left side of --> at line(s): %s)\nAsk your administrator to fix or remove the autocorrect.txt file from this project.");
+			userMsg = userMsg.Format(userMsg, pApp->m_curProjectName.c_str(), lineNumStr.c_str());
+			wxMessageBox(userMsg);
+		}
+		wxLogDebug(msg);
+		wxLogDebug(userMsg);
+		// Adjust the interface to show the Use Auto Correct check box in the control bar with a tick in the box.
+		pApp->ConfigureModeBarForAutoCorrect();
+	}
+}
+
+// whm 23Aug2021 added
+// This function looks for any rules in the App'a m_AutoCorrectMap that can be applied to the
+// target text that resides to the left side of the insertion point at the instant a character is
+// typed. If a key-value association pair is found in the m_AutoCorrectMap hashmap, it applies that rule 
+// returning the result in the third reference parameter newEditBoxLHSStr.
+// This function returns TRUE if an autocorrect.txt rule was applied to the candidateEditBoxStr 
+// string, otherwise it returns FALSE.
+// This function takes the following parameters:
+//   wxString candidateEditBoxLHSStr - a copy of the phrasebox string that is the target text string 
+//     that exists to the left of the insertion point when the CPhraseBox::OnChar() handler is triggered. 
+//     This candidateEditBoxLHSStr does not include the typed character being typed when OnChar() is 
+//     triggered, since within OnChar() the char hasn't yet been added to the edit box text.
+//   wxChar typedChar - the wxChar being typed at the time OnChar() is triggered.
+//   wxString& newEditBoxLHSStr - a reference parameter that returns in newEditBoxLHSStr the string that 
+//     represents the new/corrected string - up to the insertion point - after applying the auto-correct 
+//     rule(s).
+// NOTE: It is up to the caller, usually OnChar(), to properly handle the function's return value, and 
+// if that value is TRUE, to also properly handle the returned newEditBoxLHSStr value, replacing the whole
+// original candidate string residing to the left of the insertion point with the "corrected" string that
+// is returned in newEditBoxLHSStr. 
+bool CAdapt_ItDoc::LookUpStringInAutoCorrectMap(wxString candidateEditBoxLHSStr, wxChar typedChar, wxString& newEditBoxLHSStr)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bool bFound = FALSE;
+	int numCharsToTest;
+	wxString tempCandidateStrPlusTypedChar;
+	// REMEMBER: we are being called from OnChar() where the typed char typedChar was not yet 
+	// added to the edit box text at the insertion point.
+	// The typedChar is what is triggering our autocorrect lookup, and it becomes part of what
+	// we are looking up in the m_AutoCorrectMap. In fact it could be the only thing that matches
+	// a key in the map for cases like [<-->‘] in which the typedChar < matches the LHS of a mapping
+	// rule that corrects a < to a single curly quote ‘ char. Therefore, we add the typedChar here
+	// to tempStrPlusTypedChar before checking for matching sub-strings.
+	tempCandidateStrPlusTypedChar = candidateEditBoxLHSStr + typedChar;
+	// We only need to test against substrings at the end of the candidateEditBoxLHSStr up to a maximum 
+	// length of our longest AutoCorrect key length, or the length of our candidateEditBoxLHSStr + typedChar, 
+	// string whichever is the shortest. The max length of the longest key in our map is stored in the 
+	// App's m_longestAutoCorrectKeyLen member.
+	if (pApp->m_longestAutoCorrectKeyLen < (int)tempCandidateStrPlusTypedChar.Length())
+		numCharsToTest = pApp->m_longestAutoCorrectKeyLen;
+	else
+		numCharsToTest = (int)tempCandidateStrPlusTypedChar.Length();
+	
+	
+	wxString subStr = _T("");
+	// Since the most likely key matches will be for one or two characters, we'll get substrings from the 
+	// right end of the tempStrPlusTypedChar. 
+	// Since we appended typedChar to the candidateEditBoxLHSStr the first subStr tested will simply be the typedChar.
+	MapAutoCorrectStrings::iterator iter;
+	// look up this subStr in the m_AutoCorrectMap
+	// The App's m_AutoCorrectMap is a small one so it is on the stack 
+	for (iter = pApp->m_AutoCorrectMap.begin(); iter != pApp->m_AutoCorrectMap.end(); ++iter)
+	{
+		wxString tempSecond = iter->second;
+		wxString tempFirst = iter->first;
+		int lengthOfCompareStr = (int)iter->first.Length();
+		// get an initial subStr composed of the progressively larger sub-strings taken from the 
+		// right end of the candidate string. This subStr may change as the result of an auto-correct 
+		// rule being applied below, which in turn may result in an additional rule being applied as 
+		// the result of the single character press that resulted in this function being called.
+		if (tempCandidateStrPlusTypedChar.Right(lengthOfCompareStr) == iter->first)
+		{
+			bFound = TRUE;
+			wxString mappedSubStr = iter->second; // for debugging
+			// Do the auto-correct replacement of last matching characters on tempCandidateStrPlusTypedChar
+			tempCandidateStrPlusTypedChar = tempCandidateStrPlusTypedChar.Mid(0, tempCandidateStrPlusTypedChar.Length() - lengthOfCompareStr) + iter->second;
+			// Continue applying any other auto-correct rules the might apply until all rules are tried
+		}
+			
+	}
+	if (bFound)
+	{
+		newEditBoxLHSStr = tempCandidateStrPlusTypedChar;
+	}
+
+	return bFound;
+}
 
 
 // Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
@@ -32047,7 +32361,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (pSrcPhrase->m_nSequNumber >= logStart && pSrcPhrase->m_nSequNumber <= logEnd) // 136 &  137 
 		{
 			int halt_here = 1;
-			halt_here = halt_here; // avoid gcc warning
+			wxUnusedVar(halt_here);
 		}
 #endif
 		bool bThrewAwayWhiteSpaceAfterWord = FALSE;
@@ -32106,7 +32420,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1;
-                halt_here = halt_here; // avoid gcc warning
+				wxUnusedVar(halt_here);
             }
 #endif
 			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
@@ -32829,7 +33143,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-        halt_here = halt_here; // avoid gcc warning
+		wxUnusedVar(halt_here);
     }
 #endif
 	// If ptr points at punctuation, start collecting it

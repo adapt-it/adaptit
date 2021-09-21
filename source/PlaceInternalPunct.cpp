@@ -86,7 +86,9 @@ CPlaceInternalPunct::CPlaceInternalPunct(wxWindow* parent) // dialog constructor
     m_psrcPhraseBox->SetBackgroundColour(gpApp->sysColorBtnFace); // whm 10Mar2020 added to help signal this as a read-only text box
 	//m_psrcPhraseBox->SetValidator(wxGenericValidator(&m_srcPhrase));
 
-	m_ptgtPhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's PlaceInternalPunctDlgFunc() dialog.
+	m_ptgtPhraseBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT);
 	//m_ptgtPhraseBox->SetValidator(wxGenericValidator(&m_tgtPhrase));
 
     pBtnOK = (wxButton*)FindWindowById(wxID_OK);

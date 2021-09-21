@@ -26,7 +26,7 @@
 ; BEFORE COMPILING THE OTHER ISS SCRIPTS.
 
 ; ALSO IMPORTANT TODO: designate the version numbers in the following header file within the
-; Inno_Setup_Scripts folder. The version numbers in this header file are the only location
+; adaptit/source folder. The version numbers in this header file are the only location
 ; where all the Inno Setup scripts get their version numbers in the form of:
 ;   #define AI_VERSION_MAJOR 6
 ;   #define AI_VERSION_MINOR 10
@@ -37,7 +37,7 @@
 ;   #define GIT_REVISION 0
 ; Note: Although the line below includes the AI_... version defines, they are not used in this 
 ; script, but only in the main AI installer .iss scripts
-#include "VersionNumbersAIandGit.h"
+#include "../source/_AIandGitVersionNumbers.h"
 
 
 #define GitDownloaderAppName "Git Downloader for Adapt It"

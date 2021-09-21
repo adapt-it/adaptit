@@ -95,7 +95,9 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	wxASSERT(pTextCtrlAITargetVersion != NULL);
 	pTextCtrlAITargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
 
-	pTextCtrlPTTargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITABLE_PT_VERSION);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's AI_PT_ConflictingVersesFunc() dialog.
+	pTextCtrlPTTargetVersion = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITABLE_PT_VERSION);
 	wxASSERT(pTextCtrlPTTargetVersion != NULL);
 	pTextCtrlPTTargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
 

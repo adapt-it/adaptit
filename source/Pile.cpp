@@ -593,6 +593,7 @@ void CPile::SetPhraseBoxWidth()
 			if (pSPhr->m_nSequNumber > 0 && pSPhr->m_nSequNumber == 2)
 			{
 				int halt_here = 1;
+				wxUnusedVar(halt_here);
 			}
 		}
 	}

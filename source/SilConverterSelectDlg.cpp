@@ -90,7 +90,9 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 	//bOK = bOK; // avoid warning
 	pEditSILConverterName = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_NAME);
 	wxASSERT(pEditSILConverterName != NULL);
-	pEditSILConverterInfo = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_INFO); // (read only)
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's SilConvertersDlgFunc() dialog.
+	pEditSILConverterInfo = (AutoCorrectTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_INFO); // (read only)
 	wxASSERT(pEditSILConverterInfo != NULL);
 	pBtnUnload = (wxButton*)FindWindowById(IDC_BTN_CLEAR_SILCONVERTER);
 	wxASSERT(pBtnUnload != NULL);

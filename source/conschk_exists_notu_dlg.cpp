@@ -131,7 +131,9 @@ void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	m_pTextCtrlSrcText->ChangeValue(m_sourcePhrase);
 	m_pTextCtrlSrcText->SetEditable(FALSE); // now it's read-only
 
-	m_pTextCtrlTgtText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TARGET_PHRASE_2);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ConsistencyCheck_ExistsNoTU_DlgFunc() dialog.
+	m_pTextCtrlTgtText = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_TARGET_PHRASE_2);
 	wxASSERT(m_pTextCtrlTgtText != NULL);
 
 //#if defined(FWD_SLASH_DELIM)

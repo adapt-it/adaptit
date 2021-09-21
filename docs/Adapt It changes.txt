@@ -1,4 +1,57 @@
 ﻿----------------------------------------------
+Version 6.10.5  12 September 2021
+----------------------------------------------
+Feature changes and new features in 6.10.5
+--------------------------------------------------------------------------------------------
+* Adapt It now implements an Auto Correct feature that works similarly to the
+same feature that is available in Paratext 8/9. Auto Correct is available for 
+target text editing within Adapt It when a properly formed autocorrect.txt file 
+is located within Adapt It's project folder. The structure of the autocorrect.txt 
+file is described in the Paratext documentation at: 
+https://paratext.org/2018/10/03/using-autocorrect/
+If an Adapt It project is configured by an Administrator to collaborate with 
+Paratext, Adapt It will detect if the Paratext project that is configured to be 
+used as target text for Adapt It, has an autocorrect.txt file within that 
+Paratext project, and will ask the Administrator if the Paratext project's 
+autocorrect.txt file should be copied over to the Adapt It project. The Auto
+Correct feature should work the same way within Adapt It as it does within
+Paratext. If Adapt It detects an autocorrect.txt file when an Adapt It project
+is selected, and an Adapt It document is opened within that project, a check box
+labeled "Use Auto Correct" will appear in Adapt It's control bar up below the tool 
+bar. The check box is hidden if no autocorrect.txt file is available for the
+project associated with the open document. The check box always starts with a
+tick in the check box assuming should apply during the editing of target anywhere
+within Adapt It (including dialogs that have edit boxes expecting target text).
+The user can temporarily suspend the Auto Correct feature by simply removing the
+tick from the check box, and re-instate Auto Correct again by ticking the check
+box again.
+* Updated the language codes file iso639-3codes.txt with latest data from the 
+IANA registry at: 
+https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+----------------------------------------------
+Bug fixes in 6.10.5 update
+---------------------------------------------
+* Adapt It now does a better job of sizing the phrasebox dynamically as the user
+types text into the phrasebox. It also does a better job of maintaining a proper
+gap between the interlinear groups of words (piles) that compose each line of
+text in its main window. 
+* A nuisance message can appear at launch of Adapt It after installing Paratext, 
+that says the program could not load the ECDriver.dll dynamic library file, and
+that it needs to be updated. This annoying message has been eliminated.
+* Fixed a bug that prevented the insertion of a placeholder AFTER a source word
+or phrase location if the source word was the last word/phrase at the end of a 
+line/strip of text.
+* If an Administrator sets up a custom work folder for Adapt It work, a bug can
+surface that prevents the process from succeeding and/or results in confusing
+error message(s). Also a number of .dat files related to the forthcoming KB sharing
+can be written to the work folder location. This problem has been fixed.
+* Eliminated a nuisance message when shutting down Adapt It after an Administrator
+sets up a custom work folder, but does not actually creates a project within that
+new work folder before shutting down the application.
+* Fixed a bug on the Mac OSX version that prevented the loading of the boost 
+library (for GUID generation) on that platform.
+
+----------------------------------------------
 Version 6.10.4  17 August 2021
 ----------------------------------------------
 Feature changes and new features in 6.10.4

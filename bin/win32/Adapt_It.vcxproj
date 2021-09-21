@@ -291,7 +291,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.8</Version>
+      <Version>6.10</Version>
     </Link>
     <PostBuildEvent>
       <Command>echo ********** Begin Post-Build Event Batch Process **********
@@ -579,6 +579,7 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
+    <ClInclude Include="..\..\source\_AIandGitVersionNumbers.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
     <ClInclude Include="..\..\source\ExportInterlinearDlg.h" />

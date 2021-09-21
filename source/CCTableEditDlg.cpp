@@ -61,7 +61,10 @@ CCCTableEditDlg::CCCTableEditDlg(wxWindow* parent) // dialog constructor
 	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	//bOK = bOK; // avoid warning
 	// use wxValidator for simple dialog data transfer
-	pEditCCTable = (wxTextCtrl*)FindWindowById(IDC_EDIT_CCT);
+
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's CCTableEditDlgFunc() dialog.
+	pEditCCTable = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_CCT);
 	wxASSERT(pEditCCTable != NULL);
 	//pEditCCTable->SetValidator(wxGenericValidator(&m_ccTable));
 

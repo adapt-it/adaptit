@@ -140,8 +140,10 @@ void Authenticate2Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// BEW 11Nov20, 'STATELESS' in the following label names come from the wxDesigner
 	// resources  -- the 2-user Authenticate2Dlg uses these too
 	m_pIpAddrCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SERVER_URL_STATELESS);
-	m_pUsernameCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS); 
-	m_pUsername2Ctrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USER2);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's user1_user2_lookup_func() dialog.
+	m_pUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS);
+	m_pUsername2Ctrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USER2);
 	m_pUsernameLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_LABEL_STATELESS);
 	m_pUsernameMsgLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_MSG_LABEL_STATELESS);
 	m_pPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_KBSERVER_PWD);

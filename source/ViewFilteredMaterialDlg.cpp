@@ -112,7 +112,9 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	wxASSERT(pMarkers != NULL);
 	pEndMarkers = (wxListBox*)FindWindowById(IDC_LIST_MARKER_END); 
 	wxASSERT(pEndMarkers != NULL);
-	pMkrTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_MARKER_TEXT);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ViewFilteredMaterialDlgFunc() dialog.
+	pMkrTextEdit = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_MARKER_TEXT);
 	wxASSERT(pMkrTextEdit != NULL);
 	pMkrDescStatic = (wxStaticText*)FindWindowById(IDC_STATIC_MARKER_DESCRIPTION);
 	wxASSERT(pMkrDescStatic != NULL);

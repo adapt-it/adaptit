@@ -1965,7 +1965,20 @@ KbServer* CKB::GetMyKbServer()
 		wxString msg = _T("%s() line %d ptr to KbSvr of type %d got set, NULL returned");
 		msg = msg.Format(msg, __FUNCTION__, __LINE__, type);
 		m_pApp->LogUserAction(msg);
-		wxBell(); // hint to user that there was an error
+		// 11Sep2021 commented out the following wxBell() call as it is a nuisance.
+		// It happens routinely on opening any document (from wizard "Finish" button in the DocPage)
+		// that is not set up for kbServer work. Probabliy the logic of above routine needs WORK.
+		// For debugging the Call Stack looks like this:
+		// 
+		// Adapt_It_Unicode.exe!CKB::GetMyKbServer() Line 1968	C++
+		// Adapt_It_Unicode.exe!CKB::RemoveRefString(CRefString * pRefString, CSourcePhrase * pSrcPhrase, int m_nWordsInPhrase) Line 1243	C++
+		// Adapt_It_Unicode.exe!CKB::GetAndRemoveRefString(CSourcePhrase * pSrcPhrase, wxString & targetPhrase, UseForLookup useThis) Line 1414	C++
+		// Adapt_It_Unicode.exe!CAdapt_ItView::PlacePhraseBox(CCell * pCell, int selector) Line 3906	C++
+		// Adapt_It_Unicode.exe!CAdapt_ItDoc::OnOpenDocument(const wxString & filename, bool bShowProgress) Line 6608	C++
+		// Adapt_It_Unicode.exe!CDocPage::OnWizardFinish(wxWizardEvent & __formal) Line 1118	C++
+		// Adapt_It_Unicode.exe!CDocPage::OnWizardPageChanging(wxWizardEvent & event) Line 350	C++
+
+		//wxBell(); // hint to user that there was an error
 		return NULL;
 	}
 	// for debugging

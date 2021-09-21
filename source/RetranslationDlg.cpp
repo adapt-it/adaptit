@@ -89,7 +89,9 @@ CRetranslationDlg::CRetranslationDlg(wxWindow* parent) // dialog constructor
 	pSrcTextToTransBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SOURCE_TEXT);
 	//pSrcTextToTransBox->SetValidator(wxGenericValidator(&m_sourceText)); // whm removed 21Nov11
 
-	pRetransBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_RETRANSLATION);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's RetranslationDlgFunc() dialog.
+	pRetransBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_RETRANSLATION);
 	//pRetransBox->SetValidator(wxGenericValidator(&m_retranslation)); // whm removed 21Nov11
 
 	pSrcFollContextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_FOLLCONTEXT);

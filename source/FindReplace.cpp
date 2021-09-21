@@ -207,7 +207,9 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	m_pStaticTgtBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_TGT_FIND);
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 
-	m_pEditTgt = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_FIND);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's FindDlgFunc() dialog.
+	m_pEditTgt = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT_FIND);
 	wxASSERT(m_pEditTgt != NULL);
 	//m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
 
@@ -1517,7 +1519,9 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	m_pStaticTgtBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_TGT_REPLACE);
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 
-	m_pEditTgt_Rep = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_REPLACE); // BEW 5Apr21 added _Rep, as control was going to Find's line 66
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ReplaceDlgFnc() dialog.
+	m_pEditTgt_Rep = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT_REPLACE); // BEW 5Apr21 added _Rep, as control was going to Find's line 66
 	wxASSERT(m_pEditTgt_Rep != NULL);
 	//m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
 

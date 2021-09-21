@@ -162,7 +162,9 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pSourcePhraseBox->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pSourcePhraseBox->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
-	m_pNewTranslationBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ChooseTranslationDlgFunc2() dialog.
+	m_pNewTranslationBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
 
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
 

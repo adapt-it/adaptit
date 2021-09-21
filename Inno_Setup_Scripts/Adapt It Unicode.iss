@@ -64,7 +64,7 @@
 ;   the Adapt It Unicode Git.iss script. See that script to see how it works.
 
 ; IMPORTANT TODO: designate the version numbers in the following header file within the
-; Inno_Setup_Scripts folder. The version numbers in this header file are the only location
+; adaptit/source folder. The version numbers in this header file are the only location
 ; where all the Inno Setup scripts get their version numbers in the form of:
 ;   #define AI_VERSION_MAJOR 6
 ;   #define AI_VERSION_MINOR 10
@@ -73,7 +73,7 @@
 ;   #define GIT_VERSION_MAJOR 2
 ;   #define GIT_VERSION_MINOR 32
 ;   #define GIT_REVISION 0
-#include "VersionNumbersAIandGit.h"
+#include "../source/_AIandGitVersionNumbers.h"
 
 #define AIAppName "Adapt It WX Unicode"
 #define AIAppVersion Str(AI_VERSION_MAJOR) + "." +Str(AI_VERSION_MINOR) + "." + Str(AI_REVISION) ; 6.10.3
