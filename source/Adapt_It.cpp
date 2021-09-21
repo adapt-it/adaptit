@@ -126,6 +126,8 @@
 // libcurl
 //#include <curl/curl.h>
 
+extern bool gbShowTargetOnly;
+
 wxMutex	kbsvr_arrays;
 
 extern wxCriticalSection g_jsonCritSect;
@@ -21484,7 +21486,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
-
+    m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
+ 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
 	// by whatever is in the project config file, or defaulted to 5 there if out of
@@ -27954,6 +27957,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxSize charSize;
 	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 	GetLayout()->slop = m_nExpandBox*charSize.x;
+    m_width_of_w = charSize.x; // BEW 15Aug21
+    SetMiniSlop(m_width_of_w * 6); // Putting the setter here in OnInit(), means that if the user
+        // changes the font size, then on next entry to the app the width of miniSlop will automatically
+        // adjust everywhere used (about 17 places in 7 files so far)
 
     // Set up the rapid access data strings for wrap markers, sectionHead markers,
     // inLine markers, and filter markers.
@@ -28679,8 +28686,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUserRequestsTimedDownload = FALSE;  // set True if user uses GUI to ask for a bulk
 						// download, or ChangedSince (ie. incremental) download. If
 						// TRUE, skip the OnIdle() ChangedSince_Timed request
+    GetLayout()->m_nSaveGap_TgtOnly = 0; // initialise, for this session (Preferences can change it, see ViewPage::OnOK()
+    GetLayout()->m_bNewGapRequested_TgtOnly = FALSE; // intialize - goes TRUE each time
+                 // the use uses Preferences to set a new gap width, when gbShowTargetOnly is TRUE,
+                 // and after the TRUE value is used, it is cleared to FALSE, in case the user
+                 // goes to Preferences multiple times to change the gap while viewing only src line
 
-//    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
+                        //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
     // whm 3Mar2021 moved here just before return from OnInit()
     // Display message in status bar that startup initialization is complete
@@ -40577,6 +40589,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 if (num < 0 || num > 80)
                     num = 8;
                 m_curGapWidth = num;
+                // Set Layout's saved value for normal strips
+                if (!gbShowTargetOnly)
+                {
+                    this->GetLayout()->SetSavedGapWidth(m_curGapWidth);
+                }
             }
             else if (name == szNoFootnotesToPTorBE)
             {
@@ -62080,5 +62097,15 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 // TODO - the rest
 		}
 	}
+}
+
+// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too
+void CAdapt_ItApp::SetMiniSlop(int width)
+{
+    miniSlop = width;
+}
+int CAdapt_ItApp::GetMiniSlop()
+{
+    return miniSlop;
 }
 

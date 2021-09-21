@@ -1005,14 +1005,13 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 
 			// toggling to no visible src does NOT ask for any re-drawing of the tgt cells 
 #if defined (_DEBUG)
-			if (gbShowTargetOnly == TRUE)
 			{
 				CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
-				//if (!pSrcPhrase->m_inform.IsEmpty())
-				if ( (pSrcPhrase->m_bNullSourcePhrase == TRUE) && (!pSrcPhrase->m_bRetranslation))
+				if (pSrcPhrase->m_nSequNumber == 2371)
 				{
-					wxLogDebug(_T("%s::%s(), line %d, sequNum = %d, Placeholder: %s "),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str());
+					wxLogDebug(_T("%s::%s(), line %d, enclosingRect Left %d, Top %d , Width %d , Height %d "),
+						__FILE__, __FUNCTION__, __LINE__, enclosingRect.GetLeft(), enclosingRect.GetTop(),
+						enclosingRect.GetWidth(), enclosingRect.GetHeight());
 				}
 			}
 #endif

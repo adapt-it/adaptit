@@ -64,6 +64,7 @@
 #endif
 //#define _NEWDRAW
 //#define _EXPAND
+//#define _OVERLAP
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
@@ -796,6 +797,23 @@ struct PageOffsets
 	int nFirstStrip; // 0-based index of the first strip to appear on the current page
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
 };
+
+// BEW 27Jul21 added this struct to support refactored layout now that dropdown
+// list has to be factored into the overall design. See detailed comments preceding
+// the ResizeBox() function, in Adapt_ItView.cpp
+// A permanent public instance of this struct will be added to the CLayout instance, and
+// writing values to it etc will happen, (after clearing,) dynamically after the layout
+// is recalculated and before that is followed up by being drawn.
+/* BEW 17Aug21 unused now, remove it 
+struct LayoutCache
+{
+	int	nActiveSequNum;
+	wxString strActiveAdaption;
+	int nDropdownWidth;
+	int nDropdownHeight;
+	int nTextBoxWidth;
+};
+*/
 
 /// wxList declaration and partial implementation of the POList class being
 /// a list of pointers to PageOffsets objects
@@ -3080,6 +3098,10 @@ public:
 	int	m_curGapWidth;	 // inter-pile gap, measured in pixels (follows a pile)
 	int m_saveCurGapWidth; // put normal width in here when free translating (which uses different gap)
 
+	// BEW 24Aug21 restoring a boolean deleted years ago, it resufaced in Bill's old code for
+	// updating a changed box width -- one call, sets it FALSE at one call in OnKeyDown() in PhraseBox.cpp line 7667, no idea if ever it's TRUE - ask Bill
+	bool m_bSuppressRecalcLayout;
+
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int	m_nSrcHeight;	// line height for source language text
 	int	m_nTgtHeight;	// ditto for target lines & the pApp->m_targetBox
@@ -3173,6 +3195,15 @@ public:
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
+
+	int				m_width_of_w; // BEW 15Aug21 added, for defining a multiple of this value as a default pile width
+								  // and other things, eg. the miniSlop, and calculations for expand or contract
+								  // of the phrasebox...
+	// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too;
+	// but I set both that and m_width_of_w in OnInit()
+	int				miniSlop;
+	void			SetMiniSlop(int width);
+	int				GetMiniSlop();
 
     // whm modified 10Jan2018 after implementing CPhraseBox dropdown list
     bool m_bChooseTransInitializePopup;
@@ -4303,6 +4334,7 @@ public:
     bool        m_bMovingToDifferentPile;
 
     short       m_nExpandBox;
+	bool		m_bFinalGapWidthReady; // False, until set TRUE by a RecalcLayout() call.
 
     /// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so
     /// that expansion becomes necessary - see the FixBox() function in CPhraseBox class.
@@ -5589,6 +5621,8 @@ private:
 	bool	SetupCustomWorkFolderLocation();
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
+
+	bool    m_bJustKeyedBackspace; // BEW 3Sep21
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
 #endif

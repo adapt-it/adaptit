@@ -1116,7 +1116,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
+	#if defined (_DEBUG)
+	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles, steadyAsSheGoes);  // BEW 8Sep2021 temporary to test 2016 RecalcLayout
+	#else
 	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+#endif
 #else
 	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 #endif

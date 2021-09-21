@@ -84,6 +84,11 @@ public:
     wxString	m_CurKey;
     wxString    m_Translation;
     bool        m_bEmptyAdaptationChosen;
+	// BEW 13Sep21 added next two bools, formerly they were local, as bDoExpand and bDoContract in OnPhraseBoxChanged(),
+	// but now I want them as public class members so that Calc...() functions in Pile.cpp can pick them up, when
+	// a change in phrasebox width is happening
+	bool		m_bDoExpand;
+	bool		m_bDoContract;
 
 
     wxString    m_SaveTargetPhrase;
@@ -157,20 +162,12 @@ public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
-	// BEW 14Aug18 deprecated
-	//bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool, 
-				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
-				// can quickly be changed; if FALSE, then box and gui stay immobile
-	//bool UpdatePhraseBoxWidth_Contracting(wxString inStr);    // BEW 14Aug18 deprecated
-				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
-				// causes RecalcLayout to be non-suppressed so that the gui and box width
-				// can quickly be changed; if FALSE, then box and gui stay immobile
-
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
     //void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation);
 	void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation);
 	bool RestoreDeletedRefCount_1_ItemToDropDown();
+
 
     void ClearDropDownList();
     void CloseDropDown();
@@ -220,6 +217,10 @@ public:
 	void OnLButtonDown(wxMouseEvent& event); // whm 2Jun2018 moved to public access for use in App's FilterEvent()
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
+	void ConfigureForResizeOrNot(CPile* pActivePile, bool& bDoExpand, bool& bDoContract); // BEW 30Aug21 added
+			// Determines whether this instant for expand or contract has come, or not, and sets the
+			// booleans accordingly, and the Layout's cachedBoxMode enum value; for the "Not" case, the
+			// default value is steadyAsSheGoes
 
     // whm 12Apr2019 The events for the handlers below are actually caught in
     // CAdapt_ItCanvas and are now handled there.
@@ -227,6 +228,7 @@ public:
     //void OnListBoxItemSelected(wxCommandEvent& event);
 
 	int indexOfNoAdaptation;
+
 private:
     // The private pointers of the components that make up the PhraseBox:
     wxTextCtrl* m_pTextCtrl;

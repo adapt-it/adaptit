@@ -50,6 +50,8 @@
 #include "Pile.h"
 #include "Layout.h"
 
+extern bool gbShowTargetOnly;
+
 IMPLEMENT_DYNAMIC_CLASS( CViewPage, wxPanel )
 
 // event handler table
@@ -345,6 +347,16 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	if (nVal != pApp->m_curGapWidth)
 		pLayout->m_bViewParamsChanged = TRUE;
 	pApp->m_curGapWidth = nVal;
+	// BEW added, 30Jul21
+	if (gbShowTargetOnly)
+	{
+		pApp->GetLayout()->m_nSaveGap_TgtOnly = nVal; // save for 'Show Target Only' mode
+		pApp->GetLayout()->m_bNewGapRequested_TgtOnly = TRUE; // set TRUE until it's used
+	}
+	else
+	{
+		pApp->GetLayout()->SetSavedGapWidth(nVal); // sets m_nSaveGap, for normal strips
+	}
 
 	strTemp = m_pEditLeftMargin->GetValue();
 	nVal = wxAtoi(strTemp);

@@ -24,7 +24,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "Pile.h"
+#pragma interface "Pile.h"
 #endif
 
 // forward references:
@@ -56,7 +56,7 @@ enum phraseBoxWidthAdjustMode {
 /// displays the Gloss, when used. In glossing mode, second displays gloss and third
 /// displays target text.
 /// \derivation		The CPile class is derived from wxObject.
-class CPile : public wxObject  
+class CPile : public wxObject
 {
 	friend class CStrip;
 	friend class CCell;
@@ -69,16 +69,16 @@ public:
 
 	// operations
 public:
-	CSourcePhrase*	GetSrcPhrase();
+	CSourcePhrase* GetSrcPhrase();
 	void	SetSrcPhrase(CSourcePhrase* pSrcPhrase);
 
 	// attributes
 
 private:
-	CLayout*		m_pLayout;
-	CSourcePhrase*	m_pSrcPhrase;
-	CStrip*			m_pOwningStrip;
-	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
+	CLayout* m_pLayout;
+	CSourcePhrase* m_pSrcPhrase;
+	CStrip* m_pOwningStrip;
+	CCell* m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nPile; // what my index is in the strip object
 	int				m_nWidth; // stores width as calculated from PhraseBox width, so is valid only at active
 							  // location; at other piles it stores -1
@@ -96,16 +96,19 @@ public:
 
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
-	// BEW 14Aug18, pass in 'expanding' or 'contracting' for widthMode, depending on what FixBox()
-	// determines is needed. When the phrasebox has enough slop for more character(s), steadyAsSheGodes
-	// is appropriate; but when the box needs expanding, pass in 'expanding', and for a contraction
-	// pass in 'contracting'. Unless I change my mind, internally the 'contracting' value will not
-	// actually do anything to the box's gap in the layout (but I can change this easily), more
-	// important is typing in lots of characters, as the box *MUSt* expand to accomodate them so
-	// that all remain visible
 	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
-	int			CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
 
+	int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
+										 // the phrasebox gap width at the active pile, by a value calculated in
+										 // OnPhraseBoxChanged(), and set there.
+	int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
+	int			CalcPhraseBoxWidth();
+	// BEW 23Aug20 added next two. I need to pass the 'expanding' ( = 2 ) enum value back to view's PlacePhraseBox()
+	void		CacheWidthMode(enum phraseBoxWidthAdjustMode enumIn = steadyAsSheGoes);
+	enum phraseBoxWidthAdjustMode GetCachedWidthMode();
+protected:
+	enum phraseBoxWidthAdjustMode cachedWidthMode;
+public:
 	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
 					// for the CSourcePhrase instance at the active location (m_pActivePile) based
 					// on the KB's pTU pointer for the CSourcePhrase's m_key member.
@@ -122,9 +125,6 @@ public:
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();
-	//int		GetWidth(); // BEW added 14Mar11 & removed on 20Nov12, it's dangerous because the
-							// value is not -1 only when the pile is the active pile, so
-							// it's easy to use it where it shouldn't be used, use Width() instead
 
 	int			Width();
 	int			Height();
@@ -138,16 +138,21 @@ public:
 	void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
 
 //GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
-	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); 
-											// sets m_nWidth (the width to be used at active 
-											//location, calls CalcPhraseBoxGapWidth())
-	void		SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
+	int			SetPhraseBoxGapWidth();
+	// sets m_nWidth (the width to be used at active 
+	//location, calls CalcPhraseBoxGapWidth())
+
+	int			SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets Layout's the m_nWidth pile member
+					// to an explicit number of pixels, as calculated externally, and returns its value
+					// To be correct, it must have the new boxWidth value + buttonWidth + 1 + interpilegap
+					// already added to it, as no further calcs of with will be done.
+	
 	int			GetMinWidth(); // returns value of m_nMinWidth
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
 	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
-	void		SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); // BEW added 19Jul18
+	void		SetPhraseBoxWidth(); // BEW added 19Jul18
 	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
 	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  gets Layout's m_curListWidth value
 	void		SetPhraseBoxListWidth(); // BEW added 24Jul18  set's Layout's m_curListWidth value starting from 
@@ -158,11 +163,11 @@ public:
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 
-	DECLARE_DYNAMIC_CLASS(CPile) 
+	DECLARE_DYNAMIC_CLASS(CPile)
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information. MFC uses DECLARE_DYNCREATE(CClassName)
-	
+
 };
 
 #endif // Pile_h

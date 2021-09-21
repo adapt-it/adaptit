@@ -558,15 +558,28 @@ void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
         {
             pApp->m_pTargetBox->GetDropDownList()->Show();
             // whm 21Mar2020 added lines below to set the size of the dropdown list
-            // especially the height, when in Reivewing mode would not get properly
-            // set - often it would be way to long in height leaving a lot of empty
+            // especially the height, when in Reviewing mode would not get properly
+            // set - often it would be way too long in height leaving a lot of empty
             // white space below the last list entry.
             int rectWidth = pApp->m_pTargetBox->GetTextCtrl()->GetRect().GetWidth();
+			int rectWidthBefore = rectWidth;
             // whm 24Jul2018 added. Extend the list horizontally so it spans the whole
             // area under the edit box and the dropdown button.
             int buttonWidth = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect().GetWidth();
+			wxUnusedVar(rectWidthBefore); // used only for the wxLogDebug call
+
             rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
             pApp->m_pTargetBox->SetSizeAndHeightOfDropDownList(rectWidth);
+#if defined (_DEBUG) //&& defined (_OVERLAP)
+			{ // scope the block for safety
+				CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+				if (pSPhr->m_bHasKBEntry)
+				{
+					wxLogDebug(_T("%s::%s() line %d: m_pTextBox recWidth BEFORE %d, AFTER adding btn+1: %d, buttonWidth %d, tgt = %s"),
+						__FILE__, __FUNCTION__, __LINE__, rectWidthBefore, rectWidth, buttonWidth, pSPhr->m_adaption.c_str());
+				}
+			}
+#endif
         }
         else
         {
@@ -2115,6 +2128,7 @@ x:					CCell* pCell = 0;
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1882);
 #endif
+
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
 								// will be done at the landing location
@@ -2148,7 +2162,7 @@ x:					CCell* pCell = 0;
 								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
 								// pOldActivePile pointer
 								pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-								wxLogDebug(_T(" OnLButtonDown() 2105, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+								wxLogDebug(_T(" OnLButtonDown() 2173, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 									pApp->m_nCacheLeavingLocation);
 
 								pApp->m_bLandingBox = TRUE;
@@ -2232,8 +2246,7 @@ x:					CCell* pCell = 0;
 //			wxString amsg = _T("Line 1983, OnLButtonDown(), in Adapt_ItCanvas.cpp");
 //			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
 #endif
-						if (pApp->m_nActiveSequNum >= 0 &&
-												pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
+						if (pApp->m_nActiveSequNum >= 0 && pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 						{
 							ScrollIntoView(pApp->m_nActiveSequNum);
 						}
@@ -2598,6 +2611,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	// turn the flag off so that clipping becomes possible (provided the CLayout bool
 	// m_bAllowScrolling is also TRUE)
 	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
+
 #endif
 	//#ifdef _debugLayout
 	//ShowSPandPile(393, 50);
