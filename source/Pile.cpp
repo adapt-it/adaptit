@@ -714,20 +714,6 @@ int CPile::CalcPileWidth()
 	{
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		/*
-#if defined (_DEBUG)
-		{
-			int activeSN = gpApp->m_nActiveSequNum;
-			//CPile* pPile = gpApp->GetView()->GetPile(activeSN);
-			if (activeSN == 2)
-			{
-				wxString strBox = gpApp->m_pTargetBox->GetValue();
-				wxLogDebug(_T("%s::%s() line %d: gpApp->m_targetPhrase %s, m_pTargetBox contents = %s  ARE THEY THE SAME?"),
-					__FILE__, __FUNCTION__, __LINE__, gpApp->m_targetPhrase.c_str(), strBox.c_str());
-			}
-		}
-#endif
-		*/
 		if (extent.x > pileWidth_Tgt)
 		{
 			pileWidth_Tgt = extent.x;
@@ -804,19 +790,7 @@ int CPile::CalcPileWidth()
 
 		}
 	}
-/*
-#if defined (_DEBUG)
-	{
-		int activeSN = gpApp->m_nActiveSequNum;
-		if (activeSN == 2)
-		{
-			wxString strBox = gpApp->m_pTargetBox->GetValue();
-			wxLogDebug(_T("%s::%s() line %d: END of CalcPileWidth(), it does not include slop: %d  for tgt = %s , if slop were included: %d"),
-				__FILE__, __FUNCTION__, __LINE__, pileWidth, strBox.c_str(), (m_pLayout->slop + pileWidth));
-		}
-	}
-#endif
-*/
+
 	return pileWidth; // this will return a value to CPile's m_nWidth value - used at the active pile
 }
 
@@ -887,39 +861,6 @@ int CPile::CalcPhraseBoxWidth()
 		// the next calculation and compare to be done
 		boxWidth += m_pLayout->slop;
 
-		// BEW 13Sep21 next is where I need to detect an expanded or contracted box (m_pTargetBox's m_bDoExpand &
-		// m_bDoContract can help with this, also pApp's m_nGapChangeIncrement which is always = or - the m_pLayout
-		// miniSlop value (4 * width of 'w' wxChar in current font's size); and resize the box and gap so that
-		// the RecalcLayout() call with selector create_strips_keep_piles will get the right phrasebox gap width
-		// used - that will be used by the Strip.cpp's call of CreateStrip() to get the active strip's creation
-		// calculation to use the widened gap value when it gets to the active pile's addition to the active
-		// strip -- it's only that that will push the laid out strips in the GUI wider to accomodate the expansion
-		// or contraction, when view->Invalidate() is called to get all the changes visible in the frame's client rect.
-
-		// Handle expansion first
-		if (pApp->m_pTargetBox->m_bDoExpand && pApp->m_nGapChangeIncrement != 0)
-		{
-			int gotToHere = 1;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	}
-// TODO
-
-
-
 		// Now, which ever is the wider, has to be the final boxWidth, so as to keep the listWidth in sync length-wise
 		// with it's boxWidth just above it. (The 1 plus buttonWidth does not get handled here - because, by Bill's
 		// way of handling things, the button width (plus 1) gets added separately, and the listWidth is then widened
@@ -935,8 +876,8 @@ int CPile::CalcPhraseBoxWidth()
 		currBoxWidth = boxWidth;
 
 #if defined(_DEBUG) && defined(_EXPAND)
-		//				wxLogDebug(_T("%s:%s():line %d, initial WIDTHS: starting (no slop,no butn)  %d, CalcPileWidth() %d, listWidth %d , use max - for box text [ %s ]"),
-		//					__FILE__,__FUNCTION__, __LINE__, nStartingWidth, pileWidth, listWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+		//	wxLogDebug(_T("%s:%s():line %d, initial WIDTHS: starting (no slop,no butn)  %d, CalcPileWidth() %d, listWidth %d , use max - for box text [ %s ]"),
+		//		__FILE__,__FUNCTION__, __LINE__, nStartingWidth, pileWidth, listWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 #if defined(_DEBUG) //&& defined(_OVERLAP)
 		CLayout* pLayout = pApp->GetLayout();
@@ -952,14 +893,6 @@ int CPile::CalcPhraseBoxWidth()
 	} // end of TRUE block for test: 
 	  // if ((m_pSrcPhrase != NULL) && (m_pSrcPhrase->m_nSequNumber == gpApp->m_nActiveSequNum)) 
 
-	// BEW 31Aug21 DO NOT cache the return value. There are likely to be multiple entries to FixBox() at a given active location,
-	// and if we cache and recalc later, we are asking for trouble. What FixBox() does is to get the dropdown list's end in vertical
-	// alignment with the current state of the phrasebox when called (and that for keep_strips_keep_piles - so there is no recalc
-	// of the active strip done - and therefore no expansion of the phrasebox, nor contraction either). Expansion and contraction are
-	// handled in OnPhraseBoxChanged() which, in the handler, calls ResizeBox() and FixBox() in that order. By the end of the ResizeBox()
-	// call in that function, boxMode will have been returned to steadyAsSheGoes, but a couple of local booleans preserve the state of
-	// the mode, whether a contraction was done, or an expansion, or neither - in which case the strips stay as they are, and the
-	// gap for showing the phrasebox stays constant.
 	return currBoxWidth;
 }
 
@@ -984,23 +917,14 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// a glossing line, the box will contain a gloss rather than an adaptation whenever
 	// gbIsGlossing is TRUE. Glossing could be using the target font, or the navText font.
 
-	int miniSlop = pApp->GetMiniSlop(); // use the miniSlop value for both expand or contract
-	CPhraseBox* pBox = pApp->m_pTargetBox;
+	//int miniSlop = pApp->GetMiniSlop(); // use the miniSlop value for both expand or contract
+	//CPhraseBox* pBox = pApp->m_pTargetBox;
 
 	int boxGapWidth = 0; //  what we will return
 	int phraseBoxWidth = this->CalcPhraseBoxWidth(); // this has slop and any dropdown list width
 													 // taken into account already
 	boxGapWidth = phraseBoxWidth; // Start with the the above phraseBoxWidth
 
-#if defined (_DEBUG) //&& defined(_OVERLAP)
-	{
-		int sn = pApp->m_nActiveSequNum;
-		if (sn == 2)
-		{
-			int halt_here = 1;
-		}
-	}
-#endif
 	// Only do the following calculations provided the m_pSrcPhrase pointer is set
 	// and that CSourcePhrase instance is the one at the active location, if not so,
 	// return PHRASE_BOX_WIDTH_UNSET which has the value -1

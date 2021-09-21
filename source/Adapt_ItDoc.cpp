@@ -6542,14 +6542,12 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	
 	
 	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
-	
+	bool bIsOK = TRUE; // initialise
 	
 #ifdef _NEW_LAYOUT
-
-	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+		bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
-
-	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+	bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #endif
 	if (!bIsOK)
 	{

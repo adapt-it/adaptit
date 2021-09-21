@@ -21487,7 +21487,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
     m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
-    m_nGapChangeIncrement = 0; // default, - the source phrase gap is not being changed in CreateStrip()
  
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden

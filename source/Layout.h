@@ -263,8 +263,6 @@ private:
 	int			m_nSaveGap;
 	int			m_numVisibleStrips;
 public:
-	enum phraseBoxWidthAdjustMode cachedBoxMode; // BEW added 25Aug21 - to pass value to RecalcLayout() calls
-	enum phraseBoxWidthAdjustMode GetCachedBoxMode(); // BEW added 26Aug21 - I just like accessors
 
 	bool		m_bAmWithinPhraseBoxChanged;
 

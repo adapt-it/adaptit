@@ -240,7 +240,7 @@ void CLayout::InitializeCLayout()
 
 	m_bAmWithinPhraseBoxChanged = FALSE;
 	m_pApp->m_bJustKeyedBackspace = FALSE;  // Set TRUE or FALSE in CPhraseBox's OnChar()
-	cachedBoxMode = steadyAsSheGoes; // ( = 1 ) the default, except when contracting or expanding <<-- m_bJustKeyedBackspace should enable me to remove all use of the WidthMode enum in the app
+
 #ifdef Do_Clipping
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
 	m_bDoFullWindowDraw = FALSE;
@@ -547,22 +547,6 @@ void CLayout::Draw(wxDC* pDC)
 // BEW 21May15 added freeze/thaw support
 void CLayout::Redraw(bool bFirstClear)
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	// BEW 21May15 added
 	if (m_pApp->m_bSupportFreeze)
 	{
@@ -588,22 +572,7 @@ void CLayout::Redraw(bool bFirstClear)
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
+
 }
 
 CAdapt_ItApp* CLayout::GetApp()
@@ -716,9 +685,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 #endif
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 559,
-	gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
-
+wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), __LINE__, gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 #endif
 
 // get the phrase box placed in the active location and made visible, and suitably
@@ -747,16 +714,6 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile
 			// instead; but this will work even if we have forgotten to
 			// update it in the edit operation's handler
-#if defined (_DEBUG) && defined(_OVERLAP)
-	{
-		CSourcePhrase* pSP = m_pApp->m_pActivePile->GetSrcPhrase();
-		int sn = pSP->m_nSequNumber;
-		if (sn >= 2770 && sn <= 2795)
-		{
-			int halt_here = 1;
-		}
-	}
-#endif
 
 	// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
 	// and list, the box gap may also be much smaller than it needs to be - so while
@@ -767,13 +724,13 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 765);
+	m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 758);
 #endif
 
 	// get the pile width at the active location, using the value in
 	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
 	int phraseBoxWidth = pActivePile->CalcPhraseBoxWidth(); //BEW 17Aug21, this is the correct call 
-		// for here, and returns the width of the box text, without the slop and buttonWidth + 1 added.
+		// for here, and returns the width of the box, without  buttonWidth + 1 added.
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 	// range specification get set by the SetupCursorGlobals() calls in the switch below
@@ -1210,8 +1167,9 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 				m_pApp->m_pTargetBox->m_bAbandonable = FALSE; // If tgt text changed, it must become non-Abandonable (BEW added line 7May18)
 			}
 		}
-		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-																				  // whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block.
+		// keep m_pTargetBox contents in sync with m_targetPhrase
+		// whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block.
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); 
 	}
 
 	m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -2020,12 +1978,6 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 											  // in the destructor for AIPrintout, the app member, m_saveDocSize is used to
 											  // restore the app member m_docSize, so we don't need to do that here - we only
 											  // need to restore the CLayout::m_logicalDocSize here
-}
-
-
-enum phraseBoxWidthAdjustMode  CLayout::GetCachedBoxMode()
-{
-	return cachedBoxMode;
 }
 
 // return TRUE if a layout was set up, or if no layout can yet be set up;
@@ -3403,30 +3355,12 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidStrip,
 	int& nFirstPileIndex, int& nEndPileIndex)
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
-
-
 	if (nFirstInvalidStrip == -1 || nLastInvalidStrip == -1)
 	{
 		// a range of invalid strips was not calculated by the caller, so reenter
 		// RecalcLayout() doing a full strip destroy and recreation, so that we get a valid
 		// layout that way instead
-		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);	
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 /* #if defined (_DEBUG)	
 		{
@@ -3436,7 +3370,6 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 #endif */
 		return FALSE;
 	}
-
 	int nBeforeStripIndex = nFirstInvalidStrip - 1; // previous strip's index, or -1
 	if (nFirstInvalidStrip == 0)
 	{

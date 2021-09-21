@@ -5604,8 +5604,6 @@ private:
 public:
 
 	bool    m_bJustKeyedBackspace; // BEW 3Sep21
-	int		m_nGapChangeIncrement; // BEW 4Sep21 takes -ve value (gap decreasing), 0 (no change), +ve (gap increasing)
-									// add it always to CreateStrip when at active pile and value is not zero
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
 #endif

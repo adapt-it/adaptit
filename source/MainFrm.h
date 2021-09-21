@@ -278,7 +278,6 @@ public:
 
 //#endif // _KBSERVER
 
-	bool DoPhraseBoxWidthUpdate();
 
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar

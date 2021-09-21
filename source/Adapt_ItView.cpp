@@ -6984,7 +6984,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
-	pLayout->cachedBoxMode = steadyAsSheGoes; // BEW added 28Aug21
 
 #if defined (_DEBUG)
 	{

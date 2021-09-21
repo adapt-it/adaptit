@@ -357,9 +357,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					//boxMode = m_pLayout->m_boxMode;
 					//pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 					if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand )
-					{
-						// was: if (m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
-						
+					{						
 						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
 						int curBoxWidth = m_pLayout->m_curBoxWidth;
 						int curListWidth = m_pLayout->m_curListWidth;
@@ -380,7 +378,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					}
 					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 					{ 
-						// BEW 16Sep21 test was: if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract && m_pLayout->m_pApp->m_nGapChangeIncrement != 0)
 						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
 						int curBoxWidth = m_pLayout->m_curBoxWidth;
 						int curListWidth = m_pLayout->m_curListWidth;
@@ -414,28 +411,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							pileWidth = pPile->m_nMinWidth;
 						}
 					}
-
-					/* BEW 14Sep21 remove asap - we don't use boxMode any more, except in a few places - but not here
-#if defined(_DEBUG) && defined(_EXPAND)
-					// currently boxMode is unused, except for logging purposes
-					if (boxMode == expanding)
-					{
-						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-					}
-					else if (boxMode == steadyAsSheGoes)
-					{
-						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-					}
-					else
-					{
-						// must be 'contracting'
-						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-					}
-#endif
-					*/
 				}
 				else
 				{
@@ -476,27 +451,13 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				}
 #endif
 				*/
+				// Testing reveals this is the normal exit point for control, when creating strips
 				return pos;
 			}
 
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-/*
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			if (pPile->m_pOwningStrip->m_nStrip == 3)
-			{
-				wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-				// I (Bill) want CRect values for (top)left, and width, and (bottom)right - to assist in working out where
-				// the pile following the active one gets drawn, and the src string to make sure pile is right one
-				wxRect pileRect = pPile->GetPileRect();
-				wxPoint topLeft = pileRect.GetTopLeft();
-				wxPoint bottomRight = pileRect.GetBottomRight();
-				int itsWidth = pileRect.width; // should be the same as pileWith above
-				wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
-					__FUNCTION__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
-			}
-#endif
-*/
+
 			// update index for next iteration
 			pileIndex_InStrip++;
 			nWidthOfPreviousPile = pileWidth;
@@ -505,7 +466,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap; //+m_pLayout->m_pApp->m_nGapChangeIncrement; // what does this do? makes 'it' pile and all others beyond be miniSlop wider
+			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 		}
 	}
 
@@ -513,16 +474,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	// document or the first pile was wider than the whole strip - in either case we must declare
 	// this strip filled and we are done
 	m_bValid = TRUE;
-	/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-	{
-		int nStripIndex = this->GetStripIndex();
 
-		wxLogDebug(_T("%s::%s() line %d : CREATE_STRIP, EXITING, for strip index %d  At Function End"),
-			__FILE__, __FUNCTION__, __LINE__, nStripIndex);
-	}
-#endif
-	*/
 	return pos; // the iterator value where we start when we create the next strip
 }
 
@@ -606,27 +558,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			}
 #endif	
 			*/
-/* keep ?? not much use is made of boxMode now, but it persists in some places (16Sep21) BEW
-#if defined(_DEBUG) && defined(_EXPAND)
-			// currently boxMode is unused, except for logging purposes
-			if (boxMode == expanding)
-			{
-				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-			}
-			else if (boxMode == steadyAsSheGoes)
-			{
-				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-			}
-			else
-			{
-				// must be 'contracting'
-				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-			}
-#endif
-*/
 		}
 		else
 		{
@@ -741,29 +672,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 							// what value it has, because boxMode is no longer used internally
 							// in the call of CalcPhraseBoxGapWidth
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
-/* keep this				
-#if defined(_DEBUG) && defined(_EXPAND)
-				// currently boxMode is unused, except for logging purposes
-				if (boxMode == expanding)
-				{
-					pileWidth += m_pLayout->slop;
-
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-				else if (boxMode == steadyAsSheGoes)
-				{
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-				else
-				{
-					// must be 'contracting'
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-#endif
-*/
 			}
 			else
 			{
@@ -801,7 +709,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 #if defined (_DEBUG)
 			{
 				int nStripIndex = this->GetStripIndex();
-				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, EXITING at line 713, for strip index %d, and m_nFree %d  Strip Is Full"),
+				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, EXITING at line 721, for strip index %d, and m_nFree %d  Strip Is Full"),
 					__FILE__, __FUNCTION__, __LINE__, nStripIndex , m_nFree);
 			}
 #endif	
