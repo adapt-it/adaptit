@@ -1297,15 +1297,18 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 	// refactored 10Mar09, for new view layout design
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pLayout != NULL);
-	PileList* pPiles = pLayout->GetPileList();
-	int nCount = pPiles->GetCount();
+	//PileList* pPiles = pLayout->GetPileList();
+	int nCount = pLayout->GetPileList()->GetCount();
 	if (nSequNum < 0 || nSequNum >= nCount)
 	{
 		// bounds error, so return NULL
 		return (CPile*)NULL;
 	}
-	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases
+
+	//PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases
 												  // and m_pileList lists
+	PileList::Node* pos = pLayout->GetPileList()->Item(nSequNum);
+
 	wxASSERT(pos != NULL);
 	return pos->GetData();
 }

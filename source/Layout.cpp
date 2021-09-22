@@ -1487,22 +1487,6 @@ void CLayout::SetPileAndStripHeight()
 
 void CLayout::RecalcPileWidths(PileList* pPiles)
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	PileList::Node* pos = pPiles->GetFirst();
 	wxASSERT(pos != NULL);
 	CPile* pPile = NULL;
@@ -1516,22 +1500,6 @@ void CLayout::RecalcPileWidths(PileList* pPiles)
 		pos = pos->GetNext();
 	}
 	SetPileAndStripHeight(); // it may be changing, eg to or from "See Glosses"
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 }
 
 int CLayout::GetStripCount()
@@ -1825,8 +1793,24 @@ void CLayout::CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileL
 
 void CLayout::DestroyPiles()
 {
+#if defined (_DEBUG)
+	{
+		//if (m_pApp->m_bDocReopeningInProgress)
+		{
+			wxLogDebug(_T("%s::%s() line %d : Entered Layout's DestroyPiles()"), __FILE__, __FUNCTION__, __LINE__);
+		}
+	}
+#endif
+
 	if (m_pileList.IsEmpty())
+	{
+#if defined (_DEBUG)
+		{
+				wxLogDebug(_T("%s::%s() line %d : Returning from DestroyPiles(), because m_pileList IS EMPTY"), __FILE__, __FUNCTION__, __LINE__);
+		}
+#endif
 		return; // needed because DestroyPiles() can be called when nothing is set up yet
+	}
 	PileList::Node* pos = m_pileList.GetLast();
 	wxASSERT(pos != NULL);
 	CPile* pPile = NULL;
@@ -2004,6 +1988,17 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
+#if defined (_DEBUG)
+	{
+		if (m_pApp->m_bDocReopeningInProgress)
+		{
+			CLayout* pLayout = m_pApp->GetLayout();
+			int nCount = pLayout->GetPileList()->GetCount();
+			int halt_here = 1;
+		}
+	}
+#endif
+
 #if defined (_DEBUG) //&& defined (_EXPAND)
 	wxString modePassedIn = wxEmptyString;
 
@@ -2065,7 +2060,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// own a parallel list of CPile instances in one-to-one correspondence with the
 		// CSourcePhrase instances, and each of piles will contain a pointer to the
 		// sourcePhrase it is associated with
-
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles ||
 		selector == create_strips_update_pile_widths)
 	{
@@ -2177,6 +2171,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// past the doc end - giving a crash because the app thought the doc end was not yet
 	// reached (at doc end, before RecalcLayout() is called, sn is set to -1, so we can
 	// rely on this here)
+	// BEW 22Sep21 added 3rd test, because GetPile() call will return NULL if the pile
+	// list as been emptied above, in order to recreate it below
 	if (!gbDoingInitialSetup || m_pApp->m_nActiveSequNum == -1)
 	{
 		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
@@ -2264,28 +2260,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// we have no active active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
-		//GDLC Removed setting of gbExpanding 2010-02-09
-		//gbExpanding = FALSE; // has to be restored to default value
 	}
-	//GDLC Removed setting of gbContracting 2010-02-09
-	//gbContracting = FALSE; // restore default value
-/*
-#ifdef _DEBUG
-	{
-		PileList::Node* pos = m_pileList.GetFirst();
-		CPile* pPile = NULL;
-		while (pos != NULL)
-		{
-			pPile = pos->GetData();
-			wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %x"),
-				pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
-			pos = pos->GetNext();
-		}
-	}
-#endif
-*/
-// the active pile needs to be set if using the keep_strips_keep_piles option, so if
-// there is a positive m_nActiveSequNum value, use it to set a temporary m_pActivePile
+
+	// the active pile needs to be set if using the keep_strips_keep_piles option, so if
+	// there is a positive m_nActiveSequNum value, use it to set a temporary m_pActivePile
 	if ((m_pApp->m_pActivePile == NULL && m_pApp->m_nActiveSequNum != -1 &&
 		selector != create_strips_and_piles) ||
 		(selector == keep_strips_keep_piles && m_pApp->m_nActiveSequNum != -1) ||
@@ -2299,6 +2277,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		|| selector == create_strips_update_pile_widths)
 	{
 		CreateStrips(nStripWidth, gap);
+
+
+// TODO move end of doc calc to here?
+
+
 	}
 	if (selector == keep_strips_keep_piles)
 	{
@@ -2341,10 +2324,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	#endif
 	*/
-
-	//GDLC Removed setting of gbExpanding & gb Contracting 2010-02-09
-	//gbExpanding = FALSE; // has to be restored to default value
-	//gbContracting = FALSE; // restore default value (also done above)
 
 	if (!m_pApp->m_bIsPrinting)
 	{
