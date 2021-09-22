@@ -84,7 +84,9 @@ CBookName::CBookName(
 	m_pRadioSuggestedName = (wxRadioButton*)FindWindowById(ID_RADIO_SUGGESTED_BOOKNAME_ACCEPTABLE);
 	m_pRadioTypeMyOwn = (wxRadioButton*)FindWindowById(ID_RADIO_DIFFERENT_BOOKNAME);
 	m_pTextCtrl_CurrentBookName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_OLD_BOOKNAME);
-	m_pTextCtrl_TypeNewBookName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_BOOKNAME);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's BookNameDlgFunc() dialog.
+	m_pTextCtrl_TypeNewBookName = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_BOOKNAME);
 
 }
 

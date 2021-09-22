@@ -944,6 +944,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(IDC_RADIO_REVIEWING, CAdapt_ItView::OnUpdateRadioReviewing)
 	EVT_CHECKBOX(IDC_CHECK_SINGLE_STEP, CAdapt_ItView::OnCheckSingleStep)
 	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CAdapt_ItView::OnUpdateCheckSingleStep)
+	EVT_CHECKBOX(ID_CHECKBOX_USE_AUTOCORRECT, CAdapt_ItView::OnCheckUseAutoCorrect) // whm 30Aug2021 added
+	EVT_UPDATE_UI(ID_CHECKBOX_USE_AUTOCORRECT, CAdapt_ItView::OnUpdateCheckUseAutoCorrect) // whm 30Aug2021 added
 	EVT_CHECKBOX(IDC_CHECK_KB_SAVE, CAdapt_ItView::OnCheckKBSave)
 	EVT_CHECKBOX(IDC_CHECK_FORCE_ASK, CAdapt_ItView::OnCheckForceAsk)
 	EVT_BUTTON(IDC_BUTTON_NO_ADAPT, CAdapt_ItView::OnButtonNoAdapt)
@@ -2598,6 +2600,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		if (pSPhr->m_nSequNumber > 0 && pSPhr->m_nSequNumber == 2)
 		{
 			int halt_here = 1;
+			wxUnusedVar(halt_here);
 		}
 	}
 #endif
@@ -3811,6 +3814,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 			wxLogDebug(_T("%s::%s():line %d, BEFORE DoGetSuitableText_For...(): phrasebox width %d , listWidth %d , and button %d , interpile gap  %d "),
 				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pLayout->ExtraWidth(), gapWidth);
 			int halt_here = 1;
+			wxUnusedVar(halt_here);
 		}
 		else
 		{
@@ -4112,6 +4116,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	if (sn > 0 && sn == 2)
 	{
 		int halt_here = 1;
+		wxUnusedVar(halt_here);
 	}
 #endif
 	int boxWidth = 0; // initialise
@@ -6689,6 +6694,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 		if (sn == 2)
 		{
 			int halt_here = 1;
+			wxUnusedVar(halt_here);
 		}
 	}
 #endif
@@ -13570,6 +13576,76 @@ void CAdapt_ItView::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
 		return;
 	}
 	event.Enable(TRUE);
+}
+
+// whm 30Aug2021 added for AutoCorrect support.
+// This update handler causes the [ ] Use Auto Correct check box in the control bar to be
+// shown in the control bar if a documents is open AND the m_AutoCorrectMap has at least
+// one element/rule within it. Otherwise the check box is hidden from the control bar.
+// The m_AutoCorrectMap remains empty unless there is an autocorrect.txt file with valid
+// rules located within the open document's project folder.
+// Note: The check box initially appears ticked, and it is up to the user to either 
+// leave it ticked, or to remove the tick from the box if auto-correct is to be temporarily
+// suspended during target text editing.
+void CAdapt_ItView::OnUpdateCheckUseAutoCorrect(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CKB* pKB;
+	if (gbIsGlossing)
+		pKB = pApp->m_pGlossingKB;
+	else
+		pKB = pApp->m_pKB;
+
+	if (pKB != NULL && pApp->m_pLayout->GetStripCount() > 0
+		&& pApp->m_AutoCorrectMap.size() > 0)
+	{
+		// A document is open, and the m_AutoCorrectMap has at least one rule in it, 
+		// so show the Use Auto Correct checkbox if it is not shown.
+		wxCheckBox* pCheckboxUseAutoCorrect = (wxCheckBox*)pApp->GetMainFrame()->m_pControlBar->FindWindowById(ID_CHECKBOX_USE_AUTOCORRECT);
+		if (pCheckboxUseAutoCorrect != NULL)
+		{
+			if (!pCheckboxUseAutoCorrect->IsShown())
+			{
+				pCheckboxUseAutoCorrect->Show();
+			}
+			// The Use Auto Correct checkbox should be enabled while it is being shown
+			event.Enable(TRUE);
+		}
+		
+	}
+	else
+	{
+		// No document is open, or there are no elements in the m_AutoCorrectMap, so hide the Use Auto Correct checkbox if it is being shown
+		wxCheckBox* pCheckboxUseAutoCorrect = (wxCheckBox*)pApp->GetMainFrame()->m_pControlBar->FindWindowById(ID_CHECKBOX_USE_AUTOCORRECT);
+		if (pCheckboxUseAutoCorrect != NULL)
+		{
+			if (pCheckboxUseAutoCorrect->IsShown())
+				pCheckboxUseAutoCorrect->Hide();
+			// It doesn't matter whether the checkbox is enabled while it is hidden
+		}
+	}
+}
+
+// whm 30Aug2021 added for AutoCorrect support
+// The Use Auto Correct check box remains hidden from the control bar
+// unless a document is open within a project that has an autocorrect.txt
+// file within the project folder associated with the open document.
+// The check box always starts on/ticked. This function allows the user 
+// to turn OFF Auto Correct functionality at any time, and turn it back ON 
+// for the open document. 
+void CAdapt_ItView::OnCheckUseAutoCorrect(wxCommandEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (event.IsChecked())
+	{
+		pApp->m_bUsingAutoCorrect = TRUE;
+	}
+	else
+	{
+		pApp->m_bUsingAutoCorrect = FALSE;
+	}
 }
 
 void CAdapt_ItView::OnCheckSingleStep(wxCommandEvent& WXUNUSED(event))
@@ -32020,23 +32096,24 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	// whm 31Aug2021 moved the following above the gbVerticalEditInProgress test
+	CMainFrame* pFrame;
+	pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	//wxMenuItem * pAdvancedFreeTranslation;
+	//pAdvancedFreeTranslation = pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
+	//wxASSERT(pAdvancedFreeTranslation != NULL);
+
+	// get the checkbox pointer from the "Glossing" checkbox on the controlBar
+	wxASSERT(pFrame->m_pControlBar != NULL);
+	wxCheckBox* pCheckboxIsGlossing =
+		(wxCheckBox*)pFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
+	//wxASSERT(pCheckboxIsGlossing != NULL);
+
 	if (gbVerticalEditInProgress)
 	{
-		CMainFrame* pFrame;
-		pFrame = pApp->GetMainFrame();
-		wxASSERT(pFrame != NULL);
-		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
-		wxASSERT(pMenuBar != NULL);
-		//wxMenuItem * pAdvancedFreeTranslation;
-		//pAdvancedFreeTranslation = pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
-		//wxASSERT(pAdvancedFreeTranslation != NULL);
-
-		// get the checkbox pointer from the "Glossing" checkbox on the controlBar
-		wxASSERT(pFrame->m_pControlBar != NULL);
-		wxCheckBox* pCheckboxIsGlossing =
-			(wxCheckBox*)pFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-		//wxASSERT(pCheckboxIsGlossing != NULL);
-
         // toggle the setting: note; whether going to or from glossing we will not change
         // the current values of gbGlossingUsesNavFont because the user might go back and
         // forwards from having glossing allowed or actually on (in the one session,) and
@@ -32079,6 +32156,12 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 			}
 		}
 	}
+	// whm 31Aug2021 added refresh of control bar which is needed now that auto correct check box may be present
+	if (pFrame != NULL && pFrame->m_pControlBar != NULL)
+	{
+		pFrame->m_pControlBar->Layout();
+	}
+
 	// BEW added 10Jun09, support phrase box matching of the text colour chosen
 	CLayout* pLayout = GetLayout();
 	if (gbIsGlossing && gbGlossingUsesNavFont)
@@ -32356,6 +32439,10 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			pNoAdaptationOrNoGloss->SetLabel(_("<no adaptation>"));
 		}
 	}
+
+	//pControlBar->Refresh() does not cause a rewrite of the controls in the control bar, 
+	// but calling either ->SendSizeEvent() or ->Layout() does.
+	pControlBar->Layout(); 
 
 	// is the document open? If not, return here
 	if (pApp->m_pSourcePhrases->IsEmpty())
@@ -33807,6 +33894,11 @@ void CAdapt_ItView::ShowGlosses()
 			pCheckboxIsGlossing->Show(TRUE);
 		}
 	}
+	// whm 31Aug2021 added refresh of control bar which is needed now that auto correct check box may be present
+	//pControlBar->SetAutoLayout(TRUE); // this doesn't work by itself
+	pControlBar->Layout(); // this works by itself
+	//pControlBar->Refresh(); this doesn't work by itself
+	pControlBar->SendSizeEvent(); // this works by itself (but leave it in case needed for Mac
 
 	// redraw the layout etc.
 	CLayout* pLayout = GetLayout();

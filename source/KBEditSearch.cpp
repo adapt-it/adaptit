@@ -197,9 +197,12 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	//m_pSrcPhraseBox->SetValidator(wxGenericValidator(&m_strSourceText));
 	m_pNumReferencesBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INFO_REFS);
 	//m_pNumReferencesBox->SetValidator(wxGenericValidator(&m_strNumRefs));
-	m_pLocalSearchBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_LOCAL_SEARCH);
+
+	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's KBEditSearchFunc() dialog.
+	m_pLocalSearchBox = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_LOCAL_SEARCH);
 	//m_pLocalSearchBox->SetValidator(wxGenericValidator(&m_strLocalSearch));
-	m_pEditBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITBOX);
+	m_pEditBox = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITBOX);
 	//m_pEditBox->SetValidator(wxGenericValidator(&m_strEditBox));
 
 	m_pUpdateButton = (wxButton*)FindWindowById(ID_BUTTON_UPDATE);

@@ -2534,14 +2534,18 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	m_pTypeSourceBox = (wxTextCtrl*)nbPage->FindWindow(IDC_EDIT_SRC_KEY);
 	wxASSERT(m_pTypeSourceBox != NULL);
 
-	m_pEditOrAddTranslationBox = (wxTextCtrl*)nbPage->FindWindow(IDC_EDIT_EDITORADD);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's KBEditorPanelFunc() dialog.
+	m_pEditOrAddTranslationBox = (AutoCorrectTextCtrl*)nbPage->FindWindow(IDC_EDIT_EDITORADD);
 	wxASSERT(m_pEditOrAddTranslationBox != NULL);
 
 	m_pEditRefCount = (wxTextCtrl*)nbPage->FindWindow(IDC_EDIT_REF_COUNT);
 	wxASSERT(m_pEditRefCount != NULL);
 	m_pEditRefCount->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
 
-	m_pEditSearches = (wxTextCtrl*)nbPage->FindWindow(ID_TEXTCTRL_SEARCH);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's KBEditorPanelFunc() dialog.
+	m_pEditSearches = (AutoCorrectTextCtrl*)nbPage->FindWindow(ID_TEXTCTRL_SEARCH);
 	wxASSERT(m_pEditSearches != NULL);
 
 	m_pStaticCount = (wxStaticText*)nbPage->FindWindow(IDC_STATIC_COUNT);

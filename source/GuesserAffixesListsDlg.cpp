@@ -164,7 +164,9 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	AdjustLabels(m_bSuffixListChosen);
 
 	m_pSrcAffix = (wxTextCtrl*)FindWindowById(ID_TEXT_SRC_AFFIX);
-	m_pTgtAffix = (wxTextCtrl*)FindWindowById(ID_TEXT_TGT_AFFIX);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's GuesserAffixListDlgFunc() dialog.
+	m_pTgtAffix = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXT_TGT_AFFIX);
 	m_pSrcAffix->SetFocus();
 
 	m_pBtnInsert = (wxButton*)FindWindowById(ID_BUTTON_INSERT);

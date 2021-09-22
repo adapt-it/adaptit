@@ -122,7 +122,9 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	//m_pEditCtrlNew = (wxTextCtrl*)FindWindowById(IDC_EDIT_TYPE_NEW);
 	//wxASSERT(m_pEditCtrlNew != NULL);
 	
-	m_pEditCtrlAdaptation = (wxTextCtrl*)FindWindowById(IDC_EDIT_ADAPTATION); 
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ConsistencyCheckDlgFunc() dialog.
+	m_pEditCtrlAdaptation = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_ADAPTATION);
 	wxASSERT(m_pEditCtrlAdaptation != NULL);
 	// BEW 5Sep11, I want these two wxTextCtrls to be write background for maximum
 	// readability, but they do need to be read-only (we'll do that in InitDialog())

@@ -130,32 +130,34 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 	m_editSrcPunct[24] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC24);
 	m_editSrcPunct[25] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC25);
 
-	m_editTgtPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT0);
-	m_editTgtPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT1);
-	m_editTgtPunct[2] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT2);
-	m_editTgtPunct[3] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT3);
-	m_editTgtPunct[4] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT4);
-	m_editTgtPunct[5] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT5);
-	m_editTgtPunct[6] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT6);
-	m_editTgtPunct[7] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT7);
-	m_editTgtPunct[8] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT8);
-	m_editTgtPunct[9] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT9);
-	m_editTgtPunct[10] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT10);
-	m_editTgtPunct[11] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT11);
-	m_editTgtPunct[12] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT12);
-	m_editTgtPunct[13] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT13);
-	m_editTgtPunct[14] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT14);
-	m_editTgtPunct[15] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT15);
-	m_editTgtPunct[16] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT16);
-	m_editTgtPunct[17] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT17);
-	m_editTgtPunct[18] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT18);
-	m_editTgtPunct[19] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT19);
-	m_editTgtPunct[20] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT20);
-	m_editTgtPunct[21] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT21);
-	m_editTgtPunct[22] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT22);
-	m_editTgtPunct[23] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT23);
-	m_editTgtPunct[24] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT24);
-	m_editTgtPunct[25] = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT25);
+	// whm 31Aug2021 modified lines below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's PunctCorrespPageFunc() dialog.
+	m_editTgtPunct[0] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT0);
+	m_editTgtPunct[1] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT1);
+	m_editTgtPunct[2] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT2);
+	m_editTgtPunct[3] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT3);
+	m_editTgtPunct[4] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT4);
+	m_editTgtPunct[5] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT5);
+	m_editTgtPunct[6] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT6);
+	m_editTgtPunct[7] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT7);
+	m_editTgtPunct[8] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT8);
+	m_editTgtPunct[9] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT9);
+	m_editTgtPunct[10] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT10);
+	m_editTgtPunct[11] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT11);
+	m_editTgtPunct[12] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT12);
+	m_editTgtPunct[13] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT13);
+	m_editTgtPunct[14] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT14);
+	m_editTgtPunct[15] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT15);
+	m_editTgtPunct[16] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT16);
+	m_editTgtPunct[17] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT17);
+	m_editTgtPunct[18] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT18);
+	m_editTgtPunct[19] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT19);
+	m_editTgtPunct[20] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT20);
+	m_editTgtPunct[21] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT21);
+	m_editTgtPunct[22] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT22);
+	m_editTgtPunct[23] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT23);
+	m_editTgtPunct[24] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT24);
+	m_editTgtPunct[25] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT25);
 
 	m_editSrcTwoPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2SRC0);
 	m_editSrcTwoPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2SRC1);
@@ -168,16 +170,18 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 	m_editSrcTwoPunct[8] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2SRC8);
 	m_editSrcTwoPunct[9] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2SRC9);
 
-	m_editTgtTwoPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT0);
-	m_editTgtTwoPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT1);
-	m_editTgtTwoPunct[2] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT2);
-	m_editTgtTwoPunct[3] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT3);
-	m_editTgtTwoPunct[4] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT4);
-	m_editTgtTwoPunct[5] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT5);
-	m_editTgtTwoPunct[6] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT6);
-	m_editTgtTwoPunct[7] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT7);
-	m_editTgtTwoPunct[8] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT8);
-	m_editTgtTwoPunct[9] = (wxTextCtrl*)FindWindowById(IDC_EDIT_2TGT9);
+	// whm 31Aug2021 modified lines below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's PunctCorrespPageFunc() dialog.
+	m_editTgtTwoPunct[0] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT0);
+	m_editTgtTwoPunct[1] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT1);
+	m_editTgtTwoPunct[2] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT2);
+	m_editTgtTwoPunct[3] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT3);
+	m_editTgtTwoPunct[4] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT4);
+	m_editTgtTwoPunct[5] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT5);
+	m_editTgtTwoPunct[6] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT6);
+	m_editTgtTwoPunct[7] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT7);
+	m_editTgtTwoPunct[8] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT8);
+	m_editTgtTwoPunct[9] = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_2TGT9);
 
 	pToggleUnnnnBtn = (wxButton*)FindWindowById(IDC_TOGGLE_UNNNN_BTN);
 	pTextCtrlAsStaticText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_PUNCT_CORRESP_PAGE);

@@ -297,6 +297,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		bool bOK = TRUE;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
+		bOK = bOK; // avoid gcc set but not used warning
         m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
@@ -401,7 +402,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
         m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK = TRUE;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
-        m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
+		bOK = bOK; // avoid gcc set but not used warning
+		m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
     // at this point, we need to increment the pInsertLocPile pointer to the next pile, and
@@ -430,6 +432,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		pDummySrcPhrase->m_nSequNumber = m_pApp->GetMaxIndex() + 1;
 		SPList::Node* posTail = NULL;
 		posTail = pSrcPhrases->Append(pDummySrcPhrase);
+		posTail = posTail; // avoid gcc set but not used warning
 		// create a partner pile for this dummy CSourcePhrase instance
 		pDoc->CreatePartnerPile(pDummySrcPhrase);
 		
@@ -3307,6 +3310,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK = FALSE;
 			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid gcc set but not used warning
 			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 
@@ -3840,6 +3844,7 @@ void CPlaceholder::DoInsertPlaceholder(CAdapt_ItDoc* pDoc, // needed here & ther
 			m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK = TRUE;
 			bOK = m_pApp->m_pKB->StoreText(pInsertLocPile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid gcc set but not used warning
 			m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		wxASSERT(bAssociateLeftwards == TRUE);

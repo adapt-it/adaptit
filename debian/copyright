@@ -3,14 +3,14 @@ Upstream-Name: adaptit
 Source: http://code.google.com/p/adaptit/source/
 
 Files: *
-Copyright: 2001-2012 Bruce Waters <bruce_waters@sil.org>
-           2001-2012 Bill Martin <bill_martin@sil.org>
-           2001-2012 SIL International
+Copyright: 2001-2021 Bruce Waters <bruce_waters@sil.org>
+           2001-2021 Bill Martin <bill_martin@sil.org>
+           2001-2021 SIL International
 License: LGPL-2.1+ and CPL-0.5+ (dual licensed)
  .
      ADAPT IT LICENSING
  .
-     Copyright 2001-2010, Bruce Waters, Bill Martin, SIL 
+     Copyright 2001-2021, Bruce Waters, Bill Martin, SIL 
      International. All rights reserved.
  .
      This program is free software; you can redistribute it 
@@ -60,7 +60,7 @@ License: LGPL-2.1+ and CPL-0.5+ (dual licensed)
      ------------------------------------------------------
 
 Files: debian/*
-Copyright: 2008-2012 Bill Martin <bill_martin@sil.org>
+Copyright: 2008-2021 Bill Martin <bill_martin@sil.org>
 License: LGPL-2.1+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as 

@@ -92,7 +92,10 @@ CPlaceInternalMarkers::CPlaceInternalMarkers(wxWindow* parent) // dialog constru
 	#endif
 
 	pListBox = (wxListBox*)FindWindowById(IDC_LIST_MARKERS);
-	pEditTarget = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT);
+
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's PlaceInternalMarkersDlgFunc() dialog.
+	pEditTarget = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT);
 
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pEditTarget, NULL,

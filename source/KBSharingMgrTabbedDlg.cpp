@@ -164,9 +164,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
 	wxASSERT(m_pConnectedTo != NULL);
-	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
+	// whm 31Aug2021 modified 2 lins below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's RetranslationDlgFunc() dialog.
+	m_pTheUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
 	wxASSERT(m_pTheUsername != NULL);
-	m_pEditInformalUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
+	m_pEditInformalUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
 	wxASSERT(m_pEditInformalUsername != NULL);
 	m_pEditPersonalPassword = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD);
 	wxASSERT(m_pEditPersonalPassword != NULL);

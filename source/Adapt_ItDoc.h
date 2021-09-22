@@ -601,6 +601,12 @@ protected:
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
 #endif
 
+public:
+
+	// whm 23Aug2021 added support for AutoCorrect feature
+	void SetupAutoCorrectHashMap();
+	bool LookUpStringInAutoCorrectMap(wxString candidateEditBoxLHSStr, wxChar typedChar, wxString& newEditBoxLHSStr);
+
 	// Generated message map functions (from MFC version) ... most of these should not be
 	// public!!! (BEW 17May10)
 public:

@@ -131,7 +131,9 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	pSrcBox = (wxTextCtrl*)FindWindowById(IDC_SOURCE_LANGUAGE);
 	wxASSERT(pSrcBox != NULL);
 
-	pTgtBox = (wxTextCtrl*)FindWindowById(IDC_TARGET_LANGUAGE);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's LanguagesPageFunc() dialog.
+	pTgtBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_TARGET_LANGUAGE);
 	wxASSERT(pTgtBox != NULL);
 
 	pSrcLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE); // whm added 10May10

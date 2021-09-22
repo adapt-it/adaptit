@@ -7,17 +7,19 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
-/// \description This is the header file for the CAdapt_ItApp class and the AIModalDialog
-/// class.
+/// \description This is the header file for the CAdapt_ItApp class, the AIModalDialog
+/// class and the AutoCorrectTextCtrl class.
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
 /// Adapt It's global enums, structs and variables are declared either as members of the
 /// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class
 /// provides Adapt It with a modal dialog base class which turns off Idle and UIUpdate
-/// processing while the dialog is being shown.
+/// processing while the dialog is being shown. The AutoCorrectTextCtrl class defines
+/// a wxTextCtrl class that implements the AutoCorrect functions.
 /// \derivation	The CAdapt_ItApp class is derived from wxApp, and inherits its support
-///     for the document/view framework.`
-/// The AIModalDialog class is derived from wxScrollingDialog when built with wxWidgets
-/// prior to version 2.9.x, but derived from wxDialog for version 2.9.x and later.
+/// for the document/view framework. The AIModalDialog class is derived from 
+/// wxScrollingDialog when built with wxWidgets prior to version 2.9.x, but derived 
+/// from wxDialog for version 2.9.x and later. The AutoCorrectTextCtrl class derives 
+/// from wxTextCtrl.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
@@ -205,58 +207,51 @@ class test_system_call;
 
 // ******************************* my #defines *********************************************
 
-// whm Note: When changing the following defines for version number, you should also change
-// the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32.
-// Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio 2008 IDE's Resource View
+// whm 16Sep2021 modifications of application version numbers and dates for consolidation
+// and simplification.
+// The defines for version number are now consolidated in the _AIandGitVersionNumbers.h 
+// header file which is #include'd below.
+// 
+// Note: the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32 
+// now are updated automatically from the defines in the _AIandGitVersionNumbers.h header 
+// file. 
+// Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio IDE's Resource View
 // editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we
 // don't want in it and obliterating the wx stuff we do want in it.
 // Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain
-// text editor such as Notepad. If Visual Studio 2008 is open during the editing of
+// text editor such as Notepad. If Visual Studio is open during the editing of
 // Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
 // Adapt_It.rc file after sensing that it was changed by the external program.
 //
-// whm 6Jan12 Note: When changing these version numbers we also need to change the version number
-// in the following:
-// 1. The appVerStr const defined below (about line 257).
-// 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
-// 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
-//    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
-//    Visual Studio to edit this file, since Visual Studio will remove the
-//    #include "wx/msw/wx.rc" statement and add a lot of other
-//    Windows-specific stuff to the file - resulting in a build failure.
-// 4. The Visual Studio 2019 Adapt_It > Properties > Linker > General > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.10 to
-//    keep things compatible with newer versions of Visual Studio.
-// 5. The Mac's Info.plist file in adaptit/bin/mac/.
-// 6. The Linux's ChangeLog (done automatically by batch file if the version number in
-//    "Adapt It changes.txt" doc file is updated.
-// 7. The Linux's changelog file in the debian folder
-// 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
-//    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
-// 9. Within the AboutDlgFunc in wxDesigner change the version number for the
+// The application version numbers and dates are now mainly set in the
+// _AIandGitVersionNumbers.h header file (included below). However, the version numbers 
+// and/or date numbers for the following still need to be set in these locations:
+// 1. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the 
+//    adaptit/xml folder.
+// 2. The Visual Studio 2019 Adapt_It > Properties > Linker > General > Version (do for 
+//    both the Unicode Debug and Unicode Release Configurations).
+//    The Version in the Linker settings, just uses the first two version digits - the
+//    MAJOR and MINOR numbers, i.e., 6.10 which keeps things compatible with newer 
+//    versions of Visual Studio.
+// 3. The Mac's Info.plist file in adaptit/bin/mac/ (Erik B. does Mac builds for the 
+//    Adapt_It-x.x.x.dmg distribution).
+// 4. The changelog file at: adaptit/debian/changelog
+// 5. Various documentation files in the adaptit/docs folder files including: 
+//    [ ] Adapt It changes.txt
+//    [ ] Readme_Unicode_Version.txt
+//    [ ] Known Issues and Limitations.txt
+//    [ ] Adapt It Reference.odt (also Save As Adapt It Reference.doc)
+// 6. Within the AboutDlgFunc() in wxDesigner change the version number for the
 //    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. Also
 //    update the release date there.
 //    TODO:
 //    Find out why for the Mac build this wxStaticText value is not getting
 //    updated from the code in MainFrm.cpp to use the current version number
 //    which includes the build number.
-// ******** IF YOU CHANGE VERSION NUMBERS BELOW FOR ANY REASON   *************************
-// ******** YOU SHOULD ALSO DO 1 AND 2 IN THE COMMENTS ABOVE AS  *************************
-// ******** A MINIMUM FOR A PRE-RELEASE VERSION, OTHERWISE ON    *************************
-// ******** ON YOUR DEVELOPER MACHINE YOU WILL SEE COMPLAINTS    *************************
-// ******** ABOUT THE AI_UserProfiles.xml FILE AND WILL THEN     *************************
-// ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
-// ******** FILE.                                                *************************
-#define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 10 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 17
-#define VERSION_DATE_MONTH 8
-#define VERSION_DATE_YEAR 2021
-const wxString appVerStr(_T("6.10.4"));
-const wxString svnVerStr(_T("$LastChangedRevision$"));
+
+// The header file included below defines the application's version and date numbers.
+// It also includes the Git version numbers for our Git downloads.
+#include "_AIandGitVersionNumbers.h"
 
 // whm 29Jun2021 added the following defines for the current version of Git
 // The following three defines are the only three lines that need updating within Adapt It's
@@ -271,9 +266,9 @@ const wxString svnVerStr(_T("$LastChangedRevision$"));
 // When revising code to download a newer version of the git installer from github, and
 // generate the corresponding newer version of our git downloader YOU MUST ALSO modify the git 
 // version #defines near the beginning of the Inno Setup scripts to match these defined here:
-#define GIT_VERSION_MAJOR 2
-#define GIT_VERSION_MINOR 32
-#define GIT_REVISION 0
+//#define GIT_VERSION_MAJOR 2
+//#define GIT_VERSION_MINOR 32
+//#define GIT_REVISION 0
 
 inline int GetAISvnVersion()
 {
@@ -1614,6 +1609,11 @@ struct UserProfileItem
 };
 
 // whm 4Feb2020 checked - no revisions needed for PT 9
+// whm 1Sep2021 added a wxString member to the struct
+// that indicates a path to the PT project's autocorrect.txt
+// file. If a PT project has no autocorrect.txt file in its
+// project folder the autoCorrectPath value will remain an 
+// empty string
 struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration support
 {
 	// Note: Paratext .ssf files also have some tag fields that provide file naming
@@ -1640,6 +1640,7 @@ struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration s
 	wxString leftToRight; // default is _T("T");
 	wxString encoding; // default is _T("65001"); // 65001 is UTF8
     wxString collabProjectGUID;
+	wxString autoCorrectPath; // default is _T("") // whm added 1Sep2021
 };
 
 /// wxList declaration and partial implementation of the ProfileItemList class being
@@ -2247,6 +2248,46 @@ public:
 	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before
 					 // calling ::ShowModal()
 };
+
+// whm 31Aug2021 added a simple class named AutoCorrectTextCtrl
+// that derives directly from the wxWidgets wxTextCtrl.
+// This is a class that will allow us to access the text control's
+// OnChar() method (like CPhraseBox does), in order to implement an
+// AutoCorrect feature for text controls in used in AI's dialogs that
+// accept target language text where auto-correct can be of assistance.
+class AutoCorrectTextCtrl : public wxTextCtrl
+{
+public:
+	AutoCorrectTextCtrl(void);
+	AutoCorrectTextCtrl(wxWindow* parent, wxWindowID id, const wxString& value,
+		const wxPoint& pos, const wxSize& size, int style = 0)
+		: wxTextCtrl(parent, id, value, pos, size, style)
+	{
+	}
+	virtual ~AutoCorrectTextCtrl(void); // destructor
+
+	// other methods
+	//void OnKeyUp(wxKeyEvent& event);
+	//void OnKeyDown(wxKeyEvent& event);
+	void OnChar(wxKeyEvent& event);
+	//void OnEditBoxChanged(wxCommandEvent& WXUNUSED(event));
+private:
+	// class attributes
+
+	//DECLARE_CLASS(AutoCorrectTextCtrl);
+	// Used inside a class declaration to declare that the class should
+	// be made known to the class hierarchy, but objects of this class
+	// cannot be created dynamically. The same as DECLARE_ABSTRACT_CLASS.
+
+	// or, comment out above and uncomment below to
+	DECLARE_DYNAMIC_CLASS(AutoCorrectTextCtrl)
+	// Used inside a class declaration to declare that the objects of
+	// this class should be dynamically creatable from run-time type
+	// information.
+
+	DECLARE_EVENT_TABLE()
+};
+
 
 class wxDynamicLibrary;
 class AI_Server;
@@ -2899,15 +2940,27 @@ public:
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
 
-	MapAutoCorrectStrings m_AutoCorrectMap; // whm 23Aug2021 added
-				// This hash map is used to map typed sub-strings of target text to replace
-				// with their "corrected" counterpart by the replacement rules stored in
-				// any existing autocorrect.txt file found in the user's project folder.
-				// This is designed to be equivalent to the same feature that is available
-				// in Paratext 8 and 9.
+	// whm 23Aug2021 added the following for AutoCorrect feature support
+	// The following hash map is used to map typed sub-strings of target text to 
+	// replace matching sub-strings with their "corrected" counterpart using the 
+	// replacement rules stored in any existing autocorrect.txt file found in the 
+	// associated project folder..
+	// This is designed to be equivalent to the same Auto Correct feature that is 
+	// available in Paratext 8 and 9. In fact, when an admin/user sets up AI=PT
+	// collaboration using the SetupEditorCollaboration dialog and chooses a particular
+	// Paratext project for AI's target text, the dialog will notify the admin/user
+	// of the presence of an autocorrect.txt file in the Paratext project's folder,
+	// and offer to copy it over for use in AI - if an autocorrect.txt file doesn't
+	// already exist (or is older) in the AI project that utilizes that Paratext project
+	// as its target text language.
+	MapAutoCorrectStrings m_AutoCorrectMap;
 	bool		m_bUsingAutoCorrect; // whm 23Aug2021 added
 	bool		m_bAutoCorrectIsMalformed; // whm 23Aug2021 added
 	int			m_longestAutoCorrectKeyLen; // whm 23Aug2021 added
+	bool		AutoCorrected(wxTextCtrl* pTextCtrl, wxKeyEvent* pevent); // whm 31Aug2021 added
+	bool		AreTextFilesTheSame(wxString filePath1, wxString filePath2); // whm 2Sept2021 added
+	void		EmptyMapAndInitializeAutoCorrect(); // whm 3Sept2021 added
+	wxString	ConvertBackslashUxxxxHexValsInStringToStringChars(wxString stringWithHexChars, bool& bSuccess); // whm 4Sep2021 added
 
 	// mrh 2012-04-17 The current user of AI, introduced for version control.  This will
 	//  probably be the user name + machine name.  "****" means "no owner, up for grabs".
@@ -5056,6 +5109,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	BuildUserProfileXMLFile(wxTextFile* textFile);
 	void	ConfigureInterfaceForUserProfile();
 	void	ConfigureMenuBarForUserProfile();
+	void	ConfigureModeBarForAutoCorrect(); // whm 30Aug2021 added
 	void	ConfigureModeBarForUserProfile();
 	void	ConfigureToolBarForUserProfile();
 	void	ConfigureWizardForUserProfile();

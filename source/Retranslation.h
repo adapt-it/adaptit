@@ -99,6 +99,7 @@ protected:
 	
 protected: 
 	// event handlers
+	void OnChar(wxKeyEvent& event); // whm 31Aug2021 added
 	void OnRemoveRetranslation(wxCommandEvent& event);
 	void OnUpdateRemoveRetranslation(wxUpdateUIEvent& event);
 	void OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event);

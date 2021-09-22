@@ -82,11 +82,13 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     wxString        localUserID = pApp->m_strUserID;
     wxString        localFullname = pApp->m_strFullname;
 
-	pUsernameMsgTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
+	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's UsernameInputFunc() dialog.
+	pUsernameMsgTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
+	// and for the informal username text box
+	pInformalUsernameTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
 	pUsernameMsgTextCtrl->SetBackgroundColour(pApp->sysColorBtnFace);
 	pUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME);
-	// and for the informal username text box
-	pInformalUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
 
 	usernameMsgTitle = _("Warning: No Unique Username");
 	usernameMsg = _("You must supply a username in the Unique Username text box.");

@@ -86,7 +86,9 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 	pTextCtrlSrcLangCode = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE);
 	wxASSERT(pTextCtrlSrcLangCode != NULL);
 
-	pTextCtrlTgtLangName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's CreateNewAIProjForCollabFunc() dialog.
+	pTextCtrlTgtLangName = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
 	wxASSERT(pTextCtrlTgtLangName != NULL);
 
 	pTextCtrlTgtLangCode = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE);

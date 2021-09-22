@@ -11408,6 +11408,14 @@ extern bool gbDoingInitialSetup;
 		m_collab_sourceWholeBookBuffer.Empty();
 		m_collab_sourceChapterBuffer.Empty();
 
+		// whm 2Sept2021 added support for setting up an AutoCorrect feature to operate within 
+		// the opened collaboration document.
+		// NOTE: This OK_btn_delayedHandler_GetSourceTextFromEditor() functionn is only executed 
+		// for Collaboration documents being opened. The setup up of AutoCorrect for 
+		// non-collaboration document openings is done OnOpenDocument() function in the 
+		// Adapt_ItDoc.cpp file.
+		pApp->GetDocument()->SetupAutoCorrectHashMap();
+
 		// Note: we will store the post-edit free translation, if working with such as wanted
 		// in collaboration mode, not in _FREETRANS_OUTPUTS, but rather in a local variable
 		// while we use it at File / Save time, and then transfer it to the free translation

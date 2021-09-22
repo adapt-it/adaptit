@@ -155,7 +155,9 @@ void KBSharingAuthenticationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// BEW 27Jul20, 'STATELESS' in the following label names come from the wxDesigner
 	// resources, and I won't change those  to 'FORMANAGER' names, since user never sees these
 	m_pIpAddrCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SERVER_URL_STATELESS);
-	m_pUsernameCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's kb_sharing_stateless_setup_func() dialog.
+	m_pUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS);
 	m_pUsernameLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_LABEL_STATELESS);
 	m_pUsernameMsgLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_MSG_LABEL_STATELESS);
 	m_pPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_KBSERVER_PWD);

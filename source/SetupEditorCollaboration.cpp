@@ -908,6 +908,86 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
 		m_bCollabChangedThisDlgSession = TRUE;
 
+	// whm 1Sep2021 added 
+	// Check to see if an autocorrect.txt file is available for the m_TempCollabProjectForTargetExports 
+	// PT project currently selected.
+	bool bPTProjectHasAutoCorrectFile = FALSE;
+	wxString acPath = _T(""); // This will be a relative path of a project folder from within the PT data store "My Paratext 8/9 Projects" folder, i.e., "NYIBT\autocorrect.txt"
+	wxString tempTargetProjShortName = _T("");
+	// Get the short name of the m_TempCollabProjectForTargetExports name to pass into the PTProjectHasAutoCorrectFile() function below
+	tempTargetProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
+	bPTProjectHasAutoCorrectFile = PTProjectHasAutoCorrectFile(tempTargetProjShortName, acPath);
+	if (bPTProjectHasAutoCorrectFile)
+	{
+		// Check to see if admin/user wants to copy the available autocorrect.txt file
+		// from the just selected target language PT project to the currently selected AI project.
+		wxString msg = _("The Paratext Project \"%s\" has an autocorrect.txt file within its project folder.\nAdapt It can also use AutoCorrect to help you type target language text within Adapt It.\nDo you want Adapt It to copy the Paratext autocorrect.txt file to the \"%s\" Adapt It project?");
+		msg = msg.Format(msg, m_TempCollabProjectForTargetExports.c_str(), m_TempCollabAIProjectName.c_str());
+		int result = wxMessageBox(msg, _("Use the PT project's autocorrect.txt file for the Adapt It project?"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+		if (result == wxYES)
+		{
+			// Copy the PT project's autocorrect.txt file from the PT target project's folder over
+			// to the Adapt It project's folder. To do this we need absolute paths for the source file
+			// and destination file locations.
+			wxString destFilePath;
+			if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
+			{
+				destFilePath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator
+					+ m_TempCollabAIProjectName + m_pApp->PathSeparator + _T("autocorrect.txt");
+			}
+			else
+			{
+				destFilePath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
+					+ m_TempCollabAIProjectName + m_pApp->PathSeparator + _T("autocorrect.txt");
+			}
+			wxString sourceFilePath;
+			sourceFilePath = m_pApp->GetParatextProjectsDirPath(m_TempCollabEditorVersion) + m_pApp->PathSeparator + tempTargetProjShortName  + m_pApp->PathSeparator +_T("autocorrect.txt");
+
+			if (!wxFileExists(destFilePath))
+			{
+				// No autocorrect.txt file is currently present at the destFilePath so go ahead and copy it there
+				::wxCopyFile(sourceFilePath, destFilePath, TRUE); // TRUE = overwrite
+			}
+			else
+			{
+				// An autocorrect.txt file already exists currently at the destFilePath, so check to see if
+				// the existing autocorrect.txt file at destFilePath is identical to the one at sourceFilepath
+				// and if it isn't identical, ask the admin/user if it should be replaced, otherwise go ahead and
+				// copy the PT file overwriting the file since the admin/user said to use the PT version.
+				if (!m_pApp->AreTextFilesTheSame(sourceFilePath, destFilePath))
+				{
+					// The two autocorrect.txt files are not identical, so ask if the AI project one should be replaced
+					// but first check their modification dates so we can inform the admin/user which file is newer.
+					bool PTautocorrectFileIsNewer = FALSE;
+					msg = _("The PT project's autocorrect.txt file and the Adapt It project's autocorrect.txt file are different.");
+					wxString msg2 = _("(NOTE: The autocorrect.txt file in the Paratext project is newer).");
+					wxString msg3 = _("Do you want to overwrite Adapt It's autocorrect.txt file with Paratext's autocorrect.txt file?");
+					if (wxFileModificationTime(sourceFilePath) > wxFileModificationTime(destFilePath))
+					{
+						PTautocorrectFileIsNewer = TRUE;
+						msg = msg + _T(' ') + msg2 + _T("\n") + msg3;;
+					}
+					result = wxMessageBox(msg, _("The autocorrect.txt files are different"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+					if (result == wxYES)
+					{
+						// Admin/User wants to replace AI's autocorrect.txt with PT's autocorrect.txt
+						::wxCopyFile(sourceFilePath, destFilePath, TRUE); // TRUE = overwrite
+					}
+
+				}
+				else
+				{
+					// The two autocorrect.txt files are identical, so just copy the PT file overwriting the AI one
+					::wxCopyFile(sourceFilePath, destFilePath, TRUE); // TRUE = overwrite
+				}
+			}
+		}
+		else
+		{
+			; // don't copy PT's autocorrect.txt file to the AI project
+		}
+	}
+
     // After selecting source project, the dialog may be ready to "Accept this setup..."
     SetStateOfRemovalButton();
     SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
@@ -3021,4 +3101,26 @@ void CSetupEditorCollaboration::SetRadioBoxCollabEditorSelection()
     {
         pRadioBoxScriptureEditor->SetSelection(3); // radiobox index 3 is "Bibledit"
     }
+}
+
+// whm 1Sept2021 added for auto-correct functionality support.
+bool CSetupEditorCollaboration::PTProjectHasAutoCorrectFile(wxString ptProjShortName, wxString& autoCorrectPath)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// check whether the ptProjShortName has a non-empty path value in its pCollabInfo 
+	// struct's autoCorrectPath member. If so, return TRUE and pass the path back to caller via the
+	// autoCorrectPath reference parameter; if not return FALSE and pass an empty string back to caller.
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = pApp->GetCollab_Project_Struct(ptProjShortName);  // gets pointer to the struct from the
+																	// pApp->m_pArrayOfCollabProjects
+	if (pCollabInfo != NULL && !pCollabInfo->autoCorrectPath.IsEmpty())
+	{
+		autoCorrectPath = pCollabInfo->autoCorrectPath;
+		return TRUE;
+	}
+	else
+	{
+		autoCorrectPath.Empty();
+		return FALSE;
+	}
 }

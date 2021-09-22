@@ -121,7 +121,9 @@ void CCaseEquivPageCommon::DoSetDataAndPointers()
 	m_pEditSrcEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_CASE_EQUIVALENCES);
 	//m_pEditSrcEquivalences->SetValidator(wxGenericValidator(&m_strSrcEquivalences));
 
-	m_pEditTgtEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_CASE_EQUIVALENCES);
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's CaseEquivDlgFunc() dialog.
+	m_pEditTgtEquivalences = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT_CASE_EQUIVALENCES);
 	//m_pEditTgtEquivalences->SetValidator(wxGenericValidator(&m_strTgtEquivalences));
 
 	m_pEditGlossEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLOSS_CASE_EQUIVALENCES);

@@ -1,4 +1,4 @@
-﻿/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			PhraseBox.cpp
 /// \author			Bill Martin
@@ -3564,6 +3564,37 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	m_bDoContract = FALSE; // initialise
 	pLayout->m_bAmWithinPhraseBoxChanged = TRUE;
 
+//
+//#if defined(_DEBUG)
+// 	wxString tempVal = GetValue();
+//  wxLogDebug(_T("OnPhraseBoxChanged box text = %s"),tempVal.c_str());
+//#endif
+//
+	//wxLogDebug(_T("this->GetModify()  returns 1 or 0: value is  %d"), (int)this->GetModify()); <- even though ChooseTranslation() sets flag, it is cleared before getting to here
+	/*
+	// If test is TRUE, the user set an adaptation value in ChooseTranslation dialog
+	if (gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged)
+	{
+		
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+		pApp->LogDropdownState(_T("OnPhraseBoxChanged() Forcing ChooseTranslation typed value)"), _T("PhraseBox.cpp"), 3113);
+//#endif
+		if (this->IsPopupShown())
+		{
+			this->CloseDropDown();
+		}
+		//this->ClearDropDownList();
+		this->SetupDropDownPhraseBoxForThisLocation();
+
+		//#if defined (_DEBUG) && defined (_ABANDONABLE)
+		pApp->LogDropdownState(_T("OnPhraseBoxChanged() After call of SetupDropDownPhraseBoxForThisLocation())"), _T("PhraseBox.cpp"), 3123);
+		//#endif
+
+		// clear flag
+		gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged = FALSE;
+		return;
+	}
+	*/
 	// The legacy code follows - this function is normally used only when OnChar() is receiving keystrokes
 	if (this->IsModified()) //if (this->GetTextCtrl()->IsModified()) // whm 14Feb2018 added GetTextCtrl()-> for IsModified()
 	{
@@ -3831,6 +3862,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 				if (bTypedBackspace)
 				{
 					int halt_here = 1;
+					wxUnusedVar(halt_here);
 				}
 			}
 #endif
@@ -4726,7 +4758,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// whm Note: The following code for handling the WXK_BACK key is ok to leave here in
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
 	// class call in MFC)  
-    GetSelection(&m_nSaveStart, &m_nSaveEnd); //GetTextCtrl()->GetSelection(&m_nSaveStart, &m_nSaveEnd);
+	GetSelection(&m_nSaveStart, &m_nSaveEnd); //GetTextCtrl()->GetSelection(&m_nSaveStart, &m_nSaveEnd);
 
     // BEW 1Sep21 Mostly OnChar will register keypresses for typed adaptation (or gloss)
 	// characters, but a Backspace is not something easily tested for in OnPhraseBoxChanged().
@@ -4821,6 +4853,17 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		// on return what follows this TRUE block gets done (i.e. backspace key, 
 		// automerging if necessary, etc)
 	{
+
+		// whm 21Aug2021 Note: Here in CPhraseBox::OnChar() we implement the auto-correct feature. 
+		// There are two more tests that follow this block: (1) Checking for a keypress to 
+		// trigger an auto-merge when there is selected source text at the current location, 
+		// and (2) Checking a second time for BackSpace keypress.
+		// NOTE: The above if() test eliminates Enter and Tab key codes from this test block
+		// but it is possible that other keys, especially control keys may get through into
+		// this test block. Therefore the AutoCorrected() function called below uses the 
+		// GetUnicodeKey() function as a further test to make sure that we are using only 
+		// alphanumeric key values in our auto-correct feature. 
+
         // whm note: Instead of explicitly calling the OnChar() function in the base class
         // (as would normally be done for C++ virtual functions), in wxWidgets, we call
         // Skip() instead, for the event to be processed either in the base wxWidgets class
@@ -4839,9 +4882,19 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		// scenario. That boundary - which is user settable, currently is 3 'w' widths
 		// from the end of the box's rectangle - enough to absorb a character in any
 		// language. OnPhraseBoxChanged() will grab the pending character and add it
-		// to the phrasebox, so no need to do it here.
-		event.Skip();
-	}
+		// to the phrasebox, so no need to do it here
+		// 
+		// whm 31Aug2021 modified to consolidate all the auto-correct modifications of
+		// a target text text control into a single App bool function AutoCorrected() which 
+		// returns its value to the bSkip boolean test below. Then AutoCorrected() can 
+		// be used in all dialogs' OnChar() methods to do Auto Correct in each of those 
+		// dialog's target text edit boxes.
+		// We want to call event.Skip() when an auto-correct has NOT taken place, otherwise
+		// we don't want to call event.Skip().
+		bool bSkip = !pApp->AutoCorrected((CPhraseBox*)this, &event);
+		if (bSkip)
+			event.Skip();
+	} // end of if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) 
 
 	// preserve cursor location, in case we merge, so we can restore it afterwards
 	long nStartChar;
@@ -7588,6 +7641,12 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		event.Skip();
 	}
 
+//#if defined(_DEBUG)
+//	wxChar typedChar = (wxChar)event.GetKeyCode();
+//	wxLogDebug(_T("In OnKeyUp - key = %c"), typedChar);
+//#endif
+//
+
 	// does the user want to force the Choose Translation dialog open?
 	// whm Note 12Feb09: This F8 action is OK on Mac (no conflict)
 	if (event.GetKeyCode() == WXK_F8) // F8 function key - ChooseTranslation dialog
@@ -7754,6 +7813,12 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			return;
 		}
 	}
+
+//#if defined(_DEBUG)
+//	wxChar typedChar = (wxChar)event.GetKeyCode();
+//	wxLogDebug(_T("In OnKeyDown - key = %c"),typedChar);
+//#endif
+//
 
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();

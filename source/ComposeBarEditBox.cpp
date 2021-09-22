@@ -93,8 +93,15 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 				// into the edit box
 	}
 	// only call skip when ALT key is NOT down (to avoid base class making a beep)
+	// whm 31Aug2021 added AutoCorrected() function to the ComposeBar's Edit Box to
+	// have auto-correct functionality working within it, since the compose bar box
+	// would generally be used to compose target text.
 	if (!event.AltDown())
-		event.Skip();
+	{
+		bool bSkip = !gpApp->AutoCorrected((CComposeBarEditBox*)this, &event);
+		if (bSkip)
+			event.Skip();
+	}
 	// The actual text characters typed in the compose bar's edit box go through here
 }
 

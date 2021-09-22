@@ -139,7 +139,10 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	// for the adaptation or gloss text control, set it initially empty - it is always
 	// editable, but the radio buttons only are enabled when it is empty
 	wxString emptyStr = _T("");
-	m_pTextCtrlAorG = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TYPED_AORG);
+
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's ConsistencyCheck_EmptyNoTU_DlgFunc() dialog.
+	m_pTextCtrlAorG = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_TYPED_AORG);
 	wxASSERT(m_pTextCtrlAorG != NULL);
 	// put an empty string into the wxTextCtrl, & make it writable
 	m_pTextCtrlAorG->ChangeValue(emptyStr);

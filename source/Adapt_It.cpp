@@ -5868,9 +5868,9 @@ enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(
     int nWorkFolderAppCompatMajV, nWorkFolderAppCompatMinV, nWorkFolderAppCompatBuiV;
     int nRunningAppCompatMajV, nRunningAppCompatMinV, nRunningAppCompatBuiV;
     // get the parts of the version number of the running application
-    nRunningAppCompatMajV = VERSION_MAJOR_PART;
-    nRunningAppCompatMinV = VERSION_MINOR_PART;
-    nRunningAppCompatBuiV = VERSION_BUILD_PART;
+    nRunningAppCompatMajV = AI_VERSION_MAJOR;
+    nRunningAppCompatMinV = AI_VERSION_MINOR;
+    nRunningAppCompatBuiV = AI_VERSION_BUILD_PART;
     // parse out the parts of the version number of the AI_UserProfiles.xml of the work folder
     // from the incoming oldApplicationCompatibility parameter
     tempStr = oldApplicationCompatibility;
@@ -5929,18 +5929,18 @@ enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(
 /// \remarks
 /// Called from the App's OnInit() and from ReportMenuAndUserProfilesInconsistencies().
 /// Forms a wxString from the app's version constants that are #defined at the
-/// beginning of Adapt_It.h. The constants are: VERSION_MAJOR_PART, VERSION_MINOR_PART,
-/// and VERSION_BUILD_PART.
+/// beginning of Adapt_It.h. The constants are: AI_VERSION_MAJOR, AI_VERSION_MINOR,
+/// and AI_VERSION_BUILD_PART.
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetAppVersionOfRunningAppAsString()
 {
     wxString str;
     str.Empty();
-    str << VERSION_MAJOR_PART;
+    str << AI_VERSION_MAJOR;
     str += _T('.');
-    str << VERSION_MINOR_PART;
+    str << AI_VERSION_MINOR;
     str += _T('.');
-    str << VERSION_BUILD_PART;
+    str << AI_VERSION_BUILD_PART;
     return str;
 }
 
@@ -6555,6 +6555,80 @@ int AIModalDialog::ShowModal()
 #endif
 }
 // end of AIModalDialog class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+// begin AutoCorrectTextCtrl class definition !!!!!!!!!!!!!!!!!!!!!!!!
+// Note: This class could be declared and defined in separate source
+// and header files, but it is so small that I'll do it here in the App.
+// 
+// whm 31Aug2021 added a simple class named AutoCorrectTextCtrl
+// that derives directly from the wxWidgets wxTextCtrl.
+// This is a class that will allow us to access the text control's
+// OnChar() method (like CPhraseBox does), in order to implement an
+// AutoCorrect feature for text controls in used in AI's dialogs that
+// accept target language text where auto-correct can be of assistance.
+// This class is used as a custom class within wxDesigner for certain
+// dialogs that have edit boxes expecting target text entry. Pointers
+// to those target text edit boxes are correspondingly created within
+// these dialog's cpp source files. Those source file are:
+// Authenticate2Dlg.cpp ID_TEXTCTRL_USER2, ID_TEXTCTRL_USERNAME_STATELESS
+// BookNameDlg.cpp ID_TEXTCTRL_BOOKNAME
+// CaseEquivPage.cpp IDC_EDIT_TGT_CASE_EQUIVALENCES
+// CCTableEditDlg.cpp IDC_EDIT_CCT
+// ChooseTranslation.cpp IDC_EDIT_NEW_TRANSLATION
+// CollabVerseConflictDlg.cpp ID_TEXTCTRL_EDITABLE_PT_VERSION
+// ConsChk_Empty_noTU_Dlg.cpp ID_TEXTCTRL_TYPED_AORG
+// conschk_exists_notu_dlg.cpp ID_TEXTCTRL_TARGET_PHRASE_2
+// ConsistencyCheckDlg.cpp IDC_EDIT_ADAPTATION
+// CreateNewAIProjForCollab.cpp ID_TEXTCTRL_TGT_LANG_NAME
+// EarlierTranslationDlg.cpp IDC_EDIT_TGT_TEXT
+// FindReplace.cpp IDC_EDIT_TGT_FIND, IDC_EDIT_TGT_REPLACE
+// GuesserAffixesListsDlg.cpp ID_TEXT_TGT_AFFIX
+// KBEditSearch.cpp ID_TEXTCTRL_EDITBOX, ID_TEXTCTRL_LOCAL_SEARCH
+// KBPage.cpp IDC_EDIT_TGT_NAME, ID_EDIT_TARGET_LANG_CODE
+// KBSharingAuthenticationDlg.cpp ID_TEXTCTRL_USERNAME_STATELESS
+// LanguagesPage.cpp IDC_TARGET_LANGUAGE
+// NoteDlg.cpp IDC_EDIT_NOTE, IDC_EDIT_FIND_TEXT
+// PlaceInternalMarkers.cpp IDC_EDIT_TGT
+// PlaceInternalPunct.cpp IDC_EDIT_TGT
+// PunctCorrespPage.cpp IDC_EDIT_TGT0, IDC_EDIT_TGT1, ... IDC_EDIT_TGT25; IDC_EDIT_2TGT0, IDC_EDIT_2TGT1, ... IDC_EDIT_2TGT9
+// RetranslationDlg.cpp IDC_EDIT_RETRANSLATION
+// SilConverterSelectDlg.cpp IDC_ED_SILCONVERTER_INFO
+// UsernameInput.cpp ID_TEXTCTRL_USERNAME_INFORMAL, ID_TEXTCTRL_USERNAME_MSG
+// ViewFilteredMaterialDlg.cpp IDC_EDIT_MARKER_TEXT
+// Other future dialogs???
+
+IMPLEMENT_DYNAMIC_CLASS(AutoCorrectTextCtrl, wxTextCtrl)
+
+// event handler table
+BEGIN_EVENT_TABLE(AutoCorrectTextCtrl, wxTextCtrl)
+//EVT_TEXT(IDC_EDIT_COMPOSE, AutoCorrectTextCtrl::OnEditBoxChanged)
+EVT_CHAR(AutoCorrectTextCtrl::OnChar)
+// whm 15Mar12 added back for read-only mode handling
+//EVT_KEY_DOWN(AutoCorrectTextCtrl::OnKeyDown)
+//EVT_KEY_UP(AutoCorrectTextCtrl::OnKeyUp)
+END_EVENT_TABLE()
+
+// the following constructor is never executed (see constructor in ComposeBarEditBox.h)
+AutoCorrectTextCtrl::AutoCorrectTextCtrl() // constructor
+{
+
+}
+
+AutoCorrectTextCtrl::~AutoCorrectTextCtrl() // destructor
+{
+
+}
+
+// event handling functions
+
+void AutoCorrectTextCtrl::OnChar(wxKeyEvent& event)
+{
+    bool bSkip = !gpApp->AutoCorrected((AutoCorrectTextCtrl*)this, &event);
+    if (bSkip)
+        event.Skip();
+}
+// end AutoCorrectTextCtrl class definition !!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 IMPLEMENT_APP(CAdapt_ItApp)
 // This is used in the application class implementation file to make the
@@ -9879,6 +9953,218 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
+/// Called from: the Doc's OnOpenDocument().
+/// whm 30Aug2021 added this function to control the visibility of the [ ] Use Auto Correct
+/// checkbox in the control/mode bar, hiding the checkbox when no autocorrect.txt file is available
+/// for an opened document's project, showing the checkbox when there is an autocorrect.txt file
+/// in the project folder of an opened document.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureModeBarForAutoCorrect()
+{
+    CMainFrame* pMainFrame;
+    pMainFrame = GetMainFrame();
+    pMainFrame->Freeze(); // to avoid flicker
+    wxCheckBox* pCheckboxUseAutoCorrect = (wxCheckBox*)pMainFrame->m_pControlBar->FindWindowById(ID_CHECKBOX_USE_AUTOCORRECT);
+    if (pCheckboxUseAutoCorrect != NULL)
+    {
+        if (m_bUsingAutoCorrect)
+        {
+            pCheckboxUseAutoCorrect->Show(TRUE);
+            pCheckboxUseAutoCorrect->SetValue(TRUE);
+        }
+        else
+        {
+            pCheckboxUseAutoCorrect->Show(FALSE);
+        }
+    }
+    // Now refresh the CMainFrame's m_controlBarHeight member to ensure the visibility
+    // of its controls are updated.
+    pMainFrame->m_pControlBar->Layout(); // pMainFrame->m_pControlBar->Refresh(); // whm 31Aug2021 changed this to ->Layout()
+    pMainFrame->Thaw(); // to avoid flicker
+    pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if an autocorrect rule was applied to the pTextCtrl's content, FALSE otherwise
+///             The return value is designed to determine whether the event.Skip() is called.
+///             When an autocorrect rule has been applied, event.Skip() should NOT be called.
+/// \param      -> pTextCtrl - pointer to the target language wxTextCtrl whose text we're
+///                 potentially auto-correcting.
+/// \param      -> pevent - pointer to the key event of the character being typed into the 
+///                 pTextCtrl
+/// \remarks
+/// Called from: Mainly CPhraseBox::OnChar(), but also the following dialog's target text text 
+/// controls: 
+/// whm 31Aug2021 added this function to consolidate all of the Auto-correct functionality into
+/// a single function that can be used at the end of a target text assigned text control's OnChar() 
+/// handler. This function carries out the auto-correct on the pTextCtrl's text content if the key
+/// being typed triggers an autocorrect.txt rule. The function's return value (TRUE or FALSE) is 
+/// designed to determine whether the OnChar()'s event.Skip() is called at the end of OnChar().
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::AutoCorrected(wxTextCtrl* pTextCtrl, wxKeyEvent* pevent) // whm 31Aug2021 added
+{
+    bool bAutoCorrected = FALSE;
+    if (m_bUsingAutoCorrect)
+    {
+        wxChar typedChar = pevent->GetUnicodeKey();
+        if (typedChar != WXK_NONE)
+        {
+            // It's a "normal" character. Notice that this includes control characters in 
+            // the 1..31 range, e.g. WXK_RETURN (Enter), WXK_BACK (BackSpace) and others. 
+            // For auto-correct we only consider typedChar values that are above the control 
+            // character range 1..31.
+            if (typedChar >= 32)
+            {
+                //wxLogMessage("You pressed '%c'", typedChar);
+
+                long from;
+                long to;
+                long InsPoint = pTextCtrl->GetInsertionPoint();
+                InsPoint = InsPoint; // avoid warning
+                pTextCtrl->GetSelection(&from, &to); // Note: in GetSelection() from and to will both be same as InsPoint if no selection exists
+                wxString currBoxText = pTextCtrl->GetValue();
+                wxString subStrPartBeforeSelOrInsertionPoint;
+                wxString sbuStrSelText;
+                wxString subStrPartAfterSelOrInsertionPoint;
+                wxString subStrBeforeWithChar;
+                // Break up currBoxText into its parts.
+                // The following works whether or not there is a text selection.
+                subStrPartBeforeSelOrInsertionPoint = currBoxText.Mid(0, from);
+                sbuStrSelText = currBoxText.Mid(from, to - from); // Empty if no selection (to == from). Since typing replaces a selection, this part will be replaced by the typed char
+                subStrPartAfterSelOrInsertionPoint = currBoxText.Mid(to, currBoxText.Length());
+                subStrBeforeWithChar = subStrPartBeforeSelOrInsertionPoint + typedChar;
+
+                // Call LookUpStringInAutoCorrectMap() to see if there is an autocorrection available based on subStrBeforeSelOrInsertionPoint and the typedChar
+                bool bfound;
+                wxString subStrAfterAutoCorrect = _T("");
+                bfound = GetDocument()->LookUpStringInAutoCorrectMap(subStrPartBeforeSelOrInsertionPoint, typedChar, subStrAfterAutoCorrect);
+                if (bfound)
+                {
+                    // The typedChar gets swallowed up in the auto-correction, so just add the last part of the editbox string (it would 
+                    // be empty if a selection or insertion point was not already at the end of the edit box text.
+                    // Assume the insertion point should be at the end of the autocorrect string subStrAfterAutoCorrect.
+                    long insPoint;
+                    insPoint = subStrAfterAutoCorrect.Length();
+                    subStrAfterAutoCorrect += subStrPartAfterSelOrInsertionPoint;
+                    pTextCtrl->SetValue(subStrAfterAutoCorrect);
+                    pTextCtrl->SetInsertionPoint(insPoint);
+                    // Note: According to the wx docs, SetValue() sets the control as NOT modified, i.e., a call to IsModified() will 
+                    // immediately return FALSE at this point. 
+                    // The SetValue() call also generates a wxEVT_TEXT event which triggers our OnPhraseBoxChanged() method, but that
+                    // method tests this->IsModified() before doing its work so we'll call this->SetModified(TRUE) here to ensure that
+                    // downstream know a change has been made.
+                    if (!pTextCtrl->IsModified())
+                        pTextCtrl->SetModified(TRUE);
+                    bAutoCorrected = TRUE;
+                }
+                else
+                {
+                    // No autocorrect rule was applied, so do nothing.
+                    ;
+                }
+            }
+            else
+            {
+                // It's a control character which we'll ignore for auto-correct purposes
+                ;
+            }
+        } // end of if (typedChar != WXK_NONE)
+    } // end of if (pApp->m_bUsingAutoCorrect)
+    return bAutoCorrected;
+}
+
+// whm 30Sep2021 added this function to check whether two text files are identical or different
+bool CAdapt_ItApp::AreTextFilesTheSame(wxString filePath1, wxString filePath2)
+{
+    wxTextFile f1;
+    wxTextFile f2;
+    bool bSame = TRUE; // assume they have same number of identical text lines, unless we find a difference
+    if (f1.Open(filePath1) && f2.Open(filePath2))
+    {
+        int ct;
+        int nLineTot1 = f1.GetLineCount();
+        int nLineTot2 = f2.GetLineCount();
+        if (nLineTot1 != nLineTot2)
+        {
+            // The two files have differing number of lines so they are different
+            bSame = FALSE;
+        }
+        else
+        {
+            // The two files have same number of lines, but are the lines identical?
+            for (ct = 0; ct < nLineTot1; ct++)
+            {
+                if (f1.GetLine(ct) != f2.GetLine(ct))
+                {
+                    // These two lines differ so the files are not the same
+                    bSame = FALSE;
+                    break; // no need to check more lines
+                }
+            }
+        }
+    }
+    return bSame;
+}
+
+// whm 3Sept2021 added
+// This function initializes the AutoCorrect hash map m_AutoCorrectMap to an empty state
+// and initializes the other App members related to the AutoCorrect feature.
+void CAdapt_ItApp::EmptyMapAndInitializeAutoCorrect()
+{
+    m_AutoCorrectMap.empty();
+    // Assume the autocorrect.txt file is not maiformed
+    m_bAutoCorrectIsMalformed = FALSE;
+    // Assume we're not using Auto-Correct
+    m_bUsingAutoCorrect = FALSE;
+    // Always start with longest key length of 0
+    m_longestAutoCorrectKeyLen = 0;
+}
+
+// whm 4Sep2021 added to convert a wxString that contains "\uxxxx" sequences, returning a wxString
+// in which those "\uxxxx" values have been converted to their Unicode character equivalents.
+// This function designed as a helper function for parsing an autocorrect.txt file which may
+// define its rules using the \uxxxx ASCII char format on either side of the --> auto-correct symbol.
+// The first parameter stringWithHexChars is the incoming string to be converted (that may or may 
+// not have \uxxxx sub-strings within it.
+// The second parameter bSuccess is a bool that returns to the caller TRUE if the conversion is 
+// successful or FALSE if the \uxxxx value is malformed or the .ToLong() conversion returns
+// FALSE for some reason.
+wxString CAdapt_ItApp::ConvertBackslashUxxxxHexValsInStringToStringChars(wxString stringWithHexChars, bool& bSuccess)
+{
+    // There may be more than one \uxxxx hex representation within the incoming
+    // stringWithHexChars string, so we need to replace any and all that we find 
+    // within the string. Use a while loop to replace \uxxxx sub-strings until 
+    // all are replaced.
+    wxString tempStr = stringWithHexChars;
+    wxString hexStr = _T("");
+    bool bOK = TRUE;
+    bSuccess = TRUE;
+    while (tempStr.Find(_T("\\u")) != wxNOT_FOUND)
+    {
+        int posHexStr;
+        posHexStr = tempStr.Find(_T("\\u"));
+        hexStr = tempStr.Mid(posHexStr + 2, 4); // get the hex part after \u
+        long testval = 0;
+        bOK = hexStr.ToLong(&testval, 16); // 16 = base 16 or hexadecimal
+        if (!bOK)
+        {
+            // There was an error in converting to a long so return the
+            // string up to the point of the conversion error and set bSuccess to FALSE
+            bSuccess = FALSE;
+            return tempStr;
+        }
+        wxChar theChar(testval); // use wxChar constructor to convert long testval to wxChar
+        // replace the \uxxxx sub-string with the actual theChar in the string and iterate 
+        // for any additional \uxxxx in tempStr
+        tempStr.Replace(_T("\\u" + hexStr), wxString(theChar)); // replaces all instances of the \uxxxx value in tempStr
+    }
+    return tempStr;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
 /// This function destroys the existing mode bar then constructs a new mode bar and uses
 /// it as the starting baseline, removing elements according to the currently selected
@@ -9920,6 +10206,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
     // 7. Delay [wxStaticText] + wxTextCtrl
     // 8. Spacer
     // 9. Glossing [wxCheckBox]
+    // 10. Use Auto Correct [wxCheckBox]
     // Note: There are also two wxStaticLine controls created one above the ID_CONTROLBAR_1_LINE_SIZER and
     // one below it. We won't need to change those, just the contents of ID_CONTROLBAR_1_LINE_SIZER.
 
@@ -10047,6 +10334,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
     controlBarSize = pMainFrame->m_pControlBar->GetSize();
     pMainFrame->m_controlBarHeight = controlBarSize.GetHeight();
     pMainFrame->Thaw(); // to avoid flicker
+    pMainFrame->m_pControlBar->Layout(); // whm 31Aug2021 added
     pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
 }
 
@@ -10952,7 +11240,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
     {
         bVersionsDiffer = TRUE;
         wxString msg;
-        msg = _T("The app's defaultProfileItems[] and the app's VERSION_MAJOR_PART.VERSION_MINOR_PART.VERSION_BUILD_PART have different compatibility versions %s and %s PLEASE FIX ME!");
+        msg = _T("The app's defaultProfileItems[] and the app's AI_VERSION_MAJOR.AI_VERSION_MINOR.AI_VERSION_BUILD_PART have different compatibility versions %s and %s PLEASE FIX ME!");
         msg = msg.Format(msg, pTempUserProfiles->applicationCompatibility.c_str(), appVerOfRunningApp.c_str());
         wxLogDebug(msg);
         wxASSERT_MSG(FALSE, msg);
@@ -21450,8 +21738,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 3Mar2021 added more wxLogDebug() statements in OnInit() including the followin first one:
     wxLogDebug(_T("****************************************************************************")); 
     wxLogDebug(_T("Starting Program Initialization in OnInit()"));
-    wxString appVersionStr = GetAppVersionOfRunningAppAsString();
-    wxLogDebug(_T("Version of this Application is: %s"),appVersionStr.c_str());
+    wxLogDebug(_T("Version of this Application is: %s"),appVerStr.c_str());
 
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
@@ -22117,6 +22404,62 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
+
+    /*
+    // whm 10Sept2021
+    // **** NOTE: The following tests are valid only for debugging under the Linux version where  ****
+    // **** /Data2/ is a folder on an NTFS partition and /data/ is a folder on an Ext4 partition. ****
+    // testing wxFileName::SetPermissions(int permissions) function to see if can detect ntfs or other formatted drive
+    // that wxCopyFile() cannot copy to because it can't copy the permissions from Linux AI that has custom work folder 
+    // on an ntfs partition, also try wxS_DEFAULT
+    // Also testing wxCopyFile(f1,f2,overwrite=TRUE) between Ext4 and ntfs
+    wxString testPathNTFS = _T("/Data2/test.txt");
+    bool noExist = FALSE;
+    if (!wxFileExists(testPathNTFS))
+        noExist = TRUE;
+    noExist = FALSE;
+    wxString textPathEXT4 = _T("/data/test.txt");
+    if (!wxFileExists(textPathEXT4))
+        noExist = TRUE;
+    noExist = FALSE;
+    wxString textPathEXT4_2 = _T("/data/test_2.txt");
+    if (!wxFileExists(textPathEXT4_2))
+        noExist = TRUE;
+
+    // testing wxCopyFile() function between ext4 and ntfs partition formats
+    bool copyFileOK = TRUE;
+    copyFileOK = wxCopyFile(textPathEXT4,testPathNTFS); // no 3rd parameter means overwrite is TRUE
+    copyFileOK = TRUE;
+    copyFileOK = wxCopyFile(testPathNTFS,textPathEXT4); // no 3rd parameter means overwrite is TRUE
+
+    // testing wxFileName::SetPermissions() between ext4 and ntfs partition formats
+    wxFileName fnNTFS(testPathNTFS);
+    wxFileName fnEXT4(textPathEXT4);
+    bool bSetOK = TRUE;
+    bSetOK = fnNTFS.SetPermissions(wxPOSIX_USER_WRITE);
+    bSetOK = TRUE;
+    bSetOK = fnEXT4.SetPermissions(wxPOSIX_USER_WRITE);
+    bSetOK = TRUE;
+    bSetOK = fnNTFS.SetPermissions(wxS_DEFAULT);
+    bSetOK = TRUE;
+    bSetOK = fnEXT4.SetPermissions(wxS_DEFAULT);
+    int dummybreak = 1;
+    */
+    
+    // testing str as hex to long to wxChar conversion
+    ////wxString hexStr = _T("0x00EB"); // works, but only for string literals within _T("")
+    ////wxString hexStr = _T("00EB"); // works, but only for string literals within _T("")
+    ////wxString hexStr = _T("x00EB"); // doesn't work
+    //wxString hexStr = _T("Prefix\u00EBInfix\u00EBSuffix"); // this works!!, so no need to parse out each \uxxxx form
+    ////wxString hexStr = _T("\u00EB"); // This form implicitly converts to a wxString containing the unicode char, but only for string literals within _T("")
+    //wxChar anyChar = _T('\u00EB'); // This form implicitly converts to a wxChar containing the unicode char, but only for string literals within _T("")
+    ////Better to do a conversion from hex value string to long and to wxChar (and concatenating the wxChar to wxString)
+    ////Form is: bool wxString::ToLong (long *val, int base = 10) const
+    //long testval = 255;
+    //bool bOK;
+    //bOK = hexStr.ToLong(&testval,16);
+    //wxChar theChar(testval);
+    //wxString dummy = _T("end of test breakpoint");
 
 	/* finished tests, 10July2020
 	// Testing helpers.cpp wxString SafetifyPath(wxString rawPath)
@@ -23197,9 +23540,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // *** Initializations above were originally in the Doc in the MFC version ***
 
-    m_bUsingAutoCorrect = FALSE; // whm 23Aug2021 added
-    m_bAutoCorrectIsMalformed = FALSE; // whm 23Aug2021 added
-    m_longestAutoCorrectKeyLen = 0; // whm 23Aug2021 added
+    EmptyMapAndInitializeAutoCorrect(); // whm 23Aug2021 added
 
                                       // TokenizeText() makes use of these
     m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
@@ -24077,11 +24418,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // as standard output.
     wxString strVersionNumber;
     strVersionNumber.Empty();
-    strVersionNumber << VERSION_MAJOR_PART;
+    strVersionNumber << AI_VERSION_MAJOR;
     strVersionNumber += _T(".");
-    strVersionNumber << VERSION_MINOR_PART;
+    strVersionNumber << AI_VERSION_MINOR;
     strVersionNumber += _T(".");
-    strVersionNumber << VERSION_BUILD_PART;
+    strVersionNumber << AI_VERSION_BUILD_PART;
     // whm Note: This version reporting switch need not be implemented unless there is
     // a specific need for it such as a script that needs to check the version of Adapt
     // It for use in some routine that is designed to verify that a certain version is
@@ -37109,6 +37450,7 @@ void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
         size_t numRepl;
         wxString gitVerInstalledNoDots = gitInsDlg.gitVerNumAlreadyInstalled;
         numRepl = gitVerInstalledNoDots.Replace(_T("."), _T(""), TRUE);
+        numRepl = numRepl; // avoid gcc warning
         wxString gitVerAvailableToInstallNoDots = GetVersionNumberAsString(GIT_VERSION_MAJOR, GIT_VERSION_MINOR, GIT_REVISION, _T("")); // get version number without dots
         // convert version strings to numbers to do newer, same, older calcs
         long toLongAvailable = 0;
@@ -56014,6 +56356,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName, wxStrin
             {
                 // there was a problem opening the file
                 wxString str = _T("MakeForeignBasicConfigFileSafe() failed, path to the folder was  %s. Aborting...");
+                str = str.Format(str, configPath_Basic_CustomLoc.c_str());
                 wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR | wxOK);
                 LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Could not open basic config file. Aborting..."));
                 // whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
@@ -57400,6 +57743,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
             {
                 bool bFileExists;
                 wxString destinationFile;
+                wxString autoCorrectFilePath; // whm 1Sep2021 added
                 wxTextFile f;
 
                 // For PT 8 open the Settings.xml file within the dir found in str
@@ -57410,6 +57754,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 
                 // check for existence of a Settings.xml file within the str dir
                 destinationFile = str + PathSeparator + _T("Settings.xml");
+                autoCorrectFilePath = _T(""); // defaults to empty string. If an autocorrect.txt file exists in this dir this will store its full path
                 bFileExists = wxFileExists(destinationFile);
                 if (bFileExists)
                 {
@@ -57439,6 +57784,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         pPTInfo->bProjectIsNotResource = TRUE;
                         pPTInfo->bProjectIsEditable = TRUE;
                         pPTInfo->collabProjectGUID = _T(""); // whm added 5April2017
+                        pPTInfo->autoCorrectPath = _T(""); // whm 1Sep2021 added
 
                         // Initialize some variables for fields we are interested in.
                         wxString booksPresentFlags = _T("");
@@ -57458,6 +57804,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         wxString leftToRight = _T("T");
                         wxString encoding = _T("65001");
                         wxString collabProjectGUID = _T(""); // whm added 5April2017
+                        wxString autoCorrectPath = _T(""); // whm 1Sep2021 added
                         bool bProjectIsNotResource = TRUE;
                         //bool bProjectIsEditable = TRUE;
                         wxString lineStr;
@@ -57702,8 +58049,18 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                                 delete pPTInfo; // it's not a valid PT project we can use
                         }
                         f.Close();
-                    }
-                }
+
+                        // whm 1Sep2021 added check for existence of an autocorrect.txt file within
+                        // this folder that is co-resident with the Settings.xml file. If the
+                        // autocorrect.txt file exists in this folder put its path into the 
+                        // pPTInfo->autoCorrectPath member.
+                        autoCorrectFilePath = str + PathSeparator + _T("autocorrect.txt");
+                        if (wxFileExists(autoCorrectFilePath))
+                        {
+                            pPTInfo->autoCorrectPath = autoCorrectFilePath;
+                        }
+                    } // end of if (bOpenedOK)
+                } // end of if (bFileExists) [Settings.xml]
 
                 bWorking = finder.GetNext(&str);
             }
