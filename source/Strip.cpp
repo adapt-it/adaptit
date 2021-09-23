@@ -417,7 +417,10 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					pileWidth = pPile->m_nMinWidth;
 				}
 			}
-			nCurrentSpan = pileWidth; // +gap; // this much has to fit in the m_nFree space for this
+			// whm 23Sep2021 added the gap value back to calculation of each nCurrentSpan below, otherwise
+			// the value of nCurrentSpan will not have been decremented properly within the if (nCurrentSpan <= m_nFree) 
+			// test block below.  
+			nCurrentSpan = pileWidth +gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)
 			{
