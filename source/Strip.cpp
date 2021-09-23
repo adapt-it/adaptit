@@ -402,14 +402,14 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					}
 					else
 					{
-						if (m_pLayout->m_bAmWithinPhraseBoxChanged == TRUE)
-						{
+						//if (m_pLayout->m_bAmWithinPhraseBoxChanged == TRUE)
+						//{
 							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); // +gap;
-						}
-						else
-						{
-							pileWidth = pPile->m_nMinWidth;
-						}
+						//}
+						//else
+						//{
+						//	pileWidth = pPile->m_nMinWidth;
+						//}
 					}
 				}
 				else
