@@ -1300,6 +1300,17 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pLayout != NULL);
 	//PileList* pPiles = pLayout->GetPileList();
+#if defined (_DEBUG)
+	{
+		int count = pLayout->GetPileList()->GetCount();
+		if (count == 0)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			wxLogDebug(_T("   %s::%s() line %d: Pile count is ZERO,  nSequNum = %d, m_bDocReopeningInProgress = %d  in RecalcLayout"),
+			__FILE__, __FUNCTION__, __LINE__, nSequNum , (int)pApp->m_bDocReopeningInProgress);
+		}
+	}
+#endif
 	int nCount = pLayout->GetPileList()->GetCount();
 	if (nSequNum < 0 || nSequNum >= nCount)
 	{

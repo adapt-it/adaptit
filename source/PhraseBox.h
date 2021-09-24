@@ -162,6 +162,28 @@ public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
+	// BEW 14Aug18 deprecated 
+	// BEW 25Aug21 reinstated, to use the August 6 2018 versions
+	// BEW 23Sep21, kept the reinstatement, despite thinking these may be of limited or no 
+	// significant use, but certainly MainFrm.cpp's DoPhraseBoxWidthUpdate() calls
+	// the function:    bool CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded)
+	// so I can't yet remove them safely it seems
+	bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW added 30Jul18 the returned bool, 
+				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile.
+	bool UpdatePhraseBoxWidth_Contracting(wxString inStr);  
+				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
+				// causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile
+	// BEW 25Aug21 added 2 new functions, which contain the calcs and test for determining
+	// an expansion or contraction are needed - by pulling out of the above two, the relevant
+	// code, and returning a bool TRUE if the calcs say 'do the expanding' or 'do the contracting'.
+	// The reason for this is that UpdatePhraseBoxWidth_Expanding() needs the same calcs within it,
+	// to fix a logic error which left the widened box not getting a correct width & thereby the
+	// gap width got left unwidened. That's for the expanding case. I've yet to check out
+	// contracting, but a similar tweak may be needed for that too.....
+	bool CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded);
+
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
     //void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation);

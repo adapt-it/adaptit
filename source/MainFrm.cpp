@@ -5243,6 +5243,113 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 }
 #endif
 
+// BEW added 30July18, this is aa handler for doing a box width update.
+bool CMainFrame::DoPhraseBoxWidthUpdate()
+{
+	bool bSuccess = TRUE;
+
+	// The following code is copied in toto from the end of PlacePhraseBox()
+	// except that the comments are minimized, for full comments see that
+	// function.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	//enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
+
+	// mark invalid the strip following the new active strip
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pile = pView->GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pile != NULL);
+		int stripIndex = pile->GetStripIndex();
+		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		{
+			stripIndex++;
+			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
+			int stripWidth = pStrip->Width();
+			int freeS = pStrip->GetFree();
+			if (freeS > stripWidth / 4)
+			{
+				// BEW changed 20Jan11, we want only unique indices in the array
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
+			}
+		}
+	}
+	// Renew the layout - this function is dealing not with phraseBox expand or contract, but
+	// rather the resizing of the frame wider or narrower
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	// update the active pile pointer 
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile);
+	CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr != NULL)
+	{
+		pDoc->ResetPartnerPileWidth(pSPhr);
+	}
+	pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
+	pApp->m_bIsGuess = FALSE;
+
+	pLayout->m_docEditOperationType = relocate_box_op;
+
+	// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+	// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+	// where it is while the deletions are being done; as the switch in PlaceBox calls
+	// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+	// job and so gnBoxCursorOffset must first be correctly set
+	long from;
+	long to;
+	pApp->m_pTargetBox->GetSelection(&from, &to);
+	gnBoxCursorOffset = (int)from;
+	pLayout->m_docEditOperationType = target_box_paste_op;
+
+	pApp->GetView()->Invalidate();
+
+	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
+	int a = pApp->GetLayout()->m_curBoxWidth;
+	int b = pApp->GetLayout()->m_curListWidth;
+	int max = ::wxMax(a, b);
+	wxString inStr = wxEmptyString;
+
+	// BEW 25Aug21, in case m_curBoxWidth (pre-expansion) is not uptodate, get the box rectangle's
+	// width and compare that with max. If it's greater, then reset max to that value
+	wxRect boxRect = gpApp->m_pTargetBox->GetRect();
+	int rectWidth = boxRect.GetWidth();
+	max = ::wxMax(max, rectWidth);											
+	int pileGap = pApp->GetLayout()->GetGapWidth(); // is the interPileGap (eg. approx 12 + or - a bit)
+
+	// BEW 25Aug21 the old calculation for need of expansion follows
+	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+		inStr = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
+
+	bool bUpdateNeeded = pApp->m_pTargetBox->CalcNeedForExpansionUpdate(inStr, bUpdateNeeded); 
+
+	if (bUpdateNeeded) // This is the crucial test
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap);
+		int theSlop = pApp->GetLayout()->slop;
+		int buttonWidth = pApp->GetLayout()->buttonWidth + 1; // constant width, +1 for the gap between box & button
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + theSlop + buttonWidth + pileGap); // set by this accessor, no internal calcs done
+
+		// BEW 25Aug21 The rest should be okay now
+		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles); // gotta ensure strips are rebuilt
+	}
+    // whm 13Aug2018 Note: SetFocus() call below is correctly set before the 
+    // SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar) call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+	// Restore the selection, or caret location
+    // whm 3Aug2018 Note: No suppression of 'select all' needed for the call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
+	return bSuccess;
+}
 
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
