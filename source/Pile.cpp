@@ -443,14 +443,13 @@ int	CPile::GetPhraseBoxListWidth() //BEW added 24Jul18, gets m_curListWidth valu
 	return gpApp->m_pLayout->m_curListWidth;
 }
 
-void CPile::SetPhraseBoxListWidth()
+void CPile::SetPhraseBoxListWidth(int listWidth)  // accessor, public
 {
-	gpApp->m_pLayout->m_curListWidth = CalcPhraseBoxListWidth();
-	// BEW 29Jul21 uncommented out - this function called in SetPhraseBoxWidth(enum) OVERLOAD
-	// of variant accessor which takes in a supplied width
+	gpApp->m_pLayout->m_curListWidth = listWidth;
+	// BEW 27Sep21 called in CalcPhraseBoxWidth()
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("CPile::SetPhraseBoxListWidth(), sets Layout's m_curListWidth = %d, for box text: %s"),
-		gpApp->m_pLayout->m_curListWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+	wxLogDebug(_T("%s::%s(), sets Layout's m_curListWidth = %d, for phraseBox text: %s"),
+		__FILE__,__FUNCTION__,__LINE__, gpApp->m_pLayout->m_curListWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 #endif
 }
 
@@ -610,20 +609,20 @@ void CPile::SetPhraseBoxWidth()
 		}
 	}
 #endif
-	SetPhraseBoxListWidth(); // not accessor, it calculates listWidth by calling accurate 
-							 // CalcPhraseBoxListWidth() to set Layout's m_curListWidth
+	int listWidth = CalcPhraseBoxListWidth();
+	SetPhraseBoxListWidth(listWidth); // accessor, to set Layout's m_curListWidth
+
 #if defined(_DEBUG) && defined (_OVERLAP)
 	{ 
 		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
 		{
 			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
 			int boxWidth = pTxtBox->GetClientRect().width;
-			wxLogDebug(_T("%s::%s() line %d: FINAL m_pTargetBox from GetClientRect().width = %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, pSPhr->m_adaption.c_str());
+			wxLogDebug(_T("%s::%s() line %d: AFTER listWidth calc = %d ,  m_pTargetBox from GetClientRect().width = %d , tgt = %s"),
+				__FILE__, __FUNCTION__, __LINE__, listWidth, boxWidth, pSPhr->m_adaption.c_str());
 		}
 	}
 #endif
-	int listWidth = GetPhraseBoxListWidth(); // accessor for Layout's m_curListWidth
 	// BEW 29Jul21, add second subtest, in case no list or empty is recorded as width = 0
 	if (listWidth < 0 || listWidth == 0)
 	{
@@ -837,6 +836,22 @@ int CPile::CalcPhraseBoxWidth()
 		int pileWidth = CalcPileWidth(); // internally itself does a max, based on current text extents
 										 // and checks against m_defaultActivePileWidth, to extend to
 										 /// that value if the min pileWidth value is less
+#if defined(_DEBUG) //&& defined(_OVERLAP)
+		{
+			CLayout* pLayout = pApp->GetLayout();
+			if (pLayout != NULL && !gbDoingInitialSetup)
+			{
+				// BEW 25Sep21, CalcPileWidth() should return a growing returned value at each typing of
+				// a normal character, check if that is so.
+				wxRect rectBox = pApp->m_pTargetBox->GetTextCtrl()->GetRect();
+				int boxWidth = rectBox.GetWidth();
+				wxLogDebug(_T("%s::%s():line %d, Value returned from CalcPhraseBox = %d , slop %d ,  boxWidth  %d , for src: %s "),
+					__FILE__, __FUNCTION__, __LINE__, pileWidth, m_pLayout->slop,
+					 boxWidth, pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum)->GetSrcPhrase()->m_srcPhrase.c_str());
+			}
+		}
+#endif
+
 		m_nMinWidth = pileWidth; // because this pile will sometime not be the active one 
 								 // (calc gap width also sets this) Up to this point, no slop has been added
 		int listWidth = 0; // initialise

@@ -154,9 +154,9 @@ public:
 	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
 	void		SetPhraseBoxWidth(); // BEW added 19Jul18
 	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
-	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  gets Layout's m_curListWidth value
-	void		SetPhraseBoxListWidth(); // BEW added 24Jul18  set's Layout's m_curListWidth value starting from 
-										 // m_pActivePile & accessing the relevant CTargetUnit instance
+	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  accessor, gets Layout's m_curListWidth value
+	void		SetPhraseBoxListWidth(int listWidth); // BEW changed 27Sep21  accessor, set's Layout's m_curListWidth value, 
+					 // after calling int CalcPhraseBoxListWidth() at m_pActivePile
 
 	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
 	//int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
