@@ -374,7 +374,12 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
 						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
-						
+#if defined (_DEBUG)
+						{ // scoped block - BEW added 28Sep21 to track the
+							wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding miniSlop %d , after adding buttonwidth %d , pileWidth = %d"),
+								__FILE__,__FUNCTION__,__LINE__, curBoxWidth , theMax , m_pLayout->m_curBoxWidth , pileWidth);
+						}
+#endif
 					}
 					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 					{ 
