@@ -357,33 +357,50 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					//boxMode = m_pLayout->m_boxMode;
 					//pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 					if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand )
-					{						
-						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
-						int curBoxWidth = m_pLayout->m_curBoxWidth;
-						int curListWidth = m_pLayout->m_curListWidth;
-						// Take the larger of the two
-						int theMax = wxMax(curBoxWidth, curListWidth);
-						// Make both agree
-						m_pLayout->m_curBoxWidth = theMax;
-						m_pLayout->m_curListWidth = theMax;
-						// Add the miniSlop to each, making box longer,
-						// (list must agree too)
-						m_pLayout->m_curBoxWidth += miniSlop;
-						m_pLayout->m_curListWidth += miniSlop;
-
-						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
-						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
+					{	
+						if (m_pLayout->m_bCompareWidthIsLonger) // BEW 7Oct21 added this test
+						{
+							// At least one successful expand has been done, and the typed text
+							// in the phrasebox (adaption, or gloss if glossing is turned on)
+							// has grown to the point that it has crossed the rightBoundary, and
+							// triggered m_bDoExpand to be TRUE; and an inner bubble of code in
+							// OnPhraseBoxChanged() has set up width values appropriate for a
+							// further width expansion later, if the user continues typing - the 
+							// pile gap is also cached in a new member of pLayout, called 
+							// m_nNewPhraseBoxGapWidth, with public access, so use it now
+							pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
 #if defined (_DEBUG)
-						{ // scoped block - BEW added 28Sep21 to track the
-							wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding miniSlop %d , after adding buttonwidth %d , pileWidth = %d"),
-								__FILE__,__FUNCTION__,__LINE__, curBoxWidth , theMax , m_pLayout->m_curBoxWidth , pileWidth);
-						}
+							{
+								wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
+									__FILE__, __FUNCTION__, __LINE__, pileWidth);
+							}
 #endif
+						}
+						else
+						{
+							//int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // BEW removed 7Oct21
+							int curBoxWidth = m_pLayout->m_curBoxWidth;
+							int curListWidth = m_pLayout->m_curListWidth;
+							// Take the larger of the two
+							int theMax = wxMax(curBoxWidth, curListWidth);
+							// Make both agree
+							m_pLayout->m_curBoxWidth = theMax;
+							m_pLayout->m_curListWidth = theMax;
+
+							// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
+							// following files will move to accomodate it
+							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
+#if defined (_DEBUG)
+							{ // scoped block - BEW added 28Sep21 to track the pileWidth value
+								wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding buttonwidth %d , pileWidth = %d"),
+									__FILE__, __FUNCTION__, __LINE__, curBoxWidth, theMax, m_pLayout->m_curBoxWidth, pileWidth);
+							}
+#endif
+						}
 					}
 					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 					{ 
-						int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // removes need for nGapChangeIncrement
+						int slop = m_pLayout->slop;
 						int curBoxWidth = m_pLayout->m_curBoxWidth;
 						int curListWidth = m_pLayout->m_curListWidth;
 						// Take the larger of the two
@@ -391,19 +408,18 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						// Make both agree
 						m_pLayout->m_curBoxWidth = theMax;
 						m_pLayout->m_curListWidth = theMax;
-						// Subract the miniSlop but add 2 'w' widths, to each, making box 
-						// a little longer (list must agree too); do it provided the ccurrBoxWidth
+						// Subract the slop but add 2 'w' widths, to each, making box 
+						// a little longer (list must agree too); do it provided the currBoxWidth
 						// does not got less than or equal to layout's m_defaultActivePileWidth value
-						m_pLayout->m_curBoxWidth -= miniSlop; 
+						m_pLayout->m_curBoxWidth -= slop; 
 						m_pLayout->m_curBoxWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
-						m_pLayout->m_curListWidth -= miniSlop;
+						m_pLayout->m_curListWidth -= slop;
 						m_pLayout->m_curListWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
 
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
 						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
 						pileWidth += (2 * m_pLayout->m_pApp->m_width_of_w) + 2 *gap + 4;
-
 					}
 					else
 					{
@@ -680,6 +696,13 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 							// what value it has, because boxMode is no longer used internally
 							// in the call of CalcPhraseBoxGapWidth
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
+#if defined (_DEBUG)
+				{
+					int nStripIndex = this->GetStripIndex();
+					wxLogDebug(_T("%s::%s(), line %d , in active CREATE-STRIP, CalcPhraseBoxGapWidth(boxMode) returned pileWidth = %d , storing nHorzOffset_FromLeft = %d , at strip index = %d"),
+						__FILE__, __FUNCTION__, __LINE__, pileWidth, nHorzOffset_FromLeft, nStripIndex);
+				}
+#endif	
 			}
 			else
 			{

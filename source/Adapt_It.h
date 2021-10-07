@@ -3253,10 +3253,10 @@ public:
 								  // and other things, eg. the miniSlop, and calculations for expand or contract
 								  // of the phrasebox...
 	// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too;
-	// but I set both that and m_width_of_w in OnInit()
-	int				miniSlop;
-	void			SetMiniSlop(int width);
-	int				GetMiniSlop();
+	// but I set both that and m_width_of_w in OnInit()  BEW removed 7Aug21
+	//int				miniSlop;
+	//void			SetMiniSlop(int width);
+	//int				GetMiniSlop();
 
     // whm modified 10Jan2018 after implementing CPhraseBox dropdown list
     bool m_bChooseTransInitializePopup;

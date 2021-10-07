@@ -445,12 +445,14 @@ int	CPile::GetPhraseBoxListWidth() //BEW added 24Jul18, gets m_curListWidth valu
 
 void CPile::SetPhraseBoxListWidth(int listWidth)  // accessor, public
 {
+	if (gbDoingInitialSetup)
+		return;
 	gpApp->m_pLayout->m_curListWidth = listWidth;
 	// BEW 27Sep21 called in CalcPhraseBoxWidth()
-#if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("%s::%s(), sets Layout's m_curListWidth = %d, for phraseBox text: %s"),
-		__FILE__,__FUNCTION__,__LINE__, gpApp->m_pLayout->m_curListWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
-#endif
+//#if defined(_DEBUG) //&& defined(_NEWDRAW)
+//	wxLogDebug(_T("Pile.cpp::SetPhraseBoxListWidth(int listWidth) line = %d, listWidth, <- sets gpApp->m_pLayout->m_curListWidth, for phraseBox text: %s"),
+//		__LINE__, listWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+//#endif
 }
 
 // If called at a non-active location, return -1 to indicate to the caller that
@@ -682,6 +684,57 @@ void CPile::SetPhraseBoxWidth(int boxwidth) // accessor, setting the Layout's m_
 #endif
 }
 
+int CPile::CalcExtentsBasedWidth()
+{
+	int extWidth = 20; // initialise
+	int extWidth_Tgt = extWidth; // initialize
+	int extWidth_Gloss = extWidth;
+	// get a device context for the canvas on the stack (wont' accept uncasted definition)
+	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
+	wxSize extent;
+
+	wxString thePhrase = gpApp->m_targetPhrase;
+	if (thePhrase.IsEmpty())
+	{
+		return 0;
+	}
+	CPile* pActivePile = gpApp->m_pActivePile;
+	wxASSERT(pActivePile != NULL);
+	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+	int sn = pSrcPhrase->m_nSequNumber;
+	int activeSN = gpApp->m_nActiveSequNum;
+	if (activeSN != sn)
+	{
+		return 0;
+	}
+	// tgt text
+	if (!thePhrase.IsEmpty())
+	{
+		aDC.SetFont(*m_pLayout->m_pTgtFont);
+		aDC.GetTextExtent(thePhrase, &extent.x, &extent.y);
+		extWidth_Tgt = extent.x;
+	}
+	// Now gloss text, but only if glosses are seen in adapting mode,
+	//  or we are in glossing mode
+	if (gbIsGlossing || gbGlossingVisible)
+	{
+		if (!thePhrase.IsEmpty())
+		{
+			if (gbGlossingUsesNavFont)
+				aDC.SetFont(*m_pLayout->m_pNavTextFont);
+			else
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+			aDC.GetTextExtent(thePhrase, &extent.x, &extent.y);
+			extWidth_Gloss = extent.x;
+		}
+		extWidth = extWidth_Gloss; // no slop added - must NOT add it here
+		return extWidth;
+	}
+	// Must be we are dealing with target text...
+	extWidth = extWidth_Tgt;
+	return extWidth; //no slop added - must NOT add it here
+}
+
 // Calculates the pile's width before laying out the current pile in a strip. The function
 // is not interested in the relative ordering of the glossing and adapting cells, and so
 // does not access CCell instances; rather, it just examines extent of the three text
@@ -710,10 +763,10 @@ int CPile::CalcPileWidth()
 	pileWidth = extent.x; // can assume >= to key's width, as differ only by possible punctuation
 
 	// Now target text
-	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
+	if (!m_pSrcPhrase->m_adaption.IsEmpty())
 	{
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		aDC.GetTextExtent(m_pSrcPhrase->m_adaption, &extent.x, &extent.y);
 		if (extent.x > pileWidth_Tgt)
 		{
 			pileWidth_Tgt = extent.x;
@@ -933,7 +986,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// a glossing line, the box will contain a gloss rather than an adaptation whenever
 	// gbIsGlossing is TRUE. Glossing could be using the target font, or the navText font.
 
-	//int miniSlop = pApp->GetMiniSlop(); // use the miniSlop value for both expand or contract
+	//int miniSlop = pApp->GetMiniSlop(); // use the miniSlop value for both expand or contract, BEW 7Oct21 use slop instead
 	//CPhraseBox* pBox = pApp->m_pTargetBox;
 
 	int boxGapWidth = 0; //  what we will return

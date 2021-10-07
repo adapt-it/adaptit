@@ -265,6 +265,8 @@ private:
 public:
 
 	bool		m_bAmWithinPhraseBoxChanged;
+	bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
+	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
 	int			m_MinPileWidth; // this is a mirror in Layout class for Pile's m_nMinWidth
 	int			m_curBoxWidth;  // BEW 28Jul21 

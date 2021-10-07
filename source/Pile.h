@@ -95,6 +95,7 @@ public:
 	bool		IsWrapPile();
 
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
+	int			CalcExtentsBasedWidth(); // a cut down version of CalcPileWidth for use in OnPhraseBoxChanged
 	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
 	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
 
