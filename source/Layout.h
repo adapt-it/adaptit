@@ -291,7 +291,7 @@ public:
 						// more interim values accessible from Layout class, as below...
 	int			m_nWideSrcTgtWidth; // Possibly wider than m_nSrcTgtWidth if phrasebox +  button width got widened
 						// enough to require widening for gap purposes, and/or for list slop widening
-	int			m_nFinalPhraseBoxGapWidth; // This one should be m_nWideSrcTgtWidth +  the interpile gap width
+	int			m_nFinalPhraseBoxGapWidth; // This one should be m_nWideSrcTgtWidth +  the interpile gap width  <<-- Remove, I don't use it anymore
 						// and this one then sets the phrase box's gap width. Note, if this one is very large
 						// because m_nMinWidth was set very large due to long src or tgt strings, this member does
 						// NOT cause widening of list or phrasebox; it just ensures that any changes to list or
