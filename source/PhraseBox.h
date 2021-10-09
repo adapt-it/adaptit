@@ -109,6 +109,7 @@ public:
 										 // using the m_ prefix in their names, as these are very hacky
     wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
 
+	// whm 24Sep2021 Note: The only place where FixBox() is currently used in code is within CPhraseBox::OnEditUndo()
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 		int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
 

@@ -4052,6 +4052,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 					__FILE__, __FUNCTION__, __LINE__, pLayout->m_curBoxWidth);
 			}
 #endif
+
 			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
 				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
 		}
@@ -4383,7 +4384,8 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 }
 */
 
-
+// whm 24Sep2021 Note: The only place where FixBox() is currently used in code is within 
+// CPhraseBox::OnEditUndo()/
 // Legacy comment follows: (it's claims about strip tweaking no longer apply)
 // FixBox() is the core function for supporting box expansion and contraction in various
 // situations, especially when typing into the box; this version detects when adjustment to
@@ -4720,7 +4722,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	}
 #endif
 }
-
 
 
 // MFC docs say about CWnd::OnChar "The framework calls this member function when

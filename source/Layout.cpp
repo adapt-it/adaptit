@@ -666,6 +666,35 @@ int CLayout::SetDefaultActivePileWidth()
 }
 
 // BEW 22Jun10, no changes needed for support of kbVersion 2
+// whm Note: CLayout::PlaceBox(enum placeBoxSetup placeboxsetup) default enum = initializeDropDown
+// whm Note: As of 26Sep2021 this PlaceBox() function is called from:
+//  CAdapt_ItApp::DoPrintCleanup(), OnButtonGetFromClipboard(), OnButtonCloseClipboardAdaptDlg()
+//  CAdapt_ItCanvas::OnLButtonDown()
+//  CAdapt_ItDoc::OnNewDocument() 5x, ReconstituteAfterFilteringChange(), LayoutDocForConsistencyCheck(), ReOpenDocument()
+//  CAdapt_ItView::DoTargetBoxPaste(), FindNextHasLanded(), OnButtonToEnd(), OnButtonToStart(), OnButtonStepDown(), OnButtonStepUp(),
+//    OnButtonMerge() 8x, OnButtonRestore(), ExtendSelectionRight(), ExtendSelectionLeft(), ClobberDocument(), Jump(),
+//    MakeSelectionForFind(), DoFindNext() 2x, DoReplace() 4x, OnAlignment() 2x, OnToggleShowPunctuation() 2x, OnToggleShowSourceText(),
+//    OnMarkerWrapsStrip(), SelectDragRange() 2x, OnImportEditedSourceText(), OnButtonNoAdapt(), BailOutFromEditProcess(),
+//    OnEditSourceText(), PutPhraseBoxAtSequNumAndLayout(), OnCheckIsGlossing(), OnButtonUndoLastCopy(), ShowGlosses(),
+//    OnButtonChooseTranslation() 2x, OnCheckKBSave(), OnToolsKbEditor(), OnAdvancedGlossingUsesNavFont(),
+//    OnSize()[PlaceBox(noDropDownInitialization)], PlacePhraseBox(), OnEditPreferences(), UpdateAppearance().
+//  CDocPage::OnWizardPageChanging(), OnWizardFinish()
+//  CReplaceDlg::OnCancel()
+//  CFreeTrans::SwitchScreenFreeTranslationMode(), OnAdvancedRemoveFilteredFreeTranslations(), OnAdvanceButton(), OnNextButton(),
+//    OnPrevButton() 3x, OnRemoveFreeTranslationButton(), OnLengthenButton(), OnShortenButton(), OnAdvancedCollectBacktranslations(),
+//    OnAdvancedRemoveFilteredBacktranslations(), DoJoinWithNext(), DoJoinWithPrevious(), DoSplitIt()
+//  CMainFrame::SyncScrollReceive(), OnSize()[PlaceBox(noDropDownInitialization)], OnCustomEventEndVerticalEdit(), OnRemovalsComboSetChange()
+//  CNoteDlg::OnOK() 2x, OnCancel()
+//  CNotes::DeleteAllNotes(), JumpBackwardToNote_CoreCode(), JumpForwardToNote_CoreCode(), OnButtonCreateNote(), OnEditMoveNoteForward(),
+//    OnEditMoveNoteBackward()
+//  CPhraseBox::MoveToImmedNextPile(), MoveToNextPile(), MoveToNextPile_InTransliterationMode(), LookAhead(), JumpForward() 5x,
+//    MoveToPrevPile(), OnePass() 3x, RestorePhraseBoxAtDocEndSafely(), LookUpSrcWord()
+//  CPlaceholder::InsertNullSrcPhraseBefore(), InsertNullSrcPhraseAfter(), InsertNullSourcePhrase(), RemoveNullSourcePhrase() 2x,
+//    DoInsertPlaceholder() 3x
+//  CRetranslation::OnButtonRetranslation() 4x, EditRetranslationByTgtClick(), OnButtonEditRetranslation() 2x, OnRemoveRetranslation() 2x
+//  CViewFilteredMaterialDlg::OnOK(), OnCancel()
+// NOTE: Only CMainFrame's OnSize() and CAdapt_ItView's OnSize() functions is the noDropDownInitialization enum parameter used, all
+// other calls use the default initializeDropDown enum parameter.
 void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
 

@@ -3040,6 +3040,17 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 // BEW 21Jul14 for ZWSP support: no changes were necessary
+// whm NOTE: As of 26Sep2021, this PlacePhraseBox() function is called from:
+//  CAdapt_ItCanvas::OnLButtonDown() 6x
+//  CAdapt_ItDoc::PutPhraseBoxAtDocEnd(), OnNewDocument() 2x, OnOpenDocument()
+//  CAdapt_ItView::OnButtonChooseTranslation(), DoReplace() 4x, FindNextHasLanded(), Jump(),
+//    OnUseConsistentChanges(), OnUseSilConverter(), OnImportEditedSourceText(),
+//  CollabUtilities.cpp : SetupLayoutAndView(), OnenDocWithMerger()
+//  CReplaceDlg::OnCnacel()
+//  CFreeTrans::SwitchScreenFreeTranslationMode(), OnAdvanceButton(), OnPrevButton() 3x, OnNextButton()
+//  CJoinDialog::OnBnClickedJoinNow()
+//  CMainFrame::OnIdle() 2x
+//  CPunctCorrespPagePrefs::OnOK()
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
