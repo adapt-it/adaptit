@@ -3582,8 +3582,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 //  wxLogDebug(_T("OnPhraseBoxChanged box text = %s"),tempVal.c_str());
 //#endif
 //
-	//wxLogDebug(_T("this->GetModify()  returns 1 or 0: value is  %d"), (int)this->GetModify()); <- even though ChooseTranslation() sets flag, it is cleared before getting to here
-	/*
+//wxLogDebug(_T("this->GetModify()  returns 1 or 0: value is  %d"), (int)this->GetModify()); <- even though ChooseTranslation() sets flag, it is cleared before getting to here
+/*
 	// If test is TRUE, the user set an adaptation value in ChooseTranslation dialog
 	if (gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged)
 	{
@@ -3606,8 +3606,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged = FALSE;
 		return;
 	}
-	*/
-	// The legacy code follows - this function is normally used only when OnChar() is receiving keystrokes
+*/
+	// This function is called at every pertinent keystroke, including backspaces:  OnChar() gets most keystrokes
 	if (this->IsModified()) //if (this->GetTextCtrl()->IsModified()) // whm 14Feb2018 added GetTextCtrl()-> for IsModified()
 	{
 		// preserve cursor location, in case we merge, so we can restore it afterwards
@@ -3715,10 +3715,22 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 				}
 			}
 		} // end of TRUE block for test: if (gbAutoCaps && pApp->m_pActivePile != NULL)
+#if defined (_DEBUG)
+		{
+			if (bTypedBackspace)
+			{
+				int halt_here = 1;
+				wxUnusedVar(halt_here);
+			}
+		}
+#endif
 
 		// update m_targetPhrase to agree with what has been typed so far (and backspaces
 		// or selecting and deleting may have shortened it - don't assume it's wider)
 		pApp->m_targetPhrase = thePhrase;
+
+		m_bDoExpand = FALSE; // initialise, it's a member of CPhraseBox class instance
+		m_bDoContract = FALSE; // initialise, ditto
 
 		bool bWasMadeDirty = FALSE;  //unused
 
@@ -3739,8 +3751,6 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 					// back up by 2 pixels, so text baseline keeps aligned
 		ptCurBoxLocation.y -= 2;
 
-		m_bDoExpand = FALSE; // initialise, member of CPhraseBox class instance
-		m_bDoContract = FALSE; // initialise, ditto
 
 		// BEW 2Sep21 added
 		// The following code determines whether this instant for expand or contract has come, or 
@@ -3801,94 +3811,164 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		pLayout->m_curListWidth = listWidth; // other functions can grab it from there
 
 		leftBoundary = ::wxMax(leftBoundary, listWidth); // leftBoundary is used in the 'contracting' test
-
-		// Next, calculate the right boundary, to be used in the 'expanding' test. It's set at
-		// 3 'w' widths (obtainable from the CLayout instance) short of the current phrasebox width - and
-		// if there has already been an expansion done, then the adaption (or gloss) will be long, and
-		// so we then must compare when the expanded text gets to be wide enough to trigger another expansion.
-		// The CalcExtentsBasedWidth() returns a value which increases with every character typed, and so it
-		// becomes the width which is used to testing for the next trigger of an expansion, when wide enough
-		int compareWidth = pApp->m_pActivePile->CalcExtentsBasedWidth();  // value returned has no slop
-
-		int oldBoxWidth = pApp->m_pActivePile->CalcPhraseBoxWidth();
-		pLayout->m_bCompareWidthIsLonger = FALSE;
-		int rightBoundary = oldBoxWidth; // gets the phrasebox's current width
-
-		if (oldBoxWidth < compareWidth)
+		/* might not need this
+		// BEW 8Oct21, contracting will work better if this value is 2 'w' widths smaller
+		int smallerLeft = leftBoundary - (2 * pApp->m_width_of_w);
+		if (smallerLeft > defaultPileWidth)
 		{
-			pLayout->m_bCompareWidthIsLonger = TRUE;
+			leftBoundary = smallerLeft;
 		}
+		*/
 
-		if (pLayout->m_bCompareWidthIsLonger)
+		// BEW 8Oct21 this is a good place to handle backspace key presses. Each such press shortens the
+		// width of pApp->m_targetPhrase, and CalcExtentsBasedWidth() returns the width of the latter
+		// AFTER the previous char has been removed. So here we generate a protocol for determining
+		// when to fire the contract trigger, and what the contracted boxWidth and gap width will be
+		if (bTypedBackspace)
 		{
-			// After a first expansion, the test-based width will rule. Here we set up a number of things
-			// in this 'bubble' so that (a) ResizeBox() gets a correct nWidth value, (b) the phrasebox new
-			// gap width can be calculated easily, (c) the correct rightBoundary set so that triggering 
-			// a further expansion can happen after the user has typed sufficiently more characters into
-			// the phrasebox.
-			// Cache the new box width -- it doesn't include buttonWidth & location, as ResizeBox() handles all that
-			pLayout->m_curBoxWidth = compareWidth + pLayout->slop; // give it more width than miniWidth would
-																   // to reduce need for several expansions
-			pLayout->m_curListWidth = pLayout->m_curBoxWidth; // must be same width, so dropdown and box are equally wide
-			rightBoundary = pLayout->m_curBoxWidth;
-			rightBoundary -= (3 * pApp->m_width_of_w);
-			// And also a new calc of the phrasebox gap width, appropriate for this context,
-			// and cached in Layout's new member, m_nNewPhraseBoxGapWidth
-			pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth + pLayout->ExtraWidth(); // No, CreateStrip() adds the gap, +pLayout->GetGapWidth();
+			// Moved to here...   refactor it
+			// Next, calculate the contractBoundary. It is set as rightBoundary minus slop width. If the
+			// text in the box gets to an extent.x value less than this, BUT greater then leftBoundary, however
+			// that happens ( 1. by backspace just having been typed, or 2. a selection of the text in the box
+			// which gets deleted), then contracting is triggered. However, regardless of what deleting may happen,
+			// if the contractBoundary we now compute results in a boundary which is equal to or less than
+			// leftBoundary, then contracting is disallowed.
+			int bDisallowContraction = FALSE; // initialise, for potential contraction being allowed
+			int contractBoundary = pApp->m_pActivePile->GetPhraseBoxWidth() - slop;
+			if (contractBoundary < leftBoundary)
+			{
+				// Disallow contraction
+				bDisallowContraction = TRUE;
+			}
+
 #if defined (_DEBUG)
 			{
-				wxLogDebug(_T(" %s::%s() line %d : EXPAND code BUBBLE: new boxWidth %d (m_curListWidth kept same), new rightBoundary %d , new phrbox gap width %d"),
-					__FILE__, __FUNCTION__, __LINE__, pLayout->m_curBoxWidth, rightBoundary, pLayout->m_nNewPhraseBoxGapWidth);
+				wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - AT TRIGGERS"), __FILE__, __FUNCTION__, __LINE__);
 			}
 #endif
-		}
-		else
-		{
-			// The first expansion, which is done perfectly, will used this block			
-			rightBoundary -= (3 * pApp->m_width_of_w); // if the last typed character makes the text width in
-				// app's m_pTargetBox->GetTextCtrl() exceed rightBoundary, we must immediately expand the box
-		}
-#if defined (_DEBUG)
-		{
-			wxLogDebug(_T(" %s::%s() line %d : oldBoxWidth %d , compareWidth %d (UseLarger for trigger test) , rightBoundary %d - AT RIGHT BOUNDARY CALC"), 
-				__FILE__, __FUNCTION__, __LINE__, oldBoxWidth, compareWidth, rightBoundary);
-		}
-#endif
-		// Next, calculate the contractBoundary. It is set as rightBoundary minus slop width. If the
-		// text in the box gets to an extent.x value less than this, BUT greater then leftBoundary, however
-		// that happens ( 1. by backspace just having been typed, or 2. a selection of the text in the box
-		// which gets deleted), then contracting is triggered. However, regardless of what deleting may happen,
-		// if the contractBoundary we now compute results in a boundary which is equal to or less than
-		// leftBoundary, then contracting is disallowed.
-		int bDisallowContraction = FALSE; // initialise, for potential contraction being allowed
-		int contractBoundary = pApp->m_pActivePile->GetPhraseBoxWidth() - slop;
-		if (contractBoundary <= leftBoundary)
-		{
-			// Disallow contraction
-			bDisallowContraction = TRUE;
-		}
-
-#if defined (_DEBUG)
-		{
-			wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - AT TRIGGERS"), __FILE__, __FUNCTION__, __LINE__);
-		}
-#endif
-		// Okay, now we can determine whether to expand or contract, or do neither. If the last char typed
-		// was a normal tgt (or gloss) char, then this would not indicate potential for contraction, but only
-		// to do nothing (if the char typed was within the existing slop, and not near its end), or else to
-		// expand if the text extent.x exceeds or equals the rightBoundary value
-		if (!bTypedBackspace)
-		{
-			// Expansion test...
-			// BEW 6Oct21 added next test 
-			if (curTextWidth >= rightBoundary)
+			if (!bDisallowContraction)
 			{
-				// Expanding is triggered
-				m_bDoExpand = TRUE;
-				m_bDoContract = FALSE;
+				// The base for whether or not to contract on this returned value - changes at each <BS> keypress
+				int compareWidth = pApp->m_pActivePile->CalcExtentsBasedWidth();  // value returned has no slop
+				wxRect pileRect = pApp->m_pTargetBox->GetClientRect();
+				int pileWidth = pileRect.width;
+				int nSpanFree = pileWidth - compareWidth;
 
-				if (!pLayout->m_bCompareWidthIsLonger)
+				// Test for contraction trigger firing. Add two 'w' widths to give a little extra white space on right
+				// for the cursor, and to ensure text does not exceed the contracted with of the box
+				//if (nSpanFree > pLayout->slop)
+				if ((nSpanFree - pApp->m_width_of_w ) > pLayout->slop)
 				{
+					// Contraction is enabled, so do so
+					int halt_here = 1;
+					wxUnusedVar(halt_here);
+					// This is the contract bubble area - I've included halt_here in case someone wants
+					// to put a break point here. Other than that, there's nothing to do here, as the
+					// contractions are automated by calculations and tests on widths. Successive ontractions 
+					// flip from bigger to smaller to bigger etc, but in a wholely harmless way - there's no 
+					// overlap of following piles, or something unreadable. Also the listWidth stays correctly 
+					// sized, even when empty of items. So, I'm signing off on this contract / expand functionality
+					// as adequately (though not completely prettily) automated. BEW 9Oct21.
+				}
+				else
+				{
+					// Need to maintain the boxWidth and phraseBox gap width
+					pLayout->m_curBoxWidth = pLayout->m_nNewPhraseBoxGapWidth - pLayout->ExtraWidth() - pLayout->GetGapWidth();
+					pLayout->m_curListWidth = pLayout->m_curBoxWidth;
+
+					m_bDoExpand = FALSE;
+					m_bDoContract = FALSE;
+				}
+
+			} // end of else block for test: if (!bDisallowContraction)
+
+		} // end of TRUE block for test: if (bTypedBackspace)
+		else // <BS> key was not just pressed, so it's potentially an expansion, if not, then no width change
+		{ 
+ 
+			// Next, calculate the right boundary, to be used in the 'expanding' test. It's set at
+			// 3 'w' widths (obtainable from the CLayout instance) short of the current phrasebox width - and
+			// if there has already been an expansion done, then the adaption (or gloss) will be long, and
+			// so we then must compare when the expanded text gets to be wide enough to trigger another expansion.
+			// The CalcExtentsBasedWidth() returns a value which increases with every character typed, and so it
+			// becomes the width which is used to testing for the next trigger of an expansion, when wide enough
+			int compareWidth = pApp->m_pActivePile->CalcExtentsBasedWidth();  // value returned has no slop
+
+			int oldBoxWidth = pApp->m_pActivePile->CalcPhraseBoxWidth();
+			pLayout->m_bCompareWidthIsLonger = FALSE;
+			int rightBoundary = oldBoxWidth; // gets the phrasebox's current width
+
+			if (oldBoxWidth < compareWidth)
+			{
+				pLayout->m_bCompareWidthIsLonger = TRUE;
+			}
+
+			//  use the bubble calc, only if longer - else the one below it is to be used.
+
+			if (pLayout->m_bCompareWidthIsLonger)
+			{
+				// After a first expansion, the test-based width will rule. Here we set up a number of things
+				// in this 'bubble' so that (a) ResizeBox() gets a correct nWidth value, (b) the phrasebox new
+				// gap width can be calculated easily, (c) the correct rightBoundary set so that triggering 
+				// a further expansion can happen after the user has typed sufficiently more characters into
+				// the phrasebox.
+				// Cache the new box width -- it doesn't include buttonWidth & location, as ResizeBox() handles all that
+				rightBoundary = pLayout->m_curBoxWidth;
+				rightBoundary -= (3 * pApp->m_width_of_w);
+
+				// Test for trigger firing
+				if (curTextWidth >= rightBoundary)
+				{
+					// Expanding is triggered - 2nd or later expansion
+					m_bDoExpand = TRUE;
+					m_bDoContract = FALSE;
+
+					// this is the inner bubble, and expansion is wanted
+					pLayout->m_curBoxWidth = compareWidth + pLayout->slop; // give it more width than miniWidth would
+					pLayout->m_curBoxWidth -= 2 * pApp->m_width_of_w; // BEW 8Oct21 reduce a bit (26 pixels at my font size)												   // to reduce need for several expansions
+
+					pLayout->m_curListWidth = pLayout->m_curBoxWidth; // must be same width, so dropdown and box are equally wide
+					// And also a new calc of the phrasebox gap width, appropriate for this context,
+					// and cached in Layout's new member, m_nNewPhraseBoxGapWidth
+					pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth + pLayout->ExtraWidth(); // CreateStrip() adds the gap
+#if defined (_DEBUG)
+					{
+						wxLogDebug(_T(" %s::%s() line %d : EXPAND code BUBBLE: new boxWidth %d (m_curListWidth kept same), new rightBoundary %d , new phrbox gap width %d"),
+							__FILE__, __FUNCTION__, __LINE__, pLayout->m_curBoxWidth, rightBoundary, pLayout->m_nNewPhraseBoxGapWidth);
+					}
+#endif
+				} // end of TRUE block for test: if (curTextWidth >= rightBoundary)
+				else
+				{
+					// Expansion was not triggered, so do not expand
+					m_bDoExpand = FALSE;
+					m_bDoContract = FALSE;
+				}
+			} // end of TRUE block for test: if (pLayout->m_bCompareWidthIsLonger)
+
+			else // the typed text is short enough to not be longer than the compareWidth
+			{
+				// The first expansion, which is done perfectly, will use this block, if the trigger test fires			
+				rightBoundary -= (3 * pApp->m_width_of_w); // if the last typed character makes the text width in
+					// app's m_pTargetBox->GetTextCtrl() exceed rightBoundary, we must immediately expand the box
+	#if defined (_DEBUG)
+				{
+				wxLogDebug(_T(" %s::%s() line %d : oldBoxWidth %d , compareWidth %d (UseLarger for trigger test) , rightBoundary %d - AT RIGHT BOUNDARY CALC"), 
+					__FILE__, __FUNCTION__, __LINE__, oldBoxWidth, compareWidth, rightBoundary);
+				}
+	#endif
+				// Okay, now we can determine whether to expand or not. 
+
+				// Expansion test - for first expansion
+				// BEW 6Oct21 added next test 
+				if (curTextWidth >= rightBoundary)
+				{
+					// Expanding is triggered
+					m_bDoExpand = TRUE;
+					m_bDoContract = FALSE;
+
+					wxASSERT(!pLayout->m_bCompareWidthIsLonger);
+					
 					// Gotta increase pLayout->m_curBoxWidth by the slop value, as ResizeBox is called
 					// below and uses this member's value, before RecalLayout() is called.  But m_curListWidth
 					// may be wider, so set m_curBoxWidth to whichever is the wider, add the slop, then update
@@ -3903,134 +3983,24 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 					// Add the slop to each
 					pLayout->m_curBoxWidth += slop;
 					pLayout->m_curListWidth += slop;
-
-					// Set a suitable phrasebox gap width -- do that in CreateStrip(), a member of Strip.cpp,
-					// basing it on the new m_curBoxWidth plus extra bits for button and interPile gap
-				}
-				// BEW 7Oct21, when m_bCompareWidthIsLonger is TRUE, an else block is not needed here,
-				// because the relevant settings are calculated in the 'bubble' code block further above
-			}
-			else
-			{
-				// The typed character did not trigger expansion
-				m_bDoExpand = FALSE;
-				m_bDoContract = FALSE;
-			}
-		}
-		else
-		{
-
-#if defined (_DEBUG)
-			{
-				if (bTypedBackspace)
-				{
-					int halt_here = 1;
-					wxUnusedVar(halt_here);
-				}
-			}
-#endif
-			// First test is whether or not to disallow contraction
-			if (!bDisallowContraction)
-			{
-				// There is space available for removal of phrasebox text, whether
-				// by backspacing, or selecting and deleting some of the box contents
-
-				// The next test involves the extent.x value. When backspacing, or
-				// removing several character at once by selection and deleting, the
-				// extent of the text which remains will be less. We have to measure
-				// the width of what remains (curTextWidth has it), and when that becomes
-				// less than the uncontracted box width minus the slop value, a 
-				// contraction is triggered if the following two conditions are satisfied:
-				// (1) the decreased text extent is still greater than the defaultWidth
-				// of the phrasebox (currently set at 4 * width of 'w'), and
-				// (2) the distance to the text's end, from the left end of the 
-				// uncontracted box, is suitably less than the slop value.
-				// "suitably less" means not just an immediate less than test against
-				// the slop value - because that could lead to text in the contracted
-				// box being unhelpfully too close to the right end - pushing a charactor
-				// or part of one beyond the box end. 
-				// So what's negotable when we know that the trigger for contracting has
-				// happened? Answer: we can adjust the width of the contracted box a 
-				// little so that we guarantee all the text in the box is visible, and 
-				// and that, with a little white space, (even if only a few pixels) at
-				// the right end of the box - allowing the cursor to be placed in that
-				// end location without pushing the text leftwards. 
-				// So the above is the protocol for what follows these comments.
-				int widthMinusSlop = pLayout->m_curBoxWidth - slop;
-				bool bContractPotential_IsTriggered = FALSE; // initialise
-				bContractPotential_IsTriggered = curTextWidth < widthMinusSlop;
-				if (bContractPotential_IsTriggered)
-				{
-					// There is the potential for a an actual trigger pull, but there
-					// are other caveats to check (see comments above) before we can
-					// pull the trigger for contracting actually...
-					// Second caveat first....
-					bool enoughDistanceFromLeft = curTextWidth < widthMinusSlop;
-					// Now the first caveat
-					bool bNoLeftBoundaryTransgression = curTextWidth > leftBoundary;
-					// Both of these being true, constitutes a trigger pull for contraction
-					if (enoughDistanceFromLeft && bNoLeftBoundaryTransgression)
-					{
-						// Contraction is triggered...
-						m_bDoExpand = FALSE;
-						m_bDoContract = TRUE;
-						// Now, a little hack to ensure the text all fits within the
-						// contracted box. Reduce the contraction amount by the width
-						// of a single 'w' width. Gives us a little extra space in
-						// the box after contraction.
-#if defined (_DEBUG)
-						{
-							// In case I want to step thru and see what value the smaller
-							// width has in the code further down
-							int adjustedWidth = slop - pApp->m_width_of_w; // gives
-									// an extra 19 pixels, at my current font setting
-							wxUnusedVar(adjustedWidth);
-						}
-#endif
-						// Get current box and list widths
-						int curBoxWidth = pLayout->m_curBoxWidth;
-						int curListWidth = pLayout->m_curListWidth;
-						// Take the larger of the two
-						int theMax = wxMax(curBoxWidth, curListWidth);
-						// Make both agree
-						pLayout->m_curBoxWidth = theMax;
-						pLayout->m_curListWidth = theMax;
-						// Subract the slop but add a 'w' width, to each, making box 
-						// a little longer (list must agree too)
-						pLayout->m_curBoxWidth -= (slop - pApp->m_width_of_w);
-						pLayout->m_curListWidth -= (slop - pApp->m_width_of_w);
-
-						// Set a suitable phrasebox gap width -- do that in CreateStrip(), a member of Strip.cpp,
-						// basing it on the new m_curBoxWidth plus extra bits for button and interPile gap
-					}
-					else
-					{
-						// No deal, the potential cannot be realised, so no contraction
-						m_bDoExpand = FALSE; 
-						m_bDoContract = FALSE; 
-					}
-				}
+					
+				} // end of TRUE block for test: if (curTextWidth >= rightBoundary)
 				else
 				{
-					// Neither contracting nor expanding
-					m_bDoExpand = FALSE; 
-					m_bDoContract = FALSE; 
+					// The typed character did not trigger expansion
+					m_bDoExpand = FALSE;
+					m_bDoContract = FALSE;
 				}
-				// Set a suitable phrasebox gap width -- do that in CreateStrip(), a member of Strip.cpp,
-				// basing it on the new m_curBoxWidth plus extra bits for button and interPile gap
+			} // end of else block for test: if (pLayout->m_bCompareWidthIsLonger)
+ 
+		} // end of else block for test: if (bTypedBackspace)
 
-			} // end of TRUE block for test: if (!bDisallowContraction && bEnableContracting)
-			else
-			{
-				// Neither contracting nor expanding
-				m_bDoExpand = FALSE; 
-				m_bDoContract = FALSE; 
-			}
-		}
+		// When control gets to here, there are 3 possibilities. Either expansion was triggered, or contraction,
+		// or neither - when it's neither, ResizeBox() will not be called.
 
 #if defined (_DEBUG)
 		{
-			wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - FINISHED TRIGGERS, m_bDoExpand = %d , m_bDoContract = %d "),
+			wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - FINISHED TRIGGERS, m_bDoExpand = %d , m_bDoContract = %d  Call ResizeBox() now"),
 				__FILE__, __FUNCTION__, __LINE__, (int)m_bDoExpand ,(int) m_bDoContract);
 		}
 #endif
