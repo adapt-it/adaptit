@@ -763,10 +763,10 @@ int CPile::CalcPileWidth()
 	pileWidth = extent.x; // can assume >= to key's width, as differ only by possible punctuation
 
 	// Now target text
-	if (!m_pSrcPhrase->m_adaption.IsEmpty())
+	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
 	{
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_adaption, &extent.x, &extent.y);
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
 		if (extent.x > pileWidth_Tgt)
 		{
 			pileWidth_Tgt = extent.x;
