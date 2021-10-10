@@ -892,7 +892,7 @@ int CPile::CalcPhraseBoxWidth()
 #if defined(_DEBUG) //&& defined(_OVERLAP)
 		{
 			CLayout* pLayout = pApp->GetLayout();
-			if (pLayout != NULL && !gbDoingInitialSetup)
+			if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
 			{
 				// BEW 25Sep21, CalcPileWidth() should return a growing returned value at each typing of
 				// a normal character, check if that is so.
@@ -951,7 +951,7 @@ int CPile::CalcPhraseBoxWidth()
 #if defined(_DEBUG) //&& defined(_OVERLAP)
 		CLayout* pLayout = pApp->GetLayout();
 		//if (pLayout != NULL && pLayout->m_chosenSelector != create_strips_and_piles)
-		if (pLayout != NULL && !gbDoingInitialSetup)
+		if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
 		{
 
 			wxLogDebug(_T("%s::%s():line %d, AT END, m_nMinWidth(pileWidth) %d , slop %d , listWidth : %d , currBoxWidth  %d , src: %s "),
@@ -1009,7 +1009,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			boxGapWidth += m_pLayout->m_nCurGapWidth; // adds to that the interPile gap width
 											   
 #if defined(_DEBUG) //&& defined(_OVERLAP)
-			if (!gbDoingInitialSetup)
+			if (!gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
 			{
 				CSourcePhrase* pSP = pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum)->GetSrcPhrase();
 				wxLogDebug(_T("%s::%s():line %d, AT END, phraseBoxWidth %d , after add 1+button : %d , (after adding interpile gap) boxGapWidth = %d , for src: %s "),
