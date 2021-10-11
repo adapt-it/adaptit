@@ -5242,8 +5242,9 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
     pView->Invalidate();
 }
 #endif
-
+// BEW 11Oct21 deprecated, no longer called
 // BEW added 30July18, this is aa handler for doing a box width update.
+/*
 bool CMainFrame::DoPhraseBoxWidthUpdate()
 {
 	bool bSuccess = TRUE;
@@ -5350,7 +5351,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
 }
-
+*/
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //

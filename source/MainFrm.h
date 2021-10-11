@@ -278,7 +278,7 @@ public:
 
 //#endif // _KBSERVER
 
-	bool DoPhraseBoxWidthUpdate();
+	// bool DoPhraseBoxWidthUpdate(); BEW 11Oct21 deprecated, no longer called
 
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar

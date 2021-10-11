@@ -169,10 +169,11 @@ public:
 	// significant use, but certainly MainFrm.cpp's DoPhraseBoxWidthUpdate() calls
 	// the function:    bool CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded)
 	// so I can't yet remove them safely it seems
-	bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW added 30Jul18 the returned bool, 
+	// BEW 11Oct21 deprecated, no longer called
+	//bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW added 30Jul18 the returned bool, 
 				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
 				// can quickly be changed; if FALSE, then box and gui stay immobile.
-	bool UpdatePhraseBoxWidth_Contracting(wxString inStr);  
+	//bool UpdatePhraseBoxWidth_Contracting(wxString inStr);  BEW 11Oct21 deprecated, no longer called
 				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
 				// causes RecalcLayout to be non-suppressed so that the gui and box width
 				// can quickly be changed; if FALSE, then box and gui stay immobile
@@ -183,7 +184,7 @@ public:
 	// to fix a logic error which left the widened box not getting a correct width & thereby the
 	// gap width got left unwidened. That's for the expanding case. I've yet to check out
 	// contracting, but a similar tweak may be needed for that too.....
-	bool CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded);
+	//bool CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded); BEW 11Oct21 deprecated, no longer called
 
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();

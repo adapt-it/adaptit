@@ -839,7 +839,7 @@ int CPile::CalcPileWidth()
 				{
 					pileWidth = defaultWidth;
 				}
-
+/* BEW 11Oct21 retain, but comment out - this can be tweaked for profitable reuse in other circumstances
 				// whm temporary testing , BEW 11Oct21 added some more logged values - entry count & the following bool
 #ifdef _DEBUG
 				gpApp->nCalcPileWidth_entryCount++;
@@ -895,7 +895,7 @@ int CPile::CalcPileWidth()
 					gpApp->nCalcPileWidth_entryCount, (int)gbDoingInitialSetup, pPile->GetSrcPhrase()->m_nSequNumber, pileWidth, m_pLayout->m_nCurGapWidth);
 #endif
 				// whm temporary testing
-
+*/
 			}
 
 		}

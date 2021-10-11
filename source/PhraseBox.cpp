@@ -5070,7 +5070,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
     wxChar typedChar = event.GetUnicodeKey();
     
     // BEW 23Sep21 moved bUpdateNeeded initialization to here, the value may be needed further down
-    bool bUpdateNeeded = FALSE; // initialise
+    //bool bUpdateNeeded = FALSE; // initialise  BEW 11Oct21 commented out, to test if needed & in block below - yep, no longer needed
     if (typedChar != WXK_NONE)
     {
         // It's a "normal" character. Notice that this includes
@@ -5080,34 +5080,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
         {
             wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
             pLayout->m_inputString = typedChar;
-
-			// BEW 26Aug21 added next block to detect that expansion need has been tripped
-			{ // scope the block to protect from name clashes
-
-				// Figure out if the typedChar is bring about an expansion of the phrase box
-				CPile* pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-				CSourcePhrase* pSP = pActivePile->GetSrcPhrase();
-				int activeSN = pSP->m_nSequNumber;
-				if (activeSN == pApp->m_nActiveSequNum)
-				{
-					wxString inStr = pApp->m_pTargetBox->GetValue(); // usually adaption, but if glossing, then gloss
-					// Append the typedChar at led to the expansion needing to be done
-					inStr += typedChar;
-					bUpdateNeeded = this->CalcNeedForExpansionUpdate(inStr, bUpdateNeeded);
-					/* BEW 23Sep21 we no longer cache the enum value
-					if (bUpdateNeeded)
-					{
-						// This means that expansion is to be done, so cached the expanding enum value in CLayout
-						pLayout->cachedBoxMode = expanding;  // the RecalcLayout prior to FixBox() being called will pass in expanding
-					}
-					else
-					{
-						// no update for expanding needed, so default to  steadyAsSheGoes
-						pLayout->cachedBoxMode = steadyAsSheGoes;
-					}
-					*/
-				}
-			}
+			
         } // end of TRUE block for test: if (typedChar >= 32)
         else
         {
@@ -8354,6 +8327,8 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 // only thing which (I think) causes us to maintain the code for
 // UpdatePhraseBoxWidth_Expanding() and UpdatePhraseBoxWidth_Contracting() - since
 // now OnPhraseBoxChanged()handles boxWidth resizing, but not frame width resizing.
+// BEW 11Oct21 deprecated, no longer called
+/*
 bool CPhraseBox::CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -8471,12 +8446,14 @@ bool CPhraseBox::CalcNeedForExpansionUpdate(wxString inStr, bool& bUpdateNeeded)
 	return bUpdateNeeded;
 
 }
-
+*/
 // BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job.
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
 // This function is essentially a filter - each typed character should cause this
 // function to be called, and the calculations done. If GUI controlling characters
 // like Enter or Tab occur, they are handled elsewhere - in OnSysKeyUp()
+// BEW 11Oct21 deprecated, no longer called
+/*
 bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 {
 	bool bUpdateNeeded = FALSE; // initialize consistent with box width 
@@ -8485,7 +8462,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 
 	return bUpdateNeeded;
 }
-
+*/
 // BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job.
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
 // For a contraction, the caller will be a function dealing with BACKSPACE key
@@ -8495,7 +8472,9 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 // FALSE and no contraction will then be imposed upon the phrasebox
 
 // BEW 23Sep21, Do we still need this?  Frame resizing appears not to need it, but
-// that has to be verified.
+// that has to be verified. Yep, resizing the frame does not need it
+// BEW 11Oct21, deprecated, no longer called
+/*
 bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 {
 	gpApp->m_bSuppressRecalcLayout = TRUE; // keep piles after active location
@@ -8593,7 +8572,8 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		dC.SetFont(*pSrcFont);
 		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
 		int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
-		*/
+*/
+/* added 11Oct21
 		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
 				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
 				// visible then only the max of src and tgt widths is calculated
@@ -8691,7 +8671,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 	// If contracting is not needed, bUpdateNeeded will be returned as FALSE;
 	return bUpdateNeeded;
 }
-
+*/
 
 
 void CPhraseBox::ClearDropDownList()

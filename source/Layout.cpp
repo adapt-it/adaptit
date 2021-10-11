@@ -2025,6 +2025,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			int nCount = pLayout->GetPileList()->GetCount();
 			wxUnusedVar(nCount);
 			int halt_here = 1;
+			wxUnusedVar(halt_here);
 		}
 	}
 #endif
