@@ -3252,6 +3252,7 @@ public:
 	int				m_width_of_w; // BEW 15Aug21 added, for defining a multiple of this value as a default pile width
 								  // and other things, eg. the miniSlop, and calculations for expand or contract
 								  // of the phrasebox...
+	int				nCalcPileWidth_entryCount; // BEW 11Oct for logging of entries to CalcPileWidth on doc entry
 	// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too;
 	// but I set both that and m_width_of_w in OnInit()  BEW removed 7Aug21
 	//int				miniSlop;

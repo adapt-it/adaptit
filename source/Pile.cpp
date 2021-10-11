@@ -839,6 +839,63 @@ int CPile::CalcPileWidth()
 				{
 					pileWidth = defaultWidth;
 				}
+
+				// whm temporary testing , BEW 11Oct21 added some more logged values - entry count & the following bool
+#ifdef _DEBUG
+				gpApp->nCalcPileWidth_entryCount++;
+				int cnt = gpApp->nCalcPileWidth_entryCount;
+				// set 10 different break locations - choose 1 and go up call stack 2 levels to verify doc is being created;
+				// or set up to 10 of them, call contine, to do the same to verify 2 levels up RecalcLayout is still creating the layout
+				// of the whole doc. The doc won't be visible until all the explicitly set break point locations are continued past.
+				// My test document is project: Tok Pisin to English adaptations; document is called Tok Pisin fragment 1John all.xml
+				// which has 8562 piles to be laid out; adapted no further than about chapter 2 verse 14
+				int halt_here = 0;
+				if (cnt == 5)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 16)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 27)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 38)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 49)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 60)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 83) // larger arbitrary gaps
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 100)
+				{
+					halt_here = 1;
+				} 
+				else if (cnt == 141)
+				{
+					halt_here = 1;
+				}
+				else if (cnt == 193) // em tasol, of 8562 total
+				{
+					halt_here = 1;
+				}
+
+				wxLogDebug(_T("!! In CPile::CalcPileWidth: entryCount %d , gbDoingInitialSetup %d , at active sequ num: SequNum = %d pileWidth = %d , gap %d !!"), 
+					gpApp->nCalcPileWidth_entryCount, (int)gbDoingInitialSetup, pPile->GetSrcPhrase()->m_nSequNumber, pileWidth, m_pLayout->m_nCurGapWidth);
+#endif
+				// whm temporary testing
+
 			}
 
 		}

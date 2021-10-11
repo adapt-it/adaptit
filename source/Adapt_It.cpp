@@ -21774,6 +21774,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
     m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
+
+    nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
  
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
