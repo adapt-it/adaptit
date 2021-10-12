@@ -9981,7 +9981,7 @@ void CAdapt_ItApp::ConfigureModeBarForAutoCorrect()
     // of its controls are updated.
     pMainFrame->m_pControlBar->Layout(); // pMainFrame->m_pControlBar->Refresh(); // whm 31Aug2021 changed this to ->Layout()
     pMainFrame->Thaw(); // to avoid flicker
-    pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
+    //pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame - 12Oct2021 whm removed - not needed
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

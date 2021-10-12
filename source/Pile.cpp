@@ -815,7 +815,28 @@ int CPile::CalcPileWidth()
 		CPile* pPile = gpApp->GetView()->GetPile(gpApp->m_nActiveSequNum);  // gpApp->m_pActivePile; <- fails for DVCS restore
 		if (pPile != NULL)
 		{
-			if (m_pLayout != NULL && activeSN == pPile->GetSrcPhrase()->m_nSequNumber)
+			// whm 12Oct2021 modified test below so that the block of code it encloses
+			// will execute only when the sequence number of this particular pile is
+			// equal to the sequence number of the active sequence number pile, which 
+			// I believe was the intent of that test block.
+			// The previous line (commented out below) allowed the test block's code
+			// below to execute for all non-NULL piles.
+			// Note: The first time OnOpenDocument() calls RecalcLayout() at doc opening
+			// the piles are being created (create_strips_and_piles) and the pPile returned
+			// from the gpApp->GetView()->GetPile(gpApp->m_nActiveSequNum) call above actually
+			// returns a NULL value for pPile, so the block defined above beginning at the 
+			// 'if (pPile != NULL)' test is not executed, even though the test below would 
+			// be satisfied had the pPile pointer not been NULL. It turns out that if doesn't 
+			// really matter during the create_strips_and_piles run through RecalcLayout, 
+			// because RecalcLayout() is called two more times during the document opening
+			// process - both times with keep_strips_keep_piles, and so, for those subsequent 
+			// calls of RecalcLayout(), the pPile pointer above will be non-NULL for all piles
+			// processed by the other parts of CalcPileWidth(), and only the test block below
+			// for the pile which is at the active sequence number. This cleans up the logic
+			// flaw of the previous test commented out below.
+			//  
+			//if (m_pLayout != NULL && activeSN == pPile->GetSrcPhrase()->m_nSequNumber) // whm 12Oct2021 modified
+			if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				// Do the needed width calculations and comparisons here. No slop is
 				// to be added here - that will be done in CalcPhraseBoxWidth(), which
