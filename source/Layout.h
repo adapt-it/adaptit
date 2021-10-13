@@ -481,7 +481,9 @@ public:
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW
 						// added 3June09, in support of a smarter ScrollIntoView() function
 	void		CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileList);
-	enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
+	// whm 13Oct2021 commented out following enum phraseBoxWidthAdjustMode line which generates error from gcc in Linux compilation of #include Layout.h
+	// saying "error: use of enum ‘phraseBoxWidthAdjustMode’ without previous declaration". Below is the only reference in all the code.
+	//enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
 									// other functions; in our refactored design we need a place
 									// for storing one of the enum values so that our layout 
 									// support functions, as set here by FixBox(), can find 
