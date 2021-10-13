@@ -866,11 +866,11 @@ int CPile::CalcPileWidth()
 				{
 					pileWidth = tgtOrGlossWidth;
 				}
-#if defined (_DEBUG)
-				gpApp->nCallCount2++;
-				wxLogDebug(_T("!! In CPile::CalcPileWidth: nCallCount2 %d , SequNum = %d , oldPileWidth %d , tgtOrGlossWidth(longer pPile) %d ,  app m_targetPhrase = %s "),
-					gpApp->nCallCount2, pPile->GetSrcPhrase()->m_nSequNumber, oldWidth, tgtOrGlossWidth , m_pLayout->m_pApp->m_targetPhrase.c_str());
-#endif
+//#if defined (_DEBUG)
+//				gpApp->nCallCount2++;
+//				wxLogDebug(_T("!! In CPile::CalcPileWidth: nCallCount2 %d , SequNum = %d , oldPileWidth %d , tgtOrGlossWidth(longer pPile) %d ,  app m_targetPhrase = %s "),
+//					gpApp->nCallCount2, pPile->GetSrcPhrase()->m_nSequNumber, oldWidth, tgtOrGlossWidth , m_pLayout->m_pApp->m_targetPhrase.c_str());
+//#endif
 			}
 
 		}
