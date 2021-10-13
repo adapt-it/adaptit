@@ -39,23 +39,35 @@
 // sources when releasing a new version of Adapt It:
 // **** NOTE: Version numbers and dates are defined in both string and integer forms below.  ****
 // **** Be sure to keep them in sync when changing version numbers/dates for a new release!! ****
-#define AI_VERSION_MAJOR_STR "6" // when changing this string value make sure to also change the corresponding int value below
-#define AI_VERSION_MINOR_STR "10" // when changing this string value make sure to also change the corresponding int value below
-#define AI_VERSION_BUILD_PART_STR "5" // when changing this string value make sure to also change the corresponding int value below
+
+// when changing these string values make sure to also change the corresponding int values below
+#define AI_VERSION_MAJOR_STR "6"
+#define AI_VERSION_MINOR_STR "10"
+#define AI_VERSION_BUILD_PART_STR "5"
 #define AI_VERSION_MAJOR 6
 #define AI_VERSION_MINOR 10
 #define AI_VERSION_BUILD_PART 5
-#define VERSION_DATE_DAY_STR "14" // when changing this string value make sure to also change the corresponding int value below
-#define VERSION_DATE_MONTH_STR "10" // when changing this string value make sure to also change the corresponding int value below
-#define VERSION_DATE_YEAR_STR "2021" // when changing this string value make sure to also change the corresponding int value below
+
+// when changing these string values make sure to also change the corresponding int values below
+#define VERSION_DATE_DAY_STR "14"
+#define VERSION_DATE_MONTH_STR "10"
+#define VERSION_DATE_YEAR_STR "2021"
 #define VERSION_DATE_DAY 14
 #define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2021
-#define PRE_RELEASE 0 // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+
+// set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define PRE_RELEASE 0 
 
 #define AI_VERSION_DOT "."
 #define AI_VERSION_COMMA ","
 #define AI_VERSION_SP " "
+
+// whm 13Oct2021 Note: The Inno Setup compiler doesn't know how to concatenate strings in a #define statement
+// as is done for the AI_VERSION_STR and RC_FILEVER_STR statements below, therefore we use the ISPP_INVOKED
+// to exclude the following block of code from compilation by the Inno Setup compiler.
+#ifndef ISPP_INVOKED
+
 #define AI_VERSION_STR AI_VERSION_MAJOR_STR AI_VERSION_DOT AI_VERSION_MINOR_STR AI_VERSION_DOT AI_VERSION_BUILD_PART_STR
 #define AI_VERSION_REVISION_PART ${svnversion}
 const wxString appVerStr(AI_VERSION_STR);
@@ -66,6 +78,8 @@ const wxString svnVerStr(_T("$LastChangedRevision$"));
 #define RC_VERSION_MAJOR AI_VERSION_MAJOR
 #define RC_VERSION_MINOR AI_VERSION_MINOR
 #define RC_VERSION_BUILD_PART AI_VERSION_BUILD_PART
+
+#endif
 
 // The following three defines are the only three lines that need updating when releasing 
 // a new version of git to be downloaded by the Adapt It installers.
