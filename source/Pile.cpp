@@ -835,11 +835,6 @@ int CPile::CalcPileWidth()
 			//if (m_pLayout != NULL && activeSN == pPile->GetSrcPhrase()->m_nSequNumber) // whm 12Oct2021 modified
 			if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-#if defined (_DEBUG)
-				gpApp->nCallCount2++;
-				wxLogDebug(_T("!! In CPile::CalcPileWidth: nCallCount2 %d , SequNum = %d m_targetStr = %s "),
-					gpApp->nCallCount2, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetSrcPhrase()->m_targetStr.c_str());
-#endif
 				// Do the needed width calculations and comparisons here. No slop is
 				// to be added here - that will be done in CalcPhraseBoxWidth(), which
 				// calls CalcPileWidth() as the starting point, before adding slop there.
@@ -862,63 +857,20 @@ int CPile::CalcPileWidth()
 				{
 					pileWidth = defaultWidth;
 				}
-/* BEW 11Oct21 retain, but comment out - this can be tweaked for profitable reuse in other circumstances
-				// whm temporary testing , BEW 11Oct21 added some more logged values - entry count & the following bool
-#ifdef _DEBUG
-				gpApp->nCalcPileWidth_entryCount++;
-				int cnt = gpApp->nCalcPileWidth_entryCount;
-				// set 10 different break locations - choose 1 and go up call stack 2 levels to verify doc is being created;
-				// or set up to 10 of them, call contine, to do the same to verify 2 levels up RecalcLayout is still creating the layout
-				// of the whole doc. The doc won't be visible until all the explicitly set break point locations are continued past.
-				// My test document is project: Tok Pisin to English adaptations; document is called Tok Pisin fragment 1John all.xml
-				// which has 8562 piles to be laid out; adapted no further than about chapter 2 verse 14
-				int halt_here = 0;
-				if (cnt == 5)
+				int oldWidth = pileWidth;
+				wxUnusedVar(oldWidth);
+				// BEW 13Oct21 get a text-extents width based on contents of pApp->m_targetPhrase
+				int tgtOrGlossWidth = CalcExtentsBasedWidth();
+				// If larger, set pileWidth to it
+				if (pileWidth < tgtOrGlossWidth)
 				{
-					halt_here = 1;
+					pileWidth = tgtOrGlossWidth;
 				}
-				else if (cnt == 16)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 27)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 38)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 49)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 60)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 83) // larger arbitrary gaps
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 100)
-				{
-					halt_here = 1;
-				} 
-				else if (cnt == 141)
-				{
-					halt_here = 1;
-				}
-				else if (cnt == 193) // em tasol, of 8562 total
-				{
-					halt_here = 1;
-				}
-
-				wxLogDebug(_T("!! In CPile::CalcPileWidth: entryCount %d , gbDoingInitialSetup %d , at active sequ num: SequNum = %d pileWidth = %d , gap %d !!"), 
-					gpApp->nCalcPileWidth_entryCount, (int)gbDoingInitialSetup, pPile->GetSrcPhrase()->m_nSequNumber, pileWidth, m_pLayout->m_nCurGapWidth);
+#if defined (_DEBUG)
+				gpApp->nCallCount2++;
+				wxLogDebug(_T("!! In CPile::CalcPileWidth: nCallCount2 %d , SequNum = %d , oldPileWidth %d , tgtOrGlossWidth(longer pPile) %d ,  app m_targetPhrase = %s "),
+					gpApp->nCallCount2, pPile->GetSrcPhrase()->m_nSequNumber, oldWidth, tgtOrGlossWidth , m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
-				// whm temporary testing
-*/
 			}
 
 		}

@@ -3576,6 +3576,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	m_bDoContract = FALSE; // initialise
 	pLayout->m_bAmWithinPhraseBoxChanged = TRUE;
 
+	// BEW 13Oct21, save the current box width, in case no change is done, we don't
+	// want to enter ResizeBox() with m_curBoxWidth unset to a huge -ve number
+	int saveCurBoxWidth = pLayout->m_curBoxWidth;
+
 //
 //#if defined(_DEBUG)
 // 	wxString tempVal = GetValue();
@@ -3833,7 +3837,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// which gets deleted), then contracting is triggered. However, regardless of what deleting may happen,
 			// if the contractBoundary we now compute results in a boundary which is equal to or less than
 			// leftBoundary, then contracting is disallowed.
-			int bDisallowContraction = FALSE; // initialise, for potential contraction being allowed
+			bool bDisallowContraction = FALSE; // initialise, for potential contraction being allowed
 			int contractBoundary = pApp->m_pActivePile->GetPhraseBoxWidth() - slop;
 			if (contractBoundary < leftBoundary)
 			{
@@ -3843,7 +3847,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 #if defined (_DEBUG)
 			{
-				wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - AT TRIGGERS"), __FILE__, __FUNCTION__, __LINE__);
+				wxLogDebug(_T("PhBxCh  %s::%s() line %d : within OnPhraseBoxChanged - AT TRIGGERS - AFTER <BS> typed"),
+					__FILE__, __FUNCTION__, __LINE__);
 			}
 #endif
 			if (!bDisallowContraction)
@@ -3857,7 +3862,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 				// Test for contraction trigger firing. Add two 'w' widths to give a little extra white space on right
 				// for the cursor, and to ensure text does not exceed the contracted with of the box
 				//if (nSpanFree > pLayout->slop)
-				if ((nSpanFree - pApp->m_width_of_w ) > pLayout->slop)
+				//if ((nSpanFree - pApp->m_width_of_w ) > pLayout->slop)
+				if (nSpanFree > pLayout->slop +4)
 				{
 					// Contraction is enabled, so do so
 					int halt_here = 1;
@@ -3873,7 +3879,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 				else
 				{
 					// Need to maintain the boxWidth and phraseBox gap width
-					pLayout->m_curBoxWidth = pLayout->m_nNewPhraseBoxGapWidth - pLayout->ExtraWidth() - pLayout->GetGapWidth();
+					//pLayout->m_curBoxWidth = pLayout->m_nNewPhraseBoxGapWidth - pLayout->ExtraWidth() - pLayout->GetGapWidth();
+					pLayout->m_curBoxWidth = saveCurBoxWidth;
 					pLayout->m_curListWidth = pLayout->m_curBoxWidth;
 
 					m_bDoExpand = FALSE;
@@ -4011,8 +4018,12 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
-			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetNavTextHeight(),
-				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			if (!m_bDoContract)
+			{
+				pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetNavTextHeight(),
+					pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			}
+
 		}
 		else
 		{
@@ -4022,9 +4033,11 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 					__FILE__, __FUNCTION__, __LINE__, pLayout->m_curBoxWidth);
 			}
 #endif
-
-			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
-				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			if (!m_bDoContract)
+			{
+				pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
+					pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			}
 		}
 
 		// BEW 30Aug21 Since the enum value is set to default steadyAsSheGoes in the
