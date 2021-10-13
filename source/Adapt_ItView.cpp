@@ -6689,6 +6689,9 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int nHeight,
 	wxString& text, int nStartingChar, int nEndingChar, CPile* pActivePile)
 {
+#ifndef _DEBUG
+	wxUnusedVar(pActivePile);
+#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
 	/* BEW commented out to simplify logging output, on 16Sep21

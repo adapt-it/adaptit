@@ -30,7 +30,7 @@
 ; where all the Inno Setup scripts get their version numbers in the form of:
 ;   #define AI_VERSION_MAJOR 6
 ;   #define AI_VERSION_MINOR 10
-;   #define AI_REVISION 4
+;   #define AI_VERSION_BUILD_PART 5
 ; and
 ;   #define GIT_VERSION_MAJOR 2
 ;   #define GIT_VERSION_MINOR 32

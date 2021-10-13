@@ -1,5 +1,5 @@
 ﻿----------------------------------------------
-Version 6.10.5  12 September 2021
+Version 6.10.5  13 October 2021
 ----------------------------------------------
 Feature changes and new features in 6.10.5
 --------------------------------------------------------------------------------------------
@@ -20,11 +20,14 @@ is selected, and an Adapt It document is opened within that project, a check box
 labeled "Use Auto Correct" will appear in Adapt It's control bar up below the tool 
 bar. The check box is hidden if no autocorrect.txt file is available for the
 project associated with the open document. The check box always starts with a
-tick in the check box assuming should apply during the editing of target anywhere
-within Adapt It (including dialogs that have edit boxes expecting target text).
-The user can temporarily suspend the Auto Correct feature by simply removing the
-tick from the check box, and re-instate Auto Correct again by ticking the check
-box again.
+tick in the check box assuming Auto Correct should apply during the editing of 
+target language text anywhere within Adapt It (including dialogs that have edit 
+boxes expecting target text).
+Auto Correct will automatically be available when opening a document for a project
+that has the autocorrect.txt file in Adapt It's folder for that project. The user 
+can temporarily suspend the Auto Correct feature by simply removing the tick
+from the check box, and re-instate Auto Correct again by ticking the check
+box again. 
 * Updated the language codes file iso639-3codes.txt with latest data from the 
 IANA registry at: 
 https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
@@ -35,9 +38,10 @@ Bug fixes in 6.10.5 update
 types text into the phrasebox. It also does a better job of maintaining a proper
 gap between the interlinear groups of words (piles) that compose each line of
 text in its main window. 
-* A nuisance message can appear at launch of Adapt It after installing Paratext, 
-that says the program could not load the ECDriver.dll dynamic library file, and
-that it needs to be updated. This annoying message has been eliminated.
+* Eliminated a nuisance message that can appear at launch of Adapt It after 
+installing Paratext, that says the program could not load the ECDriver.dll dynamic 
+library file, and that it needs to be updated. This annoying message has now been 
+eliminated.
 * Fixed a bug that prevented the insertion of a placeholder AFTER a source word
 or phrase location if the source word was the last word/phrase at the end of a 
 line/strip of text.
