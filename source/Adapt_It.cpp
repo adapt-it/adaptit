@@ -21776,6 +21776,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
 
     nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
+    nCallCount2 = 0;
  
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden

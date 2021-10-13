@@ -4027,7 +4027,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
 		}
 
-		// BEW 30Aug21 Since the enum value phraseBoxWidthAdjustMode gets return to default steadyAsSheGoes in the
+		// BEW 30Aug21 Since the enum value is set to default steadyAsSheGoes in the
 		// ResizeBox() call, it's expanding or contracting value is not now available, so used the booleans
 		// at the ConfigureForResizeOrNot(pApp->m_pActivePile, bDoExpand, bDoContract) call above    ************************************************* Update/refactor this stuff
 		if (m_bDoExpand || m_bDoContract)
@@ -4431,7 +4431,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 	//GDLC Added 2010-02-09 // BEW 17Sep21 use of this enum is close to being deprecated, 
 	// but it can persist for a while as it does no harm, and has a very small remaining functional load
-	enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+	int nPhraseBoxWidthAdjustMode = 1; // used to be an enum value of steadyAsSheGoes
 
 	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
 	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; we just want the y-value
@@ -4493,7 +4493,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		// a width change is required....therefore set m_curBoxWidth and call RecalcLayout()
 		if (nSelector < 2)
 		{
-			nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
+			nPhraseBoxWidthAdjustMode = 2; // this is passed on to the functions that
 		}									   // calculate the new width of the phrase box
 
 		// make sure the activeSequNum is set correctly, we need it to be able
@@ -4552,15 +4552,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 					// we are contracting too much, so set to minWidth instead
 					pLayout->m_curBoxWidth = minWidth;
 					newWidth = minWidth; 
-					//GDLC 2010-02-09
-					//nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
 				}
 				else
 				{
 					// newWidth is larger than minWidth, so we can do the full contraction
 					pLayout->m_curBoxWidth = newWidth;
 					//GDLC 2010-02-09
-					nPhraseBoxWidthAdjustMode = contracting;
+					nPhraseBoxWidthAdjustMode = 0; // used to be enum value 'contracting'
 				}
 				//GDLC I think that the normal SetPhraseBoxGapWidth() should be called with
 				// nPhraseBoxWidthAdjustmentModepassed to it as a parameter instead of simply
@@ -4595,7 +4593,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
 
 				bUpdateOfLayoutNeeded = TRUE;
-				//nPhraseBoxWidthAdjustMode = expanding; // BEW added, 23Aug21
+				//nPhraseBoxWidthAdjustMode = 2; // BEW added, 23Aug21
 
 			} // end block for nSelector == 1 case
 		} // end nSelector != 0 block
@@ -10360,14 +10358,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			// selector = 2; The box contents have reached the boundary for expansion, and
 			// so 'expanding' has been requested. Pass in 'expanding' for the boxMode.
 			//
-			// The boxMode that FixBox() chooses, is stored by it in the CLayout's public
-			// member enum, phraseBoxWidthAdjustMode m_boxMode. Other functions, like
-			// RecalcLayout() and CreateStrip() will grab it from there; the former to
-			// get a CStrip recalculation done for the active strip, and the latter to
-			// widen the gap for the phrasebox to fit into appropriately, at the active
-			// pile. View's OnDraw() will get these changes made visible, if an Invalidate()
-			// is called, after a RecalcLayout() call has returned.
-			int selector = 1; // steadyAsSheGoes
+			int selector = 1; 
 			FixBox(gpApp->GetView(), thePhrase, bWasMadeDirty, textExtent, selector); 
 																 
 			

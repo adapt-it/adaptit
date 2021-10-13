@@ -1149,7 +1149,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		// BEW 19Jul18 tell CLayout's m_curBoxWidth what the new phrasebox's size (including
 		// the button) is: the cache variable is m_curBoxSize, it has a setter,
 		// void SetPhraseBoxWidth() in CPile class which has a single parameter:
-		// enum phraseBoxWidthAdjustMode widthMode which defaults to the enum value steadyAsSheGoes
+		// enum widthMode which defaults to the enum value steadyAsSheGoes
 		// if not explicitly set to expanding or contracting. Internally it calls 
 		// CalcPhraseBoxWidth() which does the on-demand calculations, including button with and slop
 		// for the active pile's location. This gets Layout's m_curBoxWidth cache member set, given

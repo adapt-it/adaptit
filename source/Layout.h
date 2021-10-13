@@ -268,34 +268,13 @@ public:
 	bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
 	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
-	int			m_MinPileWidth; // this is a mirror in Layout class for Pile's m_nMinWidth
 	int			m_curBoxWidth;  // BEW 28Jul21 
 	int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
 	int			SetDefaultActivePileWidth(); // BEW 17Aug21 created (public:)
 	int			m_curListWidth; // BEW refactored 9Aug21, to be the width value returned 
 						// by calculating string extents from the list's contents
-	int			m_tempListWidth; // to make this value accessible to the gap calc
 	int			m_nSaveGap_TgtOnly;
 	bool		m_bNewGapRequested_TgtOnly;
-	int			m_nBoxPlusBtnWidth; // BEW 9Aug21 changed boxWidth_btn to this name. 
-					// Calc of phrbox gap with will use this. Set by adding result of
-					// int ExtraWidth() <<-- a public Layout member
-	int			m_nMinListWidth; // BEW 9Aug21 added, phrasebox size may be enough to widen the m_curListWidth's 
-								 // calculated value, to keep src/tgt alignment of box+button & list width synced
-	int         widthAugment; // BEW added 10Aug21 the difference between a long list width and the value
-							  // based on the pilewidth (if longer) determined by SetPileWidth
-	int			m_nSrcTgtWidth; // BEW 9Aug21, formerly just the CalcPileWidth() value, based on text extents;
-						// this new member holds that value unchanged. It's useful for the phrasebox gap width
-						// calculation. A very long src or tgt (or gloss) string can require we expand the gap
-						// to accomodate the (possibly widened)list and phrasebox + button - we I'm adding two
-						// more interim values accessible from Layout class, as below...
-	int			m_nWideSrcTgtWidth; // Possibly wider than m_nSrcTgtWidth if phrasebox +  button width got widened
-						// enough to require widening for gap purposes, and/or for list slop widening
-	int			m_nFinalPhraseBoxGapWidth; // This one should be m_nWideSrcTgtWidth +  the interpile gap width  <<-- Remove, I don't use it anymore
-						// and this one then sets the phrase box's gap width. Note, if this one is very large
-						// because m_nMinWidth was set very large due to long src or tgt strings, this member does
-						// NOT cause widening of list or phrasebox; it just ensures that any changes to list or
-						// phrasebox widths can be accomadated within the m_nFinalPhraseBoxGapWidth's span
 
 private:
 
@@ -345,14 +324,15 @@ public:
 	bool		BSorDEL_NoModifiers(wxKeyEvent event); // return TRUE if no modifier key is
 					// held down and either a Backspace or Delet key is simultaneously pressed
 					// else, returns FALSE. Used in refactored FixBox()
-	bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
+	//bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
+	// 	   and BEW deprecated 12Oct21, as it is nowhere called now
 //	bool		PhraseBoxIsInFocus(); // Bill's function for the wxOwnerDrawnComboBox control, which we abandoned
 	// BEW 13Aug18, deprecated my version below, as Bill says focus is not handled uniformly across all platforms
 	//bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
 									  // - for use in the refactored FixBox(), and moved to CLayout class
 
-
-	bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
+	// BEW 12Oct21 deprecated, this is now nowhere called
+	//bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
 								   // to effect a widening or contracting of the phrasebox width	
 	
 	// Strip destructors
@@ -423,7 +403,6 @@ public:
 	int			GetStripHeight();
 	void		SetCurLeading(CAdapt_ItApp* pApp);
 	int			GetCurLeading();
-	//int			GetPhraseBoxWidth(); //BEW removed, use the one in CPile class
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);
@@ -441,7 +420,7 @@ public:
                         // saved in the CAdapt_ItApp:m_saveDocSize member, back to
                         // m_logicalDocSize here in CLayout, for use again in the view
                         // refreshes, after printing
-	void		MakeAllPilesNonCurrent(); // moved here 17May10
+	void		MakeAllPilesNonCurrent(); // moved here 17May10 - used in the Free Translation feature
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList*		GetPileList();
@@ -475,7 +454,6 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
-	bool		m_bFrameResizeWanted;  // used by 'contracting' enum, set within RecalcLayout()
 	void		SetCurBoxWidth(int curBoxWidth); // accessor for m_curBoxWidth
 	int			GetCurBoxWidth(); // accessor for m_curBoxWidth
 
@@ -491,13 +469,12 @@ public:
 //GDLC Added third parameter to RecalcLayout with default value steadyAsSheGoes
 //	bool		RecalcLayout(SPList* pList, enum layout_selector selector); // BEW 1Sep21 removed the unneeded widthMode final param
 // test with 2016 version of RecalcLayout
-	bool		RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode = steadyAsSheGoes);
+	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
 	
-	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
-									int nStripWidth); // doesn't change the pile composition,
-											// just lays them out, ensuring  proper spacing
+	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap, int nStripWidth); // doesn't change the pile
+					// composition, just lays them out, ensuring proper spacing. Used in only one place, when returning from Vertical Edit.
 	void		DoRecalcLayoutAfterPreferencesDlg();
-	void		RecalcPileWidths(PileList* pPiles);
+	void		RecalcPileWidths(PileList* pPiles); // used in RecalcLayout() when accessing piles in the pileList, updating their widths
 	void		PlaceBox(enum placeBoxSetup placeboxsetup = initializeDropDown); // call this after Invalidate() and after Redraw()
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 							int nBoxCursorOffset = 0); // BEW added 7Apr09

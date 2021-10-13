@@ -439,7 +439,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		// we need a valid layout which includes the new dummy element on its own pile
 		m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
 #ifdef _NEW_LAYOUT
-		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles, steadyAsSheGoes);
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
 		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif

@@ -5256,7 +5256,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	CLayout* pLayout = pApp->GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	//enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
+	//enum value... boxMode = pLayout->m_boxMode;
 
 	// mark invalid the strip following the new active strip
 	if (pApp->m_nActiveSequNum != -1)

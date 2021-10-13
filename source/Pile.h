@@ -41,12 +41,6 @@ WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 
 const int PHRASE_BOX_WIDTH_UNSET = -1;
 
-//GDLC Added 2010-02-10
-enum phraseBoxWidthAdjustMode {
-	contracting,
-	steadyAsSheGoes,
-	expanding
-};
 
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile instances
 /// are laid out sequentially within a CStrip. Each CPile stores a stack or "pile" of
@@ -97,19 +91,14 @@ public:
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	int			CalcExtentsBasedWidth(); // a cut down version of CalcPileWidth for use in OnPhraseBoxChanged
 	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
-	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+	int			CalcPhraseBoxGapWidth();
 
 	int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
 										 // the phrasebox gap width at the active pile, by a value calculated in
 										 // OnPhraseBoxChanged(), and set there.
 	int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
 	int			CalcPhraseBoxWidth();
-	// BEW 23Aug20 added next two. I need to pass the 'expanding' ( = 2 ) enum value back to view's PlacePhraseBox()
-	void		CacheWidthMode(enum phraseBoxWidthAdjustMode enumIn = steadyAsSheGoes);
-	enum phraseBoxWidthAdjustMode GetCachedWidthMode();
-protected:
-	enum phraseBoxWidthAdjustMode cachedWidthMode;
-public:
+
 	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
 					// for the CSourcePhrase instance at the active location (m_pActivePile) based
 					// on the KB's pTU pointer for the CSourcePhrase's m_key member.

@@ -477,9 +477,6 @@ int CPile::CalcPhraseBoxListWidth()
 		wxString notInKB_noWedges = _T("Not In KB");
 		wxString notInKB_noWedgesLower = _T("not In KB");
 
-		//m_nWidth = CalcPileWidth(); //and send mirror int value to Layout's m_MinPileWidth
-		//pLayout->m_MinPileWidth = m_nWidth; // cache the value
-
 		// Do these calculations only when the phrasebox is at the active pile; if not
 		// so, return -1 to the caller
 		if ((pSrcPhrase != NULL) && (pSrcPhrase->m_nSequNumber == nActiveSequNum))
@@ -817,6 +814,11 @@ int CPile::CalcPileWidth()
 		{
 			if (m_pLayout != NULL && activeSN == pPile->GetSrcPhrase()->m_nSequNumber)
 			{
+#if defined (_DEBUG)
+				gpApp->nCallCount2++;
+				wxLogDebug(_T("!! In CPile::CalcPileWidth: nCallCount2 %d , SequNum = %d m_targetStr = %s "),
+					gpApp->nCallCount2, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetSrcPhrase()->m_targetStr.c_str());
+#endif
 				// Do the needed width calculations and comparisons here. No slop is
 				// to be added here - that will be done in CalcPhraseBoxWidth(), which
 				// calls CalcPileWidth() as the starting point, before adding slop there.
@@ -1028,9 +1030,8 @@ int CPile::CalcPhraseBoxWidth()
 // BEW 4Aug21 refactored for the possibility of dropdown lists with a size, 
 // or empty.
 
-int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
+int CPile::CalcPhraseBoxGapWidth()
 {
-	wxUnusedVar(widthMode); // BEW17Sep21 withMode is customarily set to steadyAsSheGoes, but it is not used here
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// BEW 4Aug21 retain this legacy comment; it's true only for when there is no valid
 	// dropdown list sizeable.
@@ -1776,14 +1777,3 @@ void CPile::Draw(wxDC* pDC)
 	}
 }
 
-// BEW 23Aug20 added next two. I need to pass the 'expanding' ( = 2 ) enum value back to view's PlacePhraseBox()
-// The enum value is cached in cachedWidthMode, defaulting to steadyAsSheGoes. Access is protected:, so use either
-// of these two public: accessors
-void CPile::CacheWidthMode(enum phraseBoxWidthAdjustMode enumIn)
-{
-	cachedWidthMode = enumIn; // access protected
-}
-enum phraseBoxWidthAdjustMode CPile::GetCachedWidthMode()
-{
-	return cachedWidthMode; // access protected
-}

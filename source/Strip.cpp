@@ -253,8 +253,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			// Is this first pile to be placed in the strip, the doc's current active one?
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				boxMode = m_pLayout->m_boxMode;
-				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+				//boxMode = m_pLayout->m_boxMode;
+				pileWidth = pPile->CalcPhraseBoxGapWidth();
 				// BEW 17Aug18 add this, to force the following piles wider - Nah, it's good for only one widening
 				//if (boxMode == expanding)
 				//{
@@ -571,8 +571,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			boxMode = m_pLayout->m_boxMode;
-			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+			//boxMode = m_pLayout->m_boxMode;
+			pileWidth = pPile->CalcPhraseBoxGapWidth();
 			/* BEW commented out to simplify logging output, on 16Sep21
 #if defined (_DEBUG)
 			{
@@ -692,10 +692,10 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				boxMode = m_pLayout->m_boxMode; // it's probably steadyAsSheGoes, but it doesn't matter
+				//boxMode = m_pLayout->m_boxMode; // it's probably steadyAsSheGoes, but it doesn't matter
 							// what value it has, because boxMode is no longer used internally
 							// in the call of CalcPhraseBoxGapWidth
-				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
+				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
 #if defined (_DEBUG)
 				{
 					int nStripIndex = this->GetStripIndex();
@@ -715,7 +715,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			// this pile will fit in the strip, so add it
 			m_arrPiles.Add(pPile); // store it
-			if (m_pLayout->m_boxMode == contracting)
+			//if (m_pLayout->m_boxMode == contracting)  BEW 12Oct21 removed
+			if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 			{
 				m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
 			}

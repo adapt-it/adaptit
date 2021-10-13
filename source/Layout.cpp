@@ -2015,7 +2015,7 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // the selector enum is all that we need here
 
 
-bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
+bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 {
 #if defined (_DEBUG)
 	{
@@ -2240,21 +2240,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// and when printing, external functions will already have set the "logical"
 	// size returned by this call to a size based on the physical page's printable width
 	// before building or tweaking the strips, we want to ensure that the gap left for the
-	// phrase box to be drawn in the layout is as wide as the phrase box is going to be
-	// when it is made visible by CLayout::Draw(). When RecalcLayout() is called with its
-	// third parameter phraseBoxWidthAdjustMode equal to expanding, if we destroyed and
-	// recreated the piles in the block above,
-	// CreatePile() will, at the active location, made use of the expanding value and set
-	// the "hole" for the phrase box to be the appropriate width. But if piles were not
-	// destroyed and recreated then the box may be about to be drawn expanded, and so we
-	// must make sure that the strip rebuilding about to be done below has the right box
-	// width value to be used for the pile at the active location. The safest way to ensure
-	// this is the case is to make a call to doc class's ResetPartnerPileWidth(), passing
-	// in the CSourcePhrase pointer at the active location - this call internally calls
-	// CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
-	// then the strip layout code below can use that value via a call to
-	// GetPhraseBoxGapWidth() to make the active pile's width have the right value.
-	//TODO: Is the above paragraph completly correct??
+	// phrase box to be drawn in the layout is as wide as needed
+	// when it is made visible by CLayout::Draw().
 	if (!bAtDocEnd)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
@@ -2268,7 +2255,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-			if (boxMode == contracting)
+			//if (boxMode == contracting)
+			if (m_pApp->m_pTargetBox->m_bDoContract)
 			{
 				// phrase box is meant to contract for this recalculation, so suppress the
 				// size calculation internally for the active location because it would be
@@ -4607,6 +4595,7 @@ bool CLayout::BSorDEL_NoModifiers(wxKeyEvent event)
 // to 'to', and works out the length as well, returns FALSE if 'from' == 'to'
 // and returns 0 for the length in that case. pTextCtrl should, of course,
 // point to the phrasebox (m_pTargetBox) member's m_pTextCtrl
+/* BEW 12Oct21 deprecated, this is nowhere called
 bool CLayout::TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length)
 {
 	pTextCtrl->GetSelection(&from, &to);
@@ -4618,7 +4607,7 @@ bool CLayout::TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, 
 	length = (int)(to - from);
 	return TRUE;
 }
-
+*/
 /* deprecated
 bool CLayout::PhraseBoxIsInFocus()
 {
@@ -4709,7 +4698,7 @@ wxSize& textExtent,int nSelector)
 // RecalcLayout() will have access to it when it is setting the width of the active pile.
 
 //GDLC Added 2010-02-09
-enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+enum value steadyAsSheGoes;
 
 CAdapt_ItApp* pApp = &wxGetApp();
 wxASSERT(pApp != NULL);
@@ -4944,6 +4933,7 @@ m_SaveTargetPhrase = pApp->m_targetPhrase;
 // to effect a widening or contracting of the phrasebox width when
 // user editing actions in the phrasebox result in the box and layout
 // needing a quick coordinated adjustment
+/* BEW 12Oct21 deprecated, this is now nowhere called
 bool CLayout::DoPhraseBoxWidthUpdate()
 {
 	bool bSuccess = TRUE;
@@ -4955,7 +4945,6 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 	CLayout* pLayout = pApp->GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	//enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
 
 	// mark invalid the strip following the new active strip
 	if (pApp->m_nActiveSequNum != -1)
@@ -5040,7 +5029,7 @@ bool CLayout::DoPhraseBoxWidthUpdate()
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
 }
-
+*/
 /*
 // created for identifying where some piles didn't get their m_nPile values updated -- turned out
 // to be the leftover ones in the strip after flow up to the preceding strip finished
