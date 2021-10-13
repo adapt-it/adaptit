@@ -481,12 +481,8 @@ public:
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW
 						// added 3June09, in support of a smarter ScrollIntoView() function
 	void		CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileList);
-	enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
-									// other functions; in our refactored design we need a place
-									// for storing one of the enum values so that our layout 
-									// support functions, as set here by FixBox(), can find 
-									// what mode is currently in effect
-    // get the range of visible strips in the viscinity of the active location; pass in the
+
+	// get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
     // may be partly or even wholely out lower than then the bottom of the window's client
     // area); we also try to encompass all auto-inserted material within the visible region
