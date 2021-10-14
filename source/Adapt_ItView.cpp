@@ -4517,28 +4517,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	wxPoint marginTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // correctly returns (2,25)
 		// because I set the left margin to 100 thousandths of an inch in the basic config file
 	wxUnusedVar(marginTopLeft); // whm 21Jan2015 avoid warning
-	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData); // produces no change
-	//pAIPrOut->MapScreenSizeToPaper(); // produces no change
-	//*
-    // whm 19Oct16 commented out the FitThisSizePageMargings() call below
-	//int w;
-	//int h;
-	//pAIPrOut->GetPageSizeMM(&w, &h);
-	//wxSize imagesize(w,h);
-    //pAIPrOut->FitThisSizeToPageMargins(wxSize(183,247), *pApp->pPgSetupDlgData);
 
-	//wxRect fitRect = pAIPrOut->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData); // <<--DC still bad
-	//pAIPrOut->FitThisSizeToPaper(imagesize); // produces no change (still 25mm margins all round)
-	//*/
- 	//pAIPrOut->OffsetLogicalOrigin(-100,-100); // crashes
-	//wxRect paperRect = pAIPrOut->GetLogicalPaperRect(); // crashes, the paper rect in
-	//pixels is returned internally as (0,0,0,0) so I suspect that AIPrintout is not properly
-	//initialized in its internal fields & perhaps PrintPreview is substituting defaults in
-	//order to get a print preview done.
-	//wxRect marginsREct = pAIPrOut->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
-	// The following works, but the margins are just 25mm all round no matter what margins
-	// are within pPgSetupDlgData
-	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData);
     wxPrintPreview *preview = new wxPrintPreview(pAIPrOut, new AIPrintout(printTitle), & printDialogData);
 	
 	// End BEW fiddles 20Oct14
@@ -6039,116 +6018,6 @@ e:	;
     bool bIsOk = DoRangePrintOp(gnRangeStartSequNum, gnRangeEndSequNum, pPrintData);
     return bIsOk;
 
-/*
-    bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequNum);
-
-	// recalc the layout with the shorter range masquerading as the whole document
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pList, create_strips_and_piles);
-#else
-	pLayout->RecalcLayout(pList, create_strips_and_piles);
-#endif
-
-	// hide the box, and set safe values for a non-active location (leave m_targetPhrase
-	// untouched)
-	pApp->m_pActivePile = NULL;
-	pApp->m_nActiveSequNum = -1;
-	// wm: I don't think the phrase box needs to be hidden here
-
-	// The stuff below could go into a separate function -
-	// see also CPrintOptionsDlg::InitDialog
-	// Determine the length of the printed page in logical units.
-	int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
-	wxSize paperSize_mm;
-	paperSize_mm = pApp->pPgSetupDlgData->GetPaperSize();
-	wxASSERT(paperSize_mm.x != 0);
-	wxASSERT(paperSize_mm.y != 0);
-     // We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
-	wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
-	topLeft_mm = pApp->pPgSetupDlgData->GetMarginTopLeft(); // returns  top (y)
-								// and left (x) margins as wxPoint in milimeters
-	bottomRight_mm = pApp->pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y)
-								// and right (x) margins as wxPoint in milimeters
-	wxASSERT(topLeft_mm.x != 0);
-	wxASSERT(topLeft_mm.y != 0);
-	wxASSERT(bottomRight_mm.x != 0);
-	wxASSERT(bottomRight_mm.y != 0);
-    // The size data returned by GetPageSizeMM is not the actual paper size edge to edge,
-    // nor the size within the margins, but it is the usual printable area of a paper,
-    // i.e., the limit of where most printers are physically able to print; it is the area
-    // in between the actual paper size and the usual margins. We therefore start with the
-    // raw paperSize and determine the intended print area between the margins.
-	pageWidthBetweenMarginsMM = paperSize_mm.x - topLeft_mm.x - bottomRight_mm.x;
-	pageHeightBetweenMarginsMM = paperSize_mm.y - topLeft_mm.y - bottomRight_mm.y;
-
-    // Now, convert the pageHeightBetweenMarginsMM to logical units for use in calling
-    // PaginateDoc.
-    //
-	// Get the logical pixels per inch of screen and printer.
-    // whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and GetPPIPrinter()
-    // methods because the wxPrintout object is not created yet at the time this print
-    // options dialog is displayed. But, we can do the same calculations by using the
-    // wxDC::GetPPI() method call on both a wxPrinterDC and a wxClientDC of our canvas.
-	//
-    // Set up printer and screen DCs and determine the scaling factors between printer and screen.
-	wxASSERT(pApp->pPrintData->IsOk());
-
-#if defined(__WXGTK__)
-	// Linux requires we use wxPostScriptDC rather than wxPrinterDC
-	// Note: If the Print Preview display is drawn with text displaced up and off the display on wxGTK,
-	// the wxWidgets libraries probably were not configured properly. They should have included a
-	// --with-gnomeprint parameter in the configure call.
-	wxPostScriptDC printerDC(*pApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
-#else
-	wxPrinterDC printerDC(*pApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
-#endif
-
-	wxASSERT(printerDC.IsOk());
-	wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the printer in pixels per inch (dpi)
-	wxClientDC canvasDC(pApp->GetMainFrame()->canvas);
-	wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the screen/canvas in pixels per inch (dpi)
-	float scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
-
-    // Calculate the conversion factor for converting millimetres into logical units. There
-    // are approx. 25.4 mm to the inch. There are ppi device units to the inch. Therefore 1
-    // mm corresponds to ppi/25.4 device units. We also divide by the screen-to-printer
-    // scaling factor, because we need to unscale to pass logical units to PaginateDoc.
-	float logicalUnitsFactor = (float)(printerSizePPI.GetHeight()/(scale*25.4));
-									// use the more precise conversion factor
-	int nPagePrintingWidthLU, nPagePrintingLengthLU;
-	nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
-	nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
-	// The stuff above could go into a separate function - see also CPrintOptionsDlg::InitDialog
-
-	gnPrintingLength = nPagePrintingLengthLU; //nPrintingLength;
-
-	// Footer adjustments and printing are done in the View's PrintFooter() function
-
-	// do pagination
-	//
-    // whm: In the following call to PaginateDoc, we use the current m_nStripCount stored
-    // on pBundle, because the PaginateDoc() call here is done within SetupRangePrintOp()
-    // which is called after the print dialog has been dismissed with OK, and thus we are
-    // paginating the actual doc to print and not merely simulating it for purposes of
-    // getting the pages edit box values for the print options dialog.
-	bIsOK = PaginateDoc(pLayout->GetStripArray()->GetCount(), nPagePrintingLengthLU);
-													// doesn't call RecalcLayout()
-	if (!bIsOK)
-	{
-		wxMessageBox(_T("Pagination failed."),_T(""), wxICON_STOP);
-		return FALSE;
-	}
-
-	wxPrintDialogData printDialogData(*pApp->pPrintData);
-	// pagination succeeded, so set the initial values
-	int nTotalPages = pApp->m_pagesList.GetCount();
-	printDialogData.SetMaxPage(nTotalPages);
-	printDialogData.SetMinPage(1);
-	printDialogData.SetFromPage(1);
-	printDialogData.SetToPage(nTotalPages);
-
-	return TRUE;
-*/
 }
 
 // whm revised 15Feb05 to include all markers of sectionHead textType
@@ -6897,25 +6766,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-#if defined(_DEBUG) && defined(_EXPAND)
-/*	{
-		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-		wxString contents = wxEmptyString; int width = 0;
-		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-		if (gbIsGlossing)
-		{
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __FUNCTION__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-		else
-		{  // adapting
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __FUNCTION__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-	} */
-#endif
 
 	// whm 12Jul2018 addition - set the width of the dropdown list to be the same as the width of the
     // phrasebox's rectBox. Set its position to be aligned to the bottom of the phrasebox's rectBox.
@@ -8570,247 +8420,6 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	}
 	return TRUE;
 }
-
-/*
-//BEW 23Nov12, refactored the following to remove logic error and improve the needlessly convoluted logic and the goto label
-bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
-					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
-{
-	// 26May08	function created as part of refactoring the Edit Source Text functionality
-	// whm note: Bruce has this function in helpers.h and .cpp, but it is only used in the
-	// View so I moved it to the View.
-    // (BEW 22Mar10, I'd like to see this go back in helpers.cpp as it is a potential
-    // utility function which could be used in other places at a later date.)
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItDoc* pDoc = GetDocument();
-	SPList::Node* posMaster = NULL; //POSITION posMaster = NULL;
-	SPList::Node* posReplace = NULL; //POSITION posReplace = NULL;
-	wxString error;
-    // do nothing if either list has no elements, or if nothing; treat it as an error state
-	if (pMasterList->GetCount() == 0)
-		return FALSE;
-	if (pReplacementsList->GetCount() == 0)
-		return FALSE;
-	if (nHowMany == 0 && nReplaceCount == 0)
-		return FALSE;
-	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pReplaceSrcPhrase = NULL;
-	CSourcePhrase* pDeepCopiedSrcPhrase = NULL;
-
-//#ifdef _debugLayout
-//ShowSPandPile(393, 30);
-//ShowSPandPile(394, 30);
-//ShowInvalidStripRange();
-//#endif
-
-	int maxIndex = pApp->GetMaxIndex();
-	if (nStartAt > maxIndex)
-	{
-		// just append the replacements
-		posReplace = pReplacementsList->Item(nReplaceStartAt);
-		int anIndex;
-		SPList::Node* pos2 = NULL;
-		int endAt = nReplaceStartAt + nReplaceCount -1;
-		for (anIndex = nReplaceStartAt; anIndex <= endAt; anIndex++)
-		{
-			pReplaceSrcPhrase = posReplace->GetData();
-			posReplace = posReplace->GetNext();
-			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
-			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
-			wxASSERT(pDeepCopiedSrcPhrase != NULL);
-			// add each deep copy to the end of the master list
-			pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
-			pos2 = pos2; // avoid warning
-			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
-		}
-		return TRUE;
-	}
-	else
-	{
-		posMaster = pMasterList->Item(nStartAt);
-		if (posMaster == NULL)
-		{
-			// whm note: I don't think this error needs to be translated for localization
-			// an unexpected exception, so inform the caller & advise the user of the error
-			error = _T(
-"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posMaster value is NULL. ");
-			error += _T("Abandoning current operation.");
-			error += _T(" (If restoring document's original state, it is not properly restored.");
-			wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
-			return FALSE;
-		}
-	}
-//#ifdef _debugLayout
-//ShowSPandPile(393, 31);
-//ShowSPandPile(394, 31);
-//ShowInvalidStripRange();
-//#endif
-	posReplace = pReplacementsList->Item(nReplaceStartAt);
-	if (posMaster == NULL)
-	{
-		// whm note: I don't think this error need to be translated for localization
-		// an unexpected exception, so inform the caller & advise the user of the error
-		error = _T(
-"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posReplace value is NULL. ");
-		error += _T("Abandoning current operation.");
-		error += _T(" (If restoring document's original state, it is not properly restored.");
-		wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
-		return FALSE;
-	}
-
-	// First delete the old (ie. unwanted) instances from the main list
-	SPList::Node* posSaved = NULL;
-	SPList::Node* pos2 = NULL;
-	int index;
-
-	// special case 1: only insertions are wanted, no deletions
-	if (nHowMany == 0)
-	{
-		// insertion is wanted, preceding posMaster location
-ins:	;
-//#ifdef _DEBUG
-		//SPList::Node* posDebug = pMasterList->GetFirst();
-		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
-		//{
-		//	CSourcePhrase* pSrcPh;
-		//	pSrcPh = posDebug->GetData();
-		//	posDebug = posDebug->GetNext();
-		//	wxLogDebug(_T("pMasterList BEFORE Insert: pSrcPh->m_srcPhrase = %s"),
-		//	pSrcPh->m_srcPhrase.c_str());
-		//}
-//#endif
-
-		for (index = 0; index < nReplaceCount; index++)
-		{
-			// insert them in normal order, each preceding the posMaster POSITION
-			pReplaceSrcPhrase = posReplace->GetData();
-			posReplace = posReplace->GetNext();
-			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
-			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
-			wxASSERT(pDeepCopiedSrcPhrase != NULL);
-			// insert each deep copy before the posMaster location each time
-			pos2 = pMasterList->Insert(posMaster, pDeepCopiedSrcPhrase);
-			pos2 = pos2; // avoid warning
-			// BEW added 13Mar09 for refactored layout
-			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks its or a
-														// nearby strip as invalid
-
-//#ifdef _debugLayout
-//ShowSPandPile(393, 34);
-//ShowSPandPile(394, 34);
-//ShowInvalidStripRange();
-//#endif
-			// break out of loop if we have come to the end of the replacements list
-			if (pReplaceSrcPhrase == NULL)
-				break;
-		}
-//#ifdef _DEBUG
-		//posDebug = pMasterList->GetFirst();
-		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
-		//{
-		//	CSourcePhrase* pSrcPh;
-		//	pSrcPh = posDebug->GetData();
-		//	posDebug = posDebug->GetNext();
-		//	wxLogDebug(_T("pMasterList AFTER Insert: pSrcPh->m_srcPhrase = %s"),
-		//	pSrcPh->m_srcPhrase.c_str());
-		//}
-//#endif
-		return TRUE;
-	}
-	else
-	{
-		// nHowMany is not zero, so deletions are wanted
-		if (nReplaceCount == 0)
-		{
-			// no insertions are wanted, so only the deletions - which have already
-			// been done, so return TRUE
-			return TRUE;
-		}
-		else
-		{
-//#ifdef _debugLayout
-//ShowSPandPile(393, 32);
-//ShowSPandPile(394, 32);
-//ShowInvalidStripRange();
-//#endif
-			// delete the non-empty range of originals from pMasterList
-			for (index = 0; index < nHowMany; index++)
-			{
-				posSaved = posMaster;
-				wxASSERT(posSaved);
-				pSrcPhrase = posMaster->GetData(); // assume success
-				posMaster = posMaster->GetNext();
-				pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase
-					// and its elements from memory locations; also calls DeletePartnerPile()
-				pMasterList->DeleteNode(posSaved);	// delete the list's pSrcPhrase element
-				// break out of the loop if we have come to the end of the pMasterList
-				if (posMaster == NULL)
-					break;
-			}
-
-			// now insert the non-empty range of replacements at the same location
-			if (nStartAt == (int)pMasterList->GetCount())
-			{
-                // there is no CSourcePhrase instance now at the nStartAt value, because we
-                // deleted right to the end of the master list inclusively, so we only need
-                // append each to the tail of the pMasterList
-				for (index = 0; index < nReplaceCount; index++)
-				{
-					// get a deep copy
-					pReplaceSrcPhrase = posReplace->GetData();
-					posReplace = posReplace->GetNext();
-					pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
-					pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
-					wxASSERT(pDeepCopiedSrcPhrase != NULL);
-					// append each deep copy to the master list
-					pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
-
-					// BEW added 13Mar09 for refactored layout
-					pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks the owning
-													// strip, or a nearby one, as invalid
-
-					// break out of loop if we have come to the end of the replacements list
-					if (pReplaceSrcPhrase == NULL)
-						break;
-				}
-//#ifdef _debugLayout
-//ShowSPandPile(393, 33);
-//ShowSPandPile(394, 33);
-//ShowInvalidStripRange();
-//#endif
-			}
-			else
-			{
-                // there is a CSourcePhrase instance at the nStartAt location, it has moved
-                // down to occupy the location from which the earlier deletions were
-                // started, so we must now insert before it
-				posMaster = pMasterList->Item(nStartAt);
-				if (posMaster == NULL)
-				{
-					// an unexpected exception, so inform the caller & advise the user of
-					// the error
-					error = _T(
-			"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), ");
-					error += _T(
-			"posMaster value is NULL when finding the POSITION of first CSourcePhrase ");
-					error += _T("following the gap. Abandoning current operation.");
-					error += _T(
-			" (If restoring document's original state, it is not properly restored.");
-					wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
-					return FALSE;
-				}
-//#ifdef _debugLayout
-//ShowSPandPile(393, 35);
-//ShowSPandPile(394, 35);
-//ShowInvalidStripRange();
-//#endif
-				goto ins;
-			}
-		}
-	}
-	return TRUE;
-}
-*/
 
 /////////////////////////////////////////////////////////////////////////////////
 ///	GetMarkerArrayFromString
@@ -14408,10 +14017,6 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pStr->IsEmpty())
 		return;
-	/* not needed
-	CSourcePhrase* pCurSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	wxASSERT(pCurSrcPhrase != NULL);
-	*/
 	wxString spacelessPunctsStr;
 	if (bTgtPuncts)
 	{
@@ -14554,15 +14159,6 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		{
 			// update ptr to point at next part of string to be parsed, or at pEnd
 			ptr += itemLen;
-			/*  not needed
-			// Check for new final punctuation needing to be added to whatever is
-			// currently in pCurSrcPhrase->m_follPunct, and if there is any new
-			// stuff, insert it before what's currently in pCurSrcPhrase->m_follPunct
-			if (!pSrcPhrase->m_follPunct.IsEmpty())
-			{
-				pCurSrcPhrase->m_follPunct = pSrcPhrase->m_follPunct + pCurSrcPhrase->m_follPunct;
-			}
-			*/
 		}
 		else
 		{
@@ -15188,21 +14784,6 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 	}
 	// remove commenting out to see the problem the Unit interface in Precise Pangolin
 	// causes, Paste is disabled because focus wanders away from the text ctrl
-	/*
-    #if defined(_DEBUG) && defined(__WXGTK__)
-    wxLogDebug(_T("OnUpdateEditPaste #1 bComposeWnd = %d"), (int)bComposeWnd);
-    wxLogDebug(_T("OnUpdateEditPaste #2 bTargetBox = %d"), (int)bTargetBox);
-    bool bFinalValue = bComposeWnd || bTargetBox;
-    if (bFinalValue)
-    {
-        wxLogDebug(_T("OnUpdateEditPaste #3 enabled"));
-    }
-    else
-    {
-         wxLogDebug(_T("OnUpdateEditPaste #5 disabled"));
-    }
-    #endif
-    */
 	event.Enable(bComposeWnd || bTargetBox);
 }
 
@@ -17263,11 +16844,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// targetStr parameter, with the m_lastAdaptionsPattern member of
 							// the current active pSrcPhrase instance passed in
 							bool bNoChange = IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str);
-							/* #if defined(_DEBUG)
-											// In case the RossJones m_targetStr not sticking bug comes from here
-											wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,379 IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str) returns %d  for sequnum  %d; m_targetStr = %s , str = %s"),
-												bNoChange ? 1 : 0, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_targetStr.c_str(), str.c_str());
-							#endif */
 							if (bNoChange)
 							{
 								// let control continue to the block further below
@@ -17368,11 +16944,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// every reason to expect that the former saved state for
 							// punctuation placement, and word spellings, are unchanged and so
 							// can be restored here without recourse to the placement dialog
-	// BEW 30Sep19  -- refactoring needed:  	str = pSrcPhrase->m_punctsPattern;
-	/* #if defined(_DEBUG)
-							wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at restoring m_punctsPattern: sn = %d , targetStr = %s , m_punctsPattern = %s  (assigned to str)"),
-								theSequNum, targetStr.c_str(), pSrcPhrase->m_punctsPattern.c_str());
-	#endif */
+							;
 						}
 					} // end of TRUE block for test: if (pSrcPhrase->m_bHasInternalPunct)
 				}
@@ -18532,50 +18104,20 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	{
 		// a layout exists
 		GetLayout()->Redraw();
-#if defined (_DEBUG)
-        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  - BEFORE PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
-            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
-#endif
+//#if defined (_DEBUG)
+//        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  - BEFORE PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+//            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//#endif
         // whm 11Sept2018 Note: The user may have changed the KB entries within the KBEditor before
         // it was dismissed above. Therefore we leave the PlaceBox() call below without adding the
         // noDropDownInitialization parameter in its call - which then uses the default initializeDropDown
         // enum internally and calls the SetupDropDownPhraseBoxForThisLocation() to initialize the dropdown
         // list - to include any changes made in the editor.
 		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
-#if defined (_DEBUG)
-        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  -  AFTER PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
-            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
-#endif
-
-        // whm 15Sep2018 added the code below that needs to follow the PlaceBox() call above. 
-        // It is needed because, early within the PlaceBox() call above the physical content
-        // of the phrasebox is clobbered - changed to an empty string - as it prepares to setup the
-        // phrasebox for the location. Within the KBEditor's InitDialog() and OnOK() handlers we detected
-        // if the ref string associated with the original phrasebox's content had a present_but_deleted
-        // state, setting that state in its m_bBoxContent_present_but_deleted member. We also kept the 
-        // original phrasebox content in the KBEditor's m_originalPhraseBoxContent member. 
-        // We'll use those values to put the content back into the phrasebox for that
-        // situation, so that if the user moves the box elsewhere without doing any typeing or clicking
-        // in the box, the value will get retained - but only for this special situation where 
-        // m_bBoxContent_present_but_deleted is TRUE. We also set the phrasebox's m_bAbandonable
-        // member to FALSE. 
-        // whm 6Mar2020 testing shows that the following is no longer needed, and can be unhelpful
-        // when the phrasebox content had a KB entry that has been deleted in the KBEditor. More recent
-        // revisions tend to make the phrase box and its drop down list dynamically change to reflect 
-        // the KB contents at the GetLayout()->PlaceBox() call above. Currently, when the phrasebox
-        // content was deleted from the KB and there are more than two entries in the translations listbox, 
-        // the phrasebox will end up with the first item left in the listbox, even if a user highlights
-        // a different translation in the listbox (in the upper-right list) of the KBEditor before pressing
-        // the OK button in the dialog. We could detect a different selection and place that instead into
-        // the phrasebox, but that would take a fair amount of work, and I'm not sure it would be worth 
-        // the effort.
-        /*
-        if (editorPage.m_bBoxContent_present_but_deleted)
-        {
-            pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(editorPage.m_originalPhraseBoxContent);
-            pApp->m_pTargetBox->m_bAbandonable = FALSE;
-        }
-        */
+//#if defined (_DEBUG)
+//        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  -  AFTER PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+//            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+//#endif
     }
 
 	if (pApp->m_bForceFullConsistencyCheck)
@@ -24286,63 +23828,6 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& event)
 		}
 	}
 }
-/* BEW 15Nov19 discovered this is declared, and defined, but called nowhere. So it's now deprecated
-void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
-							  CSourcePhrase* pFirstSrcPhrase, int nCount)
-{
-	SPList::Node* pos = posNext; // since posNext comes from the caller,
-								 // it is already the 'next' position
-	// starting from the next minimal srcPhrase, Merge each succeeding one to
-	// pFirstSrcPhrase
-	for (int i = 1; i < nCount; i++)
-	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		wxASSERT(pSrcPhrase);
-		// no phrases allowed
-		wxASSERT(pSrcPhrase->m_nSrcWords == 1 || pSrcPhrase->m_nSrcWords == 0);
-
-		pFirstSrcPhrase->Merge(this,pSrcPhrase);
-	}
-
-	// count how many have to be removed from the m_pSourcePhrases list on the app
-	int nRemoveCount = nCount - 1; // that is, all but the first
-
-	// remove from the list the ones which have been merged to the first
-	pos = pNewList->Item(nSequNum + 1); // position of first to be removed
-	SPList::Node* savePos;
-	wxASSERT(pos != NULL);
-	int j = 0;
-	while (pos != NULL && j < nRemoveCount)
-	{
-		savePos = pos;
-		//CSourcePhrase* pSrcPhrase;
-		//pSrcPhrase = (CSourcePhrase*)pos->GetData(); // not really used
-		pos = pos->GetNext();
-		pNewList->DeleteNode(savePos); // remove pointer, but leave srcPhrase
-		j++;						   // on the heap, because it is pointed at
-									   // from within pFirstSrcPhrase now
-	}
-
-	// update the sequence numbers which follow the first src phrase
-	UpdateSequNumbers(nSequNum);
-
-	// set up the m_inform attribute, if there are medial markers
-	if (pFirstSrcPhrase->m_bHasInternalMarkers)
-	{
-		wxString s = _(" Medial markers: ");
-		if (!pFirstSrcPhrase->m_pMedialMarkers->IsEmpty())
-		{
-			// We'll iterate through the array with a for loop
-			for (int i = 0; i < (int)pFirstSrcPhrase->m_pMedialMarkers->GetCount(); i++)
-			{
-				s += pFirstSrcPhrase->m_pMedialMarkers->Item(i);
-			}
-			pFirstSrcPhrase->m_inform += s;
-		}
-	}
-}
-*/
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 {
@@ -25135,11 +24620,6 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG)
 		//wxLogDebug(_T("EditedSrc BEFORE: %s"), (*pBuffer).c_str());
 #endif
-		// BEW 29Jun16 Bev Erasmus (Madagascar) got a crash, it possibly is due to
-		// doing these removals so I'm commenting this out, and will test. Besides,
-		// now that we save the word delimiters, it is no longer appropriate to remove
-		// the CR & LF characters
-		//*pBuffer = RemoveAllCRandLF(pBuffer);
 
 		pApp->m_nInputFileLength = pBuffer->Len();
 #if defined(_DEBUG)
@@ -29514,17 +28994,6 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		pRec->nBackTrans_StartingSequNum = -1;
 		pRec->nBackTrans_EndingSequNum = -1;
 	}
-	/*
-	// check we got correct spans
-	TRACE2("\n Editable   Span = %d , %d\n",pRec->nStartingSequNum,pRec->nEndingSequNum);
-	TRACE2(" Free Trans Span = %d , %d\n",pRec->nFreeTrans_StartingSequNum,
-														pRec->nFreeTrans_EndingSequNum);
-	TRACE2(" Back Trans Span = %d , %d\n",pRec->nBackTrans_StartingSequNum,
-														pRec->nBackTrans_EndingSequNum);
-	TRACE2(" Cancel Span = %d , %d\n",pRec->nCancelSpan_StartingSequNum,
-														pRec->nCancelSpan_EndingSequNum);
-	int ii = 1; // a do-nothing statement for a break point for the TRACE macros
-	*/
 	// clear out the contents of the temporary list & delete the list itself
 	pDoc->DeleteSourcePhrases(pTempList);
 	if (pTempList != NULL) // whm 11Jun12 added NULL test
@@ -29990,6 +29459,7 @@ bailout:	pAdaptList->Clear();
 		// do a while loop for looking at the pSrcPhrase instances of the modifications
 		// span in debug mode
 		/*
+#if defined (_DEBUG)
 		SPList::Node* posTemp = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		int modsCountFromCancelSpanBounds =
 			pRec->nCancelSpan_EndingSequNum - pRec->nCancelSpan_StartingSequNum + 1;
@@ -30008,6 +29478,7 @@ bailout:	pAdaptList->Clear();
 			bool bItsStartFTflag = pSP->m_bStartFreeTrans;
 			bool bItsEndFTflag = pSP->m_bEndFreeTrans;
 		}
+#endif
 		*/
 		int nHowMany = pRec->nCancelSpan_EndingSequNum - pRec->nCancelSpan_StartingSequNum + 1;
 		int nReplacementCount = nHowMany;
@@ -31200,16 +30671,6 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 		}
 	}
 
-	/* deprecated, BEW, 4May18 - this is the reason for a long-standing error, I'll refactor this below
-	// BEW added 16Nov10, one final thing we can do is test if the saved initial active
-	// sequ number is the same as that passed in, if so, then reset the phrase box to the
-	// stored string in pRec, provided nothing was found above
-	if (!bFoundSomething && nSequNum == pRec->nSaveActiveSequNum)
-	{
-        pApp->m_pTargetBox->m_Translation = pRec->oldPhraseBoxText;
-		pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation;
-	}
-	*/
 	// BEW refactored 4May18, if landing the box at the start of the span (which typically removes
 	// a meaning from KB that has but one reference so far) causes bFoundSomething to be FALSE, then
 	// we MUST NOT go to the EditRecord (pRec) to drag out the oldPhraseBoxText value, as doing so takes
@@ -32557,22 +32018,7 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
         // target text's font (the user may have navText smaller in the view in order to
         // keep it unobtrusive, but we don't want it unobtrusive in the phrase box!)
 		pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetNavTextColor());// whm 12Jul2018 added ->GetTextCtrl() part
-		/*
-		// BEW 12Jun09, regretably the next 3 lines are not enough to do the job, because
-		// the navText height setting is still unchanged and if I increase that, it will
-		// increase it in the navigation text whiteboard area too, and that throws even
-		// more stuff out of kilter.
-		//                                     *** TODO *** someday
-        // -- a proper solution would be to define a further dedicated
-        // m_pNavTextAtTgtSizeFont wxFont object, and in CLayout have a bool
-        // m_bGlossingUsesNavTextFontAtTargetSize member, which is TRUE when glossing and
-        // user has chosen the Glossing Uses Nav Text Font menu item, and which is FALSE
-        // when that menu item is off; and have the layout code use whichever wxFont member
-        // is appropriate given the context
-		int pointSize = 12;
-		pointSize = pApp->m_pTargetFont->GetPointSize();
-		pApp->m_pNavTextFont->SetPointSize(pointSize);
-		*/
+		
 	}
 	else
 	{
@@ -32717,18 +32163,6 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp
 										// should do so because the former adaptations for
 										// these placeholders were 'real' translations
 			return FALSE; // don't remove it
-			/* legacy code
-			if (pSrcPhrase->m_bEndFreeTrans)
-			{
-				// move it back to the last non-placeholder sourcephrase
-				SPList::Node* prevPos = curPos;
-				CSourcePhrase* pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
-				prevPos = prevPos->GetPrevious();
-				wxASSERT(pPrevSrcPhrase != NULL);
-				pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
-			}
-			return TRUE; //  remove now
-			*/
 		}
 		else
 		{
@@ -33687,22 +33121,6 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 	{
 		if (pApp->m_pActivePile != NULL)
 		{
-			/* BEW changed 3Jul09, see comment below, a zero rectangle suffices for clipping
-			//pLayout->SetClipRectangle(pApp->m_pActivePile);
-			//wxRect r = pLayout->GetClipRect();
-
-            // debug test: halve the height, it appears to be too deep a rectangle because
-            // there is drawing (because we see flicker there) under the phrase box's width
-            // for two strips below the box -- test if this can be stopped? Yes, the strip
-            // below had no content, but the second did, and halving the height stopped the
-            // blink. However, it appears that the phrase box typing goes in and is visible
-            // regardless of how big the view's clip rectangle is, is that so? Yes indeed,
-            // so there is no point in wasting time on calculating the clip rectangle to be
-            // just the box's rectangle or the pile's rectangle, just make it a zero
-            // rectange so the Draw() of the view draws nothing, to save time.
-			//int height = r.GetHeight();
-			//r.SetHeight(height / 2);
-			*/
 			wxRect r;
 			r.SetTop(0); r.SetLeft(0); r.SetWidth(0); r.SetHeight(0);
 
