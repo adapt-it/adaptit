@@ -64,18 +64,20 @@
 #     i396, or just for amd64 in focal and later DISTs). 
 #     Note: The modifications within .pbuilder that determine the EXTRAPACKAGES content have to 
 #     be manually updated for "focal" and later packages.
+# Revised 2021-10-14 by Bill Martin
+#   - Added impish to OSRELEASES and UBUNTU_SUITES
 # !!!!!!! NOTE: UPDATES REQUIRED WHEN NEW UBUNTU, DEBIAN and LINUX MINT DISTs APPEAR !!!!!!!!!!
-# 1. Add any new DIST name (lower case) to the $OSRELEASES string list at about line 93 below.
+# 1. Add any new DIST name (lower case) to the $OSRELEASES string list at about line 95 below.
 #    See current releases for Ubuntu at: https://wiki.ubuntu.com/ReleaseSchedule 
-# 2. Add any new DIST name (lower case) to the $OSRELEASES64BITONLY string list at about line 97.
+# 2. Add any new DIST name (lower case) to the $OSRELEASES64BITONLY string list about lines 99 and 190.
 # 3. Remove any no-longer-supported DIST names from the $OSRELEASES (and eventually from the
-#    $OSRELEASES64BITONLY) string lists about lines 93 and 97.
-# 4. Update list of UBUNTU_SUITES if needed at about line 182. See:  https://wiki.ubuntu.com/ReleaseSchedule 
-# 5. Update the codenames for Debian suites if needed according to their alias about lines 174-175,
+#    $OSRELEASES64BITONLY) string lists about lines 95 and 99.
+# 4. Update list of UBUNTU_SUITES if needed at about line 184. See:  https://wiki.ubuntu.com/ReleaseSchedule 
+# 5. Update the codenames for Debian suites if needed according to their alias about lines 176-177,
 #    lines 230-234, and lines 397-401. See: https://wiki.debian.org/DebianReleases
-# 6. Update Linux Mint aliases assignments to DIST at about 275 and 442. 
+# 6. Update Linux Mint aliases assignments to DIST at about 277 and 444. 
 #    See: https://www.linuxmint.com/download_all.php
-# 7. Add ORed tests:   || [ x"$DIST" = x"DISTname" ]   to the if test statement at about linne 343.
+# 7. Add ORed tests:   || [ x"$DIST" = x"DISTname" ]   to the if test statement at about line 351.
 # !!!!!!! NOTE: UPDATES REQUIRED WHEN NEW UBUNTU, DEBIAN and LINUX MINT DISTs APPEAR !!!!!!!!!!
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
@@ -90,11 +92,11 @@ PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy o
 # TODO: Add any recent Ubuntu releases to the $OSRELEASES and $OSRELEASES64BITONLY string lists below 
 # as they become available in the future. Remove no longer supported end-of-life releases.
 # whm 8May2020 removed unsupported DIST names from OSRELEASES below:
-OSRELEASES=${2:-"trusty xenial bionic eoan focal sid"}
+OSRELEASES=${2:-"trusty xenial bionic eoan focal impish sid"}
 # The string list $OSRELEASES64BITONLY is used in writing/updating the HERE DOC .pbuilderrc file
 # in the user's home directory, and for tests below here in release.sh. Note: the 'export' command
 # doesn't appear to make $OSRELEASES64BITONLY visible to .pbuilder for some unknown reason.
-export OSRELEASES64BITONLY="focal"
+export OSRELEASES64BITONLY="focal impish"
 DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 #BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev" # whm 7May2020 removed libwxgtk2.8-dev
 BUILDDEPS="zip uuid-dev libcurl3-gnutls-dev"
@@ -179,13 +181,13 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Add new releases, remove end-of-life releases when needed.
-UBUNTU_SUITES=("focal" "eoan" "bionic" "xenial" "trusty")
+UBUNTU_SUITES=("impish" "focal" "eoan" "bionic" "xenial" "trusty")
 
 # Mirrors to use. Update these to your preferred mirror.
 DEBIAN_MIRROR="ftp.us.debian.org"
 UBUNTU_MIRROR="mirrors.kernel.org"
 
-#OSRELEASES64BITONLY="focal"
+#OSRELEASES64BITONLY="focal impish"
 
 # Apparently one cannot use a function like the following within the .pbuilderrc
 # file. It works fine in release.sh, but not when placed within .pbuilderrc, so
@@ -272,6 +274,12 @@ case "$DIST" in
     "ulyana")
         DIST="focal"
         ;;
+    "ulyssa")
+        DIST="focal"
+        ;;
+    "uma")
+        DIST="focal"
+        ;;
 esac
 echo "Distribution DIST Codename is: $DIST"
 
@@ -340,7 +348,7 @@ HOOKDIR=~/pbuilder/hooks
 
 # !!!!!!!!!!!!! TODO: UPDATE TEST BELOW FOR EACH NEW UBUNTU DIST RELEASED !!!!!!!!!!!!!!!
 # Add ORed:   || [ x"$DIST" = x"DISTname" ]    tests to if statement below:
-if [ x"$DIST" = x"focal" ]; then
+if [ x"$DIST" = x"focal" ] || [ x"$DIST" = x"impish" ]; then
     EXTRAPACKAGES="wget libwxgtk3.0-gtk3-dev" #"apt-utils"
     echo "DIST is focal or later - EXTRAPACKAGES content is: wget libwxgtk3.0-gtk3-dev"
     echo "The $DIST package will be built for 64-Bit (amd64) ONLY"
@@ -437,6 +445,12 @@ case "$DIST" in
         DIST="bionic"
         ;;
     "ulyana")
+        DIST="focal"
+        ;;
+    "ulyssa")
+        DIST="focal"
+        ;;
+    "uma")
         DIST="focal"
         ;;
 esac
