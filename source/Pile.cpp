@@ -1739,10 +1739,11 @@ void CPile::Draw(wxDC* pDC)
 	// nav text whiteboard drawing for this pile...
 	// whm removed !gbIsPrinting from the following test to include nav text info and
 	// icons in print and print preview
-	if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
-	{
+	// whm 14Oct2021 BEW asked me to comment out the next test line
+	//if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
+	//{
 		DrawNavTextInfoAndIcons(pDC);
-	}
+	//}
 	// draw the phrase box if it belongs to this pile
 	if (m_pLayout->m_pApp->m_bIsPrinting)
 	{
