@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleGetInfoString</key>
-	<string>$(PRODUCT_NAME) version 6.10.4, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
+	<string>$(PRODUCT_NAME) version 6.10.5, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.adapt-it.adaptit</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -26,7 +26,7 @@
 		<string>zh</string>
 	</array>
 	<key>CFBundleLongVersionString</key>
-	<string>6.10.4, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
+	<string>6.10.5, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
