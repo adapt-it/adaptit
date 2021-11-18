@@ -87,10 +87,10 @@ public:
 	wxColour	tempReTranslnTextColor;
 	wxColour	tempTgtDiffsTextColor;
 
-	// the following bools not needed in wx version
-	//bool		m_bNoSourceChange;
-	//bool		m_bNoTargetChange;
-	//bool		m_bNoNavTextChange;
+    // dirty bits for the source/target/nav font panels
+	bool		m_bSourceChanged;
+	bool		m_bTargetChanged;
+	bool		m_bNavTextChanged;
 
 	// wxFontData added for wxWidgets version holds font info
 	// with get/set methods for font information such as

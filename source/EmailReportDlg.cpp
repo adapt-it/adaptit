@@ -431,7 +431,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	wxString archName,OSSystemID,OSSystemIDName,hostName;
 	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
-	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
+	archName = platInfo.GetBitnessName();  // returns "32 bit" on Windows
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	OSSystemIDName = platInfo.GetOperatingSystemIdName();
 	//OSMajorVersion = platInfo.GetOSMajorVersion();
@@ -2048,7 +2048,7 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	wxString archName,OSSystemID,OSSystemIDName,hostName;
 	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
-	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
+	archName = platInfo.GetBitnessName();  // returns "32 bit" on Windows
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	OSSystemIDName = platInfo.GetOperatingSystemIdName();
 	//OSMajorVersion = platInfo.GetOSMajorVersion();
