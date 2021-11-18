@@ -561,6 +561,15 @@ fi
 echo -e "\nRemoving any existing packaging repos at: $PACKAGING_DIR/adaptit-*"
 rm -rf $PACKAGING_DIR/adaptit-*
 
+# whm added 2021-10-15 block below to remove any zero length files from the pbuilder 
+# folder left over from any aborted script run done previously, since a zero 
+# length *.tgz file might foul up the pbuilder process. The path of the pbuilder 
+# folder is stored in $PBUILDFOLDER
+if [ -d "$PBUILDFOLDER" ]; then
+  ehco "Removing any zero length files in $PBUILDFOLDER"
+  find $PBUILDFOLDER -size  0 -print -delete
+fi
+
 # At this point there should be an up-to-date repo at ~/packaging/adaptit
 # It will function as our backup repo for packaging purposes. We'll make
 # a copy of this repo, renaming it with the desired tag as a suffix which
