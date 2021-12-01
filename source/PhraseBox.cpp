@@ -8586,7 +8586,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		//dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
 		//int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
 
-/* added 11Oct21
+// added 11Oct21
 		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
 				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
 				// visible then only the max of src and tgt widths is calculated
