@@ -959,6 +959,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 					// The two autocorrect.txt files are not identical, so ask if the AI project one should be replaced
 					// but first check their modification dates so we can inform the admin/user which file is newer.
 					bool PTautocorrectFileIsNewer = FALSE;
+					PTautocorrectFileIsNewer = PTautocorrectFileIsNewer; // avoid gcc warning
 					msg = _("The PT project's autocorrect.txt file and the Adapt It project's autocorrect.txt file are different.");
 					wxString msg2 = _("(NOTE: The autocorrect.txt file in the Paratext project is newer).");
 					wxString msg3 = _("Do you want to overwrite Adapt It's autocorrect.txt file with Paratext's autocorrect.txt file?");

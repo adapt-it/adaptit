@@ -3737,6 +3737,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		m_bDoContract = FALSE; // initialise, ditto
 
 		bool bWasMadeDirty = FALSE;  //unused
+		bWasMadeDirty = bWasMadeDirty; // avoid gcc warning
 
 		// whm Note: here we can eliminate the test for Return, BackSpace and Tab
 		pApp->m_bUserTypedSomething = TRUE;
@@ -4445,6 +4446,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	//GDLC Added 2010-02-09 // BEW 17Sep21 use of this enum is close to being deprecated, 
 	// but it can persist for a while as it does no harm, and has a very small remaining functional load
 	int nPhraseBoxWidthAdjustMode = 1; // used to be an enum value of steadyAsSheGoes
+	nPhraseBoxWidthAdjustMode = nPhraseBoxWidthAdjustMode; // avoid gcc warning
 
 	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
 	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; we just want the y-value
@@ -8576,14 +8578,14 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		// phrase at that location would require for a width if copied to the box;
 		// and, BEW 23Sep21 not less than the width required for viewing the dropdown
 		// list's width
-		/* BEW 23Sep21 -- this bit has been commented out a long time, dunno if it should be
-		wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
-		wxFont* pSrcFont = pApp->m_pSourceFont;
-		wxSize sourceExtent;
-		dC.SetFont(*pSrcFont);
-		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
-		int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
-*/
+		// BEW 23Sep21 -- this bit [below] has been commented out a long time, dunno if it should be
+		//wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+		//wxFont* pSrcFont = pApp->m_pSourceFont;
+		//wxSize sourceExtent;
+		//dC.SetFont(*pSrcFont);
+		//dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+		//int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
+
 /* added 11Oct21
 		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
 				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
