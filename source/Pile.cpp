@@ -1635,7 +1635,7 @@ void CPile::Draw(wxDC* pDC)
 	// nav text whiteboard drawing for this pile...
 	// whm removed !gbIsPrinting from the following test to include nav text info and
 	// icons in print and print preview
-	if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
+	//if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
 	{
 		DrawNavTextInfoAndIcons(pDC);
 	}

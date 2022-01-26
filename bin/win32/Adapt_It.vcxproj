@@ -116,7 +116,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MARIADB_WIN32);$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
@@ -126,6 +126,10 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <CompileAs>Default</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4456;4457;4458;4459;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ShowIncludes>false</ShowIncludes>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningVersion>
+      </WarningVersion>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -139,7 +143,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurld.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(BOOST);..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;$(ProgramFiles)\Visual Leak Detector\lib\Win32;lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Debug - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MARIADB_WIN32)lib;$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(BOOST);..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;$(ProgramFiles)\Visual Leak Detector\lib\Win32;lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Debug - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -265,7 +269,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MARIADB_WIN32);$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -286,7 +290,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Release - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MARIADB_WIN32);$(MARIADB_WIN32)lib\libmariadb.lib;$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Release - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -451,6 +455,7 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClCompile Include="..\..\source\Mover.cpp" />
     <ClCompile Include="..\..\source\MyListBox.cpp" />
     <ClCompile Include="..\..\source\NavProtectNewDoc.cpp" />
+    <ClCompile Include="..\..\source\NewUserCredentialsDlg.cpp" />
     <ClCompile Include="..\..\source\NoteDlg.cpp" />
     <ClCompile Include="..\..\source\Notes.cpp" />
     <ClCompile Include="..\..\source\OpenExistingProjectDlg.cpp" />
@@ -575,6 +580,7 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClInclude Include="..\..\source\KbSvrHowGetUrl.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
+    <ClInclude Include="..\..\source\NewUserCredentialsDlg.h" />
     <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />

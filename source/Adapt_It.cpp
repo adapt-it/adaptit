@@ -347,6 +347,7 @@ int ID_DROP_DOWN_LIST = 22050;
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
 #include "InstallGitOptionsDlg.h" // whm 26March2017
 #include "Authenticate2Dlg.h" // BEW 9Sep20
+#include "NewUserCredentialsDlg.h" // BEW 3Jan22
 
 #if wxCHECK_VERSION(2,9,0)
 // Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -451,6 +452,10 @@ extern std::string str_CURLheaders;
 #include <windows.h>
 #include <tlhelp32.h>
 #include <tchar.h>
+
+// BEW 20Oct21 added, for helping refactor DoDiscoverKBservers()
+// comment out when the old code is to be ignored, after refactoring
+//#define _DO_DISCOVER
 #endif
 
 #include <stdio.h>
@@ -18421,7 +18426,7 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// \param		ServDiscDetail <- a value from a set of enums of that type, to help govern code behaviour
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on scripts written
-/// by Leon Pearl. They work by direct access to kbserver in mariaDB (mysql alias) server
+/// by Leon Pearl. They work by direct access to kbserver in mariaDB (wrapper for older mysql) server
 ///
 /// ConnectUsingDiscoveryResults is called in an authentication attempt to a running KBserver.
 ///
@@ -18456,8 +18461,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
     wxString& chosenHostname, enum ServDiscDetail &result)
 {
     // In my early code, I called this function DoServiceDiscovery. Now it doesn't do discovery,
-    // but just uses the results of service discovery. Discovery is slow, and needs
-    // to be divorced from connection-related code for the user's sake
+    // but just uses the results of service discovery.
 
     chosenIpAddr = _T(""); // initialize, we return the chosen url using this parameter
     result = SD_NoResultsYet; // initialize to a 'non-success' result
@@ -18666,7 +18670,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curIpAddr, wxString& ch
     {
         // Nothing available, inform the user of what might be the problem or problems
         wxString message;  message = message.Format(_(
-            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to get a KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nEither the unique Username for logging in, and or the Informal Name, or both, may be different from what is in kbserver's user table. Check Edit > Change Username..."));
+            "Knowledge base sharing will now be turned OFF. There are several possible reasons.\nMaybe the ipAddress of the machine hosting the kbserver database has changed.\nOr (for Windows) the scanner file set (do_mdns.exe, mdns.exe, and do_mdns_report.exe)\nare not in Adapt It Unicode Work's child folder _DATA_KB_SHARING.\nThere may have been a network error - make sure the network is running then try again.\nMaybe you forgot to get the KBserver's machine running - do so now and try again.\nThe computer running the KBserver may have lost power.\nEither the unique Username for logging in, and or the Informal Name, or both, may be different from what is in kbserver's user table. Check Edit > Change Username..."));
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
@@ -18816,19 +18820,18 @@ bool CAdapt_ItApp::AskIfPermissionToAddMoreUsersIsWanted()
 
 // Use an internal switch, for enum KBserverDAT_Blanks, and use it to
 // to create each .dat file to be used with a kbserver supporting function
-// after being copied from dist folder to the execPath folder (parent)
+// after being copied from _DATA_KB_SHARING Path folder to the execPath folder
 // for altering the command line to contain the data values needed for that
 // particular call on the mariaDB server (mysql) backend.
 // This function is to be called towards the end of OnInit(), after execPath
-// and distFolderPath (both absolute) have been correctly defined. The
+// and _DATA_KB_SHARING Path (both absolute) have been correctly defined. The
 // funcion calls each enum value in turn, and each case has a uniquely named
-// 'blank' *.dat file - which are stored by this function in the distFolderPath
+// 'blank' *.dat file - which are stored by this function in the _DATA_KB_SHARING
 // folder. Creating each such file is done only once. A check is made for each
 // and if present, no creation takes place. Alterations to each are made only
-// on a copy which is programmatically moved (use wxCopyFile(f1,f2);) to the
-// parent folder, which holds the executable AI file which is running. These
-// copies are temporary - each is destroyed after use. The blanks, however,
-// lodged in the dist folder, have constant contents.
+// just before use - to have actual parameters needed for the system() call.
+// Such copies are temporary - each is destroyed after use. The blanks, however,
+// lodged in the _DATA_KB_SHARING folder, have constant contents.
 // whm 22Feb2021 Note: The value passed in via execPth is now the m_appInstallPathOnly
 // member variable rather than a separately created execPath variable in the caller
 // Also changed wxString& execPth parameter to value parameter wxString execPth since
@@ -18837,36 +18840,16 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 {
 	bool execExists = wxDirExists(execPth);
     // whm 22Feb2021 modified below to use the App's member variable m_dataKBsharingPath, which ends with PathSeparator
-    wxString distPth = m_dataKBsharingPath; // the App member variable is established in OnInit()
-	// Check that distPth now exists
-	bool distExists = wxDirExists(distPth);
-    // whm 22Feb2021 the following if...else... blocks are not needed
-    /*
-	if (distExists)
-	{
-		// Make sure distPath in AI.h and .cpp is set
-		this->distPath = distPth;  // Other kbserver-related functions can now
-				// grab a valid distPath from the app class - it won't change
-				// it's value in any session of AI or AI in development folders
-	}
-	else
-	{
-		// Insurance in case Bill's psost-build script hasn't done its job
-        // whm 22Feb2021 modified/simplified the code below to use the m_dataKBsharingPath which 
-        // is the ...\Adapt It Unicode Work\dist\ folder on Windows or .../Adapt It Unicode Work/dist/
-        // folder on Linux/Mac.
-		distExists = wxDirExists(this->distPath);
-        // whm 12Feb2021 removed the following wxASSERT since it duplicates the wxASSERT_MSG warning below
-        //wxASSERT(distExists);
-	}
-    */
-
-	if (execExists && distExists)
+    wxString dataPth = m_dataKBsharingPath; // the App member variable is established in OnInit()
+	// Check that dataPth now exists
+	bool dataExists = wxDirExists(dataPth);
+ 
+	if (execExists && dataExists)
 	{
 		int i = noDatFile; // must initialize, before using
 		while (i >= noDatFile && i < blanksEnd)
 		{
-            // whm 22Feb2021 modified the following Make... functions to use the remove the unnecessary exePath parameter and use distPth instead of distPath
+            // whm 22Feb2021 modified the following Make... functions to use the remove the unnecessary exePath parameter and use dataPth instead of dataPath
             switch (i)
 			{
 			case noDatFile: // do nothing, = 0
@@ -18875,62 +18858,62 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 			}
 			case credentials_for_user: // = 1
 			{
-				MakeCredentialsForUser(credentials_for_user, distPth); // whm Note: removed exePth parameter
+				MakeCredentialsForUser(credentials_for_user, dataPth); // whm Note: removed exePth parameter
 				break;
 			}
 			case lookup_user: // = 2
 			{
-				MakeLookupUser(lookup_user, distPth); // whm Note: removed execPath parameter
+				MakeLookupUser(lookup_user, dataPth); // whm Note: removed execPath parameter
 				break;
 			}
 			case list_users: // = 3
 			{
-				MakeListUsers(list_users, distPth); // = 3   // whm Note: removed execPath parameter
+				MakeListUsers(list_users, dataPth); // = 3   // whm Note: removed execPath parameter
 				break;
 			}
 			case create_entry: // = 4
 			{
-				MakeCreateEntry(create_entry, distPth);   // whm Note: removed execPath parameter
+				MakeCreateEntry(create_entry, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_delete: // = 5
 			{
-				MakePseudoDelete(pseudo_delete,distPth);   // whm Note: removed execPath parameter
+				MakePseudoDelete(pseudo_delete,dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case pseudo_undelete: // = 6
 			{
-				MakePseudoUndelete(pseudo_undelete, distPth);  // whm Note: removed execPath parameter
+				MakePseudoUndelete(pseudo_undelete, dataPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case lookup_entry: // = 7
 			{
-				MakeLookupEntry(lookup_entry, distPth);  // whm Note: removed execPath parameter
+				MakeLookupEntry(lookup_entry, dataPth);  // whm Note: removed execPath parameter
 				break;
 			}
 			case changed_since_timed: // = 8
 			{
-				MakeChangedSinceTimed(changed_since_timed, distPth);   // whm Note: removed execPath parameter
+				MakeChangedSinceTimed(changed_since_timed, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case upload_local_kb: //= 9;
 			{
-				MakeUploadLocalKb(upload_local_kb, distPth);   // whm Note: removed execPath parameter
+				MakeUploadLocalKb(upload_local_kb, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_permission: // = 10
 			{
-				MakeChangePermission(change_permission, distPth);   // whm Note: removed execPath parameter
+				MakeChangePermission(change_permission, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_fullname: // = 11
 			{
-				MakeChangeFullname(change_fullname, distPth);   // whm Note: removed execPath parameter
+				MakeChangeFullname(change_fullname, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 			case change_password: // = 12
 			{
-				MakeChangePassword(change_password, distPth);   // whm Note: removed execPath parameter
+				MakeChangePassword(change_password, dataPth);   // whm Note: removed execPath parameter
 				break;
 			}
 
@@ -18944,20 +18927,20 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 			}
 			i++;
 		}
-	} // end of TRUE block for test: if (execExists && distExists)
+	} // end of TRUE block for test: if (execExists && dataExists)
 	else
 	{
-        // whm 22Feb2021 this situation should not happen now that the dist folder is created as a child of 
-        // the "Adapt It Unicode Work" directory.
+        // whm 22Feb2021 this situation should not happen now that the data folder is created as a child of 
+        // the "Adapt It Unicode Work" directory - the folder _DATA_KB_SHARING.
 		// tell the developer it failed
-		wxString msg = _T("CreateInputDatBlanks() failed because execPath or distPath could not be found");
+		wxString msg = _T("CreateInputDatBlanks() failed because execPath or dataPath to _DAT_KB_SHARING could not be found");
 		wxString caption = _T("CreateInputDatBlanks path error");
 		LogUserAction(msg);
 #if defined (_DEBUG)
         // whm 12Feb2021 changed the wxMessageBox to wxASSERT_MSG so that this message won't have re-entry problems
         // with the working wizard, and will stay on top of the wizard.
         //wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
-        wxASSERT_MSG(execExists && distExists, msg);
+        wxASSERT_MSG(execExists && dataExists, msg);
 #endif
 	}
 }
@@ -18989,14 +18972,16 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
 		{
-			wxString filename = _T("credentials_for_user.dat");
+            wxString filename = _T("credentials_for_user.dat");
+
 			DeleteOldDATfile(filename, execFolderPath);
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath);
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath);
 			ConfigureMovedDatFile(funcNumber, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
-			// in the execFolderPath's folder as well, do it now - it is in
-			// the dest ('destination') folder
-			wxString execFilename = _T("do_add_KBUsers.exe");
+			// in the execFolderPath's folder as well, do it now - it should be in
+			// the _DATA_KB_SHARING folder, as per Bill's stipulation of where to
+            // store the external executable files
+			wxString execFilename = _T("do_add_foreign_kbusers.exe");
 			wxString execInDest = dataFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
@@ -19015,8 +19000,8 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			}
 			else
 			{
-				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_add_KBUsers.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
+				// Oops, if it's not in the _DATA_KB_SHARING folder, can't go further. Tell user & exit False
+				wxString msg = _("do_add_foreign_kbusers.exe is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19026,25 +19011,25 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case lookup_user: // funcNumber is 2 in AI.h lines 854++
 		{
-			// App's m_bUser1IsUser2 boolean it possible for us to establish authentication
+			// With App's m_bUser1IsUser2 boolean it is possible for us to authenticate
 			// as 'user' or as a 'foreign' user, with storage options agreeing, by 
 			// whether it is TRUE, or FALSE. When ConfigureMovedDatFile() is called
-			// to put in the actual paramaters for the wxExecute() call, we check for
+			// to put in the actual paramaters for the .exe's call, we check for
 			// TRUE, and then m_bUserIsAuthenticating will also be TRUE, and set storage
 			// values accordingly, otherwise, 'For Manager' variables get set instead
-			wxString filename = _T("lookup_user.dat");
+			wxString filename = _T("lookup_user.dat"); // the "blank" or last modified version
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's maybe still boilerplate
 			ConfigureMovedDatFile(lookup_user, filename, execFolderPath); // <<-- looks up app bools
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
 			// the destination folder
-			wxString execFilename = _T("do_user_lookup.exe");
+			wxString execFilename = _T("do_user_lookup_and_permissions_check.exe");
 			wxString execInDest = dataFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
 			{
-				// Check if do_user_lookup.exe is already in the AI executable's folder,
+				// Check if do_user_lookup_and_permissions_check.exe is already in the AI executable's folder,
 				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
@@ -19059,8 +19044,8 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			else
 			{
 				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_user_lookup.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
-				wxString caption = _("ConfigureDatFile resource absent error");
+				wxString msg = _("do_user_lookup_and_permissions_check.exe is not in the 'destination' folder\n(where the Adapt It executable is), or the file is wrongly named.\nFind it and put it there, then try again.\nAdapt It will continue working, but fix soon, or access to the KBserver will not work");
+				wxString caption = _("Error: ConfigureDatFile file resource is absent");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
 				return FALSE;
@@ -19071,12 +19056,12 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("list_users.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(list_users, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
 			// the dest folder
-			wxString execFilename = _T("do_users_list.exe");
+			wxString execFilename = _T("do_list_users.exe");
 			wxString execInDest = dataFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
@@ -19096,7 +19081,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			else
 			{
 				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_users_list.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString msg = _("do_list_users.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19121,7 +19106,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 				// commandLine string's .dat file - which is 
 				// ConfigureMovedDatFile()'s job.
 				DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-				MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+				MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			}
 			ConfigureMovedDatFile(create_entry, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
@@ -19160,7 +19145,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For pseudo-deleting an entry line of the entry table
 			wxString filename = _T("pseudo_delete.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(pseudo_delete, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19198,7 +19183,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For undeleting a pseudo-deleted line of the entry table
 			wxString filename = _T("pseudo_undelete.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(pseudo_undelete, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19236,7 +19221,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// For looking up a row of the entry table
 			wxString filename = _T("lookup_entry.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(lookup_entry, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19276,7 +19261,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// file will contain one row per line for however many are received
 			wxString filename = _T("changed_since_timed.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(changed_since_timed, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19319,7 +19304,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// line with an error message which lackes "success" within it.
 			wxString filename = _T("upload_local_kb.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(upload_local_kb, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19357,7 +19342,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_permission.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_permission, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19394,7 +19379,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_fullname.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_fullname, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19431,7 +19416,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			wxString filename = _T("change_password.dat");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
-			MoveBlankDatFileUp(filename, dataFolderPath, execFolderPath); // it's still boilerplate
+			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(change_password, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
@@ -19497,7 +19482,7 @@ void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 	}
 }
 
-void CAdapt_ItApp::MoveBlankDatFileUp(wxString filename, wxString dataFolderPath, wxString execFolderPath)
+void CAdapt_ItApp::MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath)
 {
 	wxString f1 = dataFolderPath + filename; // absolute path to filename's file
 	wxString f2 = execFolderPath + filename; // destination for the move, absolute path -
@@ -19523,7 +19508,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		return; 
 	wxString comma = _T(","); wxString one = _T("1"); wxString zero = _T("0");
 	CMainFrame* pFrame = GetMainFrame();
-	wxString commandLine;
+	wxString commandLine = wxEmptyString;
 
 	switch (funcNumber)
 	{
@@ -19535,7 +19520,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	{
 		wxString tempStr;
 		m_strNewUserLine.Empty(); // initialise
-		if (!m_bUseForeignOption)
+		if (!m_bUseForeignOption && !m_bAddUser2UserTable)
 		{
 			//m_bUseForeignOption = FALSE; // restore default, local user is in focus
 
@@ -19551,11 +19536,24 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			commandLine += tempStr + comma;
 			UpdateCurNormalFullname(tempStr); // in case it has single quote/s, to mess up mysql parsing
 
+            bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted(); /// shows a dialog to ask
+            this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
+            // If the ask returns FALSE, m_bUseForeignOption will stay FALSE, and the obtaining of the
+            // password will give a message saying the dialog is for the user authenticating to the
+            // kbserver's user table.  See MainFrm.cpp 2927
+            //if (bCanAddUsers)
+            //{
+            //    m_bUseForeignOption = TRUE;
+            //}
+            //else
+            //{
+            //    m_bUseForeignOption = FALSE;
+            //}
+            // wxLogDebug(_T("%s::%s() line %d, bool m_bUseForeignOption is  %d  in: case credentials_for_user (funcNumber = 1) TRUE block"),
+            //    __FILE__, __FUNCTION__, __LINE__, (int)m_bUseForeignOption);
 			wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
 			commandLine += pwd + comma;
 
-			bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted();
-			this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
 			commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
 			// That finishes the commandLine to be put into the input .dat file.
 
@@ -19581,29 +19579,76 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			UpdateCurFreeTransLangName(m_freeTransName);
 
 		} //end of TRUE block for test: if (!m_bUseForeignOption)
-		else
+        else if (m_bAddUser2UserTable)
+        {
+            // Configuring for values NOT coming from the KB Sharing Manager, but from menu choice
+            commandLine = this->m_chosenIpAddr + comma;
+
+            // Values can come from the user table of the KB Sharing Manager, or from
+            // the Add Users to KBserver menu item. If the latter, then we need this block
+            // for setting the 4 new values, newUser, newFullname, newPwd, New_kbadmin
+            // so use the manual way's set value of m_bAddUser2UserTable to distinguish
+            // between these two options, do it here - via a simple dialog.  BEW 24Dec21
+ 
+            // BEW 3Jan22, put up the NewUsercredentiasDlg for user to input the
+            // needed credentials
+            NewUserCredentialsDlg dlg(this->GetMainFrame());
+            dlg.Center();
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                // Dialog succeeded, so get the values that were typed in
+                tempStr = dlg.strNewUser;
+                tempStr = DoEscapeSingleQuote(tempStr);
+                commandLine += tempStr + comma;
+
+                tempStr = dlg.strNewFullname;
+                tempStr = DoEscapeSingleQuote(tempStr);
+                commandLine += tempStr + comma;
+
+                tempStr = dlg.strNewPassword;
+                commandLine += tempStr + comma;
+
+                bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
+                commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+          
+            }
+            else
+            {
+                // User cancelled
+                commandLine.Empty();
+                dlg.strNewUser.Empty();
+                dlg.strNewFullname.Empty();
+                dlg.strNewPassword.Empty();
+                dlg.m_pCheck_GrantPermission->SetValue(FALSE);
+            }
+
+            if (commandLine.IsEmpty()) 
+                return;
+        }
+        else 
 		{
-			// Configuring for values coming from the KB Sharing Manager
-			commandLine = this->m_chosenIpAddr + comma;
 
-			tempStr = m_temp_username;
-			tempStr = DoEscapeSingleQuote(tempStr);
-			commandLine += tempStr + comma;
-			m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
+            // The following is the legacy code, which gets the values from the KB Manager
+            commandLine = this->m_chosenIpAddr + comma;
 
-			tempStr = m_temp_fullname;
-			tempStr = DoEscapeSingleQuote(tempStr);
-			commandLine += tempStr + comma;
-			m_strNewUserLine += m_temp_fullname + comma;  // for the line to be added to arrLines
+            tempStr = m_temp_username;
+            tempStr = DoEscapeSingleQuote(tempStr);
+            commandLine += tempStr + comma;
+            m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
 
-			commandLine += m_temp_password + comma;
-			m_strNewUserLine += m_temp_password + comma;  // for the line to be added to arrLines
+            tempStr = m_temp_fullname;
+            tempStr = DoEscapeSingleQuote(tempStr);
+            commandLine += tempStr + comma;
+            m_strNewUserLine += m_temp_fullname + comma;  // for the line to be added to arrLines
 
-			commandLine += m_temp_useradmin_flag + comma;
-			m_strNewUserLine += m_temp_useradmin_flag + comma;  // for the line to be added to arrLines
+            commandLine += m_temp_password + comma;
+            m_strNewUserLine += m_temp_password + comma;  // for the line to be added to arrLines
 
-			// That finishes the commandLine to be put into the input .dat file,
-			// when the user addition is sourced from the user page of KB Sharing Mgr
+            commandLine += m_temp_useradmin_flag + comma;
+            m_strNewUserLine += m_temp_useradmin_flag + comma;  // for the line to be added to arrLines
+
+            // That finishes the commandLine to be put into the input .dat file,
+            // when the user addition is sourced from the user page of KB Sharing Mgr
 		}
 
 		// Now in the caller the file has been moved to the the folder where the 
@@ -19675,7 +19720,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				wxString user1;
 				wxString user2;
 				tempStr = m_strUserID;
-				tempStr = DoEscapeSingleQuote(tempStr);
+				//tempStr = DoEscapeSingleQuote(tempStr);
 				user1 = tempStr;
 				user2 = user1;
 				wxString pwd = m_curNormalPassword;
@@ -19695,7 +19740,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				// whatever was selected by the user in the Mgr
 				m_bUseForeignOption = TRUE;
 				commandLine = this->m_chosenIpAddr + comma;
-				UpdateNormalIpAddr(this->m_chosenIpAddr);
+				UpdateNormalIpAddr(this->m_chosenIpAddr);// accessor
 				// The next 3 values are known - m_strUserID for user1,
 				// and its password for entry, from the earlier login pwd
 				// for the authenticate dialog for accessing the kbserver
@@ -19706,7 +19751,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				wxString user1;
 				wxString user2;
 				tempStr = m_strUserID;
-				tempStr = DoEscapeSingleQuote(tempStr);
+				//tempStr = DoEscapeSingleQuote(tempStr);
 				user1 = tempStr;
 				wxString pwd = m_curNormalPassword;
 				// Now build the rest of the commandLine
@@ -19741,72 +19786,230 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// The Authenticate2Dlg may be needed for other authentications to
 		// the mariaDB/kbserver tables, so allow for that
 		Authenticate2Dlg* pDlg = NULL; // initialise
-		if (!m_bKBSharingMgrEntered)
+        bool bAvoidShowingDlg = FALSE; // initialise
+        if (!m_bKBSharingMgrEntered)
 		{
-			// Call the Authenticate2Dlg dialog, the newer one with two username fields
-			bAuthenticationOK = TRUE;
-			bAllow = m_bUserAuthenticating || m_bUseForeignOption;
+            // Call the Authenticate2Dlg dialog, the newer one with two username fields
+            // (these two could be important for elsewhere, even if the dlg is not shown,
+            // so set them here (next two lines) for safety's sake
+            bAuthenticationOK = TRUE;
+            bAllow = m_bUserAuthenticating || m_bUseForeignOption;
 
-#if defined (_DEBUG)
-			wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, heap create & now entering Authenticate2Dlg"),
-				__FILE__, __FUNCTION__, __LINE__, funcNumber);
-#endif
-			pDlg = new Authenticate2Dlg(GetMainFrame(), bAllow);
-			pDlg->Center();
-			int dlgReturnCode;
-			dlgReturnCode = pDlg->ShowModal();
-#if defined (_DEBUG)
-			wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, returned from ShowModal for Authenticate2Dlg"),
-				__FILE__, __FUNCTION__, __LINE__, funcNumber);
-#endif
-			if (dlgReturnCode == wxID_OK)
-			{
-				wxString user1;
-				wxString user2;
-				wxString tempStr;
-				wxString tempStr2;
-				// First, get the latest
-				// successful run of the dialog. 
-				if (m_bUserAuthenticating || m_bUseForeignOption)
-				{
-					tempStr = pDlg->m_strNormalUsername;
-					tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
-					tempStr2 = pDlg->m_strNormalUsername2;
-					tempStr2 = DoEscapeSingleQuote(tempStr2);
-					if (tempStr == tempStr2)
-					{
-						user1 = tempStr;
-						user2 = tempStr;
-						m_bUser1IsUser2 = TRUE;
-					}
-					else
-					{
-						m_bUser1IsUser2 = FALSE;
-						user1 = tempStr;
-						user2 = tempStr2;
-					}
-					wxString pwd = pDlg->m_strNormalPassword; // no ' in this
-					wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
+            // BEW 24Jan22 test to see if the Authenticate2Dlg can be avoided from having to be shown
+            wxString testIpAddress = this->m_strKbServerIpAddr;
+            wxString testUsername1 = this->m_strUserID;
+            wxString testUsername2 = this->m_Username2;
+            wxString testPassword = this->GetMainFrame()->GetKBSvrPassword();
+            bool bIpAddrDefined = !testIpAddress.IsEmpty();
+            bool bUsername1Defined = !testUsername1.IsEmpty();
+            bool bUsername2Defined = !testUsername2.IsEmpty();
+            bool bSavedPasswordDefined = !testPassword.IsEmpty();
+            if (m_bUser1IsUser2 && bIpAddrDefined && bUsername1Defined && bUsername2Defined && bSavedPasswordDefined)
+            {
+                bAvoidShowingDlg = TRUE; // can suppress showing the dialog unnecessarily
+            }
 
-					// useradmin value?? that should be available in the
-					// returned lookup_user_results.dat file
-					commandLine += user1 + comma + pwd + comma + user2 + comma;
+            // Put test and opening brace for avoiding dlg, here
+            if (bAvoidShowingDlg == TRUE) // make it explicit, for clarity
+            {
+                wxString user1;
+                wxString user2;
+                wxString tempStr;
+                wxString tempStr2;
+                // First, get the latest
+                // successful run of the dialog. 
+                if (m_bUserAuthenticating || m_bUseForeignOption)
+                {
+                    tempStr = testUsername1;
+                    tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
+                    tempStr2 = testUsername2;
+                    tempStr2 = DoEscapeSingleQuote(tempStr2);
+                    if (tempStr == tempStr2)
+                    {
+                        user1 = tempStr;
+                        user2 = tempStr;
+                        m_bUser1IsUser2 = TRUE;
+                    }
+                    else
+                    {
+                        m_bUser1IsUser2 = FALSE;
+                        user1 = tempStr;
+                        user2 = tempStr2;
+                    }
+                    wxString pwd = testPassword; // no ' (singlequote) in this
+                    wxString ipAddress = testIpAddress; // no ' in this
+                    this->m_chosenIpAddr = ipAddress;  // first, and probably best guess to carry forward
+
+                    // useradmin value?? that should be available in the
+                    // returned lookup_user_results.dat file
+                    // BEW 3Nov21 Has an ipAddress been added to commandLine yet? If it hasn't or
+                    // it is empty string still, detect and get a best guess based on dlg results
+                    // or previous storage (if any). If not empty, the string will start with a comma 
+                    if (commandLine.IsEmpty() || (commandLine.GetChar(0) == comma))
+                    {
+                        commandLine.Empty(); // start over
+                        // Yep, quite empty, so add a best guess for the ipAddr (user will see, in Dlg, and be able to edit)
+                        if (!this->m_chosenIpAddr.IsEmpty())
+                        {
+                            commandLine = this->m_chosenIpAddr + comma;
+                            commandLine += user1 + comma + pwd + comma + user2 + comma;
+                        }
+                        else if (!this->m_strKbServerIpAddr.IsEmpty())
+                        {
+                            commandLine = this->m_strKbServerIpAddr + comma;
+                            commandLine += user1 + comma + pwd + comma + user2 + comma;
+                        }
+                        else
+                        {
+                            bAuthenticationOK = FALSE;
+                        }
+                    }
+                    else
+                    {
+                        // There should be an ipAddr followed by comma, so add the rest
+                        commandLine += user1 + comma + pwd + comma + user2 + comma;
+
+                        // BEW 24Jan22 added, so that if the Authenticate2Dlg got shown,
+                        // if the user typed a password, check against what pFrame has for
+                        // the password, and if different, use this pwd to update what pFrame has
+                        CMainFrame* pFrame = this->GetMainFrame();
+                        wxString framePwd = pFrame->GetKBSvrPassword();
+                        if (framePwd.IsEmpty() || framePwd != pwd)
+                        {
+                            // reset the frame's stored pwd to the pwd value above
+                            pFrame->SetKBSvrPassword(pwd);
+                        }
+                    }
 #if defined (_DEBUG)
-					wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
-						__FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str(), funcNumber);
+                    wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
+                        __FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str(), funcNumber);
 #endif			
-				} // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
+                } // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
 
-			} // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
-			else
-			{
-				// User cancelled. The authentication must fail.
-				bAuthenticationOK = FALSE;
-			} // end of else block for test: if (dlgReturnCode == wxID_OK)
+            } // use the defined values above, when test: if (bAvoidShowingDlg == TRUE) succeeds
+            else
+            {
+                // showing the dialog is needed
+#if defined (_DEBUG)
+                wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, heap create & now entering Authenticate2Dlg"),
+                    __FILE__, __FUNCTION__, __LINE__, funcNumber);
+#endif
+                pDlg = new Authenticate2Dlg(GetMainFrame(), bAllow);
+                pDlg->Center();
+                int dlgReturnCode;
+                dlgReturnCode = pDlg->ShowModal();
+#if defined (_DEBUG)
+                wxLogDebug(_T("\n*** %s::%s(), line %d : funcNumber %d, returned from ShowModal for Authenticate2Dlg"),
+                    __FILE__, __FUNCTION__, __LINE__, funcNumber);
+#endif
+                if (dlgReturnCode == wxID_OK)
+                {
+                    wxString user1;
+                    wxString user2;
+                    wxString tempStr;
+                    wxString tempStr2;
+                    // First, get the latest
+                    // successful run of the dialog. 
+                    if (m_bUserAuthenticating || m_bUseForeignOption)
+                    {
+                        tempStr = pDlg->m_strNormalUsername;
+                        tempStr = DoEscapeSingleQuote(tempStr); // it might have ' which would confuse SQL parse
+                        tempStr2 = pDlg->m_strNormalUsername2;
+                        tempStr2 = DoEscapeSingleQuote(tempStr2);
+                        if (tempStr == tempStr2)
+                        {
+                            user1 = tempStr;
+                            user2 = tempStr;
+                            m_bUser1IsUser2 = TRUE;
+                        }
+                        else
+                        {
+                            m_bUser1IsUser2 = FALSE;
+                            user1 = tempStr;
+                            user2 = tempStr2;
+                        }
+                        wxString pwd = pDlg->m_strNormalPassword; // no ' in this
+                        wxString ipAddress = pDlg->m_strNormalIpAddr; // no ' in this
+                        this->m_chosenIpAddr = ipAddress;  // first, and probably best guess to carry forward
 
-			// Finished with the dialog, so now delete it
-			delete pDlg;
+                        // BEW 3Nov21 ipAddr is either known, to just typed in. Store it pending next
+                        // time the dialog is called - so it can appear as an allternative to 
+                        // m_chosenIpAddr 'first shot', as next-best ipAddress
+                        if (!ipAddress.IsEmpty() && this->m_strKbServerIpAddr.IsEmpty())
+                        {
+                            this->UpdateNormalIpAddr(ipAddress);
+                            // and in case the manager will be used, do next one too
+                            this->UpdateIpAddr(ipAddress);  // sets m_curIpAddr
+                        }
+
+                        // useradmin value?? that should be available in the
+                        // returned lookup_user_results.dat file
+                        // BEW 3Nov21 Has an ipAddress been added to commandLine yet? If it hasn't or
+                        // it is empty string still, detect and get a best guess based on dlg results
+                        // or previous storage (if any). If not empty, the string will start with a comma 
+                        if (commandLine.IsEmpty() || (commandLine.GetChar(0) == comma))
+                        {
+                            commandLine.Empty(); // start over
+                            // Yep, quite empty, so add a best guess for the ipAddr (user will see, in Dlg, and be able to edit)
+                            if (!this->m_chosenIpAddr.IsEmpty())
+                            {
+                                commandLine = this->m_chosenIpAddr + comma;
+                                commandLine += user1 + comma + pwd + comma + user2 + comma;
+                            }
+                            else if (!this->m_strKbServerIpAddr.IsEmpty())
+                            {
+                                commandLine = this->m_strKbServerIpAddr + comma;
+                                commandLine += user1 + comma + pwd + comma + user2 + comma;
+                            }
+                            else
+                            {
+                                bAuthenticationOK = FALSE;
+                            }
+                        }
+                        else
+                        {
+                            // There should be an ipAddr followed by comma, so add the rest
+                            commandLine += user1 + comma + pwd + comma + user2 + comma;
+
+                            // BEW 24Jan22 added, so that if the Authenticate2Dlg got shown,
+                            // if the user typed a password, check against what pFrame has for
+                            // the password, and if different, use this pwd to update what pFrame has
+                            CMainFrame* pFrame = this->GetMainFrame();
+                            wxString framePwd = pFrame->GetKBSvrPassword();
+                            if (framePwd.IsEmpty() || framePwd != pwd)
+                            {
+                                // reset the frame's stored pwd to the pwd value above
+                                pFrame->SetKBSvrPassword(pwd);
+                            }
+                        }
+#if defined (_DEBUG)
+                        wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
+                            __FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str(), funcNumber);
+#endif			
+                    } // end of TRUE block for test: if (m_bUserAuthenticating || m_bUseForeignOption)
+
+                } // end of TRUE block for test: if (dlgReturnCode == wxID_OK)
+                else
+                {
+                    // User cancelled. The authentication must fail.
+                    bAuthenticationOK = FALSE;
+                } // end of else block for test: if (dlgReturnCode == wxID_OK)
+
+                // Finished with the dialog, so now delete it
+                delete pDlg;
+                // Put closing brace } following here, for when dlg must be shown
+
+            } //  end of else block for test:  if (bAvoidShowingDlg == TRUE)
+
 		} // end of the TRUE block for test: if (!m_bKBSharingMgrEntered)
+
+        if (bAuthenticationOK == FALSE)
+        {
+            // No deal, can't authenticate; void is return value, so just return
+            wxString msg = _T("ConfigureMovedDatFile failed to authenticate, no ipAddress found to form commandLine");
+            this->LogUserAction(msg);
+            return;
+        }
 
 		// That finishes the commandLine to be put into the input .dat file.
 
@@ -19830,12 +20033,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			UpdateCurGlossLangName(m_glossesName);
 			UpdateCurFreeTransLangName(m_freeTransName);
 		}
-		// Now in the caller the file has been moved to the parent folder 
-		// of the dist folder; so use wxTextFile to make the changes in
-		// the file copy within the parent folder: "lookup_user.dat" 
-		// so it has only the above commandLine value stored in it
-        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
-        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
+		// Now the file has been moved to the AI executable's folder. 
+		// So use wxTextFile to make the changes in "lookup_user.dat" 
+		// so it has only the above commandLine value stored in it.
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly 
+        // doesn't end with a PathSeparator
+        // whm 22Feb2021 changed to use m_appInstallPathOnly (rather than execPath)
+        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //same as execPath + filename; 
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -19855,7 +20059,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		else
 		{
-			// Unlikely to fail, a bell ring will do
+			// Unlikely to fail, a bell ring will do & log error for developers
+            wxString msg = _T("ConfigureMovedDatFile failed to find the file at datPath, commandLine not added to the file, kbserver access fails. Line 19,889");
+            this->LogUserAction(msg);
 			wxBell();
 		}
 		break;
@@ -20855,13 +21061,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of switch:  switch (funcNumber)
 }
 
-void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("credentials_for_user.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -20871,7 +21077,7 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPat
 	}
 	else
 	{
-		// Build it, and drop it in the dist folder
+		// Build it, and drop it in the _DATA_KB_SHARING folder
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datFilePath);
@@ -20882,7 +21088,7 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPat
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# dist folder's 'input' file: credentials_for_user.dat");
+			line = _T("# data folder's 'input' file: credentials_for_user.dat");
 			f.AddLine(line);
 			line = _T("# After login, if username does not exist, adds to");
 			f.AddLine(line);
@@ -20894,17 +21100,21 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString distPat
 			f.AddLine(line);
 			line = _T("# Use this .dat file for adding new users to the user table");
 			f.AddLine(line);
-			line = _T("# Results file: add_KBUsers_return_result_file.dat");
+			line = _T("# Results file: add_foreign_KBUsers_results.dat");
 			f.AddLine(line);
-			line = _T("# Function for calling: do_add_KBUsers.exe (from do_add_KBUsers.py)");
+			line = _T("# Function for calling: do_add_foreign_kbusers.exe");
 			f.AddLine(line);
-			line = _T("# Call from KB Sharing Mgr, OnButtonUserPageAddUser()");
+			line = _T("# Call from KB Sharing Mgr, OnButtonUserPageAddUser(), or OnAddUsersToKBserver( event ) handler");
 			f.AddLine(line);
-			line = _T("# For login, ipaddress, root, and root pwd");
+			line = _T("# For login, ipaddress, root, and root pwd (for first user in user table)");
 			f.AddLine(line);
+            line = _T("else as above : ipAddress, username, fullname, password, useradmin,");
+            f.AddLine(line);
 			line = _T("# Enter the user details in the Manager, middle column, and click Add User");
 			f.AddLine(line);
-			f.Write();
+            line = _T("# Or call from the Administrator menu, to add the user table's first user");
+            f.AddLine(line);
+            f.Write();
 			f.Close();
 		}
 #if defined (_DEBUG)
@@ -20939,133 +21149,192 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	// add more here, as our solution matures
 	const int blanksEnd = 13; // this one changes as we add more above
 	*/
+
+    // BEW 5Jan21 execPath formal parameter is set by m_appInstallPathOnly in the caller. Here we
+    // need to append execFileName to execPath, after making sure whether or not the passed in
+    // execPath ends on PathSeparator or not. If not, add the PathSeparator and then the execFileName,
+    // otherwise just append it
+    wxASSERT(!execPath.IsEmpty()); // ensure it's been set at OnInit() time
+    wxString tempCWDpath = execPath; // tempCWDpath is for preserving the passed in execPath, for
+                                     // use in temporarily changing the current working director (CWD) to
+                                     // where the current AI executable is located
+    wxChar lastChar;
+    lastChar = execPath.GetChar(execPath.Length() - 1);
+    if (lastChar == PathSeparator)
+    {
+        execPath += execFileName;
+    }
+    else
+    {
+        execPath += (PathSeparator + execFileName);
+    }
+
 	switch (funcNumber)
 	{
 	case noDatFile:
-		break;
+    {
+        ;
+    }
+        break;
 	case credentials_for_user:
-		break;
+    {
+        int rv = 0;
+        const char* pstart = { "start c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_add_foreign_kbusers.exe" };
+        rv = system(pstart);
+    }
+        break;
 	case lookup_user:
-	{
-		// A bit of stuff that does nothing much
-		wxASSERT(resultFile == m_resultDatFileName);
-		bool bSame = resultFile == m_resultDatFileName;
-		wxUnusedVar(bSame);
-		break;
-	}
-	case list_users: // = 3
-	{
-		wxASSERT(resultFile == m_resultDatFileName);
-		bool bSame = resultFile == m_resultDatFileName;
-		wxUnusedVar(bSame);
-		break;
-	}
-	case create_entry: // = 4
-	{
-		// Force bReportResults to FALSE, common repetetive operations
-		// should not give time-delaying GUI messages to disturb user's work
-		bReportResult = FALSE;
-		break;
-	}
-	case pseudo_delete: // = 5
-	{
-		// Force bReportResults to FALSE, common repetetive operations
-		// should not give time-delaying GUI messages to disturb user's work
-		bReportResult = FALSE;
-		break;
-	}
-	case pseudo_undelete: // = 6
-	{
-		// Force bReportResults to FALSE, common repetetive operations
-		// should not give time-delaying GUI messages to disturb user's work
-		bReportResult = FALSE;
-		break;
-	}
-	case lookup_entry: // = 7
-	{
-		// Force bReportResults to FALSE, common repetetive operations
-		// should not give time-delaying GUI messages to disturb user's work
-		bReportResult = FALSE;
-		break;
-	}
-	case changed_since_timed: // = 8
-	{
-		// Force bReportResults to FALSE, common repetetive operations
-		// should not give time-delaying GUI messages to disturb user's work
+    {
+        // A bit of stuff that does nothing much
+        wxASSERT(resultFile == m_resultDatFileName);
+        bool bSame = resultFile == m_resultDatFileName;
+        wxUnusedVar(bSame);
 
-		// This one has a progress gauge
-		bReportResult = FALSE;
+        // BEW 10Jan22 in the test of system(execPath) below, execPath is:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\'
+        int rv = 0;
+        //* the next two lines are were the hard coded way which gave first success after much trying, but now need generalizing 
+        const char* pstart = { "start c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_user_lookup_and_permissions_check.exe" };
+        rv = system(pstart);
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
+
+        //*/
+        /*
+        Xhtml* pXhtml = m_pXhtml;
+        CBString aBstr;
+        wxString cmdStr = _T("start "); // Start building a wide char string to: do_user_lookup_and_permissions_check.exe
+        // The path to the Adapt_It_Unicode.exe executable comes next. When developing in _DEBUG mode, it
+        // will be a path to the "Unicode Debug" folder, in adaptit-git\adaptit\bin\win32\ folder.
+        // In a Windows released 32bit version, it will be the folder at: C:\Program Files (x86)\Adapt It WX Unicode
+        cmdStr += execPath; // ends with a PathSeparator
+        // Next we must add the name of the .exe which has been precompiled and linked: do_user_lookup_and_permissions_check.exe
+        cmdStr += execFileName;
+        wxLogDebug(_T("%s::%s() line %d: cmdStr built is: %s"), __FILE__, __FUNCTION__, __LINE__, cmdStr.c_str());
+        // I have not had success with using the system() call, with a wide char string, but a char* string does work
+        // so I will use the Xhlml class's CBString Xhtml::ToUtf8(const wxString& str) function to convert to a char* string
+        aBstr = pXhtml->ToUtf8(cmdStr); // aBstr ('a byte C-string') has an internal buffer pstr, accessible by GetBuffer()
+        char* byte_cmdStr = aBstr.GetBuffer(); // this is what should load into system() and execute successfully
+        rv = system(byte_cmdStr);
+        */
+#if defined (_DEBUG)
+        int halt_here = 1;
+#endif
+    }
 		break;
-	}
+	case list_users: // = 3
+    {
+        wxASSERT(resultFile == m_resultDatFileName);
+        bool bSame = resultFile == m_resultDatFileName;
+        wxUnusedVar(bSame);
+    }
+		break;
+	case create_entry: // = 4
+    {
+        // Force bReportResults to FALSE, common repetetive operations
+        // should not give time-delaying GUI messages to disturb user's work
+        bReportResult = FALSE;
+    }
+		break;
+	case pseudo_delete: // = 5
+    {
+        // Force bReportResults to FALSE, common repetetive operations
+        // should not give time-delaying GUI messages to disturb user's work
+        bReportResult = FALSE;
+    }
+		break;
+	case pseudo_undelete: // = 6
+    {
+        // Force bReportResults to FALSE, common repetetive operations
+        // should not give time-delaying GUI messages to disturb user's work
+        bReportResult = FALSE;
+    }
+		break;
+	case lookup_entry: // = 7
+    {
+        // Force bReportResults to FALSE, common repetetive operations
+        // should not give time-delaying GUI messages to disturb user's work
+        bReportResult = FALSE;
+    }
+		break;
+	case changed_since_timed: // = 8
+    {
+        // Force bReportResults to FALSE, common repetetive operations
+        // should not give time-delaying GUI messages to disturb user's work
+
+        // This one has a progress gauge
+        bReportResult = FALSE;
+    }
+		break;
 	case upload_local_kb: // = 9;
-	{
-		wxString datFilename = _T("local_kb_lines.dat");
-		KbServer* pKbSvr = NULL;
-		bool bPopulated = FALSE;
-		if (gbIsGlossing)
-		{
-			pKbSvr = GetKbServer(2);
-			bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
-				datFilename, m_sourceName, m_glossesName);
-		}
-		else
-		{
-			pKbSvr = GetKbServer(1);
-			bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
-				datFilename, m_sourceName, m_targetName);
-		}
-		
-		//*
-		if (bPopulated)
-		{
-			// The presence of a straight single quote (Leon calls it an apostrophe) in
-			// any field that is to be sent into the kbserver entry table (or a user table
-			// for that matter), will be taken by the internal python as belonging to a
-			// quoted substring - which it would not be, we don't have any such in our
-			// data for kbserver, and that would mess with the SQL parsing, creating a
-			// parsing error it can't fix, and it would give up. The result then is that
-			// the do....function.exe reports the named internal python function as being
-			// in error. So we must escape all such single quotes in our data, whether src,
-			// tgt, username, language name for src or tgt languages - that's it; other fields
-			// never have a single quote character in them.
-			DoEscapeSingleQuote(execPath, datFilename); // helpers.cpp
-		}
-		wxASSERT(bPopulated == TRUE);
-		//*/
+    {
+        wxString datFilename = _T("local_kb_lines.dat");
+        KbServer* pKbSvr = NULL;
+        bool bPopulated = FALSE;
+        if (gbIsGlossing)
+        {
+            pKbSvr = GetKbServer(2);
+            bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
+                datFilename, m_sourceName, m_glossesName);
+        }
+        else
+        {
+            pKbSvr = GetKbServer(1);
+            bPopulated = pKbSvr->PopulateLocalKbLines(upload_local_kb, this, execPath,
+                datFilename, m_sourceName, m_targetName);
+        }
+
+        //*
+        if (bPopulated)
+        {
+            // The presence of a straight single quote (Leon calls it an apostrophe) in
+            // any field that is to be sent into the kbserver entry table (or a user table
+            // for that matter), will be taken by the internal python as belonging to a
+            // quoted substring - which it would not be, we don't have any such in our
+            // data for kbserver, and that would mess with the SQL parsing, creating a
+            // parsing error it can't fix, and it would give up. The result then is that
+            // the do....function.exe reports the named internal python function as being
+            // in error. So we must escape all such single quotes in our data, whether src,
+            // tgt, username, language name for src or tgt languages - that's it; other fields
+            // never have a single quote character in them.
+            DoEscapeSingleQuote(execPath, datFilename); // helpers.cpp
+        }
+        wxASSERT(bPopulated == TRUE);
+        //*/
+    }
 		break;
-	}
 	case change_permission: // = 10
-	{
-		// This is a KB Sharing Manager case, so no report wanted
-		bReportResult = FALSE;
-		// Escaping single quotes as already been done on the selected username
+    {
+        // This is a KB Sharing Manager case, so no report wanted
+        bReportResult = FALSE;
+        // Escaping single quotes as already been done on the selected username
+    }
 		break;
-	}
 	case change_fullname: // = 11
-	{
-		// This is a KB Sharing Manager case, so no report wanted
-		bReportResult = FALSE;
-		// Escaping single quotes as already been done on the selected username
-		// and on the selected fullname
+    {
+        // This is a KB Sharing Manager case, so no report wanted
+        bReportResult = FALSE;
+        // Escaping single quotes as already been done on the selected username
+        // and on the selected fullname
+    }
 		break;
-	}
 	case change_password: // = 12
-	{
-		// This is a KB Sharing Manager case, so no report wanted
-		bReportResult = FALSE;
+    {
+        // This is a KB Sharing Manager case, so no report wanted
+        bReportResult = FALSE;
+    }
 		break;
-	}
 	case blanksEnd:
-	{
+    {
+        ;
+    }
 		break;
-	}
 	};
 	wxArrayString output;
 	wxArrayString errors;
 	bool bSuccess = FALSE; // initialise
-	wxFileName fn(execPath, execFileName);
+	wxFileName fn(tempCWDpath, _T(""));
 	wxString currCwd = wxFileName::GetCwd();
-	bool bTempCwd = fn.SetCwd(execPath);
+	bool bTempCwd = fn.SetCwd(tempCWDpath);
 	if (bTempCwd)
 	{
 		// BEW 10Oct20, if the commandLine does not succeed in the underlying .c code,
@@ -21076,8 +21345,17 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		// can be checked for what went wrong with it.
 // **************************************************************************************
 
-		long rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful
-
+        //long rv = 0;
+		//rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful  <<-- BEW fails, System Error, can't find libmariadb.dll message
+        //bool bShellWorked = wxShell(execFileName); <<-- fails too, same System Error as above, doesn't return control to here either
+        int rv = 0;
+ //       rv = system(execPath); // param was execFileName, but I think it should be the absolute path calculated above - failed, results file empty
+ //       rv = system("execPath"); // wrap with quotes - still fails
+ //       rv = ::wxExecute(execFileName, output, errors); // the legacy call fails, rv = large -ve, output NULL, .dat results, empty
+         
+        const char* pstart = { "start do_add_foreign_kbusers.exe" };
+        rv = system(pstart);
+         
 // **************************************************************************************
 		if (!errors.IsEmpty() && rv != 0)
 		{
@@ -21124,13 +21402,23 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		wxUnusedVar(bRestored);
 		// check for success and advise user with a 1.3 second 'created successfully' 
 		// message if authenticating, but suppress messages if funcNumber is 3 or more
-		if (rv == 0)
-		{
+        //if (rv == 0)
+        if (rv == 0  ||  rv < 0)  // rv = system(execFileName); call worked, despite the large -ve return value
+        {
 			// Any value other than zero means something failed in the call
 			int offset = wxNOT_FOUND;
-			wxString pathToResults = execPath + resultFile;
+			wxString pathToResults = tempCWDpath + PathSeparator + resultFile;
 			bool bResultsFileExists = ::FileExists(pathToResults);
-			if (bResultsFileExists)
+            // BEW 6Jan22 is the file empty? (because of a failure in calling system())
+            bool bEmptyFile = FALSE; // initialise
+            if (bResultsFileExists)
+            {
+                wxFile ff(pathToResults);
+                wxFileOffset ffLen = ff.Length();
+                if (ffLen == 0)
+                    bEmptyFile = TRUE;
+            }
+			if (bResultsFileExists && !bEmptyFile) // if the file exists and has content
 			{
 				// The existence of the results file does not guarantee success,
 				// but if first line has "success" then the wxExecute() call succeeded
@@ -24066,7 +24354,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString resourcesDir; //,localizedResourcesDir;
     wxString dataDir, localDataDir, documentsDir;
     wxString userConfigDir, userDataDir, userLocalDataDir;
-    wxString executablePath;
+    //wxString executablePath; BEW 19Oct21 removed, and instead reinstated a public declaration in AI.h at line 2268
 #ifdef __WXGTKzzz__
     wxString installPrefix;
     wxStandardPaths stdPaths;
@@ -24103,6 +24391,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"), userLocalDataDir.c_str());
     executablePath = stdPaths.GetExecutablePath();
     wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"), executablePath.c_str());
+
+
+    // BEW 19Oct21 KBserver stuff uses execPath, I'm reinstating code for execPath lacking
+    // the executable at the end. Bill may refactor this later, to remove it in favour of
+    // a differente variable name, but this is to get me going again after 4 months away
+    // from this stuff. 
+    execPath = executablePath; 
+    // Remove the executable from execPath, so it ends in the separator
+    wxString separator = PathSeparator;
+    wxString revStr = MakeReverse(execPath);
+    int offset = revStr.Find(separator);
+    revStr = revStr.Mid(offset);
+    execPath = MakeReverse(revStr);
+    wxLogDebug(_T("%s() line %d: path called 'execPath' = %s"), __FILE__, __LINE__, execPath.c_str());
+
+
 #ifdef __WXGTKzzz__
     // Only available on Linux
     installPrefix = stdPaths.GetInstallPrefix();
@@ -26410,6 +26714,254 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
         return FALSE;
     }
+    // BEW 21Oct21, note, EnsureWOrkFolderPresent() call above, (line 26,374) is where m_workFolderPath
+    // gets set, either to the normal path, or to the custom path (which could be anywhere); what's 
+    // important that whichever is the case, m_workFolderPath points where it should already.
+    // 
+    // BEW 21Oct21, DoDiscoverKBservers() now calls do_mdns.exe (which when it finishes, calls mdns.exe,
+    // which, when it finishes, calls do_mdns_report.exe to return the kbservice_file.dat file containing
+    // data for the form "ipAddress,@@@,hostname," - these 3 executables must be in the execPath, and
+    // the current working directory set there too.
+    // By the way, execPath ends in PathSeparator. Bill has a synonym name for the same path.
+
+    wxString fileStr = _T(""); // the found file's name will be returned to this scratch variable
+    wxString fileSpec = wxEmptyString; // ensures all files are matched, but we save only the filtered ones
+    wxString dataFolderPath = m_workFolderPath; // work with a local copy, to where Adapt It Unicode Work folder is
+    wxASSERT(!dataFolderPath.IsEmpty());
+    // We want an internal folder, where dLss_win.exe is stored, so set workFolderPath to it
+    dataFolderPath += PathSeparator + _T("_DATA_KB_SHARING"); // this is where do_mdns.exe & friends should be
+
+    wxString mdns1EXE = _T("do_mdns.exe"); // these 3 get called in the 1,2,3 sequence of their temporary names
+    wxString mdns2EXE = _T("mdns.exe");
+    wxString mdns3EXE = _T("do_mdns_report.exe");
+
+    //wxString dsbBAT = _T("dsb-win10.bat"); removed BEW 10Nov21
+
+    wxString discoveryPath1 = dataFolderPath + PathSeparator + mdns1EXE; // these 3 are where our code expects to find them
+    wxString discoveryPath2 = dataFolderPath + PathSeparator + mdns2EXE;
+    wxString discoveryPath3 = dataFolderPath + PathSeparator + mdns3EXE;
+
+    //wxString discoveryBATPath = dataFolderPath + PathSeparator + dsbBAT; removed BEW 10Nov21
+
+    // Now, 3 'destination paths, with the executable name at the end of each. The destination folder could be the 
+    // Unicode Debug folder, or the Unicode Release folder if testing the Release build, or the Program Files (x86)\
+    // Adapt It WX Unicode\ folder, if running a released version - wherever the running Adapt_It_Unicode.exe is
+    wxString destPath1 = execPath + mdns1EXE;
+    wxString destPath2 = execPath + mdns2EXE;
+    wxString destPath3 = execPath + mdns3EXE;
+    wxString destPath = execPath; // ends in backslash
+
+    wxLogNull logNo; // eliminates any spurious messages from the system if the wxSetWorkingDirectory() call returns FALSE
+
+    //wxString destBATPath = execPath + dsbBAT; BEW removed 10Nov21
+
+    // First, is there a do_mdns.exe file in work folder's _DATA_KB_SHARING folder. Assume the 2 others are absent if
+    // do_mdns.exe is absent. The error message should include mention of the other two, in case not all 3 are there
+    wxDir finder;
+    // wxDir must call .Open() before searching for files
+    // There are 3 files to move, do one at a time - each must be checked for
+    bool bItsOK = (finder.Open(dataFolderPath));
+    if (!bItsOK)
+    {
+        // a significant error,  but let the app continue, with log advice to LogUserAction(msg) & warn user
+        wxString msg = _T("Calling wxDir's finder.Open(dataFolderPath) returned FALSE, line 26509 in OnInit()");
+        LogUserAction(msg);
+
+        wxWindow* pParent = this->GetMainFrame()->canvas;
+        wxString caption = _("Error: opening dataFolderPath failed");
+        wxString message = _("Adapt It could not open the Adapt It Unicode Work folder's child folder called \n_DATA_KB_SHARING.\nAdapt It will continue working, but the Discover KBservers command will not work.\nShut down and launch Adapt It again. If the error persists, contact the developers\nusing one of the email addresses in Help > About Adapt It.");
+        wxMessageDialog dlg(pParent, message, caption);
+        int nReturn = dlg.ShowModal();
+        wxASSERT(nReturn == wxID_OK);
+        wxUnusedVar(nReturn);
+    }
+    else
+    { 
+        // Loop to find if there is a do_mdns.exe file in _DATA_KB_SHARING folder.
+        // In the loop, fileSpec is an empty string
+        bool bWorking = finder.GetFirst(&fileStr, fileSpec, wxDIR_FILES);
+        // enum wxDIR_FILES finds only files; it ignores directories, and . and .., and doesn't enter child folders
+
+        bool bFoundDoMdnsFile = FALSE; // initialise
+        while (bWorking)
+        {
+            if (fileStr.IsEmpty())
+                continue;
+            wxFileName fn(fileStr);
+            wxString aFilename = fn.GetFullName(); // gets name, including extension, but no directory path
+            if (fileStr == mdns1EXE)
+            {
+                // Found "do_mdns.exe", so break out
+                bFoundDoMdnsFile = TRUE;
+                break;
+            }
+            bWorking = finder.GetNext(&fileStr);
+        }
+        if (bFoundDoMdnsFile == TRUE)
+        {
+            // do_mdns.exe is in the work folder's _DATA_KB_SHARING folder, so send a copy of it
+            // to the dest1Path absolute path
+
+            bool bCopiedOK = wxCopyFile(discoveryPath1, destPath1, TRUE); // TRUE is default, for 'overwrite'
+            wxASSERT(bCopiedOK);
+
+        } // end of TRUE block for test: if (bFoundDoMdnsFile == TRUE;)
+        else
+        {
+            // Did not find the required do_mdns.exe file. Warn user, log the error in LogUserAction(), & continue app
+            wxString  msg = _T("No do_mdns.exe file is in _DATA_KB_SHARING folder.");
+            LogUserAction(msg);
+
+            wxWindow* pParent = this->GetMainFrame()->canvas;
+            wxString caption = _("Error: scanner file, do_mdns.exe, is missing");
+            wxString message = _("The Adapt It Unicode Work folder's child folder called\n_DATA_KB_SHARING,\nlacks a file with name  \'do_mdns.exe\' \nThat file is needed for finding a KBserver to connect to. Adapt It will continue working, but you should shut down soon\nthen manually find that file, and copy it to the _DATA_KB_SHARING folder, then run Adapt It again.\nYou might need to ask the developers to send you the latest version of the file.");
+            wxMessageDialog dlg(pParent, message, caption);
+            int nReturn = dlg.ShowModal();
+            wxASSERT(nReturn == wxID_OK);
+            wxUnusedVar(nReturn);
+
+        } // end of else block for test: if (bFoundDoMdnsFile == TRUE;)
+    } // end of else block for test: if (!bItsOK)
+
+    // SECOND one, mdns.exe
+
+    // Next, check in _DATA_KB_SHARING, for a file with (const name) mdns.exe
+    // This .exe file is called by do_mdns.exe when the latter is closing down,
+    // and discovery cannot properly complete unless it too is in the executable's
+    // folder, as a sibling to do_mdns.exe
+    bItsOK = (finder.Open(dataFolderPath)); // reopen
+    if (!bItsOK)
+    {
+        // a significant error,  but let the app continue, with log advice to LogUserAction(msg) & warn user
+        wxString msg = _T("Calling wxDir's finder.Open(dataFolderPath) returned FALSE, line 26578 in OnInit() for getting msnd.exe");
+        LogUserAction(msg);
+
+        wxWindow* pParent = this->GetMainFrame()->canvas;
+        wxString caption = _("Error: opening dataFolderPath failed");
+        wxString message = _("Adapt It could not open the Adapt It Unicode Work folder's child folder called \n_DATA_KB_SHARING.\nAdapt It will continue working, but Discover KBservers command will not work.\nShut down and launch Adapt It again. If the error persists, contact the developers\nusing one of the email addresses in Help > About Adapt It.");
+        wxMessageDialog dlg(pParent, message, caption);
+        int nReturn = dlg.ShowModal();
+        wxASSERT(nReturn == wxID_OK);
+        wxUnusedVar(nReturn);
+    }
+    else
+    {
+        // Loop to find if there is a mdns.exe file in _DATA_KB_SHARING folder.
+        // In the loop, fileSpec is an empty string
+        bool bWorking = finder.GetFirst(&fileStr, fileSpec, wxDIR_FILES); // fileSpec is wxEmptyString
+        // wxDIR_FILES finds only files; it ignores directories, and . and .., and doesn't enter child folders
+        bool bFoundMdnsFile = FALSE; // initialise
+        while (bWorking)
+        {
+            if (fileStr.IsEmpty())
+                continue;
+            wxFileName fn(fileStr);
+            wxString aFilename = fn.GetFullName(); // gets name, including extension, but no directory path
+            if (fileStr == mdns2EXE)
+            {
+                // Found "mdns.exe" file, so break out
+                bFoundMdnsFile = TRUE;
+                break;
+            }
+            bWorking = finder.GetNext(&fileStr);
+        }
+        if (bFoundMdnsFile == TRUE)
+        {
+            // mdns.exe file is in the work folder's _DATA_KB_SHARING folder, so send a copy of it
+            // to the destPath2 absolute path, overwriting the one there if the same exists there (this way
+            // if Leon or another dev changes the internal code any mdns.exe file, we are sure the newer version is used)
+            bool bCopiedOK = wxCopyFile(discoveryPath2, destPath2, TRUE); // TRUE is default, for 'overwrite'
+            wxUnusedVar(bCopiedOK);
+            wxASSERT(bCopiedOK);
+
+        } // end of TRUE block for test: if (bFoundMdnsFile == TRUE)
+        else
+        {
+            // Did not find the required mdns.exe file. Warn user, log the error in LogUserAction(), & continue app
+            wxString  msg = _T("No mdns.exe file is in _DATA_KB_SHARING folder.");
+            LogUserAction(msg);
+
+            wxWindow* pParent = this->GetMainFrame()->canvas;
+            wxString caption = _("Error: scanner helper file, mdns.exe, is missing");
+            wxString message = _("The Adapt It Unicode Work folder's child folder called\n_DATA_KB_SHARING,\nlacks a file with name  \'mdns.exe\' \nThat file is needed for finding a KBserver to connect to. Adapt It will continue working, but you should shut down soon\nthen manually find that file, and copy it to the _DATA_KB_SHARING folder, then run Adapt It again.\nYou might need to ask the developers to send you the latest version of the file.");
+            wxMessageDialog dlg(pParent, message, caption);
+            int nReturn = dlg.ShowModal();
+            wxASSERT(nReturn == wxID_OK);
+
+        } // end of else block for test: if (bFoundMdnsFile == TRUE)
+
+        // THIRD one, do_mdns_report.exe
+
+    // Next, check in _DATA_KB_SHARING, for a file with (const name) do_mdns_report.exe
+    // This .exe file is called by mdns.exe when the latter is closing down,
+    // and discovery cannot properly complete unless it too is in the executable's
+    // folder, as a sibling to mdns.exe
+        bItsOK = (finder.Open(dataFolderPath)); // reopen
+        if (!bItsOK)
+        {
+            // a significant error,  but let the app continue, with log advice to LogUserAction(msg) & warn user
+            wxString msg = _T("Calling wxDir's finder.Open(dataFolderPath) returned FALSE, line 26645 in OnInit() for getting do_mdns_report.exe");
+            LogUserAction(msg);
+
+            wxWindow* pParent = this->GetMainFrame()->canvas;
+            wxString caption = _("Error: opening dataFolderPath failed");
+            wxString message = _("Adapt It could not open the Adapt It Unicode Work folder's child folder called \n_DATA_KB_SHARING.\nAdapt It will continue working, but Discover KBservers command will not work.\nShut down and launch Adapt It again. If the error persists, contact the developers\nusing one of the email addresses in Help > About Adapt It.");
+            wxMessageDialog dlg(pParent, message, caption);
+            int nReturn = dlg.ShowModal();
+            wxASSERT(nReturn == wxID_OK);
+            wxUnusedVar(nReturn);
+        }
+        else
+        {
+            // Loop to find if there is a do_mdns_report.exe file in _DATA_KB_SHARING folder.
+            // In the loop, fileSpec is an empty string
+            bool bWorking = finder.GetFirst(&fileStr, fileSpec, wxDIR_FILES); // fileSpec is wxEmptyString
+            // wxDIR_FILES finds only files; it ignores directories, and . and .., and doesn't enter child folders
+            bool bFoundMdnsReportFile = FALSE; // initialise
+            while (bWorking)
+            {
+                if (fileStr.IsEmpty())
+                    continue;
+                wxFileName fn(fileStr);
+                wxString aFilename = fn.GetFullName(); // gets name, including extension, but no directory path
+                if (fileStr == mdns3EXE)
+                {
+                    // Found "do_mdns_report.exe" file, so break out
+                    bFoundMdnsReportFile = TRUE;
+                    break;
+                }
+                bWorking = finder.GetNext(&fileStr);
+            }
+            if (bFoundMdnsReportFile == TRUE)
+            {
+                // do_mdns_report.exe file is in the work folder's _DATA_KB_SHARING folder, so send a copy of it
+                // to the destPath3 absolute path, overwriting the one there if the same exists there (this way
+                // if Leon or another dev changes the internal code any do_mdns_report.exe file, we are sure the newer version is used)
+                bool bCopiedOK = wxCopyFile(discoveryPath3, destPath3, TRUE); // TRUE is default, for 'overwrite'
+                wxUnusedVar(bCopiedOK);
+                wxASSERT(bCopiedOK);
+
+            } // end of TRUE block for test: if (bFoundMdnsReportFile == TRUE)
+            else
+            {
+                // Did not find the required do_mdns_report.exe file. Warn user, log the error in LogUserAction(), & continue app
+                wxString  msg = _T("No do_mdns_report.exe file is in _DATA_KB_SHARING folder.");
+                LogUserAction(msg);
+
+                wxWindow* pParent = this->GetMainFrame()->canvas;
+                wxString caption = _("Error: scanner report file, do_mdns_report.exe, is missing");
+                wxString message = _("The Adapt It Unicode Work folder's child folder called\n_DATA_KB_SHARING,\nlacks a file with name  \'do_mdns_report.exe\' \nThat file is needed for reporting a KBserver to connect to.\nTry find a file of that name, and copy it to the work folder's _DATA_KB_SHARING folder.\nThen run Adapt It again. If the file continues to be lost, report the problem to the developers.\nAsk the developers (see Help > About Adapt It) to send you the latest version of the file.");
+                wxMessageDialog dlg(pParent, message, caption);
+                int nReturn = dlg.ShowModal();
+                wxASSERT(nReturn == wxID_OK);
+
+            } // end of else block for test: if (bFoundMdnsReportFile == TRUE)
+        } // end of else block for test: if (!bItsOK)
+
+    finder.Close();
+    }
+
+ 
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
@@ -26475,7 +27027,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	const unsigned int monitorTwo = 1;
     wxDisplay displayOne(monitorOne);
    if (numMonitors > 1)
-    {
+   {
         wxDisplay displayTwo(monitorTwo);
 
 		//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -26525,7 +27077,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             desktopWndRect.SetWidth(maxDispRectX);
             desktopWndRect.SetHeight(maxDispRectY);
         }
-    }
+   }
     //wxLogDebug(_T(
     //    "desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
     //    desktopWndRect.x, desktopWndRect.y, desktopWndRect.GetWidth(), desktopWndRect.GetHeight());
@@ -27287,6 +27839,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_docCreationFilePathAndName = AIDocCreateLogFolderPath; // whm added 6Apr2020
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
     m_dataKBsharingPath = AIdistKBsharingFolderPath; // whm 22Feb2021 added - ends with PathSeparator
+    wxLogDebug(_T("Setting m_dataKBsharingPath to: %s"), m_dataKBsharingPath.c_str());
 
     wxLogDebug(_T("Creating user log file at: %s"), m_usageLogFilePathAndName.c_str());
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
@@ -29035,8 +29588,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                  // the use uses Preferences to set a new gap width, when gbShowTargetOnly is TRUE,
                  // and after the TRUE value is used, it is cleared to FALSE, in case the user
                  // goes to Preferences multiple times to change the gap while viewing only src line
+                 // 
+    // In case the path to the MariaDB 10.5 subfolders is needed in AI.exe, the wxString following
+    // is set - but I suspect this won't ever be needed 
+    mariadb_path = "C:\\Program Files (x86)\\MariaDB 10.5\\"; // declared at .h 2647
 
-                        //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
+                 //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
     // whm 3Mar2021 moved here just before return from OnInit()
     // Display message in status bar that startup initialization is complete
@@ -29044,6 +29601,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(message);
     wxLogDebug(_T("****************************************************************************"));
     pStatusBar->SetStatusText(message, 0); // use first field 0
+
+
+    
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
@@ -29273,11 +29833,11 @@ int CAdapt_ItApp::OnExit(void)
 					{
                         // whm 27Jan2021 modified to use wxWidgets function to remove file. Linux GCC flags BOOL with compile error.
                         // We should use the wxWidgets wxRemoveFile() function which is used already in many places elsewhere in our code.
-                        // BOOL bDeleted = ::DeleteFileW(pathtofile);
                         bool bDeleted = wxRemoveFile(pathtofile);
                         if (!bDeleted)
-						{
-							wxBell();
+                        {
+                            wxString msg = _T("Failed to remove file at line 29562 in OnExit()");
+                            this->LogUserAction(msg);
 						}
 					}
 				}
@@ -36570,19 +37130,14 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
-	m_bUseForeignOption = FALSE; // restore default, local user is in focus
+    m_bAddUser2UserTable = TRUE;
 
 	// Prepare the .dat input dependency: "credentials_for_user.dat" file, into
-	// the execPath folder, ready for the ::wxExecute() call below
-	// BEW 24Aug20 NOTE - calling _T("do_add_KBUsers.exe") with an absolute path prefix
-	// DOES NOT WORK! As in: wxString command = execPath + _T("do_add_KBUsers.exe")
-	// ::wxExecute() returns the error string:  Failed to execute script do_add_KBUsers
-	// The workaround is to temporarily set the current working directory (cwd) to the
-	// AI executable's folder, do the wxExecute() call on just the script filename, and
-	// restore the cwd after it returns.
+	// the execPath folder, ready for the system() call, or wxShell() call, below
+
 	// I've encapsulated the needed code in a function: 
-	// bool CallExecute(execFileName,execPath,add_KBUsers_results.dat)
-	// and I'll check add_KBUsers_results.dat for "created successfully" substring,
+	// bool CallExecute(execFileName,execPath,do_add_foreign_kbusers_results.dat)
+	// and I'll check do_add_foreign_kbusers_results.dat for "created successfully" substring,
 	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
 	m_nAddUsersCount = 0; // gotta protect, as number of fields may differ
 // replace the above with a function...
@@ -36590,14 +37145,16 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 	bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
 	if (bReady)
 	{
-		// The input .dat file is now set up ready for do_add_KBusers.exe
-		wxString execFileName = _T("do_add_KBUsers.exe"); 
-		wxString resultFile = _T("add_KBUsers_results.dat");
+		// The input .dat file is now set up ready for do_add_foreign_kbusers.exe
+		wxString execFileName = _T("do_add_foreign_kbusers.exe"); 
+		wxString resultFile = _T("add_foreign_KBUsers_results.dat");
         // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
-        bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathAndName, resultFile, 30, 31, TRUE);
+        bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathOnly, resultFile, 30, 31, TRUE);
         wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
 		// In above call, TRUE is non-default value for bReportResult
 	}
+    m_bUseForeignOption = FALSE; // restore default,
+    m_bAddUser2UserTable = FALSE; // restore default
 }
 
 void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)
@@ -38574,7 +39131,7 @@ enum LoadabilityFilter filtered)
     // get them all, then loop to exclude the non-loadable ones
     wxString filename = _T("");
     wxDir finder;
-    // wxDirmust call .Open() before enumerating files!
+    // wxDir must call .Open() before enumerating files!
     bool bItsOK = (finder.Open(folderPath));
     if (!bItsOK)
     {
@@ -42625,10 +43182,10 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
         wxString strOriginalFile = aPath;
         wxString strRenamedFile = strOriginalFile + _T("_"); // append an underscore
         bool bOK = ::wxCopyFile(strOriginalFile, strRenamedFile, TRUE); // TRUE = overwrite
-                                                                        // if it exists already; ignore returned bool, we assume it will work
-                                                                        // if the copy fails, no big deal, we can leave the file spec there & the administrator
-                                                                        // can take manual corrective steps to set it up again properly - unlikely to
-                                                                        // happen though (note: the return of FALSE causes abort() to be called)
+                // if it exists already; ignore returned bool, we assume it will work
+                // if the copy fails, no big deal, we can leave the file spec there & the administrator
+                // can take manual corrective steps to set it up again properly - unlikely to
+                // happen though (note: the return of FALSE causes abort() to be called)
         wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,003 in Adapt_It.cpp"));
 
         wxTextFile f;
@@ -42646,8 +43203,8 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
             // and then abort, because the fix required would be a developer issue
             f.Close(); // don't bother with the returned boolean
             bOK = ::wxRenameFile(strRenamedFile, strOriginalFile, TRUE); // overwrites
-                                                                         // strOriginalFile with contents of strRenamedFile but gives the
-                                                                         // resulting file the name strOriginalFile
+                    // strOriginalFile with contents of strRenamedFile but gives the
+                    // resulting file the name strOriginalFile
             wxMessageBox(_T(
                 "DealWithThePossibilityOfACustomWorkFolderLocation(): Failed to open the CustomWorkFolderLocation file at default work folder location, and that file is neither locked nor empty. Aborting..."),
                 _T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
@@ -59622,6 +60179,8 @@ void CAdapt_ItApp::ClobberGuesser()
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
 // BEW, LeonPearl, updated 22July20, for mariaDB-server (mysql) support using Python3 tool set
 // with C executable wrapper, dLss_win.exe. Linux and OSX refactoring will be added later
+// BEW 11Nov21 refactored to use do_mdns.exe then mdns.exe and finally do_mdns_report.exe.
+// Also instead of wxExecute() for win build, used wxShell(), because MS have deprecated WinExe()
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
 	// Initializations
@@ -59634,26 +60193,11 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need
 												 // it to be TRUE so the later loop is accessible
 	wxString aSlash = PathSeparator;
-/*
+
 	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
-	wxString execPath = wxStandardPaths::Get().GetExecutablePath();  // path to Adapt_It_Unicode.exe if on windows
+	//wxString execPath = wxStandardPaths::Get().GetExecutablePath();  // path to Adapt_It_Unicode.exe if on windows
 
-	// BEW 6Jul20 have to make the execPath safe for all contexts - 
-	// by quoting any folder names which contain space (see helpers.cpp)
-	// Oops, the added \" folder \" wrapping a folder name with internal spaces makes the
-	// conversion to a utf-8 char c-string result in an unparsable string in strncpy(),
-	// (\" gets put in, but the path separator gets lost - fix this before using again,
-	// but it turns out we don't really need it anyhow)
-	//execPath = SafetifyPath(execPath); // ends with executable file still
-
-	// Remove the executable from execPath, so it ends in the separator (aSlash)
-	wxString revStr = MakeReverse(execPath);
-	int offset = revStr.Find(aSlash);
-	revStr = revStr.Mid(offset);
-	execPath = MakeReverse(revStr);
-	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
-*/
-	// BEW 25Feb21 dedicate a new path to the dLss_win.exe file, scannerPath
+	// BEW 25Feb21 dedicate a new path to the do_mdns.exe file, scannerPath
 	wxString scannerPath = _T(""); // set below
 
 	// Prior to this point, the code is agnostic of which platform is running
@@ -59756,155 +60300,145 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below
 	//#endif
-	GetMainFrame()->canvas->Freeze();
+	GetMainFrame()->canvas->Freeze(); // Thaw() is at line 60,193 approx
 	// Current volume not specified, so GetCwd() returns wxString containing whatever is
 	// the current working directory. Typically it is the project folder for whatever
-	// project is currently active in Adapt It Unicode Work folder.
-	// This will need to be temporarily changed to the "dist" folder, which contains the
-	// toolchain for the discovery of running active KBservers to which can be connected to
-	// by any mariaDB client. The name and location of the dist folder MUST be within the
-	// folder from which the Adapt_It_Unicode.exe executable is launched for running.
-	// Leon's kbserver discovery code will drop up to 6 *.dat files, which function as
-	// an audit trail should there be some malfunction in the discovery process. These
-	// *.dat files will be dropped into whatever is the "current working directory" at
-	// the time the system() call (see below) is done, regardless of where dLss_win.exe 
-	// is called. So the code for saving and restoring the cwd (current working directory)
-	// herein is not to be removed!
+	// project is currently active in Adapt It Unicode Work folder. But while developing,
+    // the executable (for Win build) will be in Unicode Debug folder, or Uncode Release folder.a
 
-	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
-	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+    wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+    wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
 
-	wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type
-    wxString distFolder = m_dataKBsharingFolderName; // _T("dist"); // whm 22Feb2021 changed the literal to m_dataKBsharingFolderName
+    wxString tempFile = _T("kbservice_file.dat"); // results filename of .dat type 
 
-	// BEW 25Feb21 resultsPath now needs to point at the _DATA_KB_SHARING folder in the work folder
-	wxLogDebug(_T("Scanner's m_dataKBsharingPath: %s"), m_dataKBsharingPath.c_str());
+    /* BEW 11Nov21 removed this bit
+    //Bill would probably like the kbservice_file.dat file which returns the dicovery results
+    // to go back to _DATA_KB_SHARING folder in the Adapt It Unicode Work folder. But that would
+    // require writing more code to move it there, and grab it's contents from there. I've
+    // declined to do that, and since the legacy code just deposited the results in the AI executable's
+    // folder, it can stand that way. Works just fine!
+    wxString dataReturnFolder = m_dataKBsharingFolderName; // should be work folder's _DATA_KB_SHARING folder
+          // whm 22Feb2021 changed the above literal name _DATA.... to be set to app member m_dataKBsharingFolderName
+    wxString dataReturnAbsPath = m_workFolderPath + PathSeparator + dataReturnFolder;
+    dataReturnAbsPath += _T('\\');
+    wxLogDebug(_T("dataReturnAbsPath: %s"), dataReturnAbsPath.c_str());
+    */
 
-	// BEW 22July20, temporarily point the current working directory to m_dataKBsharingPath
-	wxFileName fName(m_dataKBsharingPath); // ignore returned boolean
-	fName.SetCwd(m_dataKBsharingPath);
-	wxLogDebug(_T("SetCwd() was set to: %s"), fName.GetCwd().c_str());
+    // Name the scanner to be used for the discovery....
+    wxString scanner = _T("do_mdns.exe"); // name of the first file, does the scanning, and calls the other two:
+                                          // mdns.exe & do_mdns_report.exe
+    // Check a file of this name is in the AI executable's folder
+    wxString scannerFullPath = execPath + scanner; // execPath ends in a backslash
+    bool bExists = wxFileExists(scannerFullPath); // if it exists, OnInit() has guaranteed mdns.exe and
+                                                  // do_mdns_report.exe are there too
+    if (!bExists)
+    {
+        // return, can't go on because the expected scanner executable is not in the execPath folder
+        wxString message;
+        message = message.Format(_("KBserver Discovery did not run. Probably the scanner file: do_mdns.exe , was not in\nAdapt It Unicode Work's child folder: _DATA_KB_SHARING."));
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_bUserDlgOrMessageRequested = TRUE; // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
+        LogUserAction(_T("Scanner executable, do_mdns.exe or its follow up mdns.exe do not exist in executable's folder: message at line 60084 of Adapt_It.cpp"));
+        wxFileName fn;
+        fn.SetCwd(saveCurrentWorkingDirectory);
+        GetMainFrame()->canvas->Thaw();
+        return;
+    }
+    // All's well so far. Time to set the current working directory to execPath, so that we don't
+    // need to prefix our scanner command (do_mdns.exe) with a path to it
 
-	// Make a path to the kbservice_file.dat results file.
-	// The new current working directory path will ensure that this
-	// path is the same as the path to where dLss_win.exe resides, in the dist folder.
-	// BEW 25Feb21 discovery path now is simpler
-	discoveryPath = m_dataKBsharingPath + tempFile; // ends with _T("kbservice_file.dat")
-	wxLogDebug(_T("Scanner's discoveryPath: %s"), discoveryPath.c_str());
-	{
-		// Use braces to restrict scope to this block and avoid any clashing with program variables
-		wxString space = _T(" ");
-		wxString quote = _T("\"");
+    // BEW 25Feb21 final resultsPath now needs to point at the _DATA_KB_SHARING folder in the work folder,
+    // but the results file's prefinal destination will be in the same folder as do_mdns.exe is in, that is,
+    // in the execPath folder. That's where kbservice_file.dat will first be. From there, below, we will
+    // move it to the work folder's _DATA_KB_SHARING folder - it's final destination
 
-		// Make a path to the dLss_win.exe file, which should reside in whatever folder
-		// contains the Adapt It Unicode executable (will differ depending on whether running
-		// from the Vis Studio dev system's Unicode Debug folder, or Unicode Release folder, or
-		// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
-		// running a released version.
-		// Scanner's executable path is to dLss_win.exe which is in a child folder in
-		// the adaptit executable's folder, called "dist".
-		wxString execDiscoveryFile = _T("dLss_win.exe"); // this name is permanent 
-														 // (till Leon's work obsoletes it)
-		// BEW 25Feb21, set scannerPath
-		scannerPath += m_dataKBsharingPath + execDiscoveryFile; 
-		wxLogDebug(_T("Scanner's scannerPath: %s  length = %d"), scannerPath.c_str(), scannerPath.Len());
-		// The above execPath returned a length of 55 characters, for our testing development
+    wxFileName fn; // initialise
+    bool bTempCwd = fn.SetCwd(execPath); // OnInit() guarantees do_mdns.exe will be there, in execPath folder
+    if (bTempCwd)
+    {
+        // We have a successful setting of the CWD (current working directory) to the execPath folder
+        // so proceed to setup and do the service discovery
+        scannerPath = execPath + scanner; // same as scannerFullPath above, but can leave this, as it's older code
 
-		// Drop out to the system to make the needed call. dLss_win.exe has all that is needed -
-		// it is a standalone .exe and does not internally do a call of dLss.bat, the code for
-		// that is now in the C-function, dLss_win.exe which Leon says must be in the dist folder
+        wxString prefix = _T(".\\");
+        scanner = prefix + scanner;
 
-		// Comment from Leon, 21July20 - retain for documenting his approach
-		/////////////////////////////////////////////////////////////////////////////////////////
-		// this is the inline code block I was referring to, the c++ compiled code will just 'drop-out' to the
-		// underlying OS to run 'dLss_win.exe' as if it was a system tool like 'nmap' where nmap in installed
-		// in c:\\Program Files\Nmap\bin and in order to run this the 'system()' command call has to have a
-		// full path variable OR at least a path variable set somewhere that points back to where nmap is.
-		// Calling 'dLss_win.exe' from the 'dist' as you did in the cli shell did exactly this , you supplied
-		// a path variable that could be used. 
-		// 80 char array handles our 56 characters with ease, and gives room for paths which may be longer
-		char command[130]; // compiler does not allow assignment to char arrays, use strcpy or (better) strncpy 
 
-		//Leon said: strncpy( command,"insert here the full execpath to the dist folder\\dist\\dLss_win.exe" );
-		CBString dblQuote = '"';
-		CBString charPath = Convert16to8(scannerPath); // converts wxString to a multibyte C-string of UTF-8
-		// scannerPath is 75 so 130 should be plenty if storage is in a custom path location
-		// Wrap it with double-quote either end
-		charPath = dblQuote + charPath;
-		charPath += dblQuote;
-		wxASSERT(charPath.GetLength() < 130);
-		strncpy(command, charPath.GetBuffer(), 130);
-		// The following line works, but it is hard coded. We need the stuff above to get it to utf-8
-		//strncpy(command, "C:\\Users\\bwaters\\Documents\\Adapt It Unicode Work\\_DATA_KB_SHARING\\dLss_win.exe", 130);
-		// For logging, use BString to convert back to wxString
-		wxString thePath = charPath.Convert8To16();
-		wxLogDebug(_T("full execPath, strncpy used, n=130: %s"), thePath.c_str());
+        bool bExists = fn.FileExists(scannerPath);
 
-			// in my case, I run the dLss_win.exe code with the system command calls ( a few of them ) 
-			// in the 'dist' folder and all output .dat files appear in the same folder where
-			// 'dLss_win.exe' is run from.
-			// When I test run 'dLss_win.exe' from any other folder I have to ensure I run the
-			// .exe with some path variable set to where 'dist' folder is, whereas the output
-			// .dat files still always appear in the same folder as the AI .exe file
-			//
-			// NOTE: NOTE: NOTE: before I could do any c/c++/python-pyinstaller compiles or even 
-			// call wmic stuff and Nmap I had to first setup user & system path variables ... 
-			// this was how I was able to get around having to include hard-coded full
-			// path names in testing 
-			// NOTE: NOTE: NOTE: you need to supply path variables in order that adaptit 
-			// gets installed properly and the installer does that for you so adaptit 
-			// compiles c++ code knowing at runtime where the .dll's are.  
-			// What I am proposing is that you purposely type in the full path 
-			// to 'dLss_win.exe' during some part of your testing to satisfy yourself
-			// that adaptit, thru either wxExecute, or system( command ) here below, knows 
-			// where 'dLss_win.exe'is.
-			//
-			// next before this executes print out what the 'command' string is BEFORE the call,
-			// that way you will know what the exec path supplied is ... rightly or 
-			// wrongly supplied 
-		int result = system(command); // returns 0 when the path is ok 
-		wxUnusedVar(result);
-			// Leon says:
-			// incidentally , here is my path variable for user runtime use on win10, this is normal
-			// if I want tell the compiler to find code at runtime:-
-			// (BEW - It has no newlines or spaces between subparts, I cut it up into 6 lines for readability,
-			// and it's former length screwed my font size to miniscule)
-// PATH=C:\Program Files (x86)\Python38-32\Scripts\;C:\Program Files (x86)\Python38-32\;
-//C:\Program Files (x86)\Nmap;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;
-//C:\WINDOWS\System32\OpenSSH\;C:\Users\leonp\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\site-packages;
-//C:\Users\leonp\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Nmap;
-//C:\Users\leonp\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.7_qbz5n2kfra8p0\LocalCache\local-packages\Python37\Scripts;
-//C:\Users\leonp\AppData\Local\Programs\Microsoft VS Code\bin;
-			//
-			// you will see :- Python38-32\Scripts
-			//                 Python37\Scripts
-			//                 m'soft windows openssh
-			//                 nMap
-			//                 m'Soft VS Code
-			//                 m'soft powershell
-			// if I miss out on adding anything to the path variable setup then that code fails to run ..simple.
+        scannerPath = execPath + scanner; // now has the .\ added as prefix for the shell call
 
-		// BEW legacy code follows; look for file of comma-separated results in executable's folder,
-		//  or it may be a child folder...  (such as in "dist" folder - a child of the
-		// Unicode Debug folder, or Unicode Release folder if building the release version)
-		wxFFile ffile(discoveryPath); // kbservice_file.dat should open for reading
-		if (ffile.IsOpened())
-		{
-			bool bGotAll = ffile.ReadAll(&resultsStr);
+        if (bExists)
+        {
+            int result = 0; // initialise to successful scan result
 
-			wxUnusedVar(bGotAll); // avoid gcc warning
-			wxLogDebug(_T("Found these results: %s"), resultsStr.c_str()); // for logging window
+            // Add " before and after, to ensure the command for the scanner  properly handles any spaces in scannerPath
+            scannerPath = _T('\"') + scannerPath;
+            scannerPath += _T('\"');     
 
-			ffile.Close();
-		}
-	}
+            // This is where the discovery scanning should get done. I'll try using wxShell() rather than
+            // wxExecute() because Windows has deprecated the WinExe() function, but wxWidgets hasn't yet
+            // abandoned it's wxExecute() function. But wxShell() may be safer in the long term, if it works - and it does
+            // (but we get to see the CLI window flash for a second; whereas wxExecute() could suppress it from being seen
+            // oh well, one can't have everything in life or development)
+            wxString command = scannerPath; // if this fails, try ".\\do_mdns.exe" for the command line
+            bool bExecutedSucceeded = wxShell(command); // Yay, it didn't fail!
+            if (!bExecutedSucceeded)
+            {
+                result = 1;
 
-	// restore current working directory
-	fName.SetCwd(saveCurrentWorkingDirectory);
-	wxLogDebug(_T("Restored current working directory: %s"), (wxFileName::GetCwd()).c_str());
+                // Failure somehow
+                wxString message;
+                message = message.Format(_("KBserver Discovery failed. The scanner, do_mdns.exe, was tried, but it indicated an internal error.\nOr maybe a KBserver is not running, or its computer has lost power.\nAdapt It will continue running okay, but KB sharing will not work."));
+                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                m_bUserDlgOrMessageRequested = TRUE; // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+                wxMessageBox(message, _("KBserver discovery failed"), wxICON_ERROR | wxOK);
+                LogUserAction(_T("do_mdns.exe was tried, in wxShell(), but returned FALSE indicating an error"));
+
+                fn.SetCwd(saveCurrentWorkingDirectory);
+                GetMainFrame()->canvas->Thaw();
+                return;
+
+            }
+            wxASSERT(result == 0); // don't go further until testing gets past here
+
+            if (result == 0)
+            {
+                wxString kbserviceReturnName = _T("kbservice_file.dat"); // results filename of .dat type 
+                
+                // Make a first path to the kbservice_file.dat results file - it has been dropped into execPath folder
+                wxString discoveryPath = execPath + kbserviceReturnName;
+
+
+                // BEW 28Oct21 discoveryPath is pointing at where the AI execuable resides,
+                // e.g. when debugging from the IDE, that's in ...\bin\win32\Unicode Debug\ 
+                // with kbservice_file.dat at path end. When running a release, the returned
+                // .dat files would go into C:\Program Files (x86)\Adapt It WX Unicode\ folder - not pretty
+                wxFFile ffile(discoveryPath); // kbservice_file.dat should open for reading
+                if (ffile.IsOpened())
+                {
+                    bool bGotAll = ffile.ReadAll(&resultsStr); // pApp resultsStr holds the scanner results
+
+                    wxUnusedVar(bGotAll); // avoid gcc warning
+                    wxLogDebug(_T("%s::%s() line %d, Found these results: %s"),  __FILE__,__FUNCTION__,__LINE__,resultsStr.c_str()); // for logging window
+                    // If there were several KBservers running, there might be a sequence of found substrings
+                    ffile.Close();
+                }
+         
+            } // end of TRUE block (successful run) for test: if (result == 0)
+
+            // TODO?? - BEW 11Nov21 do I move the returned kbservice_file.dat file into _DAT_KB_SHARING folder ??
+            // Nah, the legacy code below uses what's in resultsStr, so I'll leave it that way.
+
+            fn.SetCwd(saveCurrentWorkingDirectory);
+            wxLogDebug(_T("Restored current working directory: %s"), (wxFileName::GetCwd()).c_str());
+        }
+    } // end of TRUE block for test: if (bTempCwd)
+
 
 	GetMainFrame()->canvas->Thaw();
-#endif
+#endif // matches #if defined (__WXMSW__)
 
 #if defined(__WXOSX_COCOA__)
 	
@@ -59994,7 +60528,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		}
 		*/
 	}
-#endif
+#endif  // matches  #if defined(__WXOSX_COCOA__)
+
+
 	// Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
 	// build glue code to link to the existing code for using ipaddr and hostname to be available
 	// to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
@@ -60187,6 +60723,10 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     wxString comma = _T(",");
     wxString theStr = str; // we'll devour this as we break out each substring
     int offset = wxNOT_FOUND;
+    // BEW 28Oct21 there was a space at the end after the final comma, so call Trim()
+    // to get rid of any final whitespace
+    theStr.Trim(); // from the end
+
     // Remove any (bogus) string final commas (there should not be any, but play safe)
     int length = theStr.Length();
     wxChar lastChar = theStr.GetChar(length - 1);
@@ -60304,13 +60844,13 @@ SD_SD_ValueIsIrrelevant
 };
 */
 
-void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_delete.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60362,13 +60902,13 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("pseudo_undelete.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60420,23 +60960,22 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString distPath) // whm 22Feb2021 removed execPath parameter
+void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString dataPath) // whm 22Feb2021 removed execPath parameter
 {
-	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("create_entry.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
 		// Since it only needs to be created once, and it already exists where we
-		// want it to be, just exit
+		// want it to be (in work folder's _DATA_KB_SHARING folder), just exit
 		return;
 	}
 	else
 	{
-		// Build it, and drop it in the dist folder
+		// Build it, and drop it in the _DATA_KB_SHARING folder folder
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datFilePath);
@@ -60479,13 +61018,13 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString distPath) // w
 	}
 }
 
-void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_user.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60495,52 +61034,52 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
 	}
 	else
 	{
-		// Build it, and drop it in the dist folder
+		// Build it, and drop it in the _DATA_KB_SHARING folder of AI UNicode Work folder
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datFilePath);
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			wxString line = _T("# Usage: ipAddress,username,password,username,");
+			wxString line = _T("# Usage: ipAddress,username,password,lookup_username,");
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# dist folder's 'input' file: lookup_user.dat");
+			line = _T("# data folder's 'input' file: lookup_user.dat");
 			f.AddLine(line);
 			line = _T("# AI executable's folder, output file: lookup_user_results.dat");
 			f.AddLine(line);
-			line = _T("# (A) Login uses first 3 fields, and ignores the 2nd username");
+			line = _T("# (A) Login uses first 3 fields, and ignores the 2nd name, lookup_username");
 			f.AddLine(line);
-			line = _T("# (B) If login succeeds, search for 2nd username in the user table.");
+			line = _T("# (B) If login succeeds, search for lookup_username in the user table.");
 			f.AddLine(line);
 			line = _T("# (A) and (B) together form the parameters for the .exe function required");
 			f.AddLine(line);
 			line = _T("# Purpose for this .dat input file:");
 			f.AddLine(line);
-			line = _T("# 1. determine if the 2nd user field is in the user table or not.");
+			line = _T("# 1. determine if the lookup_user value is in the user table or not.");
 			f.AddLine(line);
-			line = _T("# 2. If in the user table, return the useradmin flag value");
+			line = _T("# 2. If its in the user table, return the useradmin flag value");
 			f.AddLine(line);
-			line = _T("#    together with the 2nd username value itself & fullname too, in the order:");
+			line = _T("#    together with the lookup_username value itself & fullname too, in the order:");
 			f.AddLine(line);
-			line = _T("# username,fullname,useradmin,");
+			line = _T("# lookup_username,fullname,useradmin,");
 			f.AddLine(line);
-			line = _T("# If the 2nd username is not in the user table, the returned .dat file");
+			line = _T("# If the lookup_username is not in the user table, the returned .dat file");
 			f.AddLine(line);
-			line = _T("# should include this phrase in its first line's text: \"not in user table\"");
+			line = _T("# should include a phrase in its first line's text, like: \"not in user table\"");
 			f.AddLine(line);
 			line = _T("# If the username is indeed in the usertable, the returned .dat file");
 			f.AddLine(line);
 			line = _T("# should contain 2 lines, top line a comment saying \"success\" and");
 			f.AddLine(line);
-			line = _T("# the 2nd line having the values for: username,fullname,useradmin,");
+			line = _T("# the 2nd line having the values for: lookup_username,fullname,useradmin,");
 			f.AddLine(line);
-			line = _T("# e.g: Input .dat file:   192.168.1.9,kbadmin,kbauth,glenys@unit2,");
+			line = _T("# e.g: Input .dat file:   192.168.1.7,kbadmin,kbauth,glenys@unit2,");
 			f.AddLine(line);
 			line = _T("# and Output .dat file for the above should return: glenys@unit2,Glenys Waters,0,");
 			f.AddLine(line);
-			line = _T("ipAddress,username,password,username,");
+			line = _T("# ipAddress,username,password,lookup_username,");
 			f.AddLine(line);
 			f.Write();
 			f.Close();
@@ -60554,13 +61093,13 @@ void CAdapt_ItApp::MakeLookupUser(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("lookup_entry.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60609,13 +61148,13 @@ void CAdapt_ItApp::MakeLookupEntry(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("changed_since_timed.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60672,13 +61211,13 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString distPath
 	}
 }
 
-void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("upload_local_kb.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60750,13 +61289,12 @@ void CAdapt_ItApp::MakeUploadLocalKb(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm 22Feb2021 removed execPath parameter
+void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString dataPath)
 {
-	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());   // funNumber is const 3
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("list_users.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60766,7 +61304,7 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 	}
 	else
 	{
-		// Build it, and drop it in the dist folder
+		// Build it, and drop it in the data folder, _DATA_KB_SHARING of work folder
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datFilePath);
@@ -60777,7 +61315,7 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# dist folder's 'input' file: list_users.dat");
+			line = _T("# data folder's 'input' file: list_users.dat");
 			f.AddLine(line);
 			line = _T("# Results file: list_users_results.dat");
 			f.AddLine(line);
@@ -60787,7 +61325,7 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
             f.AddLine(line);
             line = _T("# with first line lacking the substring \"success\", and saying:");
             f.AddLine(line);
-			line = _T("# \"this user does not have permission to access the DB user's table:- <name>\"");
+			line = _T("# \"this user does not have permission to access the database user's table:- <name>\"");
 			f.AddLine(line);
 			line = _T("# If the check succeeds, return the list_users_results.dat file");
 			f.AddLine(line);
@@ -60801,9 +61339,9 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 			f.AddLine(line);
 			line = _T("# useradmin values, comma-separated.");
 			f.AddLine(line);
-			line = _T("# The executable will be:  do_users_list.exe with credentialss for entry:");
+            line = _T("# The executable will be:  do_list_users.exe with credentials for entry:");
 			f.AddLine(line);
-			line = _T("ipAddress,username,password,");
+			line = _T("# ipAddress,username,password,");
 			f.AddLine(line);
 			f.Write();
 			f.Close();
@@ -60817,13 +61355,13 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString distPath) // qhm
 	}
 }
 
-void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_permission.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60888,13 +61426,13 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_fullname.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -60959,13 +61497,13 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString distPath)
 	}
 }
 
-void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString distPath)
+void CAdapt_ItApp::MakeChangePassword(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
-	wxASSERT(!distPath.IsEmpty());
+	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_password.dat");
-	wxString datFilePath = distPath + datFilename;
+	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
 	{
@@ -62458,6 +62996,69 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 		}
 	}
 }
+/* No, remove, it has to happen at compile & link, not at OnInit() time.
+// BEW created next function 15Nov21 to avoid a link error when the executable is being linked, 
+// ("System Error ... unable to find libmariadb.dll file") because in the folder where the object files
+// are (e.g. when developing for Unicode Debug build, it's the folder ...\bin\win32\Unicode Debug\ )
+// because, Leon said, on 64 bit machines, 32 bit compilation is an emulation process, and that can be
+// dodgy - and our problem (even though we don't use a .dll) was that the libmariadb.dll was being 
+// searched for for linking, and it was not "there". He said a "clean Adapt It" is sometimes not
+// finding an external resource needed for linking, and so we need to provide it where the object
+// files happen to be. When I manually added libmariadb.dll to Unicode Debug folder, then linkage
+// worked right. Leon found the same behaviour in his testing too. So the next function is for
+// grabbing the .dll file from the installed C:\Program Files (x86)\MariaDB 10.5\lib\ folder, and
+// plonking it into ...adaptit-git\adaptit\bin\win32\Unicode Debug\ folder, or the Release one
+// if building the release build. Then it's 'seen' by the linker. Run this function from OnInit()
+bool CAdapt_ItApp::MoveMariaDLLtoOBJfolder(wxString& objFolder)
+{
+
+// TODO
+
+    return TRUE;
+}
+*/
+/*
+   // BEW 15Nov21 remove, this is declared and defined, but nowhere used now that do_mdns.exe is used
+
+// BEW created 20Oct21 .... a filtering function for enumerated files 
+// Pass in absolute path (from C:\) to the file, to match "candidate" value at filename start.
+// If successful, return TRUE and that particular file will be saved in arrFilenames (a wxArrayString)
+// Needed because _DATA_KB_SHARING folder may contain a couple of hundred files, but only a very few
+// would be expected to match the candidate value - e.g dLss_win.c  dLss_win.exe  dLss_win10.exe 
+bool CAdapt_ItApp::IsA_dLss_winFile(wxString absPath, wxString& candidate) 
+{
+    wxString fullpath = absPath;
+    wxFileName fName(fullpath);
+    wxString strName = fName.GetName();
+    bool bHasExtn = fName.HasExt();
+    if (!bHasExtn)
+    {
+        // Cannot be a .exe type file, return FALSE
+        return FALSE;
+    }
+    // Has an extension, so continue checking
+    wxString extnStr = fName.GetExt();
+    if (extnStr != _T("exe"))
+    {
+        // Not a windows .exe extension, so return FALSE
+        return FALSE;
+    }
+    // Must be a .exe type of file, so check for matching of
+    // the passed in substring, in candidate
+    int offset = wxNOT_FOUND;
+    offset = strName.Find(candidate);
+    if (offset != 0)
+    {
+        // Either "dLss_win" was not found, or it was found in
+        // non-initial location in the strName string; either way
+        // it's  not usable by the System(command) call
+        return FALSE;
+    }
+    // We have verified it starts with the substring "dLss_win" and it's extension 
+    // is "exe", that's enough for returning TRUE
+    return TRUE;
+}
+*/
 
 // BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too
 //void CAdapt_ItApp::SetMiniSlop(int width)

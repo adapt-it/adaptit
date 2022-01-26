@@ -275,6 +275,7 @@ public:
 	// m_bKbSvrAdaptationsTicked, or in glossing mode, m_bKbSvrGlossesTicked, is TRUE
 	bool m_bKbSvrAdaptationsTicked;
 	bool m_bKbSvrGlossesTicked;
+	bool m_bUserCancelledSharingSetupDlg;
 
 //#endif // _KBSERVER
 

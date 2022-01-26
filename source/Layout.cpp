@@ -287,23 +287,6 @@ void CLayout::Draw(wxDC* pDC)
 		// not in a consistent state that would allow it
 		return;
 	}
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
-
 	// BEW 21May15 added
 	if (m_pApp->m_bSupportFreeze)
 	{
@@ -517,23 +500,6 @@ void CLayout::Draw(wxDC* pDC)
 								  // medial punctuation) at a single active location
 	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero
 	m_pApp->m_nCurSequNum_ForPlacementDialog = -1; // reset to default -1 "undefined" value
-
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -1583,25 +1549,6 @@ wxArrayPtrVoid* CLayout::GetStripArray()
 // m_logicalDocSize.y set
 void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
-		{
-			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-			if (pSPhr->m_nSequNumber == nTestSN)
-			{
-				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-				int boxWidth = pTxtBox->GetClientRect().width;
-				wxSize sizeList = pListBox->GetClientSize();
-				int listWidth = sizeList.x;
-				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-			}
-		}
-	}
-#endif
 	// GetClientRect gets a rectangle in which upper left coords are always 0,0
 	//pApp->GetMainFrame()->canvas->GetClientSize(&fwidth,&fheight); // get width & height
 	//in pixels wx note: calling GetClientSize on the canvas produced different results in
@@ -1628,26 +1575,6 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 		// strip, having the end of the nav text drawn off-window
 	}
 	m_logicalDocSize = docSize; // initialize the private member, CLayout::m_logicalDocSize
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		if (gpApp->m_bKBReady && (gpApp->m_pActivePile != NULL))
-		{
-			CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-			if (pSPhr->m_nSequNumber == nTestSN)
-			{
-				wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-				CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-				int boxWidth = pTxtBox->GetClientRect().width;
-				wxSize sizeList = pListBox->GetClientSize();
-				int listWidth = sizeList.x;
-				wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-					__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-			}
-		}
-	}
-#endif
-
 }
 
 // sets m_logicalDocSize.y value to the logical height (in pixels) of the laid out strips, or to
@@ -2537,22 +2464,7 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 	wxASSERT(pActivePile != NULL);
 	if (nActiveStripIndex < 0)
 		return;
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
+
 	CStrip* pActiveStrip = NULL;
 	pActiveStrip = (CStrip*)m_stripArray.Item(nActiveStripIndex);
 	wxASSERT(pActiveStrip);
@@ -2600,23 +2512,6 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 		pActiveStrip->m_arrPileOffsets.Add(nextOffset);
 		nextOffset += width + gap;
 	}
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -3024,22 +2919,6 @@ void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
 int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips,
 	int numTotalStrips)
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	// "upper" partition is the one with small sequence number, "lower" has larger
 	// sequence numbers
 	//if (numTotalStrips < 64)
@@ -3082,22 +2961,6 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 		}
 		nIndexToStartFrom = nLowerBound;
 	}
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	return nIndexToStartFrom;
 }
 
@@ -3430,22 +3293,6 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 			__FILE__, __FUNCTION__, __LINE__, nFirstInvalidStrip, nEndPileIndex);
 	}
 #endif */
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	return TRUE;
 }
 
@@ -3519,23 +3366,6 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nStripWidth,
 	int gap, int nFirstPileIndex, int nEndPileIndex, int nInitialStripCount)
 {
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
-
 	int nFinalStripCount = nInitialStripCount; // initialize to the value passed in
 	int nStripCount = 0;
 	int stripIndex = nFirstStrip;
@@ -3858,22 +3688,6 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			wxLogDebug(_T("	Rebuild: 6. Last filled strip is INVALID,  Final count of refilled strips is %d"), nFinalStripCount);
 	}
 #endif
-#endif
-#if defined(_DEBUG) && defined (_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box & button WIDTH %d, listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
 #endif
 
 	return nFinalStripCount; // the caller will renumber strip indices if that is necessary

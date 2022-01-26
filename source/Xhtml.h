@@ -395,8 +395,10 @@ private:
 
 	// functions: encoding converters & for mining of metadata from the exported text
 	CBString GetLanguageCode();
+public:
 	CBString ToUtf8(const wxString& str);
 	wxString ToUtf16(CBString& bstr);
+private:
 	CBString GetExporterID();
 	CBString GetDateTime();
 	CBString GetMyBookName(); // grab's what is in the app's member, m_bookName_Current

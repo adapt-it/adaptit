@@ -2628,6 +2628,10 @@ void CMainFrame::OnKBSharingDlg(wxCommandEvent& event)
 	else
 	{
 		gpApp->LogUserAction(_T("Cancelled OnKBSharingDlg()"));
+		// BEW added 20Jan22, to tighten up conditions for when the menu item is enabled
+		gpApp->m_bIsKBServerProject = FALSE;
+		gpApp->m_bIsGlossingKBServerProject = FALSE;
+
 	}
 }
 
@@ -2642,6 +2646,10 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
+	//CMainFrame* pFrame = gpApp->GetMainFrame();
+	//if (pFrame->m_bUserCancelledSharingSetupDlg) - No, must not. Otherwise a Cancel will lock user out of ticking a box for 
+	// Share adaptations or Share glosses, or both, or Cancel - Cancel in that dialog will turn sharing off, if it's on		
+		
     // BEW added 28May13, check the m_strUserID and m_strFullname strings are setup up,
     // if not, open the dialog to get them set up -- the dialog cannot be closed except
     // by providing non-empty strings for the two text controls in it. Setting the
@@ -2684,11 +2692,13 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 			// successfully in the OnOK() button handler of KbSharingSetup, and the wanted
 			// calls for one or both of SetupForKBServer(1) and SetupForKBServer(2) done,
 			// and checks for language codes completed successfully
+			m_bUserCancelledSharingSetupDlg = FALSE;
 		}
 		else
 		{
 			gpApp->LogUserAction(_T("Cancelled KbSharingSetup instantiation after calling CMainFrame::OnKBSharingSetupDlg()"));
-			// The earlier state of the sharing settings has been restored
+			// The earlier state of the sharing settings has been 
+			m_bUserCancelledSharingSetupDlg = TRUE;
 		}
 	}
 }
@@ -2783,7 +2793,30 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 		return;
 	}
 
+	// BEW added this test, 20Jan22
+	if (((gpApp->m_bIsKBServerProject == FALSE) && (gpApp->m_bIsGlossingKBServerProject == FALSE))
+		||
+		(m_bUserCancelledSharingSetupDlg == TRUE))
+	{
+		if (m_bUserCancelledSharingSetupDlg)
+		{
+			gpApp->m_bIsKBServerProject = FALSE; // cancelling should kill the sharing
+			event.Enable(FALSE);
+			return;
+
+		}
+		event.Enable(FALSE);
+		return;
+	}
+
+	if (gpApp->m_bKBReady && gpApp->m_bGlossingKBReady && gpApp->m_bIsKBServerProject)
+	{
+		event.Enable(TRUE);
+		return;
+	}
+
 	event.Enable(FALSE);
+
 	// Enable if both KBs of the project are ready for work
 	//event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
@@ -2923,6 +2956,7 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // instance and then again for the glossing KB's KbServer instance)
 wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostname)
 {
+	wxString password = wxEmptyString;
 	wxString msg;
 	if (gpApp->m_bUseForeignOption)
 	{
@@ -2934,7 +2968,7 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 	}
 	else
 	{
-		msg = _("You are adding yourself ( %s ) to the kbserver's user table.\nYour Username is copied from the Edit menu's Choose Username... dialog.\nYour Informal Username ( %s ), copied from the same place, will also be included.\nChoose for yourself a password, and type it below.\nipAddress and hostname are: %s  &  %s\nYou must type a password - and remember it for later use. Write it down.");
+		msg = _("You are authenticating yourself ( %s ) to the kbserver's user table.\nYour Username is copied from the Edit menu's Choose Username... dialog.\nYour Informal Username ( %s ), copied from the same place, will also be included.\nChoose for yourself a password, and type it below.\nipAddress and hostname are: %s  &  %s\nYou must type a password - and remember it for later use. Write it down.");
 		msg = msg.Format(msg, gpApp->m_strUserID.c_str(), gpApp->m_strFullname.c_str(), ipAddr.c_str(), hostname.c_str());
 		// The following are known at this point, so save them in the 'normal' vars
 		gpApp->UpdateNormalIpAddr(ipAddr);
@@ -2943,10 +2977,6 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 	}
 	wxString caption = _("Type a suitable password");
 	wxString default_value = _T("");
-#if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
-	// Simplify my life during development
-	default_value = _T("TPI0907en");
-#endif
 	// it will be shown centred with default coords, and with the frame as parent window
 
 	wxRect frameRect;
@@ -2977,7 +3007,7 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& ipAddr, wxString& hostna
 	// I have to guess how many pixels horizontally for half the dlg width. I'll guess 150
 	myLeftCoord = frameLeft + frameWidth / 2 - 150;
 
-	wxString password = ::wxGetPasswordFromUser(msg,caption,default_value,this,
+	password = ::wxGetPasswordFromUser(msg,caption,default_value,this,
 								myLeftCoord, myTopCoord, FALSE); // FALSE is bool centre
 	if (!password.IsEmpty())
 	{

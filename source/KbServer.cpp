@@ -62,9 +62,20 @@ wxCriticalSection g_jsonCritSect;
 
 #include <wx/listimpl.cpp>
 
+// =========================
+//#include <string>
+//using namespace std;
 
-using namespace std;
-#include <string>
+
+// BEW 5Nov21 I won't bother with a using-directive for the other two needed for our embedding of
+// .c functions into the app's code for kbserver support, so those two will need to be <name.h> type
+// See C++ Primmer Plus, Third Edition, Stephen Prata; pages 360 to 365 for his discussion of the issues
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+
+// =========================
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
@@ -165,6 +176,11 @@ std::string urlencode(const std::string &s)
     return escaped;
 }
 */
+
+
+
+
+
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -737,6 +753,7 @@ wxArrayString* KbServer::GetTargetArray()
 	return &m_arrTarget;
 }
 
+
 // If the data download succeeds, the 'last sync' timestamp is extracted & stored in the 
 // private member variable: m_kbServerLastTimestampReceived
 // If there is a subsequent error then -1 is returned and the timestamp value in 
@@ -1024,7 +1041,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 		// I have tested for insufficient permission - using app's public bool, m_bHasUserAdminPermission.
 		// If that is TRUE, the code for executing ListUsers() can be called. However, since
 		// an accessing attempt on the KB SharingManager will check that boolean too, getting to
-		// this ListUsers, a further boolean m_bKBSharingMgtEntered suppresses any internal call of
+		// this ListUsers, a further boolean m_bKBSharingMgrEntered suppresses any internal call of
 		// LookupUser() when there has been successful entry to the manager. The user may want/need
 		// to make calls to ListUsers() more than once while in the manager.
 
@@ -1041,7 +1058,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, w
 			if (!bExecutedOK)
 			{
 				// error in the call, inform user, and put entry in LogUserAction() - English will do
-				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - no match match in the user table; is kbserver turned on? Adapt It will continue working. ");
+				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - no match in the user table; is kbserver turned on? Adapt It will continue working. ");
 				msg = msg.Format(msg, __LINE__);
 				wxString title = _T("Probable do_list_users.exe error");
 				wxMessageBox(msg,title,wxICON_WARNING | wxOK);
@@ -1065,24 +1082,24 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 	{
 		m_pApp->m_bUser1IsUser2 = TRUE;
 		m_pApp->m_bUserAuthenticating = TRUE;
+		// BEW 25Jan22 added next line, so that the 4-field credentials dialog can be suppressed
+		// from showing redundantly -- by code within ConfigureMovedDatFile
+		m_pApp->m_Username2 = whichusername;
 	}
 
 	// Prepare the .dat input dependency: "lookup_user.dat" file, into
-	// the execPath folder, ready for the ::wxExecute() call below
-	// BEW 24Aug20 NOTE - calling _T("do_user_lookup.exe") with an absolute path prefix
-	// DOES NOT WORK! As in: wxString command = execPath + _T("do_user_lookup.exe")
-	// ::wxExecute() returns the error string:  Failed to execute script ....
-	// The workaround is to temporarily set the current working directory (cwd) to the
-	// AI executable's folder, do the wxExecute() call on just the script filename, and
-	// restore the cwd after it returns.
+	// the execPath folder, ready for the (system() call below. Or, for Windows,
+	// take the prepared do_user_lookup_and_credentials_check.exe into the execPath folder
+	// ready for calling it.
 	bool bReady = m_pApp->ConfigureDATfile(lookup_user); // arg is const int, value 2
 	if (bReady)
 	{
-		// The input .dat file is now set up ready for do_user_lookup.exe
-		wxString execFileName = _T("do_user_lookup.exe");
+		// The input lookup_user.dat file is now set up ready for use by 
+		// do_user_lookup_and_permissions_check.exe
+		wxString execFilename = _T("do_user_lookup_and_permissions_check.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("lookup_user_results.dat");
-		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
+		bool bExecutedOK = m_pApp->CallExecute(lookup_user, execFilename, execPath, resultFile, 32, 33, TRUE);
 		// In above call, last param, bReportResult, is default FALSE therefore omitted;
 		// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
 

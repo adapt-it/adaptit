@@ -73,6 +73,7 @@
 //#if defined(_DEBUG)
 //#define _KBSERVER
 //#endif
+#define FIRST_TRY
 
 // When src word has no puncts, and user adds puncts to tgt (copied) word, because its an
 // unknown meaning, different processing paths are required to prevent unwanted loss of
@@ -888,21 +889,22 @@ enum ServDiscDetail
 };
 
 // Don't use an enum, int values are simpler
-	const int noDatFile = 0;
-	const int credentials_for_user = 1;
-	const int lookup_user = 2;
-	const int list_users = 3;
-	const int create_entry = 4;
-	const int pseudo_delete = 5;
-	const int pseudo_undelete = 6;
-	const int lookup_entry = 7;
-	const int changed_since_timed = 8;
-	const int upload_local_kb = 9;
-	const int change_permission = 10;
-	const int change_fullname = 11;
-	const int change_password = 12;
-	// add more here, as our solution matures
-	const int blanksEnd = 13; // this one changes as we add more above
+const int noDatFile = 0;
+const int credentials_for_user = 1;
+const int lookup_user = 2;
+const int list_users = 3;
+const int create_entry = 4;
+const int pseudo_delete = 5;
+const int pseudo_undelete = 6;
+const int lookup_entry = 7;
+const int changed_since_timed = 8;
+const int upload_local_kb = 9;
+const int change_permission = 10;
+const int change_fullname = 11;
+const int change_password = 12;
+// add more here, as our solution matures
+const int blanksEnd = 13; // this one changes as we add more above
+
 //#endif
 
 
@@ -2358,14 +2360,19 @@ class CAdapt_ItApp : public wxApp
     // path to the dist folder or the executable path. Use the App members m_dataKBsharingPath
     // and m_appInstallPathOnly + PathSeparator. 
 	//wxString distPath; // to Leon's dist folder - always a child of the app's folder
-	//wxString execPath; // the "executablePath" with the executable app at end removed
+
+	// BEW 19Oct21, dist folder no longer used, and the particular dLss_win.exe or dLss_win10.exe
+	// file needs to be moved to the executablePath folder, so that there is no path prefix to
+	// it's call. For instance, exacutablePath when working in the IDE with Unicode Debug as the
+	// location of the Adapt_It_Unicode.exe executable file, will have the executable in the
+	// Unicode Debug folder, which is exactly what we want, for DoDiscoverKBservers() to work
+	// corectly
+	wxString executablePath; // has app at end (app name needs to be removed)
+	wxString execPath; // the "executablePath" with the executable app at end removed
 	//wxString GetDistFolder(); // ending in the path separator
 
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
 	bool m_bDoingChangePassword; // BEW added, 11Jan21, default FALSE - for KB Sharing Mgr
-
-	// Handler files for the cases in the KBserverDAT_Blanks switch
-	void MakeCredentialsForUser(const int funcNumber, wxString distPath);  // whm Note: removed execPath parameter
 
 	// BEW 18Dec20 Legacy code for KB Sharing Mgr is too convoluted, use a set of arrays.
 	// So I'm refactoring to use wxArrayString instances and wxArrayInt for useradmin value
@@ -2412,8 +2419,8 @@ class CAdapt_ItApp : public wxApp
 	wxString m_temp_password;
 	wxString m_temp_useradmin_flag;
 
-	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on discovering
-	// one or more KBservers which are publishing, in a single session.
+	// BEW 20jUl17, the following boolean, when TRUE, is used to switch to being on,
+	// the discovery of one or more KBservers which are able to accept access, in a single session.
 	bool m_bDiscoverKBservers;
 
 	// BEW 1Sep20 for our refactored 2-page KB Sharing Manager, we'll store some
@@ -2538,17 +2545,31 @@ class CAdapt_ItApp : public wxApp
 							 // CreateEntry function, for enum value create_entry (=4) when user
 							 // is NOT in the KB Editor tabbed dialog
 	// BEW 18Aug20 next three calls are used in sequence to (a) delete the old
-	// .dat file from the execPath, (b) move the 'blank' .dat file up from the dist folder
-	// to the parent folder, the execPath folder, and (c) configure the moved up .dat
-	// folder by shortening the contents to have a descriptive line followed by the
-	// filled out commandLine - with the appropriate values for the wxExecute() call to use
+	// .dat file from the execPath, (b) move the 'blank' .dat file up from the _DATA_KB_SHARING folder
+	// to the executable's folder, the execPath folder, and (c) configure the moved  .dat boilerplate
+	// internal lines by shortening the contents to have a descriptive line followed by the
+	// filled out commandLine - with the appropriate values for the final .exe file to have
 	void DeleteOldDATfile(wxString filename, wxString execFolderPath);
-	void MoveBlankDatFileUp(wxString filename, wxString distFolderPath, wxString execFolderPath);
+	void MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath);
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
 	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
 								   // into CallExecute() function
+	// BEW created next function 15Nov21 to avoid a link error when the executable is being linked, 
+	// ("System Error ... unable to find libmariadb.dll file") because in the folder where the object files
+	// are (e.g. when developing for Unicode Debug build, it's the folder ...\bin\win32\Unicode Debug\ )
+	// because, Leon said, on 64 bit machines, 32 bit compilation is an emulation process, and that can be
+	// dodgy - and our problem (even though we don't use a .dll) was that the libmariadb.dll was being 
+	// searched for for linking, and it was not "there". He said a "clean Adapt It" is sometimes not
+	// finding an external resource needed for linking, and so we need to provide it where the object
+	// files happen to be. When I manually added libmariadb.dll to Unicode Debug folder, then linkage
+	// worked right. Leon found the same behaviour in his testing too. So the next function is for
+	// grabbing the .dll file from the installed C:\Program Files (x86)\MariaDB 10.5\lib\ folder, and
+	// plonking it into ...adaptit-git\adaptit\bin\win32\Unicode Debug\ folder, or the Release one
+	// if building the release build. Then it's 'seen' by the linker. Run this function from OnInit()
+	//bool MoveMariaDLLtoOBJfolder(wxString& objFolder); <<-- No, it has to happen at compile & link, not at OnInit()
+
 	// The following ones are for use in adapting - using the refactored KbServer class's signatures' values
 	// These are not permanently stored, except in the entry table of kbserver; in AI they are scratch variables
 	wxString m_curNormalSource;   // CSourcePhrase's m_key value
@@ -2621,7 +2642,7 @@ class CAdapt_ItApp : public wxApp
 
 						// The timespan value is in AdaptitConstants.h - two #defines
 	wxDateTime		m_msgShownTime; // set by a call to wxDateTime::Now()
-
+	wxString		mariadb_path; // set to C:\Program Files (x86)\MariaDB 10.5\  at end of OnInit()
 
 //#endif // _KBSERVER
 
@@ -3698,22 +3719,47 @@ public:
     // a value parameter and not a reference parameter.
 	void CreateInputDatBlanks(wxString execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
-	void MakeLookupUser(const int funcNumber, wxString distPath); // =2  // whm Note: removed execPath parameter
-	void MakeListUsers(const int funcNumber, wxString distPath); // = 3  // whm Note: removed execPath parameter
-	void MakeCreateEntry(const int funcNumber, wxString distPath); // = 4  // whm Note: removed execPath parameter
-	void MakePseudoDelete(const int funcNumber, wxString distPath); // = 5  // whm Note: removed execPath parameter
-	void MakePseudoUndelete(const int funcNumber, wxString distPath); // = 6  // whm Note: removed execPath parameter
-	void MakeLookupEntry(const int funcNumber, wxString distPath); // = 7  // whm Note: removed execPath parameter
-	void MakeChangedSinceTimed(const int funcNumber, wxString distPath); // = 8  // whm Note: removed execPath parameter
-	void MakeUploadLocalKb(const int funcNumber, wxString distPath); // = 9  // whm Note: removed execPath parameter
-	void MakeChangePermission(const int funcNumber, wxString distPath); // = 10  // whm Note: removed execPath parameter
-	void MakeChangeFullname(const int funcNumber, wxString distPath); // = 11  // whm Note: removed execPath parameter
-	void MakeChangePassword(const int funcNumber, wxString distPath); // = 12  // whm Note: removed execPath parameter
+
+/*
+// Don't use an enum, int values are simpler
+	const int noDatFile = 0;
+	const int credentials_for_user = 1;
+	const int lookup_user = 2;
+	const int list_users = 3;
+	const int create_entry = 4;
+	const int pseudo_delete = 5;
+	const int pseudo_undelete = 6;
+	const int lookup_entry = 7;
+	const int changed_since_timed = 8;
+	const int upload_local_kb = 9;
+	const int change_permission = 10;
+	const int change_fullname = 11;
+	const int change_password = 12;
+	// add more here, as our solution matures
+	const int blanksEnd = 13; // this one changes as we add more above
+
+*/
+	// Handler files for the cases in the KBserverDAT_Blanks switch, in CreateInputDatBlanks()
+	void MakeCredentialsForUser(const int funcNumber, wxString dataPath); // = 1 // whm Note: removed execPath parameter
+	void MakeLookupUser(const int funcNumber, wxString dataPath); // =2  // whm Note: removed execPath parameter
+	void MakeListUsers(const int funcNumber, wxString dataPath); // = 3  // whm Note: removed execPath parameter
+	void MakeCreateEntry(const int funcNumber, wxString dataPath); // = 4  // whm Note: removed execPath parameter
+	void MakePseudoDelete(const int funcNumber, wxString dataPath); // = 5  // whm Note: removed execPath parameter
+	void MakePseudoUndelete(const int funcNumber, wxString dataPath); // = 6  // whm Note: removed execPath parameter
+	void MakeLookupEntry(const int funcNumber, wxString dataPath); // = 7  // whm Note: removed execPath parameter
+	void MakeChangedSinceTimed(const int funcNumber, wxString dataPath); // = 8  // whm Note: removed execPath parameter
+	void MakeUploadLocalKb(const int funcNumber, wxString dataPath); // = 9  // whm Note: removed execPath parameter
+	void MakeChangePermission(const int funcNumber, wxString dataPath); // = 10  // whm Note: removed execPath parameter
+	void MakeChangeFullname(const int funcNumber, wxString dataPath); // = 11  // whm Note: removed execPath parameter
+	void MakeChangePassword(const int funcNumber, wxString dataPath); // = 12  // whm Note: removed execPath parameter
+
+	bool m_bAddUser2UserTable; // BEW 24Dec21, defaul FALSE, but True in app's OnAddUsersToKBserver() handler
+
 	void CheckForDefinedGlossLangName();
 
 	wxString m_datPath; // BEW 9Oct20, copy from ConfigureMovedDatFile() to here so that
 						// CallExecute() can pick it up to delete it from the execPath folder
-						// after the wxExecute() call has finished. This way makes sure old
+						// after the system() call has finished. This way makes sure old
 						// input .dat files don't linger to be a potential source of error
 	wxString m_ChangedSinceTimed_Timestamp;
 	bool m_bUserRequestsTimedDownload; // set True if user uses GUI to ask for a bulk
@@ -4269,8 +4315,9 @@ public:
 								// and books.xml files are installed
 
     /// whm 22Feb2021 added a new App member m_dataKBsharingFolderName to hold
-    /// the folder name "d_DATA_KB_SHARING". The assignment of that folder name is done in
-    /// the .cpp file at about line 23750. See next comment. (Formerly the folder was "dist")
+    /// the folder name "_DATA_KB_SHARING". The assignment of that folder name is done in
+    /// the .cpp file at about line 23750. See next comment. (Formerly the folder was "dist"
+	/// in a different location)
     wxString m_dataKBsharingFolderName;
 
     /// whm 13Feb2021 added the new App member m_dataKBsharingPath
@@ -5449,6 +5496,9 @@ public:
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10
 	bool	EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
 												enum LoadabilityFilter filtered); // BEW added 6Aug10
+	// BEW 15Nov21 remove, this is declared and defined, but nowhere used
+	//bool    IsA_dLss_winFile(wxString absPath, wxString& candidate); // pass in absolute path (from C:\) to the file,
+															// to match "candidate" value at filename start
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindArrayStringUsingSubString(const wxString& subStr, wxArrayString* strArray, int atPosn); // whm added 8Jul12
 	wxString CleanupFilterMarkerOrphansInString(wxString strFilterMarkersSavedInDoc);

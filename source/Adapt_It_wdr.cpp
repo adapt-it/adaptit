@@ -9754,7 +9754,7 @@ wxSizer *user1_user2_lookup_func( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("LookupUser and ListUsers use this dialog. It has text boxes for two usernames. The higher username box is for authenticating. The lower one, is for the username to be looked up. Those two usernames can be the same, or different. If you enter the same username in each, then LookupUser is intended, for doing normal adapting or glossing work in your project.  If the usernames are different, you are wanting access to the Knowledge Base Manager, and you are asking if the username in the lower box has permission to see the list of all known users.  Make sure you keep a written record of the first username, and its password."), wxDefaultPosition, wxSize(560,120), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("LookupUser and ListUsers use this dialog. It has text boxes for two usernames. The higher username box is for authenticating. The lower one, is for the username to be looked up. Those two usernames can be the same, or different. If you enter the same username in each, then LookupUser is intended, for doing normal adapting or glossing work in your project.  If the usernames are different, you are wanting access to the Knowledge Base Manager, and you are asking if the username in the lower box has permission to see the list of all known users.  Make sure you keep a written record of the first username, and its password. (If the ipAddress and password are empty, but you know what they are, you can type them here to get access to the KBserver.)"), wxDefaultPosition, wxSize(560,120), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("This is your chosen  ipAddress for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
@@ -9796,6 +9796,76 @@ wxSizer *user1_user2_lookup_func( wxWindow *parent, bool call_fit, bool set_size
     item12->AddButton( new wxButton( parent, wxID_CANCEL ) );
     item12->Realize();
     item1->Add( item12, 0, wxGROW|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_USER_INFO, _("You are adding a new user to the KBserver database. Here you need to type in the following information:  1. username  2. fullname  3. username's password. You also need to tick the checkbox if the new user is permitted to add more users.  If permission is not granted, the new user can use the KBserver, but not add more users. "), wxDefaultPosition, wxSize(480,80), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    item3->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_NEW_USERNAME, _("1.  Username "), wxDefaultPosition, wxSize(150,-1), 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 10 );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_USERNM, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item3, 0, wxALL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    item6->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_NEW_FULLNAME, _("2.  Fullname"), wxDefaultPosition, wxSize(150,-1), 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_FULLNAME, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item6, 0, wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_USERS_PASSWORD, _("3.  Username's Password"), wxDefaultPosition, wxSize(150,-1), 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_USERS_PWD, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item9, 0, wxRIGHT|wxTOP|wxBOTTOM, 5 );
+
+    wxCheckBox *item12 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSION, _("Grant Permission"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStdDialogButtonSizer *item13 = new wxStdDialogButtonSizer;
+    { wxButton *button = new wxButton( parent, wxID_OK );
+      button->SetDefault();
+      item13->AddButton( button ); }
+    item13->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item13->Realize();
+    item1->Add( item13, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxALL, 5 );
 

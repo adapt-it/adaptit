@@ -55,6 +55,9 @@
 #include "MainFrm.h"
 #include "StatusBar.h"
 
+//#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+//#include "C:\Program Files (x86)\MariaDB 10.5\lib\
+
 extern bool gbIsGlossing;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -164,11 +167,23 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
 	wxASSERT(m_pConnectedTo != NULL);
-	// whm 31Aug2021 modified 2 lins below to use the AutoCorrectTextCtrl class which is now
+
+	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
 	// used as a custom control in wxDesigner's RetranslationDlgFunc() dialog.
-	m_pTheUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
+	//m_pTheUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME); // BEW 17Nov21 temp remove the cast
+	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
+#if (_DEBUG)
+	wxTextCtrl* usernameCtrlPtr = m_pTheUsername; // temp
+	wxString aUserNm = usernameCtrlPtr->GetValue();
+#endif
 	wxASSERT(m_pTheUsername != NULL);
-	m_pEditInformalUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
+	// m_pEditInformalUsername = (AutoCorrectTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME); // BEW 17Nov21 temp remove the cast
+	m_pEditInformalUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
+#if (_DEBUG)
+	wxTextCtrl* informal_usernameCtrlPtr = m_pEditInformalUsername; // temp
+	wxString anInformalNm = informal_usernameCtrlPtr->GetValue();
+#endif
+
 	wxASSERT(m_pEditInformalUsername != NULL);
 	m_pEditPersonalPassword = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD);
 	wxASSERT(m_pEditPersonalPassword != NULL);
@@ -255,15 +270,15 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	bool bReady = m_pApp->ConfigureDATfile(lookup_user); // case = 2
 	if (bReady)
 	{
-		// The input .dat file is now set up ready for do_user_lookup.exe
-		wxString execFileName = _T("do_user_lookup.exe");
+		// The input .dat file is now set up ready for do_lookup_user.exe
+		wxString execFileName = _T("do_lookup_user.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("lookup_user_results.dat");
 #if defined  (_DEBUG)
 		wxLogDebug(_T("CallExecute(lookup_user = %d) line %d: entering, in Mgr creator"),
 			lookup_user, __LINE__);
 #endif
-		bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33);
+		bExecutedOK = m_pApp->CallExecute(lookup_user, execFileName, execPath, resultFile, 32, 33, TRUE);
 		// In above call, last param, bReportResult, is default FALSE therefore omitted;
 		// wait msg 32 is _("Authentication succeeded."), and msg 33 is _("Authentication failed.")
 #if defined (_DEBUG)

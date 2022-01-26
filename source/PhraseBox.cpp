@@ -2508,22 +2508,6 @@ void CPhraseBox::HidePhraseBox()
 // scrolling.
 void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 {
-#if defined(_DEBUG) && defined(_OVERLAP)
-	{
-		int nTestSN = 2370; // for "ngunhi" 3rd word in 1:67 ch 1 of Luke
-		CSourcePhrase* pSPhr = gpApp->m_pActivePile->GetSrcPhrase();
-		if (pSPhr->m_nSequNumber == nTestSN)
-		{
-			wxTextCtrl* pTxtBox = gpApp->m_pTargetBox->GetTextCtrl();
-			CMyListBox* pListBox = gpApp->m_pTargetBox->GetDropDownList();
-			int boxWidth = pTxtBox->GetClientRect().width;
-			wxSize sizeList = pListBox->GetClientSize();
-			int listWidth = sizeList.x;
-			wxLogDebug(_T("%s::%s() line %d: box WIDTH %d, PASSED IN WIDTH %d , listWidth %d , tgt = %s"),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, width, listWidth, pSPhr->m_adaption.c_str());
-		}
-	}
-#endif
 	// BEW 27July21, refactored to change the width value to encompass the widest string of the list
 	// 
 	// Legacy Comment: The incoming width parameter is set by the caller in the View's ResizeBox,  
