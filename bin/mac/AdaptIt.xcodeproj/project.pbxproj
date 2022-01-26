@@ -221,6 +221,7 @@
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
 		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
+		1391211B2724CCE600B05139 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = ../../../../../../System/Library/Frameworks/QuartzCore.framework; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		270E0AE0184BE207005FAB50 /* FreeTransSplitterDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransSplitterDlg.h; path = ../../source/FreeTransSplitterDlg.h; sourceTree = "<group>"; };
 		270E0AE1184BE287005FAB50 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = "<group>"; };
@@ -887,6 +888,7 @@
 				C8DE45661323679C0030EC9B /* base64.cpp */,
 				03566C6A1BCD9AB8008365C8 /* AGL.framework */,
 				03566C6B1BCD9AB8008365C8 /* AppKit.framework */,
+				1391211B2724CCE600B05139 /* QuartzCore.framework */,
 				03566C6C1BCD9AB8008365C8 /* IOKit.framework */,
 				20286C33FDCF999611CA2CEA /* Carbon.framework */,
 				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
@@ -1255,7 +1257,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6.10.4;
+				CURRENT_PROJECT_VERSION = 6.10.5;
 				DEVELOPMENT_TEAM = C5GMB572MV;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1289,7 +1291,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 6.10.4;
+				MARKETING_VERSION = 6.10.5;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1298,6 +1300,8 @@
 					"-lcurl",
 					"-lwx_osx_cocoa_static",
 					"-lz",
+					"-framework",
+					QuartzCore,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.adapt-it.adaptit";
 				PRODUCT_NAME = "Adapt It";
@@ -1368,7 +1372,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				CURRENT_PROJECT_VERSION = 6.10.4;
+				CURRENT_PROJECT_VERSION = 6.10.5;
 				DEVELOPMENT_TEAM = C5GMB572MV;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1402,7 +1406,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Release";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 6.10.4;
+				MARKETING_VERSION = 6.10.5;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1411,6 +1415,8 @@
 					"-lcurl",
 					"-lwx_osx_cocoa_static",
 					"-lz",
+					"-framework",
+					QuartzCore,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.adapt-it.adaptit";
 				PRODUCT_NAME = "Adapt It";

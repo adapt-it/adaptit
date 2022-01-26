@@ -33,7 +33,17 @@ incoming= %(packager)s
 EOF
 fi
 
-# Now do the actual uploading
+# Now do the actual uploading using dput. The form of the command for uploading
+# a single distribution's packages at the command line is (for example, uploading 
+# the trusty amd64 packages):
+#   cd ~/pbuilder/trusty-amd64_result/
+#   dput packager:ubuntu adaptit_6.10.5-1+trusty_amd64.changes
+# Note: dput will ask for your passphrase for the public ssh signing key you supplied to PSO.
+# The above single dist command may fail. If so, just remove any unwanted
+# *_result folders from the pbuilder folder and run this debupload.sh scrip with
+# the appropriate version number as its only parameter.
+# The command/script should end with the output: "Successfully uploaded packages."
+
 for i in $(find ~/pbuilder/*_result -type f -name "adaptit_*+*.changes")
 do
   dput packager:ubuntu/$(echo $i |sed -e 's/^.*+//' -e 's/_.*$//') $i

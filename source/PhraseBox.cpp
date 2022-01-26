@@ -3714,6 +3714,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		m_bDoContract = FALSE; // initialise, ditto
 
 		bool bWasMadeDirty = FALSE;  //unused
+		bWasMadeDirty = bWasMadeDirty; // avoid gcc warning
 
 		// whm Note: here we can eliminate the test for Return, BackSpace and Tab
 		pApp->m_bUserTypedSomething = TRUE;
@@ -4079,6 +4080,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 //#endif
 
 	int nPhraseBoxWidthAdjustMode = 1; // used to be an enum value of steadyAsSheGoes, value 1
+	wxUnusedVar(nPhraseBoxWidthAdjustMode);
 
 	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
 	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; we just want the y-value

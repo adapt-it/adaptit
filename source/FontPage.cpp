@@ -183,6 +183,11 @@ void CFontPageCommon::DoInit()
 {
 	gpApp->m_pLayout->m_bFontInfoChanged = FALSE;
 
+    // reset dirty bits
+    m_bSourceChanged = false;
+    m_bTargetChanged = false;
+    m_bNavTextChanged = false;
+
 	// Load font page member data into text controls
 	// the following font page text controls had their SetEditable to FALSE and
 	// their validators set in the constructor above.
@@ -372,6 +377,7 @@ void CFontPageCommon::DoSourceFontChangeBtn(wxWindow* parent)
 	wxFontDialog fontDlg(parent,tempSrcFontData);
 	if(fontDlg.ShowModal() == wxID_OK)
 	{
+        m_bSourceChanged = true;
 		// Notes: 
 		// I have not used the wxGenericValidator to transfer to/from
 		// the controls and the member variables, but I manually update 
@@ -429,6 +435,7 @@ void CFontPageCommon::DoTargetFontChangeBtn(wxWindow* parent)
 	wxFontDialog fontDlg(parent,tempTgtFontData);
 	if(fontDlg.ShowModal() == wxID_OK)
 	{
+        m_bTargetChanged = true;
 		// See notes in DoSourcetFontChangeBtn() handler above.
 		// update the read-only edit boxes to reflect user choices
 		tempTgtFontData = fontDlg.GetFontData();
@@ -464,6 +471,7 @@ void CFontPageCommon::DoNavTextFontChangeBtn(wxWindow* parent)
 	wxFontDialog fontDlg(parent,tempNavFontData);
 	if(fontDlg.ShowModal() == wxID_OK)
 	{
+        m_bNavTextChanged = true;
 		// See notes in DoSourcetFontChangeBtn() handler above.
 		// update the read-only edit boxes to reflect user choices
 		tempNavFontData = fontDlg.GetFontData();
@@ -1111,55 +1119,47 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// Retrieve values from the controls and set the corresponding font members
-	// on the App. 
-	gpApp->m_pSourceFont->SetFaceName(fontPgCommon.pSrcFontNameBox->GetValue());
-	gpApp->m_pTargetFont->SetFaceName(fontPgCommon.pTgtFontNameBox->GetValue());
-	gpApp->m_pNavTextFont->SetFaceName(fontPgCommon.pNavFontNameBox->GetValue());
+	// on the App.
+    int nVal;
+    wxString strTemp;
+    if (fontPgCommon.m_bSourceChanged == true) {
+        gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
+        *gpApp->m_pSrcFontData = fontPgCommon.tempSrcFontData;
+        gpApp->m_pSourceFont->SetFamily(fontPgCommon.tempSrcFontData.GetChosenFont().GetFamily());
+        gpApp->m_pSourceFont->SetFaceName(fontPgCommon.pSrcFontNameBox->GetValue());
+        strTemp = fontPgCommon.pSrcFontSizeBox->GetValue();
+        nVal = wxAtoi(strTemp);
+        gpApp->m_pSourceFont->SetPointSize(nVal);
+        gpApp->m_pSourceFont->SetStyle(fontPgCommon.tempSourceFontStyle);
+        gpApp->m_pSourceFont->SetWeight(fontPgCommon.tempSourceFontWeight);
+        gpApp->UpdateFontInfoStruct(gpApp->m_pSourceFont, SrcFInfo);
+    }
 
-	int nVal;
-	wxString strTemp;
-	strTemp = fontPgCommon.pSrcFontSizeBox->GetValue();
-	nVal = wxAtoi(strTemp);
-	if (nVal != gpApp->m_pSourceFont->GetPointSize())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pSourceFont->SetPointSize(nVal);
+    if (fontPgCommon.m_bTargetChanged == true) {
+        gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
+        *gpApp->m_pTgtFontData = fontPgCommon.tempTgtFontData;
+        gpApp->m_pTargetFont->SetFamily(fontPgCommon.tempTgtFontData.GetChosenFont().GetFamily());
+        gpApp->m_pTargetFont->SetFaceName(fontPgCommon.pTgtFontNameBox->GetValue());
+        strTemp = fontPgCommon.pTgtFontSizeBox->GetValue();
+        nVal = wxAtoi(strTemp);
+        gpApp->m_pTargetFont->SetPointSize(nVal);
+        gpApp->m_pTargetFont->SetStyle(fontPgCommon.tempTargetFontStyle);
+        gpApp->m_pTargetFont->SetWeight(fontPgCommon.tempTargetFontWeight);
+        gpApp->UpdateFontInfoStruct(gpApp->m_pTargetFont, TgtFInfo);
+    }
 
-	strTemp = fontPgCommon.pTgtFontSizeBox->GetValue();
-	nVal = wxAtoi(strTemp);
-	if (nVal != gpApp->m_pTargetFont->GetPointSize())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pTargetFont->SetPointSize(nVal);
-
-	strTemp = fontPgCommon.pNavFontSizeBox->GetValue();
-	nVal = wxAtoi(strTemp);
-	if (nVal != gpApp->m_pNavTextFont->GetPointSize())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pNavTextFont->SetPointSize(nVal);
-
-	if (fontPgCommon.tempSourceFontStyle != gpApp->m_pSourceFont->GetStyle())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pSourceFont->SetStyle(fontPgCommon.tempSourceFontStyle);
-
-	if (fontPgCommon.tempTargetFontStyle != gpApp->m_pTargetFont->GetStyle())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pTargetFont->SetStyle(fontPgCommon.tempTargetFontStyle);
-
-	if (fontPgCommon.tempNavTextFontStyle != gpApp->m_pNavTextFont->GetStyle())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pNavTextFont->SetStyle(fontPgCommon.tempNavTextFontStyle);
-	
-
-	if (fontPgCommon.tempSourceFontWeight != gpApp->m_pSourceFont->GetWeight())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pSourceFont->SetWeight(fontPgCommon.tempSourceFontWeight);
-
-	if (fontPgCommon.tempTargetFontWeight != gpApp->m_pTargetFont->GetWeight())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pTargetFont->SetWeight(fontPgCommon.tempTargetFontWeight);
-
-	if (fontPgCommon.tempNavTextFontWeight != gpApp->m_pNavTextFont->GetWeight())
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
-	gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
+    if (fontPgCommon.m_bNavTextChanged == true) {
+        gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
+        *gpApp->m_pNavFontData = fontPgCommon.tempNavFontData;
+        gpApp->m_pNavTextFont->SetFamily(fontPgCommon.tempNavFontData.GetChosenFont().GetFamily());
+        gpApp->m_pNavTextFont->SetFaceName(fontPgCommon.pNavFontNameBox->GetValue());
+        strTemp = fontPgCommon.pNavFontSizeBox->GetValue();
+        nVal = wxAtoi(strTemp);
+        gpApp->m_pNavTextFont->SetPointSize(nVal);
+        gpApp->m_pNavTextFont->SetStyle(fontPgCommon.tempNavTextFontStyle);
+        gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
+        gpApp->UpdateFontInfoStruct(gpApp->m_pNavTextFont, NavFInfo);
+    }
 
 	// Ensure that the colors for the 3 main fonts and the
 	// colors for the 4 buttons at bottom of dialog get stored
@@ -1175,16 +1175,6 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pSrcFontData->SetColour(fontPgCommon.tempSourceColor);
 	gpApp->m_pTgtFontData->SetColour(fontPgCommon.tempTargetColor);
 	gpApp->m_pNavFontData->SetColour(fontPgCommon.tempNavTextColor);
-
-	*gpApp->m_pSrcFontData = fontPgCommon.tempSrcFontData;
-	*gpApp->m_pTgtFontData = fontPgCommon.tempTgtFontData;
-	*gpApp->m_pNavFontData = fontPgCommon.tempNavFontData;
-
-	// While we continue to use fontInfo struct member values in the
-	// config files, we need to update them when the fonts change
-	gpApp->UpdateFontInfoStruct(gpApp->m_pSourceFont, SrcFInfo);
-	gpApp->UpdateFontInfoStruct(gpApp->m_pTargetFont, TgtFInfo);
-	gpApp->UpdateFontInfoStruct(gpApp->m_pNavTextFont, NavFInfo);
 
 	// set text heights from font metrics, for source and target languages
 	// first, get the view, then pass it to the UpdateTextHeights function

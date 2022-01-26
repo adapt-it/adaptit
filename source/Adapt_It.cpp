@@ -21391,7 +21391,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					errThird = errors.Item(2) + _T("\n");
 				}
 			}
-			wxString msg = _("line %d, after ::wxExecute(), errors array: first= %s second= %s third= %s, cmdLine= %s");
+			wxString msg = _T("line %d, after ::wxExecute(), errors array: first= %s second= %s third= %s, cmdLine= %s");
 			msg = msg.Format(msg, __LINE__, errFirst.c_str(), errSecond.c_str(), errThird.c_str(), m_curCommandLine.c_str());
 			wxLogDebug(msg);
 			LogUserAction(msg);
@@ -21793,7 +21793,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		{
 			wxBell();
 			bSuccess = FALSE;
-			wxString msg = _("line %d, in CallExecute() ::wxExecute() failed for %s called in folder %s");
+			wxString msg = _T("line %d, in CallExecute() ::wxExecute() failed for %s called in folder %s");
 			msg = msg.Format(msg, __LINE__, execFileName.c_str(), execPath.c_str());
 			LogUserAction(msg);
 			return FALSE;
