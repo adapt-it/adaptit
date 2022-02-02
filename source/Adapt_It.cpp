@@ -19518,6 +19518,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case credentials_for_user:
 	{
+        // The input .dat file is credentials_for_user.dat for this case
 		wxString tempStr;
 		m_strNewUserLine.Empty(); // initialise
 		if (!m_bUseForeignOption && !m_bAddUser2UserTable)
@@ -19584,6 +19585,42 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // Configuring for values NOT coming from the KB Sharing Manager, but from menu choice
             commandLine = this->m_chosenIpAddr + comma;
 
+            // This is the place where we must add the username and pwd for getting
+            // a successful login to the kbserver. The rest of the values needed
+            // will come from the NewUserCredentialsDlg below
+            bool b_use_kbadmin = FALSE; // initialise
+            wxString strTest = _T("kbadmin");
+            if (m_strUserID_Archived == strTest)
+            {
+                // while developing, it's set to _T("kbadmin")
+                tempStr = this->m_strUserID_Archived;
+                b_use_kbadmin = TRUE;
+            }
+            else
+            {
+                // If not the same as _T("kbadmin"), set to m_strUserID, as in OnChangeUsername() dlg
+                // and update m_strUserID_Archived to have that value instead
+                tempStr = this->m_strUserID;
+                b_use_kbadmin = FALSE;
+                m_strUserID_Archived = tempStr;
+            }
+            tempStr = DoEscapeSingleQuote(tempStr);
+            commandLine += tempStr + comma;
+
+            // Next, get the password that associates with m_strUserID_Archived, or with m_strUserID,
+            // then use the password request dialog from pFrame to let user type it; or pwd = kbauth if
+            // the b_use_kbadmin boolean is TRUE
+            wxString pwd = wxEmptyString;
+            pwd = pFrame->GetKBSvrPassword();
+            if (pwd.IsEmpty())
+            {
+                pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
+
+            }
+            commandLine += pwd + comma;
+             // We don't DoEscapeSingleQuote() on passwords, because they are not stored
+            // anywhere in kbserver
+
             // Values can come from the user table of the KB Sharing Manager, or from
             // the Add Users to KBserver menu item. If the latter, then we need this block
             // for setting the 4 new values, newUser, newFullname, newPwd, New_kbadmin
@@ -19649,7 +19686,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
             // That finishes the commandLine to be put into the input .dat file,
             // when the user addition is sourced from the user page of KB Sharing Mgr
-		}
+#if defined (_DEBUG)
+            wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
+                __LINE__, commandLine.c_str());
+#endif
+        }
 
 		// Now in the caller the file has been moved to the the folder where the 
 		// installed app is run; so use wxTextFile to make the changes in
@@ -21169,6 +21210,21 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         execPath += (PathSeparator + execFileName);
     }
 
+    // BEW 27Jan22 in order to avoid having to call system() with an absolut path to the
+    // particular .exe (e.g. do_user_lookup_and_permissions_check.exe etc) which is to be
+    // run, if I here, before the switch, temporarily change the Cwd (current working
+    // directory to the folder where Adapt It Unicode.exe is currently running, then I
+    // can dispense with an abolute path prefix to whichever of the 13 .exe files is
+    // to be run in the switch - as the temporary Cwd will apply in all cases. After
+    // the switch, I can restore the earlier Cwd. Having a path prefix has been problematic
+    // - system() is fragile when it has a prefix. But robust when there's none. Windows
+    // will look for the current Cwd if no path is explicitly supplied.
+    wxString saveCWD = ::wxGetCwd();
+    wxFileName fnn(execPath);
+    wxString pathOnly = fnn.GetPath();
+    tempCWDpath = pathOnly; // for the post-switch redefinition of a FileName object, below
+    bool bTempCwd = fnn.SetCwd(pathOnly);
+
 	switch (funcNumber)
 	{
 	case noDatFile:
@@ -21179,8 +21235,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	case credentials_for_user:
     {
         int rv = 0;
-        const char* pstart = { "start c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_add_foreign_kbusers.exe" };
+        const char* pstart = { "start do_add_foreign_kbusers.exe" }; // avoid need of path prefix
         rv = system(pstart);
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
     }
         break;
 	case lookup_user:
@@ -21190,35 +21247,17 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         bool bSame = resultFile == m_resultDatFileName;
         wxUnusedVar(bSame);
 
-        // BEW 10Jan22 in the test of system(execPath) below, execPath is:
-        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\'
+        // BEW 26Jan22 in the test of system(execPath) below, execPath passed in is:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_user_lookup_and_permissions_check.exe'
         int rv = 0;
-        //* the next two lines are were the hard coded way which gave first success after much trying, but now need generalizing 
-        const char* pstart = { "start c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_user_lookup_and_permissions_check.exe" };
-        rv = system(pstart);
+        const char* pstart = { "start do_user_lookup_and_permissions_check.exe" }; // avoid path prefix
+                // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+        rv = system(pstart); // Using temporary CWD - it works and drops a lookup_user_results.dat path in pathOnly folder
         wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
 
-        //*/
-        /*
-        Xhtml* pXhtml = m_pXhtml;
-        CBString aBstr;
-        wxString cmdStr = _T("start "); // Start building a wide char string to: do_user_lookup_and_permissions_check.exe
-        // The path to the Adapt_It_Unicode.exe executable comes next. When developing in _DEBUG mode, it
-        // will be a path to the "Unicode Debug" folder, in adaptit-git\adaptit\bin\win32\ folder.
-        // In a Windows released 32bit version, it will be the folder at: C:\Program Files (x86)\Adapt It WX Unicode
-        cmdStr += execPath; // ends with a PathSeparator
-        // Next we must add the name of the .exe which has been precompiled and linked: do_user_lookup_and_permissions_check.exe
-        cmdStr += execFileName;
-        wxLogDebug(_T("%s::%s() line %d: cmdStr built is: %s"), __FILE__, __FUNCTION__, __LINE__, cmdStr.c_str());
-        // I have not had success with using the system() call, with a wide char string, but a char* string does work
-        // so I will use the Xhlml class's CBString Xhtml::ToUtf8(const wxString& str) function to convert to a char* string
-        aBstr = pXhtml->ToUtf8(cmdStr); // aBstr ('a byte C-string') has an internal buffer pstr, accessible by GetBuffer()
-        char* byte_cmdStr = aBstr.GetBuffer(); // this is what should load into system() and execute successfully
-        rv = system(byte_cmdStr);
-        */
-#if defined (_DEBUG)
-        int halt_here = 1;
-#endif
+//#if defined (_DEBUG)
+//        int halt_here = 1;
+//#endif   
     }
 		break;
 	case list_users: // = 3
@@ -21329,13 +21368,20 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
     }
 		break;
 	};
+    // Restore the earlier location of the current working directory
+    if (bTempCwd)
+    {
+        fnn.SetCwd(saveCWD); // restore old CWD path
+    }
+
+    // BEW 27Jan22 - what follows is legacy code, from years ago - it may still be useful
 	wxArrayString output;
 	wxArrayString errors;
 	bool bSuccess = FALSE; // initialise
-	wxFileName fn(tempCWDpath, _T(""));
+	wxFileName fn(tempCWDpath);
 	wxString currCwd = wxFileName::GetCwd();
-	bool bTempCwd = fn.SetCwd(tempCWDpath);
-	if (bTempCwd)
+	bool bTemporaryCwd = fn.SetCwd(tempCWDpath);
+	if (bTemporaryCwd)
 	{
 		// BEW 10Oct20, if the commandLine does not succeed in the underlying .c code,
 		// this is not a failure of wxExecute, provided the C executable runs without error.
@@ -21353,8 +21399,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
  //       rv = system("execPath"); // wrap with quotes - still fails
  //       rv = ::wxExecute(execFileName, output, errors); // the legacy call fails, rv = large -ve, output NULL, .dat results, empty
          
-        const char* pstart = { "start do_add_foreign_kbusers.exe" };
-        rv = system(pstart);
+        //const char* pstart = { "start do_add_foreign_kbusers.exe" };
+        //rv = system(pstart);
          
 // **************************************************************************************
 		if (!errors.IsEmpty() && rv != 0)
@@ -21403,7 +21449,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		// check for success and advise user with a 1.3 second 'created successfully' 
 		// message if authenticating, but suppress messages if funcNumber is 3 or more
         //if (rv == 0)
-        if (rv == 0  ||  rv < 0)  // rv = system(execFileName); call worked, despite the large -ve return value
+        if (rv == 0)  // rv = system(execFileName); call worked, despite the large -ve return value
         {
 			// Any value other than zero means something failed in the call
 			int offset = wxNOT_FOUND;
@@ -22084,6 +22130,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
 	m_bChangingPermission = FALSE; // initialise
 	m_bDoingChangePassword = FALSE; // initialise
+
+    // BEW added 1Feb22, during app development, we need a place to store info from
+    // the user table of kbserver, used for reliable authentication purposes. We set these
+    // here - but in a release version these values will be defined by each user, along with
+    // the root user and pwd, by scripting for the user to set up his own private credentials.
+    m_strUserID_Archived = _T("kbadmin");
+    m_strFullname_Archived = _T("KBAdmin");
+    m_strPassword_Archived = _T("kbauth");
+    m_rootPassword_Archived = wxEmptyString;
+
 //#endif
 
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons

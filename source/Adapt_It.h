@@ -3001,6 +3001,17 @@ public:
     wxString    m_strFullname;          // needed by git (DVCS), as well as "email address" for which
 										// we'll use m_strUserID; kbserver will also use
 										// this as an "informal human-readable username" 'fullname' in user table
+	// BEW 27Jan22 added the next four archiving strings, for preserving MariaDB access/login credentials,
+	// set uniquely for whatever user is accessing the database. These will be used in the .dat input file
+	// called: credentials_for_user.dat  - which has the ipAddress first, and then the m_strUserID_Archived value,
+	// and that followed by the m_strPassword_Archived - and other values will follow those three. See
+	// AI.cpp's ConfigureMovedDatFile() for code using these. The root pwd for kbserver access will also
+	// be stored in m_rootPassword_Archived. Under no circumstances allow any of these values to find their
+	// way into an AI configuration file, the .ini file, or into KBsharing documentation files
+	wxString m_strUserID_Archived;
+	wxString m_strFullname_Archived;
+	wxString m_strPassword_Archived;
+	wxString m_rootPassword_Archived;
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
