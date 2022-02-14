@@ -526,7 +526,7 @@ public:
 	void OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event);
 	void OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event);
-	void OnAdvancedDelay(wxCommandEvent& WXUNUSED(event));
+	void OnAdvancedDelay(wxCommandEvent& WXUNUSED(event)); // slows down the automatic GUI insertions (also the handler can be used for testing code)
 	void OnUpdateAdvancedDelay(wxUpdateUIEvent& event);
 	void OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);

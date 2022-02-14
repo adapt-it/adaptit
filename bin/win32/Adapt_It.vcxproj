@@ -126,6 +126,10 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <CompileAs>Default</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4456;4457;4458;4459;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ShowIncludes>false</ShowIncludes>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningVersion>
+      </WarningVersion>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -451,6 +455,7 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClCompile Include="..\..\source\Mover.cpp" />
     <ClCompile Include="..\..\source\MyListBox.cpp" />
     <ClCompile Include="..\..\source\NavProtectNewDoc.cpp" />
+    <ClCompile Include="..\..\source\NewUserCredentialsDlg.cpp" />
     <ClCompile Include="..\..\source\NoteDlg.cpp" />
     <ClCompile Include="..\..\source\Notes.cpp" />
     <ClCompile Include="..\..\source\OpenExistingProjectDlg.cpp" />
@@ -575,6 +580,7 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClInclude Include="..\..\source\KbSvrHowGetUrl.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
+    <ClInclude Include="..\..\source\NewUserCredentialsDlg.h" />
     <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />

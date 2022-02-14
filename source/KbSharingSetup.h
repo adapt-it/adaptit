@@ -44,6 +44,8 @@ public:
 	wxString chosenHostname;
 	CMainFrame* pFrame;
 	bool bAuthenticated;
+	bool bCannotInitialiseDlg; // BEW 24Jan22 added, default FALSE. Set TRUE if InitDialog() fails to
+							   // properly initialise (i.e. empty ipAddr and/or empty password)
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

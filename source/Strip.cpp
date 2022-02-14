@@ -192,7 +192,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 #endif
 	*/
-	//boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
@@ -209,21 +208,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	//pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 
 	// lay out the piles
-/*
-#ifdef _DEBUG
-	SPList* pSrcPhrases = m_pLayout->m_pApp->m_pSourcePhrases;
-	SPList::Node* posDebug = pSrcPhrases->GetFirst();
-	int index = 0;
-	while (posDebug != NULL)
-	{
-		CSourcePhrase* pSrcPhrase = posDebug->GetData();
-        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
-		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %p"),index,pSrcPhrase);
-		posDebug = posDebug->GetNext();
-		index++;
-	}
-#endif
-*/
+
     // this refactored code is commented out because it turned out that RTL layout and LRT
     // layout of the piles in the strip uses exactly the same code - they are appended to
     // the strip in logical order, and it is only the rectangle calculations (none of which
@@ -354,8 +339,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					// a widening or contracting of the phrasebox gap's width. (If I can do that, then
 					// I'm a long way towards conquering the problem of expanding box, gap, and dropdown
 					// width all at the same time
-					//boxMode = m_pLayout->m_boxMode;
-					//pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 					if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand )
 					{	
 						if (m_pLayout->m_bCompareWidthIsLonger) // BEW 7Oct21 added this test
@@ -369,12 +352,12 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							// pile gap is also cached in a new member of pLayout, called 
 							// m_nNewPhraseBoxGapWidth, with public access, so use it now
 							pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
-#if defined (_DEBUG)
-							{
-								wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
-									__FILE__, __FUNCTION__, __LINE__, pileWidth);
-							}
-#endif
+//#if defined (_DEBUG)
+//							{
+//								wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
+//									__FILE__, __FUNCTION__, __LINE__, pileWidth);
+//							}
+//#endif
 						}
 						else
 						{
@@ -390,12 +373,12 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 							// following files will move to accomodate it
 							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
-#if defined (_DEBUG)
-							{ // scoped block - BEW added 28Sep21 to track the pileWidth value
-								wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding buttonwidth %d , pileWidth = %d"),
-									__FILE__, __FUNCTION__, __LINE__, curBoxWidth, theMax, m_pLayout->m_curBoxWidth, pileWidth);
-							}
-#endif
+//#if defined (_DEBUG)
+//							{ // scoped block - BEW added 28Sep21 to track the pileWidth value
+//								wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding buttonwidth %d , pileWidth = %d"),
+//									__FILE__, __FUNCTION__, __LINE__, curBoxWidth, theMax, m_pLayout->m_curBoxWidth, pileWidth);
+//							}
+//#endif
 						}
 					}
 					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
@@ -418,19 +401,12 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); 
 						pileWidth += (2 * m_pLayout->m_pApp->m_width_of_w) + 2 *gap + 4;
 					}
 					else
 					{
-						//if (m_pLayout->m_bAmWithinPhraseBoxChanged == TRUE)
-						//{
-							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); // +gap;
-						//}
-						//else
-						//{
-						//	pileWidth = pPile->m_nMinWidth;
-						//}
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); 
 					}
 				}
 				else
@@ -474,7 +450,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						__FILE__, __FUNCTION__, __LINE__, nStripIndex);
 				}
 #endif
-				*/
+*/
 				// Testing reveals this is the normal exit point for control, when creating strips
 				return pos;
 			}
@@ -539,7 +515,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("0.		CreateStrip: Remaining to be placed:  %d"),nEndPileIndex - nInitialPileIndex + 1);
+		wxLogDebug(_T("0.	CreateStrip: Remaining to be placed:  %d"),nEndPileIndex - nInitialPileIndex + 1);
 	}
 #endif
 */
@@ -597,7 +573,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("1.		CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d"),
+		wxLogDebug(_T("1.	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d"),
 					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree);
 	}
 #endif
@@ -609,7 +585,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("1.1		CreateStrip: Early exit: pileIndex > nEndPileIndex is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+		wxLogDebug(_T("1.1	CreateStrip: Early exit: pileIndex > nEndPileIndex is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
 #endif
 */
@@ -627,7 +603,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("1.2		CreateStrip: Early exit: pos == NULL is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+		wxLogDebug(_T("1.2	CreateStrip: Early exit: pos == NULL is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
 #endif
 */
@@ -643,7 +619,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("1.3		CreateStrip: Early exit: m_nFree <= 0 is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+		wxLogDebug(_T("1.3	CreateStrip: Early exit: m_nFree <= 0 is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
 #endif
 */
@@ -673,7 +649,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 /*
 #ifdef _DEBUG
 	{
-		wxLogDebug(_T("1.4		CreateStrip: Exit due to WRAP condition satisfied,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+		wxLogDebug(_T("1.4	CreateStrip: Exit due to WRAP condition satisfied,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
 #endif
 */
@@ -692,17 +668,14 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				//boxMode = m_pLayout->m_boxMode; // it's probably steadyAsSheGoes, but it doesn't matter
-							// what value it has, because boxMode is no longer used internally
-							// in the call of CalcPhraseBoxGapWidth
 				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
-#if defined (_DEBUG)
-				{
-					int nStripIndex = this->GetStripIndex();
-					wxLogDebug(_T("%s::%s(), line %d , in active CREATE-STRIP, CalcPhraseBoxGapWidth(boxMode) returned pileWidth = %d , storing nHorzOffset_FromLeft = %d , at strip index = %d"),
-						__FILE__, __FUNCTION__, __LINE__, pileWidth, nHorzOffset_FromLeft, nStripIndex);
-				}
-#endif	
+//#if defined (_DEBUG)
+//				{
+//					int nStripIndex = this->GetStripIndex();
+//					wxLogDebug(_T("%s::%s(), line %d , in active CREATE-STRIP, CalcPhraseBoxGapWidth(boxMode) returned pileWidth = %d , storing nHorzOffset_FromLeft = %d , at strip index = %d"),
+//						__FILE__, __FUNCTION__, __LINE__, pileWidth, nHorzOffset_FromLeft, nStripIndex);
+//				}
+//#endif	
 			}
 			else
 			{

@@ -431,7 +431,13 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	wxString archName,OSSystemID,OSSystemIDName,hostName;
 	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
-	archName = platInfo.GetBitnessName();  // returns "32 bit" on Windows
+	// whm 1Dec2021 added conditional define for Mac OSX to use GetBitnessName() 
+	// which is not a known identifier on Linux and Windows
+#if defined(__WXMAC__)
+	archName = platInfo.GetBitnessName();
+#else
+	archName = platInfo.GetArchName();  // returns "32 bit" on Windows
+#endif
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	OSSystemIDName = platInfo.GetOperatingSystemIdName();
 	//OSMajorVersion = platInfo.GetOSMajorVersion();
@@ -2048,7 +2054,13 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	wxString archName,OSSystemID,OSSystemIDName,hostName;
 	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
-	archName = platInfo.GetBitnessName();  // returns "32 bit" on Windows
+	// whm 1Dec2021 added conditional define for Mac OSX to use GetBitnessName() 
+	// which is not a known identifier on Linux and Windows
+#if defined(__WXMAC__)
+	archName = platInfo.GetBitnessName();
+#else
+	archName = platInfo.GetArchName();  // returns "32 bit" on Windows
+#endif
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	OSSystemIDName = platInfo.GetOperatingSystemIdName();
 	//OSMajorVersion = platInfo.GetOSMajorVersion();

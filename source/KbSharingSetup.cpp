@@ -95,9 +95,10 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
 	pFrame = m_pApp->GetMainFrame();
 	bAuthenticated = FALSE; // initialise
+	bCannotInitialiseDlg = FALSE;
 
-    // If the project is currently a KB sharing project, then initialise to the current
-    // values for which of the two KBs (or both) is being shared; otherwise, set the member
+	// If the project is currently a KB sharing project, then initialise to the current
+	// values for which of the two KBs (or both) is being shared; otherwise, set the member
 	// variables to the most commonly expected values (TRUE & FALSE, which is what the
 	// wxDesigner initial values are, for adapting and glossing choices, respectively)
 	m_bSharingAdaptations = FALSE; // initialize (user's final choice on exit is stored here)
@@ -235,22 +236,78 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// function, so we need to have an instance of KbServer running on the heap, so
 	// we can call its LookupUser().
 	wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
-	wxString distPath = m_pApp->m_dataKBsharingPath; // whm 22Feb2021 changed distPath to m_dataKBsharingPath which ends with PathSeparator
+	wxString dataPath = m_pApp->m_dataKBsharingPath; // whm 22Feb2021 changed dataPath to m_dataKBsharingPath which ends with PathSeparator
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager, but this
 							// will be changed to FALSE internally because the
 							// user1 and user2 values match
 	wxString pwd = m_pApp->m_curNormalPassword; // probably empty, 
 							// that's okay, LookupUser will set it
+	// The above line may have m_curNormalPassword unset. Check. If empty,
+	// then set the password for the given ipAddr and hostname (values from
+	// Basic config file) using the wxWidgets supplied ::wxGetPasswordFromUser( ..args.. )
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxString anIpAddr = wxEmptyString;
+	wxString aPwd = wxEmptyString;
+	if (pwd.IsEmpty())
+	{
+		
+		anIpAddr = m_pApp->m_strKbServerIpAddr;
+		if (anIpAddr.IsEmpty())
+		{
+			// 2nd shot
+			anIpAddr = m_pApp->m_chosenIpAddr;
+		}
+		//  Now try for the hostname - it helps if a Discover KBservers call is done earlier
+		// having a value for the hostname is helpful, but not obligatory for the call to
+		// succeed - but a valid ipAddr IS obligatory
+		wxString aHostname = m_pApp->m_strKbServerHostname;
+		if (aHostname.IsEmpty())
+		{
+			// 2nd shot
+			aHostname = m_pApp->m_chosenHostname;
+		}
+		aPwd = pFrame->GetKBSvrPasswordFromUser(anIpAddr, aHostname);
+		// now set pwd, if possible
+		if (aPwd.IsEmpty() || anIpAddr.IsEmpty())
+		{
+			bCannotInitialiseDlg = TRUE;
+		}
+		else
+		{
+			pwd = aPwd;
+		}
+
+	}
+
 	// If this call succeeds as an authentication attempt, it will set app's
 	// boolean m_bUserLoggedIn to TRUE  (and app's m_bUser1IsUser2 will also be
 	// TRUE, it's the latter which is tested and if TRUE, then m_bUserLoggedIn
 	// gets set to TRUE, otherwise it is FALSE)
+	if (bCannotInitialiseDlg)
+	{
+		// BEW 24Jan22 added bCannotInitialiseDlg, and it gets set if InitDialog()
+		// fails due to ipAddr or password not being set
+		wxString strInitError = _T("KbSharingsetup.cpp class, failure in InitDialog() probably empty ipAddr or empty password, less likely - username empty or wrong");
+		m_pApp->LogUserAction(strInitError);
+		m_pApp->m_bIsKBServerProject = FALSE;
+
+	}
+	else
+	{
 	pKbSvr->LookupUser(chosenIpAddr, m_pApp->m_strUserID, pwd, m_pApp->m_strUserID);
+
+	// BEW 24Jan22 If control has entered this block, then it is determinate that
+	// user1 is same as whichuser (i.e. user2), and so we should here set m_bUser1IsUsere2
+	// and put m_strUserID in app->m_Username2 member, so it's available when we want to test
+	// if there is a necessity to show the 4-field login dialog; so added next two lines
+	m_pApp->m_bUser1IsUser2 = TRUE;
+	m_pApp->m_Username2 = m_pApp->m_strUserID;
+
 	delete pKbSvr;
-	bAuthenticated = m_pApp->m_bUserLoggedIn ;
+	bAuthenticated = m_pApp->m_bUserLoggedIn;
+	
+	}
 	// What follows in OnOK() can only be done if there was successful authentication
-
-
 #ifdef _DEBUG
 //	int halt_here = 1;
 #endif

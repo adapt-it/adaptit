@@ -241,10 +241,6 @@ public:
 	void OnLButtonDown(wxMouseEvent& event); // whm 2Jun2018 moved to public access for use in App's FilterEvent()
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
-	void ConfigureForResizeOrNot(CPile* pActivePile, bool& bDoExpand, bool& bDoContract); // BEW 30Aug21 added
-			// Determines whether this instant for expand or contract has come, or not, and sets the
-			// booleans accordingly, and the Layout's cachedBoxMode enum value; for the "Not" case, the
-			// default value is steadyAsSheGoes
 
     // whm 12Apr2019 The events for the handlers below are actually caught in
     // CAdapt_ItCanvas and are now handled there.

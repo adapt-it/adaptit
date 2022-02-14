@@ -150,6 +150,31 @@ enum ClientAction {
 
 // whm 4Jul2021 commented out all curl code reference
 //#include <curl/curl.h>
+/*
+#if __cplusplus
+extern "C" {
+#endif
+
+	// BEW 6Nov21, the C functions for integrating the kbserver support into the AI code base, for __WXMSW__ build
+	// These require toolsets: <stdio.h> <stdlib.h> <string.h> and the #include:
+	// "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+	// all of which I have located at lines 65 to 75 of KbServer.cpp
+	// These functions are C compiled, using extern "C" {  ....  }. in KbServer.cpp starting at line 750
+	int	do_list_users();
+
+
+
+
+
+
+
+#if __cplusplus
+}
+#endif
+*/
+
+
+
 
 // forward references (we'll probably need these at some time)
 class CTargetUnit;

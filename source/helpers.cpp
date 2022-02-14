@@ -11332,6 +11332,30 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// set too. Get them set up if not so.
 				bool bUserCancelled = FALSE;
 
+				// BEW 27Jan22 When logging in, it's likely there is no pwd value saved in frame's 
+				// SetKBSvrPassword(pwd); but if authenticating, and the app's current value of 
+				// m_strUserID matches what this dialog shows, and the dlg's m_strNormalPassword has
+				//  a value, then assume it's a valid authentication attempt, and store the password
+				// in pFrame, so that the appearance of the 4-field authentication dialog can be
+				// suppressed because all needed values are determinate once the password for 
+				// m_strUserID is known
+				wxString pwd = dlg.m_strNormalPassword;
+				if (!pwd.IsEmpty())
+				{
+					// handle storage - if appropriate
+					wxString userValue = dlg.m_strNormalUsername;
+					if (!userValue.IsEmpty() && pApp->m_strUserID == userValue)
+					{
+						// This pwd is probably valid for m_strUserID, so save it on pFrame
+						pFrame->SetKBSvrPassword(pwd);
+					}
+				}
+				// BEW 27Jan22 let processing continue - most of what follows has been rendered safe
+				// for the new Leon-designed kbserver authentication protocols etc, so it more or
+				// less does nothing. I've not tried to simplify or remove, as it's long and 
+				// complex, and mostly not worth the bother - but some (e.g. potentially forcing
+				// service discovery dlg open) may be important to keep
+
 				// If the user validation failed, don't continue with further checks
 				if (dlg.m_bError)
 				{
@@ -11743,7 +11767,7 @@ here:				dlgReturnCode = dlg.ShowModal();
 								if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
 								{
 									// an error message will have been shown, so just log the failure
-									pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 11899"));
+									pApp->LogUserAction(_T("SetupForKBServer(1) failed in AuthenticateCheckAndSetupKBSharing()  at line 11747"));
 									pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 									// Tell the user
 									wxString title = _("Setup failed");
