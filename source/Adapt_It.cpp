@@ -26773,13 +26773,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 21Oct21, note, EnsureWOrkFolderPresent() call above, (line 26,374) is where m_workFolderPath
     // gets set, either to the normal path, or to the custom path (which could be anywhere); what's 
     // important that whichever is the case, m_workFolderPath points where it should already.
-    // 
+    
+    // whm 14Feb2022 Commented out BEW's 21Oct21 code blocks below. I am removing the code from here in OnInit()
+    // to avoid confusing error messages being displayed to the user, (and failure of LogUserAction() calls made
+    // before the user action log is initialized). 
+    // If called from OnInit() the code block would have to be moved to a later location within OnInit() after 
+    // the _DATA_KB_SHARING folder is certain to be created, and after our user logging has been initialized. 
+    // However, I feel that the following code blocks probably should NOT be located in OnInit() since we don't
+    // yet know whether a user will select a project to open that was previously set up as a KBSharing project.
+    // If such checks for the existence of the *.exe utility programs are done, they should be actually done 
+    // elsewhere - closer to the time they will be called. Hence, I have commented out the entire block of code 
+    // below from OnInit().
+    // Maybe a better place to check for the existence of the mdns utility programs would be closer to the time 
+    // of authenticating and setting up the KBServer / Sharing functions? Perhaps that would be the 
+    // SetupForKBServer() function, or DoDiscoverKBservers() function, or some other location - if such checks 
+    // really need to be done at all.
+    /*
     // BEW 21Oct21, DoDiscoverKBservers() now calls do_mdns.exe (which when it finishes, calls mdns.exe,
     // which, when it finishes, calls do_mdns_report.exe to return the kbservice_file.dat file containing
     // data for the form "ipAddress,@@@,hostname," - these 3 executables must be in the execPath, and
     // the current working directory set there too.
-    // By the way, execPath ends in PathSeparator. Bill has a synonym name for the same path.
-
+    // By the way, execPath ends in PathSeparator. Bill has a synonym name for the same path.  
+   
     wxString fileStr = _T(""); // the found file's name will be returned to this scratch variable
     wxString fileSpec = wxEmptyString; // ensures all files are matched, but we save only the filtered ones
     wxString dataFolderPath = m_workFolderPath; // work with a local copy, to where Adapt It Unicode Work folder is
@@ -26832,7 +26847,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxUnusedVar(nReturn);
     }
     else
-    { 
+    {
         // Loop to find if there is a do_mdns.exe file in _DATA_KB_SHARING folder.
         // In the loop, fileSpec is an empty string
         bool bWorking = finder.GetFirst(&fileStr, fileSpec, wxDIR_FILES);
@@ -26948,10 +26963,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
         // THIRD one, do_mdns_report.exe
 
-    // Next, check in _DATA_KB_SHARING, for a file with (const name) do_mdns_report.exe
-    // This .exe file is called by mdns.exe when the latter is closing down,
-    // and discovery cannot properly complete unless it too is in the executable's
-    // folder, as a sibling to mdns.exe
+        // Next, check in _DATA_KB_SHARING, for a file with (const name) do_mdns_report.exe
+        // This .exe file is called by mdns.exe when the latter is closing down,
+        // and discovery cannot properly complete unless it too is in the executable's
+        // folder, as a sibling to mdns.exe
         bItsOK = (finder.Open(dataFolderPath)); // reopen
         if (!bItsOK)
         {
@@ -27014,9 +27029,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             } // end of else block for test: if (bFoundMdnsReportFile == TRUE)
         } // end of else block for test: if (!bItsOK)
 
-    finder.Close();
+        finder.Close();
     }
-
+    */
  
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);

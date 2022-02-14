@@ -73,7 +73,7 @@ wxCriticalSection g_jsonCritSect;
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+//#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
 
 // =========================
 
