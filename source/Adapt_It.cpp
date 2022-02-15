@@ -18858,7 +18858,7 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 			}
 			case credentials_for_user: // = 1
 			{
-				MakeCredentialsForUser(credentials_for_user, dataPth); // whm Note: removed exePth parameter
+				MakeAddForeignUsers(credentials_for_user, dataPth); // whm Note: removed exePth parameter
 				break;
 			}
 			case lookup_user: // = 2
@@ -18972,7 +18972,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
 		{
-            wxString filename = _T("credentials_for_user.dat");
+            wxString filename = _T("add_foreign_users.dat");
 
 			DeleteOldDATfile(filename, execFolderPath);
 			MoveBlankDatFile(filename, dataFolderPath, execFolderPath);
@@ -19510,6 +19510,16 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	CMainFrame* pFrame = GetMainFrame();
 	wxString commandLine = wxEmptyString;
 
+    // BEW 4Feb22 some calls will need the current datetime wxString returned (default widened to 
+    // wxChar string from a GetDateTimeNow(enum ) call in helpers.cpp around line 7422), so get
+    // an appropriately formatted datetime string with date separated from time by a space. The
+    // enum value for that is  forXHTM, as then it matches what we see in the entry table. For
+    // example - do_create_entry.exe will call the input create_entry.dat file with the datetime
+    // (formatted) as the last field of the .dat file. So have it set up here for any of the
+    // intput .dat files which need it in the switch, to use it where needed.
+    wxString dateTimeNow = GetDateTimeNow(forXHTML);
+
+
 	switch (funcNumber)
 	{
 	case noDatFile:
@@ -19518,7 +19528,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case credentials_for_user:
 	{
-        // The input .dat file is credentials_for_user.dat for this case
+        // The input .dat file is add_foreign_users.dat for this case
 		wxString tempStr;
 		m_strNewUserLine.Empty(); // initialise
 		if (!m_bUseForeignOption && !m_bAddUser2UserTable)
@@ -19585,39 +19595,106 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // Configuring for values NOT coming from the KB Sharing Manager, but from menu choice
             commandLine = this->m_chosenIpAddr + comma;
 
+            wxString pwd = wxEmptyString; // used below
+            bool b_use_kbadmin = FALSE; // initialise -- MIGHT NOT NEED THIS boolean ??
+
             // This is the place where we must add the username and pwd for getting
             // a successful login to the kbserver. The rest of the values needed
-            // will come from the NewUserCredentialsDlg below
-            bool b_use_kbadmin = FALSE; // initialise
+            // will come from the NewUserCredentialsDlg below          
             wxString strTest = _T("kbadmin");
             if (m_strUserID_Archived == strTest)
             {
-                // while developing, it's set to _T("kbadmin")
+                // while developing, it's set to _T("kbadmin") at least initially
                 tempStr = this->m_strUserID_Archived;
+                tempStr = DoEscapeSingleQuote(tempStr);
+                commandLine += tempStr + comma;
+                m_justAddedUsername = tempStr; // save this for adding after authenticating password
+                
+                tempStr = this->m_strPassword_Archived;
+                wxASSERT(tempStr == _T("kbauth"));
+                commandLine += tempStr + comma;
+                m_justAddedPassword = tempStr; // save this for adding after authenticating password
+
+                // Now we need to add the 'original' username and password - from the two saved values above
+                commandLine += m_justAddedUsername + comma;
+                commandLine += m_justAddedPassword + comma;
                 b_use_kbadmin = TRUE;
             }
             else
             {
                 // If not the same as _T("kbadmin"), set to m_strUserID, as in OnChangeUsername() dlg
                 // and update m_strUserID_Archived to have that value instead
-                tempStr = this->m_strUserID;
-                b_use_kbadmin = FALSE;
-                m_strUserID_Archived = tempStr;
-            }
-            tempStr = DoEscapeSingleQuote(tempStr);
-            commandLine += tempStr + comma;
+                tempStr = this->m_strUserID;  // this will change when the automation below is created
+                tempStr = DoEscapeSingleQuote(tempStr);
+                commandLine += tempStr + comma;
+                m_justAddedUsername = tempStr; // save this for adding after authenticating password
 
+                pwd = pFrame->GetKBSvrPassword();
+                if (pwd.IsEmpty())
+                {
+                    pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
+                }
+                commandLine += pwd + comma;
+                m_justAddedPassword = pwd; // save this for adding after authenticating password
+
+                // Now we need to add the 'original' username and password - from the two saved values above
+                commandLine += m_justAddedUsername + comma;
+                commandLine += m_justAddedPassword + comma;
+                b_use_kbadmin = FALSE;
+                //m_strUserID_Archived = tempStr; <- no, if the new added user has useradmin ==  1,
+                // then the GUI of AI, the Change Username command, can use a successfully added 
+                // new username, for the credentials to authenticate to get m_strUserID_Archived
+                // updated (and I need to write some code to make that change be automated)
+
+// TODO - the automation suggested in the above comment - also below
+            }
+
+
+
+            /*
             // Next, get the password that associates with m_strUserID_Archived, or with m_strUserID,
             // then use the password request dialog from pFrame to let user type it; or pwd = kbauth if
             // the b_use_kbadmin boolean is TRUE
-            wxString pwd = wxEmptyString;
+            // The username, and associated fullname, and password, go together as sets. If the username
+            // is kbauth, the what goes with that is KBUser, and kbauth for password. If username is what
+            // m_strUserID has (e.g. bruceUnit2) then the values going with that are Bruce Edwin, and
+            // Clouds2093 as its password. If some other username, the frame's dlg for pwd can be called.
+            if (b_use_kbadmin)
+            {
+                this->m_strFullname_Archived = _T("KBUser");
+                this->m_strPassword_Archived = _T("kbauth");
+            }
+            else
+            {
+
+
+
+
+
+                pwd = pFrame->GetKBSvrPassword();
+                if (pwd.IsEmpty())
+                {
+                    pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
+
+                }
+
+
+
+                // TODO -- moving to a different username with useradmin = '1', will be done from the GUI
+                // and when adding using kbadmin/kbauth is working, do the code needed here for a user name switch
+            }
+            */
+
+
+            /*
             pwd = pFrame->GetKBSvrPassword();
             if (pwd.IsEmpty())
             {
                 pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
 
             }
-            commandLine += pwd + comma;
+            */
+           // commandLine += pwd + comma;
              // We don't DoEscapeSingleQuote() on passwords, because they are not stored
             // anywhere in kbserver
 
@@ -19667,7 +19744,16 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
             // The following is the legacy code, which gets the values from the KB Manager
             commandLine = this->m_chosenIpAddr + comma;
-
+            // BEW 14Feb22 added, as the credentials user & pwd are no longer hard-coded by Leon
+            tempStr = m_strUserID;
+            tempStr = DoEscapeSingleQuote(tempStr);
+            commandLine += tempStr + comma;
+            m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
+            // BEW 14Feb22 added, as the credentials user & pwd are no longer hard-coded by Leon
+            tempStr = m_curNormalPassword;
+            commandLine += tempStr + comma;
+            m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
+            // The rest are the legacy ones
             tempStr = m_temp_username;
             tempStr = DoEscapeSingleQuote(tempStr);
             commandLine += tempStr + comma;
@@ -19694,7 +19780,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// Now in the caller the file has been moved to the the folder where the 
 		// installed app is run; so use wxTextFile to make the changes in
-		// the file copy within that folder; here it's: "credentials_for_user.dat" 
+		// the file copy within that folder; here it's: "add_foreign_KBUsers_results.dat" 
 		// so it has only the above commandLine value stored in it
         // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 
@@ -19712,7 +19798,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				f.AddLine(commandLine);
 				f.Write();
 				f.Close();
-				// File: credentials_for_user.dat now just has the relevant data 
+				// File: add_foreign_users.dat now just has the relevant data 
 				// fields for the subsequent .exe in wxExecute() which will
 				// implement the adding of the user to the user table
 				// If the adding does not happen, Leon's .exe will drop a .dat
@@ -20109,20 +20195,25 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of case:  lookup_user
 	case list_users: // = 3
 	{
+
 		// Build the list_users.dat file for input, making the commandLine for 
-		// wxExecute() to call
+		// system() to call. If the above stuff has a 'play safe' error, we don't cancel
+        // the list users attempt - we just forbid that user from getting access until
+        // someone can track why the failure happened. A '0' value is not a failure, if that
+        // was what goes with the username looked up and that's the value found.
+
 		m_resultDatFileName = _T("list_users_results.dat");
 
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
-		// Next are the username and the password...
-		// The 2-user dialog should have been seen and used, it's the user2 that we are
-		// interested in, and it's associated password. We'll check for empty values, and
-		// try get the right ones
+		// Next are the authenticating username and its password...
+		// Get these from AI.h 3033 & 4, public  m_DB_username and m_DB_password wxString
+        // members - these will have been set by the prior call of KbServer::ListUsers()
 		wxString tempStr;
-		wxString strUser1 = m_curNormalUsername; // best, but test in case empty
+		//wxString strUser1 = m_curNormalUsername; // best, but test in case empty
+        wxString strUser1 = this->m_DB_username;
 		if (strUser1.IsEmpty())
 		{
-			strUser1 = m_strUserID;
+			strUser1 = m_curNormalUsername; // should be same as m_strUserID
 		}
 		tempStr = strUser1;
 		tempStr = DoEscapeSingleQuote(tempStr); // username may have ' needing to be escaped
@@ -20130,20 +20221,44 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
 		// password we won't escape - documentation should tell user not to use
 		// single straight quote / apostrophe ( ' ) as part of password
-		wxString strPwd = m_curNormalPassword; // best guess
-		if (strPwd.IsEmpty())
+        //wxString strPwd = m_curNormalPassword; // best guess
+        wxString strPwd = this->m_DB_password;
+        if (strPwd.IsEmpty())
 		{
 			// try this one
-			strPwd = m_curAuthPassword;
+			strPwd = m_curNormalPassword;
+            wxASSERT(!this->m_curNormalPassword.IsEmpty());
 		}
 		commandLine += strPwd + comma;
 
+        // That completes the 3-field authenticating initial values in the commandLine (as
+        // being built here, for setting the contents of list_users.dat Now add the additional 3
+        // parameters that do_list_users.exe will need, when the MariaDB connection has been established.
+        // These are:
+        // (1) the username - which needs to be listed already in the kbserver user table. 
+        //     Get it from this->m_strUserID
+        tempStr = this->m_strUserID;
+        tempStr = DoEscapeSingleQuote(tempStr); // username may have ' needing to be escaped
+        commandLine += tempStr + comma;
+        // (2) the associated fullname - it too must be in the user table, on the same row as (1)'s username.
+        //     Get it from this->m_strFullname
+        tempStr = this->m_strFullname;
+        tempStr = DoEscapeSingleQuote(tempStr); // fullname may have ' needing to be escaped
+        commandLine += tempStr + comma;
+        // (3) the associated useradmin flag value, 1 (for access allowed) or 2 (for access denied). 
+        // On same row of the table. Get it from a do_lookup_user.exe call from system() as done above
+        // and the results file has the useradmin value, stored in this->m_server_useradmin_looked_up
+        tempStr = this->m_server_useradmin_looked_up; // will be '0' or '1' -- see above for where set
+        commandLine += tempStr + comma;
+        // Note, if the user is set in the GUI to what m_DB_username is, then m_strUserID will be the same
+        // value, and so will appear twice in the list_users.dat input file's comma separated list of field
+
 		// That completes the commandLine string; now put it into
-		// the moved .dat input file, ready for CallExecute() to get
+		// the moved .dat input file, ready for system() to get
 		// the grunt work done
 
 		// put a copy on the app, so that LogUserAction() can grab it if the
-		// the wxExecute() in CallExecute() fails
+		// the system() call in CallExecute() fails
 		m_curCommandLine = commandLine;
 #if defined (_DEBUG)
 		wxLogDebug(_T("%s() Line %d, for list_users = %d , commandLine: %s : for INPUT .dat file, funcNumber %d"),
@@ -20253,10 +20368,15 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		commandLine += kbType + comma;
 		// CreateEntry() always creates with deleted flag _T('0')
-		commandLine += _T('0');
-		// That completes the commandLine string; now put it into
-		// the moved .dat input file, ready for CallExecute() to get
-		// the grunt work done
+		commandLine += _T('0') + comma;
+
+        // BEW 4Feb22 the 'now' datetime, as forXHTML, is required as the last field
+        // of the command line - add it now
+        commandLine += dateTimeNow;
+
+        // That completes the commandLine string; now put it into
+        // the moved .dat input file, ready for CallExecute() to get
+        // the grunt work done
 
 		// put a copy on the app, so that LogUserAction() can grab it if the
 		// the wxExecute() in CallExecute() fails
@@ -21102,12 +21222,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	} // end of switch:  switch (funcNumber)
 }
 
-void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString dataPath)
+void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
 {
 	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
-	wxString datFilename = _T("credentials_for_user.dat");
+	wxString datFilename = _T("add_foreign_users.dat");
 	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
@@ -21125,11 +21245,13 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString dataPat
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			wxString line = _T("# Usage: ipAddress,username,fullname,password,useradmin,");
+			wxString line = _T("# Usage: ipAddress,AuthenticatingUser,AuthenticatingPassword,username,fullname,password,useradmin,");
 			f.AddLine(line);
-			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+            line = _T("# AuthenticatingUser and AuthenticatingPassword must be in user table, e.g. kbadmin and kbauth");
+            f.AddLine(line);
+            line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# data folder's 'input' file: credentials_for_user.dat");
+			line = _T("# data folder's 'input' file: add_foreign_users.dat");
 			f.AddLine(line);
 			line = _T("# After login, if username does not exist, adds to");
 			f.AddLine(line);
@@ -21137,9 +21259,9 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString dataPat
 			f.AddLine(line);
 			line = _T("# permission level (0 or 1) specified by useradmin");
 			f.AddLine(line);
-			line = _T("# Example: 192.168.1.11,JoeBlogs,AnyBody,anypwd,0,");
+			line = _T("# Example: 192.168.1.11,AuthenticatingUser,AuthenticatingPassword,JoeBlogs,AnyBody,anypwd,0,");
 			f.AddLine(line);
-			line = _T("# Use this .dat file for adding new users to the user table");
+			line = _T("# Use this input .dat file for adding new users to the user table");
 			f.AddLine(line);
 			line = _T("# Results file: add_foreign_KBUsers_results.dat");
 			f.AddLine(line);
@@ -21149,11 +21271,11 @@ void CAdapt_ItApp::MakeCredentialsForUser(const int funcNumber, wxString dataPat
 			f.AddLine(line);
 			line = _T("# For login, ipaddress, root, and root pwd (for first user in user table)");
 			f.AddLine(line);
-            line = _T("else as above : ipAddress, username, fullname, password, useradmin,");
+            line = _T("else as above : ipAddress, AuthenticatingUser, AuthenticatingPassword, username, fullname, password, useradmin,");
             f.AddLine(line);
-			line = _T("# Enter the user details in the Manager, middle column, and click Add User");
+			line = _T("# For KB Sharing Manager, enter the user details in the Manager, middle column, and click Add User");
 			f.AddLine(line);
-            line = _T("# Or call from the Administrator menu, to add the user table's first user");
+            line = _T("# Or call from the Administrator menu, to add to the user table manually, via Add User to KBserver menu item");
             f.AddLine(line);
             f.Write();
 			f.Close();
@@ -21225,6 +21347,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
     tempCWDpath = pathOnly; // for the post-switch redefinition of a FileName object, below
     bool bTempCwd = fnn.SetCwd(pathOnly);
 
+    bool bSuccessfulSwitch = FALSE; // initialise
+
 	switch (funcNumber)
 	{
 	case noDatFile:
@@ -21238,6 +21362,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         const char* pstart = { "start do_add_foreign_kbusers.exe" }; // avoid need of path prefix
         rv = system(pstart);
         wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
+        if (rv == 0)
+        {
+            bSuccessfulSwitch = TRUE;
+        }
     }
         break;
 	case lookup_user:
@@ -21254,7 +21382,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
                 // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
         rv = system(pstart); // Using temporary CWD - it works and drops a lookup_user_results.dat path in pathOnly folder
         wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
-
+        if (rv == 0)
+        {
+            bSuccessfulSwitch = TRUE;
+        }
 //#if defined (_DEBUG)
 //        int halt_here = 1;
 //#endif   
@@ -21265,13 +21396,28 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         wxASSERT(resultFile == m_resultDatFileName);
         bool bSame = resultFile == m_resultDatFileName;
         wxUnusedVar(bSame);
+        wxASSERT(bSame);
+        bSuccessfulSwitch = TRUE;
     }
 		break;
 	case create_entry: // = 4
     {
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
-        bReportResult = FALSE;
+        bReportResult = FALSE; // no need for the AI code to report anything, Leon's .dat results file gives anything needed
+
+        // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.exe'
+        int rv = 0;
+        const char* pstart = { "start do_create_entry.exe" }; // avoid path prefix
+                // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+        rv = system(pstart); // Using temporary CWD - it works and drops a create_entry_results.dat path in pathOnly folder
+        if (rv == 0)
+        {
+            bSuccessfulSwitch = TRUE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and results .dat file is: %s"),
+            __FILE__, __FUNCTION__, __LINE__, rv , m_resultDatFileName.c_str());
     }
 		break;
 	case pseudo_delete: // = 5
@@ -21368,6 +21514,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
     }
 		break;
 	};
+
     // Restore the earlier location of the current working directory
     if (bTempCwd)
     {
@@ -21394,7 +21541,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         //long rv = 0;
 		//rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful  <<-- BEW fails, System Error, can't find libmariadb.dll message
         //bool bShellWorked = wxShell(execFileName); <<-- fails too, same System Error as above, doesn't return control to here either
-        int rv = 0;
+ //       int rv = 0;
  //       rv = system(execPath); // param was execFileName, but I think it should be the absolute path calculated above - failed, results file empty
  //       rv = system("execPath"); // wrap with quotes - still fails
  //       rv = ::wxExecute(execFileName, output, errors); // the legacy call fails, rv = large -ve, output NULL, .dat results, empty
@@ -21403,7 +21550,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         //rv = system(pstart);
          
 // **************************************************************************************
-		if (!errors.IsEmpty() && rv != 0)
+		if (!errors.IsEmpty()) // && rv != 0)  BEW 7Feb22, rv is not relevant below, only whether there were errors of not
 		{
 			// Get the error lines, and the commandLine, into LogUserAction() so
 			// as to make debugging easy
@@ -21446,25 +21593,54 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		// restore old current working directory
 		bool bRestored = fn.SetCwd(currCwd);
 		wxUnusedVar(bRestored);
+
 		// check for success and advise user with a 1.3 second 'created successfully' 
 		// message if authenticating, but suppress messages if funcNumber is 3 or more
-        //if (rv == 0)
-        if (rv == 0)  // rv = system(execFileName); call worked, despite the large -ve return value
+        
+        if (bSuccessfulSwitch)  
         {
 			// Any value other than zero means something failed in the call
 			int offset = wxNOT_FOUND;
 			wxString pathToResults = tempCWDpath + PathSeparator + resultFile;
 			bool bResultsFileExists = ::FileExists(pathToResults);
             // BEW 6Jan22 is the file empty? (because of a failure in calling system())
-            bool bEmptyFile = FALSE; // initialise
+            
+            //bool bEmptyFile = FALSE;
+            wxTextFile ff(pathToResults); // creates lin-based text file
             if (bResultsFileExists)
             {
-                wxFile ff(pathToResults);
-                wxFileOffset ffLen = ff.Length();
-                if (ffLen == 0)
-                    bEmptyFile = TRUE;
+                bool bIsOpened = ff.Open();
+                if (bIsOpened)
+                {
+
+
+
+
+
+
+                    // TODO               
+                }
             }
-			if (bResultsFileExists && !bEmptyFile) // if the file exists and has content
+            else
+            {
+                // The results file, list_foreign_KBUsers_results.dat doesn't
+                // yet exist in the executable's folder - so create it
+                // empty now
+                bool bIsCreated = ff.Create(pathToResults);
+                if (bIsCreated)
+                {
+
+
+
+
+
+
+
+                    // TODO
+                }
+            }
+             
+			if (bResultsFileExists) // if the file exists and has content
 			{
 				// The existence of the results file does not guarantee success,
 				// but if first line has "success" then the wxExecute() call succeeded
@@ -21669,14 +21845,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case list_users: // = 3
 					{
-						// results file is list_users_report_results.dat
+						// results file is list_users_results.dat
 						// containing: username,fullname,password,useradmin, 
 						// (not wanted are id, and timestamp)
-						// if (bMoreThanOneLine && bSuccess) are both TRUE,
-						// so here we handle multiple lines.
 						// m_arrLines is a public wxArrayString, for DatFile2StringArray()
 						// to use, and then ListUsers()
-						//wxString resultFile = _T("list_users_report_results.dat");
+						wxString resultFile = _T("list_users_results.dat");
 						bool bArrOK = DatFile2StringArray(execPath, resultFile, m_arrLines); // cloned in AI.h
 						wxUnusedVar(bArrOK);
 
@@ -21689,7 +21863,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// through the LoadDataForPage(0) call later on. If
 						// this bool is FALSE, the username hasn't changed, so
 						// we have a simpler job to toggle the GUI checkbox
-						// to agree with what the wxExecute() call did.
+						// to agree with what the system() call did.
 						if (m_ChangePermission_NewUser == m_ChangePermission_OldUser)
 						{
 							m_bChangePermission_DifferentUser = FALSE;
@@ -22139,6 +22313,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strFullname_Archived = _T("KBAdmin");
     m_strPassword_Archived = _T("kbauth");
     m_rootPassword_Archived = wxEmptyString;
+    // And for when a new user was successfully added
+    m_justAddedUsername = wxEmptyString;
+    m_justAddedFullname = wxEmptyString;
+    m_justAddedPassword = wxEmptyString;
+    wxChar   m_justAddedPermission = _T('0'); // '1' or '0', default to '0' until explicitly set otherwise
+    wxUnusedVar(m_justAddedPermission); // prevent compiler warning
 
 //#endif
 
@@ -37188,12 +37368,12 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
     m_bAddUser2UserTable = TRUE;
 
-	// Prepare the .dat input dependency: "credentials_for_user.dat" file, into
+	// Prepare the .dat input dependency: "add_foreign_users.dat" file, into
 	// the execPath folder, ready for the system() call, or wxShell() call, below
 
 	// I've encapsulated the needed code in a function: 
 	// bool CallExecute(execFileName,execPath,do_add_foreign_kbusers_results.dat)
-	// and I'll check do_add_foreign_kbusers_results.dat for "created successfully" substring,
+	// and I'll check do_add_foreign_kbusers_results.dat for "success" substring,
 	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
 	m_nAddUsersCount = 0; // gotta protect, as number of fields may differ
 // replace the above with a function...
@@ -61050,13 +61230,13 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString dataPath) // w
 			f.AddLine(line);
 			line = _T("# 'output' file in exec folder: create_entry_results.dat");
 			f.AddLine(line);
-			line = _T("# The row's fields, in order (initial id automatic; timestamp is now()'s timestamp):");
+			line = _T("# The row's fields, in order (initial id automatic; timestamp is now()'s timestamp: put last in input .dat file):");
 			f.AddLine(line);
 			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
 			f.AddLine(line);
-			line = _T("# login credentials: ipaddr, username, password");
+			line = _T("# login credentials: ipaddr, autenticating username, authenticating password");
 			f.AddLine(line);
-			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,");
+			line = _T("# Input  .dat:ipaddr,authenticating username,authenticating password,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,timestamp");
 			f.AddLine(line);
 			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
 			f.AddLine(line);
@@ -61367,7 +61547,7 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString dataPath)
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			wxString line = _T("# Usage: ipAddress,username,password,");
+			wxString line = _T("# Usage: ipAddress,DB_user,DB_password,username,fullname,useradmin,");
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
@@ -61375,29 +61555,25 @@ void CAdapt_ItApp::MakeListUsers(const int funcNumber, wxString dataPath)
 			f.AddLine(line);
 			line = _T("# Results file: list_users_results.dat");
 			f.AddLine(line);
-			line = _T("# After login, checks if username has useradmin value equaling 1");
+			line = _T("# Authentication to MariaDB uses the first 3 fields: ipAddress, DB_user, DB_password");
 			f.AddLine(line);
-			line = _T("# If that check fails, return list_users_results.dat");
+			line = _T("# If authentication fails, return list_users_results.dat with the message:");
             f.AddLine(line);
-            line = _T("# with first line lacking the substring \"success\", and saying:");
+            line = _T("# \"sorry, no connection in ram was formed with the DB server, might be an access fault !!");
             f.AddLine(line);
-			line = _T("# \"this user does not have permission to access the database user's table:- <name>\"");
+			line = _T("#  check the user name, password and access rights for this host IP address !!\"");
 			f.AddLine(line);
-			line = _T("# If the check succeeds, return the list_users_results.dat file");
+			line = _T("# If authentication succeeds, return the list_users_results.dat file with all the");
 			f.AddLine(line);
-			line = _T("# with first line having \"success\" findable in it.");
+			line = _T("# lines containing, for each line, the values for:");
 			f.AddLine(line);
-			line = _T("# And following lines containing, for each line, the 3 values for:");
+			line = _T("# username,fullname,password,useradmin,date and time (space-separated)");
 			f.AddLine(line);
-			line = _T("# username,fullname,useradmin,");
+			line = _T("# Use this input .dat file for listing the rows contents of the user table,");
 			f.AddLine(line);
-			line = _T("# Use this .dat file for listing all usernames and each's fullname and");
+			line = _T("# with values comma-separated.");
 			f.AddLine(line);
-			line = _T("# useradmin values, comma-separated.");
-			f.AddLine(line);
-            line = _T("# The executable will be:  do_list_users.exe with credentials for entry:");
-			f.AddLine(line);
-			line = _T("# ipAddress,username,password,");
+            line = _T("# The executable will be:  do_list_users.exe");
 			f.AddLine(line);
 			f.Write();
 			f.Close();

@@ -33452,12 +33452,14 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	wxUnusedVar(bChangedCWD);
 	KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 	wxString comma = _T(",");
-	wxString ipAddr = _T("192.168.1.9");
-	wxString user = _T("bruce@unit2");
-	wxString pwd = _T("Clouds2093");
-	wxString user2 = _T("bobbie");
+	wxString ipAddr = _T("192.168.1.107");
+	wxString user = _T("maryUnit2");
+	wxString pwd = _T("CloudsSoon");
+	wxString DBuser = _T("kbadmin");
+	wxString DBpwd = _T("kbauth");
+	//wxString user2 = _T("bobbie");
 	//wxString cmdLine = ipAddr + comma + user + comma + pwd + comma +user2 + comma;
-	wxString cmdLine = ipAddr + comma + user + comma + pwd + comma; // +user2 + comma;
+	wxString cmdLine = ipAddr + DBuser + comma + DBpwd + comma + user + comma + pwd + comma + _T('1') + comma; 
 	wxTextFile f;
 	//bool bOpened = f.Open(execPath + _T("lookup_user.dat"));
 	bool bOpened = f.Open(execPath + _T("list_users.dat"));
@@ -33480,7 +33482,7 @@ void CAdapt_ItView::OnHiddenMenuItem(wxCommandEvent& WXUNUSED(event))
 	//KbServer* pKbSvr = new KbServer(1, TRUE); // TRUE = for manager
 
 	//pKbSvr->LookupUser(ipAddr, user, pwd, user2);
-	pKbSvr->ListUsers(ipAddr, user, pwd, user2);
+	pKbSvr->ListUsers(ipAddr, DBuser, DBpwd);
 	//	if (bChangedCWD)
 //	{
 //		bChangedCWD = ::wxSetWorkingDirectory(saveCwd);

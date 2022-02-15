@@ -262,6 +262,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// the results file of do_list_users.exe and updates the m_pOriginalUsersList and 
 	// m_pUsersListForeign 'in place' with an Update....() function
 
+// REPLACE START
+// pApp-. : m_strKbServerIpAddr, or m_chosenIpAddr; m_strUserID ; m_curNormalUsername ; m_curAuthPassword & set m_DB_password
+
+/*
 #if defined  (_DEBUG)
 	wxLogDebug(_T("ConfigureDATfile(lookup_user = %d) line %d: entering, in Mgr InitDialog()"),
 			lookup_user, __LINE__);
@@ -291,7 +295,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 			wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
 			wxString title = _("Warning: permission too low");
 			wxMessageBox(msg, title, wxICON_WARNING & wxOK);
-			m_bAllow = FALSE; // enables caller to case exit of the Mgr handler
+			m_bAllow = FALSE; // enables caller to cause exit of the Mgr handler
 			return;
 		}
 		else
@@ -314,6 +318,109 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		m_pApp->m_bConfigMovedDatFileError = TRUE;
 		return;
 	}
+*/
+
+// First, before dealing with the attempt to list users, which is only relevant to
+ // authorizing to enter the KB Sharing Manager, or to it's LoadDataForPage(0) once 
+ // logged in; we must find out whether the user trying to log in is credentialed to
+ // gain access. This depends on that users  useradmin value, in the user table.
+ // A '1' value will allow access; a '0' value will be cause Adapt It code to 
+ // disallow access to the Manager. (But such a use can still operate as the owning
+ // user for a valid kbserver-supported installation for his/her adapting project.)
+ // So here we need to get lookup_user.dat suitably initialized and filled with
+ // correct parameters, so do_lookup_user.exe can be called by system(), and return
+ // a filled one-line lookup_user_results.dat file, with the usedadmin flag value
+ // in it so we can stored it, and use that for the subsequent list users code
+ // further below.
+	bool bUserLookupSucceeded = m_pApp->ConfigureDATfile(lookup_user);
+	if (bUserLookupSucceeded)
+	{
+		// The input .dat file is now set up ready for do_lookup_user.exe
+		m_pApp->m_server_username_looked_up = m_pApp->m_strUserID;
+		m_pApp->m_server_fullname_looked_up = m_pApp->m_strFullname;
+
+		// open the lookup_user_results.dat file, get its one line contents into a wxString
+
+		wxString resultFile = _T("lookup_user_results.dat");
+		wxString datPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + resultFile;
+		bool bExists = ::FileExists(datPath);
+		wxTextFile f;
+		wxString myResults = wxEmptyString; // initialise
+		if (bExists)
+		{
+			bool bOpened = f.Open(datPath);
+			if (bOpened)
+			{
+				myResults = f.GetFirstLine();
+				myResults = MakeReverse(myResults);
+				// myResults now should be either (a) ",1,.....") or (b) ",0,...."
+				// Remove the initial comma, if present
+				wxString commaStr = _T(",");
+				wxChar firstChar = myResults.GetChar(0);
+				if (firstChar == commaStr)
+				{
+					myResults = myResults.Mid(1);
+				}
+				// Okay, '0' or '1' is next - which is it?
+				wxChar permissionChar = myResults.GetChar(0);
+				// Now store it where it will be available for the list_users case
+				f.Close();
+				// save the permission value where the list_users case (here) can access it below
+				m_pApp->m_server_useradmin_looked_up = permissionChar;  // saves '1' or '0' as wxChar
+				// and on the app too
+				m_pApp->m_bHasUseradminPermission = permissionChar == _T('1') ? TRUE : FALSE;
+
+				// disallow, if user does not have useradmin == 1 permission
+				if (bUserLookupSucceeded && !m_pApp->m_bHasUseradminPermission)
+				{
+					wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
+					wxString title = _("Warning: permission too low");
+					wxMessageBox(msg, title, wxICON_WARNING & wxOK);
+					m_pApp->LogUserAction(msg);
+					m_bAllow = FALSE; // enables caller to cause exit of the Mgr handler
+					return;
+				}
+				else
+				{
+					m_pApp->m_bHasUseradminPermission = TRUE;
+				}
+			}
+			else
+			{
+				// Unable to open file
+				m_pApp->m_server_username_looked_up = m_pApp->m_strUserID;
+				m_pApp->m_server_fullname_looked_up = m_pApp->m_strFullname;
+				m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
+				wxString title = _("Unable to open file");
+				wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
+				msg = msg.Format(msg, m_pApp->m_strUserID);
+				m_pApp->LogUserAction(msg);
+			}
+		}
+		else
+		{
+			// Unlikely to fail, if it does, take the 'play safe' option below
+			m_pApp->m_server_username_looked_up = m_pApp->m_strUserID;
+			m_pApp->m_server_fullname_looked_up = m_pApp->m_strFullname;
+			m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
+			wxString title = _("User not found in the KBserver user table");
+			wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
+			msg = msg.Format(msg, m_pApp->m_strUserID);
+			m_pApp->LogUserAction(msg);
+		}
+	}
+	else
+	{
+		// Play safe. Disallow access to the KB Sharing Manager
+		m_pApp->m_server_username_looked_up = m_pApp->m_strUserID;
+		m_pApp->m_server_fullname_looked_up = m_pApp->m_strFullname;
+		m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
+		wxString title = _("Lookup of username failed");
+		wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
+		msg = msg.Format(msg, m_pApp->m_strUserID);
+		m_pApp->LogUserAction(msg);
+	}
+// REPLACE END
 
 	m_pApp->m_bDoingChangeFullname = FALSE; // initialize
 	m_pApp->m_bUseForeignOption = TRUE; // we use this to say "The KB Sharing Mgr is where control is"
@@ -326,14 +433,36 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// currently open shared project, is a job for the internals of the Mgr, once opened
 	m_pApp->m_bKBSharingMgrEntered = TRUE;
 
+
 	// These are reasonable defaults for initialization purposes
-	m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_strKbServerIpAddr);
-	m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_curNormalUsername);
-	m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_curNormalPassword);
+	if (m_pApp->m_strKbServerIpAddr != m_pApp->m_chosenIpAddr)
+	{
+		m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_chosenIpAddr);
+	}
+	else
+	{
+		m_pApp->m_pKbServer_ForManager->SetKBServerIpAddr(m_pApp->m_strKbServerIpAddr);
+	}
+	if (m_pApp->m_curNormalUsername != m_pApp->m_strUserID)
+	{
+		m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_strUserID);
+		m_pApp->m_DB_username = m_pApp->m_strUserID; // pass this to do_list_users.dat
+	}
+	else
+	{
+		m_pApp->m_pKbServer_ForManager->SetKBServerUsername(m_pApp->m_curNormalUsername);
+		m_pApp->m_DB_username = m_pApp->m_curNormalUsername; // pass this to do_list_users.dat
+	}
+
+	m_pApp->m_pKbServer_ForManager->SetKBServerPassword(m_pApp->m_curAuthPassword);
+	if (m_pApp->m_DB_password.IsEmpty())
+	{
+		m_pApp->m_DB_password = m_pApp->m_curAuthPassword; // pass this to do_list_users.dat
+	}
+
 
 	// Get the list of users into the returned list_users_results.dat file
-	int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr,
-		m_pApp->m_strUserID, m_pApp->m_curNormalPassword, m_pApp->m_strUserID);
+	int rv = m_pApp->m_pKbServer_ForManager->ListUsers(m_pApp->m_strKbServerIpAddr, m_pApp->m_DB_username, m_pApp->m_DB_password);
 	wxUnusedVar(rv);
 	wxASSERT(rv == 0);
 
@@ -404,10 +533,10 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		// BEW 8Jan21 NOTE the test carefully, if user is re-entering the KB Sharing Mgr
 		// more than once, each time m_pApp->m_nMgrSel must have previously been set to
 		// -1 (wxNOT_FOUND), so that control enters the TRUE block of the compound test
-		// below. Failure to reset to -1 will send control the the else block where the
+		// below. Failure to reset to -1 will send control to the else block where the
 		// there is no attempt to access the arrays for username, fullname and password,
 		// with the result that the manager would open with an EMPTY LIST - and not be
-		// above to do a thing. So, OnOK() and OnCancel() reinitialize m_nMgrSel to -1
+		// able to do a thing. So, OnOK() and OnCancel() reinitialize m_nMgrSel to -1
 #if defined (_DEBUG)
 		wxLogDebug(_T("%s::%s(), line %d : PreTest: m_pApp->m_nMgrSel = %d  <<-- IT MUST BE -1 HERE"),
 			__FILE__, __FUNCTION__, __LINE__, m_pApp->m_nMgrSel);
@@ -958,8 +1087,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		m_pApp->m_temp_password = strPassword;
 		m_pApp->m_temp_useradmin_flag = strUseradmin;
 		wxString ipAddr = m_pApp->m_chosenIpAddr;
-		wxString datFilename = _T("credentials_for_user.dat");
-		wxString resultFile = _T("credentials_for_user_results.dat");
+		wxString datFilename = _T("add_foreign_users.dat");
+		wxString resultFile = _T("add_foreign_KBUsers_results.dat");
 
 		bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname,
 			&strPassword, bUseradmin, datFilename);
@@ -1175,8 +1304,8 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// for the box with ptr m_pEditShowPasswordBox - which is empty till "Show Password"
 	// button is pressed. So....
 	m_pEditShowPasswordBox->ChangeValue(_T("")); // don't display pwd, until asked to
-												 // When OnSelchangeUsersList() is invoked, the two central password boxes
-												 // should stay empty. So..
+			// When OnSelchangeUsersList() is invoked, the two central password boxes
+			// should stay empty. So..
 	m_pEditPersonalPassword->ChangeValue(_T(""));
 	m_pEditPasswordTwo->ChangeValue(_T(""));
 
@@ -1184,7 +1313,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// database, nor does editing any of the control values, or clearing them. The 
 	// the mysql user table is only affected when the user clicks one of the buttons
 	// Add User, or Change Permission, or Change Fullname is invoked - because only
-	// those three are implemented with .py wrapped to be .exe functions, one for each.
+	// those three are implemented with .c wrapped to be .exe functions, one for each.
 
 	// Note 2: Remove User is not permitted - it would make an unacceptable mess of
 	// the mysql entry table, so we have no support for such a button. Do you want

@@ -4505,6 +4505,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					m_pApp->m_strSrc_For_KBserver = key;
 					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
 					m_pApp->m_bCreateEntry_For_KBserver = TRUE; // set this true, rather than a synchronous call here
+					wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+						m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
 				}
 			}
 		}
@@ -4672,6 +4674,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							m_pApp->m_strSrc_For_KBserver = key;
 							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
 							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__, 
+								m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
 						}
 					}
 				}
@@ -4827,6 +4831,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 									m_pApp->m_strSrc_For_KBserver = key;
 									m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
 									m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+									wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for PseudoUndelelete"), __FILE__, __FUNCTION__, __LINE__,
+										m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
 								}
 							}
 						}
@@ -4979,6 +4985,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								m_pApp->m_strSrc_For_KBserver = key;
 								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
 								m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+								wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+									m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
 							}
 						}
 					}

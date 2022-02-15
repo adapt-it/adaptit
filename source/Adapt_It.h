@@ -3003,7 +3003,7 @@ public:
 										// this as an "informal human-readable username" 'fullname' in user table
 	// BEW 27Jan22 added the next four archiving strings, for preserving MariaDB access/login credentials,
 	// set uniquely for whatever user is accessing the database. These will be used in the .dat input file
-	// called: credentials_for_user.dat  - which has the ipAddress first, and then the m_strUserID_Archived value,
+	// called: add_foreign_users.dat  - which has the ipAddress first, and then the m_strUserID_Archived value,
 	// and that followed by the m_strPassword_Archived - and other values will follow those three. See
 	// AI.cpp's ConfigureMovedDatFile() for code using these. The root pwd for kbserver access will also
 	// be stored in m_rootPassword_Archived. Under no circumstances allow any of these values to find their
@@ -3012,6 +3012,37 @@ public:
 	wxString m_strFullname_Archived;
 	wxString m_strPassword_Archived;
 	wxString m_rootPassword_Archived;
+	// When a new user is added to the user table, successfully, make the new username, fullname, password
+	// and useradmin value (1 or 0) get stored in the next 4 members. Then we can test for a ChangeUsername()
+	// which changes the username, matching what's in m_justAddedUsername provided m_justAddedPermission is '1'
+	// and if there's a match, we can switch away from kbadmin/kbauth to the newly added user
+	wxString m_justAddedUsername;
+	wxString m_justAddedFullname;
+	wxString m_justAddedPassword;
+	wxChar   m_justAddedPermission; // '1' or '0'
+	// Two new archiving storage strings, for funcNumber = 3, etc, for ListUsers() and do_list_users.exe
+	// which are for logging in (if credentialed) to the Knowledge Base Sharing Manager. These are
+	// used for authenticating at login, and for credentialing a Add User button press. 
+	// do_list_users.exe will read the input .dat file, list_users.dat - and that will require
+	// additional parameters which are available from storage already in the app from years ago
+	// NOTE. since any of the 12 or so do....exe functions can only be called one at a time, all
+	// of them except a few with low funcNumber values, can use these two - they act as scratch
+	// strings, to take params from a function like ListUsers() to it's Leon-designed .exe 
+	// function, such as list_users.dat from which the commandLine is formed. Hence, for pseudo delete, etc....
+	// The 3rd authenticating member is the ipAddress, which is easily got from m_chosenIpAddr
+	wxString m_DB_username;
+	wxString m_DB_password;
+	// BEW 10Feb22, Need a do_lookup_user.exe which for a given username in the user table, returns the
+	//  values for:
+	// (a) that username, (b) it's fullname, and (c) the associated useradmin flag value (1 or 0)
+	// do_list_users.exe is for getting the KB Sharing Manager's user table values shown, but this
+	// is only permitted by Adapt It provided the authenticating user (m_strUserID) is permitted to
+	// access the Manager dialog. The only reliable way to determine this is to lookup up the relevant
+	// row's useradmin value. So might as well get username and fullname as well, which is what LookupUser()
+	// used to do.
+	wxString m_server_username_looked_up; 
+	wxString m_server_fullname_looked_up; 
+	wxChar   m_server_useradmin_looked_up;  // '1' or '0'
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
@@ -3064,7 +3095,7 @@ public:
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
 
-    // For "The HACK", BEEW 8Aug13, trying to diagnose & fix a rare m_targetStr value 'non
+    // For "The HACK", BEW 8Aug13, trying to diagnose & fix a rare m_targetStr value 'non
     // stick' bug after edited phrase box value was edited; observed first by RossJones on
     // Win7, and then by Bill and JerryPfaff on Linux, me a few times Win7 and not at all
     // on Linux. The hack is a block at the end of OnIdle(), where if (limiter == 0) is tested
@@ -3751,7 +3782,7 @@ public:
 
 */
 	// Handler files for the cases in the KBserverDAT_Blanks switch, in CreateInputDatBlanks()
-	void MakeCredentialsForUser(const int funcNumber, wxString dataPath); // = 1 // whm Note: removed execPath parameter
+	void MakeAddForeignUsers(const int funcNumber, wxString dataPath); // = 1 // whm Note: removed execPath parameter
 	void MakeLookupUser(const int funcNumber, wxString dataPath); // =2  // whm Note: removed execPath parameter
 	void MakeListUsers(const int funcNumber, wxString dataPath); // = 3  // whm Note: removed execPath parameter
 	void MakeCreateEntry(const int funcNumber, wxString dataPath); // = 4  // whm Note: removed execPath parameter
@@ -3874,9 +3905,10 @@ public:
 	wxString  m_ChangePermission_OldUser;
 	wxString  m_ChangePermission_NewUser;
 	bool	  m_bChangingPermission; // BEW 7Jan21 needed to simplify control in LoadDataForPage(0)
-	wxString  m_strNewUserLine; // for use with adding a new user in KB Sharing Mgr because
-							   // add_KBUsers_return_result_file.dat doesn't have all the
-							   // values needing to be added to the comma-separated arrLines line
+	wxString  m_strNewUserLine; // this is a scratch string, for use with adding a new user in KB Sharing Mgr
+							   // add_foreign_KBUsers_results.dat doesn't have all the
+							   // because values needing to be added to the comma-separated arrLines line
+							   // (see code at AI.cpp 19,746 or thereabouts, in the else block)
 
 
 	wxString  GetFieldAtIndex(wxArrayString& arr, int index); // BEW created 21Dec20

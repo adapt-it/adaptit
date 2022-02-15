@@ -73,7 +73,7 @@ wxCriticalSection g_jsonCritSect;
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+//#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
 
 // =========================
 
@@ -1032,7 +1032,8 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	}
 }
 
-int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername)
+//int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername)
+int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) // BEW 9Feb22 deprecated whichusername
 {
 	bool bReady = FALSE;
 	bool bAllowAccess = m_pApp->m_bHasUseradminPermission; // defaulted to FALSE
@@ -1269,6 +1270,30 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	// currently in action is '1' or '2' respectively, the same code handles either in
 	// the following blocks
 	m_pApp->ConfigureDATfile(create_entry); // grabs m_curNormalSource & ...Target from m_pApp
+
+	// BEW 5Feb22 a block for debugging failure of CreateEntry to input the src/nonSrc pair to kbserver entry table
+#if defined (_DEBUG)
+	wxString inputDatPath = m_pApp->m_curExecPath;
+	inputDatPath += datFileName; // I want to know what's in here - does it have the 2 extra fields kbadmin & kbauth
+	bool bExists = ::FileExists(inputDatPath);
+	wxTextFile f;
+	if (bExists)
+	{
+		bool bOpened = f.Open(inputDatPath);
+		if (bOpened)
+		{
+			wxString contents = f.GetFirstLine();
+			wxLogDebug(_T("%s::%s() line %d: src = %s , nonSrc = %s , in CreateEntry - before CallExecute()"), __FILE__, __FUNCTION__, __LINE__,
+				src.c_str(), nonSrc.c_str());
+			f.Close();
+		}
+	}
+	else
+	{
+		wxLogDebug(_T("%s::%s() line %d: src = %s , nonSrc = %s , in CreateEntry - FILE DOES NOT EXIST: create_entry.dat, at path: %s"),
+			__FILE__, __FUNCTION__, __LINE__, src.c_str(), nonSrc.c_str(), m_pApp->m_curExecPath.c_str());
+	}
+#endif
 	
 	// The create_entry.dat input file is now ready for grabbing the command
 	// line (its first line) for the ::wxExecute() call in CallExecute()

@@ -12289,7 +12289,7 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 }
 
 // BEW 23Nov20, use this one from the KB Sharing Manager, so set app's
-// m_bUseForeignOption to TRUE, so that the case 1, with "credentials_for_user.dat
+// m_bUseForeignOption to TRUE, so that the case 1, with "add_foreign_users.dat
 // as the input .dat file, can be filled from an alternative path using KB Sharing
 // Manager supplied values.
 bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFullname,
@@ -12320,7 +12320,7 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 	// Comment lines start with # (hash)
 	wxString comment1 = _T("# Usage: ipAddress,username,password,bCanAddUsers");
 	wxString comment2 = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
-	wxString comment3 = _T("# dist folder's 'input' file: credentials_for_user.dat");
+	wxString comment3 = _T("# dist folder's 'input' file: add_foreign_users.dat");
 	wxString comment4 = _T("# Default useradmin value is to be TRUE");
 	wxString credentials = ipaddr + comma + username + comma + fullname + comma
 							+ pwd + comma + useradmin + comma;

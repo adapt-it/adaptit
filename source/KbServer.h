@@ -225,8 +225,9 @@ public:
 	// BEW 14Jan21 - still relevant for downloads using Leon's solution
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 
-	int		 ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername); // BEW
+	//int		 ListUsers(wxString ipAddr, wxString username, wxString password, wxString whichusername); // BEW deprecated whichusername
 					// 5Sep20  needed, given same signature as LookupUser() on 11Nov20
+	int		 ListUsers(wxString ipAddr, wxString username, wxString password); // BEW 9Feb22
 
 	int		 LookupEntryFields(wxString src, wxString nonSrc); // BEW 13Oct20 refactored
 	wxString ExtractTimestamp(wxString firstLine); // BEW 21Oct20, extract timestamp from
