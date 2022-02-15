@@ -97,9 +97,11 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
-	NoteDlgFunc(this, TRUE, TRUE);
+	// whm 12Feb2022 added FALSE to second parameter below.
+	// Some of the dialog's controls and label text is likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of NoteDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	pNoteDlgSizer = NoteDlgFunc(this, FALSE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
     // whm 5Mar2019 Note: The NoteDlgFunc() now uses the wxStdDialogButtonSizer for its OK and Cancel
@@ -354,6 +356,16 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		//pOldFocusWnd = FindFocus();
 		pEditNote->SetFocus();
     }
+
+	// whm 12Feb2022 added the following code lines for proper initial sizing on the Mac platform
+	pNoteDlgSizer->Layout();
+	// Some of the dialog's controls and label text is likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of NoteDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pNoteDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 
     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
     gpApp->m_bUserDlgOrMessageRequested = TRUE;

@@ -26,7 +26,7 @@
 		<string>zh</string>
 	</array>
 	<key>CFBundleLongVersionString</key>
-	<string>6.10.5, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
+	<string>6.10.5a, (c) 2021 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>

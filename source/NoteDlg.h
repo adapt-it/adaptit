@@ -44,6 +44,7 @@ public:
 	CNoteDlg(wxWindow* parent); // constructor
 	virtual ~CNoteDlg(void); // destructor
 	// other methods
+	wxSizer* pNoteDlgSizer; // whm 22Feb2022 added for Mac initial sizing
 	wxTextCtrl	m_editNote;
 	wxTextCtrl* pEditNote; // whm added
 

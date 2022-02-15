@@ -28,6 +28,7 @@
 		03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03CFAA09161DE73400B82F58 /* StatusBar.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
+		13BD917427BB107900A6725A /* NewUserCredentialsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13BD917227BB107900A6725A /* NewUserCredentialsDlg.cpp */; };
 		270E0AE3184C0D91005FAB50 /* FreeTransSplitterDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */; };
 		271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271F29C016FFCD0000E107A6 /* DVCSNavDlg.cpp */; };
 		272E3D2016BF647D00566D31 /* KBSharing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1C16BF647D00566D31 /* KBSharing.cpp */; };
@@ -222,6 +223,8 @@
 		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
 		1391211B2724CCE600B05139 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = ../../../../../../System/Library/Frameworks/QuartzCore.framework; sourceTree = "<group>"; };
+		13BD917227BB107900A6725A /* NewUserCredentialsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NewUserCredentialsDlg.cpp; path = ../../source/NewUserCredentialsDlg.cpp; sourceTree = "<group>"; };
+		13BD917327BB107900A6725A /* NewUserCredentialsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NewUserCredentialsDlg.h; path = ../../source/NewUserCredentialsDlg.h; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		270E0AE0184BE207005FAB50 /* FreeTransSplitterDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransSplitterDlg.h; path = ../../source/FreeTransSplitterDlg.h; sourceTree = "<group>"; };
 		270E0AE1184BE287005FAB50 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = "<group>"; };
@@ -555,6 +558,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				13BD917227BB107900A6725A /* NewUserCredentialsDlg.cpp */,
+				13BD917327BB107900A6725A /* NewUserCredentialsDlg.h */,
 				0301411B25C8E60900ECC5F0 /* Authenticate2Dlg.cpp */,
 				0301411C25C8E60900ECC5F0 /* Authenticate2Dlg.h */,
 				0301411925C8E60900ECC5F0 /* KBSharingAuthenticationDlg.cpp */,
@@ -1103,6 +1108,7 @@
 				C8F82E940F3F9CAB007579B8 /* RefString.cpp in Sources */,
 				C8F82E950F3F9CAB007579B8 /* RetranslationDlg.cpp in Sources */,
 				C8F82E960F3F9CAB007579B8 /* SetDelay.cpp in Sources */,
+				13BD917427BB107900A6725A /* NewUserCredentialsDlg.cpp in Sources */,
 				C8F82E970F3F9CAB007579B8 /* SetEncodingDlg.cpp in Sources */,
 				C8F82E980F3F9CAB007579B8 /* SilConverterSelectDlg.cpp in Sources */,
 				C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */,
@@ -1257,7 +1263,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6.10.5;
+				CURRENT_PROJECT_VERSION = 6.10.5a;
 				DEVELOPMENT_TEAM = C5GMB572MV;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1291,7 +1297,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 6.10.5;
+				MARKETING_VERSION = 6.10.5a;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1372,7 +1378,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				CURRENT_PROJECT_VERSION = 6.10.5;
+				CURRENT_PROJECT_VERSION = 6.10.5a;
 				DEVELOPMENT_TEAM = C5GMB572MV;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1406,7 +1412,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Release";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 6.10.5;
+				MARKETING_VERSION = 6.10.5a;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
