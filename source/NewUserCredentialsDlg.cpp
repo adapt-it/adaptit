@@ -63,6 +63,7 @@ NewUserCredentialsDlg::NewUserCredentialsDlg(wxWindow* parent) // dialog constru
 
 #if defined (_DEBUG)
 	int halt_here = 1;
+	halt_here = halt_here; // avoid gcc "variable set but not used" warning
 #endif
 }
 

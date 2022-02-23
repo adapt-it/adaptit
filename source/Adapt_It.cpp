@@ -19589,6 +19589,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // a successful login to the kbserver. The rest of the values needed
             // will come from the NewUserCredentialsDlg below
             bool b_use_kbadmin = FALSE; // initialise
+            b_use_kbadmin = b_use_kbadmin; // avoid gcc "variable set but not used" warning
             wxString strTest = _T("kbadmin");
             if (m_strUserID_Archived == strTest)
             {
@@ -60483,7 +60484,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 
                 // BEW 28Oct21 discoveryPath is pointing at where the AI execuable resides,
-                // e.g. when debugging from the IDE, that's in ...\bin\win32\Unicode Debug\ 
+                // e.g. when debugging from the IDE, that's in ...\bin\win32\Unicode Debug
                 // with kbservice_file.dat at path end. When running a release, the returned
                 // .dat files would go into C:\Program Files (x86)\Adapt It WX Unicode\ folder - not pretty
                 wxFFile ffile(discoveryPath); // kbservice_file.dat should open for reading
