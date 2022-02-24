@@ -226,7 +226,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
       button->SetDefault();
       item50->AddButton( button ); }
     item50->Realize();
-    item0->Add( item50, 0, wxGROW|wxALL, 5 );
+    item0->Add( item50, 0, wxGROW|wxALL, 10 );
 
     if (set_sizer)
     {
