@@ -2084,7 +2084,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
                         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxSizer* pAboutDlgSizer;
-	pAboutDlgSizer = AboutDlgFunc( this, TRUE, TRUE );
+	// whm 24Feb2022 added FALSE to second parameter below.
+	// Some of the dialog's controls and label text are likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of AboutDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize. See the end of AboutDlg::InitDialog() below.
+	pAboutDlgSizer = AboutDlgFunc( this, FALSE, TRUE );
 	// First parameter is the parent which is usually 'this'.
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
@@ -2309,6 +2313,13 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	// Note: Set the current version number in wxDesigner in the AboutDlgFunc()
     pAboutDlgSizer->SetSizeHints(this);
 	pAboutDlgSizer->Layout();
+	// Some of the dialog's controls and label text is likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of AboutDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pAboutDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // App command to run the dialog
