@@ -1466,7 +1466,9 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 		// No error from the lookup, so get the value of the deleted flag, etc
 		wxChar deletedFlag = m_entryStruct.deleted;
 		int nDeleted = wxAtoi(deletedFlag);
-		int theID = wxAtoi(m_entryStruct.id); 
+		nDeleted = nDeleted; // avoid gcc set but not used warning in release builds
+		int theID = wxAtoi(m_entryStruct.id);
+		theID = theID; // avoid gcc set but not used warning in release builds
 #if defined(SYNC_LOGS)
 		wxLogDebug(_T("2nd LookupEntryFields in KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			theID, (m_entryStruct.source).c_str(), (m_entryStruct.nonSource).c_str(), 
