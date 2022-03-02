@@ -138,7 +138,8 @@ class CSetupEditorCollaboration;
 ///////////////////////////////////////////////////////////////////////////////////
 	enum			EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 						wxString compositeProjName,wxString editor,wxString ptVersion,
-						wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg);
+						wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg,
+						wxString& booksExpectedButNonExistent); // whm 26Feb2022 added
 	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
 	bool			DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
 	// this overload takes an array of structure& extent checksums, gets the
