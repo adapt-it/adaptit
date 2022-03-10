@@ -54,8 +54,9 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
     { wxCMD_LINE_SWITCH, "v", "verbose", "show all changes",
     wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_SWITCH, "s", "secret", "a secret switch",
-    wxCMD_LINE_VAL_NONE, wxCMD_LINE_HIDDEN },
-    { wxCMD_LINE_PARAM, "<path>", "<input-path>", "path to input wxDesigner's .cpp file from",
+	//wxCMD_LINE_VAL_NONE, wxCMD_LINE_HIDDEN }, // whm 16Feb2021 changed second field to 0 since wxCMD_LINE_HIDDEN 'undeclared identifier'
+	wxCMD_LINE_VAL_NONE, 0 },
+	{ wxCMD_LINE_PARAM, "<path>", "<input-path>", "path to input wxDesigner's .cpp file from",
     wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, "<path>", "<output-path>", "path to output wxDesigner's .cpp file to",
     wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
