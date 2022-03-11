@@ -43,18 +43,18 @@
 // when changing these string values make sure to also change the corresponding int values below
 #define AI_VERSION_MAJOR_STR "6"
 #define AI_VERSION_MINOR_STR "10"
-#define AI_VERSION_BUILD_PART_STR "5"
+#define AI_VERSION_BUILD_PART_STR "6"
 #define AI_VERSION_MAJOR 6
 #define AI_VERSION_MINOR 10
-#define AI_VERSION_BUILD_PART 5
+#define AI_VERSION_BUILD_PART 6
 
 // when changing these string values make sure to also change the corresponding int values below
-#define VERSION_DATE_DAY_STR "14"
-#define VERSION_DATE_MONTH_STR "10"
-#define VERSION_DATE_YEAR_STR "2021"
-#define VERSION_DATE_DAY 14
-#define VERSION_DATE_MONTH 10
-#define VERSION_DATE_YEAR 2021
+#define VERSION_DATE_DAY_STR "1"
+#define VERSION_DATE_MONTH_STR "3"
+#define VERSION_DATE_YEAR_STR "2022"
+#define VERSION_DATE_DAY 1
+#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_YEAR 2022
 
 // set PRE_RELEASE define below to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define PRE_RELEASE 0 
@@ -74,7 +74,7 @@ const wxString appVerStr(AI_VERSION_STR);
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 // Below is for the Adapt_It.rc file (where this header is also #include'd)
-#define RC_FILEVER_STR AI_VERSION_MAJOR_STR AI_VERSION_COMMA AI_VERSION_SP AI_VERSION_MINOR_STR AI_VERSION_COMMA AI_VERSION_SP AI_VERSION_BUILD_PART_STR AI_VERSION_COMMA AI_VERSION_SP // "6, 10, 5, "
+#define RC_FILEVER_STR AI_VERSION_MAJOR_STR AI_VERSION_COMMA AI_VERSION_SP AI_VERSION_MINOR_STR AI_VERSION_COMMA AI_VERSION_SP AI_VERSION_BUILD_PART_STR AI_VERSION_COMMA AI_VERSION_SP // "6, 10, 6, "
 #define RC_VERSION_MAJOR AI_VERSION_MAJOR
 #define RC_VERSION_MINOR AI_VERSION_MINOR
 #define RC_VERSION_BUILD_PART AI_VERSION_BUILD_PART

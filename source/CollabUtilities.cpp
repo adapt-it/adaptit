@@ -704,9 +704,33 @@ extern bool gbDoingInitialSetup;
 	// decided to do so.
 	// whm modified 17March2017. The function needed to specify more accurately the path
 	// to the Paratext projects DIR - which is different for PT8 than it is for PT7.
+	// 
+	// whm 26Feb2022 In the Paratext9 data from Prabhu B his Paratext source project urUCVv1 has a 
+	// booksPresentArray that has all 66 books with full chapter/verse content, but it also contains
+	// some 11 additional books listed beyond those 66 books. The DoProjectAnalysis() function below was 
+	// returning projHasNoBooks even though there were 66 books with content! This was because of
+	// some faulty logic below that was returning projHasNoBooks based on finding that the current
+	// book being analyzed had a usfmStructureAndExtentArray.GetCount() == 0, even though 66 previous
+	// books looked at had content. Clearly, a return value of projHasNoBooks should only be returned
+	// if there is not at least one source project book with some content. This logic flaw is not 
+	// likely to happen in most Paratext projects, where the "1"s indicating "present" books would
+	// actually exist in the project folder. The flaw surfaces in Prabhu's Paratext data because
+	// for some unknown reason the Settings.xml file's <BooksPresent> ... </BooksPresent> string has
+	// 11 "1" values in the extended portion of that string - at indices [93] through [102] and [107]
+	// representing exotic books that their "1" value says they are present, but are not actually 
+	// present within the urUCVv1 project folder. The books indicated as present  but not are for
+	// books with these IDs: XXA, XXB, XXC, XXD, XXE, XXF, XXG, FRT, BAK, OTH, and INT.
+	// However for Prabhu's Paratext data the Paratext project urUCVv1 doesn't have any books present
+	// within the urUCVv1 project folder that match those extra book IDS. To report this non-fatal
+	// situation, I've added a wxString parameter booksExpectedButNonExistent to the DoProjectAnalysis()
+	// function below, and corrected the logic related to that situation. The logic flaw that I've
+	// corrected prevents an administrator from successfully completing the "Setup Or Remove Collaboration"
+	// settings. I'm not sure how Prabhu was able to get collaboration setup, unless the extra '1' values
+	// were added by Paratext after collaboration was setup in his case.
 	enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		wxString compositeProjName, wxString editor, wxString ptVersion,
-		wxString& emptyBooks, wxString& booksWithContent, wxString& errorMsg)
+		wxString& emptyBooks, wxString& booksWithContent, wxString& errorMsg,
+		wxString& booksExpectedButNonExistent)
 	{
 		// Get the names of books present in the compositeProjName project into bookNamesArray
 		wxString collabProjShortName;
@@ -959,6 +983,29 @@ extern bool gbDoingInitialSetup;
 			usfmStructureAndExtentArray.Clear();
 			usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
 
+			// whm 26Feb2022 modified the logic below. 
+			// If the wholeBookBuffer is empty, then the file itself either doesn't exist
+			// or is an empty file. We can take note of this discrepancy which is an issue
+			// in the consistency of the Paratext's <BooksPresent>...</BooksPresent> string,
+			// that is, there is a "1" in that string saying that particular book "is present"
+			// but it is either not present, or is an empty file. This situation in itself can
+			// be ignored for collaboration purposes as long as there really is at least one book
+			// that actually exists, and has some content as indicated by the <BooksPresent> 
+			// string.
+			if (wholeBookBuffer.IsEmpty())
+			{
+				if (!booksExpectedButNonExistent.IsEmpty())
+				{
+					// prefix with a comma and space
+					booksExpectedButNonExistent += _T(", ");
+				}
+				booksExpectedButNonExistent += fullBookName;
+				// We do not return from the DoProjectAnalysis() function here, but allow the
+				// function to analyze the situation for any other books listed in <BooksPresent...>
+			}
+			// whm 26Feb2022 commenting out the block below as it causes an early return from
+			// this function before all books have been analyzed.
+			/*
 			// Note: We can tell if the book hasn't been created by checking to see if
 			// there are any elements in the appropriate UsfmStructureAndExtentArrays.
 			if (usfmStructureAndExtentArray.GetCount() == 0)
@@ -969,7 +1016,7 @@ extern bool gbDoingInitialSetup;
 				}
 				return projHasNoBooks;
 			}
-
+			*/
 			wxArrayString chapterListFromBook;
 			wxArrayString chapterStatusFromBook;
 			bool bBookIsEmpty = FALSE; // bBookIsEmpty may be modified by GetChapterListAndVerseStatusFromBook() below
@@ -1010,7 +1057,7 @@ extern bool gbDoingInitialSetup;
 			{
 				if (!emptyBooks.IsEmpty())
 				{
-					// prefix with a command and space
+					// prefix with a comma and space
 					emptyBooks += _T(", ");
 				}
 				emptyBooks += fullBookName;
@@ -1019,7 +1066,7 @@ extern bool gbDoingInitialSetup;
 			{
 				if (!booksWithContent.IsEmpty())
 				{
-					// prefix with a command and space
+					// prefix with a comma and space
 					booksWithContent += _T(", ");
 				}
 				booksWithContent += fullBookName;
@@ -2520,9 +2567,11 @@ extern bool gbDoingInitialSetup;
 	// exist at the supplied path
 	// whm 21Sep11 modified to check for and include \id bookCodeForID if the text doesn't
 	// already include an \id XXX.
+	// whm 26Feb2022 modified to call wxLogNull to avoid spurious messages from the system
 	wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID)
 	{
 		wxString emptyStr = _T("");
+		wxLogNull logNo; // avoid spurious messages from the system
 		wxFile f_txt(absPath, wxFile::read);
 		bool bOpenedOK = f_txt.IsOpened();
 		if (!bOpenedOK)

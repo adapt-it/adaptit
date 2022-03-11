@@ -20580,7 +20580,26 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								// FALSE here.
 								// Returns NULL if unknown marker
 								pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-								wxASSERT(bIsNestedMkr == FALSE);
+								// whm 24Feb2022 modified the following code (wxASSERT) after getting
+								// notice from Prabhu B about a Debug Alert from the wxASSERT(bIsNestedMkr == FALSE)
+								// line below that kept popping up for him in the release version. His situation
+								// is a collaboration with Paratext. 
+								// After getting Prabhu's data for both Paratext 9.2 and Adapt It, I could not
+								// replicate the "debug alert" he was getting, that is, in my tests of his
+								// data the following wxASSERT() NEVER trips when opening either GEN ch 1 or ch 2.
+								// So, to prevent him from being bothered by repeated "debug alert"s, I'm changin
+								// the wxASSERT() below to just logging the situation in the user log file.
+								//wxASSERT(bIsNestedMkr == FALSE);
+								if (bIsNestedMkr)
+								{
+									// get temp values for ptr and ItemLen
+									wxChar* tempptr = ptr;
+									int tempItemLen = ParseMarker(tempptr);
+									wxString tempMkr(tempptr, tempItemLen);
+									wxString msg = _T("In DoMarkerHousekeeping() marker %s unexpectedly bIsNestedMkr is TRUE, IGNORING");
+									msg = msg.Format(msg, tempMkr.c_str());
+									pApp->LogUserAction(msg);
+								}
 								wxUnusedVar(tagOnly);
 								wxUnusedVar(baseOfEndMkr);
 								itemLen = ParseMarker(ptr);

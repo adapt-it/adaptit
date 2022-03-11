@@ -579,13 +579,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 
 	EditorProjectVerseContent projVerseContent;
 	wxString emptyBooks = _T("");
+	wxString booksExpectedButNonExistent = _T(""); // whm 26Feb2022 added
 	wxString booksWithContent = _T("");
 	wxString errorMsg = _T("");
 	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents.
 	projVerseContent = DoProjectAnalysis(collabSrcText,m_TempCollabProjectForSourceInputs,
-        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg,
+		booksExpectedButNonExistent); // whm 26Feb2022 added
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:
@@ -622,7 +624,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			// projects for source and target in the collaboration setup. The string
 			// emptyBooks has a list of books that are empty of content, and the string
 			// booksWithContent has a list of books that have at least some content.
-			wxString msg = _("The \"%s\" project you selected has the following \"empty\" book(s):\n\n%s\n\nThe above book(s) may have chapter and verse markers (\\c and \\v) but the verses contain no actual source text. Please note that Adapt It cannot use such \"empty\" books for obtaining source texts.");
+			// whm 26Feb2022 modified code below to inform admin of missing books that
+			// were expected based on the Settings.xml file for the PT project
+			wxString missingBooksMsg = _T("");
+			if (!booksExpectedButNonExistent.IsEmpty())
+			{
+				missingBooksMsg = _("Of the above books, the following books were expected to be present, but were not found in the project:\n\n%s\n\n");
+				missingBooksMsg = missingBooksMsg.Format(missingBooksMsg, booksExpectedButNonExistent.c_str());
+			}
+			wxString msg = _("The \"%s\" project you selected has the following \"empty\" (or non-existing) book(s):\n\n%s.\n\n" + missingBooksMsg + "The above book(s) may be missing, or they may have chapter and verse markers(\\c and \\v) but the verses contain no actual source text.Please note that Adapt It cannot use such \"empty\" books for obtaining source texts.");
 			msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str(),emptyBooks.c_str());
 			wxString msgTitle = _("Some books in project cannot be used as source texts!");
 			wxString msg2 = _T("\n\n");
@@ -786,13 +796,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 
 	EditorProjectVerseContent projVerseContent;
 	wxString emptyBooks = _T("");
+	wxString booksExpectedButNonExistent = _T(""); // whm 26Feb2022 added
 	wxString booksWithContent = _T("");
 	wxString errorMsg = _T("");
 	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents.
 	projVerseContent = DoProjectAnalysis(collabTgtText,m_TempCollabProjectForTargetExports,
-        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg,
+		booksExpectedButNonExistent); // whm 26Feb2022 added
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:
@@ -840,6 +852,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			// other than \c n and \v n markers, and that other books have verse
 			// content. This situation is posssible and permissible. Tell the user
 			// the status of the books.
+			// whm 26Feb2022 Note: I don't think for analyzing target text books that we need to 
+			// inform the admin of any missing books that were expected based on the Settings.xml 
+			// file for the PT target project. They will be listed in the emptyBooks list below as
+			// not having any verse content, and that's probably sufficient.
 			wxString msg = _("The following books in the \"%s\" project do not yet have any verse content:\n\n%s\n\nAdapt It will store its translations in these books as adaptation work proceeds.");
 			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),emptyBooks.c_str());
 			wxString msgTitle = _("Some books in this project have existing translations!");
@@ -1084,6 +1100,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 
 	EditorProjectVerseContent projVerseContent;
 	wxString emptyBooks = _T("");
+	wxString booksExpectedButNonExistent = _T(""); // whm 26Feb2022 added
 	wxString booksWithContent = _T("");
 	wxString errorMsg = _T("");
 
@@ -1091,7 +1108,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents.
 	projVerseContent = DoProjectAnalysis(collabFreeTransText,m_TempCollabProjectForFreeTransExports,
-        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg,
+		booksExpectedButNonExistent); // whm 26Feb2022 added
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:

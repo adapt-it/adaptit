@@ -375,8 +375,29 @@ inline int GetAISvnVersion()
 // whm 13Jan2017 added
 // The wx2.9 and wx3.x libraries enable asserts even in release builds. Use the following
 // macro to disable asserts in release builds.
-#include <wx/debug.h>
-wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
+// 
+// whm 24Feb2022 updated. The following #include and callling the wxDISABLE_ASSERTS_IN_RELEASE_BUILD
+// macro never worked to disable/prevent asserts in release builds.
+// According to this post on the wxWidgets Discussion Forum at: https://forums.wxwidgets.org/viewtopic.php?t=34137
+// the proper way to disable/prevent asserts in release builds is to do the following:
+// 1. Tweak the wxWidgets-3.1.5\include\wx\setup.h file's lines starting about line 90 to 
+// check if NDEBUG is defined, and if so to #define wxDEBUG_LEVEL 0.
+// that is change the lines in setup.h to the following:
+/*
+#ifdef NDEBUG
+#define wxDEBUG_LEVEL 0
+// #else
+//  #define wxDEBUG_LEVEL 2
+#endif
+*/
+// 2. After tweaking setup.h you must rebuild the wxWidgets library that is being used.
+// 3. In Visual Studio's Adapt_It project properties for Unicode Release > C/C++ > Preprocessor flags add NDEBUG to the list.
+//    Only add NDEBUG to the Unicode Release's preprocessor flags, don't add it to the Unicode Debug flags!
+// With the above settings, Adapt It's release version should no longer produce asserts in Unicode Release builds.
+
+// whm 24Feb2022 modified - The following 2 lines are now commented out
+//#include <wx/debug.h>
+//wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
 #endif
 #endif
 
@@ -1072,7 +1093,13 @@ struct CacheFindReplaceConfig
 	bool bFindDlg;
 	bool bSpanSrcPhrases;
 	bool bIncludePunct;
-	bool bIgnoreCase = FALSE;
+	// whm 10Mar2022 modified
+	//bool bIgnoreCase = FALSE; // For VS 2008 and .msi builds initializing bIgnoreCase
+	// here to a value generates "error C2864: 'CacheFindReplaceConfig::bIgnoreCase' : only 
+	// static const integral data members can be initialized within a class"
+	// Note: All of the above struct members are initialized in the App's WriteCacheDefaults() 
+	// function so no initialization need be done here.
+	bool bIgnoreCase;
 	// count of how many srcPhrase instances were matched 
 	// (value is not valid when there was no match)
 	int nCount;

@@ -4144,6 +4144,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	int boxWidth = 0; // initialise
 	int listWidth = 0;  // ditto
 	int max = 0; // ditto
+	max = max; // avoid gcc "variable set but not used" warning
 
 	// BEW 16Aug21 - instead of grabbing old m_curBoxWidth and m_curListWidth value, I think
 	// it's probably more correct to do the calcs again here below
@@ -18888,6 +18889,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		if (pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->m_bReplaceDlg != FALSE)
 		{
 			CReplaceDlg* pDlg = pApp->m_pReplaceDlg;
+			pDlg = pDlg; //  // avoid gcc set but not used warning in release builds
 			wxASSERT(pDlg != NULL);
 			nCount = 1; // disallow replacing across multiple piles
 			// anchor pCell is already selected, and backgounded yellow

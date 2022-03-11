@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1320"
+   LastUpgradeVersion = "1240"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -50,18 +50,6 @@
             ReferencedContainer = "container:AdaptIt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "WXWIN"
-            value = "/Users/erik/dev/3pt/wxWidgets-3.1.5"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "BOOST_ROOT"
-            value = "/Users/erik/dev/3pt/boost_1_77_0"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "CocoaDebug-wx3.0"
@@ -81,10 +69,10 @@
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "CocoaDebug-wx3.0">
+      buildConfiguration = "CocoaRelease-wx3.0">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "CocoaDebug-wx3.0"
+      buildConfiguration = "CocoaRelease-wx3.0"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>
