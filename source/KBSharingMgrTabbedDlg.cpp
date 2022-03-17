@@ -56,7 +56,7 @@
 #include "StatusBar.h"
 
 //#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
-//#include "C:\Program Files (x86)\MariaDB 10.5\lib\
+//#include "C:\Program Files (x86)\MariaDB 10.5\lib\"
 
 extern bool gbIsGlossing;
 
