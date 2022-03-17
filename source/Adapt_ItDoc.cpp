@@ -26823,6 +26823,7 @@ void CAdapt_ItDoc::SetupAutoCorrectHashMap()
 	pApp->EmptyMapAndInitializeAutoCorrect();
 	
 	bool bFileExistsAndOpensOK = FALSE;
+	bFileExistsAndOpensOK = bFileExistsAndOpensOK; // avoid gcc "set but not used' warning
 	wxString lineNumStr = _T("");
 
 	// The path to the current project is stored in App's m_curProjectPath, so we're looking
@@ -27048,7 +27049,7 @@ bool CAdapt_ItDoc::LookUpStringInAutoCorrectMap(wxString candidateEditBoxLHSStr,
 		numCharsToTest = pApp->m_longestAutoCorrectKeyLen;
 	else
 		numCharsToTest = (int)tempCandidateStrPlusTypedChar.Length();
-	
+	numCharsToTest = numCharsToTest; // avoid gcc warning "set but not used"
 	
 	wxString subStr = _T("");
 	// Since the most likely key matches will be for one or two characters, we'll get substrings from the 
