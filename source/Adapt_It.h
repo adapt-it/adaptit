@@ -1124,7 +1124,13 @@ struct CacheReplaceConfig
 	bool bReplaceDlg; // added
 	bool bSpanSrcPhrases;
 	bool bIncludePunct;
-	bool bIgnoreCase = FALSE;
+	// whm 10Mar2022 modified
+	//bool bIgnoreCase = FALSE; // For VS 2008 and .msi builds initializing bIgnoreCase
+	// here to a value generates "error C2864: 'CacheReplaceConfig::bIgnoreCase' : only 
+	// static const integral data members can be initialized within a class"
+	// Note: All of the above struct members are initialized in the App's WriteCacheDefaults() 
+	// function so no initialization need be done here.
+	bool bIgnoreCase;
 	// count of how many srcPhrase instances were matched 
 	// (value is not valid when there was no match)
 	//int nCount;
