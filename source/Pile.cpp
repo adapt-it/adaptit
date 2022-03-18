@@ -837,19 +837,19 @@ int CPile::CalcPhraseBoxWidth()
 										 // and checks against m_defaultActivePileWidth, to extend to
 										 /// that value if the min pileWidth value is less
 #if defined(_DEBUG) //&& defined(_OVERLAP)
-		{
-			CLayout* pLayout = pApp->GetLayout();
-			if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
-			{
-				// BEW 25Sep21, CalcPileWidth() should return a growing returned value at each typing of
-				// a normal character, check if that is so.
-				wxRect rectBox = pApp->m_pTargetBox->GetTextCtrl()->GetRect();
-				int boxWidth = rectBox.GetWidth();
-				wxLogDebug(_T("%s::%s():line %d, Value returned from CalcPhraseBox = %d , slop %d ,  boxWidth  %d , for src: %s "),
-					__FILE__, __FUNCTION__, __LINE__, pileWidth, m_pLayout->slop,
-					 boxWidth, pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum)->GetSrcPhrase()->m_srcPhrase.c_str());
-			}
-		}
+		//{
+		//	CLayout* pLayout = pApp->GetLayout();
+		//	if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
+		//	{
+		//		// BEW 25Sep21, CalcPileWidth() should return a growing returned value at each typing of
+		//		// a normal character, check if that is so.
+		//		wxRect rectBox = pApp->m_pTargetBox->GetTextCtrl()->GetRect();
+		//		int boxWidth = rectBox.GetWidth();
+		//		wxLogDebug(_T("%s::%s():line %d, Value returned from CalcPhraseBox = %d , slop %d ,  boxWidth  %d , for src: %s "),
+		//			__FILE__, __FUNCTION__, __LINE__, pileWidth, m_pLayout->slop,
+		//			 boxWidth, pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum)->GetSrcPhrase()->m_srcPhrase.c_str());
+		//	}
+		//}
 #endif
 
 		m_nMinWidth = pileWidth; // because this pile will sometime not be the active one 
