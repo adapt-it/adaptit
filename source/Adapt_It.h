@@ -1073,7 +1073,7 @@ pApp->m_pFindDlg->m_nCount = 0;
 // readwriteFindConfig struct,to restore them when Ctrl+F is done to call OnFind(), 
 // at its start, when doing a Find Next with unchanged configuration values. 
 // Return FALSE if there was an error so that the caller can take evasive action 
-// to prevent a crash
+// to prevent a crash 
 */
 struct CacheFindReplaceConfig
 {
