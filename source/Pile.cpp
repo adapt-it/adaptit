@@ -842,7 +842,7 @@ int CPile::CalcPhraseBoxWidth()
 		//	if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
 		//	{
 		//		// BEW 25Sep21, CalcPileWidth() should return a growing returned value at each typing of
-		//		// a normal character, check if that is so.
+		//		// a normal character, check if that is so. 
 		//		wxRect rectBox = pApp->m_pTargetBox->GetTextCtrl()->GetRect();
 		//		int boxWidth = rectBox.GetWidth();
 		//		wxLogDebug(_T("%s::%s():line %d, Value returned from CalcPhraseBox = %d , slop %d ,  boxWidth  %d , for src: %s "),
