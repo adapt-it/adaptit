@@ -1,0 +1,71 @@
+name: Build Deb (Ubuntu/Debian) packages
+
+on:
+  push:
+    tags:
+      - "adaptit-*"
+  workflow_dispatch:
+    inputs:
+      releases:
+        description: 'Space separate list of Debian/Ubuntu releases'
+        required: true
+        default: 'all'
+
+jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+        with: {path: adaptit}
+      - id: get-matrix
+        run: cd adaptit && ./scripts/get-ci-matrix.py ${{ github.event.inputs.releases }}
+
+  build-dpkg:
+    needs: get-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.get-matrix.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with: {path: adaptit}
+
+      - name: build-docker-build-dpkg
+        run: docker build --build-arg FROM=${{ matrix.distro }}:${{ matrix.release }} -t build-dpkg:${{ matrix.release }} adaptit/build-dpkg
+
+      - name: autogen.sh
+        run: |
+          echo "Running autogen.sh in bin/linux"
+          docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit/bin/linux build-dpkg:${{ matrix.release }} ./autogen.sh
+
+      - name: build-dkpg
+        run: |
+          echo "Doing package build"
+          docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          # A release already has sources so skip dpkg created *.tar.gz.
+          files: |
+            adaptit/artifacts/*.dsc
+            adaptit/artifacts/*.deb
+            adaptit/artifacts/*.changes
+
+  extra-release-files:
+    needs: build-dpkg
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with: {path: adaptit}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            adaptit/ChangeLog
