@@ -1,8 +1,8 @@
 # distro/release version matrix
 
 include:
-  - distro: 'ubuntu'   # Ubuntu 14.04 LTS
-    release: 'trusty'
+#  - distro: 'ubuntu'   # Ubuntu 14.04 LTS
+#    release: 'trusty'
 
   - distro: 'ubuntu'   # Ubuntu 16.04 LTS
     release: 'xenial'
