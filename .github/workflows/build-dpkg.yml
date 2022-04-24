@@ -55,6 +55,8 @@ jobs:
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
             adaptit/artifacts/*.changes
+            adaptit/artifacts/*.buildinfo
+            adaptit/artifacts/*.ddeb
 
   extra-release-files:
     needs: build-dpkg
