@@ -23,6 +23,10 @@ include:
     release: 'impish'
     args: '--unsigned-source --unsigned-changes'
 
+  - distro: 'ubuntu'   # Ubuntu 22.04
+    release: 'jammy'
+    args: '--unsigned-source --unsigned-changes'
+
   - distro: 'debian'   # Debian latest
     release: 'sid'
     args: '--unsigned-source --unsigned-changes'
