@@ -19,4 +19,6 @@ dpkg-buildpackage $@
 
 ## Move the built artifacts into the Docker mounted workspace
 mkdir -p artifacts
-mv ../*.deb ../*.changes ../*.dsc ../*.buildinfo ../*.tar.gz ./artifacts
+for a in ../*.deb ../*.changes ../*.dsc ../*.buildinfo ../*.ddeb ../*.tar.gz; do
+    [ -f "${a}" ] && mv "${a}" ./artifacts/
+done
