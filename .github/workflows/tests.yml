@@ -49,7 +49,7 @@ jobs:
       - name: Artifacts
         uses: actions/upload-artifact@v3
         with:
-          files: |
+          path: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
             adaptit/artifacts/*.changes
