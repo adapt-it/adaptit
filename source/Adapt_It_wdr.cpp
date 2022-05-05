@@ -9839,7 +9839,7 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_NEW_USERNAME, _("1.  Username "), wxDefaultPosition, wxSize(150,-1), 0 );
     item3->Add( item4, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 10 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_USERNM, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
+    AutoCorrectTextCtrl *item5 = new AutoCorrectTextCtrl( parent, ID_TEXTCTRL_NEW_USERNM, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item3, 0, wxALL, 5 );
@@ -9851,7 +9851,7 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_NEW_FULLNAME, _("2.  Fullname"), wxDefaultPosition, wxSize(150,-1), 0 );
     item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_FULLNAME, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
+    AutoCorrectTextCtrl *item8 = new AutoCorrectTextCtrl( parent, ID_TEXTCTRL_NEW_FULLNAME, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item6, 0, wxALL, 5 );
