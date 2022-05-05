@@ -11,6 +11,10 @@ on:
         required: true
         default: 'all'
 
+env:
+    DEBFULLNAME: Bill Martin
+    DEBEMAIL: bill_martin@sil.org
+
 jobs:
   get-matrix:
     runs-on: ubuntu-latest
@@ -44,7 +48,7 @@ jobs:
       - name: build-dkpg
         run: |
           echo "Doing package build"
-          docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
+          docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace/adaptit -e LOCAL=${{ matrix.release }} -e DEBFULLNAME -e DEBEMAIL build-dpkg:${{ matrix.release }} /build.sh -I.git -Iwin32_utils ${{ matrix.args }}
 
       - name: Artifacts
         uses: actions/upload-artifact@v3
