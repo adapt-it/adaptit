@@ -6629,6 +6629,15 @@ AutoCorrectTextCtrl::~AutoCorrectTextCtrl() // destructor
 void AutoCorrectTextCtrl::OnChar(wxKeyEvent& event)
 {
     bool bSkip = !gpApp->AutoCorrected((AutoCorrectTextCtrl*)this, &event);
+    // whm 2May2022 modified for testing. The AutoCorrectTextCtrl should be marked as dirty if AutoCorrected() above returns TRUE, i.e., bSkip is FALSE
+    // Unfortunately, marking the text control here happens after the class handlers of the class derived from AutoCorrectTextCtrl are executed.
+    // I'll leave the block below here, however in case I find a way for it to work properly in the derived class.
+    if (!bSkip)
+    {
+        // An autocorrect change was made in the text control
+        this->MarkDirty();
+    }
+
     if (bSkip)
         event.Skip();
 }

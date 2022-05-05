@@ -4470,11 +4470,52 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		// returns its value to the bSkip boolean test below. Then AutoCorrected() can 
 		// be used in all dialogs' OnChar() methods to do Auto Correct in each of those 
 		// dialog's target text edit boxes.
-		// We want to call event.Skip() when an auto-correct has NOT taken place, otherwise
-		// we don't want to call event.Skip().
-		bool bSkip = !pApp->AutoCorrected((CPhraseBox*)this, &event);
-		if (bSkip)
+		// 
+		// whm 4May2022 modified to set some booleans for extra clarity and to be able to
+		// inform the OnPhraseBoxChanged() method if the current character typed triggered
+		// an autocorrect action on the phrasebox content.
+		// We don't want event.Skip() called here in OnChar() after an autocorrect change has
+		// been made to the phrasebox content, but we do want to call event.Skip() if NO
+		// autocorrect action has taken place.
+		bool bAutoCorrected = FALSE;
+		bAutoCorrected = pApp->AutoCorrected((CPhraseBox*)this, &event);
+		if (!bAutoCorrected)
+		{
 			event.Skip();
+		}
+		else
+		{
+			// whm 4May2022 added
+			// An autocorrect action took place, now update the App's pApp->m_targetPhrase member
+			// so that downstream processing will have the correct entry for any subsequent 
+			// phrasebox move/relocation.
+			// Testing indicates that assigning current value of phrasebox to the following global
+			// variables on the App including: 
+			//   pApp->m_targetPhrase
+			//   pApp->m_pTargetBox->m_SaveTargetPhrase
+			// fixes the issue Bruce noted of wrongly getting a semicolon (the dead-key stroke) affixed 
+			// or infixed into the target when moving the phrasebox to another location after the 
+			// AutoCorrected() action has taken place within the phrasebox.
+			pApp->m_targetPhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+			pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+
+#if defined (_DEBUG)
+			wxLogDebug("AutoCorrected took place In OnChar()");
+			if (!IsModified())
+			{
+				wxLogDebug("Phrasebox NOT marked dirty, marking it dirty");
+				this->MarkDirty(); // "mark text as modified (dirty)"
+				if (!IsModified())
+				{
+					wxLogDebug("FAILED to mark phrasebox as dirty with this->MarkDirty() call!!");
+				}
+			}
+			else
+			{
+				wxLogDebug("Phrasebox IS currently marked dirty, taking no action to mark it dirty");
+			}
+#endif
+		}
 	} // end of if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) 
 
 	// preserve cursor location, in case we merge, so we can restore it afterwards
