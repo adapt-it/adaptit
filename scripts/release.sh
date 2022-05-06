@@ -566,7 +566,7 @@ rm -rf $PACKAGING_DIR/adaptit-*
 # length *.tgz file might foul up the pbuilder process. The path of the pbuilder 
 # folder is stored in $PBUILDFOLDER
 if [ -d "$PBUILDFOLDER" ]; then
-  ehco "Removing any zero length files in $PBUILDFOLDER"
+  echo "Removing any zero length files in $PBUILDFOLDER"
   find $PBUILDFOLDER -size  0 -print -delete
 fi
 

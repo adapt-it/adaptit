@@ -201,6 +201,7 @@ copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo" /Y
 copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po" /Y 
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo" /Y 
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po" /Y 
+xcopy "..\..\kbserver_win32_utils\*.*" "Unicode Debug\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
 if exist "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" "Unicode Debug\" /Y
 echo ********** EndPost-Build Event Batch Process **********</Command>
     </PostBuildEvent>
@@ -270,7 +271,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -353,6 +354,7 @@ copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo" /Y
 copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po" /Y 
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo" /Y 
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po" /Y 
+xcopy "..\..\kbserver_win32_utils\*.*" "Unicode Release\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
 if exist "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" copy "..\..\setup Git\Git_Downloader_2_32_0_4AI.exe" "Unicode Release\" /Y
 echo ********** EndPost-Build Event Batch Process **********
 

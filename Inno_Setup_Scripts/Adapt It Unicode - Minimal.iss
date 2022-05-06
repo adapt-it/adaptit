@@ -251,6 +251,11 @@ Source: "{#RepoBase}\{#RepoStagingFolder}\Readme_Unicode_Version.txt"; DestDir: 
 ;Source: "{#SvnBase}\setup Unicode - Minimal\do_upload_local_kb.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
 ;Source: "{#SvnBase}\setup Unicode - Minimal\do_user_lookup.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
 ;Source: "{#SvnBase}\setup Unicode - Minimal\do_users_list.exe"; DestDir: "{app}\dist"; Flags: IgnoreVersion; 
+; Note: The following are the Windows exe utilities for KB Sharing
+; added by whm 17 February 2022
+Source: "{#RepoBase}\{#RepoStagingFolder}\do_mdns.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#RepoBase}\{#RepoStagingFolder}\mdns.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#RepoBase}\{#RepoStagingFolder}\do_mdns_report.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
 
 ; whm 13Feb2021 added [Dirs] section which, in this case, creates an empty "dist" directory as a 
 ; child directory of the {app} installation directory.

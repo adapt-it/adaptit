@@ -601,12 +601,26 @@ int CPile::CalcExtentsBasedWidth()
 	{
 		return 0;
 	}
-	CPile* pActivePile = gpApp->m_pActivePile;
-	if (pActivePile == NULL)
-	{
+	// BEW 6May22 removed this test, okay so long as Bill's alternative below does not fail before GUI is ready
+	//CPile* pActivePile = gpApp->m_pActivePile;
+	//if (pActivePile == NULL)
+	//{
 		// BEW 12Apr22 added test, as the call may be made before all is ready for the GUI
-		return 0; 
-	}
+	//	return 0; 
+	//}
+ 
+	// whm 24Feb2022 modified code below on how pActivePile pointer is obtained, after encountering
+	// at least one instance where I noted that gpApp->m_pActivePile pointer was NULL - triggering the
+	// following wxASSERT(pActivePile !=NULL), and also receiving a report 24Feb2022 from Benjamin Varghese 
+	// who sent screenshot of a "debugging check failed here - 'pActivePile != 0' failed in CPile::CalcExtentsBasedWidth()."
+	// Looking at the caller CPile::CalcPileWidth(), it also was subject to a similar situation where gpApp->m_pActivePile
+	// could fail (see comment at line 718), and where a valid active pPile pointer is now obtained by calling
+	// the View's GetPile(gpApp->m_nActiveSequNum), utilizing the m_nActiveSequNum instead of the App's m_pActivePile
+	// pointer. I'm modifying the code here to agree with the code in the caller CalcPileWidth():
+	// CPile* pActivePile = gpApp->m_pActivePile; // the old code
+	CPile* pActivePile = gpApp->GetView()->GetPile(gpApp->m_nActiveSequNum); // whm - see similar change made in the CalcPileWidth() caller
+	wxASSERT(pActivePile != NULL);
+	// BEW 6May22 Bill's alternative ended here
 	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
 	int sn = pSrcPhrase->m_nSequNumber;
 	int activeSN = gpApp->m_nActiveSequNum;
@@ -831,6 +845,7 @@ int CPile::CalcPhraseBoxWidth()
 		int pileWidth = CalcPileWidth(); // internally itself does a max, based on current text extents
 										 // and checks against m_defaultActivePileWidth, to extend to
 										 /// that value if the min pileWidth value is less
+
 #if defined(_DEBUG) && defined(GUIFIX)
 		{
 			CLayout* pLayout = pApp->GetLayout();

@@ -1,4 +1,31 @@
 ﻿----------------------------------------------
+Version 6.10.6  1 March 2022
+----------------------------------------------
+Bug fixes in 6.10.6 update
+---------------------------------------------
+* Fixed a debug alert, and subsequent crash, that could appear when opening an
+Adapt It document. This debug alert mentions "assert 'pActivePile != 0' failed in
+CPile::CalcExtentsBasedWidth()." 
+* Eliminated another debug alert that could appear in some data situations when 
+opening an Adapt It document. This debug alert mentions "assert 'bIsNestedMkr==0'
+failed in CAdapt_ItDoc::DoMarkerHousekeeping()"
+* Made a setting change in the wxWidgets library that Adapt It relies on, that
+should reduce the incidence of "debug alerts" in release versions of Adapt It.
+* Eliminated a potential hindrance for Administrators in setting up collaboration
+between Adapt It and Paratext, that could occur due to an inconsistency within
+the Paratext project's Settings.xml file. Adapt it scans the Paratext project's
+book files for content when a project is selected within Adapt It's "Setup Or 
+Remove Collaboration" dialog. Previously Adapt It would refuse to assign a
+Paratext project as a source or target text if the Paratext project's Settings.xml
+file's <BooksPresent> ... </BooksPresent> books-list had a "1" indicating a 
+particular book exists within the Paratext project, but in fact the book doesn't 
+exist within the project folder. Adapt It now reports the inconsistency to the 
+Administrator during collaboration setup, but allows the collaboration setup to 
+be completed for such situations. Previously, Adapt It would report that the book, 
+or even the whole project, was empty, or had no content, and would not allow the 
+setup to continue to completion.
+
+----------------------------------------------
 Version 6.10.5  13 October 2021
 ----------------------------------------------
 Feature changes and new features in 6.10.5

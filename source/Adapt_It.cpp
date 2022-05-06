@@ -6629,6 +6629,15 @@ AutoCorrectTextCtrl::~AutoCorrectTextCtrl() // destructor
 void AutoCorrectTextCtrl::OnChar(wxKeyEvent& event)
 {
     bool bSkip = !gpApp->AutoCorrected((AutoCorrectTextCtrl*)this, &event);
+    // whm 2May2022 modified for testing. The AutoCorrectTextCtrl should be marked as dirty if AutoCorrected() above returns TRUE, i.e., bSkip is FALSE
+    // Unfortunately, marking the text control here happens after the class handlers of the class derived from AutoCorrectTextCtrl are executed.
+    // I'll leave the block below here, however in case I find a way for it to work properly in the derived class.
+    if (!bSkip)
+    {
+        // An autocorrect change was made in the text control
+        this->MarkDirty();
+    }
+
     if (bSkip)
         event.Skip();
 }
@@ -19606,7 +19615,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
             // This is the place where we must add the username and pwd for getting
             // a successful login to the kbserver. The rest of the values needed
-            // will come from the NewUserCredentialsDlg below          
+            // will come from the NewUserCredentialsDlg below
+            bool b_use_kbadmin = FALSE; // initialise -- MIGHT NOT NEED THIS boolean ??
+            b_use_kbadmin = b_use_kbadmin; // avoid gcc "variable set but not used" warning
+
             wxString strTest = _T("kbadmin");
             if (m_strUserID_Archived == strTest)
             {
@@ -37719,7 +37731,7 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 	wxString password = wxEmptyString;
 #endif
 	int  useradmin = 0; // default
-
+    useradmin = useradmin; // avoid gcc set but not used warning in release builds
 	size_t linesArrayCount = arrLines.GetCount();
 	size_t lineIndex = 0;
 	for (lineIndex = 0; lineIndex < linesArrayCount; lineIndex++)
@@ -60787,7 +60799,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 
                 // BEW 28Oct21 discoveryPath is pointing at where the AI execuable resides,
-                // e.g. when debugging from the IDE, that's in ...\bin\win32\Unicode Debug\ 
+                // e.g. when debugging from the IDE, that's in ...\bin\win32\Unicode Debug
                 // with kbservice_file.dat at path end. When running a release, the returned
                 // .dat files would go into C:\Program Files (x86)\Adapt It WX Unicode\ folder - not pretty
                 wxFFile ffile(discoveryPath); // kbservice_file.dat should open for reading

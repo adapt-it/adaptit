@@ -177,6 +177,7 @@ adaptit_SOURCES = \
 	../../source/Mover.cpp \
 	../../source/MyListBox.cpp \
 	../../source/NavProtectNewDoc.cpp \
+	../../source/NewUserCredentialsDlg.cpp \
 	../../source/NoteDlg.cpp \
 	../../source/Notes.cpp \
 	../../source/OpenExistingProjectDlg.cpp \

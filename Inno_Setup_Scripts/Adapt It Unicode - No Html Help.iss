@@ -235,6 +235,11 @@ Source: "{#RepoBase}\{#RepoStagingFolder}\CC\FwdSlashInsertAtPuncts.cct"; DestDi
 Source: "{#RepoBase}\{#RepoStagingFolder}\CC\FwdSlashRemoveAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#RepoBase}\{#RepoStagingFolder}\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#RepoBase}\{#RepoStagingFolder}\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+; Note: The following are the Windows exe utilities for KB Sharing
+; added by whm 17 February 2022
+Source: "{#RepoBase}\{#RepoStagingFolder}\do_mdns.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#RepoBase}\{#RepoStagingFolder}\mdns.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#RepoBase}\{#RepoStagingFolder}\do_mdns_report.exe"; DestDir: "{app}"; Flags: IgnoreVersion; 
 
 ; Note: The following are the 13 Windows exe utilities (wrappers on python scripts) for KB Sharing
 ; added by whm 28 January 2021

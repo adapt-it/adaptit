@@ -1539,7 +1539,7 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pCheckSpanSrcPhrases != NULL);
 	//m_pCheckSpanSrcPhrases->SetValidator(wxGenericValidator(&m_bSpanSrcPhrases)); // use validator
 
-	m_pEditReplace = (wxTextCtrl*)FindWindowById(IDC_EDIT_REPLACE);
+	m_pEditReplace = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_REPLACE);
 	wxASSERT(m_pEditReplace != NULL);
 	//m_pEditReplace->SetValidator(wxGenericValidator(&m_replaceStr)); // use validator
 	

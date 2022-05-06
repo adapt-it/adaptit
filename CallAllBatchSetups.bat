@@ -1,3 +1,4 @@
+rem This CallAllBatchSetups.bat file last updated by whm 17Feb2022
 @echo off
 Break ON
 echo This batch file calls all batch files for the Setup Generator folders 
@@ -6,6 +7,7 @@ echo      1. _CopyDocs2InstallFolders.bat in the docs folder
 echo      2. _CopyHelp2InstallFolders.bat in the hlp folder
 echo      3. _CopyMO2InstallFolders.bat in the po folder
 echo      4. _CopyXML2InstallFolders.bat in the xml folder
+echo      5. _CopyWin32ExeUtils2InstallFolders.bat in the kbserver_win32_utils folder
 echo ===============================================================
 echo Note: Calling the batch files populates the installation folders
 echo with everything they need EXCEPT for the actual Regular and
@@ -40,6 +42,13 @@ rem 4. Now calling _CopyXML2InstallFolders.bat from the xml folder
 cd ..
 cd "xml"
 call _CopyXML2InstallFolders.bat
+
+@echo on
+rem 5. Now calling _CopyWin32ExeUtils2InstallFolders.bat from the kbserver_win32_utils folder
+@echo off
+cd ..
+cd "kbserver_win32_utils"
+call _CopyWin32ExeUtils2InstallFolders.bat
 
 cd ..
 echo ===================================================

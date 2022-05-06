@@ -8,7 +8,7 @@
 
 ---
 
-[![Build Status](https://travis-ci.org/adapt-it/adaptit.svg?branch=master)](https://travis-ci.org/adapt-it/adaptit)
+[![Build Status](https://github.com/adapt-it/adaptit/actions/workflows/tests.yml/badge.svg)](https://github.com/adapt-it/adaptit/actions/workflows/tests.yml)
 
 **Adapt It** is an easy-to-use application that helps users translate or adapt source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages. In linguistics jargon, Adapt It is a _Machine Assisted Human Translation (MAHT)_ editor.
 
