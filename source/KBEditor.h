@@ -35,7 +35,7 @@
 /// \derivation		The CKBEditor class is derived from AIModalDialog.
 class MapKeyStringToTgtUnit;
 
-class CKBEditor : public wxDialog // AIModalDialog
+class CKBEditor : public AIModalDialog
 {
 	// friend functions (definitions are in helpers.cpp)
 	friend void PopulateTranslationsListBox(CKB* pKB, CTargetUnit* pTgtUnit,
@@ -113,26 +113,34 @@ protected:
 	void OnOK(wxCommandEvent& event);
 	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
 	bool AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr);
-	void UpdateButtons();
+	//void UpdateButtons();
 	void OnAddNoAdaptation(wxCommandEvent& event);
+	void OnUpdateAddNoAdaptation(wxUpdateUIEvent& event);
 	void OnTabSelChange(wxNotebookEvent& event);
 	void OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnDblclkListExistingTranslations(wxCommandEvent& event);
 	void OnButtonSourceFindGo(wxCommandEvent& event);
-	void OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event));
 	void OnButtonUpdate(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonUpdate(wxUpdateUIEvent& event);
 	void OnButtonAdd(wxCommandEvent& event);
+	void OnUpdateButtonAdd(wxUpdateUIEvent& event);
 	void OnButtonRemove(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonRemove(wxUpdateUIEvent& event);
 	void OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonRemoveSomeTgtEntries(wxUpdateUIEvent& event);
 	void OnButtonMoveUp(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonMoveUp(wxUpdateUIEvent& event);
 	void OnButtonMoveDown(wxCommandEvent& event);
+	void OnUpdateButtonMoveDown(wxUpdateUIEvent& event);
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonFlagToggle(wxUpdateUIEvent& event);
 
 	void OnButtonGo(wxCommandEvent& WXUNUSED(event));
 	void OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event));
 	void OnComboItemSelected(wxCommandEvent& event);
-	void OnIdle(wxIdleEvent& WXUNUSED(event));
+	//void OnIdle(wxIdleEvent& WXUNUSED(event));
 
 private:
 	void DoRetain();
