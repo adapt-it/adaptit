@@ -85,7 +85,10 @@
 // these extra includes, for wchar_t support, wxChar, & wxString
 #include <string.h>
 #include <time.h>
-#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+// whm 6May2022 commented out the next include since it breaks Linux and Mac builds.
+// This #include path was previously commented out in KbServer.cpp line 76, KbServer.h line 160,
+// and two places in KBSharingMgrTabbedDlg.cpp lines 58 and 59.
+//#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
 // and put the directory path to MariaDB 10.5's libmariadb.lib object file library into the Additional Library Directories
 // for both Unicode Debug build, and Unicode Release build: the path is: C:\Program Files (x86)\MariaDB 10.5\lib -- I've done that 18Apr22
 //#endif
