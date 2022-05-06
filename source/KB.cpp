@@ -41,7 +41,7 @@
 #include <wx/filename.h>
 
 //#define _ENTRY_DUP_BUG
-
+#define SHOWSYNC // comment out to prevent logging for the kbserver calls using Leon's .exe functions
 
 #include "KbServer.h"
 #include "Adapt_It.h"
@@ -65,6 +65,7 @@
 #include "MainFrm.h"
 #include "StatusBar.h"
 #include "CorGuess.h"
+#include "MyListBox.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -423,13 +424,13 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 			pRefString_forLower->m_pRefStringMetadata->m_whoCreated = SetWho();
 			// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
 			pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
-//#if defined(_KBSERVER)
+
 			if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 			{
 				DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 			}
-//#endif
+
 		}
 	}
 	else
@@ -473,13 +474,11 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					pRefStrDeleted->m_pRefStringMetadata->m_whoCreated = SetWho();
 					lowerStr = pRefStrDeleted->m_translation;
 
-//#if defined(_KBSERVER)
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
 						DoPseudoUndeleteSynchronously(lowercaseKey, pRefStrDeleted);
 					}
-//#endif
 				}
 				else
 				{
@@ -498,13 +497,13 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					pRefString_forLower->m_pRefStringMetadata->m_whoCreated = SetWho();
 					// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
 					pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
-//#if defined(_KBSERVER)
+
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
 						DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 					}
-//#endif
+
 				}
 			} // end of TRUE block for test:
 			  // if (IsAbsentFrom(pTU_ForLowerCaseKey, lowerStr, bItIsPseudoDeleted))
@@ -1011,6 +1010,49 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 	return rsEntry;
 }
 
+void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar22
+{
+	int rv = -1; // initialise to 'fail'
+#if defined(_KBSERVER)
+	bool bSuppressionNeeded = FALSE; // TRUE, to suppress the do_pseudo_delete.exe call if the
+			// calculation of the pKBSvr unexpectedly returns a NULL
+	if (m_bDeletionDone) // m_bDeletionDone is a public member of this CKB class instance
+	{
+		// BEW 25Mar22 It's possible for GetMyKbServer to return an unexpected NULL. 
+		// For example, when entering a project which is designated as a kbserver one,
+		// and the active location has a CTargetUnit instance which is for the active
+		// location, but there is only one CRefString instance and it's refCount is 1 -
+		// so the active location will try to pseudo-delete it (ie. normal behaviour
+		// for 'landing' or appearing to 'land' at a location). But the app's
+		// m_pKbServer[0], or if glossing is current, m_pKbServer[1], is still NULL.
+		// So the initializations for KBsharing are not yet set up, and we must delay
+		// trying to do the code below until they are. So handle suppression here.
+		// BEW 31Mar22, pulling this code out to be in this function, which only gets
+		// called from RemoveRefString(), should guarantee NULL will not be returned.
+		// And its caller only supports the adaptation KB, so don't check for glossing one.
+		KbServer* pKBSvr = GetMyKbServer();
+		if (pKBSvr == NULL)
+		{
+			bSuppressionNeeded = TRUE;
+		}
+		if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady && !bSuppressionNeeded && pKBSvr != NULL)
+		{
+			// GDLC 20JUL16
+			if (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
+			{
+				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one
+					rv = pKbSvr->PseudoDelete(pKbSvr, src, nonSrc);
+					wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+					wxLogDebug(_T("%s::%s() line %d : returns for rv =  %d , for src = %s ,  for tgt = %s"),
+						__FILE__, __FUNCTION__, __LINE__, rv, src.c_str(), nonSrc.c_str());
+#endif
+			}
+		}
+#endif
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pRefString      ->  pointer to the CRefString object to be deleted
@@ -1049,21 +1091,42 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 // whm TODO: Remove the int m_nWordsInPhrase parameter which is not used
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase)
 {
-	if (m_bGlossingKB)
-	{
-		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		m_nWordsInPhrase = m_nWordsInPhrase; // to prevent compiler warning (BEW 13Nov10)
-	}
-	else
-	{
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-	}
+	wxUnusedVar(m_nWordsInPhrase); // avoid compiler warning
+	wxString nonSrc = wxEmptyString; // this will hold the adaptation, or gloss, of the pRefString - once known
+#if defined (SHOWSYNC)
+	// %p is needed for showing a pointer address, not %x
+	wxLogDebug(_T("%s::%s() line %d: pRefString %p , pSrcPhrase->m_key: %s , pSrcPhrase->m_adaption: %s , m_nWordsInPhrase: %d"),
+		__FILE__,__FUNCTION__,__LINE__, pRefString, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), m_nWordsInPhrase);
+#endif
+	// We don't support glossing mode. And we done remove if it's a m_bNotInKB == TRUE, location
 	if (!m_bGlossingKB && pSrcPhrase->m_bNotInKB)
 	{
 		// this block can only be entered when the adaption KB is in use
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 		return; // return because no KB adaptation exists for this source phrase
 	}
+	// BEW 4Apr22, if just launched, or still in the Wizard, suppress removal
+	if (gpApp->m_bJustLaunched == TRUE || gpApp->m_bWizardIsRunning)
+	{
+		return;
+	}
+	// The 'deletion', whether by decrementing the refCount by 1, or wholely deleting this pRefString,
+	// only applies to this particular pSrcPhrase, so we clear the relevant flag on pSrcPhrase.  This
+	// clearing does not remove the potential for syncing kbserver with a pseudo-delete process, nor
+	// the potential need for updating the active location's dropdown list to have the same contents
+	// bar one - if a real deletion is called for (when refCount = 1 -- as that drops to zero when
+	// decremented by 1, and that means the pTU needs removal too - unless it harbours additional
+	// non-deleted CRefString instances - and numRefStrings says what the ref string count is)
+	if (m_bGlossingKB)
+	{
+		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+	}
+	else
+	{
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+	}
+	//gpApp->m_pTargetBox->InitializeComboLandingParams(); <<-- in case we need it below
+	// 
     // BEW added 06Sept06: the above tests handle what must be done to the document's
     // pSrcPhrase instance passed in, but it could be the case that the preceding
     // GetRefString() call did not find a KB entry with the given reference string
@@ -1085,14 +1148,14 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
     // is ON it might be the case that the entry was put in when auto caps is OFF and then
     // we'd wrongly change to lower case and not succeed in removing the entry from the
     // map, so we have to be a bit more clever. So we'll set s to the key as on the
-    // sourcephrase, and a second string s1 will have the other case equivalent, and if the
-    // first does not get removed, we try the second (which should work); we still need to
-    // form the second only when gbAutoCaps is TRUE, since when it is OFF, a failed
-    // GetRefString( ) call will not result in an attempt to remove a lower case entry
-    // stored when gbAutoCaps was ON
+    // sourcephrase, and a second string s1 will have the other case equivalent, if the
+    // raw key got changed to lower case; we still need to form s1 only when gbAutoCaps
+	// is TRUE, since when it is OFF, a failed GetRefString( ) call will not result in an 
+	// attempt to remove a lower case entry stored when gbAutoCaps was ON
 	wxString s = pSrcPhrase->m_key;
-	wxString s1 = s;
+	wxString s1 = s; // s1 is what we will take forward, not s
 	bool bNoError = TRUE;
+	wxString tgtstr = pSrcPhrase->m_adaption;
 	if (gbAutoCaps)
 	{
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(s1);
@@ -1121,162 +1184,281 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 											   // SetCaseParameters() call
 			}
 		}
+		// Now do same for tgtstr (FALSE means 'do it for tgt text' as 'for src text' is default TRUE)
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(tgtstr, FALSE);
+		if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+		{
+			// change to lower case initial letter
+			tgtstr.SetChar(0, gcharNonSrcLC);
+		}
+	} // end of TRUE block for test: if (gbAutoCaps)
+
+	// Store (i.e. cache) case-adjusted copies of src key, and tgt adaptation on m_pTargetBox, 
+	// for HandlePseudoDeletion(src, nonSrc) to use, below
+	m_pApp->m_pTargetBox->strPreDeletedKey = s1; // keep, HandlePseudoDeletion needs it for 1st formal param
+	m_pApp->m_pTargetBox->strPreDeletedValue = tgtstr;
+
+	// BEW 23Mar22, need a new boolean, for carrying a "decrement only" decision forwards,
+	// in order to prevent a spurious attempt to do a flag deletion later on
+	bool bDecrementingOnly = FALSE; // initialise
+
+	if (m_pApp->GetRetranslation()->GetIsRetranslationCurrent())
+	{
+		// BEW 20Mar07: don't remove if retranslation, or editing of same, is currently
+		// happening because we don't want retranslations to effect the 'dumbing down'
+		// of the KB by removal of perfectly valid KB entries belonging to the
+		// retranslation span formerly
+		return;
 	}
+
+	// BEW 14Apr16, If a merger is currently happening, don't allow it to cause loss of data
+	if (m_pApp->m_bMergerIsCurrent)
+	{
+		return;
+	}
+
+//BEW changed behaviour 20Jun06 because unilaterally returning here whenever the
+//m_translation string was empty meant that if the user wanted to remove his
+//earlier "<no adaptation>" choice, there was no way to effect it from the
+//interface. So now we have a global flag m_bNoAdaptationRemovalRequested which is
+//TRUE whenever the user hits backspace or Del key in an empty phrasebox, provided
+//that location's CSourcePhrase has m_bHasKBEntry (when in adapting mode) set
+//TRUE, or m_bHasGlossingKBEntry (when in glossing mode) set TRUE. Hence if neither
+//BS or DEL key is pressed, we'll get the legacy (no deletion & retaining of the
+//flag value) behaviour as before.
+	if (pRefString->m_translation.IsEmpty())
+	{
+		if (!m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested)
+			return; // never automatically reduce count to zero; if user wants to be
+					//rid of it, he must do so manually -- no, there was no 'manual'
+					//way to do it for the document CSourcePhrase instance, so 20Jun06
+					//change introduces a backspace or DEL key press to effect the
+					//removal
+	}
+	m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested = FALSE; // ensure cleared to 
+					// default value, & permit removal after the flag may have been used
+					// in previous block
+
+
+	// ***FINISHED sanity checking stuff & other preparations***
+
+	// There are two things very important, and it helps to describe how they
+	// differ in what follows. The first, is the nRefCount (i.e. m_nRefCount, how many times
+	// in the docs has this adaptation been seen), and the second is the number of CRefString
+	// instances that the pTU is currently storing  -  most would be non-deleted, but some 
+	// already-deleted ones may be stored in pTU still; and this passed in one which is to be
+	// deleted might be one of those.
+	// Here are the protocols for what follows:
+	// 1. Multiple CRefString instances stored in the pTU m_pTranslations list.
+	// What does this mean?
+	// (a) We must keep pTU existing, no matter what happens to this pRefString passed in
+	// (b) The number of CRefStrings remaining (N) after one is deleted, possibily results in
+	//     an icon change to the dropdown button. If N is 0 or 1, then we must change the icon
+	//     to have the [X] shape.
+	// (c) What happens in other respects depends on the nRefCount value (before it is changed).
+	// 2.  Pertaining to nRefCount, here are the protocols which depend on its initial value, and
+	// 	   these are relevant to 1 (a) and (b) states above, equally (to the extent possible)
+	// (d) pTU is empty of CRefString instances.
+	//     (i)  If its a kbserver project, no call of do_pseudo_delete.exe is warranted, as there
+	//		    is nothing to pseudo-delete
+	//	   (ii) The dropdown button will already have the [X] shape, so just call
+	//			InitializeComboLandingParams() to clear the m_pTargetBox's stored
+	//			index and string meant for restoring a deleted pRefString at phrasebox 
+	//			move time, and then return.
+	// (3) pTU has 1 or more stored CRefString instances, and the passed in pRefString
+	//	   is one of them, and (of course) is to be 'deleted' (by count decrementation or
+	//	   by setting the m_bDeleted flag to 1). 
+	//	   Dropdown lists do not display 'deleted' CRefString instances, so only one of the
+	//	   listed adaptations is able to be 'deleted' by RemoveRefString().
+	//	   (i)   nRefCount is already 0, for this passed in pRefString. This is unusual, 
+	//		     but not without precedent, so we must take account of this possibility.
+	//		     Just do the same as 2 (i), leave pTU in existence.
+	//	   (ii)  nRefCount is > 1 (greater than 1). This is common. For this state,
+	//			 the 'deletion' is automatically by decrementing the nRefCount value by 1.
+	//			 So the new nRefCount is 1 or more, which retains it as a valid non-deleted
+	//			 line in the drop down list. And the dropdown's button does not change.
+	//			 Therefore do this: store the smaller (by 1) nRefCount on the pRefString;
+	//			 make no call of do_pseudo_delete.exe to the enty table if its a kbserver
+	//			 project. Then return.
+	//	   (iii) nRefCount starts off as 1. Auto decrementing with send this to 0, and
+	//			 The m_bDeleted flag on the pRefString is to be set to TRUE.
+	//			 (Do any kbserver pseudo-delete, if needed, at the end - calling:
+	//			  void HandlePseudoDeletion(wxString src, wxString nonSrc)
 	int nRefCount = pRefString->m_refCount;
-	//wxASSERT(nRefCount > 0); BEW removed 1Sep15 because when playing with
-	// <Not In KB> entries, it is quite possible to have a pRefString with
-	// and empty or non-empty translation string, yet m_refCount is 0; so
-	// well let the latter be tolerated until in KB editor removal is forced,
-	// or something else effects its removal
+
+	// The owning CTargetUnit instance is determinate, from a pointer on the pRefString
+	// instance itself. Get the pointer to that and set it to a local pTU pointer. Then
+	// remove the pRefString entirely from the KB or from the glossing KB, depending 
+	// on m_bGlossingKB flag's value
+	CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit, the
+			// TargetUnit instance has the count of how many are the current
+			// stored set of CRefString instances on this pTU (could be zero to many)
+	wxASSERT(pTU != NULL);
+	int nTranslations = pTU->m_pTranslations->GetCount();
+
+	//wxASSERT(nTranslations > 0); // must be at least one -- well, historically, rarely could be 0
+	// BEW 1Sep15 in next test, changed from == 1, to <= 1, because it is possible
+	// to produce a pRefString with m_refCount of zero
+	m_bDeletionDone = FALSE; // initialise (it's a public boolean in this-> )
+
+	// 3. (i) if pTU is empty of CRefString instances.
+	if (nTranslations == 0)
+	{
+		// if it happens, it's rare, rare, and rarer still) but just in case...
+		gpApp->m_pTargetBox->InitializeComboLandingParams(); // lines 104-7 of PhraseBox.h
+		return;
+	}
+
+	// 3. (ii) if  nRefCount is > 1 for this to-be-'deleted' one. In this circumstance
+	// we do not do a real deletion (nor, if it's a kbserver project, a pseudo-deletion
+	// in the kbserver entry table). Why? Because all that is required is a decrement by 1
+	// of the nRefCount value. So long as it does not decrement to 0, nothing is deleted,
+	// only we need to do the decrement and return. The translation remains in the dropdown.
 	if (nRefCount > 1)
 	{
-        // more than one reference to it, so just decrement & remove the srcPhrase's
-        // knowledge of it, this does not affect the count of how many translations there
-        // are, so m_bAlwaysAsk is unaffected. Version 2 has to test m_bGlossingKB and set
-        // the relevant flag to FALSE.
+		bDecrementingOnly = TRUE;
+		// more than one reference to it, so just decrement & remove the srcPhrase's
+		// knowledge of it, this does not affect the count of how many translations there
+		// are, so m_bAlwaysAsk is unaffected. Version 2 has to test m_bGlossingKB and set
+		// the relevant flag to FALSE.
 		if (!(m_pApp->GetRetranslation()->GetIsRetranslationCurrent()))
 		{
-//#if defined (_DEBUG)
-//			wxLogDebug(_T("Decrementing CRefString: m_translation= %s , with m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
-//				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
-//#endif
 			// BEW 20Mar07: don't decrement if retranslation, or editing of same,
-			// is currently happening
+			// is currently happening; if it's not, then go ahead
 			pRefString->m_refCount = --nRefCount;
-		}
-		if (m_bGlossingKB)
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		}
-		else
-		{
-			pSrcPhrase->m_bHasKBEntry = FALSE;
+
+			//#if defined (_DEBUG)
+			//	wxLogDebug(_T("Decrementing CRefString: m_translation= %s , with decremented m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
+			//				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
+			//#endif
 		}
 	}
-	else
+	
+	//#if defined (_DEBUG)
+	//	wxLogDebug(_T("Removing CRefString: m_translation= %s , with m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
+	//				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
+	//#endif
+	//	3. (iii) nRefCount starts off as 1. Auto decrementing with send this to 0, and
+	//			 The m_bDeleted flag on the pRefString is to be set to TRUE.
+	//			 (Do any kbserver pseudo-delete, if needed, at the end - calling:
+	//			  void HandlePseudoDeletion(wxString src, wxString nonSrc)
+	if (nRefCount == 1 && !bDecrementingOnly)
 	{
-#if defined (_DEBUG)
-//		wxLogDebug(_T("Removing CRefString: m_translation= %s , with m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
-//				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
-#endif
-        // from version 1.2.9 onwards, since <no adaptation> has to be caused manually, we
-        // no longer want to automatically remove an empty adaptation whenever we land on
-        // one - well, not quite true, we can remove automatically provided the ref count
-        // is greater than one, but we have to block automatic decrements which would
-        // result in a count of zero - else we'd lose the value from the KB altogether and
-        // user would not know. We need this protection because an ENTER will not cause
-        // automatic re-storing of it. So now, we will just not remove the last one. This
-        // will possibly skew the ref counts a bit for empty adaptations, if the user hits
-        // the <no adaptation> button more than once for an entry (making them too large)
-        // or landing on an empty one several times (makes count too small), would not
-        // matter anyway. To manually remove empty adaptations from the KB the user still
-        // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
-
-        //BEW changed behaviour 20Jun06 because unilaterally returning here whenever the
-        //m_translation string was empty meant that if the user wanted to remove his
-        //earlier "<no adaptation>" choice, there was no way to effect it from the
-        //interface. So now we have a global flag m_bNoAdaptationRemovalRequested which is
-        //TRUE whenever the user hits backspace or Del key in an empty phrasebox, provided
-        //that locatation's CSourcePhrase has m_bHasKBEntry (when in adapting mode) set
-        //TRUE, or m_bHasGlossingKBEntry (when in glossing mode) set TRUE. Hence if neither
-        //BS or DEL key is pressed, we'll get the legacy (no deletion & retaining of the
-        //flag value) behaviour as before.
-		if (pRefString->m_translation.IsEmpty())
-		{
-			if (!m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested)
-				return; // never automatically reduce count to zero; if user wants to be
-                        //rid of it, he must do so manually -- no, there was no 'manual'
-                        //way to do it for the document CSourcePhrase instance, so 20Jun06
-                        //change introduces a backspace or DEL key press to effect the
-                        //removal
-		}
-        m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested = FALSE; // ensure cleared to default value, &
-                        // permit removal after the flag may have been used in previous
-                        // block
-
-		if (m_pApp->GetRetranslation()->GetIsRetranslationCurrent())
-		{
-            // BEW 20Mar07: don't remove if retranslation, or editing of same, is currently
-            // happening because we don't want retranslations to effect the 'dumbing down'
-            // of the KB by removal of perfectly valid KB entries belonging to the
-            // retranslation span formerly
-			return;
-		}
-
-		// BEW 14Apr16, If a merger is currently happening, don't allow it to cause loss of data
-		if (m_pApp->m_bMergerIsCurrent)
-		{
-			return;
-		}
-
-        // this reference string is only referenced once, so remove it entirely from KB or
-        // from the glossing KB, depending on m_bGlossingKB flag's value
-		CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit
-		wxASSERT(pTU != NULL);
-		int nTranslations = pTU->m_pTranslations->GetCount();
-		wxASSERT(nTranslations > 0); // must be at least one
-		// BEW 1Sep15 in next test, changed from == 1, to <= 1, because it is possible
-		// to produce a pRefString with m_refCount of zero
-		if (nTranslations <= 1)
-		{
-			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
-			// because it may be required later if we provide a "clear" option for deleted
-			// entries in the KB
-			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
-			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
-			pRefString->m_bDeleted = TRUE;
-		}
-		else
-		{
-			// there are other CRefString instances, so don't remove its owning targetUnit
-
-			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
-			// because it may be required later if we provide a "clear" option for deleted
-			// entries in the KB
-			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
-			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
-			pRefString->m_bDeleted = TRUE;
-		}
-
-//#if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for KBserver support
-		if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady && (GetMyKbServer() != NULL))
-		{
-// GDLC 20JUL16
-            if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
-//              if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-                ||
-                (m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && m_pApp->KbServerRunning(2)))
-//              (m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
-			{
-				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one,
-													// depending on the mode currently in effect
-				// Assume we need to delete the lower case entry, key = s1, it's most likely
-				// to be correct rather than key = s (That is, to save time, we are deciding
-				// that if auto-capitalization is not currently turned on, and the removal of
-				// a CRefString for an upper-case-initial word or phrase is being done, we will
-				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
-				// we *will* bother to set it to 1, provided the entry is present and
-				// lower-case-initial, whether auto-caps is on or off.)
-				//
-				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-				// effect on GUI responsiveness
-				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-				m_pApp->m_strSrc_For_KBserver = s1;
-				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-				m_pApp->m_bPseudoDelete_For_KBserver = TRUE; // Set this boolean rather than do a synchronous call here
-			}
-		}
-//#endif
-		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
-		if (m_bGlossingKB)
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		else
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-
+		pRefString->m_bDeleted = TRUE;
+		pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow(forXHTML);
+		m_bDeletionDone = TRUE;
 	}
+	if (m_bDeletionDone)
+	{
+		// Internally, HandlePseudoDeletion() checks that it is an adapting KB and
+		// that the project is a kbserver one. If so, src and  nonSrc are the
+		// values required for pseudo-deleting the relevant row in the kbserver
+		// entry table.
+		HandlePseudoDeletion(m_pApp->m_pTargetBox->strPreDeletedKey, m_pApp->m_pTargetBox->strPreDeletedValue);
+	}
+	m_bDeletionDone = FALSE; // restore default
 }
+
+/* remove it -it's more harmful than useful, and quite unnecessary
+// BEW 4Apr22, Nah, I've got a good ways towards what I want, but not all the way. The smaller list
+// shows, but Bill's code overrides in such a way that the top item of the shorter list gets put into
+// the phrasebox at the active location, which makes the earlier value there get lost. No future in this
+// so comment out my stuff of last couple of weeks, and require user to use Choose Translation or the
+// KBEditor to manually effect the syncing - if wanted. This old way, if the box value has not changed
+// the it gets restored when the box moves on. Can't assume the user remembered what meaning got deleted
+void  CKB::SyncForRemovedRefString(CPhraseBox* pTgtBox, CTargetUnit* pTgtUnit)
+{
+#if defined (SHOWSYNC)
+	wxLogDebug(_T("%s::%s() line %d : Entered..."), __FILE__, __FUNCTION__, __LINE__);
+#endif
+	if (this->m_bDeletionDone == FALSE)
+		return; // no need to continue if a deletion has not actually happened
+	wxASSERT(pTgtUnit != NULL);
+	wxASSERT(pTgtBox != NULL);
+
+	// Check we've got access to correct values
+	//wxString srcKey = pTgtBox->strPreDeletedKey; // any case adjustment was already done
+	// Get the m_translation value of the deleted pRefString instance 
+	//wxString nonSrc = pTgtBox->strPreDeletedValue; // it could be an empty string, that's legal
+
+	// Restore the text ctrl to have the cached adaptation value
+	//gpApp->m_targetPhrase = nonSrc;
+	//pTgtBox->GetTextCtrl()->ChangeValue(nonSrc);
+	// Try setting -1 as the selectionIndex - would be nice if it gave no selection 
+	//pTgtBox->GetDropDownList()->SetSelection(-1);
+
+//#if defined (SHOWSYNC)
+//	wxUnusedVar(srcKey); wxUnusedVar(nonSrc); // prevent compiler warning
+//	wxLogDebug(_T("%s::%s() line %d :Starting: sanity check for sync after pRefString deleted: src key: %s , for adaption = %s"),
+//		__FILE__, __FUNCTION__, __LINE__, srcKey.c_str(), nonSrc.c_str());
+//#endif
+
+	CMyListBox* pListBox = pTgtBox->GetDropDownList();
+	if (pListBox == NULL)
+	{
+		wxBell(); // don't expect NULL return
+		return; // nothing got done
+	}
+	int numRefStrings = pTgtUnit->m_pTranslations->GetCount();
+
+#if defined (SHOWSYNC)
+	wxLogDebug(_T("%s::%s() line %d : numRefStrings (should be 1 less than before): %d"),
+				__FILE__, __FUNCTION__, __LINE__, numRefStrings);
+#endif
+
+	int itemIndex = -1; // initialise
+	CRefString* refStringPtr = NULL; // initialise 
+	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); // initialise the iterator
+	wxASSERT(pos != NULL);
+//	TranslationsList::Node* posSaved = NULL;
+	while (pos != NULL)
+	{
+		refStringPtr = (CRefString*)pos->GetData();
+		itemIndex++;
+//		posSaved = pos;
+		pos = pos->GetNext();
+		wxString data = refStringPtr->m_translation;
+#if defined (SHOWSYNC)
+		wxString s = _("<no adaptation>"); // there may be one such in the list
+		if (data.IsEmpty())
+		{
+			wxLogDebug(_T("%s::%s() line %d : for index %d, Drop down list item at index is (empty):  %s"),
+				__FILE__, __FUNCTION__, __LINE__, itemIndex, data.c_str());
+		}
+		else
+		{
+			wxLogDebug(_T("%s::%s() line %d : for index %d, Drop down list item at index is:  %s"),
+				__FILE__, __FUNCTION__, __LINE__, itemIndex, data.c_str());
+		}
+#endif
+	} // end of while loop
+
+	// Since the entry table has been updated already to have a m_bDeleted == TRUE entry,
+	// what we want is to clear the populated list, and refill it without the pseudo-deleted
+	// item being in it.
+	// RepopulateDropDownList() is used only when the phrasebox has landed and is in the
+	// interim state when it's unknown what the final user choice will be for the adaptation
+	// (or gloss) when it moves on. When moves on, if the adaptation has not changed, Bill's
+	// code in PopulateDropDownList() has all the needed smarts for restoring the deleted
+	// adaptation to it's former place in the list.
+	int selectionIndex = 0; // set default as 0
+	int indexOfNoAdaptation = -1; // default -1 means no "<no adaptation>" entry in the list
+	pTgtBox->RepopulateDropDownList(pTgtUnit, selectionIndex, indexOfNoAdaptation);
+
+		//int newListLength = numRefStrings - 1;
+	int newListLength = itemIndex + 1; // +1 turns it into a count
+
+	if (newListLength <= 1)
+	{
+		// resetting the list's button to an X is required
+		gpApp->m_pTargetBox->SetButtonBitMapXDisabled(); // internally does a Refresh call on the button
+	}
+
+#if defined (SHOWSYNC)
+	wxLogDebug(_T("%s::%s() line %d : Finished sync function"), __FILE__, __FUNCTION__, __LINE__);
+#endif
+}
+*/
 
 // pass in a source string, to be converted to initial lower case;
 // or a gloss or adaptation string which is to be saved to a KB, and internally
@@ -1653,6 +1835,53 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 		} // end of TRUE block for test: if (pMap != NULL)
 	} // end of TRUE block for test: if (nWordCount > 0)
 }
+
+// BEW 10Apr22 created, how many of the maps, for gbIsGlossing TRUE or FALSE, are in current use 
+// (MAX_WORDS is limit, = 10) - its usuallyl not over 6, but could be higher 
+// Return 0 if the KBs are not yet set up for use - as would be the case when initialising the app
+int CKB::GetMaxMapsInUse(void) 
+{
+	int numInUse_max = 0; // initilise
+	CKB* pKB = NULL; // initialise
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int mapIndex = wxNOT_FOUND; // initialise to -1
+	int MaxMapCount = (int)MAX_WORDS; // = 10
+	if (!gbIsGlossing)
+	{
+		// Adapting mode is current - using adaptations KB
+		if (!pApp->m_bKBReady)
+		{
+			return numInUse_max; // return 0 to flag this call is premature
+		}
+		// Not glossing mode, so must be adapting mode, using the adaptations KB and its maps
+		pKB = pApp->m_pKB;
+	}
+	else
+	{
+		// Glossing mode is ON, so using glossing KB
+		if (!pApp->m_bGlossingKBReady)
+		{
+			return numInUse_max; // return 0 to flag this call is premature
+		}
+		pKB = pApp->m_pGlossingKB;
+	}
+	MapKeyStringToTgtUnit* pMap = NULL; // initialise a map ptr
+	for (mapIndex = 0; mapIndex < MaxMapCount; mapIndex++)
+	{
+		pMap = pKB->m_pMap[mapIndex];
+		bool bIsEmpty = pMap->empty();
+		if (bIsEmpty)
+		{
+			continue;
+		}
+		else
+		{
+			numInUse_max++;
+		}
+	}
+	return numInUse_max;
+}
+
 
 
 /// \return             nothing
@@ -4477,7 +4706,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 //			m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
 #endif
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
@@ -4498,20 +4727,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
-					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-					// effect on GUI responsiveness
-					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-					m_pApp->m_strSrc_For_KBserver = key;
-					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-					m_pApp->m_bCreateEntry_For_KBserver = TRUE; // set this true, rather than a synchronous call here
-					wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
-						m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
+					// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+					int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+					wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+						rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 				}
 			}
 		}
 
-//#endif
+#endif
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
@@ -4648,7 +4875,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
 
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
@@ -4667,20 +4894,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// don't send to KBserver if it's a <Not In KB> entry
 						if (!bStoringNotInKB)
 						{
-							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-							// effect on GUI responsiveness
-							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-							m_pApp->m_strSrc_For_KBserver = key;
-							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
-							wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__, 
-								m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
+							// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+							int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+							wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+								rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 						}
 					}
 				}
 			}
-//#endif
+#endif
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -4792,7 +5017,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
@@ -4824,19 +5049,15 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								KbServer* pKbSvr = GetMyKbServer();
 								if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 								{
-									// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-									// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-									// effect on GUI responsiveness
-									m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-									m_pApp->m_strSrc_For_KBserver = key;
-									m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-									m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
-									wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for PseudoUndelelete"), __FILE__, __FUNCTION__, __LINE__,
-										m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
+									// BEW 23Mar22. Moved the pseudo undelete call back here from OnIdle()
+									int rv = pKbSvr->PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+									wxUnusedVar(rv);
+									wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for PseudoUndelelete"), __FILE__, __FUNCTION__, __LINE__,
+										rv, key.c_str(), pRefString->m_translation.c_str());
 								}
 							}
 						}
-//#endif
+#endif
 					}
 					else
 					{
@@ -4960,7 +5181,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefString->m_translation = tgtPhrase;
 					}
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
@@ -4978,19 +5199,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							// don't send a <Not In KB> entry to KBserver
 							if (!bStoringNotInKB)
 							{
-								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-								// effect on GUI responsiveness
-								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-								m_pApp->m_strSrc_For_KBserver = key;
-								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-								m_pApp->m_bCreateEntry_For_KBserver = TRUE;
-								wxLogDebug(_T("%s::%s() line %d: key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
-									m_pApp->m_strSrc_For_KBserver.c_str(), m_pApp->m_strNonsrc_For_KBserver.c_str());
+								// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+								int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+									rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 							}
 						}
 					}
-//#endif
+#endif
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
@@ -5255,7 +5474,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			pRefString->m_translation = tgtPhrase;
 		}
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
@@ -5274,16 +5493,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			KbServer* pKbSvr = GetMyKbServer();
 			if (!bStoringNotInKB)
 			{
-				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-				// effect on GUI responsiveness
-				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-				m_pApp->m_strSrc_For_KBserver = key;
-				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+				// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+				int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+				wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+				wxLogDebug(_T("%s::%s() line %d: rv = %d, key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+					rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 			}
 		}
-//#endif
+#endif
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
@@ -5340,7 +5559,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pRefString->m_translation = tgtPhrase;
 			}
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
@@ -5354,16 +5573,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				KbServer* pKbSvr = GetMyKbServer();
 				if (!bStoringNotInKB)
 				{
-					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-					// effect on GUI responsiveness
-					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-					m_pApp->m_strSrc_For_KBserver = key;
-					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+					int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+					wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+						rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 				}
 			}
-//#endif
+#endif
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -5442,7 +5661,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
@@ -5470,16 +5689,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							KbServer* pKbSvr = GetMyKbServer();
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
-								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-								// effect on GUI responsiveness
-								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-								m_pApp->m_strSrc_For_KBserver = key;
-								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								// BEW 23Mar22. Moved the pseudo undelete call back here from OnIdle()
+								int rv = pKbSvr->PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for PseudoUndelelete"), __FILE__, __FUNCTION__, __LINE__,
+									rv, key.c_str(), pRefString->m_translation.c_str());
 							}
 						}
-//#endif
+#endif
 					}
 					else
 					{
@@ -5571,7 +5788,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefString->m_translation = tgtPhrase;
 					}
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
@@ -5586,17 +5803,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
-							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-							// effect on GUI responsiveness
-							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
-							m_pApp->m_strSrc_For_KBserver = key;
-							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
-							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+							int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+							wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+								rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
 						}
 
 					}
-//#endif
+#endif
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)

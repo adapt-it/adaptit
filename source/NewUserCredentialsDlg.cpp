@@ -61,9 +61,9 @@ NewUserCredentialsDlg::NewUserCredentialsDlg(wxWindow* parent) // dialog constru
 	NewUserCredentialsFunc(this, TRUE, TRUE);
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
 
-#if defined (_DEBUG)
-	int halt_here = 1;
-#endif
+//#if defined (_DEBUG)
+//	int halt_here = 1;
+//#endif
 }
 
 NewUserCredentialsDlg::~NewUserCredentialsDlg() // destructor

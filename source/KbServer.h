@@ -93,7 +93,7 @@ WX_DECLARE_LIST(KbServerUserForeign, UsersListForeign); // stores pointers to Kb
 
 // BEW 12Oct20 reinstated, with some name changes, for Leon's solution
 struct KbServerEntry {
-	wxString 	id; //python: str(id) converts int to string, and atoi(id) converts back to int
+	//wxString 	id; //python: str(id) converts int to string, and atoi(id) converts back to int <- no longer wanted
 	wxString	srcLangName;
 	wxString	tgtLangName;
 	wxString	source;
@@ -214,8 +214,7 @@ public:
 
 	// The functions in this next block do the actual calls to the remote KBserver
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
-	// BEW 10Oct20, take a results file (multiline, or just 2 lines - "success" and one entry's row)
-	// and convert to string array, throwing away the "success" top line
+	// BEW 10Oct20, take a results file and convert to string array
 	bool	 DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 
 	// BEW 14Jan21 refactored Populate....() earlier, we need this for Leon's solution

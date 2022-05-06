@@ -2224,7 +2224,9 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
     // document first.
  	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
+		//gpApp->m_bSuppressPseudoDeleteWhenClosingDoc = TRUE;
 		PutPhraseBoxAtDocEnd();
+		//gpApp->m_bSuppressPseudoDeleteWhenClosingDoc = FALSE;
 	}
 	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
 }
@@ -2826,7 +2828,9 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		{
 			// No use trying if the active pile is NULL - we may be processing a doc
 			// which has no visible phrasebox, or the normal GUI isn't being used
+			//gpApp->m_bSuppressPseudoDeleteWhenClosingDoc = TRUE;
 			PutPhraseBoxAtDocEnd();
+			//gpApp->m_bSuppressPseudoDeleteWhenClosingDoc = FALSE;
 #if defined(_DEBUG)
 			wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
                 gpApp->m_pTargetBox->m_Translation.c_str(), gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
@@ -20580,7 +20584,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								// FALSE here.
 								// Returns NULL if unknown marker
 								pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-								wxASSERT(bIsNestedMkr == FALSE);
+								//wxASSERT(bIsNestedMkr == FALSE);
 								wxUnusedVar(tagOnly);
 								wxUnusedVar(baseOfEndMkr);
 								itemLen = ParseMarker(ptr);

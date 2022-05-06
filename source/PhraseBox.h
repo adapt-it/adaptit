@@ -105,6 +105,12 @@ public:
 	wxString	 strSaveListEntry;
 	bool		 bRemovedAdaptionReadyForInserting; // into the combo box's dropdown list - at its former location
 	int			 nDeletedItem_refCount;
+	// BEW 5Apr22 retaining the two extra members I add, RemoveRefString() needs them
+	wxString     strPreDeletedValue; // BEW added 30Mar22, need to get the pRefString->m_translation value
+						// cached, for input to CKB::HandlePseudoDeletion(wxString src, wxString nonSrc)
+	wxString     strPreDeletedKey; // a copy of the active pile's pSrcPhrase's m_key value,
+						// need for input to CKB::HandlePseudoDeletion(wxString src, wxString nonSrc)
+
 	void InitializeComboLandingParams(); // initialize the above member variables, I'll decline 
 										 // using the m_ prefix in their names, as these are very hacky
     wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
@@ -188,8 +194,8 @@ public:
 
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
-    //void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation);
 	void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation);
+	//void RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation); // BEW removed 5Apr22
 	bool RestoreDeletedRefCount_1_ItemToDropDown();
 
 

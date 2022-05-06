@@ -1981,7 +1981,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	{
 		modePassedIn = selector_3;
 	}
+#if defined(_DEBUG) && defined(GUIFIX)
 	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s"), modePassedIn.c_str());
+#endif
 #endif
 	// RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
 	// function - the latter built only a bundle's-worth of strips, but the new design must build
@@ -2386,7 +2388,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		}
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(GUIFIX)
 	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %s *** \n"), modePassedIn.c_str());
 #endif
 	return TRUE;

@@ -1300,7 +1300,7 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pLayout != NULL);
 	//PileList* pPiles = pLayout->GetPileList();
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(GUIFIX)
 	{
 		int count = pLayout->GetPileList()->GetCount();
 		if (count == 0)
@@ -3821,7 +3821,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	}
 	else
 	{
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(GUIFIX)
 		// BEW 12Aug21, DoGetSuitableText_ForPlacePhraseBox() will internally ask for a phrasebox gap calculation,
 		// so that will call Pile's SetPhraseBoxGapWidth() which internally calls CalcPhraseBoxGapWidth() which
 		// internally call's CalcPhraseBoxWidth() - and the latter takes listWidth into account in its calculations.
@@ -4196,7 +4196,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(GUIFIX)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
 #if defined(_DEBUG) && defined(_OVERLAP)
@@ -6700,7 +6700,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	if (gnVerticalBoxBloat > 0)
 		rectBox.SetHeight(rectBox.GetHeight() + gnVerticalBoxBloat); // allow for the leadings on the font
 
-#if defined (_DEBUG) //&& defined(_OVERLAP)
+#if defined(_DEBUG) && defined(GUIFIX)
 	{
 		// log where the top,left is, and the above calc of the width, and height
 		wxLogDebug(_T("   TWEAKED RECTBOX   %s::%s() line %d, TopLeft [ Top %d , Left %d ] Width %d  Height %d  In logical coords"),
@@ -6869,7 +6869,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 //	pApp->MyLogger();
 //#endif
 
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(GUIFIX)
 	{
 		wxLogDebug(_T("      %s::%s() line %d : RESIZE BOX leaving, const nWidth %d , contains text = %s , active SN %d"),
 			__FILE__, __FUNCTION__, __LINE__, nWidth, pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber);

@@ -81,6 +81,13 @@
 //#if defined (_KBSERVER)
 #include <stdio.h>
 #include <stdlib.h>
+// BEW integrating the external .c functions, as extern "C" functions (no name mangling) probably needs
+// these extra includes, for wchar_t support, wxChar, & wxString
+#include <string.h>
+#include <time.h>
+#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+// and put the directory path to MariaDB 10.5's libmariadb.lib object file library into the Additional Library Directories
+// for both Unicode Debug build, and Unicode Release build: the path is: C:\Program Files (x86)\MariaDB 10.5\lib -- I've done that 18Apr22
 //#endif
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
@@ -12394,6 +12401,40 @@ bool Credentials_For_User(wxString* pIpAddr, wxString* pUsername, wxString* pFul
 	return TRUE;
 }
 
+
+// BEW added 16Feb22 for KBserver support.  BEW deprecated, 24Feb22 - not needed, see AI.cpp 21660++
+// The results .dat file (e.g. list_users_results.dat) no longer is guaranteed to have a "success" 
+// string in it. Instead, there could be one or more data lines, each with comma-separated fields,
+// and the number of commas may differ for different results files. So pass in a minimum count
+// which must be present, for TRUE to be returned to the caller. If less than that are present,
+// return FALSE. (Good idea if FALSE is returned, for the caller to at least have msg in LogUserAction())
+/*  Retain, in case it becomes important for something else - it's not needed for do_create_entry.exe
+bool CountCommasForSuccess(wxString dataLine, int minCount)
+{
+	wxASSERT(minCount > 2); // nothing will have 2 or less comma-separated fields
+	wxASSERT(!dataLine.IsEmpty());
+	int length = (int)dataLine.Length();
+	int index = 0; // initialise
+	int count = 0;
+	wxChar comma = _T(',');
+	wxChar c;
+	for (index = 0; index < length; index++)
+	{
+		c = dataLine.GetChar((int)index); // dataLine will be short, so don't need size_t
+		if (c == comma)
+		{
+			count++;
+		}
+	}
+	// Test for at least minCount present, that's our felicity condition
+	if (count >= minCount)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+*/
+
 // BEW 30Oct20 created. A utility function, which takes str and
 // internally processes to turn every single quote found, ( ' )
 // into an escaped single quote (  \'  ). This is to facilitate
@@ -13038,3 +13079,32 @@ wxString SafetifyPath(wxString rawpath)
 	return newPath;
 }
 */
+
+CBString ConvertToUtf8(const wxString& str)
+{
+	// converts UTF-16 strings to UTF-8
+	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
+	// define blocks which won't compile in ANSI (Debug or Release) builds
+	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
+	return CBString(tempBuf);
+}
+
+wxString ConvertToUtf16(CBString& bstr)
+{
+	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
+	// define blocks which won't compile in ANSI (Debug or Release) builds
+	wxWCharBuffer buf(wxConvUTF8.cMB2WC(bstr.GetBuffer()));
+	return wxString(buf);
+}
+
+int do_upload_local_kbw(void)
+{
+	int rv = -1;
+
+
+
+
+
+
+	return rv;
+}

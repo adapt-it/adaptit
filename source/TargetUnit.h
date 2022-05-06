@@ -71,7 +71,7 @@ public:
 							// deletes any CRefString instances with m_bDeleted set TRUE; either
 							// sets or leaves unchanged (default) each non-deleted instance's 
 							// m_modifiedDateTime member, according to passed in enum value
-
+//	bool				EraseOneDeletion(void); // used in RemoveRefString)() // BEW removed 5Apr22
 	virtual				~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 

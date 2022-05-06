@@ -265,7 +265,7 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 	{
 		m_strNormalUsername = strUsername;
 		m_pApp->UpdateCurNormalUsername(strUsername); // Leon's .exe will use this
-#if defined(_DEBUG)
+#if defined(_DEBUG) // && defined(GUIFIX)
 		wxLogDebug(_T("Authenticate Dlg (KBSharingSetupDlg.cpp) username: %s , stored locally in: m_strNormalUsername"),
 			m_strNormalUsername.c_str());
 #endif

@@ -795,11 +795,16 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	{
 		execPath += separator; // has path separator at end now
 	}
-	wxString distPath = execPath + _T("dist"); // always a child folder of execPath
-	
+	//wxString distPath = execPath + _T("dist"); // always a child folder of execPath
+	// BEW 10Mar22 we can keep name distPath, so that lower code still works, but we have to
+	// rename the folder to _DATA_KB_SHARING and provide a new path to that folder
+	wxString dataFolderName = m_pApp->m_dataKBsharingFolderName; // set to _T("_DATA_KB_SHARING");
+	wxString distPath = execPath + dataFolderName;
+
 	// put the timestamp passed in, into app storage so that ConfigureDATfile() can grab it
 	m_pApp->m_ChangedSinceTimed_Timestamp = timeStamp;
 
+	bool bExecutedOK = FALSE; // initialise
 	wxString resultsFilename = wxEmptyString;
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed);
 	if (bConfiguredOK)
@@ -807,9 +812,8 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		wxString execFileName = _T("do_changed_since_timed.exe");
 		resultsFilename = _T("changed_since_timed_results.dat");
 		bool bReportResult = FALSE;
-		bool bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
+		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
 			resultsFilename, 99, 99, bReportResult);
-		wxUnusedVar(bExecutedOK);
 	}
 
 	// ***** at step 2, progress
@@ -839,9 +843,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	bool bPresent = ::FileExists(datPath);
 	if (bPresent)
 	{
-		// BEW 2Nov20, this is where we need to un-escape any escaped single quotes;
-		// top line should have only "success" substring, no single quotes, so safe
-		// to leave it in the file
+		// BEW 2Nov20, this is where we need to un-escape any escaped single quotes
 		DoUnescapeSingleQuote(execPath, resultsFilename);  // from helpers.cpp
 
 		// Now deal with the returned entry lines - whether a file, or the whole lot in
@@ -852,27 +854,37 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			aLine = f.GetFirstLine();
-			wxString tstamp = ExtractTimestamp(aLine);
-			if (!tstamp.IsEmpty())
+			//aLine = f.GetFirstLine();
+			//wxString tstamp = ExtractTimestamp(aLine);
+			//wxString tstamp = timeStamp; 
+			if (!timeStamp.IsEmpty())
 			{
-				this->m_kbServerLastTimestampReceived = tstamp; // sets the temporary storage
+				// BEW 22Mar22, use the passed in timeStamp value if it is not empty
+				this->m_kbServerLastTimestampReceived = timeStamp; // sets the temporary storage
 					// If UpdateLastSyncTimestamp() is called below, this value is made
 					// semi-permanent (ie. saved to a file for later importing) if
 					// bDoTimestampUpdate is TRUE (see below)
 			}
-			// Ignore the top line of the file's list from subsequent calls, it's no longer useful
+			else 
+			{
+				if (bExecutedOK == FALSE || timeStamp.IsEmpty())
+				{
+					// empty timestamp string, or the .exe failed, so return -1 to the caller
+					// and a msg in LogUserAction for the developer
+					wxString msg = _T("ChangedSince_Timed(): either the do_changed_since_timed.exe call failed, or the timeStamp passed in was empty");
+					wxMessageBox(msg, _T("Error"), wxICON_ERROR | wxOK); // tell user too
+					m_pApp->LogUserAction(msg);
+					return -1;
+				}
+			}
 
-			// Get the file's line count, our loops from here on now must start
-			// at the line with index = 1.
 			// Note, it's possible that ChangedSince_Timed() will return no data for
 			// adding to the local KB, e.g. if time span is short and for some reason the
 			// user is thinking rather than adapting, so that the timer trips but nothing is
 			// newly added to the remote server. This is not an error situation, so don't
 			// treat it like one. Just ignore and give no message back
-			listSize = (unsigned int)f.GetLineCount();  // (f is not changed by removing a line
-								// unless we write it and reopen, and I can't be bothered)
-			if (listSize > 1)
+			listSize = (unsigned int)f.GetLineCount();
+			if (listSize > 0)
 			{
 				// There is at least one line of entry table data in the file
 				wxArrayString arrLines;
@@ -885,11 +897,6 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 				if (bGotThem)
 				{
-					// listSize will be smaller, as the top line of f was not
-					// added to the list. So recalculate it, otherwise a bounds
-					// error will result.
-					listSize = arrLines.GetCount();
-
 					// loop over the lines
 					for (index = 0; index < listSize; index++)
 					{
@@ -897,13 +904,12 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 						bool bExtracted = Line2EntryStruct(aLine); // populates m_entryStruct
 						if (bExtracted)
 						{
-							// We can extract id, source phrase, target phrase, deleted flag value,
+							// We can extract source phrase, target phrase, deleted flag value,
 							// username, and timestamp string; but for supporting the sync of a local
 							// KB we need only to extract source phrase, target phrase, the value of
-							// the deleted flag, and the username be included in the KbServerEntry
+							// the deleted flag, and the username to be included in the KbServerEntry
 							// structs
 							pEntryStruct = new KbServerEntry;
-							(*pEntryStruct).id = m_entryStruct.id;
 							(*pEntryStruct).srcLangName = m_entryStruct.srcLangName;
 							(*pEntryStruct).tgtLangName = m_entryStruct.tgtLangName;
 							(*pEntryStruct).source = m_entryStruct.source;
@@ -966,7 +972,7 @@ void KbServer::ClearAllPrivateStorageArrays()
 void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 {
 	wxASSERT(pKB != NULL);
-	int rv = 0; // rv is "return value", initialize it
+	int rval = 0; // rval is "return value", initialize it
 	wxString timestamp;
     // whm aFeb2018 note: changed name of local curKey below to currKey to avoid
     // confusion with CPhraseBox's value (the curKey there was also named to m_CurKey)
@@ -985,7 +991,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		// adjusted key from within AutoCapsLookup() which in turn would require that we
 		// modify this function to pass in the adjusted string for currKey via
 		// DownloadToKB's signature
-		if (rv != 0)
+		if (rval != 0)
 		{
 			ClearAllPrivateStorageArrays(); // don't risk passing on possibly bogus values
 		}
@@ -996,30 +1002,29 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 #if defined(SYNC_LOGS)
 		wxLogDebug(_T("Doing ChangedSince_Timed() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
-		rv = ChangedSince_Timed(timestamp); // bool is default TRUE
+		rval = ChangedSince_Timed(timestamp); // bool bDoTimestampUpdate is default TRUE
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
-		if (rv == 0)
+		if (rval == 0)
 		{
 			UpdateLastSyncTimestamp();
 		}
 		break;
 	case getAll:
 		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
-		rv = ChangedSince_Timed(timestamp); // bool is default TRUE
+		rval = ChangedSince_Timed(timestamp, FALSE); // 2nd param, bool bDoTimestampUpdate is default TRUE
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
-		if (rv == 0)
-		{
-			UpdateLastSyncTimestamp();
-		}
+		// BEW 22Mar22, explicit FALSE in the call above, causes ChangedSince_Timed() to skip updating the
+		// project folder's lastsync_adaptations.txt file's value (or glossing on if a glossing KB), because
+		// a 1920 datetime would ruin the incremental data downloads protocal (getting everything instead of a few)
 		break;
 	}
-	if (rv != 0)
+	if (rval != 0)
 	{
 		// there was an error, display a general error
 		wxString msg;
-		msg = msg.Format(_("Downloading error, line = %d: rv not zero.  Nothing was downloaded, application continues."),
+		msg = msg.Format(_("Downloading error, line = %d: rval not zero.  Nothing was downloaded, application continues."),
 						__LINE__);
 		wxMessageBox(msg, _("Download unspecified failure"), wxICON_ERROR | wxOK);
 		m_pApp->LogUserAction(msg);
@@ -1059,9 +1064,9 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) /
 			if (!bExecutedOK)
 			{
 				// error in the call, inform user, and put entry in LogUserAction() - English will do
-				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed - no match in the user table; is kbserver turned on? Adapt It will continue working. ");
+				wxString msg = _T("Line %d: CallExecute for enum: list_users, failed, in KbServer.cpp - cause unknown. Is kbserver turned on? Contact the developers. Adapt It will continue working, but the user list will be shown empty. ");
 				msg = msg.Format(msg, __LINE__);
-				wxString title = _T("Probable do_list_users.exe error");
+				wxString title = _T("ListUsers() error");
 				wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 				m_pApp->LogUserAction(msg);
 			}
@@ -1177,13 +1182,12 @@ int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 
 void KbServer::ClearEntryStruct()
 {
-	m_entryStruct.id.Empty(); // long was python-converted by str() to string
 	m_entryStruct.srcLangName.Empty();
 	m_entryStruct.tgtLangName.Empty();
 	m_entryStruct.source.Empty();
 	m_entryStruct.nonSource.Empty();
 	m_entryStruct.username.Empty();
-	m_entryStruct.timestamp.Empty(); // python will see the next two as strings
+	m_entryStruct.timestamp.Empty(); 
 	m_entryStruct.type = _T('1'); // assume adapting type
 	m_entryStruct.deleted = _T('0'); //assume not-deleted
 }
@@ -1294,11 +1298,10 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 			__FILE__, __FUNCTION__, __LINE__, src.c_str(), nonSrc.c_str(), m_pApp->m_curExecPath.c_str());
 	}
 #endif
-	
+
 	// The create_entry.dat input file is now ready for grabbing the command
 	// line (its first line) for the ::wxExecute() call in CallExecute()
-	bool bOK = m_pApp->CallExecute(create_entry, execFileName, execPath,
-			resultFile, 99, 99, FALSE); // FALSE is bReportResult
+	bool bOK = m_pApp->CallExecute(create_entry, execFileName, execPath,resultFile, 99, 99, FALSE); // FALSE is bReportResult
 	// BEW 14Jan21 retested, & it works just fine, and is quick
 	return (rv = bOK == TRUE ? 0 : -1);
 }
@@ -1445,15 +1448,8 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
 
 	rv = pKbSvr->LookupEntryFields(src, oldText); // with a view to PseudoDeleting it
-	wxASSERT(rv == 0);
-	if (m_entryStruct.id == _T('0')) // lookup failure, valid id's will be != '0'
-	{
-		// If the lookup failed, we must assume it was because there was no matching entry
-		// in the entry table. The simplest thing is just not to bother creating it here and then 
-		// immediately pseudo-deleting it.
-		;
-	}
-	else
+
+	if (rv == 0)
 	{
 		// No error from the lookup, so try PseudoDeleting it
 		
@@ -1472,8 +1468,18 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 		}
 	}
 	//                          ***** part 2 *****
-	// That removes the oldText that was to be updated; now deal with the 
-	// scr/newText pair -- another lookup is needed...
+	// That removes the oldText that was to be updated. 
+	// BEW replace the old logic with this one call. do_create_entry.exe does it all
+	rv = pKbSvr->CreateEntry(pKbSvr, src, newText);
+	// If the user wants to check what is in the returned .dat file, create_entry_results.dat,
+	// it will be found in the AI executable's folder, and can be read with any text editor
+
+	/* 
+	//BEW 6Apr22,removed this logic, with it's dependence on LookupEntryFields() - this is the only place where
+	// the latter was needed, and the refactored do_create_entry.exe handles any change of deletion
+	// flag from 1 to 0, if that need is detected within it's call
+
+	// Now deal with the scr/newText pair -- another lookup is needed...
 	rv = pKbSvr->LookupEntryFields(src, newText); // returns -1 if the entry does not yet exist
 	if (rv != 0) // this lookup failed - i.e. -1 returned	
 	{
@@ -1491,11 +1497,10 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 		// No error from the lookup, so get the value of the deleted flag, etc
 		wxChar deletedFlag = m_entryStruct.deleted;
 		int nDeleted = wxAtoi(deletedFlag);
-		int theID = wxAtoi(m_entryStruct.id); 
+		//int theID = wxAtoi(m_entryStruct.id); 
 #if defined(SYNC_LOGS)
-		wxLogDebug(_T("2nd LookupEntryFields in KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			theID, (m_entryStruct.source).c_str(), (m_entryStruct.nonSource).c_str(), 
-			nDeleted, (m_entryStruct.username).c_str());
+		wxLogDebug(_T("2nd LookupEntryFields in KbEditorUpdateButton:  source = %s , translation = %s , deleted = %d , username = %s"),
+			(m_entryStruct.source).c_str(), (m_entryStruct.nonSource).c_str(), nDeleted, (m_entryStruct.username).c_str());
 #endif
 		// If the entry table has '0' for the deleted flag's value - then kbserver
 		// already has this as a normal entry, so we've nothing to do here. On the other
@@ -1509,7 +1514,7 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 		}
 		// Ignore errors, for the same reason as above (i.e. it's no big deal)
 	}
-
+	*/
 	m_bDoingEntryUpdate = FALSE; // restore value to FALSE (default)
 	return rv;
 }
@@ -1586,14 +1591,17 @@ void KbServer::UploadToKbServer()
 	{
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString execFileName = _T("do_upload_local_kb.exe");
-		wxString resultFile = _T("upload_local_kb.dat");
+		wxString resultFile = _T("upload_local_kb_results.dat");
 		m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99);
 	}
 }
 
-// BEW 10Oct20, take a results file (multiline, or just 2 lines - "success" and one entry's row)
-// and convert to string array.  I need this on AI.h too, for when I want to process the result
-// file in CallExecute()'s post wxExecute() call's switch, so I'll make a public copy on app. Yuck, but saves time.
+// BEW 10Oct20, take a results file and convert to string array.  I need this on AI.h too, for when I 
+// want to process the result file in CallExecute()'s post wxExecute() call's switch, so I'll make a 
+// public copy on app. Yuck, but saves time.
+// BEW 22Mar22, Leon's new results file has no initial line with "success" etc, all lines are just
+// downloaded rows from the entry table, and so lineIndex in the loop must now commence at 0, and I improved
+// the logic a bit, for better handling of the possibility of the results file being absent
 bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines)
 {
 	arrLines.Empty(); // clear contents
@@ -1603,27 +1611,37 @@ bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxA
 	{
 		wxTextFile f(pathToResults);
 		bool bOpened = f.Open();
-		int lineIndex = 0; // ignore this one, it has "success in it" etc
-		int lineCount = f.GetLineCount();
-
-		wxString strCurLine = wxEmptyString;
+		int lineIndex = 0;
+		int lineCount = 0; // initialise to empty
+		bool bExists = FALSE;
 		if (bOpened)
 		{
-			for (lineIndex = 1; lineIndex < lineCount; lineIndex++)
+			bExists = TRUE;
+			lineCount = f.GetLineCount(); // could return 0, that's not to be interpretted as an error
+		}
+		else
+		{
+			// results file does not exist, log the error
+			wxBell();
+			wxString msg = _T("DatFile2StringArray()'s results file does not exist in the executable's folder: %s");
+			msg = msg.Format(msg, execPath.c_str());
+			m_pApp->LogUserAction(msg);
+			return FALSE;
+		}
+
+		wxString strCurLine = wxEmptyString;
+		if (bOpened && bExists)
+		{
+			for (lineIndex = 0; lineIndex < lineCount; lineIndex++)
 			{
 				strCurLine = f.GetLine(lineIndex);
+#if defined (_DEBUG) && defined (SYNC_LOGS)
+				wxLogDebug(_T("%s::%s() line %d: For adding to arrLines, strCurLine = %s"),
+					__FILE__, __FUNCTION__, __LINE__, strCurLine.c_str());
+#endif
 				arrLines.Add(strCurLine);
 			}
 		}
-	}
-	else
-	{
-		// results file does not exist, log the error
-		wxBell();
-		wxString msg = _T("DatFile2StringArray() does not exist in the executable's folder: %s");
-		msg = msg.Format(msg, execPath.c_str());
-		m_pApp->LogUserAction(msg);
-		return FALSE;
 	}
 	return TRUE;
 }
@@ -1642,8 +1660,14 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 	int nLen = 0; // initialize
 	wxString left;
 	//int anID = 0; // initialise
-	int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
+	
+	int fieldCount = 8; // srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
 	wxString resultLine = aLine;
+
+#if defined (_DEBUG) && defined (SYNC_LOGS)
+	wxLogDebug(_T("%s::%s() line %d: resultLine, strCurLine = %s : For building m_entryStruct fields"),
+		__FILE__, __FUNCTION__, __LINE__, resultLine.c_str());
+#endif
 
 	for (index = 0; index < fieldCount; index++)
 	{
@@ -1656,55 +1680,46 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 			if (index == 0)
 			{
 				left = resultLine.Left(offset);
-				m_entryStruct.id = left; // python converted id as int, with str(), to string
-											//anID = wxAtoi(left);
-											//m_entryStruct.id = (long)anID;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted id field
-			}
-			else if (index == 1)
-			{
-				left = resultLine.Left(offset);
 				m_entryStruct.srcLangName = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted srcLangName field
 			}
-			else if (index == 2)
+			else if (index == 1)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.tgtLangName = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted tgtLangName field
 			}
-			else if (index == 3)
+			else if (index == 2)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.source = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted source field
 			}
-			else if (index == 4)
+			else if (index == 3)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.nonSource = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted nonSource field
 			}
-			else if (index == 5)
+			else if (index == 4)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.username = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted username field
 			}
-			else if (index == 6)
+			else if (index == 5)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.timestamp = left;
 				nLen = left.Len();
 				resultLine = resultLine.Mid(nLen + 1); // extracted timestamp field
 			}
-			else if (index == 7)
+			else if (index == 6)
 			{
 				left = resultLine.Left(offset);
 				m_entryStruct.type = left[0];
@@ -1713,7 +1728,7 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 			}
 			else
 			{
-				// This block is for the deleted flag. Just in case there is no
+				// This block is for the deleted flag, index = 7. Just in case there is no
 				// final comma, do it differently
 				int length = resultLine.Len();
 				wxChar lastChar = resultLine[length - 1];
@@ -1761,7 +1776,8 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 				if (offset >= 0)
 				{
 					wxString resultLine = f.GetLine((size_t)1); // comma separated, in entry table LTR order
-					int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
+					//int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
+					int fieldCount = 8; // srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
 					for (count = 1; count <= fieldCount; count++)
 					{
 						// Progressively shorten the resultLine as we extract each field
@@ -1773,48 +1789,40 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 							if (count == 1)
 							{
 								left = resultLine.Left(offset);
-								m_entryStruct.id = left; // python converted id as int, with str(), to string
-								//anID = wxAtoi(left);
-								//m_entryStruct.id = (long)anID;
-								resultLine = resultLine.Mid(offset + 1); // extracted id field
-							}
-							else if (count == 2)
-							{
-								left = resultLine.Left(offset);
 								m_entryStruct.srcLangName = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted srcLangName field
 							}
-							else if (count == 3)
+							else if (count == 2)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.tgtLangName = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted tgtLangName field
 							}
-							else if (count == 4)
+							else if (count == 3)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.source = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted source field
 							}
-							else if (count == 5)
+							else if (count == 4)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.nonSource = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted nonSource field
 							}
-							else if (count == 6)
+							else if (count == 5)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.username = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted username field
 							}
-							else if (count == 7)
+							else if (count == 6)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.timestamp = left;
 								resultLine = resultLine.Mid(offset + 1); // extracted timestamp field
 							}
-							else if (count == 8)
+							else if (count == 7)
 							{
 								left = resultLine.Left(offset);
 								m_entryStruct.type = left[0];
@@ -1822,7 +1830,7 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 							}
 							else
 							{
-								// This block is for the deleted flag. Just in case there is no
+								// This block is for the deleted flag (count = 8). Just in case there is no
 								// final comma, do it differently
 								int length = resultLine.Len();
 								wxChar lastChar = resultLine[length - 1];
@@ -1889,8 +1897,8 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 #if defined( _DEBUG )
 		wxString myType = m_entryStruct.type;
 		wxString delFlag = m_entryStruct.deleted;
-		wxLogDebug(_T("%s() line= %d , m_entryStruct: id= %d, srcLang= %s, tgtLang= %s, src= %s, nonSrc= %s, user= %s, time= %s, type= %s, deleted= %s"),
-			__FUNCTION__, __LINE__, (int)wxAtoi(m_entryStruct.id), m_entryStruct.srcLangName.c_str(), m_entryStruct.tgtLangName.c_str(),
+		wxLogDebug(_T("%s() line= %d , m_entryStruct: srcLang= %s, tgtLang= %s, src= %s, nonSrc= %s, user= %s, time= %s, type= %s, deleted= %s"),
+			__FUNCTION__, __LINE__, m_entryStruct.srcLangName.c_str(), m_entryStruct.tgtLangName.c_str(),
 			m_entryStruct.source.c_str(), m_entryStruct.nonSource.c_str(), m_entryStruct.username.c_str(),
 			m_entryStruct.timestamp.c_str(), myType.c_str(), delFlag.c_str());
 #endif
@@ -1991,7 +1999,9 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 
 	// Set up the for loop that get's each pRefString's translation text, and bits of it's metadat
 	CTargetUnit* pTU;
-	size_t numMapsInUse = pKB->m_nMaxWords; // <= 10, mostly maps 1 to 5, but can be higher
+	//size_t numMapsInUse = pKB->m_nMaxWords; ,_ nope, defaults to 1, need to get it calculated 
+	// without doing adapting or glossing
+	size_t numMapsInUse = (size_t)pKB->GetMaxMapsInUse(); // <= 10, mostly maps 1 to 5, but can be higher
 	size_t index;
 	for (index = 0; index < numMapsInUse; index++)
 	{
@@ -2030,7 +2040,12 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				entryLine += nonSrc + comma;
 
 				// Next, the user - whoever created that entry in the local KB
-				wxString user = pMetadata->GetWhoCreated();
+				// BEW 7Apr22, getting the user string from the metadata would get
+				// something like this "bwaters:BWATERS-XPS", which is unhelpfully
+				// long. Better to use the app->m_strUserID username - it's likely to be
+				// short, and is the user whose project this is
+				//wxString user = pMetadata->GetWhoCreated();
+				wxString user = m_pApp->m_strUserID;
 				entryLine += user + comma;
 
 				// the kbtype as a string  of length 1
@@ -2049,6 +2064,10 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 					// not deleted
 					entryLine += _T('0');
 				}
+				// Must finish with a comma, otherwise the do_update_local_kb.exe will
+				// not parse the flag correctly, but run on into stale buffer text, and
+				// cause the .exe to fail
+				entryLine += comma;
 
 				// Note, we don't grab any of the local timestamps, because the 
 				// timestamp that kbserver wants is the time at which the bulk upload

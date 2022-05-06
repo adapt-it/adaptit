@@ -4460,56 +4460,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
 
-//#if defined (_KBSERVER)
-	// Speed critical GUI support, when a KBserver doing sharing is operational
+/* BEW 2Sep10 deprecated tentatively, for Leon's solution (keep, just in case it sometime becomes useful)
 
-	if (pApp->m_bCreateEntry_For_KBserver)
-	{
-		pApp->m_bCreateEntry_For_KBserver = FALSE;
-		pApp->m_pKbServer_For_OnIdle->CreateEntry(
-			pApp->m_pKbServer_For_OnIdle,
-			pApp->m_strSrc_For_KBserver,
-			pApp->m_strNonsrc_For_KBserver);
-
-		event.RequestMore();
-#if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc: CreateEntry() for src = %s  &  tgt = %s"),
-			pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
-#endif
-	}
-
-	if (pApp->m_bPseudoUndelete_For_KBserver)
-	{
-		pApp->m_bPseudoUndelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->PseudoUndelete(
-			pApp->m_pKbServer_For_OnIdle,
-			pApp->m_strSrc_For_KBserver,
-			pApp->m_strNonsrc_For_KBserver);
-		wxUnusedVar(rv);
-		event.RequestMore();
-#if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from StoreText() etc  PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
-			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
-#endif
-	}
-
-	if (pApp->m_bPseudoDelete_For_KBserver)
-	{
-		pApp->m_bPseudoDelete_For_KBserver = FALSE;
-		int rv = pApp->m_pKbServer_For_OnIdle->PseudoDelete(
-			pApp->m_pKbServer_For_OnIdle, 
-			pApp->m_strSrc_For_KBserver, 
-			pApp->m_strNonsrc_For_KBserver);
-		wxUnusedVar(rv);
-		event.RequestMore();
-#if defined (SHOWSYNC)
-		wxLogDebug(_T("OnIdle(), from RemoveRefString() PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
-			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
-#endif
-	}
-//#endif // for _KBSERVER
-
-/* BEW 2Sep10 deprecated tentatively, for Leon's solution - might not be needed now
 	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
 	// booleans, or both, will have been set TRUE in the OnOK() function of
 	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the

@@ -563,6 +563,14 @@ wxString DoEscapeSingleQuote(wxString& str);
 wxString DoUnescapeSingleQuote(wxString& str);
 void DoEscapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
 void DoUnescapeSingleQuote(wxString pathToFolder, wxString filename); // overload which uses the str one
+// BEW 24Sep22 deprecate - there's no real need for this, so removed from AI.cpp at area of 21660-21678
+//bool CountCommasForSuccess(wxString dataLine, int minCount); // BEW added 16Feb22 for KBserver support
+		// The results .dat file (e.g. list_users_results.dat) no longer is guaranteed to have a "success" 
+		// string in it. Instead, there could be one or more data lines, each with comma-separated fields,
+		// and the number of commas may differ for different results files. So pass in a minimum count
+		// which must be present, for TRUE to be returned to the caller. If less than that are present,
+		// return FALSE. (Good idea if FALSE is returned, for the caller to at least have msg in LogUserAction())
+		
 
 //#endif // _KBSERVER
 
@@ -619,8 +627,16 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 		// is TRUE, and CSourcePhrase's  m_srcWordBreak contains a / (solidus, or forward slash)
 //#endif
 
-// BEW 21Jan21 keep this, but commented out. The 3 places where it was used, are commented out
-//wxString SafetifyPath(wxString rawpath); // BEW added 6July20 for kbserver support
+// BEW 12Apr22 copied next two fom Xhtml.cpp, added Convert to each name, and since now in
+// helpers.h & .cpp, are available globally
+CBString ConvertToUtf8(const wxString& str);
+wxString ConvertToUtf16(CBString& bstr);
 
+extern "C" {
+#ifndef DO_UPLOAD_KBW_H_
+#define DO_UPLOAD_KBW_H_
+	int do_upload_local_kbw(void);
+#endif
+}
 
 #endif	// helpers_h

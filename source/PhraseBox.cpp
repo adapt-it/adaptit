@@ -29,6 +29,8 @@
 //#define _AUTO_INS_BUG
 //#define LOOKUP_FEEDBACK
 //#define DROPDOWN
+#define   REPOPULATE
+#define   SHOWSYNC
 
 
 #ifndef WX_PRECOMP
@@ -2466,6 +2468,9 @@ void CPhraseBox::PopupDropDownList()
 			int listWidth = sizeList.x;
 			wxLogDebug(_T("%s::%s() line %d: *BEFORE* SetSizeAndH: curr boxWidth %d , rectWidth  %d , (my calc) listWidth  %d , tgt = %s"),
 				__FILE__, __FUNCTION__, __LINE__, boxWidth, rectWidth, listWidth, pSPhr->m_adaption.c_str());
+			wxLogDebug(_T("%s::%s() line %d: pApp -> m_bWizardIsRunning = %d and m_bJustLaunched = %d"),
+				__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bWizardIsRunning , (int)gpApp->m_bJustLaunched);
+
 		}
 	}
 #endif
@@ -7906,7 +7911,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 					this->GetDropDownList()->Append(strSaveListEntry);
 					this->m_bAbandonable = FALSE;
 					this->GetDropDownList()->SetSelection(0);
-					//                    wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+					// wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
 				}
 			}
 			// whm 3Aug2018 Note: The SetSelection call is made in the outer block near the
@@ -8157,7 +8162,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	if (!gbIsGlossing && gpApp->m_bLandingBox)
 	{
 		// It a refCount = 1 list item has been deleted by the current location becoming
-		// active when the phrasebox lands there, get the nSaveBoxListIndex value, and
+		// active when the phrasebox lands there, get the nSaveComboBoxListIndex value, and
 		// its associated strSaveListEntry string, added to app's m_pTargetBox (ptr to
 		// the phrasebox) where code further below can grab those two values so as to
 		// restore the deleted item to the dropdown list, rather than the list failing
@@ -8213,7 +8218,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 
 	// Our approach will be to create the visible list items, accumulating
 	// a count. If there is a deleted one, we'll insert it in its proper
-	// location after the loop has exited, of it it was the last item in
+	// location after the loop has exited, if it it was the last item in
 	// the list, we'll append it after the loop has finished.
 	// With this protocol - initialization, followed by working out where
 	// the deleted item should be (if any was in fact deleted), and reinserting
@@ -8429,6 +8434,155 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 #endif
 }
+/* unwanted now
+// BEW removed 5Apr22
+// This is a cut-down version of the above PopulateDropDownList() function. It applies whether
+// or not the project is a kbserver (sharing) project or not.
+// Rationale? When a kbserver is in operation for the project, and the phrasebox lands at a location in
+// the GUI, Leon's pseudo-delete external function, do_pseudo_delete.exe, gets called with a command
+// line input file pseudo_delete.dat which contains the commandLine to guide do_pseudo_delete.exe's
+// operation. do_pseudo_delete.exe will cause the entry table of kbserver to have the appropriate
+// line pseudo-deleted. Out code will call RemoveReferenceString() as a post-executation operation, and
+// in that we want to not require the user to have to call Choose Translation dialog, or KBEditor, to
+// manually use the remove button in either, to get the dropdown list at the active location to reflect
+// the (apparent) loss of the relevant item from the drop down list. It would be better to have a function
+// that did this job automatically, on the user's behalf. PopulateDropDownList() has a lot of stuff in it
+// that are boolean driven options not required for RepopulatedDropDownList(), hence this simplification.
+// Note 1: this function does nothing if gbIsGlossing is TRUE; so in glossing mode, the user would be required
+// to effect support for pseudo-deletion's list synchronization by using Choose Translation or KBEditor...
+// Note 2: I'm not going to try, in the event of a pseudo-undelete when the phrasebox moves on, to restore
+// a pseudo-deleted item mid list, to it's former mid-list location. (It can just get appended to the list.)
+// That makes for significant simplification of the code in RepopulatedDropDownList().
+// indexOfNoAdaptation value is returned to the caller, if set non-negative. It is the index in the drop down
+// combo list at which an empty adaptation (if one exists there) occurs, and is used internally to set the
+// string to show to the user as _("<no adaptation>" We return selectionIndex 0 to the caller if there is
+// a valid string in the list, but if nothing valid, then return -1 (e.g. if <Not In KB> or only a pseudo-deleted
+// string.
+void  CPhraseBox::RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation)
+{
+#if defined (SHOWSYNC)
+	wxLogDebug(_T("%s::%s() line %d : Entered..."), __FILE__, __FUNCTION__, __LINE__);
+#endif
+	if (gbIsGlossing)
+		return;
+	//bool bGotProcessed = FALSE; // initialization  <<-- unsure it I need to use this, at this point in development
+
+	if (pTU == NULL)
+	{
+		return; // If the incoming pTU is null then just return with empty list
+	}
+
+	// First, initialize by calling InitializeComboLandingParams(): 	
+	// nSaveComboBoxListIndex = -1;  // -1 indicates "index not yet set or known"
+	// strSaveListEntry.Empty();     // empty the string
+	// bRemovedAdaptionReadyForInserting = FALSE; // set to "not ready"
+	// nDeletedItem_refCount = 1; // defaulted to 1
+	this->InitializeComboLandingParams();
+	wxString s = _("<no adaptation>");
+	wxString notInKB = _T("<Not In KB>"); // we will check 1st entry for this, if present,
+			// we exit without creating a list, below
+	// Populate the combobox's list contents with the translation strings 
+	// stored in the global variable pCurTargetUnit (passed in as pTU).
+	CRefString* pRefString;
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst(); // intialise iterator
+	wxASSERT(pos != NULL);
+	// initialize the reference parameters
+	int nLocation = -1;
+	indexOfNoAdaptation = -1;
+	// BEW added 9May18 - there can only be one <no adaptation> in the list
+	bool bExcludeAnother_NoAdaptation = FALSE; // initialise
+	// Use bExcludeAnother_NoAdaptation (if FALSE) for handline a "<no adaptation>" string
+	// as what gets shown to the user if the adaptation is empty
+	int count = 0;
+	bool bIsNotInKB = FALSE;
+	// Our approach will be to create the visible list items, accumulating
+	// a count. If there is a deleted one, we'll skip over it, but save to PhraseBox members
+	// the index of it (in int nSaveComboBolListIndex) and the (possibly adjusted for case)
+	// adaptation (or gloss) string (in wxString strSaveListEntry) so that later if the
+	// phrasebox moves, PopulateDropdownList() will be able to pick up these two saved values
+	// so as to restore the deleted item to it's former place.
+	bool bIsDeleted = FALSE; // initialise
+	wxString str = wxEmptyString; // initialise
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		// This is a real deletion (i.e removal from the local KB totally); however, the entry
+		// in the entry table will remain there, but pseudo-deleted - which is just a flag change
+		bIsDeleted = (bool)pRefString->GetDeletedFlag(); // 1 becomes TRUE,  0 becomes FALSE
+		wxString saveStr; // use to preserve str value for resetting, if <no adaptation> replaces it
+		if (!bIsDeleted)
+		{
+#if defined(_DEBUG) && defined(REPOPULATE)
+			// m_refCount is the count of how many times in the documents has this CRefString instance been augmented
+			wxLogDebug(_T("%s::%s() line %d, TopOfLoop, m_translation= %s , m_bDeleted= %d , m_refCount= %d"), __FILE__,
+				__FUNCTION__, __LINE__, pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
+#endif
+			// this one is not deleted, so show it to the user
+			str = pRefString->m_translation;
+			if (count == 0 && str == notInKB)
+			{
+				bIsNotInKB = TRUE;
+				break;
+				// Create no list
+			}
+			if (str.IsEmpty() && !bExcludeAnother_NoAdaptation)
+			{
+				saveStr = str;
+				str = s;
+				bExcludeAnother_NoAdaptation = TRUE;
+				nLocation = this->GetDropDownList()->Append(str);
+				indexOfNoAdaptation = nLocation; // return to caller (assume PopulateDropDownList()
+												 // will need to use it, if <no adaptation> is/was in the list
+				// restore str
+				str = saveStr;  // if str was empty, we want the empty string in below code, not <no adaptation>
+			}
+			else
+			{
+				// Normal entry, append to the list end
+				nLocation = this->GetDropDownList()->Append(str);
+			}
+			count++;
+			// The combobox's list is NOT sorted
+			wxASSERT(nLocation != -1); // we just added it so it must be there!
+			if (pRefString->m_refCount < 0)
+			{
+				pRefString->m_refCount = 0; // ensure sanity
+			}
+			// nLocation (the index in list) is key, and pRefString->m_refCount records
+			// the number of times in the user's history of adapting, this entry has been
+			// accepted (KBEditor shows these values)
+			this->GetDropDownList()->SetClientData(nLocation, &pRefString->m_refCount);
+		}
+		else
+		{
+#if defined (SHOWSYNC)
+			wxLogDebug(_T("%s::%s() line %d : else block entered - should not happen"), __FILE__, __FUNCTION__, __LINE__);
+#endif
+			continue;
+		}
+
+	} // end of TRUE block for test: if (!bIsPseudoDeleted)
+
+	if (bIsNotInKB || count == 0)
+	{
+		selectionIndex = -1; // <Not In KB> entries do not have a dropdown list, 
+							 // and there can be no dropdown if there are no stored 
+							 // CRefString instances in pTU
+		return;
+	}
+	// Set selectionIndex to return to caller
+	selectionIndex = count - 1;
+	//this->GetDropDownList()->Refresh(); <- BEW 4Apr22 might not be needed, as 
+	// PopupDropDownList() should be auto-called sometime after RemoveRefString() has finished
+	
+#if defined(_DEBUG) && defined(REPOPULATE)
+	wxLogDebug(_T("%s::%s() line %d, Function ends. selectionIndex returned = %d (Will not be for the deleted one.)"),
+		__FILE__, __FUNCTION__, __LINE__, selectionIndex);
+#endif
+	return;
+}
+*/
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)

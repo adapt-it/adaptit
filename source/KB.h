@@ -102,6 +102,7 @@ public:
 
 	int				m_nMaxWords; // current number of words in max length of src phrase
     bool            m_bCallerIsRemoveButton;
+	bool			m_bDeletionDone; 
 
 	MapKeyStringToTgtUnit*	m_pMap[MAX_WORDS]; // stores associations of key and ptr to CTargetUnit instances
 									   // where the key is a phrase with [index + 1] source words
@@ -127,6 +128,7 @@ public:
 	enum KB_Entry	GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr);
 
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
+	void			HandlePseudoDeletion(wxString src, wxString nonSrc); // BEW added 31Mar22
 	bool			GetUniqueTranslation(int nWords, wxString key, wxString& adaptation); // BEW added 1Sep15
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation);
 	// overloaded version below, for use when Consistency Check is being done
@@ -159,6 +161,8 @@ public:
 	size_t			GetMinimumExtras(size_t& currEntriesAggregate); // BEW added 2Dec14
 	void			GuesserUpdate();
 
+	//void			SyncForRemovedRefString(CPhraseBox* pTgtBox, CTargetUnit* pTgtUnit); // BEW removed 5Apr22
+
 	// accessors for private members
 	int				GetCurrentKBVersion();
 	void			SetCurrentKBVersion();
@@ -186,6 +190,8 @@ public:
 	// adapting CKB, TRUE for a glossing CKB. The latter is used for returning whichever
 	// of m_pKbServer[0] or [1] is to be associated with the current CKB instance
 	KbServer*	GetMyKbServer();
+	int         GetMaxMapsInUse(void); // how many of the maps, for gbIsGlossing TRUE or FALSE, are in use (MAX_WORDS is limit, = 10)
+
 
 	//size_t	CountAllKBEntries(CKB* pKB); // BEW 26Oct20 created, num of entries in local KB -- but not needed
 

@@ -43,6 +43,7 @@
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp" // this should always be included before WX_DEFINE_LIST
+#define SHOWSYNC
 
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called TranslationsList.
@@ -573,6 +574,49 @@ void CTargetUnit::EraseDeletions(enum ModifiedAction modChoice)
 		}
 	}
 }
+
+/* BEW removed 5Apr22 - not needed 
+// This version erases just one deletion, for when the phrasebox has landed somewhere
+// and the CRefString instance for that location has been obligatorily pseudo-deleted
+// as far as the kbserver entry table is concerned (if it's a kbserver project, but it
+// not have to be a kbserver one, we need it for normal projects too) - to save the user
+// from having to use the Remove button of either KBEditor or ChooseTranslation.
+// Note: to be effective for our goal of an automatically updated DropDownList to no
+// longer have a list entry for which m_bDeleted is TRUE, the setting of the latter
+// flag MUST have been done in the caller prior to calling EraseOneDeletion(). It not,
+// the drop down list will remain unchanged. Return TRUE if the deletion was done,
+// FALSE if no deletion was done.
+bool CTargetUnit::EraseOneDeletion(void)
+{
+	CRefString* pRefString = NULL;
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	TranslationsList::Node* savepos = NULL;
+	wxASSERT(pos != NULL);
+	// BEW 31Mar22, we have to loop over the pRefString instances to find the one
+	// with the flag m_bDeleted set TRUE, and effect a 'real deletion' of that one
+	// from the KB infrastructure
+	bool bDeletedOne = FALSE;
+	while (pos != NULL)
+	{
+		pRefString = pos->GetData();
+		wxASSERT(pRefString != NULL);
+		savepos = pos; // in case we need to delete this node
+		pos = pos->GetNext();
+		if (pRefString->GetDeletedFlag())
+		{
+#if defined (_DEBUG) && defined (SHOWSYNC)
+			wxLogDebug(_T("%s::%s() line %d :  erasing drop down item with adaptation: %s and deleted flag %d"),
+				__FILE__,__FUNCTION__,__LINE__, pRefString->m_translation.c_str(), (int)pRefString->m_bDeleted);
+#endif
+			pRefString->DeleteRefString();
+			m_pTranslations->DeleteNode(savepos);
+			bDeletedOne = TRUE;
+			break;
+		}
+	}
+	return bDeletedOne;
+}
+*/
 
 // counts the number of CRefString instances stored in this CTargetUnit instance,
 // but counting only those for which m_bDeleted is FALSE;

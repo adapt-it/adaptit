@@ -602,7 +602,11 @@ int CPile::CalcExtentsBasedWidth()
 		return 0;
 	}
 	CPile* pActivePile = gpApp->m_pActivePile;
-	wxASSERT(pActivePile != NULL);
+	if (pActivePile == NULL)
+	{
+		// BEW 12Apr22 added test, as the call may be made before all is ready for the GUI
+		return 0; 
+	}
 	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
 	int sn = pSrcPhrase->m_nSequNumber;
 	int activeSN = gpApp->m_nActiveSequNum;
@@ -827,7 +831,7 @@ int CPile::CalcPhraseBoxWidth()
 		int pileWidth = CalcPileWidth(); // internally itself does a max, based on current text extents
 										 // and checks against m_defaultActivePileWidth, to extend to
 										 /// that value if the min pileWidth value is less
-#if defined(_DEBUG) //&& defined(_OVERLAP)
+#if defined(_DEBUG) && defined(GUIFIX)
 		{
 			CLayout* pLayout = pApp->GetLayout();
 			if (pLayout != NULL && !gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition

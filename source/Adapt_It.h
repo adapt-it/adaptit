@@ -47,6 +47,9 @@
 
 //#define AUTHENTICATE_AS_BRUCE
 
+// BEW 16Feb22 it's time to suppress a number of wxLogDebug calls used when fixing the GUI layout for version 6.10.5
+//#define GUIFIX
+
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 // is set at the beginning of Adapt_It.h. When set it does the following:
 // 1. Forces the this BibleditIsInstalled() function to return TRUE
@@ -2440,6 +2443,18 @@ class CAdapt_ItApp : public wxApp
 	wxString m_curFreeTransLangName; // user may want to send free trans to collaborating Paratext
 									 // in a language different from all the preceding ones
 
+	// BEW 30Mar22 PutPhraseBoxAtDocEnd() is called when closing down a document. The move of the
+	// phrasebox involves an internal call of PlacePhraseBox(), and this in turn, if the project
+	// is a kbserver one, will result in the box landing and a do_pseudo_delete.exe call being made.
+	// The latter would cause whatever was the document-final adaptation (or gloss if in glossing 
+	// mode), to pseudo-delete in the entry table of kbserver, whatever is the value. Such a deletion
+	// needs to be suppressed, because we are only wanting a save doc closure that changes nothing.
+	// So here I add to the app, a boolean which, when TRUE, tells our code for calling 
+	// do_pseudo_delete.exe (wherever it may be called at), to be skipped. This boolean is only
+	// set TRUE in two places: Doc 2227 [ OnSaveAndCommit() ] and 2829 [ DoFileSave_Protected() ].
+	// If the project is not a kbserver one, this boolean will have no effect.
+	bool m_bSuppressPseudoDeleteWhenClosingDoc;
+
 	// BEW 2Sep20 public Updaters for the above public variables.
 	void UpdateCurAuthUsername(wxString str); 
 	void UpdateUsername2(wxString str); // This just for the username being looked up by LookupUser()
@@ -2556,6 +2571,7 @@ class CAdapt_ItApp : public wxApp
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
 	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
 								   // into CallExecute() function
+	void RemoveEmptyInitialLine(const int funcNumber, wxString execPath, wxString resultFile);  // BEW 26Mar22
 	// BEW created next function 15Nov21 to avoid a link error when the executable is being linked, 
 	// ("System Error ... unable to find libmariadb.dll file") because in the folder where the object files
 	// are (e.g. when developing for Unicode Debug build, it's the folder ...\bin\win32\Unicode Debug\ )
@@ -3334,7 +3350,8 @@ public:
     bool m_bMergeSucceeded; // moved here from Adapt_ItView.cpp global space
     bool m_bSuppressDefaultAdaptation;
     CTargetUnit* pCurTargetUnit;
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bool m_bLegacySourceTextCopy;
     bool m_bIgnoreScriptureReference_Send;
     wxString m_OldChapVerseStr;
@@ -3961,26 +3978,6 @@ public:
 	// KbSharingSetup instance as mentioned just above.
 	bool		m_bIsKBServerProject_FromConfigFile;
 	bool		m_bIsGlossingKBServerProject_FromConfigFile;
-
-	// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
-	// background threads due to openssl leaks, to the OnIdle() handler to minimize their
-	// effect on GUI responsiveness. Each different call is assigned a boolean, which is
-	// FALSE until a handler for a GUI action sets it TRUE, then the TRUE value is tested
-	// for in OnIdle() and the relevant synchronous call is done from there in idle time.
-	// The following two wxString members are used for transferring the src and nonsrc (i.e.
-	// target or gloss) strings, and the KbServer pointer, the ptr to the instance being
-	// used for the call.
-	wxString m_strSrc_For_KBserver;
-	wxString m_strNonsrc_For_KBserver;
-	KbServer*   m_pKbServer_For_OnIdle;
-	bool m_bPseudoDelete_For_KBserver;
-	bool m_bPseudoUndelete_For_KBserver;
-	bool m_bCreateEntry_For_KBserver;
-	// There isn't one for LookupEntryFields() because that is used only internally in
-	// the old 'synchronised' XXXX() functions, never by itself.
-	// BEW 1Oct20 the above comment no longer applies, CreateEntry() has an internal
-	// lookup embedded in it, and so it will replace the combination of legacy lookup
-	// followed by create entry when lookup failed.
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing

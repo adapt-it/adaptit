@@ -19307,8 +19307,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(upload_local_kb, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
-			// in the execFolderPath's folder as well, do it now - it is in
-			// the dest folder
+			// in the execFolderPath's folder as well, do it now
 			wxString execFilename = _T("do_upload_local_kb.exe");
 			wxString execInDest = dataFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
@@ -19513,12 +19512,19 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
     // BEW 4Feb22 some calls will need the current datetime wxString returned (default widened to 
     // wxChar string from a GetDateTimeNow(enum ) call in helpers.cpp around line 7422), so get
     // an appropriately formatted datetime string with date separated from time by a space. The
-    // enum value for that is  forXHTM, as then it matches what we see in the entry table. For
-    // example - do_create_entry.exe will call the input create_entry.dat file with the datetime
-    // (formatted) as the last field of the .dat file. So have it set up here for any of the
-    // intput .dat files which need it in the switch, to use it where needed.
-    wxString dateTimeNow = GetDateTimeNow(forXHTML);
-
+    // enum value for that is  forXHTM, as then it matches what we see in the entry table. 
+    // BEW 24Feb22 Leon's testing of do_create_entry.exe with a datetime string supplied from
+    // outside as a char string, revealed that MariaDB's MySQL internal code goes into conniptions.
+    // The ONLY safe approach is to do the datetime using a Now() call internally in the
+    // do_create_entry.c code. Accordingly, I need to either remove the dateTimeNow calculation
+    // here (probably best) or at least, disallow for funcNumber == create_entry <- the approach
+    // I'm taking for the present. As I work on more do_......exe functions, the avoidance test
+    // at line 19,525 may get more subtests added; or I may just remove it entirely from here
+    wxString dateTimeNow = wxEmptyString;
+    if (funcNumber != create_entry)
+    {
+        dateTimeNow = GetDateTimeNow(forXHTML);
+    }
 
 	switch (funcNumber)
 	{
@@ -20109,6 +20115,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                                 pFrame->SetKBSvrPassword(pwd);
                             }
                         }
+                        this->m_curCommandLine = commandLine; // put copy of the wxString command line, on app
+
 #if defined (_DEBUG)
                         wxLogDebug(_T("%s() Line %d, 1st username: %s , m_Username2: %s , commandLine: %s : for INPUT .dat file, funcNumber %d"),
                             __FUNCTION__, __LINE__, user1.c_str(), user2.c_str(), commandLine.c_str(), funcNumber);
@@ -20315,10 +20323,26 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		commandLine += tempStr + comma; // has any embedded ' escaped
 
+        // BEW 12apr22 we can come here looking for a password, and it's unset yet (e.g. when
+        // using Add button in KBEditor - which will ask for a create_entry to be done). So
+        // if m_curNormalPassword is still empty, we need to ask for the dialog to be shown from
+        // CMainFrame class which asks for the user to type it in. The function only is shown
+        // when not in the KB Sharing Manager, so we must ensure that app->m_bUseForeignOption is
+        // set FALSE. CreateEnty is never done from the KB Sharing Manager, so here's where we
+        // should guarantee it's FALSE. I've also added an OR for a check if the m_currNormalPassword
+        // value might have incorrectly been set to the current doc owner - because this actually
+        // happened when I used KBEditor.cpp's Add button, to add a new adaptation. So if that's the
+        // case, then the longer test will rectify the error and set up m_kbserverPassword string
+        // properly
+        this->m_bUseForeignOption = FALSE;
 		// password we won't escape - documentation should tell user not to use ' as part of password
-		if (m_curNormalPassword.IsEmpty())
+		if (m_curNormalPassword.IsEmpty() || (m_curNormalPassword == this->m_strUserID))
 		{
-			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+            wxString hostname = wxEmptyString; // don't need a hostname, but only the ipAddr
+            wxString pwd = this->GetMainFrame()->GetKBSvrPasswordFromUser(this->m_strKbServerIpAddr, hostname);
+            this->GetMainFrame()->SetKBSvrPassword(pwd);
+            m_curNormalPassword = pwd;
+			//m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
 		}
 		commandLine += m_curNormalPassword + comma;
 
@@ -20372,7 +20396,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
         // BEW 4Feb22 the 'now' datetime, as forXHTML, is required as the last field
         // of the command line - add it now
-        commandLine += dateTimeNow;
+        // BEW 24Feb22, see comment at AI.cpp 19,520++, .c has internal timestamp calculation
+        // so comment out this next line
+        //commandLine += dateTimeNow;
 
         // That completes the commandLine string; now put it into
         // the moved .dat input file, ready for CallExecute() to get
@@ -20385,71 +20411,59 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
 			__LINE__, commandLine.c_str());
 #endif
-		// Now that the calling file has been moved to the parent folder 
-		// of the dist folder; use wxTextFile to make the changes in
-		// that file copy: "create_entry.dat", within the parent folder, 
-		// so it has only the above commandLine value stored in it
-        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
+		// Now that the calling file has been moved to the AI executable's folder; 
+		// the input .dat file, "create_entry.dat", needs to be a char* string of utf-8 bytes
+		// so convert commandLine to a utf8 null terminated string, which is what system()
+        // likes to have. Only this way can we support non-ascii glyphs.
+        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly 
+        // doesn't end with a PathSeparator
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
-		bool bExists = ::FileExists(datPath);
-		wxTextFile f;
-		if (!m_bKBEditorEntered)
-		{
-			// This is the faster option, the file is opened in the executable's
-			// folder, cleared out, and command line's input .dat file saved. The
-			// first time this is entered, the file will not exist in the
-			// executable folder, so it must be created - then .Open() can be
-			// called on it. The faster option is for when the user is doing his
-			// adapting work - the code avoids grabbing the boilerplate file and
-			// moving it up to the exec folder - thereby saving a little time for
-			// an operation that will occur thousands of times. The parent function
-			// ConfigureDATfile() tests the boolean m_bKBEditorEntered, and if
-			// FALSE, the code which starts with the boilerplace file is skipped.
-			if (!bExists)
-			{
-				bool bCreated = f.Create(datPath);
-				if (bCreated)
-				{
-					bExists = TRUE;
-				}
-				else
-				{
-					// unlikely to fail, but if it did, make sure LogUserAction()
-					// logs a helpful message, and go no further  - failure will
-					// probably happen later, but this will indicate where it all started
-					wxString msg = _T("%s::%s() line %d: could not create TextFile for path: %s");
-					msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__, datPath.c_str());
-					LogUserAction(msg);
-					// Try for a Doc Save, in the hope of not losing work unsaved
-					wxCommandEvent dummy;
-					GetDocument()->OnFileSave(dummy);
-					m_bKBEditorEntered = FALSE;
-					wxBell();
-					return;
-				}
-			}
-		}
-		if (bExists)
-		{
-			bool bOpened = f.Open(datPath);
-			if (bOpened)
-			{
-				// Clear out the boilerplate content, or former content
-				f.Clear();
-				// Now add commandLine as the only line
-				f.AddLine(commandLine);
-				f.Write();
-				f.Close();
-				// File: create_entry.dat now just has the relevant data 
-				// fields for the subsequent .exe in wxExecute() to use
-			}
-		}
-		else
-		{
-			// Unlikely to fail, a bell ring will do
-			wxBell();
-		}
-		
+		bool bExists = ::FileExists(datPath); // bExists value is important below for either FILE or wxTextFile approach
+
+        // Set the current working directory to where the AI.exe app is, save old CWD so it can be restored later
+        wxString saveCWD = ::wxGetCwd();
+        wxFileName f2(datPath);
+        wxString pathOnly = f2.GetPath();
+        bool bTempCwd = f2.SetCwd(pathOnly);
+        wxUnusedVar(bTempCwd);
+        // the CWD is located now in the AI executable's folder, that's where create_entry.dat is
+        // and we will use ConvertAndWrite() to populate it with UTF8 commandLine data, without
+        // using CBString
+        if (bExists)
+        {
+            // BEW 20Apr22, changing to use wxFile, no null terminator on the character buffer, 
+            // as the commandLine finishes with , (comman) and that enables safe parsing
+            // I'm eliminating the use of CBString here, as I suspect it causes mis-converted utf8
+            //wxTextFile f;
+            wxFile f;
+            wxFontEncoding tgtEnc = this->m_tgtEncoding; // needed for the ConvertAndWrite() call, but not used within
+
+            bool bOpened = f.Open(datPath, wxFile::write);
+            if (bOpened)
+            {
+                // Convert commandLine to UTF8 with help of a wxCharBuffer, and write the UTF8 to create_entry.dat
+                this->ConvertAndWrite(tgtEnc, &f, commandLine);
+                f.Flush();
+                f.Close();
+            }
+            f2.SetCwd(saveCWD);
+        }
+        else
+        {
+            // unlikely to fail, but if it did, make sure LogUserAction()
+            // logs a helpful message, and go no further with the attempt to set up
+            // the commandLine for creating a new entry in the entry table of kbserver
+            f2.SetCwd(saveCWD);
+            wxString msg = _T("%s::%s() line %d: the create_entry.dat file did not exist in path: %s");
+            msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__, datPath.c_str());
+            LogUserAction(msg);
+            // Try for a Doc Save, in the hope of not losing work unsaved
+            wxCommandEvent dummy;
+            GetDocument()->OnFileSave(dummy);
+            m_bKBEditorEntered = FALSE;
+            wxBell();
+            return;
+        }
 		break;
 	}
 	case pseudo_delete: // = 5
@@ -20934,7 +20948,17 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		{
 			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
 		}
-		commandLine += m_curNormalPassword; // BEW 29Oct20 removed, it might be causing authentication failure: +comma;
+        // BEW 8Apr22 NOTE!! Leon and I had debugging a failure of do_upload_local_kb.exe that kept us
+        // both busy for two afternoons. The function was failing, and generating a failure message
+        // that connection to MariaDB was failing, and in the message was a bogus ipAddress: 192.168.1.9
+        // which when pinged went nowhere. Why the fail? In the next line, I didn't end with a comma!
+        // What that meant was that in the buffer for loading in the credentials for the connection, the
+        // SQL query code parsed to each comma - but if the last item had no final comma - the query would
+        // parse on into earlier characters left over in the buffer, and result in a faulty parse that
+        // killed the connection attempt. So, since .exe functions rely on input .dat files which have
+        // comma-separated fields, be sure to finish them with a final comma! 
+        //********* WE ARE WARNED *********
+		commandLine += m_curNormalPassword + comma;
 
 		// That completes the commandLine string; now put it into
 		// the moved .dat input file, ready for CallExecute() to get
@@ -20953,6 +20977,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// so it has only the above commandLine value stored in it
         // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
+        // BEW 7Apr22, the first input .dat file (for credentials) is named "upload_local_kb.dat"
+        // check it's so
+        wxString testName(_T("upload_local_kb.dat"));
+        wxUnusedVar(testName);
+        wxASSERT(testName == filename);
+
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
 		if (bExists)
@@ -20968,9 +20998,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 				f.Close();
 				// File: upload_local_kb.dat now is ready for authenticating a
 				// connection. Using the data lines in local_kb_lines.dat is
-				// the job of the python3 code in do_upload_local_kb.exe (which
-				// wraps do_upload_local_kb.py)
+				// the job of the .exe code in do_upload_local_kb.exe in Win build,
+                // for Linux or OSX, it's handled as executable .c code
 			}
+            // Note: PopulateLocalKbLines() will calculate the content of the
+            // input .dat file, local_kb_lines.dat
 		}
 		else
 		{
@@ -21288,6 +21320,52 @@ void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
 	}
 }
 
+// BEW 26Mar22, created, because some of the *_results.dat files for Leon's do_xxxxxxxxx.exe executable
+// files were returning a blank line before the wanted data - the latter starting at the second line 
+// (except, of course, those files that expect multiple lines returned - none of those have an initial
+// blank line, but we can call this function on such .dat files safely, as the function will do nothing
+// to the data if there is no initial blank line)
+//Note, the formal params are a subset of those in the CallExecute() file below, so pass in the
+// same values in the appropriate switch's cases.
+void CAdapt_ItApp::RemoveEmptyInitialLine(const int funcNumber, wxString execPath, wxString resultFile)
+{
+    wxUnusedVar(funcNumber);
+    wxASSERT(!execPath.IsEmpty());
+    wxString pathOnly = execPath;
+    wxChar lastChar;
+    lastChar = execPath.GetChar(pathOnly.Length() - 1);
+    if (lastChar != PathSeparator)
+    {
+        pathOnly += PathSeparator; // add separator if absent
+    }
+    wxString datPath = pathOnly; // initialise to pathOnly
+    datPath += resultFile; // add whatever is the appropriate .dat results file
+    bool bResultsFileExists = ::FileExists(datPath);
+    if (!bResultsFileExists)
+        return; // do nothing, there's no such results file  in the executable's folder
+    // The file exists, so open it and check for an empty initial line
+    wxTextFile f(datPath);
+    bool bOpened = f.Open();
+    if (!bOpened)
+        return; // do nothing, the file could not be opened
+    // It was successfully opened, so get it's line count
+    size_t count = f.GetLineCount();
+    if (count == 0)
+        return;  // do nothing, there is nothing in the file
+    // There is at least one line, if it is an empty line then remove it, and Write() what
+    // remains back to the folder
+    wxString firstLineStr = f.GetFirstLine(); // may be empty
+    if (firstLineStr.IsEmpty())
+    {
+        f.RemoveLine(1); // line numbers are what doc'n refers to, not 0-based indices
+        f.Write(); // change the file to lack the empty first file. Do not call Clear()
+                   // as that would clear out the file's contents, do not call Close()
+                   // either, as that would free memory, losing all changes
+    }
+    // Open() loaded the file into memory, so exiting this function should only remove
+    // the in-memory copy, leaving the on-disk file intact
+}
+
 // ::wxExecute() fails for either a long absolute path prefixed, or some other reason. Workaround
 // is to use no path, and call the exec's name, after setting the current working directory
 // temporarily to the AI executable's folder's path (this path can be absolute though)
@@ -21397,7 +21475,29 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         bool bSame = resultFile == m_resultDatFileName;
         wxUnusedVar(bSame);
         wxASSERT(bSame);
-        bSuccessfulSwitch = TRUE;
+
+        // Force bReportResults to FALSE, common repetetive operations
+         // should not give time-delaying GUI messages to disturb user's work
+        bReportResult = FALSE; // no need for the AI code to report anything, Leon's .dat results file gives anything needed
+
+        // BEW 15Feb22 in the test of system(pstart) below, executable passed in is: (when developing)
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_list_users.exe'
+        int rv = 0;
+        const char* pstart = { "start do_list_users.exe" }; // avoid path prefix
+                // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+        rv = system(pstart); // Using temporary CWD - it works and drops a list_users_results.dat file in AI executable's folder
+        if (rv == 0)
+        {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile);
+            bSuccessfulSwitch = TRUE;
+        }
+        else
+        {
+            rv = 1;
+            bSuccessfulSwitch = FALSE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s   bSuccessfulSwitch = %s"),
+            __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str(), bSuccessfulSwitch == TRUE ? _T("TRUE") : _T("FALSE"));
     }
 		break;
 	case create_entry: // = 4
@@ -21405,6 +21505,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
         bReportResult = FALSE; // no need for the AI code to report anything, Leon's .dat results file gives anything needed
+        wxASSERT(resultFile == m_resultDatFileName);
 
         // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
         // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.exe'
@@ -21412,19 +21513,45 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         const char* pstart = { "start do_create_entry.exe" }; // avoid path prefix
                 // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
         rv = system(pstart); // Using temporary CWD - it works and drops a create_entry_results.dat path in pathOnly folder
+
         if (rv == 0)
         {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
             bSuccessfulSwitch = TRUE;
         }
-        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and results .dat file is: %s"),
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s"),
             __FILE__, __FUNCTION__, __LINE__, rv , m_resultDatFileName.c_str());
     }
 		break;
 	case pseudo_delete: // = 5
     {
-        // Force bReportResults to FALSE, common repetetive operations
-        // should not give time-delaying GUI messages to disturb user's work
-        bReportResult = FALSE;
+        // Closing down a document involves calling PutPhraseBoxAtDocEnd(), which would
+        // result in a call of do_pseudo_delete.exe being made inappropriately. So the
+        // following test protects from that happening. The boolean is set TRUE only
+        // when closing the doc, prior to the PutPhraseBoxAtDocEnd() call, and cleared
+        // back to FALSE immediately after the call.
+        if (this->m_bSuppressPseudoDeleteWhenClosingDoc != TRUE)
+        {
+            // Force bReportResults to FALSE, common repetetive operations
+            // should not give time-delaying GUI messages to disturb user's work
+            bReportResult = FALSE;
+            bSuccessfulSwitch = TRUE;
+            wxASSERT(resultFile == m_resultDatFileName);
+
+            // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
+            // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_pseudo_delete.exe'
+            int rv = 0;
+            const char* pstart = { "start do_pseudo_delete.exe" }; // avoid path prefix
+                    // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+            rv = system(pstart); // Using temporary CWD - it works and drops a pseudo_delete_results.dat path in pathOnly folder
+            if (rv == 0)
+            {
+                RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+                bSuccessfulSwitch = TRUE;
+            }
+            wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s"),
+                __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
+        }
     }
 		break;
 	case pseudo_undelete: // = 6
@@ -21432,6 +21559,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
         bReportResult = FALSE;
+        bSuccessfulSwitch = TRUE;
+        wxASSERT(resultFile == m_resultDatFileName);
+
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
     }
 		break;
 	case lookup_entry: // = 7
@@ -21439,21 +21570,48 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
         bReportResult = FALSE;
+        bSuccessfulSwitch = TRUE;
+        wxASSERT(resultFile == m_resultDatFileName);
+
+
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
     }
 		break;
 	case changed_since_timed: // = 8
     {
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
+        wxASSERT(resultFile == m_resultDatFileName);
 
         // This one has a progress gauge
         bReportResult = FALSE;
+
+        // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
+         // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.exe'
+        int rv = 0;
+        bSuccessfulSwitch = TRUE;
+        const char* pstart = { "start do_changed_since_timed.exe" }; // avoid path prefix
+                // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+        rv = system(pstart); // Using temporary CWD - it works and drops a changed_since_timed_results.dat file in pathOnly folder
+        if (rv == 0)
+        {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+            bSuccessfulSwitch = FALSE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and results .dat file is: %s"),
+            __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
     }
 		break;
 	case upload_local_kb: // = 9;
     {
-        wxString datFilename = _T("local_kb_lines.dat");
+        wxASSERT(resultFile == m_resultDatFileName);
+        wxString datFilename = _T("local_kb_lines.dat"); // has credentials only
         KbServer* pKbSvr = NULL;
+        // BEW 7Apr22, execPath was being passed in as the path with file at the end,so use
+        // a wxFileName to get the path with final separator, using GetPathWithSep()
+        wxFileName fn(execPath);
+        execPath = fn.GetPathWithSep(); // now execPath is just the path and ends with separator
+
         bool bPopulated = FALSE;
         if (gbIsGlossing)
         {
@@ -21468,7 +21626,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
                 datFilename, m_sourceName, m_targetName);
         }
 
-        //*
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
         if (bPopulated)
         {
             // The presence of a straight single quote (Leon calls it an apostrophe) in
@@ -21482,9 +21640,32 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             // tgt, username, language name for src or tgt languages - that's it; other fields
             // never have a single quote character in them.
             DoEscapeSingleQuote(execPath, datFilename); // helpers.cpp
+
+            // If bPopulated is true, then the file of the data exist as local_kb_lines in the
+            // AI executable's folder. So here is where we should call do_upload_local_kb.exe
+            // (that filename, if in the Windows build)
+            // The cli command 'start' causes a CLI to be opened in which the executable is
+            // then run, blocking the main thread until the executable exits.
+            int rv = 0;
+            const char* pstart = { "start do_upload_local_kb.exe" }; // avoid path prefix
+                    // and all the issues of wrapping path portions with escaped dblquote
+            rv = system(pstart);
+            if (rv != 0)
+            {
+                wxString title = _("Uploading error");
+                wxString msg;
+                msg = msg.Format(_("%s() line %d: Uploading the local KB to the kbserver has failed. Nothing got uploaded. You can continue working. (Please inform the developers)"), 
+                    __FUNCTION__,__LINE__);
+                this->LogUserAction(msg);
+                wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+
+                bSuccessfulSwitch = FALSE; // prevent post-execute processing
+            }
+            else
+            {
+                bSuccessfulSwitch = TRUE; // necessary, for the post-execute switch
+            }
         }
-        wxASSERT(bPopulated == TRUE);
-        //*/
     }
 		break;
 	case change_permission: // = 10
@@ -21492,6 +21673,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         // This is a KB Sharing Manager case, so no report wanted
         bReportResult = FALSE;
         // Escaping single quotes as already been done on the selected username
+        wxASSERT(resultFile == m_resultDatFileName);
+
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+
     }
 		break;
 	case change_fullname: // = 11
@@ -21500,12 +21685,19 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         bReportResult = FALSE;
         // Escaping single quotes as already been done on the selected username
         // and on the selected fullname
+        wxASSERT(resultFile == m_resultDatFileName);
+
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+
     }
 		break;
 	case change_password: // = 12
     {
         // This is a KB Sharing Manager case, so no report wanted
         bReportResult = FALSE;
+        wxASSERT(resultFile == m_resultDatFileName);
+
+        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
     }
 		break;
 	case blanksEnd:
@@ -21524,33 +21716,15 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
     // BEW 27Jan22 - what follows is legacy code, from years ago - it may still be useful
 	wxArrayString output;
 	wxArrayString errors;
-	bool bSuccess = FALSE; // initialise
+	bool bSuccess = FALSE; // initialise - this bool governs whether or not to do post .exe processing
 	wxFileName fn(tempCWDpath);
 	wxString currCwd = wxFileName::GetCwd();
 	bool bTemporaryCwd = fn.SetCwd(tempCWDpath);
+    // BEW 25Feb22, Beware, fn.GetPathWithSep() only goes as far as to \bin\win32\ folder;
+    // but tempCWDpath goes all the way to Unicode Debug folder (with no final separator)
 	if (bTemporaryCwd)
 	{
-		// BEW 10Oct20, if the commandLine does not succeed in the underlying .c code,
-		// this is not a failure of wxExecute, provided the C executable runs without error.
-		// The *_results.dat will from the C executable will provide values that our
-		// AI code can interrogate to see if the desired mariaDB access worked. So
-		// rv == 0  does not mean wxExecute() error, but if it did fail, errors array
-		// can be checked for what went wrong with it.
-// **************************************************************************************
-
-        //long rv = 0;
-		//rv = ::wxExecute(execFileName, output, errors); // returns 0 if succcessful  <<-- BEW fails, System Error, can't find libmariadb.dll message
-        //bool bShellWorked = wxShell(execFileName); <<-- fails too, same System Error as above, doesn't return control to here either
- //       int rv = 0;
- //       rv = system(execPath); // param was execFileName, but I think it should be the absolute path calculated above - failed, results file empty
- //       rv = system("execPath"); // wrap with quotes - still fails
- //       rv = ::wxExecute(execFileName, output, errors); // the legacy call fails, rv = large -ve, output NULL, .dat results, empty
-         
-        //const char* pstart = { "start do_add_foreign_kbusers.exe" };
-        //rv = system(pstart);
-         
-// **************************************************************************************
-		if (!errors.IsEmpty()) // && rv != 0)  BEW 7Feb22, rv is not relevant below, only whether there were errors of not
+		if (!errors.IsEmpty())  
 		{
 			// Get the error lines, and the commandLine, into LogUserAction() so
 			// as to make debugging easy
@@ -21588,134 +21762,64 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 			msg = msg.Format(msg, __LINE__, errFirst.c_str(), errSecond.c_str(), errThird.c_str(), m_curCommandLine.c_str());
 			wxLogDebug(msg);
 			LogUserAction(msg);
-		} // end of TRUE block for test: if (!errors.IsEmpty() && rv != 0)
 
-		// restore old current working directory
-		bool bRestored = fn.SetCwd(currCwd);
-		wxUnusedVar(bRestored);
+            // BEW 26Mar22 append the set of error messages to the returned .dat file
+            wxString errorsPath = pathOnly + PathSeparator + resultFile;
+            bool bItExists = ::FileExists(errorsPath);
+            wxTextFile fe;
+            if (bItExists)
+            {
+                bool bOpened = fe.Open(errorsPath);
+                if (bOpened)
+                {
+                    // leave the existing returned results unchanged, but append the errors strings, and the m_currCommandLine
+                    // Now add commandLine as the only line
+                    fe.AddLine(m_curCommandLine + _T("\n")); // I think the command line lacks newline at end
+                    fe.AddLine(errFirst);
+                    fe.AddLine(errSecond);
+                    fe.AddLine(errThird);
+                    fe.Write();
+                    fe.Close();
+                }
+                // That makes the errors accessible to the user by looking up the returned .dat file in the executable's folder
+            }
+            bSuccess = FALSE;
+		} // end of TRUE block for test: if (!errors.IsEmpty())
+        else
+        {
+            bSuccess = TRUE;
+        }
 
-		// check for success and advise user with a 1.3 second 'created successfully' 
-		// message if authenticating, but suppress messages if funcNumber is 3 or more
-        
+        wxString comma = _T(",");
+
+		// do post-execute processing, as required (not all cases need it)
         if (bSuccessfulSwitch)  
         {
+
 			// Any value other than zero means something failed in the call
 			int offset = wxNOT_FOUND;
-			wxString pathToResults = tempCWDpath + PathSeparator + resultFile;
-			bool bResultsFileExists = ::FileExists(pathToResults);
-            // BEW 6Jan22 is the file empty? (because of a failure in calling system())
+            // check
             
-            //bool bEmptyFile = FALSE;
-            wxTextFile ff(pathToResults); // creates lin-based text file
-            if (bResultsFileExists)
-            {
-                bool bIsOpened = ff.Open();
-                if (bIsOpened)
-                {
+			wxString pathToResults = tempCWDpath + PathSeparator + resultFile;
 
-
-
-
-
-
-                    // TODO               
-                }
-            }
-            else
-            {
-                // The results file, list_foreign_KBUsers_results.dat doesn't
-                // yet exist in the executable's folder - so create it
-                // empty now
-                bool bIsCreated = ff.Create(pathToResults);
-                if (bIsCreated)
-                {
-
-
-
-
-
-
-
-                    // TODO
-                }
-            }
-             
+            // BEW 25Feb22  the following ::FileExists(pathToResults) returned FALSE, when
+            // the results file was correctly named, with correct contents, in the Unicode Debug
+            // folder (correct location) and the path to it was absolutely correct. Cirumstance?
+            // I had a 2 word existing adaptations, I extended it to 3 words, and gave a suitable
+            // meaning for the longer phrase. The longer phrase got put into the entry table
+            // correctly, but this weird error meant that bResultsFileExists was FALSE but wrongly so.
+            // I'll try refactoring with wxFileName.
+            // Hang on.... maybe I restored the current working directory too soon. Try first to
+            // locate it further down.
+			bool bResultsFileExists = ::FileExists(pathToResults);
+ 
 			if (bResultsFileExists) // if the file exists and has content
 			{
-				// The existence of the results file does not guarantee success,
-				// but if first line has "success" then the wxExecute() call succeeded
-				wxString comma = _T(",");
-				wxTextFile f(pathToResults);
-				bool bOpened = f.Open();
-				wxString firstLineStr = wxEmptyString;
-				if (bOpened)
-				{
-					firstLineStr = f.GetFirstLine();
-					f.Close();
-				}
-				wxString srchStr = _T("success"); // handles variants like 'successfully' etc
-				offset = firstLineStr.Find(srchStr);
-				if (offset != wxNOT_FOUND)
-				{
-					// Found the srchStr, so we have success
-					bSuccess = TRUE;
-					// Only put up a message if authenticating
-					if (funcNumber < 3)
-					{
-						if (m_bUserAuthenticating) // has been forced to TRUE
-						{
-							// we will want success when authenticating to be reported to user
-							bReportResult = TRUE; // force TRUE because authenticating, 
-												  // to show 1.5 sec msg
-							// For bulk operations, funcNumber >= 8, a progress indicator
-							// will (or should be) used
-						}
-					}
-				} // end of TRUE block for test: if (offset != wxNOT_FOUND)
+                wxString dataStr = wxEmptyString; // BEW 22Mar22 added, as is used below
 
-				// BEW 9Sep20, give CallExecute an initial param funcNumber, and
-				// internal switch, so allow post-wxExecute() processing as needed
-
-				// Do post-execute processing...
-				bOpened = f.Open();
-				wxString dataStr = wxEmptyString;
-				bool bMoreThanOneLine = FALSE;
-				if (bOpened)
-				{
-					int lineCount = (int)f.GetLineCount();
-					if (lineCount > 1)
-					{
-						dataStr = f.GetLine(1);
-						dataStr = DoUnescapeSingleQuote(dataStr); // in case 
-											// there was an escaped ' in dataStr
-						if (m_bDoingChangeFullname)
-						{
-							// Set m_strChangeFullname to what Line(1) has
-							m_strChangeFullname = dataStr; // for LoadDataForPage(0) to grab
-							// Need to put this in the app member m_strChangeFullname
-						}
-
-						bMoreThanOneLine = TRUE;
-						f.Close();
-					}
-					else
-					{
-						bMoreThanOneLine = FALSE;
-					}
-				}
-				//bool bOkay = FALSE; // initialise
-				// A failure to achieve the desired mariaDB action,in the python, will return
-				// a message with just a single line without the string "success" in it, 
-				// so don't do the stuff below if the line count was just 1 (or zero - but 
-				// our python code tries to avoid this, as it's not helpful to the user).
-				// BEW 6Jan21 added subtest: (bMoreThanOneLine || (funcNumber == list_users))
-				// for change_permission success. But note, the wxExecute() call uses
-				// do_list_users.exe, ie. enum list_users (= 3) applies, hence the test 
-				// (funcNumber == list_users) is required, even though the file 
-				// change_permission_return_results.dat is the file interrogated for the
-				// results. Without this extra test, the switch would be skipped, 
-				// and m_bChangePermission_DifferentUser would not get set correctly
-				if (bSuccess && (bMoreThanOneLine || (funcNumber == list_users)) )
+                // BEW 26Mar22 This switch is for post-processing of the results of a successful .exe run
+                // At this point in time, it's legacy code from JM's time, but probably is still valid or mostly so
+				if (bSuccess)
 				{
 					if (funcNumber == 0) // beginning of const int's set, a do-nothing value
 					{
@@ -21850,9 +21954,19 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// (not wanted are id, and timestamp)
 						// m_arrLines is a public wxArrayString, for DatFile2StringArray()
 						// to use, and then ListUsers()
+                        // BEW 16Feb22 The value of boolean bMoreThanOneLine has been carried forward
+                        // to here, normally it is TRUE, and will be so if user actions add additional
+                        // users to the kbserver user table. But it may start off with just the user first
+                        // added in order for access to the MariaDB to work, so either TRUE, or FALSE
+                        // should be supported here. I could save it's value to a member variable of
+                        // Adapt_It.h, but at present I can't see any value in that, so haven't done so.
 						wxString resultFile = _T("list_users_results.dat");
 						bool bArrOK = DatFile2StringArray(execPath, resultFile, m_arrLines); // cloned in AI.h
 						wxUnusedVar(bArrOK);
+                        // If DatFile2StringArray() cannot find the do_list_users.exe file in the
+                        // executable's folder, it will return FALSE, and put a message in LogUserAction(),
+                        // I don't expect there to ever be such an error. A bell will sound. Adapt It will
+                        // continue, but the KB Sharing Manager's page(0) will open with an empty list.
 
 						// The only thing remaining to do here is to compare
 						// usernames, to see if a permission change was wanted
@@ -21932,9 +22046,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case changed_since_timed: // = 8
 					{
-						// TODO? -- line 0 has "success,<timestamp string>, and the rest is
-						// multiple lines, FileToEntryStruct() in loop is needed - maybe 
-						// better to do it in ChangedSince_Timed() itself
+						// could be 0 lines, or a few, or very many
 						break;
 					}
 					case upload_local_kb: // = 9
@@ -21982,7 +22094,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					} // end of switch
 			
-				} // end of TRUE block for test: if (bMoreThanOneLine && bSuccess)
+				} // end of TRUE block for test: if (bSuccess)
 				
 			} // end of the TRUE block for test: if (bResultsFileExists)
 			else
@@ -22007,7 +22119,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					wxUnusedVar(waitFailure);
 #endif		
 				} // end of TRUE block for test: if (bReportResult)
+
 			} // end of the else block for test: if (bResultsFileExists)
+
 		} // end of TRUE block for test: if (rv == 0)
 		else
 		{
@@ -22016,7 +22130,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 			wxString msg = _T("line %d, in CallExecute() ::wxExecute() failed for %s called in folder %s");
 			msg = msg.Format(msg, __LINE__, execFileName.c_str(), execPath.c_str());
 			LogUserAction(msg);
-			return FALSE;
+            // restore old current working directory
+            bool bRestored = fn.SetCwd(currCwd);
+            wxUnusedVar(bRestored);
+            return FALSE;
 		}
 	} // end of the TRUE block for test: if (bTempCwd)
 	else
@@ -22027,28 +22144,46 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		wxString msg = _("Setting a temporary current working directory failed for %s called in folder %s");
 		msg = msg.Format(msg, execFileName.c_str(), execPath.c_str());
 		LogUserAction(msg);
-		return FALSE;
+        // restore old current working directory
+        bool bRestored = fn.SetCwd(currCwd);
+        wxUnusedVar(bRestored);
+        return FALSE;
 
 	}
+    // restore old current working directory
+    bool bRestored = fn.SetCwd(currCwd);
+    wxUnusedVar(bRestored);
+
 	return bSuccess;
 }
 
 bool CAdapt_ItApp::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines)
 {
 	arrLines.Empty(); // clear contents
-	wxString pathToResults = execPath + resultFile;
-	bool bResultsFileExists = ::FileExists(pathToResults);
+    wxASSERT(!resultFile.IsEmpty());
+    wxString pathOnly = wxEmptyString;
+
+    wxFileName fname(execPath);
+    bool bOK = fname.IsOk();
+    if (bOK)
+    {
+        pathOnly = fname.GetPath();
+        // Add the resultFile -- should be list_users_results.dat
+        pathOnly += this->PathSeparator + resultFile;
+    }
+    wxASSERT(!pathOnly.IsEmpty());
+	bool bResultsFileExists = ::FileExists(pathOnly);
 	if (bResultsFileExists)
 	{
-		wxTextFile f(pathToResults);
+		wxTextFile f(pathOnly);
 		bool bOpened = f.Open();
-		int lineIndex = 0; // ignore this one, it has "success in it" etc
+		int lineIndex = 0; // initialise
 		int lineCount = f.GetLineCount();
 
 		wxString strCurLine = wxEmptyString;
 		if (bOpened)
 		{
-			for (lineIndex = 1; lineIndex < lineCount; lineIndex++)
+			for (lineIndex = 0; lineIndex < lineCount; lineIndex++)
 			{
 				strCurLine = f.GetLine(lineIndex);
 				arrLines.Add(strCurLine);
@@ -22059,8 +22194,8 @@ bool CAdapt_ItApp::DatFile2StringArray(wxString& execPath, wxString& resultFile,
 	{
 		// results file does not exist, log the error
 		wxBell();
-		wxString msg = _T("DatFile2StringArray() does not exist in the executable's folder: %s");
-		msg = msg.Format(msg, execPath.c_str());
+		wxString msg = _T("%s::%s() line %d. Path error? path to results file: %s  , did not find the expected .dat results file list_users_results.dat");
+		msg = msg.Format(msg, __FILE__,__FUNCTION__,__LINE__, pathOnly.c_str());
 		LogUserAction(msg);
 		return FALSE;
 	}
@@ -22282,6 +22417,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
     m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
+    m_bSuppressPseudoDeleteWhenClosingDoc = FALSE; 
 
     nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
     nCallCount2 = 0;
@@ -22426,26 +22562,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_SD_Message_For_Connect = _("Select the ipAddress you wish to connect to, then click OK.  If none is selected, a connection will not be tried. The listed ipAddresses are stored for use in this work session.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.  Note - connection requires that the correct KBserver database has been set up already for your adaptation project.");
 	m_SD_Message_For_Discovery = _("KBserver discovery works only for KBservers connected to the Local Area Network (LAN), or to a private local network (PAN).  Your LAN, or PAN, can be connected to the web, or not, because the internet will be ignored. The KBservers running on the LAN or PAN are shown.  Connecting to a listed KBserver is not done immediately, even if you select one; but those listed are stored for possible use later.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, select its ipAddress and click Remove Selected Entry.");
 
-    // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
-    // for a gui action by the user causes a TRUE value to be set for one of them, so that
-    // the OnIdle() handler will then call one of the 3 Synchronous functions,
-    // CreateEntry(), PseudoDelete(), or PseudoUndelete()
-    // to hide the server access to the maximum possible extent, to keep the GUI responsive
-    m_bUserDecisionMadeAtDiscovery = FALSE;
-    m_bPseudoDelete_For_KBserver = FALSE;
-    m_bPseudoUndelete_For_KBserver = FALSE;
-    m_bCreateEntry_For_KBserver = FALSE;
-    m_pKbServer_For_OnIdle = NULL; // The calls suppored by the above 3 booleans will use
-        // this KbServer pointer to get their work done; it
-        // is used nowhere except in OnIdle()
-        // Next two booleans are set to FALSE unilaterally (as initialization)only here. They
-        // get set to whatever the project config file has for the IsKBServerProject and
-        // IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
-        // and m_bIsGlossingKBServerProject - but the latter too readily can be cleared to
-        // FALSE at various places), and we want two booleans which preserve the current project
-        // config file values for these booleans in all circumstances (at least until new values
-        // are in the config file), so that we can recover the config file values anytime we
-        // want - in particular in the OnProjectPageChanging() handler.
+
+    // Next two booleans are set to FALSE unilaterally (as initialization)only here. They
+    // get set to whatever the project config file has for the IsKBServerProject and
+    // IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
+    // and m_bIsGlossingKBServerProject - but the latter too readily can be cleared to
+    // FALSE at various places), and we want two booleans which preserve the current project
+    // config file values for these booleans in all circumstances (at least until new values
+    // are in the config file), so that we can recover the config file values anytime we
+    // want - in particular in the OnProjectPageChanging() handler.
     m_bIsKBServerProject_FromConfigFile = FALSE;
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
@@ -48012,8 +48137,7 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf, wxUint32& bufLen, const char
 /// DoExportSrcOrTgt() in ExportFunctions.cpp.
 /// Converts the string str from its internal UTF-16 to UTF-8 and writes it to pFile.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* pFile,
-    wxString& str)
+void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* pFile, wxString& str)
 {
     // MFC original Note: convert from internal UTF-16 to either the user's legacy
     // encoding, or for all other input encodings, (including UTF-16 or variants thereof)
@@ -48021,22 +48145,22 @@ void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* p
 
     wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
     size_t nLen = strlen(tempBuf); //strlen(lpMacroConvertedText);
-                                   // don't allow for a terminating null when we are doing line-based output
-                                   // (ie. the flag is TRUE)
-                                   // whm Note: In the wx version we handle the output of platform appropriate eol
-                                   // sequences as a separate output process, so the bNoTerminatingNull is always TRUE.
-                                   //if (!bNoTerminatingNull) // whm: defaults to TRUE and never explicitly called with
-                                   // FALSE in wx version, so not needed
-                                   //	nLen++;
+        // don't allow for a terminating null when we are doing line-based output
+        // (ie. the flag is TRUE)
+        // whm Note: In the wx version we handle the output of platform appropriate eol
+        // sequences as a separate output process, so the bNoTerminatingNull is always TRUE.
+        //if (!bNoTerminatingNull) // whm: defaults to TRUE and never explicitly called with
+        // FALSE in wx version, so not needed
+        //	nLen++;
 
-                                   // Note: Early on in Unicode builds, tempBuf ended up with only the first character
-                                   // of the string str (a backslash). This resulted in the pFile->Write(tempBuf,nLen)
-                                   // and the alternate pFile->Write(str) function calls outputting only a backslash
-                                   // character. The failure turned out to happened in the str.mb_str(wxConvUTF8) conversion
-                                   // which is apparently also used implicitly in the pFile-Write(str) call.
-                                   // It turns out that the reason for the failure was that in the caller (the View), the
-                                   // source.UngetWriteBuf() call was not made to get the buffer back into shape before
-                                   // passing the source string to ConvertAndWrite!!
+        // Note: Early on in Unicode builds, tempBuf ended up with only the first character
+        // of the string str (a backslash). This resulted in the pFile->Write(tempBuf,nLen)
+        // and the alternate pFile->Write(str) function calls outputting only a backslash
+        // character. The failure turned out to happened in the str.mb_str(wxConvUTF8) conversion
+        // which is apparently also used implicitly in the pFile-Write(str) call.
+        // It turns out that the reason for the failure was that in the caller (the View), the
+        // source.UngetWriteBuf() call was not made to get the buffer back into shape before
+        // passing the source string to ConvertAndWrite!!
 
     wxLogNull logNo; // avoid spurious messages from the system
 
@@ -61106,12 +61230,12 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString dataPath)
 	if (bDataFileExists)
 	{
 		// Since it only needs to be created once, and it already exists where we
-		// want it to be, just exit
+		// want it to be (in work folder's _DATA_KB_SHARING folder), just exit
 		return;
 	}
 	else
 	{
-		// Build it, and drop it in the dist folder
+		// Build it, and drop it in the data folder, _DATA_KB_SHARING
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datFilePath);
@@ -61121,25 +61245,26 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString dataPath)
 			wxString line = _T("# goal: insert an entry into the kbserver's entry table if entry is absent - with deleted flag = 1,");
 			f.AddLine(line);
 			line = _T("# or UPDATE to SET deleted flag to 1 if the entry is present in the table");
+            f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
 			line = _T("# dist folder's 'input' file:   pseudo_delete.dat");
 			f.AddLine(line);
 			line = _T("# 'output' file in exec folder: pseudo_delete_results.dat");
 			f.AddLine(line);
-			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
+			line = _T("# The row's fields, in order - same as for do_create_entry.c, just SQL query differs (DO NOT supply timestamp as char string, build into .c):");
 			f.AddLine(line);
-			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+            line = _T("# DB_username,DB_password,sourcelanguage,targetlanguage,source,target,username,type,deleted,");
 			f.AddLine(line);
 			line = _T("# timestamp created in the internal python, and added between type and deleted fields.");
 			f.AddLine(line);
-			line = _T("# login credentials: ipaddr, username, password");
+			line = _T("# login credentials: ipaddr, DB_username, DB_password,   as first 3 fields");
 			f.AddLine(line);
-			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,");
+            line = _T("# Input  .dat: ipaddr,DB_username,DB_password,sourcelanguage,targetlanguage,source,target,type,deleted,");
 			f.AddLine(line);
-			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+            line = _T("# Output .dat: \"success\" somewhere in 1st and only line, or a 1-line error message lacking \"success\" substring;");
 			f.AddLine(line);
-			line = _T("# and for success, on 2nd line: source,target,sourcelanguage,targetlanguage,type,deleted,");
+            line = _T("# and for success, on 1st line will also have: sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
 			f.AddLine(line);
 			f.Write();
 			f.Close();
@@ -61179,17 +61304,18 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString dataPath)
 			wxString line = _T("# goal: insert an entry into the kbserver's entry table if entry is absent - with deleted flag = 0,");
 			f.AddLine(line);
 			line = _T("# or UPDATE to SET deleted flag to 0 if the entry is present in the table with deleted = 1");
-			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
-			f.AddLine(line);
-			line = _T("# dist folder's 'input' file:   pseudo_undelete.dat");
+            f.AddLine(line);
+            line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
+            f.AddLine(line);
+            line = _T("# dist folder's 'input' file:   pseudo_undelete.dat");
 			f.AddLine(line);
 			line = _T("# 'output' file in exec folder: pseudo_undelete_results.dat");
 			f.AddLine(line);
 			line = _T("# The row's fields, in order - same as for do_create_entry(), just SQL query differs:");
 			f.AddLine(line);
-			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,");
 			f.AddLine(line);
-			line = _T("# timestamp created in the internal python, and added between type and deleted fields.");
+			line = _T("# timestamp needs to be created in the .c function. DO NOT pass in a character string.");
 			f.AddLine(line);
 			line = _T("# login credentials: ipaddr, username, password");
 			f.AddLine(line);
@@ -61235,7 +61361,7 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString dataPath) // w
 		{
 			wxString line = _T("# goal: insert an entry into the kbserver's entry table, duplication not allowed");
 			f.AddLine(line);
-            line = _T("# deleted flag may be 1, indicating it is pseudo-deleted. If so, the create fails.");
+            line = _T("# deleted flag may be 1 or 0, it is not checked, the create fails if language and KB entry pairs match.");
             f.AddLine(line);
             line = _T("# It is do_pseudo_undelete.exe's job to handle undeletion. AI's code will call that.");
             f.AddLine(line);
@@ -61245,17 +61371,17 @@ void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString dataPath) // w
 			f.AddLine(line);
 			line = _T("# 'output' file in exec folder: create_entry_results.dat");
 			f.AddLine(line);
-			line = _T("# The row's fields, in order (initial id automatic; timestamp is now()'s timestamp: put last in input .dat file):");
+			line = _T("# The row's fields, in order (timestamp MUST NOT BE SUPPLIED AS A char STRING, do properly in .c using Now()):");
 			f.AddLine(line);
-			line = _T("# sourcelanguage,targetlanguage,source,target,username,type,deleted,timestamp");
+			line = _T("# DB_username,DB_password,sourcelanguage,targetlanguage,source,target,username,type,deleted,");
 			f.AddLine(line);
-			line = _T("# login credentials: ipaddr, autenticating username, authenticating password");
+			line = _T("# login credentials: ipaddr, DB_username, DB_password,   as first 3 fields");
 			f.AddLine(line);
-			line = _T("# Input  .dat:ipaddr,authenticating username,authenticating password,username,password,sourcelanguage,targetlanguage,source,target,type,deleted,timestamp");
+			line = _T("# Input  .dat: ipaddr,DB_username,DB_password,sourcelanguage,targetlanguage,source,target,type,deleted,");
 			f.AddLine(line);
-			line = _T("# Output .dat: \"success\" on 1st line, or a 1-line error message lacking \"success\" substring;");
+			line = _T("# Output .dat: \"success\" somewhere in 1st and only line, or a 1-line error message lacking \"success\" substring;");
 			f.AddLine(line);
-			line = _T("# and for success, on 2nd line: source,target,sourcelanguage,targetlanguage,type,deleted,");
+			line = _T("# and for success, on 1st line will also have: sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
 			f.AddLine(line);
 			f.Write();
 			f.Close();
@@ -61428,9 +61554,9 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString dataPath
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# dist folder's 'input' file:   changed_since_timed.dat");
+			line = _T("# 'input' .dat file:   changed_since_timed.dat");
 			f.AddLine(line);
-			line = _T("# 'output' file in exec folder: changed_since_timed_results.dat");
+			line = _T("# 'output' .dat file in exec folder: changed_since_timed_results.dat");
 			f.AddLine(line);
             line = _T("# Pass in, as last argument, the timestamp from which changes are calculated");
             f.AddLine(line);
@@ -61438,19 +61564,23 @@ void CAdapt_ItApp::MakeChangedSinceTimed(const int funcNumber, wxString dataPath
 			f.AddLine(line);
 			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted");
 			f.AddLine(line);
-			line = _T("# login credentials: ipaddr, username, password");
+			line = _T("# login credentials: ipaddr, DB_access_user, DB_access_password");
 			f.AddLine(line);
-			line = _T("# Input  .dat:ipaddr,username,password,sourcelanguage,targetlanguage,type");
+			line = _T("# Input  .dat: ipaddr,DB_access_user,DB_access_password,sourcelanguage,targetlanguage,type,timestamp");
 			f.AddLine(line);
-			line = _T("# Output .dat: \"success\" followed by comma followed by now()'s timestamp,");
+			line = _T("# Output .dat: the one or more rows comming from the kbserver entry table");
 			f.AddLine(line);
-			line = _T("# on the 1st line, or a 1-line error message lacking \"success\" substring;");
+			line = _T("# Calculate successful call by the results file being non-empty, and separately from the results file");
 			f.AddLine(line);
-			line = _T("# and for \"success\", on each non-first line the following, comma separated:");
+			line = _T("# calculate a Now() value for storage (for next timer firing), or if \'1920\', do not store a timestamp");
 			f.AddLine(line);
-			line = _T("# id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
+			line = _T("# data rows: id,sourcelanguage,targetlanguage,source,target,username,timestamp,type,deleted,");
 			f.AddLine(line);
-			f.Write();
+            line = _T("# input example: 192.168.1.7,kbadmin,kbauth,Tok Pisin,English,1,<client's stored time_stamp>");
+            f.AddLine(line);
+            line = _T("# input example (for bulk download): 192.168.1.7,kbadmin,kbauth,Tok Pisin,English,1,1920-01-01 00:00:00");
+            f.AddLine(line);
+            f.Write();
 			f.Close();
 		}
 #if defined (_DEBUG)

@@ -251,6 +251,7 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 		pKB = m_pApp->m_pGlossingKB;
 		if (pKbServer != NULL)
 		{
+			// enum ClientAction:: getAll (= 2) means "do bulk download"
 			pKbServer->DownloadToKB(pKB, getAll);
 		}
 		else
@@ -270,6 +271,7 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 		pKB = m_pApp->m_pKB; // the adaptations KB
 		if (pKbServer != NULL)
 		{
+			// enum ClientAction:: getAll (= 2) means "do bulk download"
 			pKbServer->DownloadToKB(pKB, getAll);
 		}
 		else
@@ -288,7 +290,7 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 
 void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp->m_bUserRequestsTimedDownload = TRUE;
+	m_pApp->m_bUserRequestsTimedDownload = TRUE; // TRUE means "can do a timed download to local KB"
 	KbServer* pKbServer;
 	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
@@ -299,6 +301,7 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 		pKB = m_pApp->m_pGlossingKB;
 		if (pKbServer != NULL)
 		{
+			// enum ClientAction:: changedSince means "do incremental download"
 			pKbServer->DownloadToKB(pKB, changedSince);
 		}
 		else
@@ -318,6 +321,7 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 		pKB = m_pApp->m_pKB; // the adaptations KB
 		if (pKbServer != NULL)
 		{
+			// enum ClientAction:: changedSince ( = 1) means "do incremental download"
 			pKbServer->DownloadToKB(pKB, changedSince);
 		}
 		else
@@ -329,7 +333,7 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(msg);
 		}
 	}
-	m_pApp->m_bUserRequestsTimedDownload = FALSE;
+	m_pApp->m_bUserRequestsTimedDownload = FALSE; // FALSE (default) means "cannot do a timed download to local KB"
 	// make the dialog close
 	EndModal(wxID_OK);
 }
