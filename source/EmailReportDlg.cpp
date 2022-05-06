@@ -433,7 +433,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	wxPlatformInfo platInfo;
 	// whm 1Dec2021 added conditional define for Mac OSX to use GetBitnessName() 
 	// which is not a known identifier on Linux and Windows
-#if defined (__WXMAC__) || defined(__WXMSW__)
+#if defined (__WXMAC__) /* || defined(__WXMSW__) */
 	archName = platInfo.GetBitnessName();
 #else
 	archName = platInfo.GetArchName();  // returns "32 bit" on Windows
@@ -2056,7 +2056,8 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	wxPlatformInfo platInfo;
 	// whm 1Dec2021 added conditional define for Mac OSX to use GetBitnessName() 
 	// which is not a known identifier on Linux and Windows
-#if defined (__WXMAC__) || defined(__WXMSW__)
+//#if defined (__WXMAC__) || defined(__WXMSW__)
+#if defined (__WXMAC__) && !defined (__WXMSW__) && !defined(__WXGTK__)
 	archName = platInfo.GetBitnessName();
 #else
 	archName = platInfo.GetArchName();  // returns "32 bit" on Windows

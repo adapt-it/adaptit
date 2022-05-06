@@ -19611,8 +19611,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             commandLine = this->m_chosenIpAddr + comma;
 
             wxString pwd = wxEmptyString; // used below
-            bool b_use_kbadmin = FALSE; // initialise -- MIGHT NOT NEED THIS boolean ??
-
+ 
             // This is the place where we must add the username and pwd for getting
             // a successful login to the kbserver. The rest of the values needed
             // will come from the NewUserCredentialsDlg below
