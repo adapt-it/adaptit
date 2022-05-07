@@ -10139,25 +10139,30 @@ void CAdapt_ItApp::EmptyMapAndInitializeAutoCorrect()
 // This function designed as a helper function for parsing an autocorrect.txt file which may
 // define its rules using the \uxxxx ASCII char format on either side of the --> auto-correct symbol.
 // The first parameter stringWithHexChars is the incoming string to be converted (that may or may 
-// not have \uxxxx sub-strings within it.
+// not have \uxxxx sub-strings within it. It can have a mixture of chars, some actual chars and some
+// in the \uxxxx or \Uxxxx form. Internally, when we find \uxxxx or \Uxxxx we must not not change any 
+// actual Unicode upper case characters to lower case, but keep their representation the same case.
 // The second parameter bSuccess is a bool that returns to the caller TRUE if the conversion is 
 // successful or FALSE if the \uxxxx value is malformed or the .ToLong() conversion returns
 // FALSE for some reason.
+// whm 6May2022 modified to ensure we don't change the case of any actual Unicode characters while 
+// dealing with the possibility of upper-case \Uxxxx and lower-case \uxxxx backslash representations.
 wxString CAdapt_ItApp::ConvertBackslashUxxxxHexValsInStringToStringChars(wxString stringWithHexChars, bool& bSuccess)
 {
     // There may be more than one \uxxxx hex representation within the incoming
     // stringWithHexChars string, so we need to replace any and all that we find 
     // within the string. Use a while loop to replace \uxxxx sub-strings until 
-    // all are replaced.
+    // all are replaced with their actual Unicode characters.
     wxString tempStr = stringWithHexChars;
     wxString hexStr = _T("");
     bool bOK = TRUE;
     bSuccess = TRUE;
+    tempStr.Replace(_T("\\U"), _T("\\u"), TRUE); // replace any upper case \U occurrences with lower case \u substrings, leaving case of other characters in string unchanged
     while (tempStr.Find(_T("\\u")) != wxNOT_FOUND)
     {
         int posHexStr;
         posHexStr = tempStr.Find(_T("\\u"));
-        hexStr = tempStr.Mid(posHexStr + 2, 4); // get the hex part after \u
+        hexStr = tempStr.Mid(posHexStr + 2, 4); // get the hex part - always consisting of 4 digits - after \u
         long testval = 0;
         bOK = hexStr.ToLong(&testval, 16); // 16 = base 16 or hexadecimal
         if (!bOK)
