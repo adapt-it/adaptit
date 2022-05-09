@@ -102,7 +102,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 //const int ID_DUMMY = 22000;
 
 // event handler table
-BEGIN_EVENT_TABLE(CKBEditor, wxDialog)  //BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
+BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_INIT_DIALOG(CKBEditor::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CKBEditor::OnCancel)
 	EVT_BUTTON(wxID_OK, CKBEditor::OnOK)
@@ -110,34 +110,45 @@ BEGIN_EVENT_TABLE(CKBEditor, wxDialog)  //BEGIN_EVENT_TABLE(CKBEditor, AIModalDi
 	EVT_LISTBOX(IDC_LIST_SRC_KEYS, CKBEditor::OnSelchangeListSrcKeys)
 	EVT_LISTBOX(IDC_LIST_EXISTING_TRANSLATIONS, CKBEditor::OnSelchangeListExistingTranslations)
 	EVT_LISTBOX_DCLICK(IDC_LIST_EXISTING_TRANSLATIONS, CKBEditor::OnDblclkListExistingTranslations)
-	EVT_TEXT(IDC_EDIT_EDITORADD, CKBEditor::OnUpdateEditOrAdd)
+	//EVT_TEXT(IDC_EDIT_EDITORADD, CKBEditor::OnUpdateEditOrAdd)
 	EVT_BUTTON(IDC_BUTTON_UPDATE, CKBEditor::OnButtonUpdate)
+	EVT_UPDATE_UI(IDC_BUTTON_UPDATE, CKBEditor::OnUpdateButtonUpdate)
 	EVT_BUTTON(IDC_BUTTON_ADD, CKBEditor::OnButtonAdd)
+	EVT_UPDATE_UI(IDC_BUTTON_ADD, CKBEditor::OnUpdateButtonAdd)
 	EVT_BUTTON(IDC_ADD_NOTHING, CKBEditor::OnAddNoAdaptation)
+	EVT_UPDATE_UI(IDC_ADD_NOTHING, CKBEditor::OnUpdateAddNoAdaptation)
 	EVT_BUTTON(IDC_BUTTON_REMOVE, CKBEditor::OnButtonRemove)
+	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CKBEditor::OnUpdateButtonRemove)
 	EVT_BUTTON(ID_BUTTON_REMOVE_SOME, CKBEditor::OnButtonRemoveSomeTgtEntries)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CKBEditor::OnButtonMoveUp)
+	EVT_UPDATE_UI(IDC_BUTTON_MOVE_UP, CKBEditor::OnUpdateButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnButtonMoveDown)
+	EVT_UPDATE_UI(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnUpdateButtonMoveDown)
 	EVT_BUTTON(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnButtonFlagToggle)
+	EVT_UPDATE_UI(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnUpdateButtonFlagToggle)
 
 	EVT_BUTTON(ID_BUTTON_GO, CKBEditor::OnButtonGo)
 	EVT_BUTTON(ID_BUTTON_ERASE_ALL_LINES, CKBEditor::OnButtonEraseAllLines)
 	EVT_BUTTON(ID_BUTTON_SRC_FIND_GO, CKBEditor::OnButtonSourceFindGo)
 	EVT_COMBOBOX(ID_COMBO_OLD_SEARCHES, CKBEditor::OnComboItemSelected)
-	EVT_IDLE(CKBEditor::OnIdle)
+	//EVT_IDLE(CKBEditor::OnIdle)
 END_EVENT_TABLE()
 
 
 CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
-	//: AIModalDialog(parent, -1, _("Edit or Examine the Knowledge Base"),
-	//	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-	: wxDialog(parent, -1, _("Edit or Examine the Knowledge Base"),
+	: AIModalDialog(parent, -1, _("Edit or Examine the Knowledge Base"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	//: wxDialog(parent, -1, _("Edit or Examine the Knowledge Base"),
+	//	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     // This dialog function below is generated in wxDesigner, and defines the controls and
     // sizers for the dialog. The first parameter is the parent which should normally be
     // "this". The second and third parameters should both be TRUE to utilize the sizers
     // and create the right size dialog.
+
+	// See if we can get Idle processing going locally just for this dialog
+	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
+	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
 
 	// wx Note: no harm in initializing vars here before the dialog controls are
 	// created via KBEditorDlgFunc.
@@ -207,10 +218,10 @@ CKBEditor::~CKBEditor()
 {
 }
 
-void CKBEditor::OnIdle(wxIdleEvent& WXUNUSED(event))
-{
-	UpdateButtons(); // whm 2May2022 added OnIdle. Now this is the main/only place where UpdateButtons() needs to be called.
-}
+//void CKBEditor::OnIdle(wxIdleEvent& WXUNUSED(event))
+//{
+//	UpdateButtons(); // whm 2May2022 added OnIdle. Now this is the main/only place where UpdateButtons() needs to be called.
+//}
 
 // OnTabSelChange added for wx version - handles changes to new tab selection
 void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
@@ -540,20 +551,33 @@ void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 /// "Edit or Add a Translation" edit box changes. This handler simply calls the CKBEditor's
 /// UpdateButtons() helper function whenever the edit box changes.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
+//void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
+//{
+//    // This OnUpdateEditOrAdd is called every time SetValue() is called which happens
+//    // anytime the user selects a string from the list box, even though he makes no changes
+//    // to the associated text in the text control. That is a difference between the
+//    // EVT_TEXT event macro design and MFC's ON_EN_TEXT macro design. Therefore, in the
+//    // UpdateButtons() function we need to have tests which include a IsModified() test,
+//    // for the wx version. We enable the Update button if the text is dirty and the text is
+//    // different from the selected item in existing translations, make similar test for the
+//    // other buttons.
+//	//wxString testStrTransBox,testStrListBox;
+//	//testStrTransBox = m_pEditOrAddTranslationBox->GetValue();
+//	//testStrListBox = m_pListBoxExistingTranslations->GetStringSelection();
+//	UpdateButtons();
+//}
+
+void CKBEditor::OnUpdateButtonUpdate(wxUpdateUIEvent& event)
 {
-    // This OnUpdateEditOrAdd is called every time SetValue() is called which happens
-    // anytime the user selects a string from the list box, even though he makes no changes
-    // to the associated text in the text control. That is a difference between the
-    // EVT_TEXT event macro design and MFC's ON_EN_TEXT macro design. Therefore, in the
-    // UpdateButtons() function we need to have tests which include a IsModified() test,
-    // for the wx version. We enable the Update button if the text is dirty and the text is
-    // different from the selected item in existing translations, make similar test for the
-    // other buttons.
-	//wxString testStrTransBox,testStrListBox;
-	//testStrTransBox = m_pEditOrAddTranslationBox->GetValue();
-	//testStrListBox = m_pListBoxExistingTranslations->GetStringSelection();
-	UpdateButtons();
+	if (m_pEditOrAddTranslationBox->IsModified() && m_pEditOrAddTranslationBox->GetValue() != m_pListBoxExistingTranslations->GetStringSelection())
+	{
+		// The Update button is enabled whenever the edit translation text box is dirty
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
 }
 
 // BEW 25Jun10, changes needed for support of kbVersion 2
@@ -1020,6 +1044,21 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pApp->GetDocument()->Modify(TRUE);
 }
 
+void CKBEditor::OnUpdateAddNoAdaptation(wxUpdateUIEvent& event)
+{
+	if (m_pListBoxExistingTranslations->GetCount() == 0 || IsInListBox(m_pListBoxExistingTranslations, _("<no adaptation>")))
+	{
+		// the AddNoAdaptation button is always enabled unless "<no adaptation>" is in the
+		// m_pListBoxExistingTranslations list
+		event.Enable(FALSE);
+	}
+	else
+	{
+		event.Enable(TRUE);
+	}
+}
+
+
 // BEW 25Jun10, changes needed for support of kbVersion 2
 void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 {
@@ -1120,6 +1159,23 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		// UpdateButtons(); whm 2May2022 removed. UpdateButtons() is now called in OnIdle, the main/only place where UpdateButtons() needs to be called.
 	}
 }
+
+void CKBEditor::OnUpdateButtonAdd(wxUpdateUIEvent& event)
+{
+	wxString stringBeingTyped;
+	stringBeingTyped = m_pEditOrAddTranslationBox->GetValue();
+	if (m_pEditOrAddTranslationBox->IsModified() && !IsInListBox(m_pListBoxExistingTranslations, stringBeingTyped))
+	{
+		// The Add button is enabled whenever the edit translation text box is dirty, and
+		// the current string in the box is not already in the m_pListBoxExistingTranslations list.
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
 
 // BEW 22Jun10, changes needed for support of kbVersion 2
 void CKBEditor::OnButtonAdd(wxCommandEvent& event)
@@ -1511,6 +1567,19 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_arrSearches.Empty();
 }
 
+void CKBEditor::OnUpdateButtonRemoveSomeTgtEntries(wxUpdateUIEvent& event)
+{
+	if (m_pListBoxKeys->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		event.Enable(TRUE);
+	}
+}
+
+
 void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 {
 //#if defined(_KBSERVER)
@@ -1596,6 +1665,19 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 		// Cancel click.
 	}
 }
+
+void  CKBEditor::OnUpdateButtonRemove(wxUpdateUIEvent& event)
+{
+	if (m_pListBoxExistingTranslations->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		event.Enable(TRUE);
+	}
+}
+
 
 void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 {
@@ -1879,6 +1961,28 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 										// button enabled
 }
 
+void CKBEditor::OnUpdateButtonMoveUp(wxUpdateUIEvent& event)
+{
+	// Enable those buttons meeting certain conditions depending on number of items and selection
+	int nSel = m_pListBoxExistingTranslations->GetSelection();
+	wxString selectedTrans;
+	if (m_pListBoxExistingTranslations->GetCount() > 0)
+		selectedTrans = m_pListBoxExistingTranslations->GetStringSelection();
+	else
+		selectedTrans.Empty();
+	if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel > 0)
+	{
+		// The Move Up button is enabled whenever there are more than 1 translations in the list
+		// and the selected item is not the last one in the list
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+
 // BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
@@ -1992,6 +2096,23 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
+
+void CKBEditor::OnUpdateButtonMoveDown(wxUpdateUIEvent& event)
+{
+	// Enable those buttons meeting certain conditions depending on number of items and selection
+	int nSel = m_pListBoxExistingTranslations->GetSelection();
+	if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel < (int)m_pListBoxExistingTranslations->GetCount() - 1)
+	{
+		// The Move Down button is enabled whenever there are more than 1 translations in the list
+		// and the selected item is not the first one in the list
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
 
 // BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
@@ -2126,6 +2247,19 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
+
+void CKBEditor::OnUpdateButtonFlagToggle(wxUpdateUIEvent& event)
+{
+	if (m_pListBoxExistingTranslations->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		event.Enable(TRUE);
+	}
+}
+
 
 void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 {
@@ -3099,6 +3233,7 @@ safe:		wxString srcKey;
 	// UpdateButtons(); whm 2May2022 removed. UpdateButtons() is now called in OnIdle, the main/only place where UpdateButtons() needs to be called.
 }
 
+/*
 void CKBEditor::UpdateButtons()
 {
 	// enables or disables buttons to reflect valid choices depending on number of
@@ -3111,16 +3246,16 @@ void CKBEditor::UpdateButtons()
 	//m_pBtnMoveDown->Enable(FALSE);
 	// The "Toggle The Setting" should be enabled except for when the translations list is empty
 	// as when displaying a tab without any data
-	if (m_pListBoxExistingTranslations->GetCount() == 0)
-	{
-		if (m_pBtnToggleTheSetting->IsEnabled())
-			m_pBtnToggleTheSetting->Enable(FALSE);
-	}
-	else
-	{
-		if (!m_pBtnToggleTheSetting->IsEnabled())
-			m_pBtnToggleTheSetting->Enable(TRUE);
-	}
+	//if (m_pListBoxExistingTranslations->GetCount() == 0)
+	//{
+	//	if (m_pBtnToggleTheSetting->IsEnabled())
+	//		m_pBtnToggleTheSetting->Enable(FALSE);
+	//}
+	//else
+	//{
+	//	if (!m_pBtnToggleTheSetting->IsEnabled())
+	//		m_pBtnToggleTheSetting->Enable(TRUE);
+	//}
 	// enable the Add <no adaptation> button initially
 	//m_pBtnAddNoAdaptation->Enable(TRUE);
 	// Since there should be at least 1 translation in the existing translations box
@@ -3128,100 +3263,101 @@ void CKBEditor::UpdateButtons()
 	// translation of a given source phrase is removed, the source phrase itself is also removed.
 	// The one time the "Remove" button should be disabled is when the list is empty which occurs
 	// on tab pages having no items.
-	if (m_pListBoxExistingTranslations->GetCount() == 0)
-	{
-		if (m_pBtnRemove->IsEnabled())
-			m_pBtnRemove->Enable(FALSE);
-	}
-	else
-	{
-		if (!m_pBtnRemove->IsEnabled())
-			m_pBtnRemove->Enable(TRUE);
-	}
+	//if (m_pListBoxExistingTranslations->GetCount() == 0)
+	//{
+	//	if (m_pBtnRemove->IsEnabled())
+	//		m_pBtnRemove->Enable(FALSE);
+	//}
+	//else
+	//{
+	//	if (!m_pBtnRemove->IsEnabled())
+	//		m_pBtnRemove->Enable(TRUE);
+	//}
 	// The Remove Some Translations button can be called from any panel of the tabbed
 	// dialog. It lists tgt <> src and a checkbox, in two user choosable formats, in a
 	// child dialog with a large listbox, doing it for ALL target text adaptations (with
 	// their source text shown second) in the whole KB - ie. all lengths of phrase; the
 	// button is enabled in any panel which has at least a single source text key
-	if (m_pListBoxKeys->GetCount() == 0)
-	{
-		if (m_pBtnRemoveSomeTgtEntries->IsEnabled())
-			m_pBtnRemoveSomeTgtEntries->Enable(FALSE);
-	}
-	else
-	{
-		if (!m_pBtnRemoveSomeTgtEntries->IsEnabled())
-			m_pBtnRemoveSomeTgtEntries->Enable(TRUE);
-	}
-	// Enable those buttons meeting certain conditions depending on number of items and selection
-	int nSel = m_pListBoxExistingTranslations->GetSelection();
-	wxString selectedTrans;
-	if (m_pListBoxExistingTranslations->GetCount() > 0)
-		selectedTrans = m_pListBoxExistingTranslations->GetStringSelection();
-	else
-		selectedTrans.Empty();
-	if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel > 0)
-	{
-		// The Move Up button is enabled whenever there are more than 1 translations in the list
-		// and the selected item is not the last one in the list
-		if (!m_pBtnMoveUp->IsEnabled())
-			m_pBtnMoveUp->Enable(TRUE);
-	}
-	else
-	{
-		if (m_pBtnMoveUp->IsEnabled())
-			m_pBtnMoveUp->Enable(FALSE);
-	}
-	if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel < (int)m_pListBoxExistingTranslations->GetCount()-1)
-	{
-		// The Move Down button is enabled whenever there are more than 1 translations in the list
-		// and the selected item is not the first one in the list
-		if (!m_pBtnMoveDown->IsEnabled())
-			m_pBtnMoveDown->Enable(TRUE);
-	}
-	else
-	{
-		if (m_pBtnMoveDown->IsEnabled())
-			m_pBtnMoveDown->Enable(FALSE);
-	}
-	if (m_pEditOrAddTranslationBox->IsModified() && m_pEditOrAddTranslationBox->GetValue() != m_pListBoxExistingTranslations->GetStringSelection())
-	{
-		// The Update button is enabled whenever the edit translation text box is dirty
-		if (!m_pBtnUpdate->IsEnabled())
-			m_pBtnUpdate->Enable(TRUE);
-	}
-	else
-	{
-		if (m_pBtnUpdate->IsEnabled())
-			m_pBtnUpdate->Enable(FALSE);
-	}
-	wxString stringBeingTyped;
-	stringBeingTyped = m_pEditOrAddTranslationBox->GetValue();
-	if (m_pEditOrAddTranslationBox->IsModified() &&  !IsInListBox(m_pListBoxExistingTranslations, stringBeingTyped))
-	{
-		// The Add button is enabled whenever the edit translation text box is dirty, and
-		// the current string in the box is not already in the m_pListBoxExistingTranslations list.
-		if (!m_pBtnAdd->IsEnabled())
-			m_pBtnAdd->Enable(TRUE);
-	}
-	else
-	{
-		if (m_pBtnAdd->IsEnabled())
-			m_pBtnAdd->Enable(FALSE);
-	}
-	if (m_pListBoxExistingTranslations->GetCount() == 0 || IsInListBox(m_pListBoxExistingTranslations, _("<no adaptation>")))
-	{
-		// the AddNoAdaptation button is always enabled unless "<no adaptation>" is in the
-		// m_pListBoxExistingTranslations list
-		if (m_pBtnAddNoAdaptation->IsEnabled())
-		m_pBtnAddNoAdaptation->Enable(FALSE);
-	}
-	else
-	{
-		if (!m_pBtnAddNoAdaptation->IsEnabled())
-			m_pBtnAddNoAdaptation->Enable(TRUE);
-	}
+	//if (m_pListBoxKeys->GetCount() == 0)
+	//{
+	//	if (m_pBtnRemoveSomeTgtEntries->IsEnabled())
+	//		m_pBtnRemoveSomeTgtEntries->Enable(FALSE);
+	//}
+	//else
+	//{
+	//	if (!m_pBtnRemoveSomeTgtEntries->IsEnabled())
+	//		m_pBtnRemoveSomeTgtEntries->Enable(TRUE);
+	//}
+	//// Enable those buttons meeting certain conditions depending on number of items and selection
+	//int nSel = m_pListBoxExistingTranslations->GetSelection();
+	//wxString selectedTrans;
+	//if (m_pListBoxExistingTranslations->GetCount() > 0)
+	//	selectedTrans = m_pListBoxExistingTranslations->GetStringSelection();
+	//else
+	//	selectedTrans.Empty();
+	//if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel > 0)
+	//{
+	//	// The Move Up button is enabled whenever there are more than 1 translations in the list
+	//	// and the selected item is not the last one in the list
+	//	if (!m_pBtnMoveUp->IsEnabled())
+	//		m_pBtnMoveUp->Enable(TRUE);
+	//}
+	//else
+	//{
+	//	if (m_pBtnMoveUp->IsEnabled())
+	//		m_pBtnMoveUp->Enable(FALSE);
+	//}
+	//if (m_pListBoxExistingTranslations->GetCount() > 1 && nSel < (int)m_pListBoxExistingTranslations->GetCount()-1)
+	//{
+	//	// The Move Down button is enabled whenever there are more than 1 translations in the list
+	//	// and the selected item is not the first one in the list
+	//	if (!m_pBtnMoveDown->IsEnabled())
+	//		m_pBtnMoveDown->Enable(TRUE);
+	//}
+	//else
+	//{
+	//	if (m_pBtnMoveDown->IsEnabled())
+	//		m_pBtnMoveDown->Enable(FALSE);
+	//}
+	//if (m_pEditOrAddTranslationBox->IsModified() && m_pEditOrAddTranslationBox->GetValue() != m_pListBoxExistingTranslations->GetStringSelection())
+	//{
+	//	// The Update button is enabled whenever the edit translation text box is dirty
+	//	if (!m_pBtnUpdate->IsEnabled())
+	//		m_pBtnUpdate->Enable(TRUE);
+	//}
+	//else
+	//{
+	//	if (m_pBtnUpdate->IsEnabled())
+	//		m_pBtnUpdate->Enable(FALSE);
+	//}
+	//wxString stringBeingTyped;
+	//stringBeingTyped = m_pEditOrAddTranslationBox->GetValue();
+	//if (m_pEditOrAddTranslationBox->IsModified() &&  !IsInListBox(m_pListBoxExistingTranslations, stringBeingTyped))
+	//{
+	//	// The Add button is enabled whenever the edit translation text box is dirty, and
+	//	// the current string in the box is not already in the m_pListBoxExistingTranslations list.
+	//	if (!m_pBtnAdd->IsEnabled())
+	//		m_pBtnAdd->Enable(TRUE);
+	//}
+	//else
+	//{
+	//	if (m_pBtnAdd->IsEnabled())
+	//		m_pBtnAdd->Enable(FALSE);
+	//}
+	//if (m_pListBoxExistingTranslations->GetCount() == 0 || IsInListBox(m_pListBoxExistingTranslations, _("<no adaptation>")))
+	//{
+	//	// the AddNoAdaptation button is always enabled unless "<no adaptation>" is in the
+	//	// m_pListBoxExistingTranslations list
+	//	if (m_pBtnAddNoAdaptation->IsEnabled())
+	//	m_pBtnAddNoAdaptation->Enable(FALSE);
+	//}
+	//else
+	//{
+	//	if (!m_pBtnAddNoAdaptation->IsEnabled())
+	//		m_pBtnAddNoAdaptation->Enable(TRUE);
+	//}
 }
+*/
 
 bool CKBEditor::IsInListBox(wxListBox* listBox, wxString str)
 {

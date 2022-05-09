@@ -1635,14 +1635,29 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxString archName,OSSystemID,OSSystemIDName,hostName;
 	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
-	// whm 1Dec2021 added conditional define for Mac OSX to use GetBitnessName() 
-	// which is not a known identifier on Linux and Windows
-//#if defined (__WXMAC__) || defined(__WXMSW__)
-#if defined (__WXMAC__) && !defined (__WXMSW__) && !defined(__WXGTK__)
+	// whm 6May2022 revised the following conditional defines to account for 
+	// differences in the wxPlatformInfo class that must be accounted for 
+	// depending on which version of wxWidgets is running under the application
+	// on the platform version in use by the application.
+	// The wxPlatformInfo class changed the name of one of its methods starting
+	// with wxWidgets-3.1.5. The old method name was GetArchName(); the new method
+	// name is GetBitnessName().
+	// To ensure that all 3 platforms can build and run properly, we just have to
+	// detect if the wxWidgets version running is at least 3.1.5 and, if so, call 
+	// the GetBitnessName() method.
+	// If the wxWidgets version is older than version 3.1.5we call GetArchName()
+	// instead.
+#if wxCHECK_VERSION(3, 1, 5)
 	archName = platInfo.GetBitnessName();
-#else
+#else // replacement code for older wxWidgets version
 	archName = platInfo.GetArchName();  // returns "32 bit" on Windows
 #endif
+
+//#if defined (__WXMAC__) /* || defined(__WXMSW__) */
+//	archName = platInfo.GetBitnessName();
+//#else
+//	archName = platInfo.GetArchName();  // returns "32 bit" on Windows
+//#endif
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	OSSystemIDName = platInfo.GetOperatingSystemIdName();
 	//OSMajorVersion = platInfo.GetOSMajorVersion();

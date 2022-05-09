@@ -26819,6 +26819,9 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // (1) From the CAdapt_ItDoc::OnOpenDocument() handler - for non-collaboration documents
 // (2) From the CollabUtilities.cpp's OK_btn_delayedHandler_GetSourceTextFromEditor() 
 //     functionn for collaboration documents.
+// whm 6May2022 modified to ensure that we don't accidentally change the case of any 
+// actual Unicode characters when dealing with an upper case backslash \Uxxxx representation
+// and lower case backslash \uxxxx representation.
 void CAdapt_ItDoc::SetupAutoCorrectHashMap()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -26877,7 +26880,13 @@ void CAdapt_ItDoc::SetupAutoCorrectHashMap()
 							bool bSuccessfulRHS = TRUE;
 							if (lcLHS.Find(_T("\\u")) != wxNOT_FOUND)
 							{
-								convertedLHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(lcLHS, bSuccessfulLHS);
+								// "\u" exists within the lcLHS string
+								// In case there are other actual Unicode chars mixed in we don't pass in the lcLHS (made lower case),
+								// to the ConvertBackslashUxxxxHexValsInStringToStringChars(), but pass in the original case version LHS.
+								// The ConvertBackslashUxxxxHexValsInStringToStringChars() function itself must deal with any cases where 
+								// any uppercase \U instances may be found as well as lower case \u instances without changing the case of 
+								// any actual Unicode characters.
+								convertedLHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(LHS, bSuccessfulLHS);
 								if (!bSuccessfulLHS)
 								{
 									// Couldn't convert the lcLHS string so log this fact in the UserActionLog
@@ -26890,15 +26899,21 @@ void CAdapt_ItDoc::SetupAutoCorrectHashMap()
 							}
 							else
 							{
-								// There are no \uxxxx within the lcLHS, so assign lcLHS to convertedLHS without conversion
-								convertedLHS = lcLHS; 
+								// There are no \uxxxx within the lcLHS, so assign the original LHS (not made into lower case) to convertedLHS as is without conversion
+								convertedLHS = LHS; 
 							}
 							RHS = strBuf.Mid(posSymbol + 3);
 							wxString lcRHS = RHS;
 							lcRHS.MakeLower();
 							if (lcRHS.Find(_T("\\u")) != wxNOT_FOUND)
 							{
-								convertedRHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(lcRHS, bSuccessfulRHS);
+								// "\u" exists within the lcRHS string
+								// In case there are other actual Unicode chars mixed in we don't pass in the lcRHS (made lower case),
+								// to the ConvertBackslashUxxxxHexValsInStringToStringChars(), but pass in the original case version RHS.
+								// The ConvertBackslashUxxxxHexValsInStringToStringChars() function itself must deal with any cases where 
+								// any uppercase \U instances may be found as well as lower case \u instances without changing the case of 
+								// any actual Unicode characters.
+								convertedRHS = pApp->ConvertBackslashUxxxxHexValsInStringToStringChars(RHS, bSuccessfulRHS);
 								if (!bSuccessfulRHS)
 								{
 									// Couldn't convert the lcLHS string so log this fact in the UserActionLog
@@ -26911,8 +26926,8 @@ void CAdapt_ItDoc::SetupAutoCorrectHashMap()
 							}
 							else
 							{
-								// There are no \uxxxx within the lcRHS, so assign lcRHS to convertedRHS without conversion
-								convertedRHS = lcRHS;
+								// There are no \uxxxx within the lcRHS, so assign the original RHS (not made into lower case) to convertedRHS as is without conversion
+								convertedRHS = RHS;
 							}
 							if (!bSuccessfulLHS || !bSuccessfulRHS)
 							{

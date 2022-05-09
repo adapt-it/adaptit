@@ -1013,6 +1013,7 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar22
 {
 	int rv = -1; // initialise to 'fail'
+	rv = rv; // avoid gcc "set but not used warning"
 #if defined(_KBSERVER)
 	bool bSuppressionNeeded = FALSE; // TRUE, to suppress the do_pseudo_delete.exe call if the
 			// calculation of the pKBSvr unexpectedly returns a NULL
@@ -1049,8 +1050,9 @@ void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar
 #endif
 			}
 		}
-#endif
+//#endif
 	}
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
