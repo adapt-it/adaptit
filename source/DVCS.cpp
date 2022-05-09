@@ -529,7 +529,7 @@ DVCSDlg::DVCSDlg(wxWindow *parent)
     // whm 5Mar2019 Note: The DVCSDlgFunc() now uses the wxStdDialogButtonSizer,
     // and so no need to call the ReverseOkCancelButtonsForMac() function. 
 
-    m_comment = (wxTextCtrl*) FindWindowById(IDC_COMMIT_COMMENT);
+    m_comment = (AutoCorrectTextCtrl*) FindWindowById(IDC_COMMIT_COMMENT);
     m_blurb = (wxStaticText*) FindWindowById(IDC_COMMIT_BLURB);
 
 	// BEW 2Dec13 Support RTL languages for top box; use...
