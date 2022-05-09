@@ -1014,7 +1014,7 @@ void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar
 {
 	int rv = -1; // initialise to 'fail'
 	rv = rv; // avoid gcc "set but not used warning"
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER) // BEW 9May22 _KBSERVER is no longer supported in Win, Mac or Linux builds
 	bool bSuppressionNeeded = FALSE; // TRUE, to suppress the do_pseudo_delete.exe call if the
 			// calculation of the pKBSvr unexpectedly returns a NULL
 	if (m_bDeletionDone) // m_bDeletionDone is a public member of this CKB class instance
@@ -1050,9 +1050,8 @@ void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar
 #endif
 			}
 		}
-//#endif
 	}
-#endif
+//#endif - ends _KBSERVER #define
 }
 
 /////////////////////////////////////////////////////////////////////////////////
