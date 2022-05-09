@@ -10043,9 +10043,15 @@ bool CAdapt_ItApp::AutoCorrected(wxTextCtrl* pTextCtrl, wxKeyEvent* pevent) // w
                 wxString subStrBeforeWithChar;
                 // Break up currBoxText into its parts.
                 // The following works whether or not there is a text selection.
-                subStrPartBeforeSelOrInsertionPoint = currBoxText.Mid(0, from);
-                sbuStrSelText = currBoxText.Mid(from, to - from); // Empty if no selection (to == from). Since typing replaces a selection, this part will be replaced by the typed char
-                subStrPartAfterSelOrInsertionPoint = currBoxText.Mid(to, currBoxText.Length());
+                // whm 9May2022 modified further to work properly for multi-line text controls which will have embedded \n characters
+                // delineating the end of lines. To accurately manipulate the substrings that can occur in multi-line text controls
+                // we cannot use the wxString::mid() method but can make use of the text control's GetRange() method which properly
+                // accounts for any embedded \n characters within the multi-line text control. It also works properly for single line
+                // text controls
+                // whm 9May2022 modification to set appropriate segments when the control is a multi-line text control (i.e., has embedded \n chars)
+                subStrPartBeforeSelOrInsertionPoint = pTextCtrl->GetRange(0, from); // must use GetRange() for multi-line text control
+                sbuStrSelText = pTextCtrl->GetRange(from, to); // Empty if no selection (to == from). Since typing replaces a selection, this part will be replaced by the typed char
+                subStrPartAfterSelOrInsertionPoint = pTextCtrl->GetRange(to, pTextCtrl->GetLastPosition());
                 subStrBeforeWithChar = subStrPartBeforeSelOrInsertionPoint + typedChar;
 
                 // Call LookUpStringInAutoCorrectMap() to see if there is an autocorrection available based on subStrBeforeSelOrInsertionPoint and the typedChar
@@ -10056,12 +10062,11 @@ bool CAdapt_ItApp::AutoCorrected(wxTextCtrl* pTextCtrl, wxKeyEvent* pevent) // w
                 {
                     // The typedChar gets swallowed up in the auto-correction, so just add the last part of the editbox string (it would 
                     // be empty if a selection or insertion point was not already at the end of the edit box text.
-                    // Assume the insertion point should be at the end of the autocorrect string subStrAfterAutoCorrect.
-                    long insPoint;
-                    insPoint = subStrAfterAutoCorrect.Length();
+                    // The insertion point should still be at the end of the autocorrect string subStrAfterAutoCorrect as it 
+                    // was determined in the pTextCtrl->GetInsertionPoint() call above.
                     subStrAfterAutoCorrect += subStrPartAfterSelOrInsertionPoint;
                     pTextCtrl->SetValue(subStrAfterAutoCorrect);
-                    pTextCtrl->SetInsertionPoint(insPoint);
+                    pTextCtrl->SetInsertionPoint(InsPoint);
                     // Note: According to the wx docs, SetValue() sets the control as NOT modified, i.e., a call to IsModified() will 
                     // immediately return FALSE at this point. 
                     // The SetValue() call also generates a wxEVT_TEXT event which triggers our OnPhraseBoxChanged() method, but that
