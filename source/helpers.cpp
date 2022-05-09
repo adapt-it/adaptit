@@ -85,7 +85,7 @@
 // these extra includes, for wchar_t support, wxChar, & wxString
 #include <string.h>
 #include <time.h>
-#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"
+//#include "C:\Program Files (x86)\MariaDB 10.5\include\mysql\mysql.h"  // BEW commented out 9May22
 // and put the directory path to MariaDB 10.5's libmariadb.lib object file library into the Additional Library Directories
 // for both Unicode Debug build, and Unicode Release build: the path is: C:\Program Files (x86)\MariaDB 10.5\lib -- I've done that 18Apr22
 //#endif
