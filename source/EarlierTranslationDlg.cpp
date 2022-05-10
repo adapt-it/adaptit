@@ -126,7 +126,7 @@ CEarlierTranslationDlg::CEarlierTranslationDlg(wxWindow* parent) // dialog const
 
 	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
 	// used as a custom control in wxDesigner's EarlierTransDlgFunc() dialog.
-	m_pTgtTextBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_TGT_TEXT);
+	m_pTgtTextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_TEXT);
 	wxASSERT(m_pTgtTextBox != NULL);
 	//m_pTgtTextBox->SetValidator(wxGenericValidator(&m_tgtText));
 

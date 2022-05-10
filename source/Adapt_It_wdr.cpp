@@ -1437,11 +1437,11 @@ wxSizer *EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item1 = new wxTextCtrl( parent, IDC_EDIT_SRC_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,95), wxTE_MULTILINE );
+    wxTextCtrl *item1 = new wxTextCtrl( parent, IDC_EDIT_SRC_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,95), wxTE_MULTILINE|wxTE_READONLY );
     item1->SetToolTip( _("Earlier source text") );
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
-    AutoCorrectTextCtrl *item2 = new AutoCorrectTextCtrl( parent, IDC_EDIT_TGT_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,200), wxTE_MULTILINE );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_TGT_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,200), wxTE_MULTILINE|wxTE_READONLY );
     item2->SetToolTip( _("Earlier translation (target) text") );
     item0->Add( item2, 1, wxGROW|wxALL, 5 );
 
