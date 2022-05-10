@@ -1,4 +1,19 @@
 ﻿----------------------------------------------
+Version 6.10.7  20 May 2022
+----------------------------------------------
+Bug fixes in 6.10.7 update
+---------------------------------------------
+* Fixes for some bugs in the AutoCorrect feature. Corrected a bug that prevented
+AutoCorrect from recognizing uppercase Unicode characters used in the autocorrect.txt
+rules file. Also fixed a bug that prevented AutoCorrect from working properly in multi-
+line text controls that expected target text. Fixed a bug that prevented AutoCorrect
+from working when an AutoCorrect action should happen at the end of a single line text
+control.
+* Fixed a problem in the KB Editor in which the "Update", "Add", and other buttons 
+were wrongly disabled after an AutoCorrect action occurred within the "Add or Edit a 
+Translation" edit box.
+
+----------------------------------------------
 Version 6.10.6  1 March 2022
 ----------------------------------------------
 Bug fixes in 6.10.6 update
