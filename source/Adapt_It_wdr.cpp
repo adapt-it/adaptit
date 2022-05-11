@@ -2056,7 +2056,7 @@ wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item2, 0, wxGROW|wxALL, 0 );
 
-    AutoCorrectTextCtrl *item5 = new AutoCorrectTextCtrl( parent, IDC_ED_SILCONVERTER_INFO, wxT(""), wxDefaultPosition, wxSize(380,200), wxTE_MULTILINE );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, IDC_ED_SILCONVERTER_INFO, wxT(""), wxDefaultPosition, wxSize(380,200), wxTE_MULTILINE|wxTE_READONLY );
     item5->SetToolTip( _("This is a list of consistent changes tables that are available") );
     item0->Add( item5, 1, wxGROW|wxALL, 5 );
 
