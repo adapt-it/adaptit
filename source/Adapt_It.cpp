@@ -44638,8 +44638,20 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         {
             if (strValue == _T("1"))
             {
+                // BEW 10May22 Bill reported that the "KBServer discovery failed" dialog came up repeatedly
+                // until the app crashed from a memory full error, when - from Linux, when no KBsharing is
+                // set up or supported (yet), a packed document file from a project that was a windows one
+                // in which KBsharing was set up, was attempted to be opened and taken possession of. Bill
+                // suspected the rapid repeated dialog showings was probably OnIdle() driven. So I'm using
+                // conditional compiling here to test if Bill's issue disappears
+#if defined (__WXMSW__)
                 m_bIsKBServerProject = TRUE;
                 m_bIsKBServerProject_FromConfigFile = TRUE; // this variable retains the value set
+#else
+                // BEW 10May22, for the present, Linus and OSX should be FALSE, until kbserver is supported
+                m_bIsKBServerProject = FALSE;
+                m_bIsKBServerProject_FromConfigFile = FALSE;
+#endif
             }
             else
             {
