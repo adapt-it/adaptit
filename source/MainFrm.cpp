@@ -2088,8 +2088,10 @@ class AboutDlg : public AIModalDialog
 {
 public:
     AboutDlg(wxWindow *parent);
+	wxSizer* pAboutDlgSizer;
 protected:
 	wxStaticBitmap* m_pbmpAI;
+	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 };
 
 // Implement the AboutDlg class
@@ -2099,7 +2101,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 						wxDefaultSize,
                         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	wxSizer* pAboutDlgSizer;
+	//wxSizer* pAboutDlgSizer;
 	// whm 24Feb2022 added FALSE to second parameter below.
 	// Some of the dialog's controls and label text are likely going to be truncated on the Mac unless we 
 	// resize the dialog to fit it. Note: The constructor's call of AboutDlgFunc(this, FALSE, TRUE);
@@ -2349,6 +2351,20 @@ void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
     dlg.ShowModal();
 }
 
+void AboutDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+{
+	//InitDialog() is not virtual, no call needed to a base class
+	// Note: Set the current version number in wxDesigner in the AboutDlgFunc()
+	pAboutDlgSizer->SetSizeHints(this);
+	pAboutDlgSizer->Layout();
+	// Some of the dialog's controls and label text is likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of AboutDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pAboutDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
+}
 // whm 1Oct12 removed all MRU operations
 /*
 void CMainFrame::OnMRUFile(wxCommandEvent& event) //bool CAdapt_ItApp::OnOpenRecentFile(UINT nID)

@@ -58,9 +58,11 @@ CWelcome::CWelcome(wxWindow* parent) // dialog constructor
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
-	WelcomeDlgFunc(this, TRUE, TRUE);
+	// whm 24Feb2022 added FALSE to second parameter below.
+	// Some of the dialog's controls and label text are likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of WelcomeDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize.
+	pWelcomeDlgSizer = WelcomeDlgFunc(this, FALSE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
     // whm 5Mar2019 Note: The WelcomeDlgFunc() created by wxDesigner has a checkbox in the same
@@ -106,6 +108,17 @@ void CWelcome::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 	pCheckB->SetValue(pApp->m_bSuppressWelcome);
+
+	// On some Linux distros the Welcome dialog doesn't size properly so ask for resize here.
+	pWelcomeDlgSizer->SetSizeHints(this);
+	pWelcomeDlgSizer->Layout();
+	// Some of the dialog's controls and label text is likely going to be truncated on the Mac unless we 
+	// resize the dialog to fit it. Note: The constructor's call of AboutDlgFunc(this, FALSE, TRUE);
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pWelcomeDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // event handling functions
