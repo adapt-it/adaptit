@@ -55,12 +55,14 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           # A release already has sources so skip dpkg created *.tar.gz.
+          # whm 16May2022 added *.tar.gz to files
           files: |
             adaptit/artifacts/*.dsc
             adaptit/artifacts/*.deb
             adaptit/artifacts/*.changes
             adaptit/artifacts/*.buildinfo
             adaptit/artifacts/*.ddeb
+            adaptit/artifacts/*.tar.gz
 
   extra-release-files:
     needs: build-dpkg
