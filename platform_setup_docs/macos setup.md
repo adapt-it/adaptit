@@ -15,6 +15,68 @@ We have to make one change to the wxWidgets library source before building; the 
     //  #define wxDEBUG_LEVEL 2
     #endif
 
+## Environment variables
+
+Setting the environment variables properly is a perennial topic in Adapt It's macOS port discussions. Apple has changed how this is done several times over the years, causing no end of hair-pulling and "how do I do this now?" conversations.
+
+### 12.3 Monterey
+
+As of May 2022, there are two pieces needed to get a good build from _both_ the command line and Xcode itself.
+
+#### ~/.zshenv
+
+1. Create this file if needed: `touch ~/.zshenv`
+2. Open the file in your favorite editor and copy in the stuff below, modifying to match your library directories. We're doing two things:
+  - setting the command line environment vars, so we can build from the command line
+  - telling xcode to use environment.plist (more on that below). Note that this needs to be run each time you log in, before Xcode is launched.
+
+    #set the wxwidgets and boost enviroment vars for the command line
+    export WXWIN=~/dev/3pt/wxWidgets-3.1.6
+    export BOOST_ROOT=~/dev/3pt/boost_1_77_0
+    export WXVER=316
+
+    #set xcode so that it reads the environment vars from environment.plist
+    do_xcode_config ()
+    {
+    defaults write com.apple.dt.Xcode UseSanitizedBuildSystemEnvironment -bool NO
+    }
+
+    do_xcode_config
+    echo "Xcode config set"
+
+
+#### ~/Library/LaunchAgents/environment.plist
+
+1. Same thing here -- create this file if needed: `touch ~/Library/LaunchAgents/environment.plist`
+2. Open the file in your favorite editor and copy in the stuff below, modifying to match your library directories.
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <!--
+    environment.plist
+    -->
+    <plist version="1.0">
+    <dict>
+    <key>Label</key>
+    <string>my.startup</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>sh</string>
+        <string>-c</string>
+        <string>xsx
+            launchctl setenv BOOST_ROOT /Users/erik/dev/3pt/boost_1_77_0
+            launchctl setenv WXVER 30
+            launchctl setenv WXWIN /Users/erik/dev/3pt/wxWidgets-3.1.6
+            launchctl setenv WXWIN30 /Users/erik/dev/3pt//wxWidgets-3.1.6
+            launchctl setenv WXWINSVN /Users/erik/dev/3pt/wxWidgets-svn
+        </string>
+    </array>  
+    <key>RunAtLoad</key>
+    <true/>
+    </dict>
+    </plist>
+
+
 ## Setting the wxwidgets build path 
 
 We’re using a static build of wxWidgets for osx. Part of this setup requires a known path for the library when built -- a configuration that Apple deems "legacy" these days. 
@@ -26,7 +88,7 @@ We’re using a static build of wxWidgets for osx. Part of this setup requires a
 
 ## Command line build / archive
 
-I’ve had some issues with my Xcode build setup over the years that have _not_ been issues from the command line. Provided you’ve got the command line tools for Xcode installed (it should prompt you), you can build from the command line using the following commands:
+Provided you’ve got the command line tools for Xcode installed (the command line should prompt to install if not), you can build from the command line using the following commands:
 
     $ cd dev/adaptit/bin/mac
     $ xcodebuild -project adaptit.xcodeproj -scheme AdaptIt build
