@@ -9,6 +9,7 @@
 # whm modified 26Jun2015 dh_clean -k is deprecated, using dh_prep instead
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
+# whm modified 20May2022 add -Zxz argument to dh_builddeb, i.e., dh_builddeb -- -Zxz
 
 configure: configure-stamp
 configure-stamp:
@@ -71,7 +72,7 @@ binary-arch: build install
 	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
-	dh_builddeb
+	dh_builddeb -- -Zxz
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install configure
