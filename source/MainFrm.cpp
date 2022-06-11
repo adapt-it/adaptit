@@ -4822,10 +4822,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #endif
 
 #if defined(_DEBUG)
-		if (pApp->m_bSupportFreeze)
-		{
-			wxLogDebug(_T("Supporting freeze/thaw: m_nInsertCount = %d   ;  m_bIsFrozen = %d "), (int)pApp->m_nInsertCount, (int)pApp->m_bIsFrozen);
-		}
+		// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+		// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+		//if (pApp->m_bSupportFreeze)
+		//{
+		//	wxLogDebug(_T("Supporting freeze/thaw: m_nInsertCount = %d   ;  m_bIsFrozen = %d "), (int)pApp->m_nInsertCount, (int)pApp->m_bIsFrozen);
+		//}
 #endif
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
@@ -4844,10 +4846,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			pApp->m_bAutoInsert = FALSE;
 		}
 	}
-	else // BEW 21May15, added, to get the freeze count back to 0 when not auto-inserting
-	{
-		pApp->m_nInsertCount = 0;
-	}
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//else // BEW 21May15, added, to get the freeze count back to 0 when not auto-inserting
+	//{
+	//	pApp->m_nInsertCount = 0;
+	//}
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.

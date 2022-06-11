@@ -22637,10 +22637,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
     // of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
     // as well (currently 8)
-    m_bIsFrozen = FALSE;
-    m_bDoFreeze = FALSE;
-    m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
-    m_nInsertCount = 0;
+    // whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+    // correctly, and there is no need for it since the dropdown phrasebox was introduced.
+    //m_bIsFrozen = FALSE;
+    //m_bDoFreeze = FALSE;
+    //m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
+    //m_nInsertCount = 0;
 
 //#if defined(_KBSERVER)
     //m_pServDisc = NULL; // initialize to 0  <- deprecated 18Apr16, & moved to Thread_ServiceDiscovery
@@ -40343,13 +40345,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     data << szNoFootnotesToPTorBE << tab << number;
     pf->AddLine(data);
 
-    if (m_bSupportFreeze)
-        number = _T("1");
-    else
-        number = _T("0");
-    data.Empty();
-    data << szSupportFreezeAndThaw << tab << number;
-    pf->AddLine(data);
+    // whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+    // correctly, and there is no need for it since the dropdown phrasebox was introduced.
+    //if (m_bSupportFreeze)
+    //    number = _T("1");
+    //else
+    //    number = _T("0");
+    //data.Empty();
+    //data << szSupportFreezeAndThaw << tab << number;
+    //pf->AddLine(data);
 
     if (m_bSuppressFirst)
         number = _T("1");
@@ -41904,15 +41908,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 else
                     m_bNoFootnotesInCollabToPTorBE = TRUE;
             }
+            // whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+            // correctly, and there is no need for it since the dropdown phrasebox was introduced.
+            // Since old basic conrig files may have a value szSupportFreezeAndThaw, we'll read it
+            // but it won't get written out to the basic config file any longer.
             else if (name == szSupportFreezeAndThaw)
             {
                 num = wxAtoi(strValue);
-                if (!(num == 0 || num == 1))
-                    num = 0; // default should be FALSE
-                if (num == 0)
-                    m_bSupportFreeze = FALSE;
-                else
-                    m_bSupportFreeze = TRUE;
+                // Ignore any value read in. It won't be handled nor saved since m_bSupportFreeze no longer exists
+                //if (!(num == 0 || num == 1))
+                //    num = 0; // default should be FALSE
+                //if (num == 0)
+                //    m_bSupportFreeze = FALSE;
+                //else
+                //    m_bSupportFreeze = TRUE;
             }
             else if (name == szSuppressFirst)
             {

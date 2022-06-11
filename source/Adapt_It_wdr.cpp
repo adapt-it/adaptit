@@ -1772,11 +1772,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item28, 0, wxLEFT, 5 );
 
     wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item29, 0, wxLEFT, 5 );
-
-    wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
-    item0->Add( item30, 0, wxLEFT|wxBOTTOM, 5 );
+    item0->Add( item29, 0, wxLEFT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
