@@ -806,6 +806,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 	bool bExecutedOK = FALSE; // initialise
 	wxString resultsFilename = wxEmptyString;
+	m_pApp->RemoveDatFileAndEXE(changed_since_timed); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed);
 	if (bConfiguredOK)
 	{
@@ -815,7 +816,6 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
 			resultsFilename, 99, 99, bReportResult);
 	}
-
 	// ***** at step 2, progress
 	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 	// ***** progress
@@ -1050,7 +1050,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) /
 		// this ListUsers, a further boolean m_bKBSharingMgrEntered suppresses any internal call of
 		// LookupUser() when there has been successful entry to the manager. The user may want/need
 		// to make calls to ListUsers() more than once while in the manager.
-
+		m_pApp->RemoveDatFileAndEXE(list_users); // BEW 11May22 added, must precede call of ConfigureDATfile()
 		// Prepare the .dat input dependency: "list_users.dat" file, into
 		// the execPath folder, ready for the ::wxExecute() call below
 		bReady = m_pApp->ConfigureDATfile(list_users); // arg is const int, value 3
@@ -1092,7 +1092,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 		// from showing redundantly -- by code within ConfigureMovedDatFile
 		m_pApp->m_Username2 = whichusername;
 	}
-
+	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	// Prepare the .dat input dependency: "lookup_user.dat" file, into
 	// the execPath folder, ready for the (system() call below. Or, for Windows,
 	// take the prepared do_user_lookup_and_credentials_check.exe into the execPath folder
@@ -1166,7 +1166,7 @@ int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 	{
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
-
+	m_pApp->RemoveDatFileAndEXE(lookup_entry); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
 	// currently in action is '1' or '2' respectively, the same code handles either in
 	// the following blocks.
@@ -1271,8 +1271,8 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks
+	m_pApp->RemoveDatFileAndEXE(create_entry); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(create_entry); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// BEW 5Feb22 a block for debugging failure of CreateEntry to input the src/nonSrc pair to kbserver entry table
@@ -1333,8 +1333,8 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks.
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks.
+	m_pApp->RemoveDatFileAndEXE(pseudo_undelete); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(pseudo_undelete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_undelete.dat input file is now ready for grabbing the command
@@ -1390,8 +1390,8 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks.
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks.
+	m_pApp->RemoveDatFileAndEXE(pseudo_delete); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(pseudo_delete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_delete.dat input file is now ready for grabbing the command
@@ -1589,7 +1589,7 @@ void KbServer::UploadToKbServer()
 	{
 		return; // suppress any mysql access, etc
 	}
-
+	m_pApp->RemoveDatFileAndEXE(upload_local_kb); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(upload_local_kb);
 	if (bConfiguredOK)
 	{

@@ -144,6 +144,6 @@
 // Next two for how long to leave up the info Wait msg when discovering
 //#if defined(_KBSERVER)
 #define MSG_SECONDS 1
-#define MSG_MILLISECONDS 300
+#define MSG_MILLISECONDS 10
 //#endif
 

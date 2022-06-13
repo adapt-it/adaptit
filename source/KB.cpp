@@ -4268,8 +4268,12 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // the ... src text. This led to huge long list of useless items. There's no point in
 // preserving such tgt text additions in the KB. Instead we want an empty list, and the
 // phrasebox to come up empty ready for the user's typing.
+// BEW 13May22 commented out _KBSERVER #defined blocks, and added bool bDid_kbserver so
+// that once it goes TRUE, any KBserver code lower down in this function, if control 
+// enters it, it's block gets skipped
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
+	bool bDidKbserver = FALSE;
 	// Unilaterally do the capitalization of the sentence initial word, if
 	// the relevant conditions comply
 	if (!gbNoTargetCaseEquivalents && m_pApp->m_bSentFinalPunctsTriggerCaps &&
@@ -4699,23 +4703,23 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
-		// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
-#if defined(_DEBUG)
+		// BEW 27Nov14 True hurrying up the guesser in real time -- 16May22 NO! it can slow AI to a crawl
+//#if defined(_DEBUG)
 //		if (m_bGlossingKB)
 //			m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
 //		else
 //			m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
-#endif
+//#endif
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
 		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
 		// app if none is running
-// GDLC 20JUL16
+		// GDLC 20JUL16
 
-		if (m_pApp->AllowSvrAccess(gbIsGlossing))
+		if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
 		{
 			if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 				!m_bGlossingKB)  
@@ -4735,11 +4739,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 						rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
+					bDidKbserver = TRUE; // suppress other entrances on this turn
 				}
 			}
 		}
-
-#endif
+//#endif
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
@@ -4876,12 +4880,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
 
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-// GDLC 20JUL16
-			if (m_pApp->AllowSvrAccess(gbIsGlossing))
+			// GDLC 20JUL16
+			if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
 			{
 				if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 					!m_bGlossingKB)
@@ -4902,11 +4906,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 								rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
+							bDidKbserver = TRUE; // suppress other entries lower down
 						}
 					}
 				}
 			}
-#endif
+//#endif
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -4919,7 +4924,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 
 				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in
-						// the map with appropr. index (key may have been made lc)
+						// the map with appropr. index (key may have been made lowercase)
 				// update the maxWords limit, BEW changed 13Nov10
 				//m_nMaxWords = 1;
 				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
@@ -4940,7 +4945,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					pSrcPhrase->m_bHasKBEntry = TRUE;
 				}
 				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in
-						// the map with appropr. index (key may have been made lc)
+						// the map with appropr. index (key may have been made lower case)
 				// update the maxWords limit
 				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 				{
@@ -5018,7 +5023,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
@@ -5036,8 +5041,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
-// GDLC 20JUL16
-						if (m_pApp->AllowSvrAccess(gbIsGlossing))
+						// GDLC 20JUL16
+						if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
 						{
 							if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 								!m_bGlossingKB)
@@ -5055,10 +5060,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 									wxUnusedVar(rv);
 									wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for PseudoUndelelete"), __FILE__, __FUNCTION__, __LINE__,
 										rv, key.c_str(), pRefString->m_translation.c_str());
+									bDidKbserver = TRUE; // suppress calls to kbserver lower down, on this store run
 								}
 							}
 						}
-#endif
+//#endif
 					}
 					else
 					{
@@ -5182,12 +5188,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefString->m_translation = tgtPhrase;
 					}
 
-#if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
-					// with a case adjustment for the first letter) are defined.
-// GDLC 20JUL16
-					if (m_pApp->AllowSvrAccess(gbIsGlossing))
+					// with a case adjustment for the first letter) are defined. Also at 5263
+//#if defined(_KBSERVER)
+					if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
 					{
 						if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
 							!m_bGlossingKB)
@@ -5207,10 +5212,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 									rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
+								bDidKbserver = TRUE; // suppress any lower call on this run
 							}
 						}
 					}
-#endif
+//#endif
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
@@ -5237,6 +5243,34 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
 								// ensure it gets set if that is what the user wants
 					}
+
+//#if defined(_KBSERVER)
+					if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
+					{
+						if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
+							!m_bGlossingKB)
+							||
+							(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject &&
+								m_bGlossingKB)
+							)
+						{
+							KbServer* pKbSvr = GetMyKbServer();
+							// don't send a <Not In KB> entry to KBserver
+							if (!bStoringNotInKB)
+							{
+								// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+								int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+#if defined (SHOWSYNC)
+								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
+									rv, key.c_str(), pRefString->m_translation.c_str());
+#endif
+								bDidKbserver = TRUE;
+							}
+						}
+					}
+//#endif
+
 				} // end of else block for test: if (!m_bGlossingKB && pRefStr->m_translation == strNot)
 			} // end of else block for test: if (bMatched)
 		} // end of else block for test: if(!bFound) i.e. we actually matched a stored pTU
@@ -5245,6 +5279,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
 							   // to the current store operation only
 	gbMatchedKB_UCentry = FALSE;
+#if defined (SHOWSYNC)
+	wxLogDebug(_T("%s::%s() line %d: exiting StoreText() , key = %s , translation = %s , bool bDidKbserver = %d"), __FILE__, __FUNCTION__, __LINE__,
+		key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 	return TRUE;
 }
 
@@ -5475,7 +5513,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			pRefString->m_translation = tgtPhrase;
 		}
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
@@ -5484,7 +5522,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		// subsequently deleted by him before the present; therefore we must test for the
 		// absence of this src/tgt pair and only upload if the entry really is going to be
 		// a new one.
-// GDLC 20JUL16
+		// GDLC 20JUL16
         if ( (m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
 //		if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
             ||
@@ -5503,7 +5541,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 #endif
 			}
 		}
-#endif
+//#endif
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
@@ -5560,11 +5598,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pRefString->m_translation = tgtPhrase;
 			}
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-// GDLC 20JUL16
+			// GDLC 20JUL16
             if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
 //          if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                 ||
@@ -5583,7 +5621,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 #endif
 				}
 			}
-#endif
+//#endif
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -5662,7 +5700,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
@@ -5680,7 +5718,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
-// GDLC 20JUL16
+						// GDLC 20JUL16
                         if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && m_pApp->KbServerRunning(1))
 //                      if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
                             ||
@@ -5697,7 +5735,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 									rv, key.c_str(), pRefString->m_translation.c_str());
 							}
 						}
-#endif
+//#endif
 					}
 					else
 					{
@@ -5789,7 +5827,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefString->m_translation = tgtPhrase;
 					}
 
-#if defined(_KBSERVER)
+//#if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
@@ -5814,7 +5852,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						}
 
 					}
-#endif
+//#endif
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)

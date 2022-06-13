@@ -2588,6 +2588,23 @@ class CAdapt_ItApp : public wxApp
 	// the appropriate function which configures a .DAT file, locating it in the app's
 	// folder, and populating it with the comma separated commandLine for that .DAT file
 	bool ConfigureDATfile(const int funcNumber);
+	bool m_bExists; // BEW added 14May22,  tracks whether or not the input .dat file exists
+					// in the AI executable's folder
+	// BEW 11May22 This function takes an int value, and uses an internal switch to remove
+	// the indicated input .DAT file, and the associated do_.....exe file from the folder
+	// which hosts the running Adapt_It_Unicode.exe executable. The removals will ensure
+	// that the latest .exe from the _DATA_KB_SHARING folder is moved to the executable's 
+	// folder, and the input .dat file is created and moved there too. This is done every
+	// time a do_....exe function is called, so that we ensure that no stale .exe or .dat
+	// file is used for a new .exe call
+	void RemoveDatFileAndEXE(const int funcNumber);
+	// BEW 31May22, an unsearched for ipAddr, in legacy code, gets matched with a hostname
+	// called _T("unknown") in app's m_ipAddrs_Hostnames array, so that the array's m_pItems
+	// pointer points at something like "192.168.1.107@@@unknown" - in DoDiscoverKBservers();
+	// resulting in a bogus "find" - adding the bogus line to the genuine found kbservers. So
+	// check and remove any such.
+	void RemoveUnknownHosts();
+
 	bool m_bKBEditorEntered; // TRUE if View.cpp OnToolKbEditor(unused wxCommandEvent event) is invoked
 							 // FALSE when the handler is exited. Used for invoking the speedier
 							 // CreateEntry function, for enum value create_entry (=4) when user
@@ -2598,7 +2615,15 @@ class CAdapt_ItApp : public wxApp
 	// internal lines by shortening the contents to have a descriptive line followed by the
 	// filled out commandLine - with the appropriate values for the final .exe file to have
 	void DeleteOldDATfile(wxString filename, wxString execFolderPath);
-	void MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath);
+	void DeleteOldEXEfile(wxString filename, wxString execFolderPath); // deletes do_.....exe,
+			// and internally is identical to DeleteOldDATfile() - using separate names when
+			// the one could do both jobs, is just for documenting convenience
+	
+	//void MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath);
+	bool CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine);
+	// BEW 15May22 DatFileMoveExe() is called in each case of the switch in CreateInputDatFile_AndCopyEXE()
+	void DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath);
+
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
@@ -3811,6 +3836,10 @@ public:
     // a value parameter and not a reference parameter.
 	void CreateInputDatBlanks(wxString execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
+
+	// BEW 3Jun22 support use of wxExecute()
+	wxArrayString m_textIOArray;
+	wxArrayString m_errorsIOArray;
 
 /*
 // Don't use an enum, int values are simpler

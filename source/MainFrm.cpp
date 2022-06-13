@@ -4784,33 +4784,71 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	if (bUserCancelled)
 		bUserCancelled = FALSE; // ensure its turned back off
 
+	// Do support for auto-inserting and the calling of OnePass()
 	if (pApp->m_bAutoInsert)
 	{
+
+		bool bSuccessfulInsertAndMove = FALSE; // BEW 10Jun22, initialise to FALSE here, from 4814 line
 		if (pApp->m_nCurDelay > 0)
 		{
 			DoDelay(); // defined in Helpers.cpp (m_nCurDelay is in tick units)
 		}
 #ifdef SHOW_ONEPASS_BENCHMARKS
-        wxDateTime dt1 = wxDateTime::Now(),
-            dt2 = wxDateTime::UNow();
+		wxDateTime dt1 = wxDateTime::Now(),
+		dt2 = wxDateTime::UNow();
 #endif
-
-        bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is
+		// BEW 11Jun22, test for advancement of the phrasebox; first time, oldSN will be -1, and curSN will be
+		// a valid sequ num, for box location; but the two being unequal gives a correct bHasAdvanced value. 
+		// After that, oldSN will be set, and curSN will be at the later location - next pile or further on
+		// wherever a hole stops the box, and the test for equality will fail, and so an extra idleEvent will
+		// get requested below. But when the user has typed a new adaptation and hits Enter key, OnePass()
+		// will get that new value into the entry table of kbserver in a new row, as wxExecute() will have
+		// been called. The requested extra idleEvent will cause an immediate re-entry to line 4791 above,
+		// and we don't want that reentry to initiate a bogus (2nd) StoreText() done with the existing contents
+		// of the create_entry.dat file. So we have to do the following at this reentry situation:
+		// (a) compare oldSN and curSN - they will be identical because no advancement of the box has had
+		// a chance to happen. So that sets bHasAdvanced to FALSE.
+		// (b) the FALSE value for bHasAdvanced can then be used to do:
+		//  (i) Skip over the OnePass() call, and 
+		//  (ii) Skip over the request for an extra idleEvent - thereby killing the re-entrance issue
+		//  (iii) Halting the sequence of auto-insertions, thereby giving the user the opportunity to
+		//  type something at the next hole, and, in CallExecute() for do_create_entry.exe, allows the
+		// program counter to progress in the normal way, to complete the create_entry block of the switch
+		bool bHasAdvanced = TRUE; // initialise
+		int oldSN = pApp->m_nOldSequNum;
+		int curSN = pApp->m_nActiveSequNum;
+		if (curSN == oldSN)
+		{
+			bHasAdvanced = FALSE;
+		}
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s::%s() line %d, oldSN = %d , curSN = %d, bHasAdvanced = %d\n"), __FILE__, __FUNCTION__, __LINE__,
+			oldSN, curSN, (int)bHasAdvanced);
+#endif
+		// Testing do_create_entry.exe by running the app (in _DEBUG mode) resulted in a re-entrancy 
+		// loop which, if not stopped, would cause and infinite loop of calls of OnePass() until the 
+		// app crashes due to stack overflow. So I've prevented this using oldSN and curSN as above
+		if (bHasAdvanced == TRUE)
+		{
+			// Skip if the phrasebox has not advanced
+			bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
-
-#ifdef SHOW_ONEPASS_BENCHMARKS
-        dt1 = dt2;
-        dt2 = wxDateTime::UNow();
-        wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
-            (dt2 - dt1).Format(_T("%l")).c_str());
-#endif
-
-#if defined(_DEBUG)
+		}
+/* don't slow things down unless we need to investigate
+		#ifdef SHOW_ONEPASS_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
+			(dt2 - dt1).Format(_T("%l")).c_str());
+		#endif
+*/
+		#if defined(_DEBUG)
 		if (pApp->m_bSupportFreeze)
 		{
 			wxLogDebug(_T("Supporting freeze/thaw: m_nInsertCount = %d   ;  m_bIsFrozen = %d "), (int)pApp->m_nInsertCount, (int)pApp->m_bIsFrozen);
 		}
-#endif
+		#endif
+		
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
 		// of OnePass, then again near the end of OnePass - twice in the normal course of
@@ -4818,8 +4856,24 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_bIsGuess = FALSE;
 		if (bSuccessfulInsertAndMove)
 		{
-			//return TRUE; // enable next iteration
-			event.RequestMore(); // added
+			// enable next iteration, but not when so-enabling would result in an infinite loop of reentrancy
+			if (bHasAdvanced)
+			{
+				// If StoreText has done a CallExecute() for the create_entry enum block, then
+				// the user must have made a new translation - which can only be done while the
+				// phrasebox was halted, and in that circumstance, immediately requesting a new
+				// idleEvent be posted, as here, would cause immediate re-entrancy and calling
+				// of OnPass() again wrongly, which would lead to an unending loop until the
+				// app crashs due to stack overflow. Disallowing RequestMore() when the box
+				// has not advanced, kills the reentrancy problem
+				event.RequestMore(); // Bill added
+			}
+			else
+			{
+				// BEW 11Jun22, the phrasebox has not advanced, so bring the
+				// box to a halt, but continue to enable OnIdle calls
+				pApp->m_bAutoInsert = FALSE;
+			}
 		}
 		else
 		{

@@ -3127,8 +3127,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 	if (pOldActivePile != NULL)
 	{
-		wxLogDebug(_T("PlacePhraseBox 3014 at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
-			pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+		wxLogDebug(_T("PlacePhraseBox line = %d at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+			__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
 			pOldActiveSrcPhrase->m_adaption.c_str());
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
