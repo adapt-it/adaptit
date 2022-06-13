@@ -69,7 +69,7 @@
 ; where all the Inno Setup scripts get their version numbers in the form of:
 ;   #define AI_VERSION_MAJOR 6
 ;   #define AI_VERSION_MINOR 10
-;   #define AI_VERSION_BUILD_PART 5
+;   #define AI_VERSION_BUILD_PART 7
 ; and
 ;   #define GIT_VERSION_MAJOR 2
 ;   #define GIT_VERSION_MINOR 32
@@ -77,9 +77,9 @@
 #include "../source/_AIandGitVersionNumbers.h"
 
 #define AIAppName "Adapt It WX Unicode"
-#define AIAppVersion Str(AI_VERSION_MAJOR) + "." +Str(AI_VERSION_MINOR) + "." + Str(AI_VERSION_BUILD_PART) ; 6.10.5
-#define AIAppUnderscoreVersion Str(AI_VERSION_MAJOR) + "_" +Str(AI_VERSION_MINOR) + "_" + Str(AI_VERSION_BUILD_PART) ; 6_10_5
-#define AIInstallerCopyright "2021 by Bruce Waters, Bill Martin, SIL International"
+#define AIAppVersion Str(AI_VERSION_MAJOR) + "." +Str(AI_VERSION_MINOR) + "." + Str(AI_VERSION_BUILD_PART) ; 6.10.7
+#define AIAppUnderscoreVersion Str(AI_VERSION_MAJOR) + "_" +Str(AI_VERSION_MINOR) + "_" + Str(AI_VERSION_BUILD_PART) ; 6_10_7
+#define AIInstallerCopyright "2022 by Bruce Waters, Bill Martin, SIL International"
 #define AIInstallerPublisher "Adapt It"
 #define AIAppURL "http://www.adapt-it.org/"
 #define AIAppFullName "Adapt_It_Unicode.exe"

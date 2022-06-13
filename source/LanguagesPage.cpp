@@ -131,13 +131,26 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	pSrcBox = (wxTextCtrl*)FindWindowById(IDC_SOURCE_LANGUAGE);
 	wxASSERT(pSrcBox != NULL);
 
-	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
-	// used as a custom control in wxDesigner's LanguagesPageFunc() dialog.
-	pTgtBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_TARGET_LANGUAGE);
-	wxASSERT(pTgtBox != NULL);
-
 	pSrcLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE); // whm added 10May10
 	wxASSERT(pSrcLangCodeBox != NULL);
+
+	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
+	// used as a custom control in wxDesigner's CreateNewAIProjForCollabFunc() dialog.
+	// Note: Similar to the "Create New Project" dialog in the "Setup Or Remove Collaboration" 
+	// dialog, this Languages Page of the Wizard takes language names and 
+	// codes BEFORE Adapt It has created a new project folder for the pair of languages / codes 
+	// that are being entered here on this wizard page, so there won't be a project folder yet 
+	// available to contain an autocorrect.txt file for the project. So, even though the 
+	// "Target Language Name" edit box is for target text, and that text control is derived 
+	// from AutoCorrectTextCtrl, no autocorrect.txt rules are yet available in that project, 
+	// and so in actual practice, this edit box will never be able to do any autocorrections. 
+	// Source and Target language names entered here could be copied and pasted from somewhere 
+	// else if they need to contain special characters. The best policy, however, is not to 
+	// use special characters in file names on some OSes. These two names <LanguageA> and 
+	// <LanguageB> are used by default to create a "<LanguageA> to <LanguageB> adaptations" 
+	// folder for the new project.
+	pTgtBox = (AutoCorrectTextCtrl*)FindWindowById(IDC_TARGET_LANGUAGE);
+	wxASSERT(pTgtBox != NULL);
 
 	pTgtLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
 	wxASSERT(pTgtLangCodeBox != NULL);

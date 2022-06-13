@@ -5971,10 +5971,12 @@ public:
 	// (currently is set at 8) Other booleans which are already defined and which will help to
 	// support this feature are: m_bAutoInsert, m_bSingleStep, m_bDrafting. This feature will
 	// appear first in 6.5.9 Pre-Release version (limited distribution)
-	bool m_bIsFrozen;
-	bool m_bDoFreeze;
-	bool m_bSupportFreeze;
-	int  m_nInsertCount;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bool m_bIsFrozen;
+	//bool m_bDoFreeze;
+	//bool m_bSupportFreeze;
+	//int  m_nInsertCount;
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

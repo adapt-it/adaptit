@@ -88,6 +88,19 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 
 	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
 	// used as a custom control in wxDesigner's CreateNewAIProjForCollabFunc() dialog.
+	// Note: Similar to the Languages Page of the Wizard, this CreateNewAIProjForCollabFunc is 
+	// displayed within the "Setup Or Remove Collaboration" dialog, and takes language names and 
+	// codes BEFORE Adapt It has created a new project folder for the pair of languages / codes 
+	// that are being entered here on this dialog, so there won't be a project folder yet 
+	// available to contain an autocorrect.txt file for the project. So, even though the 
+	// "Target Language Name" edit box is for target text, and that text control is derived 
+	// from AutoCorrectTextCtrl, no autocorrect.txt rules are yet available in that project, 
+	// and so in actual practice, this edit box will never be able to do any autocorrections. 
+	// Source and Target language names entered here could be copied and pasted from somewhere 
+	// else if they need to contain special characters. The best policy, however, is not to 
+	// use special characters in file names on some OSes. These two names <LanguageA> and 
+	// <LanguageB> are used by default to create a "<LanguageA> to <LanguageB> adaptations" 
+	// folder for the new project.
 	pTextCtrlTgtLangName = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
 	wxASSERT(pTextCtrlTgtLangName != NULL);
 

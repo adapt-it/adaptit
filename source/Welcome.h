@@ -35,6 +35,7 @@ public:
 	wxCheckBox* pCheckB;
 	wxTextCtrl* pTextCtrlAsStaticWelcome;
 	wxButton* pOKBtn;
+	wxSizer* pWelcomeDlgSizer;
 	bool m_bSuppressWelcome;
 	void OnCheckNolongerShow(wxCommandEvent& WXUNUSED(event));
 

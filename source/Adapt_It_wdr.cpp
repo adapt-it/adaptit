@@ -70,10 +70,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.10.6"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.10.7"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("March16, 2022"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 20, 2022"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->SetToolTip( wxT("This date should be the same as the executable file") );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1437,11 +1437,11 @@ wxSizer *EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item1 = new wxTextCtrl( parent, IDC_EDIT_SRC_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,95), wxTE_MULTILINE );
+    wxTextCtrl *item1 = new wxTextCtrl( parent, IDC_EDIT_SRC_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,95), wxTE_MULTILINE|wxTE_READONLY );
     item1->SetToolTip( _("Earlier source text") );
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
-    AutoCorrectTextCtrl *item2 = new AutoCorrectTextCtrl( parent, IDC_EDIT_TGT_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,200), wxTE_MULTILINE );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_TGT_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,200), wxTE_MULTILINE|wxTE_READONLY );
     item2->SetToolTip( _("Earlier translation (target) text") );
     item0->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -1772,11 +1772,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item28, 0, wxLEFT, 5 );
 
     wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item29, 0, wxLEFT, 5 );
-
-    wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
-    item0->Add( item30, 0, wxLEFT|wxBOTTOM, 5 );
+    item0->Add( item29, 0, wxLEFT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
@@ -2056,7 +2052,7 @@ wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item2, 0, wxGROW|wxALL, 0 );
 
-    AutoCorrectTextCtrl *item5 = new AutoCorrectTextCtrl( parent, IDC_ED_SILCONVERTER_INFO, wxT(""), wxDefaultPosition, wxSize(380,200), wxTE_MULTILINE );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, IDC_ED_SILCONVERTER_INFO, wxT(""), wxDefaultPosition, wxSize(380,200), wxTE_MULTILINE|wxTE_READONLY );
     item5->SetToolTip( _("This is a list of consistent changes tables that are available") );
     item0->Add( item5, 1, wxGROW|wxALL, 5 );
 

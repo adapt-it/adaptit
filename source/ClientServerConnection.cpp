@@ -177,7 +177,10 @@ bool AI_Connection::OnExecute(const wxString& topic, const void *data, size_t si
 				str = _T("wxIPC_TEXT");
 			else if (format == wxIPC_UNICODETEXT)
 				str = _T("wxIPC_UNICODETEXT");
-			wxLogDebug(_T("Main Frame Raised: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+			if (!topic.IsEmpty()) // avoid gcc "set but not used" warning
+			{
+				wxLogDebug(_T("Main Frame Raised: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+			}
             m_pFrame->Raise();
         }
         return TRUE;
@@ -193,7 +196,10 @@ bool AI_Connection::OnExecute(const wxString& topic, const void *data, size_t si
 		str = _T("wxIPC_TEXT");
 	else if (format == wxIPC_UNICODETEXT)
 		str = _T("wxIPC_UNICODETEXT");
-	wxLogDebug(_T("OnRequest: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+	if (!topic.IsEmpty()) // avoid gcc "set but not used" warning
+	{
+		wxLogDebug(_T("OnRequest: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+	}
 	return FALSE;
 }
 	
