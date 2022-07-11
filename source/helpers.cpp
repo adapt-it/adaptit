@@ -12458,6 +12458,13 @@ bool CountCommasForSuccess(wxString dataLine, int minCount)
 // AS WAS PASSED IN. The returned string then is safe for all
 // SQL commands. (I'll also provide an override for dealing with
 // a whole file of data, using this function internally.)
+// BEW 24Jun22 commas within the fields causes misparsing of the SQL, and \, is not
+// a valid escape sequence. The only solution appears to be a documentation one.
+// In form the user of kbserver that there must not be commas within any of the
+// entry's fields. If there are, wxExecute() will fail prematurely.
+// I guess there needs to be a check of source and target at every StoreText() call,
+// or StoreTextGoingBack(), and disallow the store with a warning message to the
+// use that comma is not allowed within the source or target data.
 wxString DoEscapeSingleQuote(wxString& str)
 {
 	size_t len = (size_t)str.Len();
@@ -12476,18 +12483,19 @@ wxString DoEscapeSingleQuote(wxString& str)
 	tempStr.Alloc(longer);
 	while (ptr < pEnd)
 	{
-		if ((*ptr != bkslash) && (*ptr != quote))
+		if ((*ptr != bkslash) && (*ptr != quote) )
 		{
-			// it's neither, so send it to tempStr
+			// it's not one of these two, so send it to tempStr
 			tempStr << *ptr;
 			ptr++; // point at next char
 		}
 		else
 		{
-			// it's either a back slash or a single quote character
-			// bleed out the combination of \ followed by ', as that is already escaped
-			if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+			// it's neither a back slash nor a single quote character, so
+			// bleed out the combination of \ followed by ', as that is already escaped;
+			if ( (*ptr == bkslash) && (*(ptr + 1) == quote) )
 			{
+				// single quote is already escaped
 				tempStr << *ptr; ptr++;
 				tempStr << *ptr; ptr++;
 			}
@@ -12503,7 +12511,7 @@ wxString DoEscapeSingleQuote(wxString& str)
 				else
 				{
 					// It's not a backslash, but it could be a quote - in
-					// which case, we must escape it; or could be some other
+					// which case, we must escape it; or it could be some other
 					// wxChar, in which case we just send it to tempStr
 					if (*ptr == quote)
 					{
@@ -12538,7 +12546,7 @@ wxString DoUnescapeSingleQuote(wxString& str)
 	wxString only_quote = _T("'");
 	wxString tempStr = str;
 	int length = (int)tempStr.Replace(escaped_quote, only_quote);
-	wxUnusedVar(length);
+	wxUnusedVar(length);	
 	return tempStr;
 }
 

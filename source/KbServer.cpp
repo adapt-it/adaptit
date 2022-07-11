@@ -88,6 +88,7 @@ wxCriticalSection g_jsonCritSect;
 #include "Xhtml.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
+#include "XML.h"
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "KBSharingMgrTabbedDlg.h"
@@ -1928,8 +1929,8 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 }
 
 // BEW 26Oct20, created. Populate local_kb_lines.dat from local KB
-bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp, 
-	wxString& execPath, wxString& datFilename, wxString& sourceLanguage, 
+bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
+	wxString& execPath, wxString& datFilename, wxString& sourceLanguage,
 	wxString nonSourceLanguage)
 {
 	if (funcNumber != 9)
@@ -1965,6 +1966,8 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			return FALSE;
 		}
 	}
+	// BEW 21Jun22 calculate a const datetime, so put in each entry line
+	//wxString dateTimeNow = GetDateTimeNow(forXHTML); // from helpers.cpp  <- not needed, the .py does it
 
 	// We now have a running pKB set to the type we want, whether for 
 	// adaptations, or glosses; but since a give AI project can be currently
@@ -1973,32 +1976,59 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 	wxString srcLanguage = sourceLanguage; // from signature
 	wxString nonSrcLanguage = nonSourceLanguage; // from signature
 	wxString comma = _T(',');
+	wxString newline = _T('\n'); // needed for appending to each entryLine for the wxFile collection
+
+	//wxTextFile text_f;
+	// BEW added 5Jul22, next bit, because proper utf8 conversion and saving to a file requires wxFile, wxTextFile is incompatible
+	wxFile utf8f; 
+	//wxString strEntryTableData = _T("EntryTableData"); // use for the wxTextFile
+	//wxString entryTablePath = execPath + strEntryTableData; // path to the EntryTableData file
 
 	wxString datPath = execPath + datFilename; // execPath passed in, ends with PathSeparator char
-	bool bFileExists = ::wxFileExists(datPath);
-	//bool bOpened = FALSE;
-	wxTextFile f;
+	bool bFileExists = ::wxFileExists(datPath); // looking for path to local_kb_lines.dat file
+	//bool bEntryTableFileExists = ::wxFileExists(entryTablePath); // looking for path to EntryTableData file, BEW 5Jul22
+	
 	if (bFileExists)
 	{
 		// delete the file and recreate
 		bool bDeleted = wxRemoveFile(datPath);
 		if (bDeleted)
 		{
-			bFileExists = f.Create(datPath); // for read or write, created empty
+			bFileExists = utf8f.Create(datPath,wxFile::write); // for write, created empty - 
+													// accumulates for local_kb_lines.dat
 		}
 		wxASSERT(bFileExists == TRUE);
 	}
 	else
 	{
 		// create the empty file in the execPath folder
-		bFileExists = f.Create(datPath); // for read or write, created empty
+		bFileExists = utf8f.Create(datPath, wxFile::write); // accumulates for local_kb_lines.dat
 		wxASSERT(bFileExists == TRUE);
 	}
-
+	// BEW 5Jul22 added this test and if/else blocks
+	/*
+	if (bEntryTableFileExists)
+	{
+		// delete the file and recreate
+		bool bDeleted = wxRemoveFile(entryTablePath);
+		if (bDeleted)
+		{
+			bEntryTableFileExists = text_f.Create(entryTablePath); // wxTextFile, for read or write, created empty
+		}
+		wxASSERT(bFileExists == TRUE);
+	}
+	else
+	{
+		// create the empty EntryTableData file in the execPath folder
+		bEntryTableFileExists = text_f.Create(entryTablePath); // for read or write, created empty
+		wxASSERT(bEntryTableFileExists == TRUE);
+	}
+	*/
+	CBString bstr; bstr.Empty(); // initialise
 	wxString src = wxEmptyString;  // initialise these two scratch variables
 	wxString nonSrc = wxEmptyString;
 	// build each "srcLangName,nonSrcLangLine,src,nonSrc,username,type,deleted" in entryLine
-	wxString entryLine = wxEmptyString; 
+	wxString entryLine = wxEmptyString;
 	wxString placeholder = _T("...");
 
 	// Set up the for loop that get's each pRefString's translation text, and bits of it's metadat
@@ -2021,7 +2051,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			}
 			pTU = iter->second;
 			entryLine = wxEmptyString; // clear to empty
-			TranslationsList*	pTranslations = pTU->m_pTranslations;
+			TranslationsList* pTranslations = pTU->m_pTranslations;
 
 			if (pTranslations->IsEmpty())
 			{
@@ -2041,6 +2071,13 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 
 				entryLine = srcLanguage + comma + nonSrcLanguage + comma + src + comma;
 				wxString nonSrc = pRefStr->m_translation; // use 'as is', 
+				// BEW 27Jun22, if nonSrc is an empty string, instead of _T("<no adaptation>")
+				// then play safe - don't send that entry to the remote entry table - it may
+				// cause error
+				if (nonSrc.IsEmpty())
+				{
+					continue;
+				}
 				entryLine += nonSrc + comma;
 
 				// Next, the user - whoever created that entry in the local KB
@@ -2051,6 +2088,12 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				//wxString user = pMetadata->GetWhoCreated();
 				wxString user = m_pApp->m_strUserID;
 				entryLine += user + comma;
+
+				// Add the datetime  (BEW added 21Jun22)
+				//entryLine += dateTimeNow + comma;  // No no! do_upload_local_create.py calculates
+				// a constant datetime, immediately after the connection to mariaDB/kbserver has
+				// been created; and it is inserted into the line to be inserted  in the .py code.
+				// Doing it here makes wxExecute() fail.
 
 				// the kbtype as a string  of length 1
 				wxString strKbType = wxEmptyString;
@@ -2081,17 +2124,35 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				// protocol must work with the time at which the data got inserted
 				// into the remote kbserver's entry table.
 
-				// write out the entry line
-				f.AddLine(entryLine);
-				f.Write();
+				// Escape any single quotes in the data fields
+				entryLine = DoEscapeSingleQuote(entryLine);
+				
+
+				// write out the entry line, for the wxTextFile "EntryTableData", no conversion to utf8
+				if (!entryLine.IsEmpty())
+				{
+					// wxTextFile is okay for UTF16 strings, but is incompatible with wxFile, and doing
+					// a conversion to utf8 would give corrupt utf8
+					//text_f.AddLine(entryLine); // comment out later when working right
+					//text_f.Write();            // comment out later when working right
+
+					// BEW 5Jul22 now handle the wxFile data, for compiling into local_kb_lines.dat as utf8
+					// (entryLine needs a '\n' added, otherwise, the .dat file isn't properly line-sequenced)
+					entryLine += newline;
+					bstr = ConvertToUtf8(entryLine);
+					DoWrite(utf8f, bstr); // defined in XML.cpp
+				}
+
 			}
 		} // end of inner for loop (for ref strings && their metadata): 
 		  // for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 	} // end of outer for loop: for (index = 0; index < numMapsInUse; index++)
-	f.Close();
+	//text_f.Close();
+	// BEW 5Jul22 also flush and close the wxFile instance where the utf8 is stored in local_kb_lines.dat
+	utf8f.Flush();
+	utf8f.Close();
 	return TRUE;
-} 
-
+}
 //=============================== end of KbServer class ============================
 
 //#endif // for _KBSERVER

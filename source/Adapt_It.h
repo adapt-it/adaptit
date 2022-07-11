@@ -2619,10 +2619,16 @@ class CAdapt_ItApp : public wxApp
 			// and internally is identical to DeleteOldDATfile() - using separate names when
 			// the one could do both jobs, is just for documenting convenience
 	
-	//void MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath);
 	bool CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine);
+	// BEW 17Jun22, the next function does just the "AndCopyEXe" part of  CreateInputDatFile_AndCopyEXE (used in the upload of local kb)
+	//bool MoveEXEfile(wxString datFilename, wxString execFilename);
+	// BEW 17Jun22, the next function just does the "CreateInputDatFile" part of CreateInputDatFile_AndCopyEXE(),
+	// and I've added a boolean to the signature so that whether of not to move the .exe to the AI.exe's folder
+	// can be chosen or not. Default is not to do any move, as DatFileMoveExe() now can do that alone
+	//bool GenerateInputDatFile(const int funcNumber, wxString commandLine, bool bMoveIt = FALSE);
+
 	// BEW 15May22 DatFileMoveExe() is called in each case of the switch in CreateInputDatFile_AndCopyEXE()
-	void DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath);
+	void DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove = TRUE);
 
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
@@ -4013,7 +4019,9 @@ public:
 								// sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
-	wxString	m_strKbServerIpAddr; // for the server's ipAddr, something like 192.168.2.8 on a LAN
+	wxString	m_strKbServerIpAddr; // for the server's ipAddr, something like 192.168.1.107 on a LAN or .1.6 
+									 // in a VM's kbserver etc; do a discovery on each change of project
+									 // because the ipAdress can change without warning
 	wxString	m_strKbServerHostname; // we support naming of the KBserver installations, BEW added 13Apr16
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types

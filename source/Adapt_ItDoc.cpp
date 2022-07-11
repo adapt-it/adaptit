@@ -5122,7 +5122,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 
 	if (gpApp->m_versionDate.IsValid())
 		numStr = gpApp->Convert16to8 (gpApp->m_versionDate.Format (_T("%Y-%m-%d %H:%M:%S")));
-																	// %T gives an error on Windows, so we have to spell it out!
+							// %T gives an error on Windows, so we have to spell it out!
 	else
 		numStr = "";
 	bstr += "\" revdate=\"";

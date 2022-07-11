@@ -4227,6 +4227,38 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 	pKeys->Clear(); // get rid of the now hanging pointers
 }
 
+// Return TRUE if there is a comma in either source or target (or gloss) text. False if there is none.
+// Run this at the start of StoreText() and StoreTextGoingBack(), and if there is TRUE returned,
+// use that to exit either function with a warning message to the user; so that no bad data goes
+// into the local KB (and hence no data with commas will go into kbserver's entry table)
+bool CKB::DisallowCommaInKB(CSourcePhrase* pSrcPhrase, wxString tgtPhrase)
+{
+	wxString comma = _T(",");
+	wxString key = pSrcPhrase->m_key;
+	int offset = wxNOT_FOUND;
+	bool bDisallow = FALSE; // initialise
+	bool bDisallowSrc = FALSE; // initialise
+	offset = tgtPhrase.Find(comma);
+	if (offset >= 0)
+	{
+		bDisallow = TRUE;
+	}
+	offset = wxNOT_FOUND;
+	offset = key.Find(comma);
+	if (offset >= 0)
+	{
+		bDisallowSrc = TRUE;
+	}
+	if ((bDisallow == TRUE) || (bDisallowSrc == TRUE))
+	{
+		wxString msg = _T("Warning: A comma ( , ) was found in either the source text ( %s ),\nor the target text ( %s ).\nThis is illegal. The entry will not be stored in the Knowledge Base\nYou should delete the comma from the document now, if possible.\n");
+		wxString title = _T("Disallow commas in source or target text");
+		msg = msg.Format(msg, key.c_str(), tgtPhrase.c_str());
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return TRUE;
+	}
+	return FALSE;
+}
 
 // return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE
 // value to block a move of the phraseBox to another pile) This function's behaviour was
@@ -4271,9 +4303,23 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 13May22 commented out _KBSERVER #defined blocks, and added bool bDid_kbserver so
 // that once it goes TRUE, any KBserver code lower down in this function, if control 
 // enters it, it's block gets skipped
+// BEW 24Jun22, the support of kbserver background local KB sharing, requires sql queries
+// which use comma as a field separator. This support will break if we allow users to
+// have commas within the data to be saved as source text key associated with target text
+// adaptation. So we must check for commas and disallow such data to enter the local KB,
+// and warn the user of the data rejection.
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	bool bDidKbserver = FALSE;
+	// Disallow the saving if there is a comma in either src or tgt. If there was, then
+	// a messave box will have been seen already warning the user that the entry is going
+	// to be ignored - that is, not saved to the KB.
+	bool bDisallow = DisallowCommaInKB(pSrcPhrase, tgtPhrase);
+	if (bDisallow == TRUE)
+	{
+		return TRUE; // the caller must treat this as a valid 'save' operation
+	}
+
 	// Unilaterally do the capitalization of the sentence initial word, if
 	// the relevant conditions comply
 	if (!gbNoTargetCaseEquivalents && m_pApp->m_bSentFinalPunctsTriggerCaps &&
@@ -5302,8 +5348,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 // BEW 14Sep11, updated to reflect the improved code in StoreText()
 // BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
 // after having used the TRUE value if it's value on entry was TRUE)
+// BEW 24Jun22, added test for rejecting comma in data for being saved to KB
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
+	// Disallow the saving if there is a comma in either src or tgt. If there was, then
+	// a messave box will have been seen already warning the user that the entry is going
+	// to be ignored - that is, not saved to the KB.
+	bool bDisallow = DisallowCommaInKB(pSrcPhrase, tgtPhrase);
+	if (bDisallow == TRUE)
+	{
+		return TRUE; // the caller must treat this as a valid 'save' operation
+	}
+
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	wxString strNot = m_pApp->m_strNotInKB;
