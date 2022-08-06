@@ -21356,7 +21356,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += kbType + comma;
 
 		// Finally, we need the timestamp to pass in last
-		commandLine += m_ChangedSinceTimed_Timestamp; // don't need final comma
+		commandLine += m_ChangedSinceTimed_Timestamp + comma,
 
 		// That completes the commandLine string; now put it into
 		// the moved .dat input file, ready for CallExecute() to get
@@ -21377,6 +21377,26 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
 		bool bExists = ::FileExists(datPath);
 		wxTextFile f;
+        // It may not exist in the folder yet, so if bExists is FALSE, then create it there (empty)
+        if (!bExists)
+        {
+            bool bCreatedOK = f.Create(datPath);
+            //wxUnusedVar(bCreatedOK);
+            bCreatedOK = f.Exists();
+            if (bCreatedOK)
+            {
+                bExists = TRUE;
+            }
+            else
+            {
+                wxFileName f2(datPath);
+                wxString msg = _T("%s::%s() line %d: creating an empty changed_since_timed.dat file failed. No download was done. datPath= %s");
+                msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__, datPath.c_str());
+                LogUserAction(msg);
+                wxBell();
+                return;
+            }
+        }
 		if (bExists)
 		{
 			bool bOpened = f.Open(datPath);
@@ -22013,12 +22033,32 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         (*this).m_textIOArray.Clear();
         (*this).m_errorsIOArray.Clear();
         int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
-        long rvalue = 0; // initialise to 'success' result
+        long rvalue = 0L; // initialise to 'success' result
 
         rvalue = wxExecute(execPath, (*this).m_textIOArray, (*this).m_errorsIOArray, flags); // accept default NULL
                                                                             // for final param: const wxExecEnv
         bool bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
 
+        if (!bExecutedSucceeded)
+        {
+            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+            wxString msg;
+            wxString title = _("Create entry warning");
+            wxString ipAddress = m_strKbServerIpAddr;
+            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+            if (bIsEmptyAddress)
+            {
+                ipAddress = _("ipAddress is undefined");
+
+            }
+            msg = msg.Format(_T("Create entry failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                ipAddress.c_str());
+            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+            LogUserAction(msg);
+        }
         //const char* pstart = { "start do_create_entry.exe" }; // avoid path prefix
         //const char* pstart = { "do_create_entry.exe" }; // avoid path prefix
         //        // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
@@ -22046,6 +22086,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		break;
 	case pseudo_delete: // = 5
     {
+        //m_bPseudoDelete = TRUE; // MainFrame's ClearBoolsForStationaryPhraseBox() clears all the 5 bools
+
         // Closing down a document involves calling PutPhraseBoxAtDocEnd(), which would
         // result in a call of do_pseudo_delete.exe being made inappropriately. So the
         // following test protects from that happening. The boolean is set TRUE only
@@ -22071,6 +22113,26 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
                                                                                 // for final param: const wxExecEnv
             bool bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
 
+            if (!bExecutedSucceeded)
+            {
+                // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+                // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+                // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+                // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+                wxString msg;
+                wxString title = _("Pseudo deletion warning");
+                wxString ipAddress = m_strKbServerIpAddr;
+                bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+                if (bIsEmptyAddress)
+                {
+                    ipAddress = _("ipAddress is undefined");
+
+                }
+                msg = msg.Format(_T("Pseudo deletion failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                    ipAddress.c_str());
+                wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+                LogUserAction(msg);
+            }
 
             // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
             // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_pseudo_delete.exe'
@@ -22102,7 +22164,9 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		break;
 	case pseudo_undelete: // = 6
     {
-        // Force bReportResults to FALSE, common repetetive operations
+        m_bPseudoUndelete = TRUE; // jury is out on whether I need this for preventing undelete from causing duplicate entry to be put in kbserver entry table
+
+      // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
         bReportResult = FALSE;
         bSuccessfulSwitch = TRUE;
@@ -22120,6 +22184,26 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
                                                                             // for final param: const wxExecEnv
         bool bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
 
+        if (!bExecutedSucceeded)
+        {
+            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+            wxString msg;
+            wxString title = _("Pseudo undeletion warning");
+            wxString ipAddress = m_strKbServerIpAddr;
+            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+            if (bIsEmptyAddress)
+            {
+                ipAddress = _("ipAddress is undefined");
+
+            }
+            msg = msg.Format(_T("Pseudo undeletion failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                    ipAddress.c_str());
+            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+            LogUserAction(msg);
+        }
         if (bExecutedSucceeded)
         {
             rv = 0;
@@ -22138,6 +22222,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         }
         wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s"),
             __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
+
+        m_bPseudoUndelete = FALSE; // set true at start of block - check comment there
     }
 		break;
 	case lookup_entry: // = 7
@@ -22154,31 +22240,165 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 		break;
 	case changed_since_timed: // = 8
     {
+        //m_bChangedSinceTimed = TRUE; // MainFrame's ClearBoolsForStationaryPhraseBox() clears all the 5 bools
+
         // Force bReportResults to FALSE, common repetetive operations
         // should not give time-delaying GUI messages to disturb user's work
         wxASSERT(resultFile == m_resultDatFileName);
 
         // This one has a progress gauge
         bReportResult = FALSE;
+        int bExecutedSucceeded = FALSE;
 
-        // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
-         // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.exe'
+        // BEW 5Aug22 execPath passed in when testing is:
+         // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_changed_since_timed.exe'
         int rv = 0;
         bSuccessfulSwitch = TRUE;
-        const char* pstart = { "start do_changed_since_timed.exe" }; // avoid path prefix
-                // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
-        rv = system(pstart); // Using temporary CWD - it works and drops a changed_since_timed_results.dat file in pathOnly folder
-        if (rv == 0)
+
+        wxASSERT(execFileName == _T("do_changed_since_timed.exe"));
+        bool bExecPresent = ::FileExists(execPath);
+#if defined (_DEBUG)
+        wxLogDebug(_T("%s::%s() line %d, execPath: %s"), __FILE__,__FUNCTION__,__LINE__, execPath.c_str());
+#endif
+        wxString execFolderPath = pathOnly;
+        wxString datFilename = _T("changed_since_timed.dat");
+        wxString inputDatPath = pathOnly + PathSeparator + datFilename;
+        bool bInputDatPresent = ::FileExists(inputDatPath);
+#if defined (_DEBUG)
+        wxLogDebug(_T("%s::%s() line %d, intputDatPath: %s"), __FILE__, __FUNCTION__, __LINE__, inputDatPath.c_str());
+#endif
+        if (bInputDatPresent && bExecPresent)
         {
-            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
-            bSuccessfulSwitch = FALSE;
-        }
-        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and results .dat file is: %s"),
-            __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
+            rv = -1; // initialise
+
+            wxString command = m_curCommandLine;
+#if defined (_DEBUG)
+            wxLogDebug(_T("%s::%s() line %d, m_curCommandLine: %s"), __FILE__, __FUNCTION__, __LINE__, m_curCommandLine.c_str());
+#endif
+
+            // Using wxExecute, and console hidden, and blocking of window changes in the GUI - see flags
+            //wxArrayString textIOArray, errorsIOArray; <<-- better as App members
+            (*this).m_textIOArray.Clear();
+            (*this).m_errorsIOArray.Clear();
+            //int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
+            long rvalue = 0L; // initialise to 'success' result
+            // the following suucces in downloading the whole of the 192.168.1.7 kbserver contents.
+            rvalue = wxExecute(execPath, (*this).m_textIOArray, (*this).m_errorsIOArray, wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK); // accept default NULL
+                                                                                // for final param: const wxExecEnv
+            bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
+            rv = (int)rvalue;
+
+// TO DO or FIX:  OnePass() is being continually skipped after doing a 2 pile merger. Step it to find why. Also, the 1920 datetime is not getting 
+// lstsync_adaptatins.txt file updated to be the current timestamp. <- FIX
+
+            //const char* pstart = { "do_changed_since_timed.exe" }; // avoid path prefix
+            //        // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
+            //rv = system(pstart); // Using temporary CWD - it works and drops a changed_since_timed_results.dat file in pathOnly folder
+
+            if (rv == 0)
+            {
+                bExecutedSucceeded = TRUE;
+
+                RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty, checks
+                        // that the 1st is really empty, if it is, removes it and resaves the rest of the content
+                bSuccessfulSwitch = TRUE;
+
+                // BEW 5Aug22 force the persistent saving of the returned timestamp when app's m_bTimestampWasEmpty
+                // was set TRUE (MainFrm and KbServer are places where this can get set TRUE - total of 2 locations)
+                // The lastsync_adaptations.txt might be absent, rather than present but empty. Do a hack to check
+                // for absence and if so, set m_bTimestampWasEmpty to TRUE to ensure the lower block is entered
+                wxString lastSyncName = _T("lastsync_adaptations.txt");
+                if (gbIsGlossing)
+                {
+                    lastSyncName = _T("lastsync_glosses.txt");
+                }
+                // need pKbSvr defined, for next two blocks if they get entered
+                KbServer* pKbSvr = NULL;
+                if (gbIsGlossing)
+                {
+                    pKbSvr = GetKbServer(2);
+                }
+                else
+                {
+                    pKbSvr = GetKbServer(1);
+                }
+                wxString lastSyncPath = m_curProjectPath + PathSeparator + lastSyncName;
+#if defined (_DEBUG)
+                wxLogDebug(_T("%s::%s() line %d, lastSyncPath: %s"), __FILE__, __FUNCTION__, __LINE__, lastSyncPath.c_str());
+#endif
+                bool bLastSyncFilePresent = ::FileExists(lastSyncPath);
+                if (!bLastSyncFilePresent)
+                {  
+                    // Make an empty file, as UpdateLastSyncTimestamp() call will fail at its internal call of
+                    // ExportLastSyncTimestamp() if there is at least not an empty file of the right name present
+                    wxTextFile f;
+                    bool bSuccess = pKbSvr->GetTextFileOpened(&f, lastSyncPath);
+                    if (bSuccess)
+                    {
+                        m_bTimestampWasEmpty = TRUE;
+                    }
+                }
+                // Enter the following hack block if the timestamp was empty, or if the file storage does not yet exist
+                if (m_bTimestampWasEmpty)
+                {
+                    // This hack should only need to be invoked once - after that, recent values will get used
+                    wxString resultPath = pathOnly + PathSeparator + m_resultDatFileName;
+ 
+                    // The first line is guaranteed to have the new timestamp value, because of the above
+                    // call of RemoveEmptyInitialLine(). Grab the first line.
+                    wxTextFile f(resultPath);
+                    bool bOpened = f.Open();
+                    if (bOpened)
+                    {
+                        // It was successfully opened, so get it's line count
+                        size_t count = f.GetLineCount();
+                        if (count > 0)
+                        {
+                            // There is at least one line, get the first
+                            wxString firstLineStr = f.GetFirstLine(); // may be empty
+                            f.Close();
+                            // Get the timestamp value of the download, this is what we want to store on disk
+                            wxString returned_timestamp = pKbSvr->ExtractTimestamp(firstLineStr);
+                            wxASSERT(!returned_timestamp.IsEmpty());
+
+                            // Now prepare for calling UpdateLastSyncTimestamp()
+                            pKbSvr->SetLastTimestampReceived(returned_timestamp); // use the accessor
+                            // Now do the update of the value into the file storage
+                            pKbSvr->UpdateLastSyncTimestamp(); // calls ExportLastSyncTimestamp() internally
+                        }
+                    }
+                    m_bTimestampWasEmpty = FALSE; // restore default value
+                }
+            }
+            wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and results .dat file is: %s"),
+                __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
+
+            if (!bExecutedSucceeded)
+            {
+                // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+                // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+                // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+                // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+                wxString msg;
+                wxString title = _("\'Changed since\' warning");
+                wxString ipAddress = m_strKbServerIpAddr;
+                bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+                if (bIsEmptyAddress)
+                {
+                    ipAddress = _("ipAddress is undefined");
+                }
+                msg = msg.Format(_T("\'Changed since\' failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time.\nBut the failure may have some other cause."),
+                    ipAddress.c_str());
+                wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+                LogUserAction(msg);
+            }
+        } // end of TRUE block for test: if (bInputDatPresent)
     }
 		break;
 	case upload_local_kb: // = 9;
     {
+        //m_bUploadLocalKb = TRUE; // MainFrame's ClearBoolsForStationaryPhraseBox() clears all the 5 bools
+
         wxString datFilename = _T("local_kb_lines.dat"); // the lines of local KB entries will get put in this
         KbServer* pKbSvr = NULL;
         // BEW 7Apr22, execPath was being passed in as the path with file at the end,so use
@@ -22279,7 +22499,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             //wxArrayString textIOArray, errorsIOArray; <<-- better as App members
             //(*this).m_textIOArray.Clear();
             //(*this).m_errorsIOArray.Clear();
-            int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
+            //int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added - only needed for wxExecute()
             long rvalue = 0; // initialise to 'success' result
 
 #if defined (_DEBUG)
@@ -23110,6 +23330,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
     nCallCount2 = 0;
+
  
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
@@ -23129,6 +23350,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKBSharingMgrEntered = FALSE; // TRUE if user is allowed entry, clear to FALSE when exiting Mgr
 	m_bChangingPermission = FALSE; // initialise
 	m_bDoingChangePassword = FALSE; // initialise
+
+    m_bTimestampWasEmpty = FALSE; // default
+
 
     // BEW added 1Feb22, during app development, we need a place to store info from
     // the user table of kbserver, used for reliable authentication purposes. We set these
@@ -49800,6 +50024,13 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
     // has the view always present, as the doc and its template get reused)
     CAdapt_ItView* pView = GetView();
     wxASSERT(pView != NULL);
+
+    // BEW 3Aug22 set the OnePass() suppressor booleans to their default FALSE values
+    m_bPseudoUndelete = FALSE; // retain for the present (5Aug)
+    //m_bPseudoDelete = FALSE;
+    //m_bUploadLocalKb = FALSE;
+    //m_bChangedSinceTimed = FALSE;
+    //m_bUpperLowerTransfer = FALSE;
 
     // lock view window updates till done
     wxGetApp().GetMainFrame()->canvas->Freeze();

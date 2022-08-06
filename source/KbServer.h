@@ -214,6 +214,8 @@ public:
 
 	// The functions in this next block do the actual calls to the remote KBserver
 	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
+	wxString FirstTimeGetsAll(); // BEW added 4Aug22: if the stored-in-file timestamp value is empty
+
 	// BEW 10Oct20, take a results file and convert to string array
 	bool	 DatFile2StringArray(wxString& execPath, wxString& resultFile, wxArrayString& arrLines);
 
@@ -279,14 +281,25 @@ public:
 	void	EnableKBSharing(bool bEnable);
 	bool	IsKBSharingEnabled();
 	CKB*	GetKB(int whichType); // whichType is 1 for adapting KB, 2 for glossing KB
+	wxString FixByGettingAll(); // BEW  added 4Aug22, if m_kbServerLastSync is empty (like when it's first time)
+	    // or the relevant lastsync_adaptations.txt or lastsync_glosses.txt (if  glosssing) file
+		// does not yet exist, then CallExecute will fail for a do_changed_since_timed.exe call, so
+		// prevent the failure by detecting m_kbServerLastSync and calling FixByGettingAll() with
+		// a datetime set to 1920. That's safe to do, but wastes some time maybe.
+	// BEW 5Aug22, a public setter for the m_kbServerLastTimeStampReceived timestamp. To be used only
+	// when a changed_since_timed request is done but using a 1920 timestamp because the time stamp
+	// on first run was an empty string. In that case, we download the whole lot, and use this setter
+	// to ensure the lastsync_adaptations.txt file gets reset to a value later than 1920
+	void SetLastTimestampReceived(wxString timestamp);
 
-protected:
+
+
 	// helpers
 
-	// the following is used for opening a wxTextFile - it supports line-based read and
-	// write, and [i] indexing
+	// the following is used for opening a wxTextFile - it supports line-based read and write,
+	// and [i] indexing; BEW 6Aug22: it's public now because changed_since_timed case block needs to use it
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
-
+protected:
 	// two useful utilities for string encoding conversions (Xhtml.h & .cpp has the same)
 	// but we could use wxString::ToUtf8() and wxString::FromUtf8() instead, but the first
 	// would give us a bit more work to do to use with CBString

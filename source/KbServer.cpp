@@ -519,6 +519,11 @@ void KbServer::UpdateLastSyncTimestamp()
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
 
+void KbServer::SetLastTimestampReceived(wxString timestamp)
+{
+	m_kbServerLastTimestampReceived = timestamp;
+}
+
 // This function MUST be called, for any GET operation, from the headers information, which
 // is returned due to a CURLOPT_HEADERFUNCTION specification & a curl_headers_callback()
 // function which loads the header info into str_CURLheaders, a standard string.
@@ -855,13 +860,23 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			//aLine = f.GetFirstLine();
-			//wxString tstamp = ExtractTimestamp(aLine);
-			//wxString tstamp = timeStamp; 
+			// BEW 4Aug22 when doing a changed-since for the first time, the last_sync_adaptations.txt file
+			// (or the last_sync_glossing.txt file if in glossing mode) will be empty when
+			// this function, ChangedSince_Timed(timeStamp,bDoTimestampUpdate) - [flag is default true] is
+			// invoked by the always-running timer firing. That, if nothing is done, would kill the attempt
+			// to do a do_changed_since_timed.exe (or .py) call. An automatic solution is required. The best
+			// thing would be to do a changed_since_timed from "1920-01-01 00:00:00" (a bulk download), because
+			// this would get any new entries for the local KB (at the cost of a bit of time wasted), but
+			// importantly, the download's changed_since_timed_results.dat file will be:
+			// "success,<the timestamp of the sync call>" - which then makes all subsequent calls start from
+			// a correct timestamp of last sync. So the next lines will handle that storage.
+			aLine = f.GetFirstLine();
+			wxString tstamp = ExtractTimestamp(aLine);
+			timeStamp = tstamp;
 			if (!timeStamp.IsEmpty())
 			{
 				// BEW 22Mar22, use the passed in timeStamp value if it is not empty
-				this->m_kbServerLastTimestampReceived = timeStamp; // sets the temporary storage
+				this->m_kbServerLastTimestampReceived = timeStamp; // used when setting the file storage for the timestamp
 					// If UpdateLastSyncTimestamp() is called below, this value is made
 					// semi-permanent (ie. saved to a file for later importing) if
 					// bDoTimestampUpdate is TRUE (see below)
@@ -969,6 +984,19 @@ void KbServer::ClearAllPrivateStorageArrays()
 	m_arrTimestamp.clear();
 }
 
+// BEW  added 4Aug22, if m_kbServerLastSync is empty (like when it's first time)
+// or the relevant lastsync_adaptations.txt or lastsync_glosses.txt (if  glosssing) file
+// does not yet exist, then CallExecute will fail for a do_changed_since_timed.exe call, so
+// prevent the failure by detecting m_kbServerLastSync and calling ForstTimeGetsAll() with
+// a datetime set to 1920. That's safe to do, but wastes some time maybe.
+wxString KbServer::FixByGettingAll()
+{
+	wxString timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+	m_kbServerLastTimestampReceived = timestamp;
+	UpdateLastSyncTimestamp(); // uses m_kbServerLastTimestampReceived's value and gets it stored in file
+	return timestamp;
+}
+
 // BEW 14Jan21 - still relevant for downloads using Leon's solution
 void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 {
@@ -1000,10 +1028,20 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	case changedSince:
 		// get the last sync timestamp value
 		timestamp = GetKBServerLastSync();
+		if (timestamp.IsEmpty())
+		{
+			timestamp = FixByGettingAll();
+			m_pApp->m_bTimestampWasEmpty = TRUE;
+		}
+		else
+		{
+			m_pApp->m_bTimestampWasEmpty = FALSE;
+		}
 #if defined(SYNC_LOGS)
 		wxLogDebug(_T("Doing ChangedSince_Timed() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
-		rval = ChangedSince_Timed(timestamp); // bool bDoTimestampUpdate is default TRUE
+		rval = ChangedSince_Timed(timestamp); // bool bDoTimestampUpdate is default TRUE -- we want the returned timestamp stored
+					// even if doing the whole lot of entries, on the first run for a given kbserver
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
 		if (rval == 0)

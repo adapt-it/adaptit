@@ -2636,6 +2636,12 @@ class CAdapt_ItApp : public wxApp
 	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
 								   // into CallExecute() function
 	void RemoveEmptyInitialLine(const int funcNumber, wxString execPath, wxString resultFile);  // BEW 26Mar22
+
+	// BEw 3Aug22 added new bool.  I may need it to suppress a call of do_pseudo_undelete.exe from
+	// allowing an OnIdle() idle event to cause a duplicate entry to be put into kbserver entry table
+	bool m_bPseudoUndelete; 
+	bool m_bTimestampWasEmpty; // default false - set false in OnInit()
+
 	// BEW created next function 15Nov21 to avoid a link error when the executable is being linked, 
 	// ("System Error ... unable to find libmariadb.dll file") because in the folder where the object files
 	// are (e.g. when developing for Unicode Debug build, it's the folder ...\bin\win32\Unicode Debug\ )

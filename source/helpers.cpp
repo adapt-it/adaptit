@@ -11331,6 +11331,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 			KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
 			dlg.Center();
 			int dlgReturnCode;
+
 here2:		dlgReturnCode = dlg.ShowModal();
 			if (dlgReturnCode == wxID_OK)
 			{ // 2
@@ -11338,7 +11339,6 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// a glossing kb share is also wanted, that source and glosses codes are
 				// set too. Get them set up if not so.
 				bool bUserCancelled = FALSE;
-
 				// BEW 27Jan22 When logging in, it's likely there is no pwd value saved in frame's 
 				// SetKBSvrPassword(pwd); but if authenticating, and the app's current value of 
 				// m_strUserID matches what this dialog shows, and the dlg's m_strNormalPassword has
@@ -11363,12 +11363,13 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// complex, and mostly not worth the bother - but some (e.g. potentially forcing
 				// service discovery dlg open) may be important to keep
 
-				// If the user validation failed, don't continue with further checks
-				if (dlg.m_bError)
-				{
-					pApp->m_bLoginFailureErrorSeen = TRUE;
-					goto bad2;
-				}
+				// If no password entered, the login must fail
+				//if (dlg.m_bError) <<-- this was FALSE when accept without typing a pwd
+				//if (pwd.IsEmpty())
+				//{
+				//	pApp->m_bLoginFailureErrorSeen = TRUE;
+				//	goto bad2;
+				//}
                 // We want valid codes for source and target if sharing the adaptations KB,
                 // and for source and glosses languages if sharing the glossing KB.
                 // (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing
@@ -11530,7 +11531,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 				*/
-bad2:			bSetupKBserverFailed = TRUE;
+				bSetupKBserverFailed = TRUE;  // this line formerly had label  bad2: which is now unreferenced, so removed
 				pApp->m_bAuthenticationCancellation = TRUE;
 				pApp->m_bUserLoggedIn = FALSE;
 			} // 1
