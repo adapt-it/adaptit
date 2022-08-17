@@ -2098,6 +2098,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			TranslationsList::Node* tpos = pTranslations->GetFirst();
 			CRefString* pRefStr = NULL;
 			CRefStringMetadata* pMetadata = NULL;
+			pMetadata = pMetadata; // avoid gcc warning set but not used
 			while (tpos != NULL)
 			{
 				pRefStr = (CRefString*)tpos->GetData();
