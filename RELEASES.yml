@@ -19,10 +19,6 @@ include:
     release: 'focal'
     args: '--unsigned-source --unsigned-changes'
 
-  - distro: 'ubuntu'   # Ubuntu 21.10
-    release: 'impish'
-    args: '--unsigned-source --unsigned-changes'
-
   - distro: 'ubuntu'   # Ubuntu 22.04
     release: 'jammy'
     args: '--unsigned-source --unsigned-changes'

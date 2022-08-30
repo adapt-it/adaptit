@@ -22501,6 +22501,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             //(*this).m_errorsIOArray.Clear();
             //int flags = wxEXEC_HIDE_CONSOLE & wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added - only needed for wxExecute()
             long rvalue = 0; // initialise to 'success' result
+            rvalue = rvalue; // avoid gcc warning of set but not used
 
 #if defined (_DEBUG)
         // make a check that do_upload_local_kb.exe file is located in the execPath wxString,
