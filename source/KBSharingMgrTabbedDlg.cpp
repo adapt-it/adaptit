@@ -330,8 +330,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
  // So here we need to get lookup_user.dat suitably initialized and filled with
  // correct parameters, so do_lookup_user.exe can be called by system(), and return
  // a filled one-line lookup_user_results.dat file, with the usedadmin flag value
- // in it so we can stored it, and use that for the subsequent list users code
- // further below.
+ // in it so we can stored it, and use that for the subsequent list users code further below.
+	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bUserLookupSucceeded = m_pApp->ConfigureDATfile(lookup_user);
 	if (bUserLookupSucceeded)
 	{
@@ -738,10 +738,10 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 	m_pApp->m_bChangingPermission = FALSE; // restore default
 	m_bLegacyEntry = TRUE; // reset default value
 }
-
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event))
 {
 	m_pApp->m_bChangingPermission = TRUE; // BEW 7Jan21 added
+	m_pApp->RemoveDatFileAndEXE(change_permission); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bReady = m_pApp->ConfigureDATfile(change_permission); // arg is const int, value 10
 	if (bReady)
 	{
@@ -765,7 +765,6 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 		LoadDataForPage(0);
 	}
 }
-
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNUSED(event))
 {
 	// Get the new fullname value, not the one in the m_pUserStructForeign - the latter is old one
@@ -777,6 +776,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 	wxLogDebug(_T("%s::%s() line %d: before ConfiDATfile(change_fullname): newFullname: %s (old)m_Username2: %s"),
 		__FILE__,__FUNCTION__,__LINE__, newFullname.c_str(), m_pApp->m_Username2.c_str());
 #endif
+	m_pApp->RemoveDatFileAndEXE(change_fullname); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bReady = m_pApp->ConfigureDATfile(change_fullname); // arg is const int, value 11
 	if (bReady)
 	{
@@ -840,11 +840,11 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 	// Test, it's same as what's in gui text ctrl
 	wxString guiUser2 = m_pTheUsername->GetValue(); // use this if the assert trips
 	wxASSERT(guiUser2 == m_pApp->m_Username2); 
-
 #if defined (_DEBUG)
 	wxLogDebug(_T("%s::%s() line %d: before ConfiDATfile(change_password): newPassword: %s (old)m_Username2: %s , guiUser2: %s"),
 		__FILE__, __FUNCTION__, __LINE__, newPassword.c_str(), m_pApp->m_Username2.c_str(), guiUser2.c_str());
 #endif
+	m_pApp->RemoveDatFileAndEXE(change_password); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bReady = m_pApp->ConfigureDATfile(change_password); // arg is const int, value 12
 	if (bReady)
 	{
@@ -1080,7 +1080,6 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 
 		// Create the new entry in the KBserver's user table
 		int result = -1; // initialize
-
 		// First, copy the strings needed to the temp variables above
 		m_pApp->m_temp_username = strUsername;
 		m_pApp->m_temp_fullname = strFullname;
@@ -1094,6 +1093,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 			&strPassword, bUseradmin, datFilename);
 		if (bCredsOK)
 		{
+			m_pApp->RemoveDatFileAndEXE(credentials_for_user); // BEW 11May22 added, must precede call of ConfigureDATfile() - call does nothing here, yet
 			bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
 			if (bOK)
 			{

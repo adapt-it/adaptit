@@ -143,6 +143,7 @@ public:
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase);
 	void			RemoveManuallyEnteredPlaceholdersFromKB(); // BEW 12Feb20 removes any placeholders stored in KB
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
+	bool			DisallowCommaInKB(CSourcePhrase* pSrcPhrase, wxString tgtPhrase); // BEW added 24Jun22, for StoreText etc
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 	void			DoKBRestore(int& nCount, int& nCumulativeTotal);

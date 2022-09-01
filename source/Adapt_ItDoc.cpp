@@ -22,7 +22,7 @@
 #define maxLen 60
 //#define _AT_PTR
 //#define FIXORDER
-//#define LOGMKRS
+#define LOGMKRS
 const int logStart = 2;
 const int logEnd = 5;
 
@@ -5122,7 +5122,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 
 	if (gpApp->m_versionDate.IsValid())
 		numStr = gpApp->Convert16to8 (gpApp->m_versionDate.Format (_T("%Y-%m-%d %H:%M:%S")));
-																	// %T gives an error on Windows, so we have to spell it out!
+							// %T gives an error on Windows, so we have to spell it out!
 	else
 		numStr = "";
 	bstr += "\" revdate=\"";
@@ -7897,7 +7897,12 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 /// BEW 20Sep19 refactored the unfiltering to unfilter to the position in the list which
 /// is after (rather than before) the CSourcePhrase which carries the filtered info; and likewise
 /// if filtering, to store it to the CSourcePhrase which precedes.
-//  information on the CSourcePhrase which precedes the unfiltered information in the doc
+///  information on the CSourcePhrase which precedes the unfiltered information in the doc
+/// BEW 30Aug22 fixed the following bug: filtering \f ... \f* did not stop at the end of the
+/// filter span, but continued filtering of piles until the next marker was encountered. This
+/// resulted in adaptations being thrown away in the piles following the correct filter span.
+/// The error was a logic error in the code in HasMatchingEndMarker() which caused FALSE to
+/// be returned, instead of TRUE (for a successful match) - and so filtering did not halt.
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 													SPList*& pList, wxString& fixesStr)
@@ -9029,7 +9034,12 @@ h:						bool bIsInitial = TRUE;
 			// the sourcephrase immediately after the section just filtered out
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 4)
+			{
+				int halt_here = 1;
+			}
+#endif
 			pos = pos->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			nCurActiveSequNum = gpApp->m_nActiveSequNum;
@@ -9325,11 +9335,18 @@ g:				bIsUnknownMkr = FALSE;
 					// until a halt is achieved - then control breaks from the loop and the
 					// last pSrcPhrase (deep copy) is made & is added to the sublist which
 					// constitutes the filtering span of instances.
-					if (HasMatchingEndMarker(wholeMkr, pSrcPhr, TRUE)) // 3rd param is 
+					if (HasMatchingEndMarker(wholeMkr, pSrcPhr, TRUE)) // 3rd param is
+
+					// BEW 29Aug22, pSrcPhr was pointing at the earlier location (correctly)
+					// and the halt did not happen because the we want to track, for the HasMatching...(),
+					// the 'next' pile's CSourcePhrase pointer. 
+					// So I think the pointer to pass in should be pSrcPhrNext
+					//if (HasMatchingEndMarker(wholeMkr, pSrcPhraseNext, TRUE)) // 3rd param is 
 						// bSearchInNonbindingMkrs, which is default FALSE for
 						// doing the search in m_markers content, so here it is TRUE
 					{
-						wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());					pSrcPhr = (CSourcePhrase*)pos2->GetData();
+						wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
+						pSrcPhr = (CSourcePhrase*)pos2->GetData();
 
 						// halt here, this pSrcPhr is last in the filterable span
 						break;
@@ -9779,18 +9796,26 @@ g:				bIsUnknownMkr = FALSE;
 					// docVersion 5 I can't think of anything that might be in preStr
 					// and so it is likely to always be empty, but just in case it
 					// isn't, we must preserve whatever is there & transfer it
-				remainderStr = markersStr.Mid(filterableMkrOffset); // this stuff is the
-					// marker for the stuff we are about to filter, and there may
+				remainderStr = markersStr.Mid(filterableMkrOffset + itsLen); // this stuff is whatever
+					// stuff follows the one we are about to filter, -- there may
 					// be other following markers - such as \p or \v etc which need
 					// to be accumulated and forwarded to the CSourcePhrase which
-					// follows the instances about to be filtered out (in docVersion
+					// follows the instance about to be filtered out (in docVersion
 					// 5, remainderStr won't ever have any filtered content data,
 					// but only markers and possibly a verse or chapter number)
-					// We now must remove the marker we found, and retain anything
-					// which remains other than spaces
-				remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
+					// We retain anything which remains following our found marker
+				//remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
 				remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces
 											// remain, then this will empty remainderStr
+											// 
+				// BEW 29Aug22 a reminder, wholeMarker was set earlier at lines 9162++ by this call:
+				//filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
+				//	markersStr, strMarkersToBeFiltered, wholeMkr, wholeShortMkr, endMkr,
+				//	bHasEndmarker, bIsUnknownMkr, nStartingOffset); and further down from here
+				// m_markers is set to the shorter remainder string, after the current wholeMarker
+				// has been dealt with - somewhere near 9760+ or -
+
+											
 				//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 				// okay, we've found a marker to be filtered, we now have to look ahead to find
 				// which sourcephrase instance is the last one in this filtering sequence - we
@@ -9841,7 +9866,8 @@ g:				bIsUnknownMkr = FALSE;
 				// m_markers member later on; likewise for anything still in remainderStr
 
 				posStart = oldPos; // preserve this starting location for later on
-				wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
+				wxLogDebug(_T("%s::%s() , line  %d  STARTING THE FILTERED SPAN wholeMarker =  %s , at nStartLocation sn = %d"), 
+							__FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str(), nStartLocation);
 				// we can commence to build filteredStr now (Note: because filtering stores a
 				// string, rather than a sequence of CSourcePhrase instances, any adaptations
 				// will be thrown away irrecoverably.
@@ -9885,9 +9911,14 @@ g:				bIsUnknownMkr = FALSE;
 				//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 				// Initialize pSrcPhr, to avoid a compiler warning after the loop
 				pSrcPhr = (CSourcePhrase*)pos->GetData(); // redundant, avoids the warning later
+
 				for (pos2 = pos; pos2 != NULL; )
 				{
 					pSrcPhr = (CSourcePhrase*)pos2->GetData();
+
+					wxLogDebug(_T("%s::%s() , line  %d INNER LOOP searching for Halt location:  wholeMarker =  %s , at sn = %d , pSrcPhr->m_key = %s "),
+						__FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str(),  pSrcPhr->m_nSequNumber, pSrcPhr->m_key );
+
 					pos2 = pos2->GetNext(); // advance to next Node of the passed in pList
 					wxASSERT(pSrcPhr);
 					posEnd = pos2; // on exit of the loop, posEnd will be where
@@ -11029,7 +11060,7 @@ bool CAdapt_ItDoc::HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase,
 			return FALSE; // no match is possible
 		}
 		wxString wholeEndMkr = GetLastMarker(endmarkers);
-		if (endMkr == wholeEndMkr)
+		if (mymkr == wholeEndMkr)
 		{
 			// we have a match
 			return TRUE;

@@ -88,6 +88,7 @@ wxCriticalSection g_jsonCritSect;
 #include "Xhtml.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
+#include "XML.h"
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "KBSharingMgrTabbedDlg.h"
@@ -518,6 +519,11 @@ void KbServer::UpdateLastSyncTimestamp()
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
 
+void KbServer::SetLastTimestampReceived(wxString timestamp)
+{
+	m_kbServerLastTimestampReceived = timestamp;
+}
+
 // This function MUST be called, for any GET operation, from the headers information, which
 // is returned due to a CURLOPT_HEADERFUNCTION specification & a curl_headers_callback()
 // function which loads the header info into str_CURLheaders, a standard string.
@@ -806,6 +812,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 	bool bExecutedOK = FALSE; // initialise
 	wxString resultsFilename = wxEmptyString;
+	m_pApp->RemoveDatFileAndEXE(changed_since_timed); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed);
 	if (bConfiguredOK)
 	{
@@ -815,7 +822,6 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
 			resultsFilename, 99, 99, bReportResult);
 	}
-
 	// ***** at step 2, progress
 	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 	// ***** progress
@@ -854,13 +860,23 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 		bIsOpened = f.Open();
 		if (bIsOpened)
 		{
-			//aLine = f.GetFirstLine();
-			//wxString tstamp = ExtractTimestamp(aLine);
-			//wxString tstamp = timeStamp; 
+			// BEW 4Aug22 when doing a changed-since for the first time, the last_sync_adaptations.txt file
+			// (or the last_sync_glossing.txt file if in glossing mode) will be empty when
+			// this function, ChangedSince_Timed(timeStamp,bDoTimestampUpdate) - [flag is default true] is
+			// invoked by the always-running timer firing. That, if nothing is done, would kill the attempt
+			// to do a do_changed_since_timed.exe (or .py) call. An automatic solution is required. The best
+			// thing would be to do a changed_since_timed from "1920-01-01 00:00:00" (a bulk download), because
+			// this would get any new entries for the local KB (at the cost of a bit of time wasted), but
+			// importantly, the download's changed_since_timed_results.dat file will be:
+			// "success,<the timestamp of the sync call>" - which then makes all subsequent calls start from
+			// a correct timestamp of last sync. So the next lines will handle that storage.
+			aLine = f.GetFirstLine();
+			wxString tstamp = ExtractTimestamp(aLine);
+			timeStamp = tstamp;
 			if (!timeStamp.IsEmpty())
 			{
 				// BEW 22Mar22, use the passed in timeStamp value if it is not empty
-				this->m_kbServerLastTimestampReceived = timeStamp; // sets the temporary storage
+				this->m_kbServerLastTimestampReceived = timeStamp; // used when setting the file storage for the timestamp
 					// If UpdateLastSyncTimestamp() is called below, this value is made
 					// semi-permanent (ie. saved to a file for later importing) if
 					// bDoTimestampUpdate is TRUE (see below)
@@ -968,6 +984,19 @@ void KbServer::ClearAllPrivateStorageArrays()
 	m_arrTimestamp.clear();
 }
 
+// BEW  added 4Aug22, if m_kbServerLastSync is empty (like when it's first time)
+// or the relevant lastsync_adaptations.txt or lastsync_glosses.txt (if  glosssing) file
+// does not yet exist, then CallExecute will fail for a do_changed_since_timed.exe call, so
+// prevent the failure by detecting m_kbServerLastSync and calling ForstTimeGetsAll() with
+// a datetime set to 1920. That's safe to do, but wastes some time maybe.
+wxString KbServer::FixByGettingAll()
+{
+	wxString timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+	m_kbServerLastTimestampReceived = timestamp;
+	UpdateLastSyncTimestamp(); // uses m_kbServerLastTimestampReceived's value and gets it stored in file
+	return timestamp;
+}
+
 // BEW 14Jan21 - still relevant for downloads using Leon's solution
 void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 {
@@ -999,10 +1028,20 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	case changedSince:
 		// get the last sync timestamp value
 		timestamp = GetKBServerLastSync();
+		if (timestamp.IsEmpty())
+		{
+			timestamp = FixByGettingAll();
+			m_pApp->m_bTimestampWasEmpty = TRUE;
+		}
+		else
+		{
+			m_pApp->m_bTimestampWasEmpty = FALSE;
+		}
 #if defined(SYNC_LOGS)
 		wxLogDebug(_T("Doing ChangedSince_Timed() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
-		rval = ChangedSince_Timed(timestamp); // bool bDoTimestampUpdate is default TRUE
+		rval = ChangedSince_Timed(timestamp); // bool bDoTimestampUpdate is default TRUE -- we want the returned timestamp stored
+					// even if doing the whole lot of entries, on the first run for a given kbserver
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
 		if (rval == 0)
@@ -1050,7 +1089,7 @@ int KbServer::ListUsers(wxString ipAddr, wxString username, wxString password) /
 		// this ListUsers, a further boolean m_bKBSharingMgrEntered suppresses any internal call of
 		// LookupUser() when there has been successful entry to the manager. The user may want/need
 		// to make calls to ListUsers() more than once while in the manager.
-
+		m_pApp->RemoveDatFileAndEXE(list_users); // BEW 11May22 added, must precede call of ConfigureDATfile()
 		// Prepare the .dat input dependency: "list_users.dat" file, into
 		// the execPath folder, ready for the ::wxExecute() call below
 		bReady = m_pApp->ConfigureDATfile(list_users); // arg is const int, value 3
@@ -1092,7 +1131,7 @@ int KbServer::LookupUser(wxString ipAddr, wxString username, wxString password, 
 		// from showing redundantly -- by code within ConfigureMovedDatFile
 		m_pApp->m_Username2 = whichusername;
 	}
-
+	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	// Prepare the .dat input dependency: "lookup_user.dat" file, into
 	// the execPath folder, ready for the (system() call below. Or, for Windows,
 	// take the prepared do_user_lookup_and_credentials_check.exe into the execPath folder
@@ -1166,7 +1205,7 @@ int KbServer::LookupEntryFields(wxString src, wxString nonSrc)
 	{
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
-
+	m_pApp->RemoveDatFileAndEXE(lookup_entry); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
 	// currently in action is '1' or '2' respectively, the same code handles either in
 	// the following blocks.
@@ -1271,8 +1310,8 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks
+	m_pApp->RemoveDatFileAndEXE(create_entry); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(create_entry); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// BEW 5Feb22 a block for debugging failure of CreateEntry to input the src/nonSrc pair to kbserver entry table
@@ -1333,8 +1372,8 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks.
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks.
+	m_pApp->RemoveDatFileAndEXE(pseudo_undelete); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(pseudo_undelete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_undelete.dat input file is now ready for grabbing the command
@@ -1390,8 +1429,8 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 		m_pApp->m_curNormalTarget = nonSrc;
 	}
 	// Since the nonSrc content could be adaptation, or gloss, depending on whether kbType
-	// currently in action is '1' or '2' respectively, the same code handles either in
-	// the following blocks.
+	// currently in action is '1' or '2' respectively, the same code handles either in the following blocks.
+	m_pApp->RemoveDatFileAndEXE(pseudo_delete); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	m_pApp->ConfigureDATfile(pseudo_delete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_delete.dat input file is now ready for grabbing the command
@@ -1589,7 +1628,7 @@ void KbServer::UploadToKbServer()
 	{
 		return; // suppress any mysql access, etc
 	}
-
+	m_pApp->RemoveDatFileAndEXE(upload_local_kb); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bConfiguredOK = m_pApp->ConfigureDATfile(upload_local_kb);
 	if (bConfiguredOK)
 	{
@@ -1928,8 +1967,8 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 }
 
 // BEW 26Oct20, created. Populate local_kb_lines.dat from local KB
-bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp, 
-	wxString& execPath, wxString& datFilename, wxString& sourceLanguage, 
+bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
+	wxString& execPath, wxString& datFilename, wxString& sourceLanguage,
 	wxString nonSourceLanguage)
 {
 	if (funcNumber != 9)
@@ -1965,6 +2004,8 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			return FALSE;
 		}
 	}
+	// BEW 21Jun22 calculate a const datetime, so put in each entry line
+	//wxString dateTimeNow = GetDateTimeNow(forXHTML); // from helpers.cpp  <- not needed, the .py does it
 
 	// We now have a running pKB set to the type we want, whether for 
 	// adaptations, or glosses; but since a give AI project can be currently
@@ -1973,32 +2014,59 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 	wxString srcLanguage = sourceLanguage; // from signature
 	wxString nonSrcLanguage = nonSourceLanguage; // from signature
 	wxString comma = _T(',');
+	wxString newline = _T('\n'); // needed for appending to each entryLine for the wxFile collection
+
+	//wxTextFile text_f;
+	// BEW added 5Jul22, next bit, because proper utf8 conversion and saving to a file requires wxFile, wxTextFile is incompatible
+	wxFile utf8f; 
+	//wxString strEntryTableData = _T("EntryTableData"); // use for the wxTextFile
+	//wxString entryTablePath = execPath + strEntryTableData; // path to the EntryTableData file
 
 	wxString datPath = execPath + datFilename; // execPath passed in, ends with PathSeparator char
-	bool bFileExists = ::wxFileExists(datPath);
-	//bool bOpened = FALSE;
-	wxTextFile f;
+	bool bFileExists = ::wxFileExists(datPath); // looking for path to local_kb_lines.dat file
+	//bool bEntryTableFileExists = ::wxFileExists(entryTablePath); // looking for path to EntryTableData file, BEW 5Jul22
+	
 	if (bFileExists)
 	{
 		// delete the file and recreate
 		bool bDeleted = wxRemoveFile(datPath);
 		if (bDeleted)
 		{
-			bFileExists = f.Create(datPath); // for read or write, created empty
+			bFileExists = utf8f.Create(datPath,wxFile::write); // for write, created empty - 
+													// accumulates for local_kb_lines.dat
 		}
 		wxASSERT(bFileExists == TRUE);
 	}
 	else
 	{
 		// create the empty file in the execPath folder
-		bFileExists = f.Create(datPath); // for read or write, created empty
+		bFileExists = utf8f.Create(datPath, wxFile::write); // accumulates for local_kb_lines.dat
 		wxASSERT(bFileExists == TRUE);
 	}
-
+	// BEW 5Jul22 added this test and if/else blocks
+	/*
+	if (bEntryTableFileExists)
+	{
+		// delete the file and recreate
+		bool bDeleted = wxRemoveFile(entryTablePath);
+		if (bDeleted)
+		{
+			bEntryTableFileExists = text_f.Create(entryTablePath); // wxTextFile, for read or write, created empty
+		}
+		wxASSERT(bFileExists == TRUE);
+	}
+	else
+	{
+		// create the empty EntryTableData file in the execPath folder
+		bEntryTableFileExists = text_f.Create(entryTablePath); // for read or write, created empty
+		wxASSERT(bEntryTableFileExists == TRUE);
+	}
+	*/
+	CBString bstr; bstr.Empty(); // initialise
 	wxString src = wxEmptyString;  // initialise these two scratch variables
 	wxString nonSrc = wxEmptyString;
 	// build each "srcLangName,nonSrcLangLine,src,nonSrc,username,type,deleted" in entryLine
-	wxString entryLine = wxEmptyString; 
+	wxString entryLine = wxEmptyString;
 	wxString placeholder = _T("...");
 
 	// Set up the for loop that get's each pRefString's translation text, and bits of it's metadat
@@ -2021,7 +2089,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			}
 			pTU = iter->second;
 			entryLine = wxEmptyString; // clear to empty
-			TranslationsList*	pTranslations = pTU->m_pTranslations;
+			TranslationsList* pTranslations = pTU->m_pTranslations;
 
 			if (pTranslations->IsEmpty())
 			{
@@ -2030,6 +2098,7 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 			TranslationsList::Node* tpos = pTranslations->GetFirst();
 			CRefString* pRefStr = NULL;
 			CRefStringMetadata* pMetadata = NULL;
+			pMetadata = pMetadata; // avoid gcc warning set but not used
 			while (tpos != NULL)
 			{
 				pRefStr = (CRefString*)tpos->GetData();
@@ -2041,6 +2110,13 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 
 				entryLine = srcLanguage + comma + nonSrcLanguage + comma + src + comma;
 				wxString nonSrc = pRefStr->m_translation; // use 'as is', 
+				// BEW 27Jun22, if nonSrc is an empty string, instead of _T("<no adaptation>")
+				// then play safe - don't send that entry to the remote entry table - it may
+				// cause error
+				if (nonSrc.IsEmpty())
+				{
+					continue;
+				}
 				entryLine += nonSrc + comma;
 
 				// Next, the user - whoever created that entry in the local KB
@@ -2051,6 +2127,12 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				//wxString user = pMetadata->GetWhoCreated();
 				wxString user = m_pApp->m_strUserID;
 				entryLine += user + comma;
+
+				// Add the datetime  (BEW added 21Jun22)
+				//entryLine += dateTimeNow + comma;  // No no! do_upload_local_create.py calculates
+				// a constant datetime, immediately after the connection to mariaDB/kbserver has
+				// been created; and it is inserted into the line to be inserted  in the .py code.
+				// Doing it here makes wxExecute() fail.
 
 				// the kbtype as a string  of length 1
 				wxString strKbType = wxEmptyString;
@@ -2081,17 +2163,35 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				// protocol must work with the time at which the data got inserted
 				// into the remote kbserver's entry table.
 
-				// write out the entry line
-				f.AddLine(entryLine);
-				f.Write();
+				// Escape any single quotes in the data fields
+				entryLine = DoEscapeSingleQuote(entryLine);
+				
+
+				// write out the entry line, for the wxTextFile "EntryTableData", no conversion to utf8
+				if (!entryLine.IsEmpty())
+				{
+					// wxTextFile is okay for UTF16 strings, but is incompatible with wxFile, and doing
+					// a conversion to utf8 would give corrupt utf8
+					//text_f.AddLine(entryLine); // comment out later when working right
+					//text_f.Write();            // comment out later when working right
+
+					// BEW 5Jul22 now handle the wxFile data, for compiling into local_kb_lines.dat as utf8
+					// (entryLine needs a '\n' added, otherwise, the .dat file isn't properly line-sequenced)
+					entryLine += newline;
+					bstr = ConvertToUtf8(entryLine);
+					DoWrite(utf8f, bstr); // defined in XML.cpp
+				}
+
 			}
 		} // end of inner for loop (for ref strings && their metadata): 
 		  // for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 	} // end of outer for loop: for (index = 0; index < numMapsInUse; index++)
-	f.Close();
+	//text_f.Close();
+	// BEW 5Jul22 also flush and close the wxFile instance where the utf8 is stored in local_kb_lines.dat
+	utf8f.Flush();
+	utf8f.Close();
 	return TRUE;
-} 
-
+}
 //=============================== end of KbServer class ============================
 
 //#endif // for _KBSERVER

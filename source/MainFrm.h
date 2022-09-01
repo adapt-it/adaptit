@@ -257,7 +257,6 @@ public:
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
 	int  GetIpAddrAndHostnameInventory(wxArrayString& compositesArray, 
 			wxArrayString& ipAddrsArray, wxArrayString& namesArray);
-
 private:
 	wxString m_kbserverPassword;
 public:

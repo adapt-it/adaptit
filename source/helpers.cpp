@@ -11331,6 +11331,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 			KBSharingAuthenticationDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
 			dlg.Center();
 			int dlgReturnCode;
+
 here2:		dlgReturnCode = dlg.ShowModal();
 			if (dlgReturnCode == wxID_OK)
 			{ // 2
@@ -11338,7 +11339,6 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// a glossing kb share is also wanted, that source and glosses codes are
 				// set too. Get them set up if not so.
 				bool bUserCancelled = FALSE;
-
 				// BEW 27Jan22 When logging in, it's likely there is no pwd value saved in frame's 
 				// SetKBSvrPassword(pwd); but if authenticating, and the app's current value of 
 				// m_strUserID matches what this dialog shows, and the dlg's m_strNormalPassword has
@@ -11363,12 +11363,13 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// complex, and mostly not worth the bother - but some (e.g. potentially forcing
 				// service discovery dlg open) may be important to keep
 
-				// If the user validation failed, don't continue with further checks
-				if (dlg.m_bError)
-				{
-					pApp->m_bLoginFailureErrorSeen = TRUE;
-					goto bad2;
-				}
+				// If no password entered, the login must fail
+				//if (dlg.m_bError) <<-- this was FALSE when accept without typing a pwd
+				//if (pwd.IsEmpty())
+				//{
+				//	pApp->m_bLoginFailureErrorSeen = TRUE;
+				//	goto bad2;
+				//}
                 // We want valid codes for source and target if sharing the adaptations KB,
                 // and for source and glosses languages if sharing the glossing KB.
                 // (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing
@@ -11530,7 +11531,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 				*/
-bad2:			bSetupKBserverFailed = TRUE;
+				bSetupKBserverFailed = TRUE;  // this line formerly had label  bad2: which is now unreferenced, so removed
 				pApp->m_bAuthenticationCancellation = TRUE;
 				pApp->m_bUserLoggedIn = FALSE;
 			} // 1
@@ -12458,6 +12459,13 @@ bool CountCommasForSuccess(wxString dataLine, int minCount)
 // AS WAS PASSED IN. The returned string then is safe for all
 // SQL commands. (I'll also provide an override for dealing with
 // a whole file of data, using this function internally.)
+// BEW 24Jun22 commas within the fields causes misparsing of the SQL, and \, is not
+// a valid escape sequence. The only solution appears to be a documentation one.
+// In form the user of kbserver that there must not be commas within any of the
+// entry's fields. If there are, wxExecute() will fail prematurely.
+// I guess there needs to be a check of source and target at every StoreText() call,
+// or StoreTextGoingBack(), and disallow the store with a warning message to the
+// use that comma is not allowed within the source or target data.
 wxString DoEscapeSingleQuote(wxString& str)
 {
 	size_t len = (size_t)str.Len();
@@ -12476,18 +12484,19 @@ wxString DoEscapeSingleQuote(wxString& str)
 	tempStr.Alloc(longer);
 	while (ptr < pEnd)
 	{
-		if ((*ptr != bkslash) && (*ptr != quote))
+		if ((*ptr != bkslash) && (*ptr != quote) )
 		{
-			// it's neither, so send it to tempStr
+			// it's not one of these two, so send it to tempStr
 			tempStr << *ptr;
 			ptr++; // point at next char
 		}
 		else
 		{
-			// it's either a back slash or a single quote character
-			// bleed out the combination of \ followed by ', as that is already escaped
-			if ((*ptr == bkslash) && (*(ptr + 1) == quote))
+			// it's neither a back slash nor a single quote character, so
+			// bleed out the combination of \ followed by ', as that is already escaped;
+			if ( (*ptr == bkslash) && (*(ptr + 1) == quote) )
 			{
+				// single quote is already escaped
 				tempStr << *ptr; ptr++;
 				tempStr << *ptr; ptr++;
 			}
@@ -12503,7 +12512,7 @@ wxString DoEscapeSingleQuote(wxString& str)
 				else
 				{
 					// It's not a backslash, but it could be a quote - in
-					// which case, we must escape it; or could be some other
+					// which case, we must escape it; or it could be some other
 					// wxChar, in which case we just send it to tempStr
 					if (*ptr == quote)
 					{
@@ -12538,7 +12547,7 @@ wxString DoUnescapeSingleQuote(wxString& str)
 	wxString only_quote = _T("'");
 	wxString tempStr = str;
 	int length = (int)tempStr.Replace(escaped_quote, only_quote);
-	wxUnusedVar(length);
+	wxUnusedVar(length);	
 	return tempStr;
 }
 

@@ -20,7 +20,7 @@
 /// wxScrollingDialog when built with wxWidgets prior to version 2.9.x, but derived 
 /// from wxDialog for version 2.9.x and later. The AutoCorrectTextCtrl class derives 
 /// from wxTextCtrl.
-/////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////// 
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
@@ -2588,6 +2588,23 @@ class CAdapt_ItApp : public wxApp
 	// the appropriate function which configures a .DAT file, locating it in the app's
 	// folder, and populating it with the comma separated commandLine for that .DAT file
 	bool ConfigureDATfile(const int funcNumber);
+	bool m_bExists; // BEW added 14May22,  tracks whether or not the input .dat file exists
+					// in the AI executable's folder
+	// BEW 11May22 This function takes an int value, and uses an internal switch to remove
+	// the indicated input .DAT file, and the associated do_.....exe file from the folder
+	// which hosts the running Adapt_It_Unicode.exe executable. The removals will ensure
+	// that the latest .exe from the _DATA_KB_SHARING folder is moved to the executable's 
+	// folder, and the input .dat file is created and moved there too. This is done every
+	// time a do_....exe function is called, so that we ensure that no stale .exe or .dat
+	// file is used for a new .exe call
+	void RemoveDatFileAndEXE(const int funcNumber);
+	// BEW 31May22, an unsearched for ipAddr, in legacy code, gets matched with a hostname
+	// called _T("unknown") in app's m_ipAddrs_Hostnames array, so that the array's m_pItems
+	// pointer points at something like "192.168.1.107@@@unknown" - in DoDiscoverKBservers();
+	// resulting in a bogus "find" - adding the bogus line to the genuine found kbservers. So
+	// check and remove any such.
+	void RemoveUnknownHosts();
+
 	bool m_bKBEditorEntered; // TRUE if View.cpp OnToolKbEditor(unused wxCommandEvent event) is invoked
 							 // FALSE when the handler is exited. Used for invoking the speedier
 							 // CreateEntry function, for enum value create_entry (=4) when user
@@ -2598,13 +2615,33 @@ class CAdapt_ItApp : public wxApp
 	// internal lines by shortening the contents to have a descriptive line followed by the
 	// filled out commandLine - with the appropriate values for the final .exe file to have
 	void DeleteOldDATfile(wxString filename, wxString execFolderPath);
-	void MoveBlankDatFile(wxString filename, wxString dataFolderPath, wxString execFolderPath);
+	void DeleteOldEXEfile(wxString filename, wxString execFolderPath); // deletes do_.....exe,
+			// and internally is identical to DeleteOldDATfile() - using separate names when
+			// the one could do both jobs, is just for documenting convenience
+	
+	bool CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine);
+	// BEW 17Jun22, the next function does just the "AndCopyEXe" part of  CreateInputDatFile_AndCopyEXE (used in the upload of local kb)
+	//bool MoveEXEfile(wxString datFilename, wxString execFilename);
+	// BEW 17Jun22, the next function just does the "CreateInputDatFile" part of CreateInputDatFile_AndCopyEXE(),
+	// and I've added a boolean to the signature so that whether of not to move the .exe to the AI.exe's folder
+	// can be chosen or not. Default is not to do any move, as DatFileMoveExe() now can do that alone
+	//bool GenerateInputDatFile(const int funcNumber, wxString commandLine, bool bMoveIt = FALSE);
+
+	// BEW 15May22 DatFileMoveExe() is called in each case of the switch in CreateInputDatFile_AndCopyEXE()
+	void DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove = TRUE);
+
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
 			wxString resultFile, int waitSuccess, int waitFailure, bool bReportResult = FALSE);
 	wxString m_resultDatFileName;  // scratch variable for getting filename from ConfigureDATfile()
 								   // into CallExecute() function
 	void RemoveEmptyInitialLine(const int funcNumber, wxString execPath, wxString resultFile);  // BEW 26Mar22
+
+	// BEw 3Aug22 added new bool.  I may need it to suppress a call of do_pseudo_undelete.exe from
+	// allowing an OnIdle() idle event to cause a duplicate entry to be put into kbserver entry table
+	bool m_bPseudoUndelete; 
+	bool m_bTimestampWasEmpty; // default false - set false in OnInit()
+
 	// BEW created next function 15Nov21 to avoid a link error when the executable is being linked, 
 	// ("System Error ... unable to find libmariadb.dll file") because in the folder where the object files
 	// are (e.g. when developing for Unicode Debug build, it's the folder ...\bin\win32\Unicode Debug\ )
@@ -3812,6 +3849,10 @@ public:
 	void CreateInputDatBlanks(wxString execPth);
 	bool AskIfPermissionToAddMoreUsersIsWanted();
 
+	// BEW 3Jun22 support use of wxExecute()
+	wxArrayString m_textIOArray;
+	wxArrayString m_errorsIOArray;
+
 /*
 // Don't use an enum, int values are simpler
 	const int noDatFile = 0;
@@ -3984,7 +4025,9 @@ public:
 								// sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
-	wxString	m_strKbServerIpAddr; // for the server's ipAddr, something like 192.168.2.8 on a LAN
+	wxString	m_strKbServerIpAddr; // for the server's ipAddr, something like 192.168.1.107 on a LAN or .1.6 
+									 // in a VM's kbserver etc; do a discovery on each change of project
+									 // because the ipAdress can change without warning
 	wxString	m_strKbServerHostname; // we support naming of the KBserver installations, BEW added 13Apr16
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
@@ -5942,10 +5985,12 @@ public:
 	// (currently is set at 8) Other booleans which are already defined and which will help to
 	// support this feature are: m_bAutoInsert, m_bSingleStep, m_bDrafting. This feature will
 	// appear first in 6.5.9 Pre-Release version (limited distribution)
-	bool m_bIsFrozen;
-	bool m_bDoFreeze;
-	bool m_bSupportFreeze;
-	int  m_nInsertCount;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bool m_bIsFrozen;
+	//bool m_bDoFreeze;
+	//bool m_bSupportFreeze;
+	//int  m_nInsertCount;
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

@@ -143,17 +143,44 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	column[1].SetWidth(280);
 	m_pListCtrlIpAddrs->InsertColumn(1, column[1]);
 	// can recover each columns string from the user's selected line
+	// BEW 21Jun22, if a kbserver expected is not running, hostname will be "unknown"
+	// (e.g. ipaddr and hostname stored in basic config file, but that kbserver is off
+	// for some reason), check for unknown and make the line have a space for both
+	// ipaddress and hostname when that is the case.
 	for (index = 0; index < lineCount; index++)
 	{
 		wxListItem item;
+		bool bHostKnown = TRUE;
+		wxString spaceOnly = _T(" ");
+		hostname = m_hostnamesArr.Item(index);
+		if (hostname == _T("unknown"))
+		{
+			bHostKnown = FALSE;
+		}
 		item.SetId(index);
 		m_pListCtrlIpAddrs->InsertItem(item); // put this line item (still empty) into the list
 		ipAddr = m_ipAddrsArr.Item(index);
-		m_pListCtrlIpAddrs->SetItem(index, 0, ipAddr); // set first column string to the ip address
+		if (bHostKnown)
+		{
+			m_pListCtrlIpAddrs->SetItem(index, 0, ipAddr); // set first column string to the ip address
+		}
+		else
+		{
+			m_pListCtrlIpAddrs->SetItem(index, 0, spaceOnly); // because that kbserver isn't running
+		}
 		hostname = m_hostnamesArr.Item(index);
-
-		m_pListCtrlIpAddrs->SetItem(index, 1, hostname); // set second column string to the user's typed-in name
-		m_pListCtrlIpAddrs->SetItemFont(index, *pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line
+		if (bHostKnown)
+		{
+			m_pListCtrlIpAddrs->SetItem(index, 1, hostname); // set second column string to the user's typed-in name
+		}
+		else
+		{
+			m_pListCtrlIpAddrs->SetItem(index, 1, spaceOnly); // because that kbserver isn't running
+		}
+		if (bHostKnown)
+		{
+			m_pListCtrlIpAddrs->SetItemFont(index, *pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line
+		}
 	}
 }
 

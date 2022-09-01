@@ -88,7 +88,9 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempHighlightAutoInsertions = TRUE;
 	tempShowAdminMenu = pApp->m_bShowAdministratorMenu;
 	tempNotLegacySourceTextCopy = FALSE;
-	bTempFreezeAndThaw = FALSE;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bTempFreezeAndThaw = FALSE;
 
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
@@ -108,8 +110,10 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
 	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
 
-	m_pCheckFreezeAndThaw = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FREEZE_THAW);
-	wxASSERT(m_pCheckFreezeAndThaw != NULL);
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//m_pCheckFreezeAndThaw = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FREEZE_THAW);
+	//wxASSERT(m_pCheckFreezeAndThaw != NULL);
 
 //#if defined(FWD_SLASH_DELIM)
 	m_pCheckboxSolidusSupport = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SOLIDUS_WDBREAK);
@@ -291,8 +295,10 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
     pApp->m_bLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
 
 	// Get checkbox value for the support of freeze &  thaw
-	bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
-	pApp->m_bSupportFreeze = bTempFreezeAndThaw;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
+	//pApp->m_bSupportFreeze = bTempFreezeAndThaw;
 
 	/* refactored 22Mar09, this value no longer needed now we have no bundles
 	// so set it to a value which we can output in the config file safely but not use
@@ -419,8 +425,10 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
 
 	// BEW 21May15 added next two lines
-	bTempFreezeAndThaw = pApp->m_bSupportFreeze;
-	m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bTempFreezeAndThaw = pApp->m_bSupportFreeze;
+	//m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
 
 	// transfer initial values to controls
 	wxString strTemp;

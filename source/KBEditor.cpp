@@ -1761,7 +1761,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	CRefString* pRefString = (CRefString*)pos->GetData();
 	wxASSERT(pRefString == pTheRefStr); // verify we got it
 
-#if defined(_DEBUG) && defined(DUALS_BUG)
+#if defined(_DEBUG) //&& defined(DUALS_BUG)
 	wxString flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
 	wxLogDebug(_T("OnButtonRemove(): found pRefString with m_translation = %s  m_bDeleted = %s"),
 		pRefString->m_translation.c_str(), flag.c_str());

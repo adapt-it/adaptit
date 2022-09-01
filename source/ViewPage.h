@@ -59,7 +59,9 @@ public:
 	wxCheckBox*		m_pCheckWelcomeVisible;
 	wxCheckBox*		m_pCheckHighlightAutoInsertedTrans;
 	wxCheckBox*		m_pCheckLegacySourceTextCopy;
-	wxCheckBox*		m_pCheckFreezeAndThaw;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//wxCheckBox*		m_pCheckFreezeAndThaw;
 	wxPanel*		m_pPanelAutoInsertColor;
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
@@ -87,7 +89,9 @@ public:
 	bool	tempHighlightAutoInsertions;
 	bool	tempShowAdminMenu;
 	bool	tempNotLegacySourceTextCopy;
-	bool	bTempFreezeAndThaw;
+	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
+	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
+	//bool	bTempFreezeAndThaw;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

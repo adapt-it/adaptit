@@ -3127,8 +3127,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 	if (pOldActivePile != NULL)
 	{
-		wxLogDebug(_T("PlacePhraseBox 3014 at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
-			pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+		wxLogDebug(_T("PlacePhraseBox line = %d at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+			__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
 			pOldActiveSrcPhrase->m_adaption.c_str());
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -4552,15 +4552,24 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // frame to fully cover the canvas in the main window.
 	CMainFrame* pFrame = pApp->GetMainFrame();
 
-	wxSize frameClientSize = pFrame->GetClientSize();
+	// whm 10July2022 modified after Bruce noted that the compose bar was being opened during a Print Preview
+	// operation, thus reducing the size of the modal Preview window. It is probably best to have the Preview
+	// window created to be the same size at the main frame window.
+	// Hence:
+	// The previewPosition.x can remain calculated as previously - moving it right by thickness of frame.
+	// The previewPosition.y, should be changed upward to simply be the upper left position of the overall main frame,
+	// instead of the canvasPosition.
+	// The frameClientSize calculation should then be the size of the overall main frame.
+	// Since the composebar is automatically opening its height includes the height of the compose bar.
+	wxSize frameClientSize = pFrame->GetSize(); // GetClientSize();
 	// The controlbar is always visible on the main frame
-	wxSize controlbarSize = pFrame->m_pControlBar->GetSize();
+	//wxSize controlbarSize = pFrame->m_pControlBar->GetSize();
 	wxPoint framePosition = pFrame->GetPosition();
-	wxPoint canvasPosition = pFrame->canvas->GetPosition();
-	wxPoint previewPosition = framePosition + canvasPosition;
+	//wxPoint canvasPosition = pFrame->canvas->GetPosition();
+	wxPoint previewPosition = framePosition; //wxPoint previewPosition = framePosition + canvasPosition;
 	previewPosition.x += wxSystemSettings::GetMetric(wxSYS_FRAMESIZE_X); // move to the
 														// right by thickness of frame
-	previewPosition.y += controlbarSize.y; // move the preview down just below the toolbar
+	//previewPosition.y += controlbarSize.y; // move the preview down just below the toolbar
 	CAIPrintPreviewFrame *frame = new CAIPrintPreviewFrame(pApp, preview, pApp->GetMainFrame(),
 								previewTitle, previewPosition, frameClientSize);
 	//wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame()

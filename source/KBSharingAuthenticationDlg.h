@@ -89,6 +89,7 @@ public:
 	wxString m_strNormalUsername;
 	wxString m_strNormalIpAddr;
 	wxString m_strNormalPassword;
+	wxTextCtrl* pwdCtrlPtr = m_pPasswordCtrl;
 
 	//KbServer* m_pForManagerKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other

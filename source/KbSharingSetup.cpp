@@ -51,6 +51,7 @@
 #include "KBSharingAuthenticationDlg.h" //  misnamed, it's actually just an authentication class
 #include "KbSharingSetup.h"
 
+
 // event handler table
 BEGIN_EVENT_TABLE(KbSharingSetup, AIModalDialog)
 	EVT_INIT_DIALOG(KbSharingSetup::InitDialog)
@@ -160,6 +161,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (chosenIpAddr.IsEmpty())
 	{
 		// Get service discovery done
+
 		wxCommandEvent discoveryEvent; // a dummy event, discovery doesn't use it
 		pFrame->OnDiscoverKBservers(discoveryEvent);
 		if (m_pApp->m_bServDiscSingleRunIsCurrent)
@@ -307,6 +309,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bAuthenticated = m_pApp->m_bUserLoggedIn;
 	
 	}
+
 	// What follows in OnOK() can only be done if there was successful authentication
 #ifdef _DEBUG
 //	int halt_here = 1;

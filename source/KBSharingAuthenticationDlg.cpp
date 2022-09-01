@@ -230,6 +230,18 @@ void KBSharingAuthenticationDlg::OnOK(wxCommandEvent& myevent)
 		this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 		return; // to the dialog window to have another try
 	}
+
+	// BEW 3Aug22 add a similar test like above, for the m_pPasswordCtrl, to keep dlg open till a password is typed
+	wxString strPwd;
+	strPwd = m_pPasswordCtrl->GetValue();
+	if (strPwd.IsEmpty())
+	{
+		wxString msg = _("The password text box is empty. You must type a password.");
+		wxString title = _("Password needed");
+		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+		this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
+		return;
+	}
 	// We now have something in the ipAddress box -- it might not be a valid ipAddress,
 	// but we'll try it. We save values on the app, because the KbServer instance we are using is
 	// m_pApp->m_pKbServer_ForManager, and the latter we destroy immediately on exit
