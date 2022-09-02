@@ -109,10 +109,10 @@ public:
 	wxSizer* pViewFilteredMaterialDlgSizer;
 
 	void OnCancel(wxCommandEvent& WXUNUSED(event)); // CAdapt_ItCanvas accesses this, so it's public
+	void OnOK(wxCommandEvent& WXUNUSED(event));
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void ReinterpretEnterKeyPress(wxCommandEvent& event);
-	void OnOK(wxCommandEvent& WXUNUSED(event));
 	void OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED(event));
 	void OnLbnSelchangeListMarkerEnd(wxCommandEvent& event);
 	void OnEnChangeEditMarkerText(wxCommandEvent& WXUNUSED(event));

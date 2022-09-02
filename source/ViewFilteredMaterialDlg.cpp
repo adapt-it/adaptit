@@ -128,7 +128,9 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 
 CViewFilteredMaterialDlg::~CViewFilteredMaterialDlg() // destructor
 {
-	
+	// whm 01Sep2022 moved the followin assignment here from the OnOK() handler
+	gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
+										// ViewFilteredMaterialDlg dialog is active/inactive
 }
 
 void CViewFilteredMaterialDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
@@ -213,6 +215,14 @@ void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(e
 void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
+	// whm 01Set2022 added code here in InitDialog() to get fresh value/address for dialog's edit control pointer.
+	// This didn't have any affect on dialog ghosting, but won't hurt and this is done within the NoteDlg's
+	// InitDialog() method.
+	// Testing indicates ghosting problem still exists!!
+	wxASSERT(this == pApp->m_pViewFilteredMaterialDlg);
+	pMkrTextEdit = (AutoCorrectTextCtrl*)pApp->m_pViewFilteredMaterialDlg->FindWindowById(IDC_EDIT_MARKER_TEXT);
+	wxASSERT(pMkrTextEdit != NULL);
 
 	// get the strings to be used for the Remove... button's title
 	btnStr = _("Remove %s"); //IDS_REMOVE_BT_OR_FREE
@@ -744,13 +754,24 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd(wxCommandEvent& event
 // if the dialog is modeless.
 // BEW 5Mar10, updated for support of doc version 5
 // BEW 23Apr15 added support for / used as a word-breaking character
+// whm 01Sep2022 modified to prevent "ghosting" - when dialog is being 
+// destroyed and a new dialog taking its place. This modification added a delete 
+// call on the dialog pointer after Destory() here in OnOK(). 
+// Also moved the pDoc->Modify(TRUE) call up to make this handler more simmetrical 
+// to the code in the NoteDlg's OnOK() handler.
 void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	// get a pointer to the CSourcePhrase instance
 	CSourcePhrase* pSrcPhrase;
 	pSrcPhrase = pView->GetSrcPhrase(gpApp->m_nSequNumBeingViewed);
+
+	// Mark the doc as dirty, so that Save command becomes enabled.
+    // whm 01Sep2022 moved here from below, we should assume something got changed 
+	// if OnOK() was called.
+	pDoc->Modify(TRUE);
 
 	// test for no filtered information being present now (user may have removed any free
 	// translation or back translation present earlier, and they were all that was there)
@@ -888,22 +909,36 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 #endif
 		}
 	}
-	gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
-										// ViewFilteredMaterialDlg dialog is active/inactive
+
+	// whm 01Sep2022 moved the following assignment of m_nSequNumBeingViewed to -1 to the class Destructor
+	// So it will allow us to Call the OnOK() handler from the Adapt_ItCanvas's OnLButtonDown() handler
+	// if we decide to do so.
+	//gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
+	//									// ViewFilteredMaterialDlg dialog is active/inactive
 
     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
     gpApp->m_bUserDlgOrMessageRequested = TRUE;
 
     Destroy();
-	// wx version: See note in OnCancel(). Here, however calling delete doesn't appear to be necessary.
-	// No memory leaks detected in the wx version.
-	//delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak
+
+	// whm 01Sep2022 modification.
+	// Compare to the NoteDlg where it is sometimes also necessary to create a new dialog
+	// while the current one is open. Here with the ViewFilteredMaterialDlg dialog a similar thing 
+	// happens, with dialogs needing to be programattically closed and new ones created with the new 
+	// operator. In both cases it is assumed that the user would want to save any edits done in the
+	// dialog, so OnOK() is called from the Canvas' OnLButtonDown() handler in order to save any edits
+	// and destroy the old dialog and a new one created with the new operator. 
+	// Extensive testing shows that it is necessary to call delete on the App's 
+	// dialog pointer to prevent a new dialog from appearing as a "ghost" dialog - having no data in
+	// its controls. Calling delete on the destroyed dialog's pointer is only necessary here within
+	// the dialog's OnOK() handler. Calling delete should NOT be done within OnCancel(), otherwise we
+	// get an app crash when the x close dialog icon is clicked on Windows systems.
+	if (gpApp->m_pViewFilteredMaterialDlg != NULL)
+		delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak
 	gpApp->m_pViewFilteredMaterialDlg = NULL;
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
-	gpApp->GetDocument()->Modify(TRUE); // BEW added 28Nov12, we should assume something got changed
-										// if OnOK() was called
 	//AIModalDialog::OnOK(event); // we are running modeless so don't call the base method
 }
 
@@ -911,6 +946,10 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 // The function either calls EndModal(wxID_CANCEL) if the dialog is modal, or sets the 
 // return value to wxID_CANCEL and calls Show(false) if the dialog is modeless.
 // BEW 5Mar10, no changes needed for support of doc version 5
+// whm 01Sep2022 modified to remove the delete operator call on the dialog pointer which
+// within OnCancel() should never be done, otherwise a crash in the Windows version may
+// happen when closing the dialog with the x icon at upper right in the dialog. The appropriate
+// calls within a modeless dialog's OnCancel() are Destroy(), and setting the dialog pointer to NULL.
 void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -919,12 +958,21 @@ void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
     gpApp->m_bUserDlgOrMessageRequested = TRUE;
 
     Destroy();
-	// wx version: Unless delete is called on the App's pointer to the dialog below, a "ghost" dialog
-	// appears (with no data in controls) when clicking on a different green wedge when the dialog 
-	// was still open at a different green wedge location. 
-	if (gpApp->m_pViewFilteredMaterialDlg != NULL) // whm 11Jun12 added NULL test
-		delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak // harmful in wx!!!
-	gpApp->m_pViewFilteredMaterialDlg = NULL; // allow the Note dialog to be opened
+
+	// whm 01Sep2022 Note: The app on Windows was crashing when the user clicks on the x icon
+	// of the dialog to close the dialog. Clicking on the x icon in the dialog results in control going
+	// through this OnCancel() handler. But what happes within the OS event system is different - at least
+	// on Windows. No crash was happening on Linux, and no crash would happen in any case, if the actual
+	// "Cancel" button within the dialog is clicked. 
+	// For other mode-less dialogs such as the Find, Replace, EarlierTranslationDlg,
+	// etc, Destroy() is called in their OnCancel() and OnOK() handlers, and their App's dialog pointer 
+	// is assigned to NULL. That should really be the case here for the ViewFilteredMatterDlg too. 
+	// Generally, we should never call delete on a modeless dialog's pointer, at least from within its
+	// OnCancel() method. Calling delete from within a dialog's OnOK() handler may be needed to prevent a
+	// "ghost" dialog from appearing when a new dialog is replacing an already existing one. 
+	// Calling Destroy() and setting the dialog's pointer to NULL is all that should be done within this
+	// OnCancel() method in order to close the modeless dialog.
+	gpApp->m_pViewFilteredMaterialDlg = NULL; // allow a new NoteDlg dialog to be opened
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();

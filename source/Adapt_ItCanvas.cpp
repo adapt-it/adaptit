@@ -778,19 +778,22 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// from the current note dialog which is about to become disposed of - we have to restore the
 	// text in that one as filtered note text at that source phrase location before the new
 	// one is opened. If the click was not intended that way, then too bad - the note dialog
-	// will close as if the OK button was pressed, which is safe because no information is lost
+	// will close as if the OK button was pressed, which is safe because no information is lost.
 	// whm 29Mar12 Note: Clicks to close a Note dialog should be honored in read-only mode.
 	wxRect dlgRect;
 	if (pApp->m_pNoteDlg != NULL)
 	{
-		// a note dialog is open, so check for a click outside it's rectangle
-		// whm note: since the MFC app's OnLButtonDown is in the View, It would seem the
-		// following call to GetWindowRect() would wrongly assign the dimensions of the View's
-		// window rather than the m_pNoteDlg's window to dlgRect. Wouldn't the correct MFC call be
-		// m_pNoteDlg->GetWindowRect(&dlgRect)? The MFC version seems to react correctly, however,
-		// so there must be something I'm not seeing correctly about the following call to GetWindowRect.
-		// For the wx version, I here call GetRect on the dialog's window pointer m_pNoteDlg.
-		// Not sure why MFC versions works, but this does too, so I'll do it this way.
+		// whm 01Sep2022 revised comment. 
+		// A note dialog is open, so check for a click outside it's rectangle, which would
+		// likely indicate a click on a Note icon in the text - either a different note or
+		// the same Note that is open. In either case we need to destroy the existing Note
+		// dialog, saving any changes, that might have been made. What is needed here is the
+		// same action that our CNoteDlg::OnOK() handler does, so we will call that OnOK() 
+		// handler from here in OnLButtonDown(). Note that the OnOK() handler calls Destroy()
+		// on the dialog, and also calls delete on the dialog's App pointer pApp->m_pNoteDlg
+		// in order to prevent the new dialog (created below) from just presenting a "ghost"
+		// dialog without any data in it. 
+		// 
 		dlgRect = pApp->m_pNoteDlg->GetRect(); // gets it as screen coords
 
 		// if the point is not in this rect, then close it as if OK was pressed
@@ -803,7 +806,37 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 			gpNotePile = NULL;
 		}
 	}
+	
+	// whm 01Sept2022 added a block that checks whether a ViewFilteredDlg is already open and if so,
+	// we'll assme here (as with the NoteDlg above) that this is intended as a click to open a 
+	// different green wedge to view filtered information - without losing any text edit 
+	// within the view dialog's edit window. As with the NoteDlg (above), the ViewFilteredMaterial
+	// dialog will close as if the OK button was pressed, which is safe because no information is lost.
+	if (pApp->m_pViewFilteredMaterialDlg != NULL)
+	{
+		// whm 01Sep2022 revised comment
+		// A view filtered material dialog is open, so check for a click outside it's rectangle, which would
+		// likely indicate a click on a green wedge icon in the text - either a different green wedge
+		// or the same ViewFilteredMaterial dialog that is open. In either case we need to destroy the 
+		// existing ViewFilteredMaterial dialog, saving any changes, that might have been made. 
+		// What is needed here is the same action that our CViewFilteredMaterialDlg::OnOK() handler does, 
+		// so we will call that OnOK() handler from here in OnLButtonDown(). Note that the OnOK() handler 
+		// calls Destroy() on the dialog, and also calls delete on the dialog's App pointer 
+		// pApp->m_pViewFilteredMaterialDlg in order to prevent the new dialog (created below) from just 
+		// presenting a "ghost" dialog without any data in it. 
+		// 
+		dlgRect = pApp->m_pViewFilteredMaterialDlg->GetRect(); // gets it as screen coords
 
+		// if the point is not in this rect, then close it as if OK was pressed
+		if (!dlgRect.Contains(point))
+		{
+			bClickWasProductive = TRUE;
+			wxCommandEvent cevent(wxID_OK);
+			pApp->m_pViewFilteredMaterialDlg->OnOK(cevent);
+			pApp->m_pViewFilteredMaterialDlg = NULL;
+		}
+	}
+	
 	// get the point into logical coordinates
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
@@ -954,14 +987,24 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                         // CViewFilteredMaterialDlg before creating another one
 						if (pApp->m_pViewFilteredMaterialDlg != NULL)
 						{
-                            // user has clicked on another green wedge with the current
+                            // whm 01Sep2022 modified and Note.
+							// User has clicked on another green wedge with the current
                             // modeless dialog still open. Assume the user did not intend
                             // to save any changes (since he failed to click on OK to save
                             // them before clicking on another green wedge. In such cases
                             // we'll just destroy the window, so a new one can be created
                             // with data for the new location.
-							wxCommandEvent cevent(wxID_CANCEL);
-							pApp->m_pViewFilteredMaterialDlg->OnCancel(cevent); // calls Destroy()
+							// Note: This block of code is never entered because the
+                            // block at the top of OnLButtonDown() detects the click
+                            // outside the note dialog boundary and closes the note and
+                            // saves its note text, so by the time control gets here,
+                            // m_pViewFilteredMaterialDlg will be NULL. I'll
+                            // leave this code here because it is defensive, and if the
+                            // earlier block was ever removed then we'll still have the
+                            // required insurance for inadventent loss of a note
+							wxCommandEvent cevent(wxID_OK);
+							pApp->m_pViewFilteredMaterialDlg->OnOK(cevent);
+							pApp->m_pViewFilteredMaterialDlg = NULL;
 						}
 						if (pApp->m_pNoteDlg != NULL)
 						{
