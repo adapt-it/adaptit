@@ -1,6 +1,7 @@
 README for vectorizing / embedding .png files into Adapt It / WX
 Author: Erik Brommers
 Date: 08 June 2012
+Revised: 02 Sept 2022
 --------
 
 Background: wxWidgets supports several graphics formats, but at least with the
@@ -13,30 +14,7 @@ The wxwidgets wiki comes to the rescue here. We're following the instructions po
 
 http://wiki.wxwidgets.org/Embedding_PNG_Images
 
-First, there's source code for a utility called bin2c that I've built for Linux. 
-This utility can be run from the command line to convert a .png file into a .cpp file 
-containing the vectorized version. Here's the license from the source:
-
-// bin2c.c
-//
-// convert a binary file into a C source vector
-//
-// THE "BEER-WARE LICENSE" (Revision 3.1415):
-// sandro AT sigala DOT it wrote this file. As long as you retain this notice you can do
-// whatever you want with this stuff.  If we meet some day, and you think this stuff is
-// worth it, you can buy me a beer in return.  Sandro Sigala
-//
-// syntax:  bin2c [-c] [-z] <input_file> <output_file>
-//
-//          -c    add the "const" keyword to definition
-//          -z    terminate the array with a zero (useful for embedded C strings)
-//
-// examples:
-//     bin2c -c myimage.png myimage_png.cpp
-//     bin2c -z sometext.txt sometext_txt.cpp
-
-I suppose we Sandro a drink if we ever meet him. :-)
-
+There is a "bin2c" utility variant with header guards that is customized for our wxwidgets use. I've copied the source code below, along with the license; there's also a version in this directory called "mav-bin2c" that was rebuilt for zsh on the mac. Run the bin2c / mac-bin2c utility from the command line to convert a .png file into a .cpp file containing the vectorized version. 
 
 Here are the basic steps to bring a new image into Adapt It:
 ------------
@@ -62,3 +40,136 @@ Here are the basic steps to bring a new image into Adapt It:
       file. For example, in the pw_48.cpp file you'll note the <id> generated is
       pw48_png.
 
+
+--
+Source Code for modified bin2c utility follows
+--
+// bin2c.c
+//
+// convert a binary file into a C source vector
+//
+// THE "BEER-WARE LICENSE" (Revision 3.1415):
+// sandro AT sigala DOT it wrote this file. As long as you retain this notice you can do
+// whatever you want with this stuff.  If we meet some day, and you think this stuff is
+// worth it, you can buy me a beer in return.  Sandro Sigala
+//
+// syntax:  bin2c [-c] [-z] <input_file> <output_file>
+//
+//          -c    add the "const" keyword to definition
+//          -z    terminate the array with a zero (useful for embedded C strings)
+//
+// examples:
+//     bin2c -c myimage.png myimage_png.cpp
+//     bin2c -z sometext.txt sometext_txt.cpp
+ 
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+ 
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+ 
+int useconst = 0;
+int zeroterminated = 0;
+ 
+int myfgetc(FILE *f)
+{
+  int c = fgetc(f);
+  if (c == EOF && zeroterminated) {
+    zeroterminated = 0;
+    return 0;
+  }
+  return c;
+}
+
+
+char* str2upr(char *s)
+{
+  char * r = (char *) calloc(strlen(s)+1, sizeof(char));
+  
+  int i = 0;
+  while(*s)
+    {
+      r[i] = toupper(*s);
+      ++i;
+      ++s;
+    }
+  return r;
+} 
+
+
+ 
+void process(const char *ifname, const char *ofname)
+{
+  FILE *ifile, *ofile;
+  ifile = fopen(ifname, "rb");
+  if (ifile == NULL) {
+    fprintf(stderr, "cannot open %s for reading\n", ifname);
+    exit(1);
+  }
+  ofile = fopen(ofname, "wb");
+  if (ofile == NULL) {
+    fprintf(stderr, "cannot open %s for writing\n", ofname);
+    exit(1);
+  }
+  char buf[PATH_MAX], *p;
+  const char *cp;
+  if ((cp = strrchr(ifname, '/')) != NULL)
+    ++cp;
+  else {
+    if ((cp = strrchr(ifname, '\\')) != NULL)
+      ++cp;
+    else
+      cp = ifname;
+  }
+  strcpy(buf, cp);
+  for (p = buf; *p != '\0'; ++p)
+    if (!isalnum(*p))
+      *p = '_';
+  fprintf(ofile, "#ifndef %s_H\n#define %s_H\nstatic %sunsigned char %s[] = {\n",
+         str2upr(buf), str2upr(buf), useconst ? "const " : "", buf);
+  int c, col = 1;
+  while ((c = myfgetc(ifile)) != EOF) {
+    if (col >= 78 - 6) {
+      fputc('\n', ofile);
+      col = 1;
+    }
+    fprintf(ofile, "0x%.2x, ", c);
+    col += 6;
+ 
+  }
+  fprintf(ofile, "\n};\n#endif\n");
+ 
+  fclose(ifile);
+  fclose(ofile);
+}
+ 
+void usage(void)
+{
+  fprintf(stderr, "usage: bin2c [-cz] <input_file> <output_file>\n");
+  exit(1);
+}
+ 
+int main(int argc, char **argv)
+{
+  while (argc > 3) {
+    if (!strcmp(argv[1], "-c")) {
+      useconst = 1;
+      --argc;
+      ++argv;
+    } else if (!strcmp(argv[1], "-z")) {
+      zeroterminated = 1;
+      --argc;
+      ++argv;
+    } else {
+      usage();
+    }
+  }
+  if (argc != 3) {
+    usage();
+  }
+  process(argv[1], argv[2]);
+  return 0;
+}
