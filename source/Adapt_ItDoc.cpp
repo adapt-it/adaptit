@@ -9116,7 +9116,7 @@ h:						bool bIsInitial = TRUE;
 				if (pSrcPhrase->m_nSequNumber == 326)
 				{
 					int break_here = 1;
-                    break_here = break_here; // avoid gcc warning
+					break_here = break_here; // avoid gcc warning
 
 				}
 #endif
@@ -9144,7 +9144,7 @@ h:						bool bIsInitial = TRUE;
 				}
 
 			} // end of TRUE block for test: if (!inlineNonbindingMarkersStr.IsEmpty())
-			
+
 
 			// Legacy code....  Skip this block if the marker was found in the
 			// m_inlineNonbindingMarkers storage member of pSrcPhrase
@@ -9162,11 +9162,11 @@ h:						bool bIsInitial = TRUE;
 
 				nStartingOffset = 0;
 
-g:				bIsUnknownMkr = FALSE;
+			g:				bIsUnknownMkr = FALSE;
 
 				filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
-				markersStr, strMarkersToBeFiltered, wholeMkr, wholeShortMkr, endMkr,
-				bHasEndmarker, bIsUnknownMkr, nStartingOffset);
+					markersStr, strMarkersToBeFiltered, wholeMkr, wholeShortMkr, endMkr,
+					bHasEndmarker, bIsUnknownMkr, nStartingOffset);
 
 				if (filterableMkrOffset == wxNOT_FOUND)
 				{
@@ -9213,7 +9213,7 @@ g:				bIsUnknownMkr = FALSE;
 			// filter marker - the legacy block has a little more stuff in it, but basically
 			// each does the same job in the same way - the differences being due to scanning
 			// for the matching endMarker in m_inlineNonbindingEndMarkers versus m_endMarkers
-			
+
 			if (bMarkerInNonbindingSet)
 			{
 				// Non-binding markers do not nest. So there should only be the one
@@ -9428,7 +9428,7 @@ g:				bIsUnknownMkr = FALSE;
 					// but before RebuildSourceText() is called, we have to check (here) if the 
 					// pSrcPhrase in pSublist contains any content from unfiltered custom markers,
 					// and clear it out, and also clear out m_filteredInfo as well.
-					
+
 					// So, we'll do a loop now to unlaterally empty every member from which we don't want
 					// any custom content to contribute to the value of strFilteredStuff that gets passed
 					// back from the rebuild call.
@@ -9713,8 +9713,14 @@ g:				bIsUnknownMkr = FALSE;
 				// bracketing markers for it there instead.
 				int itsLen = wholeMkr.Length();
 				int nOffsetToNextBit = filterableMkrOffset + itsLen;
+				// whm 16Sep2022 moved the assignment of nFound before the if test in order to
+				// utilize the value of nFound in the else/else if part which determines what
+				// to do when a marker like \fv follows \f within the m_markers member.
+				nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit);
+				//if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
+				//	(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
 				if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
-					(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
+					(nFound != wxNOT_FOUND))
 				{
 					// there is a following SF marker which is not a \f or \x (the latter two
 					// can have a following marker within their scope, so whether that happens
@@ -9783,6 +9789,32 @@ g:				bIsUnknownMkr = FALSE;
 				} // end of TRUE block for test:
 				// if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
 				//	(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
+				// 
+				// whm 16Sep2022 added an else if test for when a marker like \fv immediately follows \f
+				// wihtin m_markers
+				else if (nFound != wxNOT_FOUND
+					&& (markersStr.Mid(nFound, 2) == _T("\\f") || markersStr.Mid(nFound, 2) == _T("\\x")))
+				{
+					// Either \f or \x is the current wholMkr being examined, and
+					// there is a marker directly following \f or \x which is of the form \f? or \x?,
+					// where \f? might be one of the 2 or 3 letter footnote markers \\fq \\fl \\ft \\fdc 
+					// \\fe \\fv \\fp \\fqa \\fr \\fk \\fm, (other than 1-letter \f itself),
+					// or \x? might be one of the cross reference markers ... other than \x itself.
+					// Hence, there is a following SF marker that is NOT \f nor \x, but is a related marker 
+					// that begins with "\f..." or "\x...".
+					// A prine example of when this "else if" block is entered is when the current wholeMrk
+					// if \f and it is followed immediately by a \fv "Footnote - Embedded Verse Number" which
+					// has \fv* as an end marker but the end marker is optional (its embedded text ends at the
+					// next embedded marker or the footnote end marker \f*), and often the end marker is
+					// not used in real text. 
+					// An example would be \f \fv 4:1 ...(other embedded footnote markers and text)... \f*.
+					// In the above example "4:1" is the content that follows the \fv marker, and that content
+					// is filterable along with the rest of the footnote.
+					// [TODO]
+					//
+					int HaltHere = 1;
+					HaltHere = HaltHere;
+				}
 				else
 				{
 					// there is no following SF marker, so the current one may be assumed to
@@ -17297,6 +17329,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// CSourcePhrase instance which then is no longer needed (provided it's
 		// m_precPunct member is also empty, if not, we have to leave it to carry that
 		// punctuation)
+
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 
@@ -18065,11 +18098,40 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// apply code to append it to whatever string is appropriate
 						// in the previous instance. We don't want a relic endmarker to crash
 						// the parse. The following hack may help find the place for removing the end-marker
+						//
+						// whm 17Sep2022 observation and tentative modification.
+						// Observation: when parsing the end marker \wj* of a \wj ... \wj* segment, and the \wj*
+						// end marker is immediately preceded by a right square bracket ] or parenthesis ), the
+						// perfectly valid \wj* end marker ends up getting through to this "hack" block.
+						// If I understand it, the \wj* end marker should be passed through to be handled by
+						// ParseWord(), but instead it is wrongly found in this block, the code below considers
+						// it to be a "bogus endmarker" by the "hack" code below. The code below, however, ends
+						// up crashing due to an invalid pPile pointer at the line:
+						//    CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
+						// and the following line attempts to dereference the invalid pPile resulting in an 
+						// immediate program crash - BEFORE the user can ever see the wxMessageBox Warning, and BEFORE
+						// the LogUserAction() can occur. 
+						// The reason the statement 
+						//    this->GetPile(pLayout->m_nSequNum_LastSrcPhrase)
+						// returns a bad pointer, it because at this point the pLayout's PileList is EMPTY! 
+						// Also the View's GetPile() function would likewise return a NULL pointer at this point in 
+						// creation of the new document.
+						// It would seem to me that the test at the beginning of this block "if (bIsAnEndMkr)" is
+						// too general in that it allows the inline non-binding end marker \wj* to make it through 
+						// into this "hack" block.
+						// I'm not sure what should be done here, but at least the program should not crash if execution
+						// gets into this block, so I'm changing the coding below to make use of a pLastSrcPhrase pointer 
+						// that gets updated for every pSrcPhrase that makes it to the end of the while (ptr < pEndText) 
+						// loop, instead of trying to query the pLayout's PileList - which is EMPTY.
+						//
 						int badMkrLength = wholeEndMkr.Len();
-						CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
-						CSourcePhrase* pLastSrcPhrase = pPile->GetSrcPhrase();
+						//CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase); // whm 17Sep2022 commented out - see comment above
+						//CSourcePhrase* pLastSrcPhrase = pPile->GetSrcPhrase(); // whm 17Sep2022 commented out - see comment above
 						int badLocation = pSrcPhrase->m_nSequNumber;
-						pLastSrcPhrase->AddEndMarker(wholeEndMkr); // this kinda hides it away, but watchout in an export
+						if (pLastSrcPhrase != NULL)
+						{
+							pLastSrcPhrase->AddEndMarker(wholeEndMkr); // this kinda hides it away, but watchout in an export
+						}
 						ptr += (size_t)badMkrLength;
 						// Warn the user there is a bogus endmarker that probably should
 						// be removed from the input source text file, and the document reparsed
@@ -19830,7 +19892,14 @@ parsing:
 				(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
-
+		
+		// whm 17Sep2022 added assignment of pLastSrcPhrase before top of while (ptr < pEndText) loop creates a new pSrcPhrase
+		// This stores a pointer value in pLastSrcPhrase for all except where a continue statement jumps to the top of the
+		// while loop. This is to be able to get a valid pLastSrcPhrase pointer for the hack at about lines 17334 where the
+		// code attempts to detect a "bogus endmarker".
+		if (pSrcPhrase != NULL)
+			pLastSrcPhrase = pSrcPhrase;
+	
 	} // end of while (ptr < pEndText)
 
 	// fix the sequence numbers, so that they are in sequence with no gaps, from the
@@ -37410,7 +37479,7 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr,
 				return FALSE;
 			}
 		} // end of TRUE block for test: if (enumMkrType == attrBeginMkr)
-		else if ((enumMkrType == attrEndMkr))
+		else if (enumMkrType == attrEndMkr) // whm 22Sep2022 gcc warning - removed double parenthesis around if test
 		{
 			// Check out \w*<space>
 			if (attrMkr == wEndMkr_Aug)
@@ -37426,7 +37495,7 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr,
 				matchedMkr = matchedMkr.Trim();
 				return TRUE;
 			}
-		} // end of else if block for test:else if ((enumMkrType == attrEndMkr))
+		} // end of else if block for test:else if (enumMkrType == attrEndMkr)
 	}
 	// It's neither, so return FALSE to be safe
 	return FALSE;

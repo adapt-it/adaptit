@@ -21355,8 +21355,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		commandLine += kbType + comma;
 
-		// Finally, we need the timestamp to pass in last
-		commandLine += m_ChangedSinceTimed_Timestamp + comma,
+		// whm 22Sep2022 gcc warning that statement below should end with ; instead of ,
+        // Finally, we need the timestamp to pass in last
+        //commandLine += m_ChangedSinceTimed_Timestamp + comma,
+        commandLine += m_ChangedSinceTimed_Timestamp + comma;
 
 		// That completes the commandLine string; now put it into
 		// the moved .dat input file, ready for CallExecute() to get
@@ -39556,8 +39558,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     BookNamePair*	pSavedCurBookNamePair = m_pCurrBookNamePair;
 
     bool bDocForcedToClose = FALSE;
-    if (!m_pSourcePhrases->GetCount() == 0)
-    {
+    // whm 22Sep2022 gcc warning about use of !, so removed LHS ! and changed == to !=
+    //if (!m_pSourcePhrases->GetCount() == 0)
+    if (m_pSourcePhrases->GetCount() != 0)
+        {
         // whm 26Aug11 Open a wxProgressDialog instance here for KB Restore operations.
         // The dialog's pProgDlg pointer is passed along through various functions that
         // get called in the process.
