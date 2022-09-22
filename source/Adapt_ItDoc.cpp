@@ -9038,6 +9038,7 @@ h:						bool bIsInitial = TRUE;
 			if (pSrcPhrase->m_nSequNumber >= 4)
 			{
 				int halt_here = 1;
+				halt_here = halt_here; // avoid gcc warning
 			}
 #endif
 			pos = pos->GetNext();

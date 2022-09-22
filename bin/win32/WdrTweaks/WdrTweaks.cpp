@@ -439,7 +439,9 @@ int main(int argc, char **argv)
         }
 
         wxFileName fn1(sourcePathOnly);
-        fn1.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+        //fn1.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        fn1.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE); // gets the absolute path without internal \..\ relativizing dots
         sourcePathOnly = fn1.GetFullPath();//  (sourcePathOnly, &parentDir, NULL, NULL);
         wxLogDebug("WdrTweaks sourcePathOnly: %s", sourcePathOnly.c_str());
         wxPrintf("*** WdrTweaks sourcePathOnly: %s\n", sourcePathOnly.c_str());
@@ -451,7 +453,9 @@ int main(int argc, char **argv)
         wxPrintf("*** WdrTweaks outputPathOnly: %s\n", outputPathOnly.c_str());
 
         wxFileName fn2(wdrExePathOnly);
-        fn2.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+        //fn2.Normalize(); // gets the absolute path without internal \..\ relativizing dots
+        fn2.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE); // gets the absolute path without internal \..\ relativizing dots
         wdrExePathOnly = fn2.GetFullPath(); // gets it in native format, and absolute path including final separator
         wxLogDebug("***WdrTweaks wdrExePathOnly: %s", wdrExePathOnly.c_str());
         wxPrintf("*** WdrTweaks wdrExePathOnly: %s\n", wdrExePathOnly.c_str());

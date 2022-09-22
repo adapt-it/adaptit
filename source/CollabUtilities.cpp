@@ -4168,7 +4168,9 @@ extern bool gbDoingInitialSetup;
 			bHasPath = FALSE;
 		else
 			bHasPath = TRUE;
-		fn.Normalize();
+		// whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+		//fn.Normalize();
+		fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
 		if (fn.HasExt())
 			fn.SetExt(extn);
 		if (fn.GetDirCount() != 0)
