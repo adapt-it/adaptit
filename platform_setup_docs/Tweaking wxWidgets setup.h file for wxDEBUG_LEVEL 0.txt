@@ -1,0 +1,32 @@
+Before building the wxWidgets library with the appropriate compiler make the following change to setup.h for both the debug and release version of the wxWidgets library:
+
+In Windows:
+BEFORE using Visual Studio to compile the wxWidgets library, make the following change to the setup.h file that is located in the following part of the wxWidgets source tree:
+C:\wxWidgets-3.2.1\include\wx\msw\setup.h
+
+Change the wxDEBUG_LEVEL to 0 by making the following change about line 89:
+//
+// whm modified on 24Feb2022 to build with wxDEBUG_LEVEL 0 to prevent assert messages
+// from appearing in release builds.
+// See wxWidgets Discussion Forum post at: https://forums.wxwidgets.org/viewtopic.php?t=34137
+// This modification of setup.h needs to be done for each build of the wxWidget library that is
+// included as static builds - Windows and Mac OSX. We would need to also release a special
+// version of the built library for wxWidgets at packages.sil.org repo for the Linux application. 
+ #ifdef NDEBUG
+  #define wxDEBUG_LEVEL 0
+// #else
+//  #define wxDEBUG_LEVEL 2
+ #endif
+
+After Visual Studio compiles the wxWidgets library as a static library for debug and release versions, it should have made copies of the setup.h file (with the above change) for both the debug build and the release build, and put them into the appropriate place within the ...\lib\... part of the wxWidgets source tree, i.e.,
+   C:\wxWidgets-3.2.1\lib\vc_lib\mswu[d]\wx\setup.h
+
+After the Visual Studio build of wxWidgets has been done the setup.h file at the following paths to ensure that the change of the wxDEBUG_LEVEL to a 0 value was made for both debug and release builds.
+
+For the DEBUG version wxWidgets static library builds check the setup.h file at:
+   C:\wxWidgets-3.1.5\lib\vc_lib\mswud\wx\setup.h beginning about line 90 when NDEBUG is defined, the wxDEBUG_LEVEL is set to 0 using the same change as made above.
+
+Also do the same for the RELEASE version wxWidgets static library builds, check the setup.h file at:
+   C:\wxWidgets-3.1.5\lib\vc_lib\mswu\wx\setup.h beginning about line 89 when NDEBUG is defined, the wxDEBUG_LEVEL is set to 0
+using the same change as made above.
+
