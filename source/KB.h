@@ -43,7 +43,7 @@ enum KB_Entry {
 };
 
 // wxHashMap uses this macro for its declaration
-WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase string
+WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase string (adapting KB) or target text word of phrase (glossing KB)
                     CTargetUnit*,	// the map value is the pointer to the class instance
                     wxStringHash,
                     wxStringEqual,

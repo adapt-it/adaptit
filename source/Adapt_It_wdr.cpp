@@ -1371,57 +1371,56 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, IDC_STATIC_SRC, _("  Source language's text for the preceding context (including punctuation, if any):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("  Type your new translation into the box (include any punctuation where needed):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->SetFont( wxFont( 13, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD ) );
     item0->Add( item1, 0, wxALL, 5 );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_PRECONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item2->SetToolTip( _("This is the preceding context") );
-    item0->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("  Source language's text for the material to be translated:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item3, 0, wxALL, 5 );
+    AutoCorrectTextCtrl *item3 = new AutoCorrectTextCtrl( parent, IDC_EDIT_RETRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,150), wxTE_MULTILINE );
+    item3->SetToolTip( _("Type the retranslation here (including appropriate punctuation)") );
+    item2->Add( item3, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, IDC_EDIT_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
-    item4->SetToolTip( _("This is the existing source text") );
-    item0->Add( item4, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("  Type the new translation text here (be sure to type punctuation, in the location which is appropriate):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item5, 0, wxALL, 5 );
+    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+    item0->Add( item2, 1, wxGROW|wxALL, 0 );
 
-    AutoCorrectTextCtrl *item7 = new AutoCorrectTextCtrl( parent, IDC_EDIT_RETRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE );
-    item7->SetToolTip( _("Type the retranslation here (including appropriate punctuation)") );
-    item6->Add( item7, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_FOR_SPIN, _("Font size:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( 4, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_RETRANS, wxT("14"), wxDefaultPosition, wxSize(40,-1), 0, 12, 18, 14 );
+    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( 30, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item8 = new wxButton( parent, ID_GET_RETRANSLATION_FROM_CLIPBOARD, _("Copy From Clipboard"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetToolTip( _("Copy the clipboard contents and make it the retranslation") );
+    item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item5->Add( 18, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item9 = new wxButton( parent, IDC_COPY_RETRANSLATION_TO_CLIPBOARD, _("Copy To Clipboard"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetToolTip( _("Click here to copy the retranslation to the clipboard") );
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+    item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item10 = new wxButton( parent, IDC_BUTTON_TOGGLE, _("Show Source Context"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Click to toggle the display between source and target texts") );
-    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item5->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxSize(60,-1), 0 );
+    item10->SetDefault();
+    item5->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item6, 1, wxGROW|wxALL, 0 );
+    item5->Add( 8, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item11 = new wxStaticText( parent, IDC_STATIC_TGT, _("  Source language's text for the following context (including punctuation, if any):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item11, 0, wxALL, 5 );
+    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(50,-1), 0 );
+    item5->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item12->SetToolTip( _("This is the following context") );
-    item0->Add( item12, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
-
-    wxStdDialogButtonSizer *item13 = new wxStdDialogButtonSizer;
-    { wxButton *button = new wxButton( parent, wxID_OK );
-      button->SetDefault();
-      item13->AddButton( button ); }
-    item13->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item13->Realize();
-    item0->Add( item13, 0, wxGROW|wxALL, 5 );
+    item0->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     if (set_sizer)
     {

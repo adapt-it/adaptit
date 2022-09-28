@@ -3613,6 +3613,25 @@ int CountSpaceDelimitedWords(wxString& str)
 }
 //#endif
 
+ // BEW 16Sep22 using code from pSrcPhrase->GetTgtWordCount()
+int GetWordCountIncludingZWSP(wxString& str)
+{
+	if (str.IsEmpty())
+	{
+		return 0;
+	}
+	wxChar zwsp = (wxChar)0x200B;
+	wxString aToken = wxEmptyString;
+	//wxString delims = _T(" \n\r\t~'/'"); 
+	wxString delims = _T(" \n\r\t~"); // remove the '/' and retry
+	delims += zwsp;
+	delims += _T('/');
+	wxStringTokenizer tkz(str, delims); //my choice of delimiters includes / and zero-width-space
+		// and adding USFM's tilde (fixed space) so that ~ between words is tokenized as 2 words
+	int numFields = tkz.CountTokens();
+	return numFields;
+}
+
 // BEW added 22Jan10: string tokenization is a pain in the butt in wxWidgets, because the
 // developers do not try to give uniform behaviours for CR versus CR+LF across all
 // platforms (eg. multiline text controls), so a function is needed for tokenizing which
@@ -7367,6 +7386,7 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 }
 
 // BEW 11Oct10, for support of doc version 5
+// BEW 7Sep22 refactored to support glossing KB with m_adaption/gloss entries
 bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 {
 	wxString theSymbol = _T("~"); // USFM fixedspace symbol
@@ -7376,8 +7396,24 @@ bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 	}
 	else
 	{
-		if (pSrcPhrase->m_key.Find(theSymbol) != wxNOT_FOUND)
-			return TRUE;
+		if (gbIsGlossing)
+		{
+			// When glossing, if m_adaption has a ~, it would be better to
+			// remove it, because CSourcePhrase's tokenizer for tgt text
+			// will count word1~word2 as two words 
+			if (pSrcPhrase->m_adaption.Find(theSymbol) != wxNOT_FOUND)
+			{
+				pSrcPhrase->m_adaption.Replace(_T("~"), _T(" "), TRUE); // TRUE means 'replace all'
+				return TRUE;
+			}
+		}
+		else
+		{
+			// legacy adapting mode does not remove ~, but has code for dealing with
+			// fixed space which I will retain
+			if (pSrcPhrase->m_key.Find(theSymbol) != wxNOT_FOUND)
+				return TRUE;
+		}
 	}
 	return FALSE;
 }

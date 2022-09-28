@@ -21356,7 +21356,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += kbType + comma;
 
 		// Finally, we need the timestamp to pass in last
-		commandLine += m_ChangedSinceTimed_Timestamp + comma,
+        commandLine += m_ChangedSinceTimed_Timestamp + comma;
 
 		// That completes the commandLine string; now put it into
 		// the moved .dat input file, ready for CallExecute() to get
@@ -22527,7 +22527,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             bool bExecCwd = fn.SetCwd(pathOnly);
             if (bExecCwd)
             {
-                char* executable = "do_upload_local_kb.exe";
+                char* executable = "do_upload_local_kb.exe"; // *** Graeme's compiler says "conversion from string literal to 'char *' is deprecated,   FIX
 
                 rv = system(executable); // Yay! Finally, got a way that works
                 bool bRestored = fn.SetCwd(saveCwd); // restore saved CWD
@@ -23332,7 +23332,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
     nCallCount2 = 0;
 
- 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden
 	// by whatever is in the project config file, or defaulted to 5 there if out of
@@ -24652,6 +24651,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pComposeFont = (wxFont*)NULL;
     m_pRemovalsFont = (wxFont*)NULL;
     m_pVertEditFont = (wxFont*)NULL;
+    m_pRetransFont = (wxFont*)NULL; // BEW added 31Aug22
 
     m_pSrcFontData = (wxFontData*)NULL;
     m_pTgtFontData = (wxFontData*)NULL;
@@ -30887,15 +30887,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
                  //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
+
+    // BEW 2Sep22 Support for storage of the user's choice of font size in the refactored Retranslation dialog
+    m_strRetransFontSizeFilename = _T("retrans_font_size.txt");
+    bool bExists = TRUE;
+    bExists = ::wxFileExists(m_appInstallPathOnly + PathSeparator + m_strRetransFontSizeFilename);
+    if (!bExists)
+    {
+        // If it doesn't exist, set the ffont size to 14 points. Otherwise, let the current value
+        // of m_nRetransDlg_FontSize get used in the call
+        m_nRetransDlg_FontSize = 14; // default size, user can vary it in the range 12 to 18 points
+    }
+    bool updatedOK = UpdateFontSizeStore(m_strRetransFontSizeFilename, m_nRetransDlg_FontSize);
+    wxUnusedVar(updatedOK);
+ 
     // whm 3Mar2021 moved here just before return from OnInit()
     // Display message in status bar that startup initialization is complete
     message = _("Initialization complete in OnInit(). Now, OnIdle() will call Start Working wizard...");
     wxLogDebug(message);
     wxLogDebug(_T("****************************************************************************"));
     pStatusBar->SetStatusText(message, 0); // use first field 0
-
-
-    
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
@@ -31177,9 +31188,6 @@ int CAdapt_ItApp::OnExit(void)
 	}
 	delete m_pSavedDocForClipboardAdapt;
 
-	// BEW 30Sep19  Ensure the cache in doc, m_pCachedSourcePhrase is NULL, not xCDCDCDCD
-	//GetDocument()->m_pCachedSourcePhrase = NULL;
-
 	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
 	// this point, and so the call to PopEventHandler() can't be made here. Bill found out
 	// that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
@@ -31355,6 +31363,9 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
 		delete m_pVertEditFont;
 	m_pVertEditFont = (wxFont*)NULL;
+    if (m_pRetransFont != NULL)
+        delete m_pRetransFont;
+    m_pRetransFont = (wxFont*)NULL;
 
 	if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
 		delete m_pSrcFontData;
@@ -31945,6 +31956,9 @@ void CAdapt_ItApp::InitializeFonts()
     if (m_pVertEditFont == NULL)
         m_pVertEditFont = new wxFont(*wxNORMAL_FONT);
     wxASSERT(m_pVertEditFont != NULL);
+    if (m_pRetransFont == NULL) // BEW added 31Aug22
+        m_pRetransFont = new wxFont(*wxNORMAL_FONT);
+    wxASSERT(m_pRetransFont != NULL);
 
     // Set a suitable default font encoding.
     // Note: To accommodate Word's "smart quotes," we'll set the default font encoding as
@@ -31988,6 +32002,7 @@ void CAdapt_ItApp::InitializeFonts()
     m_composeFontEncoding = wxFONTENCODING_DEFAULT;
     m_removalsFontEncoding = wxFONTENCODING_DEFAULT;
     m_vertEditFontEncoding = wxFONTENCODING_DEFAULT;
+    m_retransFontEncoding = wxFONTENCODING_DEFAULT; // BEW added 31Aug22
 #endif
 
     // set the initial encoding of the major language fonts
@@ -32001,6 +32016,7 @@ void CAdapt_ItApp::InitializeFonts()
     m_pComposeFont->SetEncoding(m_composeFontEncoding);
     m_pRemovalsFont->SetEncoding(m_removalsFontEncoding);
     m_pVertEditFont->SetEncoding(m_vertEditFontEncoding);
+    m_pRetransFont->SetEncoding(m_retransFontEncoding); // BEW added 31Aug22
 
 
     // create the corresponding wxFontData ojbects on the heap; delete them in OnExit() In
@@ -36860,8 +36876,8 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 {
     // We need to get the first doc in doc manager's list
-    CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)NULL;
-    pDoc = (CAdapt_ItDoc*)m_pDocManager->GetCurrentDocument();
+    //CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)NULL;
+    CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)m_pDocManager->GetCurrentDocument();
     if (pDoc == NULL)
     {
       return pDoc;
@@ -37963,7 +37979,7 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 	{
 		// nothing to do, so tell user
 		/*
-		// BEW 28Mar18, now tha the feature stays open for many potential clipboard
+		// BEW 28Mar18, now that the feature stays open for many potential clipboard
 		// adapts, this function is no longer needed
 		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
 			m_pSourcePhrases, m_bADocIsLoaded);
@@ -38288,7 +38304,7 @@ void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
     }
     else
     {
-        // Alter user to the problem. Localizable message.
+        // Alert user to the problem. Localizable message.
         wxMessageBox(_("The clipboard could not be opened for writing."),
             _("Clipboard Unavailable"), wxICON_EXCLAMATION | wxOK);
     }
@@ -39556,7 +39572,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     BookNamePair*	pSavedCurBookNamePair = m_pCurrBookNamePair;
 
     bool bDocForcedToClose = FALSE;
-    if (!m_pSourcePhrases->GetCount() == 0)
+    if (m_pSourcePhrases->GetCount() != 0)
     {
         // whm 26Aug11 Open a wxProgressDialog instance here for KB Restore operations.
         // The dialog's pProgDlg pointer is passed along through various functions that
@@ -53868,6 +53884,131 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 #endif
 }
 
+// BEW 3Sep22 If the executable's folder exists, then enter it and if that folder does not contain the
+// required storage file for the Retranslation's font size, then create the file. Then set it's font 
+// size to whatever size was passed in. When this function is called from OnInit(), the last
+// used size will be used, but if this is the first time, then default to 14 pt. Since OnInit() gets
+// called only at a new launch, setting the default size may only need to be done once. The
+// RetranslationDlg will then manage it indefinitely into the future, by calling it from it's
+// OnOK() function when shutting down the Retranslation. If the little file with font size gets lost
+// accidently, restarting the app will get it restored to the executable's folder with default 14 pt size
+bool CAdapt_ItApp::UpdateFontSizeStore(wxString strStoreName, int newFontSize)
+{
+    // Store it in the executable's folder - it's defined uniquely but differently for all 3 platforms
+    wxString execFolderPath = m_appInstallPathOnly + PathSeparator;
+    //wxString desktopPath = _T("C:\\Users\\bruce\\Desktop") + PathSeparator;
+    bool folderExists = wxDirExists(execFolderPath); // folder where Adapt_It_Unicode.exe is currently running
+    if (folderExists)
+    {
+        wxString strSize = wxEmptyString;
+        strSize << newFontSize; // wxString's overload of << for int to wxString
+        // Create the file
+        wxTextFile f;
+        wxString fontsizeFile = execFolderPath + strStoreName; // was m_strRetransFontSizeFilename;
+        //wxString fontsizeFile = _T("C:\\Users\\bruce\\Desktop") + PathSeparator + m_strRetransFontSizeFilename; // variant for debugging
+        bool bExists = ::wxFileExists(fontsizeFile);
+        bool bOpen = FALSE; // initialise
+        if (!bExists)
+        {
+            bool bCreated = f.Create(fontsizeFile);
+            if (bCreated)
+            {
+                bOpen = f.Open(fontsizeFile);
+                if (bOpen)
+                {
+                    // Set a single line, and don't close f because that would close and throw it all away
+                    f.AddLine(strSize);
+                    f.Write();
+                    f.Close();
+                }
+                else
+                {
+                    // Error, the file failed to be opened, or did not get successfully created
+                    //This msg can just be in English, as its not likely to ever get called
+                    wxString msg = _T("Could not create or open the retranslation dialog\'s font size file in the executable\'s folder. Try shutting down and restarting.\n");
+                    wxMessageBox(msg, _T("Warning"), wxICON_INFORMATION | wxOK);
+                    LogUserAction(msg);
+                    // The app initialisation can continue, the next line will set the default size so the text will remain readable
+                    m_nRetransDlg_FontSize = 14;
+                    return FALSE; // caller currentely makes no use of this returned FALSE value
+                }
+            }
+        }
+        else
+        {
+            // The retrans_font_size.text file *does* exist in the executable's folder, so
+            // no need to create it. Just open and update the contents
+            bOpen = f.Open(fontsizeFile);
+            if (bOpen)
+            {
+                // Set a single line, and don't close f because that would close and throw it all away
+                // Clear out the old value
+                f.Clear();
+                // and then add the new
+                f.AddLine(strSize);
+                f.Write();
+                f.Close();
+            }
+            else
+            {
+                // Error, the file failed to be opened, or did not get successfully created
+                //This msg can just be in English, as its not likely to ever get called
+                wxString msg = _T("Could not open the retranslation dialog\'s existing font size file in the executable\'s folder. Delete it manually, then launch again.\n");
+                wxMessageBox(msg, _T("Warning"), wxICON_INFORMATION | wxOK);
+                LogUserAction(msg);
+                // The app initialisation can continue, the next line will set the default size so the text will remain readable
+                m_nRetransDlg_FontSize = 14;
+                return FALSE; // caller currentely makes no use of this returned FALSE value
+            }
+
+        }
+    }
+    return TRUE;
+}
+
+// BEW added 31Aug22 -- like the one above but specifically for refactored Retranslation dialog, and variable
+// font size support - based on the properties of the m_targetFont.
+void CAdapt_ItApp::SetFontAndDirectionalityForRetranslationControl(wxFont* pFont, wxTextCtrl* pEdit1,
+    wxFont*& pDlgFont, int newFontSize, bool bIsRTL)
+{
+    // whm Note: The MFC function deletes any existing dialog font that is passed in; then
+    // creates the dialog font anew by first getting the pFont's LOGFONT data (stored in
+    // navLF), and using that log font data calls CreateFontIndirect(&navLF) to create a
+    // new pDlgFont. If the attempt to get the log font data from pFont fails, it creates a
+    // new pApp->m_pNavTextFont using a Windows SYSTEM_FONT, then uses that font at 12
+    // point size as input to SetFont for the edit and/or listbox controls' font. The WX
+    // version does not need to delete the existing dialog font and recreate it for the
+    // dialog. Instead, the wx version simply assigns the pFont characteristics to the
+    // dialog font pDlgFont, but sets its size to pApp->m_dialogFontSize.
+    wxASSERT(pFont != NULL);
+    wxASSERT(pDlgFont != NULL);
+    CopyFontBaseProperties(pFont, pDlgFont);
+    // The CopyFontBaseProperties function above doesn't copy the point size, so
+    // make the dialog font show in the proper dialog font size.
+
+    pDlgFont->SetPointSize(newFontSize); // caller should input value in AI.h lin3 3720 m_nRetransDlg_FontSize
+    if (pEdit1 != NULL)
+        pEdit1->SetFont(*pDlgFont);
+
+    bIsRTL = bIsRTL; // suppresses "unreferenced formal parameter" warning in ANSI version
+                     // add RTL support for Unicode version
+#ifdef _RTL_FLAGS
+    if (pEdit1 != NULL)
+    {
+        if (bIsRTL)
+        {
+            pEdit1->SetLayoutDirection(wxLayout_RightToLeft);
+        }
+        else
+        {
+            pEdit1->SetLayoutDirection(wxLayout_LeftToRight);
+        }
+    }
+#endif
+    // TODO  connect to the spin control etc
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pFont      -> a pointer to the font from which its base properties are
@@ -63750,7 +63891,7 @@ TextType CAdapt_ItApp::GetTextTypeFromBeginMkr(wxString mkr) // pass in un-augme
 
 
 
-// TODO
+// TODO?? so far, unneeded BEW 12Sep22
 
 	return defaultType;
 }
@@ -64306,6 +64447,7 @@ bool CAdapt_ItApp::ReadReplaceCache()
     pDlg->Refresh();
     return TRUE;
 }
+
 
 
 // BEW 23Apr20, copies the pAnalysis members to the cache variables

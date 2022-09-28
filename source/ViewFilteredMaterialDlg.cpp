@@ -128,7 +128,6 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 
 CViewFilteredMaterialDlg::~CViewFilteredMaterialDlg() // destructor
 {
-	
 }
 
 void CViewFilteredMaterialDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)

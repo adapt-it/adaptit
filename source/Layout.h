@@ -324,16 +324,6 @@ public:
 	bool		BSorDEL_NoModifiers(wxKeyEvent event); // return TRUE if no modifier key is
 					// held down and either a Backspace or Delet key is simultaneously pressed
 					// else, returns FALSE. Used in refactored FixBox()
-	//bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
-	// 	   and BEW deprecated 12Oct21, as it is nowhere called now
-//	bool		PhraseBoxIsInFocus(); // Bill's function for the wxOwnerDrawnComboBox control, which we abandoned
-	// BEW 13Aug18, deprecated my version below, as Bill says focus is not handled uniformly across all platforms
-	//bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
-									  // - for use in the refactored FixBox(), and moved to CLayout class
-
-	// BEW 12Oct21 deprecated, this is now nowhere called
-	//bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
-								   // to effect a widening or contracting of the phrasebox width	
 	
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these
@@ -370,7 +360,6 @@ public:
 	int			GetSavedGapWidth();
 	void		SetSavedLeading(int nCurLeading);
 	void		SetSavedGapWidth(int nGapWidth);
-	//LayoutCache* GetLayoutCache();  // BEW removed, 17Aug21
 
 	// setters and getters for text colors
 	void		SetSrcColor(CAdapt_ItApp* pApp);
@@ -466,9 +455,7 @@ public:
 	bool		CreatePiles(SPList* pSrcPhrases); // RecalcLayout() calls this
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
-//GDLC Added third parameter to RecalcLayout with default value steadyAsSheGoes
-//	bool		RecalcLayout(SPList* pList, enum layout_selector selector); // BEW 1Sep21 removed the unneeded widthMode final param
-// test with 2016 version of RecalcLayout
+
 	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
 	
 	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap, int nStripWidth); // doesn't change the pile
@@ -522,8 +509,6 @@ public:
 	// redraw the current visible strip range
 	void		Redraw(bool bFirstClear = TRUE);
 
-	// a debugging function
-	//void		DebugIndexMismatch(int nPileIndex_InList, int locator);
 
 	// BEW 9Apr12, functions for the refactored support of background
 	// highlighting for auto-inserted adaptations, or glosses - using the new

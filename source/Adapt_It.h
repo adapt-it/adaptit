@@ -2380,7 +2380,8 @@ class CAdapt_ItApp : public wxApp
 	bool m_bIsWithin_ProhibSpan; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	CPile* m_pCachedActivePile; // compare m_pActivePile with this, if different, call the
 								// doc's IsWithinSpanProhibitingPlaceholderInsertion(pSrcPhrase) func
-
+	bool m_bGlossingAndWithinRetrans; // BEW added 6Sep22, for informing OnChar() and PlacePhraseBox()
+									  // not to allow glossing within the scope of a retranslation
 //#if defined(_KBSERVER)
 
 	// BEW 15Jul20 next two used to be local strings in DoDiscoverKBservers(); but now
@@ -3652,6 +3653,7 @@ public:
                 // bar)
     // whm: In our wxWidgets version Windows API's LOGFONT is not necessary; we're using
     // our own fontInfo struct
+	wxFont* m_pRetransFont;
 
 	wxColour	m_sourceColor;
 	wxColour	m_targetColor;
@@ -3709,10 +3711,16 @@ public:
 	wxFontEncoding m_composeFontEncoding;
 	wxFontEncoding m_removalsFontEncoding;
 	wxFontEncoding m_vertEditFontEncoding;
+	wxFontEncoding m_retransFontEncoding; // BEW added 31Aug22
 	wxFontEncoding	m_systemEncoding;	// In OnInit: m_systemEncoding =
 				// wxLocale::GetSystemEncoding();
 
 	bool m_bConfigFileHasFontEncodingInfo;
+
+	// BEW 2Sep22 support for a range of font sizes in the refactored Retranslation dialog
+	int m_nRetransDlg_FontSize; // default to 14, range 12 - 18
+	wxString m_strRetransFontSizeFilename; // set it in OnInit() end, to _T("retrans_font_size.txt"), put in exec folder
+	bool		UpdateFontSizeStore(wxString strStoreName, int newFontSize);
 
 	// whm added below for cross-platform locale and encoding considerations.
 	wxString	m_systemEncodingName; // In OnInit: m_systemEncodingName =
@@ -5449,6 +5457,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
 
+	bool    IsWithinFootnote(CSourcePhrase* pSrcPhrase); // BEW added 30Aug22
+
 //#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12
 //#endif
@@ -5692,6 +5702,9 @@ public:
 	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
 				wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
+	void	SetFontAndDirectionalityForRetranslationControl(wxFont* pFont, wxTextCtrl* pEdit1,
+				 wxFont*& pDlgFont, int newFontSize, bool bIsRTL = FALSE); // BEW added 31Aug22
+
 	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo,
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	void	SetFontAndDirectionalityForStatText(wxFont* pFont, int pointsize,

@@ -4633,14 +4633,14 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
         // WXK_BACK, so check for them explicitly.
         if (typedChar >= 32)
         {
-            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            //wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
             pLayout->m_inputString = typedChar;
 			
         } // end of TRUE block for test: if (typedChar >= 32)
         else
         {
             // It's a control character. So who cares as far as expanding or contracting is concerned?
-            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed control char '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            //wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed control char '%c' - key code: %d"), typedChar, event.GetKeyCode());
             // Allow the control char to drop through to event.Skip() below - although this OnKeyUp() 
             // handler should be the last handler processing key events.
 			// BEW 26Aug21 added next line //BEW 23Sep21 commented out the return, to allow the fall through to happen
@@ -9017,6 +9017,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 // BEW 21Jun10, no changes needed for support of kbVersion 2
 // BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
 // for glossing KB
+// BEW 9Sep22 - no substantive changes, but simplified by adding pActiveSrcPhrase line
 bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase)
 {
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -9025,33 +9026,34 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	KB_Entry rsEntry;
 	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
 	pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
+	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 
 	if (gbIsGlossing)
 	{
 		if (targetPhrase.IsEmpty())
-			pApp->m_pActivePile->GetSrcPhrase()->m_gloss = targetPhrase;
+			pActiveSrcPhrase->m_gloss = targetPhrase;
 
 		// store will fail if the user edited the entry out of the glossing KB, since it
 		// cannot know which srcPhrases will be affected, so these will still have their
 		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		rsEntry = pApp->m_pGlossingKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
-		if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
-			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+		rsEntry = pApp->m_pGlossingKB->GetRefString(pActiveSrcPhrase->m_nSrcWords,
+									pActiveSrcPhrase->m_key, targetPhrase, pRefStr);
+		if ((pRefStr == NULL || rsEntry == present_but_deleted) && pActiveSrcPhrase->m_bHasGlossingKBEntry)
 		{
-			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+			pActiveSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		}
-		bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		bOK = pApp->m_pGlossingKB->StoreText(pActiveSrcPhrase, targetPhrase);
 	}
 	else // is adapting
 	{
 		if (targetPhrase.IsEmpty())
 		{
-			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase; 
-			pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = targetPhrase;
+			pActiveSrcPhrase->m_adaption = wxEmptyString;
+			pActiveSrcPhrase->m_targetStr = wxEmptyString;
 			pApp->m_bInhibitMakeTargetStringCall = TRUE;
-			bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+
+			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		else
@@ -9065,23 +9067,21 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			// cannot know which srcPhrases will be affected, so these would still have their
 			// m_bHasKBEntry set true. We have to test for this, and the m_HasKBEntry flag TRUE 
 			// is a sufficient test, and if so, set the flag to FALSE, to enable the store op
-			rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-				pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
-			if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
-				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+			rsEntry = pApp->m_pKB->GetRefString(pActiveSrcPhrase->m_nSrcWords, pActiveSrcPhrase->m_key, 
+												targetPhrase, pRefStr);
+			if ((pRefStr == NULL || rsEntry == present_but_deleted) && pActiveSrcPhrase->m_bHasKBEntry)
 			{
-				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+				pActiveSrcPhrase->m_bHasKBEntry = FALSE;
 			}
-
-			pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = wxEmptyString; // start off empty
-
+			pActiveSrcPhrase->m_targetStr = wxEmptyString; // start off empty
 			pApp->m_bInhibitMakeTargetStringCall = TRUE;
-			bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+
+			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 			pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
 			// Now use the user's actual phrasebox contents, with any puncts he may have typed
-			pApp->GetView()->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), copiedTargetPhrase);
+			pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
 
 			// Now restore the flag to its default value
 			pApp->m_bCopySourcePunctuation = TRUE;

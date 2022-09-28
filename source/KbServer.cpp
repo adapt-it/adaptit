@@ -1300,7 +1300,8 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	// First, store src and nonSrc on the relevant app variables, 
 	// so ConfigureDATfile(create_entry)'s ConfigureMovedDatFile() can grab them;
 	// or if in glossing mode, store gloss on m_curNormalGloss
-	m_pApp->m_curNormalSource = src;
+	m_pApp->m_curNormalSource = src; // in glossing mode,src here is contents of pSrcPhrase->m_adaption
+									 // otherwise in adapting mode, it's m_key
 	if (gbIsGlossing)
 	{
 		m_pApp->m_curNormalGloss = nonSrc;

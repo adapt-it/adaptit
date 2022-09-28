@@ -35,25 +35,20 @@ public:
 
 	//enum { IDD = IDD_RETRANSLATION_DLG };
 	wxSizer*	pRetransSizer;
-	wxTextCtrl*	pSrcPrecContextBox;
-	wxTextCtrl*	pSrcTextToTransBox;
+	//wxTextCtrl*	pSrcPrecContextBox;
+	//wxTextCtrl*	pSrcTextToTransBox; // BEW 31AUg22 removed
 	wxTextCtrl*	pRetransBox;
-	wxTextCtrl*	pSrcFollContextBox;
+	//wxTextCtrl*	pSrcFollContextBox;
 	wxString	m_retranslation;
-	wxString	m_sourceText;
-	wxString	m_preContext;
-	wxString	m_follContext;
-	wxString	m_follContextSrc;
-	wxString	m_preContextSrc;
-	wxString	m_follContextTgt;
-	wxString	m_preContextTgt;
-	bool		m_bShowingSource;
+	wxSpinCtrl* pSpinCtrl; // BEW added 2Sep22
+	void SyncFontSize(int newSize);
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(event));
-	void OnButtonToggleContext(wxCommandEvent& WXUNUSED(event));
+	void OnPasteRetranslationFromClipboard(wxCommandEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnSpinValueChanged(wxSpinEvent& event);
 
 private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

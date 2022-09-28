@@ -4296,7 +4296,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			{
 				CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pComposeFont);
 			}
-			pApp->m_pComposeFont->SetPointSize(12);
+			pApp->m_pComposeFont->SetPointSize(14); // BEW 31Aug22 increased size from 12 to 14 for easier reading
 			pEdit->SetFont(*pApp->m_pComposeFont);
 
             // whm 3Aug2018 Note: SetSelection below relates to compose bar's edit box, and

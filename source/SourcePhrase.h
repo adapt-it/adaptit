@@ -134,8 +134,7 @@ public:
 	wxString		m_lastAdaptionsPattern; // the value within m_adaptions at the time of the last placement dlg
 	wxString		m_tgtMkrPattern; // remember where Place Medial Markers placed any markers, for tgt text export
 	wxString		m_glossMkrPattern; // remember where Place Medial Markers placed any markers, for glossing export
-	wxString		m_punctsPattern; // remember where Place Internal Punctuation placed any medial puncts (unused
-									 // for version 6.2.0.  Possibly will be used in a later version.
+	wxString		m_punctsPattern; // repurposed for later versions 6.x.y to hold cached bar-initial hidden text data from USFM3 markup
 
 	// booleans and TextType last -- each takes 1 byte presumably even though memory is
 	// word-aligned, because the whole lot is 136 bytes for the CSourcePhrase class
@@ -269,6 +268,9 @@ public:
 									// CSourcePhrase oldSP; ....more application code defining oldSP contents....
 									// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
 									//			pNewSP->DeepCopy(); // *pNewSP is now a deep copy of oldSP
+	// BEW 7Sep22 need a word count for use in the refactored StoreText() etc for glossing KB, 
+	// which will not use m_key, but m_adaption
+	int			GetTgtWordCount();
 
 // Getters/Setters/Shorthands
 

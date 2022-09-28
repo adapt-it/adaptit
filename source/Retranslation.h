@@ -55,11 +55,16 @@ public:
 	void		RemoveRetranslation(SPList* pList, int first, int last, wxString& oldAdaptation); // remove 
 					// the retranslation which goes from indices first to last, from a passed in list
 					// of CSourcePhrase instances (BEW added 11May11). Return its old adaptation too
-	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
-							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
-	int  CountRetransPiles(SPList* pList, int beginSequNum); // BEW added 31Mar21 to support Find retranslations
+	int         CountRetransPiles(SPList* pList, int beginSequNum); // BEW added 31Mar21 to support Find retranslations
+	void		EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase); // BEW added 2022
 
-	void		EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase);
+	CPile*		m_pRetransAnchorPile; // BEW 6Sep22, Set for each new retranslation, as the anchor is first 
+									  // and does not move even under retrans editing
+	CPile*		m_pRetransEndPile;    // BEW 6Sep22 this needs to be programmatically determined once the
+									  // number of retrans piles is known. It could change with any EditRetrans
+	bool IsWithinRetrans(CPile* pTestPile, CPile* pAnchorPile, CPile* pEndPile); // BEW added 6Sep22, return
+					// TRUE if the sequNum values say that pTestPile is between the anchor and end, or at either 
+					// boundary; otherwise return FALSE (default)
 
 	/* BEW deprecated 9Mar11
 	// a function for use when converting a sublist of (modified) CSourcePhrase instances
@@ -80,6 +85,7 @@ protected:
 	void		DoRetranslationReport(CAdapt_ItDoc* pDoc, wxString& name,
 									  wxArrayString* pFileList,SPList* pList, wxFile* pFile,
 									  const wxString& progressTitle);
+	CPile*		FindEndingPile(SPList* pSrcPhrases, CPile* pAnchorPile, int count); // BEW added 6Sep22
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 															  CPile*& pFirstPile,SPList* pList);
 	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);
@@ -89,7 +95,6 @@ protected:
 	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
 	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
 																  int nStartingSequNum,SPList* pSublist);
-	//void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase); // BEW deprecated 12May11
 	void		RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str);
 	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);

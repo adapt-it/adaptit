@@ -13,6 +13,9 @@
 /// the CAdapt_ItView class.
 /// BEW 24Jan13, made the 3 update handlers more robust (avoids false positive
 /// for test of selection)
+/// BEW 5Sep22 heavily refactored this class and the RetraslationDlg class, so as to
+/// have only the target text box, and a SpinCtrl added for fontSize, and a button
+/// added to get the retranslation from the clipboard.
 /// \derivation		The CNotes class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1314,7 +1317,7 @@ void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 // there being a +ve result to nNewCount - nCount, and the placeholders inserted on that
 // basis. After this function is called, the caller will call
 // BuildRetranslationSourcePhraseInstances() which *does* pass in pRetransList, and so it
-// is in that that we do the refactoring which takes ZWSP stor  age into account etc.
+// is in that that we do the refactoring which takes ZWSP storage into account etc.
 void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 							SPList* pSrcPhrases,int nEndSequNum,int nNewCount,int nCount)
 {
@@ -1801,81 +1804,6 @@ void CRetranslation::SetRetranslationFlag(SPList* pList,bool bValue)
 	}
 }
 
-// old code was based on code in TokenizeText in doc file; new code is based on code in
-// RemovePunctuation() which is much smarter & handles word-building punctuation properly
-/* BEW deprecated 12May11, it didn't handle docV5 data well enough, nor all of it
-void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
-{
-	wxString src = pSrcPhrase->m_srcPhrase;
-
-	// first, clear any punctuation resulting from the retranslation
-	pSrcPhrase->m_precPunct.Empty();
-	pSrcPhrase->m_follPunct.Empty();
-	pSrcPhrase->m_pMedialPuncts->Clear();
-	pSrcPhrase->m_bHasInternalPunct = FALSE;
-
-	wxString punctSet = m_pApp->m_punctuation[0]; // from version 1.3.6, contains spaces
-	// as well as punct chars
-	// ensure there is at least one space, so "<< <" and similar sequences
-	// get spanned properly
-	if (punctSet.Find(_T(' ')) == -1)
-	{
-		// no space in it yet, so put one there (done on the local variable only,
-		// so m_punctSet[0] unchanged)
-		punctSet += _T(' ');
-	}
-
-	if (FindOneOf(src,punctSet) == -1)
-		return; // there are no punctuation chars in the string (except possibly
-	// word-building ones) and no spaces either
-
-	// get the preceding punctuation
-	wxString precStr;
-	precStr.Empty();
-	int len = 0;
-	wxString tempStr;
-	tempStr.Empty();
-	int totalLength = src.Length();
-	precStr = SpanIncluding(src,punctSet);
-	len = precStr.Length();
-	if (len > 0)
-	{
-		// has initial punctuation, so strip it off and store it
-		pSrcPhrase->m_precPunct = precStr;
-		tempStr = pSrcPhrase->m_srcPhrase.Mid(len); // tempStr holds the rest after the punct.
-		totalLength -= len; // reduce by size of punctuation chars in set
-	}
-	else
-	{
-		// no initial punctuation, so copy the lot to tempStr
-		tempStr = pSrcPhrase->m_srcPhrase;
-	}
-
-	// now handle any following punctuation
-	wxString key = tempStr;
-	key = MakeReverse(key);
-	wxString follStr;
-	follStr.Empty();
-	totalLength = key.Length();
-	follStr = SpanIncluding(key,punctSet);
-	len = follStr.Length();
-	if (len > 0)
-	{
-		// has following punctuation so strip it off, store it (after reversing it again)
-		follStr = MakeReverse(follStr);
-		pSrcPhrase->m_follPunct = follStr;
-		key = key.Mid(len);
-		key = MakeReverse(key);
-		pSrcPhrase->m_key = key;
-	}
-	else
-	{
-		// no following punctuation
-		pSrcPhrase->m_key = tempStr;
-	}
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////
 // Event handlers
 ///////////////////////////////////////////////////////////////////////////////
@@ -1989,7 +1917,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	wxString strSource; // the source text which is to be retranslated
 	strSource.Empty();
 	CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+
 	int nCount = m_pApp->m_selection.GetCount(); // number of src phrase instances in selection
+	// BEW 6Sep22 note: this nCount value cannot be relied on, when the number of words in the 
+	// retranslation exceeds the starting nCount value, PadWithNullSourcePhrases() will add more piles
 
 	if (nCount == (int)m_pApp->m_pSourcePhrases->GetCount())
 	{
@@ -2003,6 +1934,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
 	CCell* pCell = (CCell*)pos->GetData();
 	CPile* pPile = pCell->GetPile(); // get the pile first in the selection
+
+	// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
+	// pile ptr in the Retranslation instance (.h line 61)
+	m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
+
 	pos = pos->GetNext(); // needed for our CCellList to effect MFC's GetNext()
 
 	pStartingPile = pPile;
@@ -2316,22 +2252,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 					// in case placeholders are to be appended due to the user's edits
 		}
 	}
-	// initialize the edit boxes
-	dlg.m_sourceText = strSource;
+	// initialize the edit box
 	dlg.m_retranslation = strAdapt;
-	wxString preceding;
-	preceding.Empty();
-	wxString following;
-	following.Empty();
-	wxString precedingTgt;
-	precedingTgt.Empty();
-	wxString followingTgt;
-	followingTgt.Empty();
-	GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
-	dlg.m_preContextSrc = preceding;
-	dlg.m_preContextTgt = precedingTgt;
-	dlg.m_follContextSrc = following;
-	dlg.m_follContextTgt = followingTgt;
 
     // wx version: The wx version was crashing as soon as this CRetranslationDlg was shown.
     // The crashes were in OnUpdateButtonRestore(), an unrelated update handler, because in
@@ -2414,6 +2336,20 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // do; nNewCount is how many we end up with, nCount is the retranslation span's
         // srcphrase instance count after unmergers and placeholder removal was done
 		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount);
+		// BEW 6Sep22, Get m_pRetransEndPile set using nNewCount (if padding was done)
+		// or nCount if no padding was done
+		if (nNewCount > nCount)
+		{
+			// padding was done, so use nNewCount to get the ending pile for the span
+			m_pRetransEndPile = FindEndingPile(m_pApp->GetSourcePhraseList(), m_pRetransAnchorPile, nNewCount);
+		}
+		else
+		{
+			// No padding was needed ( a short retranslation ), so use nCount to get
+			// the ending pile for the retranslation
+			m_pRetransEndPile = FindEndingPile(m_pApp->GetSourcePhraseList(), m_pRetransAnchorPile, nCount);
+		}
+
 
 		// **** Legacy comment -- don't delete, it documents how me need to make changes ****
         // copy the retranslation's words, one per source phrase, to the constituted
@@ -2726,6 +2662,56 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     m_pApp->m_nOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
+// BEW added 6Sep22 count will be either nNewCount or nCount, depending on whether padding
+// was done or not, respectively. THe finding is done in the app's m_pSourcePhrases list (the document)
+CPile* CRetranslation::FindEndingPile(SPList* pSrcPhrases, CPile* pAnchorPile, int count)
+{
+	wxASSERT(pAnchorPile != NULL); wxASSERT(count > 0);
+	CPile* pEndingPile = pAnchorPile; // initialise, the one pile may end the span, if count is 1
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pSPhr = pAnchorPile->GetSrcPhrase();
+	// Method: get the sequNum of the anchor pile, add to that count-1 to get the ending sequNum,
+	// then convert that back to a CPile pointer
+	SPList::Node* pos;
+	pos = pSrcPhrases->Find(pSPhr);
+	if (pos != NULL)
+	{
+		pSrcPhrase = pos->GetData();
+	}
+	pos = pos->GetNext();
+	int anchorSN = pSrcPhrase->m_nSequNumber;
+	// Now add count - 1, to get the new sequNum for the last of the padded piles
+	int endSN = anchorSN + (count - 1);
+	CAdapt_ItView* pView = m_pApp->GetView();
+	CPile* pEndPile = NULL;
+	pEndPile = pView->GetPile(endSN); // find the ending CPile* in the PileList
+	if (pEndPile != NULL)
+	{
+		pEndingPile = pEndPile;
+	}
+	return pEndingPile;
+}
+
+// BEW added 6Sep22, return TRUE if the sequNum values say that pTestPile is between the anchor and end, 
+// or at either boundary; otherwise return FALSE (default) While I've added this function, and some
+// code to support it, I've yet to find a suitable way to use it. It certainly would not be appropriate
+// to put up a warning message at every pile within a Retranslatio span. So the code can sit, in case
+// later I want to use this.
+bool CRetranslation::IsWithinRetrans(CPile* pTestPile, CPile* pAnchorPile, CPile* pEndPile)
+{
+	wxASSERT(pTestPile != NULL);
+	wxASSERT(pAnchorPile != NULL);
+	wxASSERT(pEndPile != NULL);
+	int snTestPile = pTestPile->GetSrcPhrase()->m_nSequNumber;
+	int snAnchorPile = pAnchorPile->GetSrcPhrase()->m_nSequNumber;
+	int snEndPile = pEndPile->GetSrcPhrase()->m_nSequNumber;
+	if (snTestPile >= snAnchorPile && snTestPile <= snEndPile)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase)
 {
 	CSourcePhrase* pSrcPhrase = pClickedSourcePhrase;
@@ -2925,21 +2911,8 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 	CRetranslationDlg dlg(m_pApp->GetMainFrame());
 
 	// initialize the edit boxes
-	dlg.m_sourceText = strSource;
 	dlg.m_retranslation = strAdapt;
-	wxString preceding;
-	preceding.Empty();
-	wxString following;
-	following.Empty();
-	wxString precedingTgt;
-	precedingTgt.Empty();
-	wxString followingTgt;
-	followingTgt.Empty();
-	GetContext(nSaveSequNum, nEndSequNum, preceding, following, precedingTgt, followingTgt);
-	dlg.m_preContextSrc = preceding;
-	dlg.m_preContextTgt = precedingTgt;
-	dlg.m_follContextSrc = following;
-	dlg.m_follContextTgt = followingTgt;
+
 //#if defined (_DEBUG)
 //	{
 //		CPile* pmyPile = pLayout->GetPile(2322);
@@ -3703,23 +3676,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// put up the CRetranslationDlg dialog
 	CRetranslationDlg dlg(m_pApp->GetMainFrame());
 
-	// initialize the edit boxes
-	dlg.m_sourceText = strSource;
+	// initialize the edit box
 	dlg.m_retranslation = strAdapt;
-	wxString preceding;
-	preceding.Empty();
-	wxString following;
-	following.Empty();
-	wxString precedingTgt;
-	precedingTgt.Empty();
-	wxString followingTgt;
-	followingTgt.Empty();
-	GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
-	dlg.m_preContextSrc = preceding;
-	dlg.m_preContextTgt = precedingTgt;
-	dlg.m_follContextSrc = following;
-	dlg.m_follContextTgt = followingTgt;
-
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		SPList* pRetransList = new SPList;
@@ -3831,30 +3789,15 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		// later RecalcLayout() call to get a valid m_stripArray created first.
 		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // legally can be a wrong location eg.
 													   // in the retrans, & nothing will break
-		/* BEW 1Sep14 removed this call, see comment above
-	#ifdef _NEW_LAYOUT
-		// BEW 1Sep14 use create_strips_keep_piles instead of keep_strips_keep_piles so
-		// that we are sure the m_stripArray has no hanging pile pointers retained in it
-		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-	#else
-		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-	#endif
-		*/
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 
 		// BEW 1Sep14 end of block of code moved from before ShowModal() call
 
-        // Legacy code from here to end of TRUE block: tokenize the retranslation into a list
-		// of new CSourcePhrase instances on the heap (they are incomplete - only m_key and
-		// m_nSequNumber are set)
-		// nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
-		// the TRUE causes target text punctuation to be used in the parse - see OnButtonRetranslation()
-//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
 		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
 		// / inserted where the wordbreak should be located.
 		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
-//#endif
+
 		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
 
         // ensure any call to InsertNullSrcPhrase() will work right - that function saves
@@ -4862,49 +4805,40 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			bCollaborating = TRUE;
 		}
 
-		//wxString msg = _("Collaborating: the retranslation report will be based on this open document only.");
-		//if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
-		//{
-		//	wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
-		//	m_pApp->LogUserAction(msg);
-		//}
-		//else
-		//{
-		//	msg += _T("\n");
-			wxString msg = _(
+		wxString msg = _(
 "To get a report based on many or all documents, click No.\nTo get a report based only on this open document, click Yes.");
-			// a "Yes" answer is a choice for reporting only for the current document,
-			// a "No" answer will close the current document, scans all docs, builds
-			// the report and then reopens the document with the box at its old location
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-            answer = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-			if (answer == wxYES)
+		// a "Yes" answer is a choice for reporting only for the current document,
+		// a "No" answer will close the current document, scans all docs, builds
+		// the report and then reopens the document with the box at its old location
+        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+        m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+        answer = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		if (answer == wxYES)
+		{
+			bThisDocOnly = TRUE;
+			if (bCollaborating)
 			{
-				bThisDocOnly = TRUE;
-				if (bCollaborating)
-				{
-					msg = _T("User wants Retrans Report based on current doc only. Collaboration is ON");
-				}
-				else
-				{
-					msg = _T("User wants Retrans Report based on current doc only. Collaboration is OFF");
-				}
-				m_pApp->LogUserAction(msg);
+				msg = _T("User wants Retrans Report based on current doc only. Collaboration is ON");
 			}
 			else
 			{
-				if (bCollaborating)
-				{
-					msg = _T("User wants Retrans Report based on all docs. Collaboration is ON");
-				}
-				else
-				{
-					msg = _T("User wants Retrans Report based on all docs. Collaboration is OFF");
-				}
-				m_pApp->LogUserAction(msg);
+				msg = _T("User wants Retrans Report based on current doc only. Collaboration is OFF");
 			}
-		//}
+			m_pApp->LogUserAction(msg);
+		}
+		else
+		{
+			if (bCollaborating)
+			{
+				msg = _T("User wants Retrans Report based on all docs. Collaboration is ON");
+			}
+			else
+			{
+				msg = _T("User wants Retrans Report based on all docs. Collaboration is OFF");
+			}
+			m_pApp->LogUserAction(msg);
+		}
+		
 	}
 
 	bool bOK;
@@ -5803,127 +5737,6 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 		return;
 	}
 	event.Enable(FALSE);
-}
-
-// Gets the preceding & following contexts for a 'retranslation' section of source text.
-// We cannot rely on the layout pointers being valid, because if there was an unmerge done,
-// they will have been clobbered prior to GetContext being called rather than use GetPile().
-// We accumulate 40 words of preceding context and 30 words of following context, and we
-// omit any m_markers content from the accumulations - we are just interested in the text.
-// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
-// BEW 9July10, no changes needed for support of kbVersion 2
-// BEW 21Jul14, refactored for support of ZWSP storage and replacement - we have to take
-// into account whether there is a previous retranslation, or a following retranslation,
-// so as to use the correct Put...() call for the word delimiter between each word pair
-// Also, at same date, moved this to be in Retranslation.cpp
-// BEW 23Apr15 added support for / used as a wordbreaking whitespace char
-void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
-							   wxString& strFoll,wxString& strPreTgt, wxString& strFollTgt)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	// get the preceding context first
-	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
-	SPList::Node* pos = pSrcPhrases->Item(nStartSequNum);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetPrevious();
-	TextType textType = pSrcPhrase->m_curTextType;
-	wxString str; // temporary buffers
-	str.Empty();
-	wxString strTgt;
-	strTgt.Empty();
-
-	int count = 0;
-	while (count < NUM_PREWORDS && pos != NULL)
-	{
-		TextType type;
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetPrevious();
-		count++;
-		type = pSrcPhrase->m_curTextType;
-		if (type != textType)
-			break;
-		if (!pSrcPhrase->m_bNullSourcePhrase)
-		{
-			str = pSrcPhrase->m_srcPhrase;
-			strPre = str + PutSrcWordBreak(pSrcPhrase) + strPre;
-		}
-		if (pSrcPhrase->m_bRetranslation)
-		{
-			strTgt = pSrcPhrase->m_targetStr;
-			strPreTgt = strTgt + PutTgtWordBreak(pSrcPhrase) + strPreTgt;
-		}
-		else
-		{
-			strTgt = pSrcPhrase->m_targetStr;
-			strPreTgt = strTgt + PutSrcWordBreak(pSrcPhrase) + strPreTgt;
-		}
-	}
-
-	// now get the following context
-	pos = pSrcPhrases->Item(nEndSequNum);
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetNext();
-	count = 0;
-	str.Empty();
-	strTgt.Empty();
-	strFoll.Empty();
-	strFollTgt.Empty();
-
-	while (count < NUM_FOLLWORDS && pos != NULL)
-	{
-		TextType type;
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		count++;
-		type = pSrcPhrase->m_curTextType;
-		if (type != textType)
-			break;
-
-		str = pSrcPhrase->m_srcPhrase;
-		if (!pSrcPhrase->m_bNullSourcePhrase)
-		{
-			if (strFoll.IsEmpty())
-			{
-				strFoll = str;
-			}
-			else
-			{
-				strFoll += PutSrcWordBreak(pSrcPhrase) + str;
-			}
-		}
-		strTgt = pSrcPhrase->m_targetStr;
-		if (pSrcPhrase->m_bRetranslation)
-		{
-			if (strFoll.IsEmpty())
-			{
-				strFollTgt = strTgt;
-			}
-			else
-			{
-				strFollTgt += PutTgtWordBreak(pSrcPhrase) + strTgt;
-			}
-		}
-		else
-		{
-			if (strFoll.IsEmpty())
-			{
-				strFollTgt = strTgt;
-			}
-			else
-			{
-				strFollTgt += PutSrcWordBreak(pSrcPhrase) + strTgt;
-			}
-		}
-	}
-//#if defined(FWD_SLASH_DELIM)
-	// BEW added 23Apr15
-	strPre = FwdSlashtoZWSP(strPre);
-	strFoll = FwdSlashtoZWSP(strFoll);
-	strPreTgt = FwdSlashtoZWSP(strPreTgt);
-	strFollTgt = FwdSlashtoZWSP(strFollTgt);
-//#endif
-
 }
 
 // BEW added 31Mar21, public member, to support Find retranslations.

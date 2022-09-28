@@ -671,7 +671,14 @@ bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
 	return FALSE;
 }
 
-// In this function, the keyStr parameter will always be a source string; the caller must
+extern CAdapt_ItApp* gpApp;     // for bug chasing
+// BEW 8Sep22 Changed beginning of this comment:
+// In this function, the keyStr parameter will always be a source string;  <<-- not true now
+// In this function, the keyStr parameter will be a source text string, when adapting mode is
+// current; or it will be the contents of pSrcPhrase->m_adaption target text, when the current
+// mode is glossing mode.
+// 
+// legacy part of comment still applies, as follows: the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
 // pointer. This function, as the name suggests, has the smarts for AutoCapitalization being
@@ -689,11 +696,8 @@ bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
 // changes of same date within StoreText() etc, of data entries in the KB maps.
 // BEW 23Apr15 changed to support / as a word-breaking whitespace char if m_bFwdSlashDelimiter
 // is TRUE
-
-
-extern CAdapt_ItApp* gpApp;     // bug chasing
-
-
+// BEW 8Sep22, no change was made to AutoCapsLookup() for support of target text from
+// pSrcPhrase->m_adaption being keyStr when in glossing mode. Function seems okay as is.
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -705,6 +709,9 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
 	// to support lookups because we will have ZWSP rather than / in the KB
 	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	// BEW 8Sep22 m_adaption in Glossing mode conceivably may be using solidus to
+	// separate words where ZWSP is in use, so there's no harm in allowing this
+	// function to do it's job when glossing mode is ON.
 	keyStr = FwdSlashtoZWSP(keyStr);
 //#endif
 
@@ -720,6 +727,8 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 
 		// auto capitalization is ON, so determine the relevant parameters etc.
 
+		// BEW 8Sep22, gbSourceIsUpperCase, if glossing is ON, should be for a target text
+		// keyStr, and having examined the code below, it seems okay for glossing mode, 'as is'
 		bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
                                                         // is TRUE since it is source text
 		if (!bNoError)
@@ -1944,14 +1953,13 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	wxString username; // who created a given entry received from kbserver
 	bool bDeletedFlag;
 
-	/* don't need this, the this pointer points at the correct CKB already
 	// bGlossingKB will be TRUE if the glossing KB is currently in use (ie. glossing mode
 	// is on), and FALSE if not in use (ie. adapting mode is on)
 	bool bGlossingKB = pKbServer->GetKBServerType() == 2 ? TRUE : FALSE;
 	// get a pointer to the CKB instance currently being used
 	CKB* pKB = bGlossingKB ? m_pApp->m_pGlossingKB : m_pApp->m_pKB;
-	*/
-	CKB* pKB = this;
+	
+	//CKB* pKB = this;
 	// local variables needed for storing to the CKB instance
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefString = NULL;
@@ -4308,14 +4316,21 @@ bool CKB::DisallowCommaInKB(CSourcePhrase* pSrcPhrase, wxString tgtPhrase)
 // have commas within the data to be saved as source text key associated with target text
 // adaptation. So we must check for commas and disallow such data to enter the local KB,
 // and warn the user of the data rejection.
+// BEW 7Sep22, refactored to use m_adaption as the tgtPhrase when glossing mode is turned on
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	bool bDidKbserver = FALSE;
 	// Disallow the saving if there is a comma in either src or tgt. If there was, then
-	// a messave box will have been seen already warning the user that the entry is going
+	// a message box will have been seen already warning the user that the entry is going
 	// to be ignored - that is, not saved to the KB.
 	bool bDisallow = DisallowCommaInKB(pSrcPhrase, tgtPhrase);
 	if (bDisallow == TRUE)
+	{
+		return TRUE; // the caller must treat this as a valid 'save' operation
+	}
+
+	// BEW 7Sep22 don't allow an empty 'src' (ie. m_adaption) when in glossing mode
+	if (gbIsGlossing && tgtPhrase.IsEmpty())
 	{
 		return TRUE; // the caller must treat this as a valid 'save' operation
 	}
@@ -4331,7 +4346,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 //*
 	// BEW 10Feb20 prevent user-generated placeholders from generating a KB addition,
 	// but support setting of m_adaption and m_targetStr
-	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
+	// BEW 7Sep22 added 3rd subtest here, because this block assumed adapting
+	// mode was in force. So add && !gbIsGlossing, and for when it is glossing mode
+	// just skip this block 
+	if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation && !gbIsGlossing)
 	{
 		if (tgtPhrase != strNot)
 		{
@@ -4391,7 +4409,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
-	if (gbAutoCaps)
+	// BEW 7Sep22 the next test assumes adapting mode, so add subtest 2
+	if (gbAutoCaps && !gbIsGlossing)
 	{
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
 	}
@@ -4563,6 +4582,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		return TRUE;
 	} // end of block for processing a store when transliterating using SILConverters transliterator
 
+	// BEW 7Sep22 this FALSE value is apt for both adapting and glossing modes, so no change here
     m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default setting
 
 	// First get rid of final spaces, if tgtPhrase has content
@@ -4575,9 +4595,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
     // always place a copy in the source phrase's m_adaption member, unless it is
     // <Not In KB>; when glossing always place a copy in the m_gloss member
+	// BEW 7Sep22 for glossing mode, where tgtPhrase contains a gloss, it's not
+	// kosher to make the gloss uppercase just because the source text m_key is
+	// upper case; so comment out the autocaps stuff in the TRUE block
 	if (m_bGlossingKB)
 	{
 		wxString s = tgtPhrase;
+		/*  commented out, 7Sep22
 		if (gbAutoCaps)
 		{
 			bool bNoError = TRUE;
@@ -4591,6 +4615,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 		}
+		*/
 		pSrcPhrase->m_gloss = s;
 	}
 	else // currently adapting
@@ -4641,6 +4666,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // suppress saving to the KB. For support of glossing, we must skip this block if
     // glossing is ON because glossing does not care about retranslations - the user needs
     // to be able to gloss the source words in a retranslation just like the rest of it
+	// BEW 7Sep22, no change for this block, in glossing mode we allows m_adaption/gloss entry storage
 	if (!m_bGlossingKB && pSrcPhrase->m_bRetranslation)
 	{
 		if (!m_pApp->m_bSaveToKB)
@@ -4655,8 +4681,35 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // create one and add it to the appropriate map; we start by computing which map we
     // need to store to
     // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
+	// BEW 7Sep22 refactored this bit; whether or not there is a tilde in the pSrcPhrase
+	// does not determine the nMapIndex value; rather, it depends on word counts, and
+	// so while adapting mode can grab pSrcPhase->m_nSrcWords, the m_adaption contents
+	// require a count of target words - this is provided by a new CSourcePhrase
+	// member function: int GetTgtWordCount() - which internally uses wxStringTokenizer
 	int nMapIndex;
-	if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+	bool bHasTilde = IsFixedSpaceSymbolWithin(pSrcPhrase);
+	wxUnusedVar(bHasTilde);
+	int numberOfTgtWords = 1; //initialise
+	if (gbIsGlossing)
+	{
+		// glossing mode
+		numberOfTgtWords = pSrcPhrase->GetTgtWordCount();
+		nMapIndex = numberOfTgtWords - 1; // index to the appropriate map
+	}
+	else
+	{
+		// adapting mode
+		if (bHasTilde)
+		{
+			// Force word1~word2 to go to the nMapIndex 0, as before (see comments before function)
+			nMapIndex = 0;
+		}
+		else
+		{
+			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+		}
+	}
+/* legacy code for the above bit, which was vastely out of date, going back to when all texts lengths were in the one-and-only map 1.
 	{
 		nMapIndex = 0;
 	}
@@ -4664,6 +4717,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
 	}
+*/
 
     // if we have too many source words, then we cannot save to the KB, so detect this and
     // warn the user that it will not be put in the KB, then return TRUE since all is
@@ -4674,61 +4728,91 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // m_bRetranslation to be TRUE, and also for m_bHasGlossingKBEntry to be TRUE.
 
     // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
-	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
+	// BEW 7Sep22 refactored this bit, for supporting glossing mode's count of words in m_adaption
+	if (!gbIsGlossing && (pSrcPhrase->m_nSrcWords > MAX_WORDS) )
 	{
 		pSrcPhrase->m_bNotInKB = FALSE;
-		if (m_bGlossingKB)
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		else
-			pSrcPhrase->m_bHasKBEntry = FALSE;
+		pSrcPhrase->m_bHasKBEntry = FALSE;
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_(
-"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
+"Warning: there are too many source language words in this phrase for this entry to be stored in the knowledge base."),
 		_T(""),wxICON_INFORMATION | wxOK);
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
+	else if (gbIsGlossing && (pSrcPhrase->GetTgtWordCount() > MAX_WORDS))
+	{
+		pSrcPhrase->m_bNotInKB = FALSE;
+		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+		m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+		wxMessageBox(_(
+			"Warning: there are too many target language words in this phrase for this entry to be stored in the glossing knowledge base."),
+			_T(""), wxICON_INFORMATION | wxOK);
+		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+		return TRUE;
+	}
 
-	// continue the storage operation
-	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done
-											   // to it (need this for lookups)
-	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be
-															// made lower case
-//#if defined(FWD_SLASH_DELIM)
+	// continue the storage operation  
+	// BEW 7Sep22 refactored to handle use of m_adaption in glossing mode
+	wxString key;
+	wxString unchangedkey;
+	if (!gbIsGlossing)
+	{
+		unchangedkey = pSrcPhrase->m_key; // this never gets case change (need this for lookups)
+		key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
+	}
+	else
+	{
+		// In glossing mode
+		unchangedkey = pSrcPhrase->m_adaption; // this never gets case change (need this for lookups)
+		key = AutoCapsMakeStorageString(pSrcPhrase->m_adaption); // key might be made lower case
+	}
+															
+
 	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
 	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
 	// if app->m_bFwdSlashDelimiter is TRUE), then we don't want to store any / in the KB,
 	// so we unilaterally call FwdSlashtoZWSP() here to replace / with ZWSP if any / are
 	// present (which can only be the case if it is a merger we are storing for)
+	// BEW 7Sep22 the following bit assumes src/tgt entries, where the ZWSP may occur, for
+	// glossing, ZWSP support might be needed also for m_adaption tgt text, so allow the change
 	unchangedkey = FwdSlashtoZWSP(unchangedkey); // see helpers.cpp
 	key = FwdSlashtoZWSP(key);
 	tgtPhrase = FwdSlashtoZWSP(tgtPhrase);
-//#endif
+
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefString =  NULL;
 	if (m_pMap[nMapIndex]->empty())
 	{
-		// we just won't store anything if the target phrase has no content, when
-		// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
-		// then we skip this block so that we can store an empty string as a valid
-		// KB "adaptation" or "gloss" - depending on which KB is active here
-		if (tgtPhrase.IsEmpty())
+		if (!gbIsGlossing)
 		{
-			if(!bSupportNoAdaptationButton)
+			// BEW 7Sep22 add test for not-glossing, because this next bit assumed adaptation mode;
+			// we don't need to test for m_adaptation being empty in glossing mode, as that test
+			// was done above just after entry
+			if (tgtPhrase.IsEmpty())
 			{
-				if (!m_bGlossingKB)
+				// we just won't store anything if the target phrase has no content, when
+				// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
+				// then we skip this block so that we can store an empty string as a valid
+				// KB "adaptation" or "gloss" - depending on which KB is active here
+				if (!bSupportNoAdaptationButton)
 				{
-					pSrcPhrase->m_bBeginRetranslation = FALSE;
-					pSrcPhrase->m_bEndRetranslation = FALSE;
+					if (!m_bGlossingKB)
+					{
+						pSrcPhrase->m_bBeginRetranslation = FALSE;
+						pSrcPhrase->m_bEndRetranslation = FALSE;
+					}
+					m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
+					gbMatchedKB_UCentry = FALSE;
+					m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+					return TRUE; // make caller think all is well
 				}
-				m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
-				gbMatchedKB_UCentry = FALSE;
-				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
-				return TRUE; // make caller think all is well
 			}
-		}
+		} // end of TRUE block for test: if (!gbIsGlossing)
 
 		// we didn't return, so continue on to create a new CTargetUnit for storing to
 		pTU = new CTargetUnit;
@@ -4741,8 +4825,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// add the translation string
 		if (bNoError)
 		{
-			// FALSE in next call is  bool bIsSrc
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			// BEW 7Sep22, need to distinguish normal versus glossing here
+			if (gbIsGlossing)
+			{
+				pRefString->m_translation = tgtPhrase; // tgtPhrase is a gloss
+			}
+			else
+			{
+				// FALSE in next call is  bool bIsSrc
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+			}
 		}
 		else
 		{
@@ -4764,7 +4856,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
 		// app if none is running
 		// GDLC 20JUL16
-
+		// BEW 7Sep22, don't be confused by the gbIsGlossing argument, in AllowSvrAccess it
+		// allows access to the adapting srv ig the bool is FALSE, or to the glossing svr if TRUE
+		// so at the moment I don't think any change is needed here
 		if (m_pApp->AllowSvrAccess(gbIsGlossing) && !bDidKbserver)
 		{
 			if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject &&
@@ -4779,6 +4873,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				if (!bStoringNotInKB)
 				{
 					// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
+					// BEW 7Sep22, because of line 4825, in this refactoring m_translation
+					// here will be a gloss, if glossing mode is in effect; and key will be
+					// contents of m_adaption due to line 4763 above; otherwise, for adapting 
+					// mode, key will be m_key, and m_translation will be m_adaption
 					int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
 					wxUnusedVar(rv);
 #if defined (SHOWSYNC)
@@ -4801,13 +4899,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		{
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // tell the src phrase it has
 													 // an entry in the glossing KB
-			(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
-			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map for glossing KB
+
+			// BEW 7Sep22 the number of words in m_adaption might require using a larger
+			// map of the ten available: m_nMaxWords is a CKB member, and at present there's only
+			// one variable in support of both glossing and adapting modes - but that might be okay
+			// as earlier we checked and disallowed the store if numberOfTgtWords is over 10
+			if (numberOfTgtWords > m_nMaxWords)
 			{
-				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+				m_nMaxWords = numberOfTgtWords;
 			}
 		}
-		else
+		else // the adapting KB is in effect
 		{
 			if (bStoringNotInKB)
 			{
@@ -4837,7 +4940,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		}
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
-	}
+	} // end of TRUE block for test: if (m_pMap[nMapIndex]->empty())
 	else // the block below is for when the map is not empty
 	{
 		// there might be a pre-existing association between this key and a CTargetUnit,
@@ -4912,16 +5015,27 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 			pRefString->m_refCount = 1; // set the count
 			// add the translation or gloss string
+			 
+			// BEW 8Sep22 below, tgtPhrase was used. But it may contain a fixed space symbol
+			// (tilde ~) between two words. In glossing mode we want that to be two separate
+			// words, so create a new wxString, assign tgtPhrase to it, and remove any ~
+			// instances, and then set m_translation using the new string.
+			wxString tstr = tgtPhrase;
+			if (gbIsGlossing)
+			{
+				tstr.Replace(_T("~"), _T(" ")); // turn all ~  into Latin space
+			}
+
 			// BEW 29Jul11, what we add should depend on auto-caps setting, if ON, then
 			// force first character to lowercase if it is upper case; if OFF, then store
 			// whatever string tgtPhrase has - whether starting with ucase or lcase
 			if (gbAutoCaps)
 			{
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+				pRefString->m_translation = AutoCapsMakeStorageString(tstr,FALSE); // was tgtPhrase
 			}
 			else
 			{
-				pRefString->m_translation = tgtPhrase;
+				pRefString->m_translation = tstr; // was tgtPhrase
 			}
 			// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
 
@@ -4972,10 +5086,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in
 						// the map with appropr. index (key may have been made lowercase)
 				// update the maxWords limit, BEW changed 13Nov10
-				//m_nMaxWords = 1;
-				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+				// m_nMaxWords = 1;
+				// BEW 8Sep22 for glossing mode, use the numberOfTgtWords value (computed much earlier above)
+				if (numberOfTgtWords > m_nMaxWords)
 				{
-					m_nMaxWords = pSrcPhrase->m_nSrcWords;
+					m_nMaxWords = numberOfTgtWords;
 				}
 			}
 			else
@@ -5038,10 +5153,24 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// with the unchanged value of tgtPhrase when it is not on. Trying to be
 			// smarter than that because the user may have only recently turned auto-caps
 			// on leads to these unnecessary errors.
+
+			// BEW 8Sep22, copy the change to be rid of ~ fixed space markers, as in
+			// the above TRUE block, and use string tstr below
+
+			// BEW 8Sep22 below, tgtPhrase was used. But it may contain a fixed space symbol
+			// (tilde ~) between two words. In glossing mode we want that to be two separate
+			// words, so create a new wxString, assign tgtPhrase to it, and remove any ~
+			// instances, and then set m_translation using the new string.
+			wxString tstr = tgtPhrase;
+			if (gbIsGlossing)
+			{
+				tstr.Replace(_T("~"), _T(" ")); // turn all ~  into Latin space
+			}
+
 			if (gbAutoCaps)
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+				pRefString->m_translation = AutoCapsMakeStorageString(tstr,FALSE);
 			else
-				pRefString->m_translation = tgtPhrase;
+				pRefString->m_translation = tstr;
 
 			// we are storing either a gloss, or adaptation, or pseudo-adaption "<Not In KB>"
 			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
@@ -5145,7 +5274,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								// ensure it gets set if that is what the user wants
 					}
 					break;
-				}
+				} // end of TRUE block for test: if (*pRefStr == *pRefString) - the entry 
+				  //exists, so only a refCount increment is needed
 			}
 			// if we get here with bMatched == FALSE, then there was no match, so we must
 			// add the new pRefString to the targetUnit, but if it is already an <Not In
@@ -5160,7 +5290,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 			else
 			{
-				// no match was made in the above loop
+				// no match was made in the above loop, so a new CRefString needs to be added, for tstr
 				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
 				CRefString* pRefStr = (CRefString*)tpos->GetData();
 				// check that there isn't somehow an undeleted <Not In KB> CRefString as
@@ -5194,7 +5324,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					 // and it's a normal adaptation or <Not In KB> and
 					 // there is no <Not In KB> CRefString in pTU already
 				{
-					if (tgtPhrase.IsEmpty())
+					if (tgtPhrase.IsEmpty()) // BEW 8Sep22 if tgtPhrase was empty in glossing mode, 
+											 // this check is valid still
 					{
 						// we just won't store anything if the target phrase has no
 						// content, when bSupportNoAdaptationButton has it's default value
@@ -5223,15 +5354,24 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 
 					// calculate the string to be stored...
+					 
+					wxString tstr = tgtPhrase;
+					if (gbIsGlossing)
+					{
+						tstr.Replace(_T("~"), _T(" ")); // turn all ~  into Latin space
+					}
+					// BEW 8Aug22 use tst below, rather than tgtPhrase
+
+					
 					// BEW 29Jul11, force lowercase if gbAutoCaps is ON, if OFF, use
 					// whatever is in the phrase box (unchanged)
 					if (gbAutoCaps)
 					{
-						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+						pRefString->m_translation = AutoCapsMakeStorageString(tstr, FALSE);
 					}
 					else
 					{
-						pRefString->m_translation = tgtPhrase;
+						pRefString->m_translation = tstr;
 					}
 
 					// BEW added 5Oct12, here is a suitable place for KBserver support of

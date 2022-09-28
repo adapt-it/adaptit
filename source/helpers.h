@@ -529,6 +529,7 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase); // get it from m_srcWor
 
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
+int GetWordCountIncludingZWSP(wxString& str); // BEW 16Sep22 using code from pSrcPhrase->GetTgtWordCount()
 
 //#if defined (_KBSERVER)
 

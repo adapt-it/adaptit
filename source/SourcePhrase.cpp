@@ -47,6 +47,7 @@
 
 #include <wx/wfstream.h> // for wxFileInputStream and wxFileOutputStream
 #include <wx/datstrm.h> // for wxDataInputStream and wxDataOutputStream
+#include <wx/tokenzr.h>
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -543,6 +544,24 @@ void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
 	m_curTextType = sp.m_curTextType;
 	m_bSpecialText = sp.m_bSpecialText;
 	m_bRetranslation = sp.m_bRetranslation;
+}
+
+int CSourcePhrase::GetTgtWordCount()
+{
+	wxString tgt = this->m_adaption;
+	if (tgt.IsEmpty()) {
+		return 0;
+	}
+	wxChar zwsp = (wxChar)0x200B;
+	wxString aToken = wxEmptyString;
+	//wxString delims = _T(" \n\r\t~'/'"); 
+	wxString delims = _T(" \n\r\t~"); // remove the '/' and retry
+	delims += zwsp;
+	delims += _T('/');
+	wxStringTokenizer tkz(tgt,delims); //my choice of delimiters includes / and zero-width-space
+		// and adding USFM's tilde (fixed space) so that ~ between words is tokenized as 2 words
+	int numFields = tkz.CountTokens();
+	return numFields;
 }
 
 bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhrase)
@@ -3168,7 +3187,7 @@ void CSourcePhrase::ClearCachedAttributesMetadata()
 
 void CSourcePhrase::InsertCachedAttributesMetadata(wxString metadata)
 {
-	ClearCachedAttributesMetadata();
+	//ClearCachedAttributesMetadata(); // BEW 21Sep22 don't clear what we want to cache!
 	if (metadata.IsEmpty())
 	{
 		m_bUnused = FALSE;
