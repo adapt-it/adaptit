@@ -170,6 +170,11 @@ void CNoteDlg::OnEnChangeEditBoxSearchText(wxCommandEvent& WXUNUSED(event))
 // BEW 25Feb10, no change for doc version 5
 void CNoteDlg::OnIdle(wxIdleEvent& WXUNUSED(event))
 {
+	// whm 01Sep2022 added protection against possibility of pEditSearch being 
+	// undefined or NULL, which happened during my testing.
+	pEditSearch = (AutoCorrectTextCtrl*)FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
+	if (pEditSearch == NULL)
+		return;
 	wxString boxTextStr = _T("");
 	boxTextStr = pEditSearch->GetValue();
 	if (boxTextStr.IsEmpty())
@@ -215,8 +220,9 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 {
 	wxASSERT(this == gpApp->m_pNoteDlg);
 	// get pointers to dialog controls
-	pEditNote = (wxTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_NOTE); // whm moved to constructor
-	pEditSearch = (wxTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
+	// whm 01Sept2022 corrected the two lines below to cast to AutoCorrectTextCtrl rather than wxTextCtrl
+	pEditNote = (AutoCorrectTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_NOTE); // whm moved to constructor
+	pEditSearch = (AutoCorrectTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
 
 	//wxWindow* pOldFocusWnd = NULL; // BEW 5Mar08 added // set but unused
 
@@ -427,17 +433,18 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	Destroy(); // destroy the dialog window (see comments at end for why)
 
-	// wx version note: Compare to the ViewFilteredMaterialDlg where it is sometimes also necessary to
-	// create a new dialog while the current one is open. In the case of ViewFilteredMaterialDlg, the
-	// code first called its OnCancel() handler (because it was assumed there that the user wouldn't
-	// want to save any changes to the edit box), before Destroy() on the old one and creating a new 
-	// dialog with the new operator.
-	// Here with the note dialog a similar thing happens, with dialogs needing to be programattically
-	// closed and new ones created with the new operator. In this case, however, it is assumed that 
-	// the user would want to save any Note edits, so OnOK() is called before Destroy() is called on 
-	// the old one and a new one created with the new operator. With the case of the ViewFilteredMaterialDlg
-	// I found it necessary to call delete on the App's dialog pointer, only in OnCancel. I assume
-	// that delete should be called on the App's Note dialog pointer here in OnOK().
+	// whm 01Sep2022 revised comment.
+	// Compare to the ViewFilteredMaterialDlg where it is sometimes also necessary to create a
+	// new dialog while the current one is open. Here with the note dialog a similar thing 
+	// happens, with dialogs needing to be programattically closed and new ones created with the new 
+	// operator. In both cases it is assumed that the user would want to save any edits done in the
+	// dialog, so OnOK() is called from the Canvas' OnLButtonDown() handler in order to save any edits
+	// and destroy the old dialog and a new one created with the new operator.
+	// Extensive testing shows that it is necessary to call delete on the App's 
+	// dialog pointer to prevent a new dialog from appearing as a "ghost" dialog - having no data in
+	// its controls. Calling delete on the destroyed dialog's pointer is only necessary here within
+	// the dialog's OnOK() handler. Calling delete should NOT be done within OnCancel(), otherwise we
+	// get an app crash when the x close dialog icon is clicked on Windows systems.
 	if (gpApp->m_pNoteDlg != NULL) // whm 11Jun12 added NULL test
 		delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
@@ -465,10 +472,24 @@ void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
     gpApp->m_bUserDlgOrMessageRequested = TRUE;
 
     Destroy();
-	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
+
+	// whm 01Sep2022 Note: See my comment in the CViewFilteredMaterialDlg::OnCancel(). 
+	// For the ViewFilteredMaterialDlg, the app on Windows was crashing when the user 
+	// clicked on its x icon to close the dialog. Its OnCancel() method was wrongly calling delete 
+	// on its dialog pointer after calling Destroy(). 
+	// For other mode-less dialogs such as the Find, Replace, EarlierTranslationDlg,
+	// etc, Destroy() is called in their OnCancel() and OnOK() handlers, and their App's dialog pointer 
+	// is assigned to NULL. That should remain the case here for the NoteDlg too. 
+	// Generally, we should never call delete on a modeless dialog's pointer, at least from within its
+	// OnCancel() method. Calling delete from within a dialog's OnOK() handler may be needed to prevent a
+	// "ghost" dialog from appearing when a new dialog is replacing an already existing one. 
+	// Calling Destroy() and setting the dialog's pointer to NULL is all that should be done within this
+	// OnCancel() method in order to close the modeless dialog.
+	gpApp->m_pNoteDlg = NULL; // allow a new ViewFilteredMaterialDlg dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
+	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 }
 
 // ******************************  handlers   **********************************

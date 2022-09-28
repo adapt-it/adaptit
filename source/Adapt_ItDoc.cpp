@@ -9052,6 +9052,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						//if (pSrcPhrase->m_nSequNumber >= 4)
 						//{
 						//	int halt_here = 1;
+						//  wxUnusedVar(halt_here);
 						//}
 			//#endif
 			pos = pos->GetNext();
@@ -9721,8 +9722,14 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				// bracketing markers for it there instead.
 				int itsLen = wholeMkr.Length();
 				int nOffsetToNextBit = filterableMkrOffset + itsLen;
+				// whm 16Sep2022 moved the assignment of nFound before the if test in order to
+				// utilize the value of nFound in the else/else if part which determines what
+				// to do when a marker like \fv follows \f within the m_markers member.
+				nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit);
+				//if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
+				//	(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
 				if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
-					(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
+					(nFound != wxNOT_FOUND))
 				{
 					// there is a following SF marker which is not a \f or \x (the latter two
 					// can have a following marker within their scope, so whether that happens
@@ -9791,6 +9798,32 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				} // end of TRUE block for test:
 				// if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
 				//	(nFound = FindFromPos(markersStr, backslash, nOffsetToNextBit)) != wxNOT_FOUND)
+				// 
+				// whm 16Sep2022 added an else if test for when a marker like \fv immediately follows \f
+				// wihtin m_markers
+				else if (nFound != wxNOT_FOUND
+					&& (markersStr.Mid(nFound, 2) == _T("\\f") || markersStr.Mid(nFound, 2) == _T("\\x")))
+				{
+					// Either \f or \x is the current wholMkr being examined, and
+					// there is a marker directly following \f or \x which is of the form \f? or \x?,
+					// where \f? might be one of the 2 or 3 letter footnote markers \\fq \\fl \\ft \\fdc 
+					// \\fe \\fv \\fp \\fqa \\fr \\fk \\fm, (other than 1-letter \f itself),
+					// or \x? might be one of the cross reference markers ... other than \x itself.
+					// Hence, there is a following SF marker that is NOT \f nor \x, but is a related marker 
+					// that begins with "\f..." or "\x...".
+					// A prine example of when this "else if" block is entered is when the current wholeMrk
+					// if \f and it is followed immediately by a \fv "Footnote - Embedded Verse Number" which
+					// has \fv* as an end marker but the end marker is optional (its embedded text ends at the
+					// next embedded marker or the footnote end marker \f*), and often the end marker is
+					// not used in real text. 
+					// An example would be \f \fv 4:1 ...(other embedded footnote markers and text)... \f*.
+					// In the above example "4:1" is the content that follows the \fv marker, and that content
+					// is filterable along with the rest of the footnote.
+					// [TODO]
+					//
+					int HaltHere = 1;
+					HaltHere = HaltHere;
+				}
 				else
 				{
 					// there is no following SF marker, so the current one may be assumed to
@@ -17383,6 +17416,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// CSourcePhrase instance which then is no longer needed (provided it's
 		// m_precPunct member is also empty, if not, we have to leave it to carry that
 		// punctuation)
+
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 
@@ -18046,6 +18080,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							pLayout->m_nSequNum_LastSrcPhrase = 0; // safe, if the document exists
 						}
+
 						//int badMkrLength = wholeEndMkr.Len();
 						CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
 						CSourcePhrase* pLastSrcPhrase = pPile->GetSrcPhrase();
@@ -18055,6 +18090,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s and target: %s\n at sequence number: %d. Fix the input source text file, then re-load to re-create the document.");
 						msg = msg.Format(msg, wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation);
 						wxString title = _T("Warning: Unexpected End Marker");
+
 						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 						pApp->LogUserAction(msg);
 					}

@@ -1,4 +1,35 @@
 ﻿----------------------------------------------
+Version 6.11.0  9 September 2022
+----------------------------------------------
+Feature changes and new features in 6.11.0
+--------------------------------------------------------------------------------------------
+* The Retranslation dialog has been revised to be much smaller and less cluttered to 
+allow better ease of use and visibility of the text behind the dialog.
+* Changed the "Back" button in the toolbar to become a "Go To" button which presents the
+user with the small Go To dialog that previously was only available from the "Go To..."
+item on the Edit menu. The To Go dialog now is accessible via single click on the tool
+bar button, and it now has a "Go Back To:" button and a drop down list box making it 
+easy to go back or forward to previous reference locations that were visited via the 
+dialog. The Go Back To list is available for the currently open document.
+* The Print Preview pane is now expanded to the same size as Adapt It's main window. 
+Previously the Print Preview was too small especially if the compose box was open.
+* The View Filtered Material dialog (accessed by clicking on a green wedge mark in the
+text) now works more like the Note Dialog and disappears when the user clicks away from
+the dialog. Any changes made to the text of filtered material are automatically saved
+if they hadn't been saved by explicitly clicking on the dialog's OK button.
+----------------------------------------------
+Bug fixes in 6.11.0 update
+---------------------------------------------
+* Fixed a bug that wrongly filtered out some scripture text beyond a footnote end 
+marker \f*, when "\f A footnote text item (basic)" is marked to be filtered out using the
+"USFM and Filtering" tab in the Edit Preferences dialog.
+* Fixed a crash that could happen in the Windows version when a user has opened a View 
+Filtered Material dialog, and attempts to close the dialog window by clicking the x icon
+in the upper right corner of the dialog.
+* Fixed a bug that prevented the Auto Correct function from working when editing a note
+within the Note dialog.
+
+----------------------------------------------
 Version 6.10.7  20 May 2022
 ----------------------------------------------
 Bug fixes in 6.10.7 update

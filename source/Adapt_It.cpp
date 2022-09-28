@@ -8529,7 +8529,9 @@ wxString CAdapt_ItApp::GetBasePathForLocalizationSubDirectories()
 #endif
     wxLogDebug(_T("pathToLocalizationFolders = %s"), pathToLocalizationFolders.c_str());
     wxFileName fn(pathToLocalizationFolders);
-    fn.Normalize();
+    // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+    //fn.Normalize();
+    fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
     return pathToLocalizationFolders;
 }
 
@@ -8632,7 +8634,9 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #endif
     wxLogDebug(_T("pathToXMLFolders = %s"), pathToXMLFolders.c_str());
     wxFileName fn(pathToXMLFolders);
-    fn.Normalize();
+    // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+    //fn.Normalize();
+    fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
     return pathToXMLFolders;
 }
 
@@ -8713,7 +8717,9 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 #endif
     wxLogDebug(_T("pathToHtmlHelpFiles = %s m_htbHelpFileName = %s"), pathToHtmlHelpFiles.c_str(), m_htbHelpFileName.c_str());
     wxFileName fn(pathToHtmlHelpFiles);
-    fn.Normalize();
+    // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+    //fn.Normalize();
+    fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
     return pathToHtmlHelpFiles;
 }
 
@@ -21354,8 +21360,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			kbType = _T('2');
 		}
 		commandLine += kbType + comma;
-
-		// Finally, we need the timestamp to pass in last
+		// whm 22Sep2022 gcc warning that statement below should end with ; instead of ,
+        // Finally, we need the timestamp to pass in last
         commandLine += m_ChangedSinceTimed_Timestamp + comma;
 
 		// That completes the commandLine string; now put it into
@@ -32880,7 +32886,9 @@ void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
     if (!path.IsEmpty())
     {
         wxFileName fn(path);
-        fn.Normalize(); // with flags = wxPATH_NORM_ALL
+        // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+        //fn.Normalize(); // with flags = wxPATH_NORM_ALL
+        fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
         int flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
         wxString dirPath = fn.GetPath(flags); // gets it in native format, including final separator
         wxString searchStr = dirPath + wildcardFilename;
@@ -32959,7 +32967,9 @@ void CAdapt_ItApp::RemoveOldDocCreationLogFiles()
     if (!path.IsEmpty())
     {
         wxFileName fn(path);
-        fn.Normalize(); // with flags = wxPATH_NORM_ALL
+        // whm 22Sep2022 added explicit flags to Normalize() to avoid gcc warning
+        //fn.Normalize(); // with flags = wxPATH_NORM_ALL
+        fn.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_TILDE);
         int flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
         wxString dirPath = fn.GetPath(flags); // gets it in native format, including final separator
         wxString searchStr = dirPath + wildcardFilename;
