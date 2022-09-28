@@ -17404,7 +17404,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// The boolean is defined now, and a caching wxString after it:
 	bool bDelayStoringFilteredInfo = FALSE;
 	wxString strCacheDelayedFilteredContent = wxEmptyString;
-
+	// BEW 28Sep22 goto is ugly, but for a sequence \f \fv without anything between, we
+	// need to force a new CSourcePhrase to happen before the \fv is to be parsed. So
+	// I'm going to try a new boolean here, and a goto destination prior to the while
+	// loop. Then, when I set the boolean down in the code, I can jump control to here.
+	// (Strictly speaking, I could dispense with this bForceNewSrcPhrase boolean, as
+	// only the jump bak here is wanted, but I'll leave the boolean as it may help
+	// document what's going on.)
+	bool bForceNewSrcPhrase = FALSE; // initialise
+force_new:
+	if (bForceNewSrcPhrase)
+	{
+		bForceNewSrcPhrase = FALSE; // reset if a new one was forced by goto force_new;
+	}
 	// the parsing loop commences...
 	while (ptr < pEnd)
 	{
@@ -17422,20 +17434,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
+
 #if defined (_DEBUG) //&& defined (LOGMKRS)
-		if (pSrcPhrase->m_nSequNumber > 1)
+		if (pSrcPhrase->m_nSequNumber >= 3 && pSrcPhrase->m_nSequNumber <= 6)
 		{
+			int halt_here = 1;
 			wxLogDebug(_T("\n%s::%s() line %d sn= %d building NEW EMPTY CSourcePhrase in TokenizeText(), sn= %d , bWithinAttrSpan= %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
 		}
 #endif
 
-#if defined (_DEBUG)
-		if (sequNumber >1)
-		{
-			int halt_here = 1;
-		}
-#endif
 		// BEW 3Sep19 added next line, for support of USFM3
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
@@ -17460,7 +17468,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 #if defined (_DEBUG)
 		{
-			wxString strPointAt = wxString(ptr, 40);
+			wxString strPointAt = wxString(ptr, 20);
 			wxUnusedVar(strPointAt);
 		}
 #endif 
@@ -17474,7 +17482,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			itemLen = ParseWhiteSpace(ptr);
 
 #if defined (_DEBUG)
-			wxLogDebug(_T("TokenizeText: line %d  , near star, Parsed white space:  itemLen = %d : ptr->  %s : sn=%d"),
+			wxLogDebug(_T("TokenizeText: line %d  , near start, Parsed white space:  itemLen = %d : ptr->  %s : sn=%d"),
 				__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 			// BEW 10Jul14 added next 3 lines
@@ -17770,7 +17778,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						m_bHiddenMetadataDone = FALSE;
 					}
 				}
-			}
+			} // end of TRUE block for test: if (!m_bWithinMkrAttributeSpan && !bIsUnstructured)
+
 			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before
 									// checking which marker it is
 			bIsForeignBackTrans = FALSE;
@@ -17872,7 +17881,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 				}
 				continue; // iterate inner loop to check if another marker follows
-			}
+
+			} // end of TRUE block for test: if (IsVerseMarker(ptr, nMkrLen))
+
 			else if (IsChapterMarker(ptr)) // is it some other kind of marker -
 										   // perhaps it's a chapter marker?
 			{
@@ -17910,16 +17921,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 				continue; // iterate inner loop to check if another marker follows
 
-			}  // end of TRUE block for test: if (IsChapterMarker(ptr))
+			}  // end of TRUE block for test: else if (IsChapterMarker(ptr))
 			else
 			{
-#if defined(_DEBUG)
-				if (sequNumber >= 2)
-				{
-					int halt_here = 1;
-					wxUnusedVar(halt_here);
-				}
-#endif
 				// Neither verse nor chapter, but some other marker
 				// BEW 24Oct14, LookupSFM() has been made USFM nested marker aware.
 				// If an unknown marker, pUsfmAnalysis will be NULL; if it's a nested
@@ -18010,7 +18014,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					&& bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 && bareMkr.Find('e') != 0
 					// The 3 subtests above each return TRUE provided the marker is not beginning
 					// with f, x, or e. So, encountering \f, \x, or \ef, or \ex, will cause one
-					// of these subttests to fail, and so the TRUE block below will be skipped.
+					// of these subtests to fail, and so the TRUE block below will be skipped.
 					// Although those four are inLine, we want to deal with them here in
 					// TokenizeText() because we want to store them in m_markers. (Their endmarkers,
 					// and \esbe as well, will be dealt with in or after ParseWord().)
@@ -18294,6 +18298,59 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					m_bIsWithinUnfilteredInlineSpan = TRUE;
 					m_strUnfilteredInlineBeginMarker = gSFescapechar + tagOnly; // e.g. \f or \fig etc
+
+					// BEW 28Sep22 code additions for handling when \f does not have any data before
+					// a following \fv marker. Normally there is something, such as '+' or '*' etc.
+					// But without some refactoring here, a \f \fv marker sequence in m_markers leads
+					// to significant misparsing of the source text data. In this circumstance force
+					// a new CSourcePhrase to be created. I've coined a new bool bForceNewSrcPhrase
+					// which is always FALSE except when a \f \v marker sequence happens, and I'll
+					// use a goto to send control back up to the label force_new, which then resets
+					// the bool to default FALSE, and ensures a new CSourcePhrase is generated to
+					// handle the \fv and subsequent information in the footnote
+					wxString augmentedMkr = m_strUnfilteredInlineBeginMarker + _T(' ');
+					if ( pUsfmAnalysis->inLine && (augmentedMkr == _T("\\f ")) )
+					{
+						// Need to set m_bFootnote
+						pSrcPhrase->m_bFootnote = TRUE;
+					}
+					itemLen = 0;
+					wxChar* pAux = ptr; // don't change ptr, work wih pAux for this test
+					int aug_mkr_len = augmentedMkr.Length();
+					wxASSERT(aug_mkr_len == 3);
+					// move pAux to point past "\f "
+					pAux += (size_t)aug_mkr_len;
+					// There may be some white spaces, parse over them
+					int nExtraWhites = ParseWhiteSpace(pAux);
+					if (nExtraWhites > 0)
+					{
+						itemLen += nExtraWhites;
+						pAux += nExtraWhites;
+					}
+					// What's next at pAux? If it's either a word or symbol or punctuation, then we have a normal
+					// footnote with something in the way of text content before another marker such as \fv
+					// But if another inner footnote marker is next, then we need to force a new CSourcePhrase
+					// to be generated
+					bool bMkrFound = FALSE; // intialise
+					bMkrFound = IsMarker(pAux);
+					if (bMkrFound)
+					{
+						wxString wholeMkr = GetWholeMarker(pAux);
+						int mkrLen = wholeMkr.Length();
+						wxChar secondChar = wholeMkr.GetChar((size_t)1);
+						if (secondChar == _T('f'))
+						{
+							// It's a \f marker type, one of the inner markers provided
+							// mkrLen is 3 (or more). If that is the case, then the
+							// necessary and sufficient conditions for setting bForNewSrcPhrase
+							// to TRUE, and jumping to force_new: label, are satisfied
+							if (mkrLen >= 3)
+							{
+								bForceNewSrcPhrase = TRUE; // the bool is redundant, but harmless
+								goto force_new; // this is what matters
+							}
+						}
+					}
 				}
 				else
 				{
