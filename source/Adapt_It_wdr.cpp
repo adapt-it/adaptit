@@ -1394,7 +1394,7 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item5->Add( 4, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_RETRANS, wxT("14"), wxDefaultPosition, wxSize(40,-1), 0, 12, 18, 14 );
+    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_RETRANS, wxT("14"), wxDefaultPosition, wxDefaultSize, 0, 12, 18, 14 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item5->Add( 30, 16, 0, wxALIGN_CENTER|wxALL, 0 );
