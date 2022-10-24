@@ -341,7 +341,7 @@ inline int GetAISvnVersion()
 
 // whm 12May2020 added defines below to output benchmarks for the OnePass() and LookAhead() functions (in debug mode only)
 #define SHOW_LOOK_AHEAD_BENCHMARKS
-#define SHOW_ONEPASS_BENCHMARKS
+//#define SHOW_ONEPASS_BENCHMARKS
 
 #define SORTKB 1 // change to 0 for output of legacy unsorted KB map entries
 
@@ -3718,9 +3718,14 @@ public:
 	bool m_bConfigFileHasFontEncodingInfo;
 
 	// BEW 2Sep22 support for a range of font sizes in the refactored Retranslation dialog
+	// whm 24Oct2022 note: The following m_nRetransDlg_FontSize variable now stored in project
+	// configuration file AI-ProjectConfiguration.aic instead of a separate file.
 	int m_nRetransDlg_FontSize; // default to 14, range 12 - 18
-	wxString m_strRetransFontSizeFilename; // set it in OnInit() end, to _T("retrans_font_size.txt"), put in exec folder
-	bool		UpdateFontSizeStore(wxString strStoreName, int newFontSize);
+
+	// whm 24Oct2022 removed apparatus for saving value of m_nRetransDlg_FontSize in a separate
+	// file. Now saving it in the project configuration file AI-ProjectConfiguration.aic.
+	//wxString m_strRetransFontSizeFilename; // set it in OnInit() end, to _T("retrans_font_size.txt"), put in exec folder
+	//bool		UpdateFontSizeStore(wxString strStoreName, int newFontSize);
 
 	// whm added below for cross-platform locale and encoding considerations.
 	wxString	m_systemEncodingName; // In OnInit: m_systemEncodingName =

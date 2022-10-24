@@ -8103,6 +8103,12 @@ wxString szChangeFixedSpaceToRegSpace = _T("ChangeFixedSpaceToRegularSpace");
 // stores this value in the App's m_dialogFontSize global variable.
 wxString szFontSizeForDialogs = _T("FontSizeForDialogs(points)");
 
+/// The label that identifies the following string encoded value as the application's
+/// "FontSizeForRetranslationDialogs(points)". This value is written in the project
+/// configuration file AI-ProjectConfiguration.aic. Adapt It stores this value in the App's
+/// m_nRetransDlg_FontSize global variable.
+wxString szFontSizeForRetransDialog = _T("FontSizeForRetranslationDialogs(points)");
+
 // support for named Bible book folders (plus "Other Texts" catchall folder) for storing
 // docs The label that identifies the following string encoded value as the application's
 // "BookModeFlag". This value is written in the "Settings" part of the basic configuration
@@ -30894,18 +30900,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                  //    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
 //#endif // _KBSERVER
 
-    // BEW 2Sep22 Support for storage of the user's choice of font size in the refactored Retranslation dialog
-    m_strRetransFontSizeFilename = _T("retrans_font_size.txt");
-    bool bExists = TRUE;
-    bExists = ::wxFileExists(m_appInstallPathOnly + PathSeparator + m_strRetransFontSizeFilename);
-    if (!bExists)
-    {
-        // If it doesn't exist, set the ffont size to 14 points. Otherwise, let the current value
-        // of m_nRetransDlg_FontSize get used in the call
-        m_nRetransDlg_FontSize = 14; // default size, user can vary it in the range 12 to 18 points
-    }
-    bool updatedOK = UpdateFontSizeStore(m_strRetransFontSizeFilename, m_nRetransDlg_FontSize);
-    wxUnusedVar(updatedOK);
+    // whm 24Oct2022 change. The m_nRetransDlg_FontSize is initialized to 14 but may change to a value 
+    // between 12 and 18 when a user value is stored in the AI-ProjectConfiguration.aic file.
+    // The m_nRetransDlg_FontSize value is no longer stored in a separzate file, but in the project
+    // configuration file AI-ProjectConfiguration.aic
+    m_nRetransDlg_FontSize = 14; // default size, user can vary it in the range 12 to 18 points
+    
+    //// BEW 2Sep22 Support for storage of the user's choice of font size in the refactored Retranslation dialog
+    //m_strRetransFontSizeFilename = _T("retrans_font_size.txt");
+    //bool bExists = TRUE;
+    //bExists = ::wxFileExists(m_appInstallPathOnly + PathSeparator + m_strRetransFontSizeFilename);
+    //if (!bExists)
+    //{
+    //    // If it doesn't exist, set the ffont size to 14 points. Otherwise, let the current value
+    //    // of m_nRetransDlg_FontSize get used in the call
+    //    m_nRetransDlg_FontSize = 14; // default size, user can vary it in the range 12 to 18 points
+    //}
+    //bool updatedOK = UpdateFontSizeStore(m_strRetransFontSizeFilename, m_nRetransDlg_FontSize);
+    //wxUnusedVar(updatedOK);
  
     // whm 3Mar2021 moved here just before return from OnInit()
     // Display message in status bar that startup initialization is complete
@@ -45331,6 +45343,14 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szFontSizeForDialogs << tab << m_dialogFontSize;
     pf->AddLine(data);
 
+    // whm 24Oct2022 added the following block for support of
+    // persistent saving of the font size for the Retranslation dialog. 
+    // The m_nRetransDlg_FontSize value now gets stored in the 
+    // AI-ProjectConfiguration.aic file.
+    data.Empty();
+    data << szFontSizeForRetransDialog << tab << m_nRetransDlg_FontSize;
+    pf->AddLine(data);
+
     switch (gProjectSfmSetForConfig)
     {
     case UsfmOnly: number = szUsfmOnly; break;
@@ -46477,6 +46497,14 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             if (num < 10 || num > 24)
                 num = 12;
             m_dialogFontSize = num;
+        }
+        // whm 24Oct2022 added the following else if block for saving the szFontSizeForRetransDialog
+        else if (name == szFontSizeForRetransDialog)
+        {
+            num = wxAtoi(strValue);
+            if (num < 12 || num > 18)
+                num = 14;
+            m_nRetransDlg_FontSize = num;
         }
         else if (name == szUseSFMarkerSet)
         {
@@ -53894,6 +53922,9 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 #endif
 }
 
+// whm 24Oct2022 removed the following function as it is no longer needed since the font size for
+// the Retranslation dialog is now stored within the project configuration file AI-ProjectConfiguration.aic.
+/*
 // BEW 3Sep22 If the executable's folder exists, then enter it and if that folder does not contain the
 // required storage file for the Retranslation's font size, then create the file. Then set it's font 
 // size to whatever size was passed in. When this function is called from OnInit(), the last
@@ -53975,6 +54006,7 @@ bool CAdapt_ItApp::UpdateFontSizeStore(wxString strStoreName, int newFontSize)
     }
     return TRUE;
 }
+*/
 
 // BEW added 31Aug22 -- like the one above but specifically for refactored Retranslation dialog, and variable
 // font size support - based on the properties of the m_targetFont.

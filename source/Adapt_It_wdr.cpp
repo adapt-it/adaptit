@@ -1379,7 +1379,7 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     AutoCorrectTextCtrl *item3 = new AutoCorrectTextCtrl( parent, IDC_EDIT_RETRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,150), wxTE_MULTILINE );
     item3->SetToolTip( _("Type the retranslation here (including appropriate punctuation)") );
-    item2->Add( item3, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
@@ -1411,14 +1411,17 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item5->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxSize(60,-1), 0 );
-    item10->SetDefault();
-    item5->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    item5->Add( 8, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStdDialogButtonSizer *item11 = new wxStdDialogButtonSizer;
+    { wxButton *button = new wxButton( parent, wxID_OK );
+      button->SetDefault();
+      item11->AddButton( button ); }
+    item11->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item11->Realize();
+    item10->Add( item11, 0, wxGROW|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(50,-1), 0 );
-    item5->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    item5->Add( item10, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 

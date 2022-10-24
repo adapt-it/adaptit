@@ -93,6 +93,14 @@ void CRetranslationDlg::OnSpinValueChanged(wxSpinEvent& event)
 		gpApp->SetFontAndDirectionalityForRetranslationControl(gpApp->m_pTargetFont, pRetransBox,
 			gpApp->m_pRetransFont, newFontSize); // default is bIsRTL FALSE
 		// Reset the value in AI.h  gApp->m_nRetransDlg_FontSize
+		// 
+		// whm 24Oct2022 Note: It isn't really necessary to set the App's m_nRetransDlg_FontSize value
+		// here. It is set in the OnOK() handler below. Setting it here has the side effect that the
+		// changed spin control's value will be stored in the project configuration file even if the user
+		// clicks on Cancel to abort the Retranslation dialog and any changes made there. This side effect
+		// won't do any real harm because the spin control's value is limited to a small range and presumably
+		// its value was set for better readability of any Retranslation text, even if no textual changes 
+		// were made, and the new value may as well be saved for better visibility of text in the dialog.
 		gpApp->m_nRetransDlg_FontSize = newFontSize;
 		// file storage of the (possibly) updated font size is done in OnOK() because
 		// the user may change the size more than once while the Retranslation dlg is open
@@ -217,10 +225,15 @@ void CRetranslationDlg::OnOK(wxCommandEvent& event)
 {
 	// Update the file store for the current value font size (int) value - the user may have
 	// changed it while in the dialog
-	int fontSize = gpApp->m_nRetransDlg_FontSize;
-	wxString strStoreName = gpApp->m_strRetransFontSizeFilename; // it's named _T("retrans_font_size.txt")
-	bool updatedOK = gpApp->UpdateFontSizeStore(strStoreName, fontSize);
-	wxUnusedVar(updatedOK);
+	// whm 24Oct2022 change. The current value for font size now only needs to be assigned to
+	// the App's m_nRetransDlg_FontSize value, so that it gets saved in the project configuration
+	// file AI-ProjectConfiguration.aic.
+	gpApp->m_nRetransDlg_FontSize = pSpinCtrl->GetValue();
+
+	//int fontSize = gpApp->m_nRetransDlg_FontSize;
+	//wxString strStoreName = gpApp->m_strRetransFontSizeFilename; // it's named _T("retrans_font_size.txt")
+	//bool updatedOK = gpApp->UpdateFontSizeStore(strStoreName, fontSize);
+	//wxUnusedVar(updatedOK);
 
 	m_retranslation = pRetransBox->GetValue(); // whm added 13Jan12
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
