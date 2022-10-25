@@ -18003,6 +18003,9 @@ force_new:
 		if (pSrcPhrase->m_nSequNumber >= 1 && pSrcPhrase->m_nSequNumber <= 10)
 		{
 			int halt_here = 1;
+			halt_here = halt_here; // avoid gcc warning
+			wxLogDebug(_T("\n%s::%s() line %d sn= %d building NEW EMPTY CSourcePhrase in TokenizeText(), sn= %d , bWithinAttrSpan= %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
 		}
 		wxLogDebug(_T("\n%s::%s() line %d building NEW EMPTY CSourcePhrase in TokenizeText(), sn= %d , bWithinAttrSpan= %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
@@ -19592,6 +19595,11 @@ parsing:
 					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
 					pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
 					(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan, itemLen);
+			}
+			if (pSrcPhrase->m_nSequNumber >= 2)
+			{
+				int halt_here_temp = 1;
+				halt_here_temp = halt_here_temp; // avoid gcc warning
 			}
 #endif
 			if (itemLen == -1)

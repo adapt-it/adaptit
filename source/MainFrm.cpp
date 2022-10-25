@@ -4804,14 +4804,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 											// the only place OnePass() is called
 		}
 
-		/* don't slow things down unless we need to investigate
-				#ifdef SHOW_ONEPASS_BENCHMARKS
+		// don't slow things down unless we need to investigate
+#ifdef SHOW_ONEPASS_BENCHMARKS
 				dt1 = dt2;
 				dt2 = wxDateTime::UNow();
 				wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
 					(dt2 - dt1).Format(_T("%l")).c_str());
-				#endif
-		*/
+#endif
+
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
 		// of OnePass, then again near the end of OnePass - twice in the normal course of
