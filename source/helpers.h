@@ -236,6 +236,7 @@ int       FindOneOf(wxString inputStr, wxString charSet);
 wxString  InsertInString(wxString targetStr, int ipos, wxString insertStr);
 
 bool      IsClosingBracketWordBuilding(wxString& strPunctuationCharSet);
+bool	  IsOpeningBracketWordBuilding(wxString& strPunctuationCharSet); // BEW 6Oct10 added
 
 wxRect    NormalizeRect(const wxRect rect);
 

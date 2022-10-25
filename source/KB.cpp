@@ -4396,11 +4396,36 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
-
 //*/
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
+	int sn = -1; //initialise
+	wxUnusedVar(sn);
+/* #if defined (_DEBUG)
+	{
+		wxString strAdapt = pSrcPhrase->m_adaption;
+		wxString strTargetStr = pSrcPhrase->m_targetStr;
+		wxString strKey = pSrcPhrase->m_key;
+		sn = pSrcPhrase->m_nSequNumber;
+		wxLogDebug(_T("\n%s::%s(), line %d , sn %d , strKey= %s , strAdapt= %s , strTargetStr= %s , the input tgtPhrase= %s"),
+			__FILE__,__FUNCTION__,__LINE__, sn, strKey.c_str(), strAdapt.c_str(), strTargetStr.c_str(), tgtPhrase.c_str() );
+		if (sn >= 4)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif */
+	// BEW 14Oct22 added this bool, in support of treating detached ] as a "word" to be stored in the KB as an entry;
+	// otherwise, being punctuation (usually) it would get stripped off tgtPhrase, leaving an empty string. And empty
+	// string is rejected as a legitimate m_adaption, and ] would then be lost from m_adaption
+	bool bClosingBracketIsWord = FALSE; // initialise
+	int tgtPhrLen = tgtPhrase.Length();
+	wxChar firstChar = tgtPhrase.GetChar(0); // first
+	if ((tgtPhrLen == 1) && (firstChar == _T(']')))
+	{
+		bClosingBracketIsWord = TRUE;  // use, to suppress punctuation stripping when ] is the word passed in
+	}
 
     // do not permit storage if the source phrase has an empty key
 	if (pSrcPhrase->m_key.IsEmpty())
@@ -4620,6 +4645,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	}
 	else // currently adapting
 	{
+//		if (sn >= 4)
+//		{
+//			int halt_here = 1;
+//		}
+
 		if (tgtPhrase != strNot)
 		{
             // BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
@@ -4709,15 +4739,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
 		}
 	}
-/* legacy code for the above bit, which was vastely out of date, going back to when all texts lengths were in the one-and-only map 1.
-	{
-		nMapIndex = 0;
-	}
-	else
-	{
-		nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-	}
-*/
 
     // if we have too many source words, then we cannot save to the KB, so detect this and
     // warn the user that it will not be put in the KB, then return TRUE since all is
@@ -4755,6 +4776,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
+//	if (sn >= 4)
+//	{
+//		int halt_here = 1;
+//	}
 
 	// continue the storage operation  
 	// BEW 7Sep22 refactored to handle use of m_adaption in glossing mode
@@ -4795,6 +4820,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// was done above just after entry
 			if (tgtPhrase.IsEmpty())
 			{
+//				if (sn >= 4)
+//				{
+//					int halt_here = 1;
+//				}
+
 				// we just won't store anything if the target phrase has no content, when
 				// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
 				// then we skip this block so that we can store an empty string as a valid
@@ -4813,6 +4843,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 		} // end of TRUE block for test: if (!gbIsGlossing)
+//		if (sn >= 4)
+//		{
+//			int halt_here = 1;
+//		}
 
 		// we didn't return, so continue on to create a new CTargetUnit for storing to
 		pTU = new CTargetUnit;
@@ -4832,8 +4866,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 			else
 			{
-				// FALSE in next call is  bool bIsSrc
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+				// BEW 14Oct22 this is where our new bool bClosingBracketIsWord, when TRUE, is needed
+				if (bClosingBracketIsWord)
+				{
+					pRefString->m_translation = _T(']');
+				}
+				else
+				{
+					// FALSE in next call is  bool bIsSrc
+					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+				}
 			}
 		}
 		else

@@ -286,19 +286,6 @@ protected:
 	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 
-#if !defined(USE_LEGACY_PARSER)
-	bool			PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar,
-		wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
-	int				ParsePostWordStuff(
-		wxChar* pChar,
-		wxChar* pEnd,
-		CSourcePhrase* pSrcPhrase,
-		wxString& spacelessPuncts,
-		WordParseEndsAt& endCondition,
-		bool		   bTokenizingTargetText,
-		wxChar* pBufStart);
-#endif
-
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
@@ -344,7 +331,7 @@ public:
 	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase); // added 12Mar09
 	void			MarkStripInvalid(CPile* pChangedPile); // added 29Apr09, adds strip index to m_invalidStripArray
 	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
-		bool bNoActiveLocationCalculation = FALSE); // added 13Mar09, changed 29Apr09
+	bool bNoActiveLocationCalculation = FALSE); // added 13Mar09, changed 29Apr09
 // end of partner pile functions
 
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);
@@ -384,11 +371,8 @@ public:
 	wxString		GetMarkerWithoutBackslash(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxChar* pChar);
 	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
-	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
-		wxArrayString* pUnkMarkers,
-		wxArrayInt* pUnkMkrsFlags,
-		wxString& unkMkrsStr,
-		enum SetInitialFilterStatus mkrInitStatus);
+	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
+							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
 	// BEW 30Sep19 next one has added bool, default FALSE; function is called only twice in the app
 	bool			HasMatchingEndMarker(wxString mkr, CSourcePhrase* pSrcPhrase, bool bSearchInNonbindingEndMkrs = FALSE);
@@ -418,12 +402,27 @@ public:
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsWmkrWithBar(wxChar* ptr); //BEW added 12Sep22 in support 
 						// of the dual identities of \w .. \w* markers - for Tokenising properly
+
+	void			GetLengthToWhitespace(wxChar* pChar, unsigned int& counter, wxChar* pEnd); // BEW 20Oct22
+	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
+	bool			IsClosedBraceAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
+	bool			IsClosedBracketAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
+	wxString		ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
+							// be a digit, parse over things like 4:17, or 5:4-9. but do not include the 
+							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
+	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd);
+	bool			IsClosingBracketNext(wxChar* pChar);
+	bool			m_bClosingBracketIsNext;
+	bool			IsOpenBracketAhead(wxChar* pChar);
+
+	int				CountWhitesSpan(wxChar* pChar, wxChar* pEnd);
+
 	bool			IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): ).<space>(<space>nxtwrd 
 	bool			IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): .<space>(<space>nxtwrd 
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn,
-		bool& bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
+	bool&           bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
 //bool			IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
 //							wxChar* endPoint, bool bTokenizingTargetText); <<-- not needed in changed design
 	bool			IsEndMarker(wxChar* pChar, wxChar* pEnd);
@@ -439,8 +438,7 @@ public:
 	// need to give ParseWord2() the capability to do filtering when parsing input text)
 	bool			EndmarkerPrecedes(wxChar* pChar, wxString& precedingEndmarker);
 	bool			PunctuationPrecedes(wxChar* pChar, wxString& precedingPunct, bool bTokenizingTargetText);
-	bool			WordPrecedes(wxChar* pChar, wxString& theWord,
-		CSourcePhrase* pSrcPhrase, wxString& spacelessPuncts);
+	bool			WordPrecedes(wxChar* pChar, wxString& theWord, CSourcePhrase*  pSrcPhrase, wxString& spacelessPuncts);
 	bool			SpacePrecedes(wxChar* pChar, wxString& precedingSpace);
 
 	// more unfiltering stuff goes just above, if needed
@@ -463,13 +461,13 @@ public:
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
 	void			TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase);
 	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
-		wxString& spacelessPuncts, int len, bool& bExitOnReturn,
-		bool& bHasPrecedingStraightQuote, wxString& additions,
-		bool bPutInOuterStorage);
+	wxString& spacelessPuncts, int len, bool& bExitOnReturn,
+	bool& bHasPrecedingStraightQuote, wxString& additions,
+	bool bPutInOuterStorage);
 	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
-		wxString& inlineNonBindingEndMkrs, int len,
-		bool& bInlineBindingEndMkrFound, bool& bInlineNonbindingEndMkrFound,
-		bool& bInlineNormalEndMkrFound, wxString& endMkr);
+						wxString& inlineNonBindingEndMkrs, int len,
+						bool& bInlineBindingEndMkrFound, bool& bInlineNonbindingEndMkrFound,
+						bool& bInlineNormalEndMkrFound, wxString& endMkr);
 	int				ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int len);
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar* pChar);
@@ -484,11 +482,11 @@ public:
 		int& nEndMarkerCount,
 		bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
 				// added the bTokenizingTargetText boolean
-	void			ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
-		int nEndMkrsCount, wxString& inlineBindingEndMarkers,
-		wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
-		wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
-	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
+	void	ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+				int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+				wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+				wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
+	wxString	SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
 	bool		m_bIsInFigSpan;
 	wxString	m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
@@ -522,30 +520,6 @@ public:
 		// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
 		bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
 		bool bTokenizingTargetText);
-	// from the remaining inline marker set (but excluding \f* and
-	// \x* and any others beginning with \f or \x)
-	int ParseWord2(
-		wxChar* pChar,
-		wxChar* pEnd,
-		CSourcePhrase* pSrcPhrase,
-		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
-		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
-		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
-		bool& bIsInlineNonbindingMkr,
-		bool& bIsInlineBindingMkr,
-		bool bTokenizingTargetText,
-		wxChar* pBufStart);
-
-	int	ParseWordProper(
-		wxChar* pChar,
-		wxChar* pEnd,
-		CSourcePhrase* pSrcPhrase,
-		wxString& spacelessPuncts,
-		wxString& spacelessPuncts_NoTilde,
-		bool& bWordJoiningFixedSpaceEncountered,
-		WordParseEndsAt& endCondition,
-		bool        bTokenizingTargetText);
-	wxArrayInt		m_arrParsedWords_StartAndEnd; // store the start and end offsets for each word parsed
 
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
@@ -717,7 +691,6 @@ public:
 	bool IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase); // BEW 8Apr20
 	bool FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, wxString& beginMkr, int& nBeginSN); // BEW 8Apr20
 	bool FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN);
-	wxString ParseAWord(wxChar* pChar);
 protected:
 
 	wxChar* m_ptr;

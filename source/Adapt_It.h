@@ -30,7 +30,7 @@
 //
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
 // line 43 of AdaptItConstants.h
-#define USE_LEGACY_PARSER
+//#define USE_LEGACY_PARSER  // BEW 12Oct22 removedd this in both places, and retained VERSION_NUMBER as 9
 #include <wx/string.h>
 
 // comment out to turn off the frequent logging of value of boolean: m_bTypedNewAdaptationInChooseTranslation

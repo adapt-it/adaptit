@@ -40,13 +40,11 @@
 
 // The following is also defined at line 31 in Adapt_It.h 
 // *********** IMPORTANT:  commment out both together or uncomment out both together *********
-#define USE_LEGACY_PARSER
 
-#if !defined(USE_LEGACY_PARSER)
-#define VERSION_NUMBER      10  // as of 21 April17, for support of new member m_filteredInfo_After in CSourcePhrase
-#else
+//#define VERSION_NUMBER      10  // as of 21 April17, for support of new member m_filteredInfo_After in CSourcePhrase
+
 #define VERSION_NUMBER	9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
-#endif
+
 //#define VERSION_NUMBER	8	// as of 29Oct12
 //#define VERSION_NUMBER	7	// as of 20Apr12
 //#define VERSION_NUMBER	6   // as of 13Feb12

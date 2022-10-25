@@ -1042,8 +1042,27 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	if (!gbIsGlossing)
 	{
 		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
+		// BEW 14Oct22 If I want detached ] to be treated like a word, so that it goes into the
+		// adapting KB, then I don't what punctuation removed, as it's normally punctuation, as
+		// that would generate m_targetPhrase being an empty string - and if that were the case
+		// trying to compensate in the StoreText() call below would be impossible. So for ], 
+		// skip the punctuation removal
+#if defined (_DEBUG)
+		{
+			if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
+		int tgtPhrLen = pApp->m_targetPhrase.Length();
+		wxChar firstChar = pApp->m_targetPhrase.GetChar(0); // first
+		if ( !((tgtPhrLen == 1) && (firstChar == _T(']'))) )
+		{
+			// suppress punctuation stripping when ] is the word passed in; but allow all else
+			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+		}
 	}
 	if (gbIsGlossing)
 	{
@@ -9067,22 +9086,34 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			// cannot know which srcPhrases will be affected, so these would still have their
 			// m_bHasKBEntry set true. We have to test for this, and the m_HasKBEntry flag TRUE 
 			// is a sufficient test, and if so, set the flag to FALSE, to enable the store op
-			rsEntry = pApp->m_pKB->GetRefString(pActiveSrcPhrase->m_nSrcWords, pActiveSrcPhrase->m_key, 
-												targetPhrase, pRefStr);
+			rsEntry = pApp->m_pKB->GetRefString(pActiveSrcPhrase->m_nSrcWords, pActiveSrcPhrase->m_key,
+				targetPhrase, pRefStr);
 			if ((pRefStr == NULL || rsEntry == present_but_deleted) && pActiveSrcPhrase->m_bHasKBEntry)
 			{
 				pActiveSrcPhrase->m_bHasKBEntry = FALSE;
 			}
 			pActiveSrcPhrase->m_targetStr = wxEmptyString; // start off empty
-			pApp->m_bInhibitMakeTargetStringCall = TRUE;
 
+			pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
+#if defined (_DEBUG)
+			{
+				wxLogDebug(_T("DoStore_ForPlacePhraseBox(), MakeTgtStrIncPunc() BEFORE, line %d: tgtPhrase= %s , sn = %d , m_srcPhrase = %s "),
+					__LINE__, targetPhrase.c_str(), pActiveSrcPhrase->m_nSequNumber, pActiveSrcPhrase->m_srcPhrase.c_str() );
+			}
+#endif
 			pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
 			// Now use the user's actual phrasebox contents, with any puncts he may have typed
 			pApp->GetView()->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, copiedTargetPhrase);
 
+#if defined (_DEBUG)
+			{
+				wxLogDebug(_T("DoStore_ForPlacePhraseBox(), MakeTgtStrIncPunc() AFTER, line %d: tgtPhrase= %s , sn = %d , m_srcPhrase = %s "),
+					__LINE__, targetPhrase.c_str(), pActiveSrcPhrase->m_nSequNumber, pActiveSrcPhrase->m_srcPhrase.c_str());
+			}
+#endif
 			// Now restore the flag to its default value
 			pApp->m_bCopySourcePunctuation = TRUE;
 			pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = TRUE;

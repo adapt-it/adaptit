@@ -5439,6 +5439,15 @@ bool IsClosingBracketWordBuilding(wxString& strPunctuationCharSet)
 	return offset == wxNOT_FOUND;
 }
 
+// return TRUE if the [ (closing bracket) character is within the passed in string of
+// punctuation characters (use the target punctuation character set), FALSE if absent
+// BEW created 6Oct22, for when [ is pointed at by the tokenizing iterator ptr
+bool IsOpeningBracketWordBuilding(wxString& strPunctuationCharSet)
+{
+	int offset = strPunctuationCharSet.Find(_T('['));
+	return offset == wxNOT_FOUND;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return                     the reconstituted source text (excluding some, see below)
 /// \param  pMergedSrcPhrase -> a merger, which may have non-empty m_pMedialMarkers member
