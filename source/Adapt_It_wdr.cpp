@@ -2857,14 +2857,14 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("&Chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxSpinCtrl *item4 = new wxSpinCtrl( parent, IDC_EDIT_CHAPTER, wxT("0"), wxDefaultPosition, wxSize(80,-1), wxTE_NOHIDESEL, 0, 150, 0 );
+    wxSpinCtrl *item4 = new wxSpinCtrl( parent, IDC_EDIT_CHAPTER, wxT("0"), wxDefaultPosition, wxDefaultSize, wxTE_NOHIDESEL, 0, 150, 0 );
     item4->SetToolTip( _("Type a chapter number here, or use the up and down arrows to change the number") );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("&Verse:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxSpinCtrl *item6 = new wxSpinCtrl( parent, IDC_EDIT_VERSE, wxT("0"), wxDefaultPosition, wxSize(80,-1), wxTE_NOHIDESEL, 0, 176, 0 );
+    wxSpinCtrl *item6 = new wxSpinCtrl( parent, IDC_EDIT_VERSE, wxT("0"), wxDefaultPosition, wxDefaultSize, wxTE_NOHIDESEL, 0, 176, 0 );
     item6->SetToolTip( _("Type a verse number here, or use the up and down arrows to change the number") );
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
