@@ -2039,6 +2039,82 @@ bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 	}
 }
 
+// whm 25Oct2022 added
+// Parses out the chapter number string and verse number string from a Ch:Vs style RefStr input.
+// Returns the ChStr and VsStr in reference parameters.
+// If the RefStr has no colon character 0:0 is returned. 
+// If Ch part is mising 0 is returned for that part, i.e., 0:...; if Vs part is missing 0 is returned for that part, i.e., ...:0.
+void ParseChVsFromReference(wxString RefStr, wxString& ChStr, wxString& VsStr)
+{
+	wxString Ch = _T("0");
+	wxString Vs = _T("0");
+	ChStr = Ch;
+	VsStr = Vs;
+	if (RefStr.IsEmpty())
+		return;
+	wxString Colon = _T(":");
+	if (RefStr.Find(Colon) == wxNOT_FOUND)
+	{
+		return;
+
+	}
+	else
+	{
+		int colonPos = RefStr.Find(Colon);
+		ChStr = RefStr.Mid(0, colonPos);
+		if (ChStr.IsEmpty())
+			ChStr = Ch;
+		VsStr = RefStr.Mid(colonPos + 1);
+		if (VsStr.IsEmpty())
+			VsStr = Vs;
+		return;
+	}
+}
+
+// whm 25Oct2022 added
+// Returns the Chapter and Verse reference at the active location, if any, in the form of "ch:vs"
+// Note: the active location may be within a bridged verse such as ch:vs1-vs3, or ch:vs1,vs3
+// See NormalizeChVsRefToInitialVsOfAnyBridge() function below to normalize a rederence to only
+// indicate the beginning verse of a bridged or comma'ed reference.
+wxString  GetChVsRefFromActiveLocation()
+{
+	// get a pointer to the view
+	CAdapt_ItView* pView = (CAdapt_ItView*)gpApp->GetView();
+	wxASSERT(pView != NULL);
+	CSourcePhrase* pSrcPhrase = NULL;
+	pSrcPhrase = pView->GetSrcPhrase(gpApp->m_nActiveSequNum);
+	wxASSERT(pSrcPhrase);
+	wxString ChVsStr;
+	ChVsStr = pView->GetChapterAndVerse(pSrcPhrase);
+	return ChVsStr;
+}
+
+// whm 25Oct2022 added
+// Returns the Chapter and Verse reference at the active location, if any, in the normalized form "ch:vs"
+// This function normalizes a rederence to only indicate the beginning verse of a bridged or comma'ed 
+// reference if the reference is a bridged or comma'ed reference, i.e., ch:vs1-vs3 or ch:vs1,vs3
+// If there is no bridged or comma'ed reference in the input string, the input string is simply
+// returned unchanged.
+wxString  NormalizeChVsRefToInitialVsOfAnyBridge(wxString bridgedRef)
+{
+	wxString str;
+	str = bridgedRef;
+	wxString Ch;
+	wxString Vs;
+	wxString resultStr;
+	ParseChVsFromReference(str, Ch, Vs);
+
+	int posHyphen = Vs.Find(_T("-"));
+	int posComma = Vs.Find(_T(","));
+	if (posHyphen != wxNOT_FOUND)
+		Vs = Vs.Mid(0, posHyphen);
+	if (posComma != wxNOT_FOUND)
+		Vs = Vs.Mid(0, posComma);
+	resultStr = Ch + _T(":") + Vs;
+	return resultStr;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with
 ///		the first character in the string and ending when a character is found in the inputStr

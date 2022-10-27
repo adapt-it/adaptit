@@ -205,6 +205,10 @@ int       Parse_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool      Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
 
+void      ParseChVsFromReference(wxString RefStr, wxString& ChStr, wxString& VsStr); // whm 25Oct2022 added
+wxString  GetChVsRefFromActiveLocation();
+wxString  NormalizeChVsRefToInitialVsOfAnyBridge(wxString bridgedRef);
+
 wxString  ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t first, size_t last);
 void	  ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,
 								int& nUpperNumber);

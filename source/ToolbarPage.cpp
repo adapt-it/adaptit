@@ -72,7 +72,7 @@
 #include "../res/vectorized/format_show_punctuation_16.cpp"
 #include "../res/vectorized/go_first_16.cpp"
 #include "../res/vectorized/go_last_16.cpp"
-#include "../res/vectorized/go_previous_16.cpp"
+#include "../res/vectorized/go-to_16.cpp" // whm 25Oct2022 changed go_previous_16.cpp to go-to_16.cpp
 #include "../res/vectorized/go_up_16.cpp"
 #include "../res/vectorized/go_down_16.cpp"
 #include "../res/vectorized/phrase_new_16.cpp"
@@ -205,7 +205,8 @@ void CToolbarPagePrefs::PopulateList()
 		{ID_BUTTON_TO_START, _("Start"), _("Back to Start"), _("Go back to the start of the data"), gpApp->wxGetBitmapFromMemory(go_first_png_16), wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_STEP_DOWN, _("Down"), _("Move down"), _("Move down one step towards the bottom of the file"), gpApp->wxGetBitmapFromMemory(go_down_png_16), wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_STEP_UP, _("Up"), _("Move up"), _("Move back up one step towards the start of the file"), gpApp->wxGetBitmapFromMemory(go_up_png_16), wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_BACK, _("Back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), wxNullBitmap, wxNullBitmap},
+		//{ID_BUTTON_BACK, _("Back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_GO_TO, _("Go To"), _("Go To Reference"), _("Jump to a different reference"), gpApp->wxGetBitmapFromMemory(go_to_png_16), wxNullBitmap, wxNullBitmap},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_MERGE, _("New Phrase"), _("Make a phrase"), _("Merge selected words into a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_RESTORE, _("Delete Phrase"), _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), wxNullBitmap, wxNullBitmap},

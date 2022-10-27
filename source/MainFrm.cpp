@@ -141,7 +141,7 @@
 #include "../res/vectorized/format_show_punctuation_16.cpp"
 #include "../res/vectorized/go_first_16.cpp"
 #include "../res/vectorized/go_last_16.cpp"
-#include "../res/vectorized/go_previous_16.cpp"
+#include "../res/vectorized/go-to_16.cpp" // whm 25Oct2022 changed go_previous_16.cpp to go-to_16.cpp
 #include "../res/vectorized/go_up_16.cpp"
 #include "../res/vectorized/go_down_16.cpp"
 #include "../res/vectorized/phrase_new_16.cpp"
@@ -177,7 +177,7 @@
 #include "../res/vectorized/format-show-punctuation_22.cpp"
 #include "../res/vectorized/go-first_22.cpp"
 #include "../res/vectorized/go-last_22.cpp"
-#include "../res/vectorized/go-previous_22.cpp"
+#include "../res/vectorized/go-to_22.cpp" // whm 25Oct2022 changed go-previous_22.cpp to go-to_22.cpp
 #include "../res/vectorized/go-up_22.cpp"
 #include "../res/vectorized/go-down_22.cpp"
 #include "../res/vectorized/phrase-new_22.cpp"
@@ -213,7 +213,7 @@
 #include "../res/vectorized/format-show-punctuation_32.cpp"
 #include "../res/vectorized/go-first_32.cpp"
 #include "../res/vectorized/go-last_32.cpp"
-#include "../res/vectorized/go-previous_32.cpp"
+#include "../res/vectorized/go-to_32.cpp" // whm 25Oct2022 changed go-previous_32.cpp to go-to_32.cpp
 #include "../res/vectorized/go-up_32.cpp"
 #include "../res/vectorized/go-down_32.cpp"
 #include "../res/vectorized/phrase-new_32.cpp"
@@ -1709,7 +1709,8 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(ID_BUTTON_TO_START, _("Back to Start"), gpApp->wxGetBitmapFromMemory(go_first_png_16), wxNullBitmap, wxITEM_NORMAL, _("Back to Start"), _("Go back to the start of the data"), NULL);
 	m_auiToolbar->AddTool(ID_BUTTON_STEP_DOWN, _("Move down one step"), gpApp->wxGetBitmapFromMemory(go_down_png_16), wxNullBitmap, wxITEM_NORMAL, _("Move Down One Step"), _("Move the bundle down one step towards the bottom of the file"), NULL);
 	m_auiToolbar->AddTool(ID_BUTTON_STEP_UP, _("Move up one step"), gpApp->wxGetBitmapFromMemory(go_up_png_16), wxNullBitmap, wxITEM_NORMAL, _("Move Up One Step"), _("Move bundle back up one step towards the start of the file"), NULL);
-	m_auiToolbar->AddTool(ID_BUTTON_BACK, _("Jump back"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location"), NULL);
+	//m_auiToolbar->AddTool(ID_BUTTON_BACK, _("Jump back"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_GO_TO, _("Go To Reference"), gpApp->wxGetBitmapFromMemory(go_to_png_16), wxNullBitmap, wxITEM_NORMAL, _("Go To Reference"), _("Jump to a different reference"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_MERGE, _("Make a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Make A Phrase"), _("Merge selected words into a phrase"), NULL);
 	m_auiToolbar->AddTool(ID_BUTTON_RESTORE, _("Unmake A Phrase"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), wxNullBitmap, wxITEM_NORMAL, _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), NULL);

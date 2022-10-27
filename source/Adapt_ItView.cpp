@@ -970,8 +970,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_BUTTON_STEP_DOWN, CAdapt_ItView::OnUpdateButtonStepDown)
 	EVT_TOOL(ID_BUTTON_STEP_UP, CAdapt_ItView::OnButtonStepUp)
 	EVT_UPDATE_UI(ID_BUTTON_STEP_UP, CAdapt_ItView::OnUpdateButtonStepUp)
-	EVT_TOOL(ID_BUTTON_BACK, CAdapt_ItView::OnButtonBack)
-	EVT_UPDATE_UI(ID_BUTTON_BACK, CAdapt_ItView::OnUpdateButtonBack)
+	EVT_TOOL(ID_BUTTON_GO_TO, CAdapt_ItView::OnButtonGoTo) // whm 25Oct2022 changed OnButtonBack() to OnButtonGoTo()
+	EVT_UPDATE_UI(ID_BUTTON_GO_TO, CAdapt_ItView::OnUpdateButtonGoTo) // whm 25Oct2022 changed OnUpdateButtonBack() to OnUpdateButtonGoTo()
 	EVT_TOOL(ID_BUTTON_MERGE, CAdapt_ItView::OnButtonMerge)
 	EVT_UPDATE_UI(ID_BUTTON_MERGE, CAdapt_ItView::OnUpdateButtonMerge)
 	EVT_TOOL(ID_BUTTON_RESTORE, CAdapt_ItView::OnButtonRestore)
@@ -5083,10 +5083,20 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 /// ReconstituteAfterFilteringChange(), ReconstituteAfterPunctuationChange(), the View's
 /// DoConsistencyCheck() and OnEditSourceText().
 /// Gets and returns the m_chapterVerse member of pSrcPhrase.
+/// 
+/// whm revised 25Oct2022 to correct the logic when the phrasebox is located at
+/// the first pile in the document - where m_nSequNumber is 0. The function was wrongly
+/// returning a value of "0:0" even though there was a valid ch:vs reference in the first
+/// source phrase of the document. It was missing that instance because the test and block 
+/// at "if (nActiveSequNum > 0)" fails to check the m_chapterVerse member of the first 
+/// source phrase in the document, i.e., at nActiveSequNum 0. To correct this fault,
+/// I've added an "else if (nActiveSequNum == 0)" block below to correct the logic so
+/// that a Chapter and Verse string in the first pile's source phrase gets checked.
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
 	wxASSERT(pApp != NULL);
 	wxString str; str.Empty();
 	SPList* pList = pApp->m_pSourcePhrases;
@@ -5096,7 +5106,7 @@ wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 	wxASSERT(pos != NULL);
 
 	// loop backwards until come to start of a verse or chapter
-	str = _T("0:0"); // a nonsense value which, if it gets displayed, tells us we've fouled up
+	str = _T("0:0"); // a "0:0" value is returned if the function was not able to obtain a ch:vs value
 	if (nActiveSequNum > 0)
 	{
 		while (pos != NULL)
@@ -5110,6 +5120,16 @@ wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 				wxASSERT(!str.IsEmpty());
 				break;
 			}
+		}
+	}
+	else if (nActiveSequNum == 0) // whm 25Oct2022 added this else if block to check first source phrase in document
+	{
+		CSourcePhrase* pSP = pView->GetSrcPhrase(nActiveSequNum);
+		if (pSP->m_bChapter || pSP->m_bVerse)
+		{
+			if (!pSP->m_chapterVerse.IsEmpty())
+				str = pSP->m_chapterVerse;
+			wxASSERT(!str.IsEmpty());
 		}
 	}
 	return str;
@@ -18502,9 +18522,41 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	pApp->m_bKBEditorEntered = FALSE; // restore default
 }
 
+// whm 25Oct2022 revised for new Go To dialog.
+// This is a convenience function that is called at 4 places in the OnGoTo() function
+// below in order to update the App's m_prevVisitedChVsReferences wxArrayString before jumping
+// to a new Ch:Vs reference location.
+void CAdapt_ItView::UpdatePrevVisitedChVsLocationsArray()
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxString ChVs, Ch, Vs;
+	ChVs = GetChVsRefFromActiveLocation(); // usally of the form ch:vs, but may be of form ch:vs1-vs2, or ch:vs1, vs2
+	ParseChVsFromReference(ChVs, Ch, Vs);
+	ChVs = NormalizeChVsRefToInitialVsOfAnyBridge(ChVs);
+	pApp->m_prevVisitedChVsReferences.Insert(ChVs, 0); // inserting at index 0 puts added element at beginning of string
+	// Remove any following duplicate ChVs references from array
+	size_t chvsRefCount = pApp->m_prevVisitedChVsReferences.GetCount();
+	size_t index = chvsRefCount - 1; // start comparison at last element
+	wxString elementToCompare;
+	while (index > 0)
+	{
+		elementToCompare = pApp->m_prevVisitedChVsReferences.Item(index);
+		if (elementToCompare == ChVs)
+		{
+			pApp->m_prevVisitedChVsReferences.RemoveAt(index);
+		}
+		index--;
+	}
+	chvsRefCount = pApp->m_prevVisitedChVsReferences.GetCount();
+	if (chvsRefCount > MAX_SAVED_GO_TO_REFERENCES)
+	{
+		pApp->m_prevVisitedChVsReferences.RemoveAt(chvsRefCount - 1); // index is zero-based so last entry's index is chvsRefCount-1
+	}
+}
 
 // BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
 // for glossing KB
+// whm 25Oct2022 revised for new Go To dialog
 void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 {
 	// refactored 17Apr09
@@ -18629,6 +18681,84 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 		nWantedVerse = dlg.m_nVerse; // from Oct 2004 extended version, this can be 0
 						// which means "ignore the verse number, use chapter number only"
 
+		// whm 25Oct2022 addition. Bleed off the special case where the user entered "0:0" which
+		// for purposes of the Go To dialog, now means to go to the first source phrase that is
+		// not a Retranslation at the beginning of the document. This is a handy way to go to
+		// the beginning of a Scripture document that has a lot of introductory material before 
+		// the actual 1:1 reference.
+		if (dlg.m_nChapter == 0 && dlg.m_nVerse == 0)
+		{
+			// Jump directly to the first source phrase of the document, unless there is a 
+			// retranslation there, in which case jump to the next non-retranslation source phrase
+			// if available.
+			pos = pList->GetFirst();
+			wxASSERT(pos != NULL);
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetNext();
+				wxASSERT(pSrcPhrase != NULL);
+				if (!gbIsGlossing)
+				{
+					// when adapting, we must prevent placing the phrasebox within a
+					// retranslation, but when glossing this does not matter
+					if (pSrcPhrase->m_bRetranslation)
+					{
+						CSourcePhrase* pSaveSP = pSrcPhrase;
+						pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
+
+						if (pSrcPhrase == NULL)
+						{
+							pSrcPhrase = GetFollSafeSrcPhrase(pSaveSP);
+
+							if (pSrcPhrase == NULL)
+							{
+								// nowhere is a safe location! (Is the user retranslating
+								// everything? !!!)
+								//IDS_GOTO_FAILED
+								// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+								pApp->m_bUserDlgOrMessageRequested = TRUE;
+								wxMessageBox(_(
+									"Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
+									_T(""), wxICON_EXCLAMATION | wxOK);
+								pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+								pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
+								goto b; // don't jump anywhere
+							}
+						}
+					}
+				}
+				// whm 25Oct2022 added line below for revised Go To dialog.
+				// UpdatePrevVisitedChVsLocationsArray() nserts the current location reference to index 0 before 
+				// jumping to the new location so that the App's m_prevVisitedChVsReferences array will always 
+				// have the last visited location as the first element in the array.
+				UpdatePrevVisitedChVsLocationsArray();
+				// jump to whatever pile is not in a retranslation, as close to wanted
+				// loc'n as possible
+
+				// jump to whatever pile is not in a retranslation,
+				// as close to wanted loc'n as possible
+				Jump(pApp, pSrcPhrase);
+
+				// BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+				pApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post a
+					// wxEVT_Adjust_Scroll_Pos custom event & it's handler will restore
+					// correct scrollPos value, get a draw of the view done, and then
+					// OnIdle() will reset the m_bAdjustScrollPos flag back to its
+					// default FALSE value
+#endif
+					// if the user has turned on the sending of synchronized scrolling
+					// messages, send the relevant message
+				// whm commented out block below as we didn't jump to a normal ch:vs Scripture reference
+				//if (!pApp->m_bIgnoreScriptureReference_Send)
+				//{
+				//	SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases, pSrcPhrase);
+				//}
+				return;
+			}
+		}
+
 		// find the nominated chapter and verse, if possible, using the CString for chapt:verse;
 		// if it fails, assume a range & try again with integers; but if verse is 0, then go straight
 		// to the range block
@@ -18678,6 +18808,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 							}
 						}
 					}
+
+					// whm 25Oct2022 added line below for revised Go To dialog.
+					// UpdatePrevVisitedChVsLocationsArray() nserts the current location reference to index 0 before 
+					// jumping to the new location so that the App's m_prevVisitedChVsReferences array will always 
+					// have the last visited location as the first element in the array.
+					UpdatePrevVisitedChVsLocationsArray();
+					// jump to whatever pile is not in a retranslation, as close to wanted
+					// loc'n as possible
 
                     // jump to whatever pile is not in a retranslation,
 					// as close to wanted loc'n as possible
@@ -18740,6 +18878,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 							}
 						}
 					}
+
+					// whm 25Oct2022 added line below for revised Go To dialog.
+					// UpdatePrevVisitedChVsLocationsArray() nserts the current location reference to index 0 before 
+					// jumping to the new location so that the App's m_prevVisitedChVsReferences array will always 
+					// have the last visited location as the first element in the array.
+					UpdatePrevVisitedChVsLocationsArray();
+					// jump to whatever pile is not in a retranslation, as close to wanted
+					// loc'n as possible
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -18805,7 +18951,13 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 						}
 					}
 
-                    // jump to whatever pile is not in a retranslation, as close to wanted
+					// whm 25Oct2022 added line below for revised Go To dialog.
+					// UpdatePrevVisitedChVsLocationsArray() nserts the current location reference to index 0 before 
+					// jumping to the new location so that the App's m_prevVisitedChVsReferences array will always 
+					// have the last visited location as the first element in the array.
+					UpdatePrevVisitedChVsLocationsArray();
+					
+					// jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
 					Jump(pApp,pSrcPhrase);
 
@@ -18823,6 +18975,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					{
 						SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pSrcPhrase);
 					}
+
 
 					return;
 				}
@@ -18892,8 +19045,14 @@ f:					if (!gbIsGlossing)
 						}
 					}
 
-                    // jump to whatever pile is not in a retranslation, as close to wanted
+					// whm 25Oct2022 added line below for revised Go To dialog.
+					// UpdatePrevVisitedChVsLocationsArray() nserts the current location reference to index 0 before 
+					// jumping to the new location so that the App's m_prevVisitedChVsReferences array will always 
+					// have the last visited location as the first element in the array.
+					UpdatePrevVisitedChVsLocationsArray();
+					// jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
+
 					Jump(pApp,pSrcPhrase);
 
     // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
@@ -25333,25 +25492,37 @@ void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If
-/// Vertical editing is in progress this handler disables the Back button and returns
+/// Vertical editing is in progress this handler disables the Go To button and returns
 /// immediately. Otherwise, if there are source phrases in the App's m_pSourcePhrases list,
 /// if the App's m_endIndex is within a valid range, and if the global m_nOldSequNum does
-/// not equal -1, this handler enables the toolBar's "Jump Back" button, otherwise it
+/// not equal -1, this handler enables the toolBar's "Go To" button, otherwise it
 /// disables the toolBar button.
+/// whm 25Oct2022 changed this handler from OnUpdateButtonBack() to OnUpdateButtonGoTo() and
+/// Made this OnUpdateButtonGoTo work the same as the Menu update handler for Edit > Go To
+/// See Note in comment below.
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonBack(wxUpdateUIEvent& event)
+void CAdapt_ItView::OnUpdateButtonGoTo(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pApp->m_bClipboardAdaptMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	// Note: The OnGoTo() handler - see OnButtonGoTo() below - checks for out of bounds situations
+	// and so we need not do some of those checks here, beyond what the Edit menu's OnUpdateGoTo()
+	// handler does.
+	//if (pApp->m_bClipboardAdaptMode)
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
+	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL &&
+		pApp->IsDocumentOpen())
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+/*
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		event.Enable(FALSE);
@@ -25367,12 +25538,22 @@ void CAdapt_ItView::OnUpdateButtonBack(wxUpdateUIEvent& event)
 	}
 	else
 		event.Enable(FALSE);
+*/
 }
 
-void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
+// whm 25Oct2022 changed OnButtonBack() to OnButtonGoTo()
+// This new Toolbar "Go To" button essentialy just calls the Edit menu's Go To... item handler CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
+// after writing the user log with "Initiated OnButtonGoTo()".
+void CAdapt_ItView::OnButtonGoTo(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnButtonGoTo()"));
 
+	wxCommandEvent dummyevent;
+	this->OnGoTo(dummyevent);
+
+	// the remainder of the old OnButtonBack() is commented out below for reference
+	/*
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
 
@@ -25403,6 +25584,7 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 	}
 	// update its value from the saved one in the local variable
     pApp->m_nOldSequNum = nOldSequNum;
+	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////

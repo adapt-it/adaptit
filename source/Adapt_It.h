@@ -3866,6 +3866,10 @@ public:
 	wxArrayString m_textIOArray;
 	wxArrayString m_errorsIOArray;
 
+	// whm 25Oct2022 support of previously visited ch:vs references in Go To dialog
+	// This wxString array is kept in LIFO ordering like a stack
+	wxArrayString m_prevVisitedChVsReferences;
+
 /*
 // Don't use an enum, int values are simpler
 	const int noDatFile = 0;

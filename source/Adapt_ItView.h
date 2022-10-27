@@ -375,7 +375,8 @@ public: // edb 05 March 2010 - need this public in order to call it from CRetran
 	void		ToggleCopySource();
 	int			m_nCallCount;
     void        OnFind(wxCommandEvent& event); // whm 1Jul2018 moved here to public access
-    void        OnGoTo(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved here to public access
+	void		UpdatePrevVisitedChVsLocationsArray(); // whm 25Oct2022 added
+	void        OnGoTo(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved here to public access
     void        OnToolsKbEditor(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved here to public access
 protected:
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
@@ -464,8 +465,8 @@ protected:
 	void OnEditUndo(wxCommandEvent& event);
 	void OnUpdateImportToKb(wxUpdateUIEvent& event);
 	void OnImportToKb(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonBack(wxUpdateUIEvent& event);
-	void OnButtonBack(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonGoTo(wxUpdateUIEvent& event); // whm 25Oct2022 changed from OnUpdateButtonBack() to OnUpdateButtonGoTo()
+	void OnButtonGoTo(wxCommandEvent& WXUNUSED(event)); // whm 25Oct2022 changed from OnButtonBack() to OnButtonGoTo()
 	void OnUpdateUnits(wxUpdateUIEvent& event);
 	void OnUnits(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateUseConsistentChanges(wxUpdateUIEvent& event);
