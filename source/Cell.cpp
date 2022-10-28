@@ -1004,17 +1004,17 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
 
 			// toggling to no visible src does NOT ask for any re-drawing of the tgt cells 
-#if defined (_DEBUG)
-			{
-				CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
-				if (pSrcPhrase->m_nSequNumber == 2371)
-				{
-					wxLogDebug(_T("%s::%s(), line %d, enclosingRect Left %d, Top %d , Width %d , Height %d "),
-						__FILE__, __FUNCTION__, __LINE__, enclosingRect.GetLeft(), enclosingRect.GetTop(),
-						enclosingRect.GetWidth(), enclosingRect.GetHeight());
-				}
-			}
-#endif
+//#if defined (_DEBUG)
+//			{
+//				CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
+//				if (pSrcPhrase->m_nSequNumber == 2371)
+//				{
+//					wxLogDebug(_T("%s::%s(), line %d, enclosingRect Left %d, Top %d , Width %d , Height %d "),
+//						__FILE__, __FUNCTION__, __LINE__, enclosingRect.GetLeft(), enclosingRect.GetTop(),
+//						enclosingRect.GetWidth(), enclosingRect.GetHeight());
+//				}
+//			}
+//#endif
 
 
 // whm 5Nov16 testing the failure to print Kuni source text where font has special chars
