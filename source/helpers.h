@@ -221,6 +221,8 @@ wxString  ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 			wxString& wordBuildersForPostWordLoc, wxString charSet,
 			bool bTokenizingTargetText); // BEW created 28Jan11
 
+bool      IsEmptyOrPunctuationOnly(wxString Tstr, wxString puncts);
+
 wxString  SpanExcluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser  <<-- deprecated 29Jan11
 //wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10

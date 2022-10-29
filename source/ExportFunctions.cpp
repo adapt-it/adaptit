@@ -2399,27 +2399,36 @@ void ExcludeCustomMarkersAndRemFromExport()
 
 bool IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxString wholeMkr) // BEW added 5Sep14
 {
-	wxString reverse = MakeReverse(wholeMkr);
-	wxChar last = reverse.GetChar(0);
-	if (last != _T(' '))
+	// BEW 29Oct22 added protection of Get Char(0)
+	int myLen = wholeMkr.Len();
+	if (myLen > 0)
 	{
-		wholeMkr += _T(" "); // add space to end when one is not already there
-	}
-	wxChar first = wholeMkr.GetChar(0);
-	if (first == gSFescapechar)
-	{
-		int offset = wxNOT_FOUND;
-		// Including the final space in the match means we won't get spurious matches
-		// eg. won't match \xo because what we looked for was \x<space>
-		offset = strFilteredMarkersInventory.Find(wholeMkr);
-		if (offset == wxNOT_FOUND)
+		wxString reverse = MakeReverse(wholeMkr);
+		wxChar last = reverse.GetChar(0);
+		if (last != _T(' '))
 		{
-			// wholeMarker is not in the inventory
-			return FALSE;
+			wholeMkr += _T(" "); // add space to end when one is not already there
 		}
-		return TRUE; // it's in the inventory
+		wxChar first = wholeMkr.GetChar(0);
+		if (first == gSFescapechar)
+		{
+			int offset = wxNOT_FOUND;
+			// Including the final space in the match means we won't get spurious matches
+			// eg. won't match \xo because what we looked for was \x<space>
+			offset = strFilteredMarkersInventory.Find(wholeMkr);
+			if (offset == wxNOT_FOUND)
+			{
+				// wholeMarker is not in the inventory
+				return FALSE;
+			}
+			return TRUE; // it's in the inventory
+		}
+		return FALSE; // if no initial backslash treat as "marker not in inventory"
 	}
-	return FALSE; // if no initial backslash treat as "marker not in inventory"
+	else
+	{
+		return FALSE;
+	}
 }
 
 // The default option (2nd param is TRUE) for the following call is almost the functional
@@ -18905,9 +18914,21 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 		}
 		// There may be a * in the data, but not at the first character
 		// location. That too is an error - do same as block above
-		wxChar first = reversed.GetChar(0);
-		if (first != _T('*'))
+		// BEW 29Oct22 protect Get Char(0)
+		int revLen = reversed.Len();
+		if (revLen > 0)
 		{
+			wxChar first = reversed.GetChar(0);
+			if (first != _T('*'))
+			{
+				pSrcPhrase->m_punctsPattern.Empty();
+				pSrcPhrase->m_bUnused = FALSE;
+				return str;
+			}
+		}
+		else
+		{
+			// BEW 29Oct22, empty str, so do same as above
 			pSrcPhrase->m_punctsPattern.Empty();
 			pSrcPhrase->m_bUnused = FALSE;
 			return str;

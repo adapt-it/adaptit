@@ -356,35 +356,51 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 				// myResults now should be either (a) ",1,.....") or (b) ",0,...."
 				// Remove the initial comma, if present
 				wxString commaStr = _T(",");
-				wxChar firstChar = myResults.GetChar(0);
-				if (firstChar == commaStr)
+				// BEW 29Oct22 protect call of Get Char(0)
+				wxChar firstChar = (wxChar)0;
+				if (!myResults.IsEmpty())
 				{
-					myResults = myResults.Mid(1);
-				}
-				// Okay, '0' or '1' is next - which is it?
-				wxChar permissionChar = myResults.GetChar(0);
-				// Now store it where it will be available for the list_users case
-				f.Close();
-				// save the permission value where the list_users case (here) can access it below
-				m_pApp->m_server_useradmin_looked_up = permissionChar;  // saves '1' or '0' as wxChar
-				// and on the app too
-				m_pApp->m_bHasUseradminPermission = permissionChar == _T('1') ? TRUE : FALSE;
+					firstChar = myResults.GetChar(0);
 
-				// disallow, if user does not have useradmin == 1 permission
-				if (bUserLookupSucceeded && !m_pApp->m_bHasUseradminPermission)
-				{
-					wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
-					wxString title = _("Warning: permission too low");
-					wxMessageBox(msg, title, wxICON_WARNING & wxOK);
-					m_pApp->LogUserAction(msg);
-					m_bAllow = FALSE; // enables caller to cause exit of the Mgr handler
-					return;
-				}
+					if ((firstChar != _T('\0')) && firstChar == commaStr)
+					{
+						myResults = myResults.Mid(1);
+					}
+					// Okay, '0' or '1' is next - which is it?
+					wxChar permissionChar = myResults.GetChar(0);
+
+
+					// Now store it where it will be available for the list_users case
+					f.Close();
+					// save the permission value where the list_users case (here) can access it below
+					m_pApp->m_server_useradmin_looked_up = permissionChar;  // saves '1' or '0' as wxChar
+					// and on the app too
+					m_pApp->m_bHasUseradminPermission = permissionChar == _T('1') ? TRUE : FALSE;
+
+					// disallow, if user does not have useradmin == 1 permission
+					if (bUserLookupSucceeded && !m_pApp->m_bHasUseradminPermission)
+					{
+						wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
+						wxString title = _("Warning: permission too low");
+						wxMessageBox(msg, title, wxICON_WARNING & wxOK);
+						m_pApp->LogUserAction(msg);
+						m_bAllow = FALSE; // enables caller to cause exit of the Mgr handler
+						return;
+					}
+					else
+					{
+						m_pApp->m_bHasUseradminPermission = TRUE;
+					}
+				} // end of TRUE block for test: if (!myResults.IsEmpty())
 				else
 				{
-					m_pApp->m_bHasUseradminPermission = TRUE;
+					// Default to no user permission
+					m_pApp->m_bHasUseradminPermission = FALSE;
+					wxString msg = _("Looking up user for the Tabbed Manager, line %d, failed - the string myResults was empty for user: %s");
+					msg = msg.Format(msg, __LINE__, m_pApp->m_strUserID.c_str());
+					m_pApp->LogUserAction(msg);
 				}
-			}
+			} // end of TRUE block for test: if (bOpened)
 			else
 			{
 				// Unable to open file
@@ -393,7 +409,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 				m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
 				wxString title = _("Unable to open file");
 				wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
-				msg = msg.Format(msg, m_pApp->m_strUserID);
+				msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
 				m_pApp->LogUserAction(msg);
 			}
 		}
@@ -405,7 +421,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 			m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
 			wxString title = _("User not found in the KBserver user table");
 			wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
-			msg = msg.Format(msg, m_pApp->m_strUserID);
+			msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
 			m_pApp->LogUserAction(msg);
 		}
 	}
@@ -417,7 +433,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		m_pApp->m_server_useradmin_looked_up = _T('0');  // '1' or '0' as wxChar
 		wxString title = _("Lookup of username failed");
 		wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
-		msg = msg.Format(msg, m_pApp->m_strUserID);
+		msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
 		m_pApp->LogUserAction(msg);
 	}
 // REPLACE END

@@ -3678,28 +3678,35 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 				thisFilename = MakeReverse(thisFilename);
 				wxString extn = thisFilename.Left(4);
 				extn = MakeReverse(extn);
-				if (extn.GetChar(0) == _T('.'))
+				// BEW 29Oct22 protect call
+				int extnLen = extn.Len();
+				bool bIsDot = TRUE; // initialise
+				if (extnLen > 0)
 				{
-					// we can assume it is an extension because it begins with a period
-					if (extn != _T(".xml"))
+					bIsDot = (extn.GetChar(0) == _T('.'));
+					if (bIsDot)
 					{
-						thisFilename = thisFilename.Mid(4); // remove the .adt extension or whatever
-						thisFilename = MakeReverse(thisFilename);
-						thisFilename += _T(".xml"); // it's now *.xml
+						// we can assume it is an extension because it begins with a period
+						if (extn != _T(".xml"))
+						{
+							thisFilename = thisFilename.Mid(4); // remove the .adt extension or whatever
+							thisFilename = MakeReverse(thisFilename);
+							thisFilename += _T(".xml"); // it's now *.xml
+						}
+						else
+						{
+							thisFilename = MakeReverse(thisFilename); // it's already *.xml
+						}
+						*pRenamedFilename = thisFilename;
 					}
-					else
+					else // extn doesn't begin with a period
 					{
-						thisFilename = MakeReverse(thisFilename); // it's already *.xml
+						// assume the user didn't add and extension and that what we cut off
+						// was part of his file title, so add .xml to what he typed
+						theNewFilename += _T(".xml");
+						*pRenamedFilename = theNewFilename;
 					}
-					*pRenamedFilename = thisFilename;
-				}
-				else // extn doesn't begin with a period
-				{
-					// assume the user didn't add and extension and that what we cut off
-					// was part of his filetitle, so add .xml to what he typed
-					theNewFilename += _T(".xml");
-					*pRenamedFilename = theNewFilename;
-				}
+				} // end of TRUE block for test: if (extnLen > 0)
 			}
 		}
 		else
@@ -14162,22 +14169,35 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar* pChar)
 	wxString bareMkr = GetMarkerWithoutBackslash(ptr); // The calls GetWholeMarker()
 			// and just returns the result of stripping off the initial backslash,
 			// so if + is present, it will be the first character. Check and remove it
-	wxChar first = bareMkr.GetChar(0);
-	if (first == _T('+'))
+	// BEW 29Oct10 protect Get Char(0)
+	wxChar first = _T('\0'); // initialise
+	int length = bareMkr.Len();
+	if (length > 0)
 	{
-		// Only markers which are inline & which we assign TextType value of none
-		// can qualify for having \+ before the tag. We've found one such
-		bareMkr = bareMkr.Mid(1);
+		first = bareMkr.GetChar(0); // safe now
+		if (first == _T('+'))
+		{
+			// Only markers which are inline & which we assign TextType value of none
+			// can qualify for having \+ before the tag. We've found one such
+			bareMkr = bareMkr.Mid(1);
+		}
+		int posn = bareMkr.Find(_T('*'));
+		// The following GetLength() call could on rare occassions return a
+		// length of 1051 when processing the \add* marker.
+		// whm comment: the reason for the erroneous result from GetLength
+		// stems from the problem with the original code used in ParseMarker.
+		// (see caution statement in ParseMarker).
+		if (posn >= 0)
+		{// whm revised 7Jun05
+			// strip off asterisk for attribute lookup
+			bareMkr = bareMkr.Mid(0, posn);
+		}
 	}
-	int posn = bareMkr.Find(_T('*'));
-	// The following GetLength() call could on rare occassions return a
-	// length of 1051 when processing the \add* marker.
-	// whm comment: the reason for the erroneous result from GetLength
-	// stems from the problem with the original code used in ParseMarker.
-	// (see caution statement in ParseMarker).
-	if (posn >= 0) // whm revised 7Jun05
-		// strip off asterisk for attribute lookup
-		bareMkr = bareMkr.Mid(0, posn);
+	else
+	{
+		// Must be empty string
+		return wxEmptyString;
+	}
 	return bareMkr;
 }
 
@@ -16472,19 +16492,27 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 	{
 		// could be \bt, or longer markers beginning with those 3 chars
 		wxASSERT(!filterStr.IsEmpty()); // whm 11Jun12 added. GetChar(0) should never be called on an empty string
-		aChar = filterStr.GetChar(0);
-		while (!IsWhiteSpace(&aChar))
+		int fLen = filterStr.Len();
+		if (fLen > 0)
 		{
-			// trim off from the front the marker info, a character at
-			// a time
-			filterStr = filterStr.Mid(1);
 			aChar = filterStr.GetChar(0);
+			while (!IsWhiteSpace(&aChar))
+			{
+				// trim off from the front the marker info, a character at
+				// a time
+				filterStr = filterStr.Mid(1);
+				aChar = filterStr.GetChar(0);
+			}
+			filterStr.Trim(FALSE); // trim any initial white space
+			// it may also end in a space now, so remove it if there
+			filterStr.Trim();
+			// we now have the back trans text, so store it
+			pSrcPhrase->SetCollectedBackTrans(filterStr);
 		}
-		filterStr.Trim(FALSE); // trim any initial white space
-		// it may also end in a space now, so remove it if there
-		filterStr.Trim();
-		// we now have the back trans text, so store it
-		pSrcPhrase->SetCollectedBackTrans(filterStr);
+		else
+		{
+			pSrcPhrase->SetCollectedBackTrans(wxEmptyString);
+		}
 	}
 }
 
@@ -20877,9 +20905,14 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 															   // eg. 3-5) to buffer
 					// whm 11Jun12 added !pApp->m_curChapter.IsEmpty() && to the test below
 					// since GetChar(0) should never be called on an empty string
-					if (!pApp->m_curChapter.IsEmpty() && pApp->m_curChapter.GetChar(0) == '0')
-						pApp->m_curChapter.Empty(); // caller will have set it non-zero
-													// if there are chapters
+					if (!pApp->m_curChapter.IsEmpty())
+					{
+						if (pApp->m_curChapter.GetChar(0) == '0')
+						{
+							pApp->m_curChapter.Empty(); // caller will have set it non-zero
+														// if there are chapters
+						}
+					}
 					pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 					pSrcPhrase->m_chapterVerse += temp; // append the verse number
 					pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a

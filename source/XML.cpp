@@ -5301,7 +5301,7 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 		const wxChar* ptr = markers.GetData(); // point at first possible marker in markers
 		length = ParseMarker(ptr);
 		wxString marker(ptr,length);
-		if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\'))
+		if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\')) // BEW 29Oct22 Get Char(0) already protected
 		{
 			// it's a marker of some type (but may not be an endmarker)
 			if (gpApp->gCurrentSfmSet == PngOnly && (marker == _T("\\fe") || marker == _T("\\F")))

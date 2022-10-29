@@ -342,9 +342,17 @@ void Authenticate2Dlg::OnOK(wxCommandEvent& myevent)
 				else
 				{
 					// must be a 2-letter password, so make the last char *
-					wxString first = pwd.GetChar(0);
-					wxChar asterisk = _T('*');
-					obfuscatedPassword = first + asterisk;
+					int pwdLen = pwd.Len();
+					if (pwdLen > 0)
+					{
+						wxString first = pwd.GetChar(0);
+						wxChar asterisk = _T('*');
+						obfuscatedPassword = first + asterisk;
+					}
+					else
+					{
+						obfuscatedPassword = asterisk;
+					}
 				}
 			}
 			// now message the user so he/she knows it's a guess

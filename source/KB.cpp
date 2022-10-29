@@ -4421,10 +4421,19 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	// string is rejected as a legitimate m_adaption, and ] would then be lost from m_adaption
 	bool bClosingBracketIsWord = FALSE; // initialise
 	int tgtPhrLen = tgtPhrase.Length();
-	wxChar firstChar = tgtPhrase.GetChar(0); // first
-	if ((tgtPhrLen == 1) && (firstChar == _T(']')))
+	// BEW 28Oct22 protect against empty string
+	if (tgtPhrLen > 0)
 	{
-		bClosingBracketIsWord = TRUE;  // use, to suppress punctuation stripping when ] is the word passed in
+		// BEW 29Oct22 extra protection for Get Char(0) not needed, tgtPhrLen is greater than 0 - see above
+		wxChar firstChar = tgtPhrase.GetChar(0); // first
+		if ((tgtPhrLen == 1) && (firstChar == _T(']')))
+		{
+			bClosingBracketIsWord = TRUE;  // use, to suppress punctuation stripping when ] is the word passed in
+		}
+	}
+	else
+	{
+		bClosingBracketIsWord = FALSE;
 	}
 
     // do not permit storage if the source phrase has an empty key

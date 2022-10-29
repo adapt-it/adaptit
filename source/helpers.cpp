@@ -2522,16 +2522,25 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,	wxString& wordBuildi
 //                     return the tag with the * removed
 // bWholeMkrOrTag  <-  TRUE if the pMkrOrTag string passed in starts with a backslash,
 //                     FALSE if not
-bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly,
-							   wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
+bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly, wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
 {
 	bool bNested = FALSE;
 	tagOnly.Empty(); bWholeMkrPassedIn = FALSE;
 	wxString tag = *pMkrOrTag;
-	if (pMkrOrTag->GetChar(0) == gSFescapechar)
+	// BEW29Oct22 protect Get Char(0)
+	int tagLen = tag.Len();
+	if (tagLen > 0)
 	{
-		bWholeMkrPassedIn = TRUE;
-		tag = tag.Mid(1); // strip off the initial backslash
+		if (pMkrOrTag->GetChar(0) == gSFescapechar)
+		{
+			bWholeMkrPassedIn = TRUE;
+			tag = tag.Mid(1); // strip off the initial backslash
+		}
+	}
+	else
+	{
+		// empty tag, return FALSE
+		return FALSE;
 	}
 	if (gpApp->gCurrentSfmSet == PngOnly)
 	{
@@ -2542,6 +2551,8 @@ bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly,
 		return FALSE;
 	}
 	// Continue, it must be UsfmOnly or UsfmAndPng (and the latter we treat as the former)
+	// BEW 29Oct22 protect Get Char(0) do an assert here, as tag is not empty as determined above
+	wxASSERT(!tag.IsEmpty());
 	if (tag.GetChar(0) == _T('+'))
 	{
 		// It's a nested marker or tag for such, so remove the initial +
@@ -2557,15 +2568,17 @@ bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly,
 	// final *, and returned in baseOfEndMkr; if it's not an endmarker, return
 	// an empty string in it
 	int length = tagOnly.Len();
-	if (tagOnly.GetChar(length - 1) == _T('*'))
+	if (length > 0) // BEW 29Oct22 protect the Get Char() call
 	{
-		baseOfEndMkr = tagOnly.Truncate(length - 1);
+		if (tagOnly.GetChar(length - 1) == _T('*'))
+		{
+			baseOfEndMkr = tagOnly.Truncate(length - 1);
+		}
+		else
+		{
+			baseOfEndMkr.Empty();
+		}
 	}
-	else
-	{
-		baseOfEndMkr.Empty();
-	}
-
 	return bNested;
 }
 // Overrided version of above
@@ -2657,7 +2670,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 	int ct;
 	while(pStartChar < pEnd)
 	{
-		if (*pStartChar == subStr.GetChar(0))
+		if (!subStr.IsEmpty() && *pStartChar == subStr.GetChar(0)) // BEW 29Oct22 added protection for Get Char(0)
 		{
 			// we're at a char which matches first char of subStr, so look ahead in the buffer and
 			// see if remainder of subStr also matches.
@@ -6125,8 +6138,80 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
 			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray);
+#if defined (_DEBUG)
+			{
+				if (pSingleSrcPhrase->m_nSequNumber == 408)
+				{
+					int halt_here = 1;
+				}
+			}
+#endif
+			// BEW 28Oct22, a hack for removing an unsettling outcome (Gerald Harkins reported Oct 2022) as follows.
+			// Situation 1. There is a footnote and \f* (or other endMkr) has to be placed manually, but Sstr has
+			// more than one final punct character - therefore, ambiguity, and manual placement is needed. But on
+			// just having set up collaboration, and there is no text yet within the m_adaption of pSingleSrcPhrase,
+			// there's no text to show in the bottom box of the placement dialog. But punctuation my appear there,
+			// because pSingleSrcPhrase has one or more in the aggregate of m_follPunct and m_follOuterPunct. Showing
+			// just punctuation in the dialog is confusing and unhelpful.
+			// Situation 2. Adapting has been done, and at the export for collaboration, there is text to show. The
+			// existing code *should* handle the placement ambiguity, so probably nothing to be done. 
+			// What to do about Situation 1. My intuition is this: If app->m_bCopySource is FALSE, and if Tstr only
+			// contains one or more punctuation characters - then the copy the reconstituted Sstr - because Paratext
+			// (or Bibledit) needs the markers in their correct place(s) in the string. And empty the array of markers
+			// because placing it not appropriate - only editing is appropriate in this scenario.
+			// But, if m_bCopySource is TRUE, then the best thing would be to show a copy of the Sstr text - with 
+			// endmarkers removed, and the placement list showing the markers for placement, and the user does the
+			// placements in the normal way, and clicks OK. (In either scenario, the workaround of coping from the
+			// top box, and pasting into the bottom one, is still available.)
+			bool bDoDialogAnyway = FALSE;
+			wxString tempAdaptStr = wxEmptyString;
+			bool bEmptyOrPunctsOnly = IsEmptyOrPunctuationOnly(Tstr, gpApp->m_punctuation[1]);
+			if (bEmptyOrPunctsOnly && (gpApp->m_bCopySource == FALSE))
+			{
+				bIsAmbiguousForEndmarkerPlacement = FALSE;
+				markersToPlaceArray.Empty();
+				tempAdaptStr = Sstr; // This gives Paratext the markers, but the onus is on the user 
+									 // to edit the text - it's source text, but markers are editable too
+				Tstr = tempAdaptStr;
+			}
+			else
+			{
+				// There's some non-punctuation, so show Sstr, but first remove any markers from it - so that the
+				// user can do a normal placement using click in right location and hit Place button
+				tempAdaptStr = Sstr;
+				// Now remove markers (beginMkrs too if any are present). But check first that there is at least
+				// one marker for placement in markersToPlaceArray
+				if (!markersToPlaceArray.IsEmpty())
+				{
+					// get the one or more markers, and find them in tempAdaptStr and remove them
+					// to facilitate manual placement in the dialog
+					int numMkrs = markersToPlaceArray.GetCount();
+					wxString aMkr = wxEmptyString; // initialise
+					int i = 0;
+					for (i = 0; i < numMkrs; i++)
+					{
+						aMkr = markersToPlaceArray.Item((size_t)i);
+						wxASSERT(!aMkr.IsEmpty());
+						// Remove it from tempAdaptStr
+						int offset = -1;
+						offset = tempAdaptStr.Find(aMkr);
+						int length = aMkr.Len();
+						tempAdaptStr = tempAdaptStr.Remove((size_t)offset, (size_t)length);
+					}
+					Tstr = tempAdaptStr; // This Tstr value now goes to the Placement dialog, user can
+										 // edit text, or marker(s), or their position, whatever, then click OK
+				}
+				else
+				{
+					// It's empty, so let Tstr stand, as is
+					bDoDialogAnyway = FALSE;
+				}
+			}
+			// BEW 28Oct22 tested both options above, for app->m_bCopySource TRUE, and then FALSE. They work, and the
+			// user is spared the connundrum of not having a valid Placement dialog with editable lower box and the
+			// list with one or more markers to place.
 
-			if (!markersToPlaceArray.IsEmpty())
+			if (!markersToPlaceArray.IsEmpty() || bDoDialogAnyway)
 			{
 				// There's something the user needs to deal with manually
 
@@ -6188,6 +6273,31 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	// don't have a final space, the caller will add one if it is needed
 	return Tstr;
 }
+
+bool IsEmptyOrPunctuationOnly(wxString Tstr, wxString puncts)
+{
+	if (Tstr.IsEmpty())
+	{
+		return TRUE;
+	}
+	int len = Tstr.Length();
+	int offset = wxNOT_FOUND;
+	wxChar aChar;
+	int index;
+	for (index = 0; index < len; index++)
+	{
+		aChar = Tstr.GetChar((size_t)index);
+		offset = puncts.Find(aChar);
+		if (offset == wxNOT_FOUND)
+		{
+			// Something else which is not in the puncts character set, is present, so return FALSE
+			return FALSE;
+		}
+	}
+	// If the loop doesn't exit before running of chars to check, it only has puncts
+	return TRUE;
+}
+
 
 // BEW created 11Oct10, for support of improved doc version 5 functionality.
 // Used in the FromSingleMakeTstr() function, when there are inline binding markes within
@@ -12176,7 +12286,8 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 		// change tab to space.
 		wxString s = pSrcPhrase->GetSrcWordBreak();
 		wxString output; output.Empty();
-		if (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t'))
+		// BEW 29Oct22 add protection for Get Char(0)
+		if (!s.IsEmpty() && (s.GetChar(0) == _T('\r') || (s.GetChar(0) == _T('\n')) || s.GetChar(0) == _T('\t')) )
 		{
 			output = _T(" ");
 			return output;
@@ -12205,7 +12316,8 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 		// we don't want CR, or LF, or TAB, or CR+LF, put into a retranslation
 		wxString s = pSrcPhrase->GetTgtWordBreak();
 		wxString output; output.Empty();
-		if (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t'))
+		// BEW 29Oct22 added protection for Get Char(0)
+		if (!s.IsEmpty() && (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t')) )
 		{
 			output = _T(" ");
 			return output;

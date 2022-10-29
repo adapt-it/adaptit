@@ -1056,12 +1056,17 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 			}
 		}
 #endif
-		int tgtPhrLen = pApp->m_targetPhrase.Length();
-		wxChar firstChar = pApp->m_targetPhrase.GetChar(0); // first
-		if ( !((tgtPhrLen == 1) && (firstChar == _T(']'))) )
+		// BEW 28Oct22 protect against m_targetPhrase being empty, at the GetChar(0) call
+		int tgtPhrLen = 0; // initialize
+		if (!pApp->m_targetPhrase.IsEmpty())
 		{
-			// suppress punctuation stripping when ] is the word passed in; but allow all else
-			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+			tgtPhrLen = pApp->m_targetPhrase.Length();
+			wxChar firstChar = pApp->m_targetPhrase.GetChar(0); // first
+			if (!((tgtPhrLen == 1) && (firstChar == _T(']'))))
+			{
+				// suppress punctuation stripping when ] is the word passed in; but allow all else
+				pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+			}
 		}
 	}
 	if (gbIsGlossing)

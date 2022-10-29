@@ -287,26 +287,26 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 		m_FreeTransForNext = str.Mid(m_offset);
 		// Trim ends
 		m_FreeTransForCurrent.Trim(); // trim whitespace from its end
-		// Trim also any final ZWSP characters
-		while (m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
+		// Trim also any final ZWSP characters  BEW 29Oct22 protect Get Char()
+		while ((m_FreeTransForCurrent.Len() - 1 > 0) && m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
 		{
 			m_FreeTransForCurrent = m_FreeTransForCurrent.Left(m_FreeTransForCurrent.Len() - 1);
 		}
 		m_FreeTransForCurrent.Trim(FALSE); // and at its start
 		// And at its start for ZWSP too
-		while (m_FreeTransForCurrent.GetChar(0) == zwsp)
+		while ((m_FreeTransForCurrent.Len() > 0) && m_FreeTransForCurrent.GetChar(0) == zwsp)
 		{
 			m_FreeTransForCurrent = m_FreeTransForCurrent.Mid(1);
 		}
 		m_FreeTransForNext.Trim(); // trim whitespace from its end
 		// Trim also any final ZWSP characters
-		while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+		while ((m_FreeTransForNext.Len() - 1 > 0) && m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
 		{
 			m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
 		}
 		m_FreeTransForNext.Trim(FALSE); // there shouldn't be any at the start, but play safe
 		// And at its start for ZWSP too
-		while (m_FreeTransForNext.GetChar(0) == zwsp)
+		while ((m_FreeTransForNext.Len() > 0) && m_FreeTransForNext.GetChar(0) == zwsp)
 		{
 			m_FreeTransForNext = m_FreeTransForNext.Mid(1);
 		}
@@ -328,13 +328,13 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 		m_FreeTransForNext = str.Mid(m_offset);
 		m_FreeTransForNext.Trim(); // trim whitespace from its end
 		// Trim also any final ZWSP characters
-		while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+		while ((m_FreeTransForNext.Len() - 1 > 0) && m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
 		{
 			m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
 		}
 		m_FreeTransForNext.Trim(FALSE); // and at the start
 		// And at its start for ZWSP too
-		while (m_FreeTransForNext.GetChar(0) == zwsp)
+		while ((m_FreeTransForNext.Len() > 0) && m_FreeTransForNext.GetChar(0) == zwsp)
 		{
 			m_FreeTransForNext = m_FreeTransForNext.Mid(1);
 		}
@@ -345,8 +345,7 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	// If the insertion place is not at a space, move back until one precedes
-	while ((m_offset > 0) && ((str.GetChar(m_offset - 1) != space) ||
-								(str.GetChar(m_offset - 1) != space)))
+	while ((m_offset > 0) && ((str.GetChar(m_offset - 1) != space) || (str.GetChar(m_offset - 1) != space)))
 	{
 		// If we are not at the start of the string, check that the preceding character is
 		// not a space - as long as that is so, move back character by character until we
@@ -364,19 +363,19 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 	// Trim ends
 	m_FreeTransForCurrent.Trim(); // trim whitespace from its end
 	// Trim also any final ZWSP characters
-	while (m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
+	while ((m_FreeTransForCurrent.Len() - 1 > 0) && m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
 	{
 		m_FreeTransForCurrent = m_FreeTransForCurrent.Left(m_FreeTransForCurrent.Len() - 1);
 	}
 	m_FreeTransForCurrent.Trim(FALSE); // and at its start
 	// And at its start for ZWSP too
-	while (m_FreeTransForCurrent.GetChar(0) == zwsp)
+	while ((m_FreeTransForCurrent.Len() > 0) && m_FreeTransForCurrent.GetChar(0) == zwsp)
 	{
 		m_FreeTransForCurrent = m_FreeTransForCurrent.Mid(1);
 	}
 	m_FreeTransForNext.Trim(); // trim whitespace from its end
 	// Trim also any final ZWSP characters
-	while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+	while ((m_FreeTransForNext.Len() - 1 > 0) && m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
 	{
 		m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
 	}

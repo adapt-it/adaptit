@@ -3417,8 +3417,11 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				}
 #if defined (_DEBUG)
 				{
-					wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-						pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
+					if (pOldActivePile != NULL)
+					{
+						wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+							pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
+					}
 				}
 #endif
 				// any existing phraseBox text must be saved to the KB, unless its empty
@@ -3465,8 +3468,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
 #if defined (_DEBUG)
 						{
-							wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-								pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
+//							wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//								pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
 						}
 #endif
 					}
@@ -3598,10 +3601,10 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	}
 #if defined (_DEBUG)
 		{
-		CPile* pActivePile = pApp->m_pActivePile;
-		CSourcePhrase* pSP = pActivePile->GetSrcPhrase();
-		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-			pSP->m_targetStr.c_str(), pSP->m_nSequNumber);
+//		CPile* pActivePile = pApp->m_pActivePile;
+//		CSourcePhrase* pSP = pActivePile->GetSrcPhrase();
+//		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//			pSP->m_targetStr.c_str(), pSP->m_nSequNumber);
 		}
 #endif
 
@@ -3643,7 +3646,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		// pile. Then I can ensure that finding the retranslation span boundaries will apply to the
 		// correct pile.
 			
-	wxASSERT(pActivePile != NULL);
+	//wxASSERT(pActivePile != NULL);
 
 	if (gbIsGlossing)
 	{
@@ -3699,8 +3702,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 
 #if defined (_DEBUG)
 	{
-		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-			pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
+//		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//			pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
 	}
 #endif
 
@@ -3981,8 +3984,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 #endif
 #if defined (_DEBUG)
 		{
-			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
+//			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
 		}
 #endif
 		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
@@ -3993,8 +3996,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 #endif
 #if defined (_DEBUG)
 		{
-			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
+//			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
 		}
 #endif
 	}
@@ -4106,8 +4109,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 					}
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-							pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
+//						wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//							pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
 					}
 #endif
 				}
@@ -4213,8 +4216,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 
 #if defined (_DEBUG)
 	{
-		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-			pSPhr->m_targetStr.c_str(), pSPhr->m_nSequNumber);
+//		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//			pSPhr->m_targetStr.c_str(), pSPhr->m_nSequNumber);
 	}
 #endif
 
@@ -4286,8 +4289,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	wxUnusedVar(sn);
 #if defined (_DEBUG)
 	{
-		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-			pSPhr2->m_targetStr.c_str(), pSPhr2->m_nSequNumber);
+//		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
+//			pSPhr2->m_targetStr.c_str(), pSPhr2->m_nSequNumber);
 	}
 #endif
 	int boxWidth = 0; // initialise
@@ -14577,7 +14580,9 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	wxString strToReturn = wxEmptyString; // initialize to empty
 	wxString strLeftBracket(_T('['));
 
-	// BEW 12Oct22 check for just [ passed in. If so, return the empty string
+	// BEW 12Oct22 check for just [ passed in. If so, return the empty string; 28Oct22 add empty string protection?
+	// No need, KeyTgtText has been checked above, an is non-empty; so got assigned that non-empty string, so
+	// GetChar(0) is safe to do.
 	wxChar firstChar = s.GetChar(0);
 	int sLen = s.Length();
 	if ((firstChar == _T('[')) && sLen == 1)

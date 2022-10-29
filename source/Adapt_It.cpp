@@ -9788,26 +9788,6 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
                         mItem = pNode->GetData();
                         wxASSERT(mItem != NULL);
 
-                        // whm 1Oct12 removed MRU code
-                        /*
-                        // Don't remove File History items which are menu items that start with a digit (1
-                        // through 9) followed by a space, followed by the full path name. We assume we can
-                        // skip all menu items that start with a digit and a space.
-                        wxString tempStr = mItem->GetItemLabelText(); //wxString tempStr = mItem->GetLabel();
-                        tempStr = tempStr.Mid(0,2);
-                        if (!tempStr.IsEmpty() &&
-                        (tempStr.GetChar(0) == _T('1') || tempStr.GetChar(0) == _T('2') ||
-                        tempStr.GetChar(0) == _T('3') || tempStr.GetChar(0) == _T('4') || tempStr.GetChar(0) == _T('5') ||
-                        tempStr.GetChar(0) == _T('6') || tempStr.GetChar(0) == _T('7') || tempStr.GetChar(0) == _T('8') ||
-                        tempStr.GetChar(0) == _T('9')) && tempStr.GetChar(1) == _T(' ') )
-                        {
-                        numFileHistoryItems++;
-                        //wxLogDebug(_T("Menu item skipped for deletion = %s"),mItem->GetLabel().c_str());
-                        continue;
-                        }
-                        //wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
-                        */
-
                         if (mItem->GetItemLabelText() == _("See Glosses")) //if (mItem->GetLabel() == _("See Glosses"))
                         {
                             // TODO: Check the following assumption: We should unilaterally disable Glossing here.
@@ -20478,7 +20458,14 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                     // BEW 3Nov21 Has an ipAddress been added to commandLine yet? If it hasn't or
                     // it is empty string still, detect and get a best guess based on dlg results
                     // or previous storage (if any). If not empty, the string will start with a comma 
-                    if (commandLine.IsEmpty() || (commandLine.GetChar(0) == comma))
+                    // BEW 28Oct22 added empty string protection for GetChar(0)
+                    bool bIsEmpty = commandLine.IsEmpty();
+                    wxChar first = _T('\0');
+                    if (!bIsEmpty)
+                    {
+                        first = commandLine.GetChar(0); // safe call
+                    }
+                    if (commandLine.IsEmpty() || (first == comma)) 
                     {
                         commandLine.Empty(); // start over
                         // Yep, quite empty, so add a best guess for the ipAddr (user will see, in Dlg, and be able to edit)
@@ -20578,7 +20565,14 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                         // BEW 3Nov21 Has an ipAddress been added to commandLine yet? If it hasn't or
                         // it is empty string still, detect and get a best guess based on dlg results
                         // or previous storage (if any). If not empty, the string will start with a comma 
-                        if (commandLine.IsEmpty() || (commandLine.GetChar(0) == comma))
+                        // BEW 28Oct22 added empty string protection for GetChar(0)
+                        bool bIsEmpty = commandLine.IsEmpty();
+                        wxChar first = _T('\0');
+                        if (!bIsEmpty)
+                        {
+                            first = commandLine.GetChar(0); // safe call
+                        }
+                        if (commandLine.IsEmpty() || (first == comma))
                         {
                             commandLine.Empty(); // start over
                             // Yep, quite empty, so add a best guess for the ipAddr (user will see, in Dlg, and be able to edit)
@@ -22775,7 +22769,12 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 							wxString fullname = shorter.Left(offset);
 
 							shorter = shorter.Mid(offset + 1);
-							wxChar chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 '1'
+                            // BEW 28Oct22, protect GetChar(0) from empty string
+                            wxChar chUserAdmin = _T('0'); // safe default
+                            if (!shorter.IsEmpty())
+                            {
+                                chUserAdmin = (wxChar)shorter.GetChar(0); // it's 49 '1'
+                            }
 							bool bUseradminValue = chUserAdmin == _T('0') ? FALSE : TRUE;
 
 							// BEW 12Nov20 Put the useradmin value in the public member of 
@@ -40941,11 +40940,12 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
     pf->AddLine(data);
 
     int fntColor = 0; // default black until changed below
-    if (fi.fLangType.GetChar(0) == _T('S'))
+
+    if (fi.fLangType == _T("SourceFont"))
         fntColor = WxColour2Int(m_sourceColor); // WxColour2Int() in helpers.h
-    else if (fi.fLangType.GetChar(0) == _T('T'))
+    else if (fi.fLangType == _T("TargetFont"))
         fntColor = WxColour2Int(m_targetColor); // WxColour2Int() in helpers.h
-    else if (fi.fLangType.GetChar(0) == _T('N'))
+    else if (fi.fLangType == _T("NavTextFont"))
         fntColor = WxColour2Int(m_navTextColor); // WxColour2Int() in helpers.h
     data.Empty();
     data << szColor << tab << fntColor; //data = szColor + tab + number + end;
@@ -41847,25 +41847,36 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 
     // get rid of the BOM if present - we can assume it is there if the first character
     // of name is not S, T, or N
-    chSelector = name.GetChar(0);
-    if ((chSelector != _T('S')) && (chSelector != _T('T')) && (chSelector != _T('N')))
+    // BEW 28Oct22 protect if empty
+    bool bNameStrOK = !name.IsEmpty();
+    if (bNameStrOK)
     {
-        // BEW changed, 2July07, because the UTF8 name becomes UTF16, and is one UTF16 char
-        // by the time the program counter gets here, so Mid(3) needs to become Mid(1)
-        // (from Bob Eaton)
-#ifdef _UNICODE
-        name = name.Mid(1); // in the Unicode version, the UTF-8 BOM (which was 3 bytes
-                            // long) is turned into a single UTF16 character
-#else
-        name = name.Mid(3);	// in the ansi version, the UTF-8 BOM is 3 characters
-#endif
-        chSelector = name.GetChar(0); // S for source, T for target, N for navText;
-                                      // use for setting color
+        chSelector = name.GetChar(0);
+
         if ((chSelector != _T('S')) && (chSelector != _T('T')) && (chSelector != _T('N')))
         {
-            wxMessageBox(_T(
-                "Selector not set to one of S, T, or N, when getting the logfont info. Will try to continue."));
+            // BEW changed, 2July07, because the UTF8 name becomes UTF16, and is one UTF16 char
+            // by the time the program counter gets here, so Mid(3) needs to become Mid(1)
+            // (from Bob Eaton)
+#ifdef _UNICODE
+            name = name.Mid(1); // in the Unicode version, the UTF-8 BOM (which was 3 bytes
+                                // long) is turned into a single UTF16 character
+#else
+            name = name.Mid(3);	// in the ansi version, the UTF-8 BOM is 3 characters
+#endif
+            chSelector = name.GetChar(0); // S for source, T for target, N for navText;
+                                          // use for setting color
+            if ((chSelector != _T('S')) && (chSelector != _T('T')) && (chSelector != _T('N')))
+            {
+                wxMessageBox(_T(
+                    "Selector not set to one of S, T, or N, when getting the logfont info. Will try to continue."));
+            }
         }
+    }
+    else
+    {
+        // Set a default - assume it would have been 'S' for SourceText, make do with that
+        chSelector = _T('S');
     }
 
     // Because of a peculiarity of wxTextFile, its method Eof returns TRUE if the current
@@ -41887,11 +41898,11 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             fi.fHeight = num; // this fi value is saved in config
             fi.fPointSize = NegHeightToPointSize(num);// this one for program use
                                                       // set the fontsize for the actual font on the App
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetPointSize(fi.fPointSize);
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
                 m_pTargetFont->SetPointSize(fi.fPointSize);
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
                 this->m_pNavTextFont->SetPointSize(fi.fPointSize);
 
             // testing of PointSize NegHeight conversion functions below !!!!
@@ -41944,11 +41955,11 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             else if (num >= 700)
                 fw = wxFONTWEIGHT_BOLD;
             // set the weight of the actual font on the App
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetWeight(fw);
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
                 m_pTargetFont->SetWeight(fw);
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
                 this->m_pNavTextFont->SetWeight(fw);
         }
         else if (name == szWidth)
@@ -41988,11 +41999,11 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             else
                 fs = wxFONTSTYLE_ITALIC; // = 93 (decimal) ie. wxFONTSTYLE_ITALIC
                                       // set the style (normal or italic) of the actual font on the App
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetStyle(fs);
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
                 m_pTargetFont->SetStyle(fs);
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
                 this->m_pNavTextFont->SetStyle(fs);
         }
         else if (name == szStrikeOut)
@@ -42015,11 +42026,11 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             else
                 fi.fUnderline = TRUE;
             // set the underline of the actual font on the App
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetUnderlined(fi.fUnderline);
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
                 m_pTargetFont->SetUnderlined(fi.fUnderline);
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
                 this->m_pNavTextFont->SetUnderlined(fi.fUnderline);
         }
         else if (name == szOutPrecision)
@@ -42065,11 +42076,11 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             default: ff = wxFONTFAMILY_DEFAULT;
             }
             // set the family of the actual font on the App
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetFamily(ff);
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
                 m_pTargetFont->SetFamily(ff);
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
                 this->m_pNavTextFont->SetFamily(ff);
         }
         else if (name == szFontEncoding) // if present in config file,
@@ -42139,21 +42150,21 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
         else if (name == szColor)
         {
             num = wxAtoi(strValue); // allow anything
-            if (fi.fLangType.GetChar(0) == _T('S'))
+            if (fi.fLangType == _T("SourceFont"))
             {
                 m_sourceColor = Int2wxColour(num);
                 // It is necessary to call the font data's SetColour() function to effect color
                 // change
                 m_pSrcFontData->SetColour(m_sourceColor);
             }
-            else if (fi.fLangType.GetChar(0) == _T('T'))
+            else if (fi.fLangType == _T("TargetFont"))
             {
                 m_targetColor = Int2wxColour(num);
                 // It is necessary to call the font data's SetColour() function to effect color
                 // change
                 m_pTgtFontData->SetColour(m_targetColor); //
             }
-            else if (fi.fLangType.GetChar(0) == _T('N'))
+            else if (fi.fLangType == _T("NavTextFont"))
             {
                 m_navTextColor = Int2wxColour(num);
                 // In wx version text color is changed by modifying the font data object
@@ -62288,27 +62299,43 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
 
     // Remove any (bogus) string final commas (there should not be any, but play safe)
     int length = theStr.Length();
-    wxChar lastChar = theStr.GetChar(length - 1);
-    while (lastChar == comma)
+    if (length > 1) // Protect the GetChar() call
     {
-        theStr = theStr.Left(length - 1);
-        length = length - 1;
-        lastChar = theStr.GetChar(length - 1);
+        wxChar lastChar = theStr.GetChar(length - 1);
+        while (lastChar == comma)
+        {
+            theStr = theStr.Left(length - 1);
+            length = length - 1;
+            lastChar = theStr.GetChar(length - 1);
+        }
     }
 
     theStr.Trim();
     theStr.Trim(FALSE);
 
     // Remove any (bogus) initial commas (again, there should not be any)
-    wxChar firstChar = theStr.GetChar(0);
-    while (firstChar == comma)
+    // Protect GetChar(0) from failure if theStr is empty
+    wxChar firstChar = _T('\0');
+    if (!theStr.IsEmpty())
     {
-        theStr = theStr.Mid(1);
-        firstChar = theStr.GetChar(0);
-    }
+        firstChar = theStr.GetChar(0); // safe call
 
-    theStr.Trim();
-    theStr.Trim(FALSE);
+        while (firstChar == comma)
+        {
+            theStr = theStr.Mid(1);
+            if (!theStr.IsEmpty())
+            {
+                firstChar = theStr.GetChar(0);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        theStr.Trim();
+        theStr.Trim(FALSE);
+    }
 
      if (theStr.IsEmpty())
     {
@@ -62333,50 +62360,26 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
             theStr = theStr.Mid(offset + 1); // + 1 to jump over the comma
 
             // In case there are consecutive commas, advance over any such
-            firstChar = theStr.GetChar(0);
-            while (firstChar == comma)
+            if (!theStr.IsEmpty())
             {
-                theStr = theStr.Mid(1);
-                firstChar = theStr.GetChar(0);
+                firstChar = theStr.GetChar(0); // safe call
+                while (firstChar == comma)
+                {
+                    theStr = theStr.Mid(1);
+                    if (!theStr.IsEmpty())
+                    {
+                        firstChar = theStr.GetChar(0); // safe call
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
             }
         }
     } while ( !theStr.IsEmpty() );
     return TRUE; // tell caller we found one or more substrings
 }
-
-// whm 5Apr2020 moved to XML.cpp since it is only used there
-/*
-bool CAdapt_ItApp::SeparateChapterAndVerse(wxString chapterVerse, wxString& strChapter, wxString& strVerse)
-{
-	wxString colon = _T(":");
-	wxString zero = _T("0");
-	int offset = wxNOT_FOUND;
-
-	//  chapterVerse might be an empty string - if so, return "0" for each, and FALSE
-	if (chapterVerse.IsEmpty())
-	{
-		strChapter = zero;
-		strVerse = zero;
-		return FALSE;
-	}
-	// If there is no colon, return "0" for chapter, and the rest as strVerse, and TRUE
-	offset = chapterVerse.Find(colon);
-	if (offset == wxNOT_FOUND)
-	{
-		strChapter = zero;
-		strVerse = chapterVerse;
-		return TRUE;
-	}
-	else
-	{
-		// A colon was found, so separate into chapter and verse strings, return TRUE
-		strChapter = chapterVerse.Left(offset);
-		offset++;
-		strVerse = chapterVerse.Mid(offset);
-	}
-	return TRUE;
-}
-*/
 
 /*  Note the new values.....
 enum ServDiscInitialDetail
@@ -64539,23 +64542,25 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 
 		// Test for 'poetry'. The struct is sufficent for these, as all such bare markers
 		// start with 'q'
-		wxChar first = pAnalysis->marker.GetChar(0);
-		if (first == _T('q'))
-		{
-			m_bTempTextType_Cached = poetry;
-			m_bNoneOrNoType_Cached = poetry; // stays same until 'none' or 'noType' intervene
-		}
-		else
-		{
-			// What's next-most common? Probably subheadings - test that...
+        wxChar first = _T('\0');
+        if (!pAnalysis->marker.IsEmpty())
+        {
+            first = pAnalysis->marker.GetChar(0); // safe call
+            if (first == _T('q'))
+            {
+                m_bTempTextType_Cached = poetry;
+                m_bNoneOrNoType_Cached = poetry; // stays same until 'none' or 'noType' intervene
+            }
+            else
+            {
+                // What's next-most common? Probably subheadings - test that...
+                // temporary...
+                wxUnusedVar(ttTemp);
+                wxUnusedVar(ttNoneOr);
 
-
-		// temporary...
-			wxUnusedVar(ttTemp);
-			wxUnusedVar(ttNoneOr);
-
-// TODO - the rest
-		}
+                // TODO? - the rest?
+            }
+        }
 	}
 }
 /* No, remove, it has to happen at compile & link, not at OnInit() time.
@@ -64573,62 +64578,9 @@ void CAdapt_ItApp::SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp, 
 // if building the release build. Then it's 'seen' by the linker. Run this function from OnInit()
 bool CAdapt_ItApp::MoveMariaDLLtoOBJfolder(wxString& objFolder)
 {
-
-// TODO
-
-    return TRUE;
-}
-*/
-/*
-   // BEW 15Nov21 remove, this is declared and defined, but nowhere used now that do_mdns.exe is used
-
-// BEW created 20Oct21 .... a filtering function for enumerated files 
-// Pass in absolute path (from C:\) to the file, to match "candidate" value at filename start.
-// If successful, return TRUE and that particular file will be saved in arrFilenames (a wxArrayString)
-// Needed because _DATA_KB_SHARING folder may contain a couple of hundred files, but only a very few
-// would be expected to match the candidate value - e.g dLss_win.c  dLss_win.exe  dLss_win10.exe 
-bool CAdapt_ItApp::IsA_dLss_winFile(wxString absPath, wxString& candidate) 
-{
-    wxString fullpath = absPath;
-    wxFileName fName(fullpath);
-    wxString strName = fName.GetName();
-    bool bHasExtn = fName.HasExt();
-    if (!bHasExtn)
-    {
-        // Cannot be a .exe type file, return FALSE
-        return FALSE;
-    }
-    // Has an extension, so continue checking
-    wxString extnStr = fName.GetExt();
-    if (extnStr != _T("exe"))
-    {
-        // Not a windows .exe extension, so return FALSE
-        return FALSE;
-    }
-    // Must be a .exe type of file, so check for matching of
-    // the passed in substring, in candidate
-    int offset = wxNOT_FOUND;
-    offset = strName.Find(candidate);
-    if (offset != 0)
-    {
-        // Either "dLss_win" was not found, or it was found in
-        // non-initial location in the strName string; either way
-        // it's  not usable by the System(command) call
-        return FALSE;
-    }
-    // We have verified it starts with the substring "dLss_win" and it's extension 
-    // is "exe", that's enough for returning TRUE
+    // TODO?  --- retain the comment as it's valuable info
     return TRUE;
 }
 */
 
-// BEW 17Sep21, added miniSlop, and a setter & getter for it. It's public, so accessible from pApp directly too
-//void CAdapt_ItApp::SetMiniSlop(int width)
-//{
-//    miniSlop = width;
-//}
-//int CAdapt_ItApp::GetMiniSlop()
-//{
-//    return miniSlop;
-//}
 

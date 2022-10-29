@@ -5163,7 +5163,7 @@ extern bool gbDoingInitialSetup;
 	// else is wanted, use GetStrictUsfmMarkerFromStructExtentString() instead.
 	wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
 	{
-		// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
+		// whm 11Jun12 added test !str.IsEmpty() && to ensure that Get Char(0) is not
 		// called on an empty string
 		wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
 		int posColon = str.Find(_T(':'), FALSE);
