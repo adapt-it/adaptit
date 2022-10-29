@@ -139,6 +139,11 @@
 // call which is penultimate to this NUMINSERTS call.
 #define NUMINSERTS 8
 
+// whm 25Oct2022 added the following define to limit the number of Go To dialog references
+// that will be saved for uis in the "Go Back To" button's dropdown list.
+// The default for MAX_SAVED_GO_TO_REFERENCES is 6
+#define MAX_SAVED_GO_TO_REFERENCES 6
+
 // Next two for how long to leave up the info Wait msg when discovering
 //#if defined(_KBSERVER)
 #define MSG_SECONDS 1

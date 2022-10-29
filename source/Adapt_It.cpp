@@ -158,7 +158,7 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/format_show_punctuation_16.cpp"
 #include "../res/vectorized/go_first_16.cpp"
 #include "../res/vectorized/go_last_16.cpp"
-#include "../res/vectorized/go_previous_16.cpp"
+#include "../res/vectorized/go-to_16.cpp" // whm 25Oct2022 changed go_previous_16.cpp to go-to_16.cpp
 #include "../res/vectorized/go_up_16.cpp"
 #include "../res/vectorized/go_down_16.cpp"
 #include "../res/vectorized/phrase_new_16.cpp"
@@ -194,7 +194,7 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/format-show-punctuation_22.cpp"
 #include "../res/vectorized/go-first_22.cpp"
 #include "../res/vectorized/go-last_22.cpp"
-#include "../res/vectorized/go-previous_22.cpp"
+#include "../res/vectorized/go-to_22.cpp" // whm 25Oct2022 changed go-previous_22.cpp to go-to_22.cpp
 #include "../res/vectorized/go-up_22.cpp"
 #include "../res/vectorized/go-down_22.cpp"
 #include "../res/vectorized/phrase-new_22.cpp"
@@ -230,7 +230,7 @@ wxMutex s_AutoSaveMutex;
 #include "../res/vectorized/format-show-punctuation_32.cpp"
 #include "../res/vectorized/go-first_32.cpp"
 #include "../res/vectorized/go-last_32.cpp"
-#include "../res/vectorized/go-previous_32.cpp"
+#include "../res/vectorized/go-to_32.cpp" // whm 25Oct2022 changed go-previous_32.cpp to go-to_32.cpp
 #include "../res/vectorized/go-up_32.cpp"
 #include "../res/vectorized/go-down_32.cpp"
 #include "../res/vectorized/phrase-new_32.cpp"
@@ -10478,7 +10478,8 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
         { ID_BUTTON_TO_START, _("Start"), _("Back to Start"), _("Go back to the start of the data"), gpApp->wxGetBitmapFromMemory(go_first_png_16), gpApp->wxGetBitmapFromMemory(go_first_png_22), gpApp->wxGetBitmapFromMemory(go_first_png_32) },
         { ID_BUTTON_STEP_DOWN, _("Down"), _("Move down"), _("Move down one step towards the bottom of the file"), gpApp->wxGetBitmapFromMemory(go_down_png_16), gpApp->wxGetBitmapFromMemory(go_down_png_22), gpApp->wxGetBitmapFromMemory(go_down_png_32) },
         { ID_BUTTON_STEP_UP, _("Up"), _("Move up"), _("Move back up one step towards the start of the file"), gpApp->wxGetBitmapFromMemory(go_up_png_16), gpApp->wxGetBitmapFromMemory(go_up_png_22), gpApp->wxGetBitmapFromMemory(go_up_png_32) },
-        { ID_BUTTON_BACK, _("Back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), gpApp->wxGetBitmapFromMemory(go_previous_png_22), gpApp->wxGetBitmapFromMemory(go_previous_png_32) },
+        //{ ID_BUTTON_BACK, _("Back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), gpApp->wxGetBitmapFromMemory(go_previous_png_22), gpApp->wxGetBitmapFromMemory(go_previous_png_32) },
+        { ID_BUTTON_GO_TO, _("Go To"), _("Go To Reference"), _("Jump to a different reference"), gpApp->wxGetBitmapFromMemory(go_to_png_16), gpApp->wxGetBitmapFromMemory(go_to_png_22), gpApp->wxGetBitmapFromMemory(go_to_png_32) },
         { 0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap },
         { ID_BUTTON_MERGE, _("New Phrase"), _("Make a phrase"), _("Merge selected words into a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), gpApp->wxGetBitmapFromMemory(phrase_new_png_22), gpApp->wxGetBitmapFromMemory(phrase_new_png_32) },
         { ID_BUTTON_RESTORE, _("Delete Phrase"), _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), gpApp->wxGetBitmapFromMemory(phrase_remove_png_22), gpApp->wxGetBitmapFromMemory(phrase_remove_png_32) },
@@ -23382,6 +23383,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //#endif
 
+    // whm 25Oct2022 support of previously visited ch:vs references in Go To dialog
+    // This wxString array is kept in LIFO ordering like a stack
+    // Clear the previously visited reference list for each session start of Adapt It
+    m_prevVisitedChVsReferences.Clear();
+
 	m_bDisablePlaceholderInsertionButtons = FALSE; // initialise to Enabling the two buttons
 
     // Call the InventoryCollabEditorInstalls() function to determine which versions of Paratext
@@ -23982,6 +23988,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
+
+    
+    // whm testing
+    /*
+    wxString testChVs = _T("0:0");
+    wxString TestCh;
+    wxString TestVs;
+    wxString TestResultStr;
+    ParseChVsFromReference(testChVs,TestCh,TestVs);
+    TestResultStr = NormalizeChVsRefToInitialVsOfAnyBridge(testChVs);
+    testChVs = _T("3:2-5");
+    ParseChVsFromReference(testChVs, TestCh, TestVs);
+    TestResultStr = NormalizeChVsRefToInitialVsOfAnyBridge(testChVs);
+    testChVs = _T("0:2,6");
+    ParseChVsFromReference(testChVs, TestCh, TestVs);
+    TestResultStr = NormalizeChVsRefToInitialVsOfAnyBridge(testChVs);
+    testChVs = _T("3:0");
+    ParseChVsFromReference(testChVs, TestCh, TestVs);
+    TestResultStr = NormalizeChVsRefToInitialVsOfAnyBridge(testChVs);
+    testChVs = _T("");
+    ParseChVsFromReference(testChVs, TestCh, TestVs);
+    TestResultStr = NormalizeChVsRefToInitialVsOfAnyBridge(testChVs);
+    int endTest = 1;
+    endTest = endTest;
+    */
 
     /*
     // whm 10Sept2021

@@ -32,15 +32,21 @@ public:
 	//enum { IDD = IDD_GO_TO };
 	wxSpinCtrl* m_pSpinCtrlChapter;
 	wxSpinCtrl* m_pSpinCtrlVerse;
+	wxButton* m_pButtonGoBackTo;
+	wxComboBox* m_pComboBoxGoBackTo;
 	int			m_nChapter;
 	int			m_nVerse;
 	wxString	m_chapterVerse;
 	wxString	m_verse;
+	bool		m_bComboTextChanged;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnButtonGoBackTo(wxCommandEvent& WXUNUSED(event)); // whm 25Oct2022 added for revised Go To dialog
+	void OnComboBox(wxCommandEvent& WXUNUSED(event)); // whm 25Oct2022 added for revised Go To dialog
 	void OnSetFocus(wxFocusEvent& event);
+	void OnComboTextChanged(wxCommandEvent& WXUNUSED(event));
 
 private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
