@@ -279,8 +279,25 @@ bool CPunctCorrespPageCommon::AreBeforeAndAfterPunctSetsDifferent()
 		{
 			bSomethingIsDifferent = TRUE;
 		}
-		if ( !(m_tgtTwoPunctStrBeforeEdit[index].IsEmpty() && m_tgtTwoPunctStr[index].IsEmpty())
-			&& (m_tgtTwoPunctStrBeforeEdit[index] != m_tgtTwoPunctStr[index]))
+		// BEW 31Oct22 this following if test was generating bSomethingIsDifferent set TRUE, on
+		// every entry to PunctCorrespPage.cpp. Pulling these out as 4 separate lines, I discovered a
+		// error which was causing a TRUE result in the test (which in the caller got m_bPUnctuationChanged
+		// wrongly set TRUE when no punctuation changes were present!) I discovered the problem when I used
+		// Preferences..., the toolBar page, to restore the "ViewTranslationOrGlossElsewhereInTheDocument"
+		// button to being visible in the CommandBar. Eriks code got it visible nicely, but then the app
+		// set about trying to restore for punctuation changes which had not been changed! Eventually it
+		// caused an assert to trip (in the Release build, the app would have crashed) at Doc line 7888
+		// The coding error was simply that this part: (bTgtTwoBefore != tgtTwoNow), was not comparing
+		// two strings, but a bool with a string - hence always different. Duh! This error sat in the code
+		// for years!! Finally, it's gone.
+		bool bTgtTwoBeforeIsEmpty = m_tgtTwoPunctStrBeforeEdit[index].IsEmpty(); // set at entry to Prefs
+		bool bTgtTwoNowIsEmpty = m_tgtTwoPunctStr[index].IsEmpty(); // is the cell empty
+		wxString tgtTwoBefore = m_tgtTwoPunctStrBeforeEdit[index]; // the cell's contents on entry to Prefs
+		wxString tgtTwoNow = m_tgtTwoPunctStr[index]; // it's contents now
+		// If both entry value and value now are not empty, but the current string differs from the entry
+		// value's string, then something has changed  -- do this test in the for loop, if nothing has
+		// changed, then don't set m_bP
+		if ( !(bTgtTwoBeforeIsEmpty && bTgtTwoNowIsEmpty) && (tgtTwoBefore != tgtTwoNow))
 		{
 			bSomethingIsDifferent = TRUE;
 		}
@@ -310,7 +327,10 @@ void CPunctCorrespPageCommon::CopyInitialPunctSets()
 		{
 			m_srcTwoPunctStrBeforeEdit[index] = m_srcTwoPunctStr[index];
 		}
-		if (m_tgtTwoPunctStr[index].IsEmpty())
+		// BEW 31Oct22, ouch. The following test missed a ! in the test, and so line 333 was
+		// being skipped for every index value, so m_tgtTwoPunctStrBeforeEdit[index] ended up all empty
+		// I've added the ! now
+		if (!m_tgtTwoPunctStr[index].IsEmpty())
 		{
 			m_tgtTwoPunctStrBeforeEdit[index] = m_tgtTwoPunctStr[index];
 		}
@@ -1380,10 +1400,27 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		gpApp->GetView()->Invalidate();
 	}
 
-	if (punctPgCommon.AreBeforeAndAfterPunctSetsDifferent())
+	bool bSetsDiffer = punctPgCommon.AreBeforeAndAfterPunctSetsDifferent();
+	if (bSetsDiffer)
 	{
 		gpApp->m_pLayout->m_bPunctuationChanged = TRUE;
-		gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
+		gpApp->DoPunctuationChanges(&punctPgCommon, DoReparse);
+	}
+	else
+	{
+		// BEW 31Oct22, it's a good idea to update the gui, even though nothing is changed
+		// in the punctuatioin Reason? When I had the active location at some doc pile, and
+		// I entered the Preferences to add a hidden button back into the command bar, the
+		// button got added okay, but the phrasebox showed the active location, and everything
+		// in the doc's gui after that was not refreshed. I had to move the box before everything
+		// returned. So I hunted for a way, and only JumpForward() worked - it doesn't actually
+		// move the active location, but I got the rest of the GUI's strips laid out
+		CPile* pActivePile = gpApp->m_pActivePile;
+		if (pActivePile != NULL)
+		{
+			gpApp->m_pTargetBox->JumpForward(gpApp->GetView()); // BEW 31Oct22 made this public,
+					// it was the only way I could get the wanted refresh
+		}
 	}
 
 	// Update app's m_finalTgtPuncts (which excludes what IsOpeningQuote() has, 

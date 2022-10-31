@@ -163,9 +163,10 @@ protected:
 	bool MoveToPrevPile(CPile* pCurPile);
 	bool MoveToImmedNextPile(CPile* pCurPile);
 	bool IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile);
+public:
 	void JumpForward(CAdapt_ItView* pView);
 
-public:
+	// BEW 31Oct22 public: was here
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
