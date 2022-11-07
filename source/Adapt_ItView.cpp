@@ -1738,6 +1738,29 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
     pApp->DoCreatePhraseBox();
 
+	// whm 3Nov2022 added the following initializations here. 
+	// Before this date (3Nov2022) the following two boolean variables pApp->m_pTargetBox->m_bDoExpand 
+	// and pApp->m_pTargetBox->m_bDoContract were nowhere initialized to either TRUE or FALSE 
+	// outside of the CPhaseBox::OnPhraseBoxChanged() function. However they were used in some code
+	// outside OnPhraseBoxChanged(). For most operations there were minimal side effects since it appears 
+	// that they just happened to be TRUE at their point of declaration (a value of 0 is FALSE, but any value
+	// other than 0 is TRUE in boolean terms). They were and still are explicitly initialized to FALSE 
+	// within CPhraseBox::OnPhraseBoxChanged(), but that initialization in OnPhraseBoxChanged()
+	// does not happen until the user's first change is made within the phrasebox. Hence when a document is 
+	// first loaded, both m_bDoExpand and m_bDoContract would usually be TRUE, but shift to false after the first
+	// character was typed or some other change made within the phrasebox. A side effect was that the layout
+	// of piles upon first opening of the document would be padded with a gap value from the seccond pile to
+	// the end of the strip in CreateStrip(), but as sooon as a character was typed, that gap would disappear
+	// because m_bDoContract was ALWAYS FALSE for the duration of the session. The m_bDoContract value
+	// has never been set to a TRUE value since BEW's changes made in the commit dated 9Oct2021. Hence, after 
+	// seeing the same phenomenon by initializing m_bDoExpand and m_bDoContract to TRUE, I'm initializing
+	// both m_bDoExpand and m_bDoContract to FALSE here in OnCreate() as BEW has done in OnPhraseBoxChanged().
+	// Note: the initialization of two other CLayout related values related to the proper sizing 
+	// of the phrasebox (m_pLayout->m_nNewPhraseBoxGapWidth = -1; and m_pLayout->m_bCompareWidthIsLonger = TRUE)
+	// is handled in the App's OnInit().
+	pApp->m_pTargetBox->m_bDoExpand = FALSE;
+	pApp->m_pTargetBox->m_bDoContract = FALSE; // whm 3Nov2022 note: since BEW changes 9Oct2021 this has never been set to TRUE
+
 	pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 	// hide and disable the target box until input is expected
     pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox

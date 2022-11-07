@@ -351,7 +351,31 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							// further width expansion later, if the user continues typing - the 
 							// pile gap is also cached in a new member of pLayout, called 
 							// m_nNewPhraseBoxGapWidth, with public access, so use it now
-							pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
+							//
+							// whm 3Nov2022 modification. Bruce noticed that when the user manually adjusted the
+							// size of the main frame's window, that "piles were going missing after that point". They
+							// still existed, and coule be restored by clicking on a different target location which
+							// would bring them back into view. I discovered the cause of the problem was that
+							// 3 of the variables used here, especially the m_nNewPhraseBoxGapWidth variable was
+							// a large negative number like -842150451. During a resize of the main window, that large
+							// negative number was getting assigned to pileWidth in the unprotected statementbelow.
+							// The result was that all piles beyond the active phrasebox location were being assigne to
+							// a single strip, and the offsets for drawing those strips became a huge negative number
+							// so that all those remaining piles were being drawn miles off the left end of the screen!
+							// 
+							// To mitigate the problem, I've set the Layout's m_nNewPhraseBoxGapWidth initial value
+							// now to -1, which is set in the App's OnInit(). The only location where m_nNewPhraseBoxGapWidth 
+							// is set to an actual meaningful value is in CPhraseBox::OnPhraseBoxChanged() where it is 
+							// assigned a value that is intended to be a cached value, i.e., the value that was its most 
+							// recent "new" value due to a change in the phrasebox as detected by the OnPhraseBoxChanged() 
+							// method. IF the phrasebox content has not changed up to this point, the value of Layout's 
+							// m_nNewPhraseBoxGapWidth will be -1.
+							// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if m_nNewPhraseBoxGapWidth
+							// is something other than -1, so this modification tests for that -1 value and acts accordingly.
+							if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
+							{
+								pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
+							}
 //#if defined (_DEBUG)
 //							{
 //								wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
@@ -689,6 +713,14 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// this pile will fit in the strip, so add it
 			m_arrPiles.Add(pPile); // store it
 			//if (m_pLayout->m_boxMode == contracting)  BEW 12Oct21 removed
+			// 
+			// whm 3Nov2022 Note that the if ... else blocks below add a gap to the
+			// second and following lines of the strip when m_bDoContract is TRUE, but
+			// not when it is FALSE. The m_bDoContract value is initialized within
+			// CPhraseBox::OnPhraseBoxChanged() to be FALSE.
+			// here the gap value is added to the second and following pile offsets
+			// however, after the first character is typed, the gap value is not included
+
 			if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 			{
 				m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
