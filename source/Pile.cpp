@@ -229,9 +229,10 @@ bool CPile::HasFilterMarker()
 {
 	if (
 		!m_pSrcPhrase->GetFilteredInfo().IsEmpty() ||
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+		// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 		!m_pSrcPhrase->GetFilteredInfo_After().IsEmpty() ||
-#endif
+//#endif
 		!m_pSrcPhrase->GetFreeTrans().IsEmpty() ||
 		!m_pSrcPhrase->GetNote().IsEmpty() ||
 		!m_pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||

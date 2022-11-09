@@ -398,7 +398,8 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// within m_filteredInfoAfter. Data in this member will have metadata additions
 	// before the begin marker, which we have to remove and store for later restoration
 	// items in that array will be in sync index-wise with arrMkrs_After, etc
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 Unsure if this next bit is relevant to the legacy parser
 	bHasFilteredInfoAfter = !pSrcPhrase->GetFilteredInfo_After().IsEmpty();
 	if (bHasFilteredInfoAfter)
 	{
@@ -407,7 +408,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		bHasFilteredInfoAfter = pSrcPhrase->GetFilteredInfo_AfterAsArrays(&arrMkrs_After,
 			&arrEndMkrs_After, &arrTextContent_After, TRUE);
 	}
-#endif
+//#endif
 	wxString strMkr;
 	wxString strEndMkr;
 	wxString strContent;

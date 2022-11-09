@@ -145,9 +145,10 @@ CSourcePhrase::CSourcePhrase()
 	m_note = _T("");
 	m_collectedBackTrans = _T("");
 	m_filteredInfo = _T("");
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	m_filteredInfo_After = _T(""); // BEW added 14Apr17
-#endif
+//#endif
 	m_inlineBindingMarkers = _T("");
 	m_inlineBindingEndMarkers = _T("");
 	m_inlineNonbindingMarkers = _T("");
@@ -252,9 +253,10 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	m_filteredInfo_After = sp.m_filteredInfo_After; // BEW added 14Apr17
-#endif
+//#endif
 	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
 	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
 	m_inlineNonbindingMarkers = sp.m_inlineNonbindingMarkers;
@@ -379,9 +381,10 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	m_filteredInfo_After = sp.m_filteredInfo_After;
-#endif
+//#endif
 	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
 	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
 	m_inlineNonbindingMarkers = sp.m_inlineNonbindingMarkers;
@@ -808,10 +811,11 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
 	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
 		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo; // Probably the space here should not be present
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	if (!pSrcPhrase->m_filteredInfo_After.IsEmpty())
 		m_filteredInfo_After = m_filteredInfo_After + pSrcPhrase->m_filteredInfo_After;
-#endif
+//#endif
 	// increment the number of words in the phrase
 	m_nSrcWords += pSrcPhrase->m_nSrcWords;
 
@@ -1133,9 +1137,10 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// fifth, sixth, seventh and eighth & ninth lines -- 1 attribute each, each is possibly absent
 		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
 			|| !m_filteredInfo.IsEmpty()
-#if !defined(USE_LEGACY_PARSER)			
+//#if !defined(USE_LEGACY_PARSER)
+			// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 			|| !m_filteredInfo_After.IsEmpty()
-#endif			
+//#endif			
 			)
 		{
 			// there is something in this group, so form the needed lines
@@ -1211,10 +1216,11 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				InsertEntities(btemp);
 				bstr += btemp; // add m_filteredInfo string
 				bstr += "\"";
-#if defined(USE_LEGACY_PARSER)
+//#if defined(USE_LEGACY_PARSER)
+// 				// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser -- probably not, while doc version is 9
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
-			}
-#else
+				//}
+//#endif
 				bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
 			// ninth
@@ -1237,7 +1243,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"";
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
-#endif
+//#endif
 		}
 
 		// tenth line -- 4 attributes each is possibly absent
@@ -2323,7 +2329,8 @@ wxString CSourcePhrase::GetFilteredInfo()
 {
 	return m_filteredInfo;
 }
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next 3  bits are relevant to the legacy parser
 wxString CSourcePhrase::GetFilteredInfo_After()
 {
 	return m_filteredInfo_After;
@@ -2342,7 +2349,7 @@ void CSourcePhrase::SetFilteredInfo_After(wxString filteredInfo_After)
 {
 	m_filteredInfo_After = filteredInfo_After;
 }
-#endif
+//#endif
 
 // return TRUE if there is something filtered, FALSE if nothing is there; the three arrays
 // work in parallel - for a given index, the returned marker in the first and second are
@@ -2493,8 +2500,8 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 	}
 	return TRUE;
 }
-
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+// BEW 1Nov22 unsure if this next function is relevant to the legacy parser
 
 // return TRUE if there is something filtered, FALSE if nothing is there; the three arrays
 // work in parallel - for a given index, the returned marker in the first and second are
@@ -2676,7 +2683,7 @@ bool CSourcePhrase::GetFilteredInfo_AfterAsArrays(wxArrayString* pFilteredMarker
 	}
 	return TRUE;
 }
-#endif
+//#endif
 
 wxString CSourcePhrase::GetEndMarkers()
 {
@@ -2854,12 +2861,14 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
 	wxArrayString* pFilteredMkrs_Before,
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	 wxArrayString* pFilteredMkrs_After,
-#endif
+//#endif
 	bool bChangeSpaceToEmpty)
 {
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser - but it does appear relevant to filtering
 #if defined (_DEBUG)
 	wxLogDebug(_T("SetFilteredInfoFromArrays 1: arrSavedFilteredItemsPostwordMetadata count = %d, arrSavedFilteredItemsPostwordBeginMkrs count = %d"),
 		arrSavedFilteredItemsPostwordMetadata.GetCount(), arrSavedFilteredItemsPostwordBeginMkrs.GetCount());
@@ -2870,7 +2879,7 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	wxLogDebug(_T("SetFilteredInfoFromArrays 2: arrSavedFilteredItemsPostwordMetadata count = %d, arrSavedFilteredItemsPostwordBeginMkrs count = %d"),
 		arrSavedFilteredItemsPostwordMetadata.GetCount(), arrSavedFilteredItemsPostwordBeginMkrs.GetCount());
 #endif
-#endif
+//#endif
 	size_t nBeforeContentCount = pFilteredMkrs_Before->GetCount();
 	size_t index;
 	m_filteredInfo.Empty(); // clear out old contents
@@ -2888,20 +2897,22 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	{
 		return;
 	}
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	wxASSERT(nBeforeContentCount + nAfterContentCount == count);
-#endif
+//#endif
 	wxString markersAndContent;
 	markersAndContent.Empty();
 	wxString theRest;
 	theRest.Empty();
 	wxString aSpace = _T(" ");
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 #if defined (_DEBUG)
 	wxLogDebug(_T("SetFilteredInfoFromArrays 3: arrSavedFilteredItemsPostwordMetadata count = %d, arrSavedFilteredItemsPostwordBeginMkrs count = %d"),
 		arrSavedFilteredItemsPostwordMetadata.GetCount(), arrSavedFilteredItemsPostwordBeginMkrs.GetCount());
 #endif
-#endif
+//#endif
 	// Handle data for legacy m_filteredInfo first
 	if (nBeforeContentCount != 0)
 	{
@@ -2964,14 +2975,16 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 			theRest.Empty();
 		}
 	}
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 #if defined (_DEBUG)
 	wxLogDebug(_T("SetFilteredInfoFromArrays 4: arrSavedFilteredItemsPostwordMetadata count = %d, arrSavedFilteredItemsPostwordBeginMkrs count = %d"),
 		arrSavedFilteredItemsPostwordMetadata.GetCount(), arrSavedFilteredItemsPostwordBeginMkrs.GetCount());
 #endif
-#endif
+//#endif
 
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+ 	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	// Handle data for new m_filteredInfo_After last
 	int newIndex = -1;
 	if (nAfterContentCount != 0)
@@ -3043,7 +3056,7 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 			theRest.Empty();
 		}
 	}
-#endif
+//#endif
 }
 
 void CSourcePhrase::AddFollOuterPuncts(wxString outers)
@@ -3212,8 +3225,8 @@ wxString CSourcePhrase::ExtractCachedAttributesMetadata()
 	return metadata;
 }
 
-
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_LEGACY_PARSER)
+// BEW 1Nov22 unsure if this next 2 functions are are relevant to the legacy parser, but seem relevant for pSrcPhrase
 
 // check for postword filtered metadata string in the unwrapped filtered string; 
 // if present, extract a copy of the metadata string, and a copy of the beginmarker
@@ -3277,4 +3290,4 @@ wxString CSourcePhrase::RemovePostWordMetadata(wxString& filteredItem)
 	wxString legacyStr = filteredItem.Mid(len);
 	return legacyStr;
 }
-#endif
+//#endif

@@ -4199,9 +4199,10 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+					// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 					gpEmbeddedSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
-#endif
+//#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
@@ -4411,9 +4412,10 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+					// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 					gpSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
-#endif
+//#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)

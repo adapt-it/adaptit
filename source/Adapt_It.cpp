@@ -30956,6 +30956,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("****************************************************************************"));
     pStatusBar->SetStatusText(message, 0); // use first field 0
 
+    m_charHorizEllipsis = (wxChar)0x2026; // for use as a m_srcPhrase when there is a \f \fv sequence with no content between
+
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }

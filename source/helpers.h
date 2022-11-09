@@ -204,6 +204,7 @@ bool      Is_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool      Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
+wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs);
 
 void      ParseChVsFromReference(wxString RefStr, wxString& ChStr, wxString& VsStr); // whm 25Oct2022 added
 wxString  GetChVsRefFromActiveLocation();

@@ -462,8 +462,8 @@ public:
 	void			TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase);
 	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
 	wxString& spacelessPuncts, int len, bool& bExitOnReturn,
-	bool& bHasPrecedingStraightQuote, wxString& additions,
-	bool bPutInOuterStorage);
+	bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
+	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
 	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
 						wxString& inlineNonBindingEndMkrs, int len,
 						bool& bInlineBindingEndMkrFound, bool& bInlineNonbindingEndMkrFound,
@@ -482,6 +482,7 @@ public:
 		int& nEndMarkerCount,
 		bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
 				// added the bTokenizingTargetText boolean
+	wxChar* FindBarBeforeEndMkrOrWhitespace(wxChar* pEnd, wxChar* pChar, bool bIsInline, bool bIsBindingEndMkr); // BEW 9Nov22 added
 	void	ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
 				int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 				wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,

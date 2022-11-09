@@ -7085,19 +7085,17 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	return Sstr;
 }
 
-#if !defined(USE_LEGACY_PARSER)
-
 /// return      The recomposed end of the source text string, including punctuation and markers,
-///             starting with m_key value, and exclude contents of m_filteredInfo_After
+///             starting with m_key value, and exclude contents of m_filteredInfo_After 
 /// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
 /// BEW created 8May2017 to build the source text from a single CSourcePhrase (because
-/// merging across filtered information is prohibited, we only have to consider a
+/// merging across filtered information is prohibited, we only have to consider a 
 /// singleton), which is undergoing unfiltering. We only build the post-word string,
 /// which might be empty, or just punctuation, or just one or more inline endmarkers,
 /// or a mix of punctuation and inline endmarkers - while ignoring the CSourcePhrase's
 /// m_filteredInfo_After contents. The aim is to get everthing in place, except
-/// any unfiltered information, and then pass the returned string to the caller to
-/// place the unfilted (one or more) information in the correct places, using the
+/// any unfiltered information, and then pass the returned string to the caller to 
+/// place the unfiltered (one kind or more) information in the correct places, using the 
 /// metadata stored with the filtered info which is stored in m_filteredInfo_After.
 /// The only function which uses this is the document's ReconstituteAfterFilteringChange(),
 /// and it is based on code from within helpers.cpp FromSingleMakeSstr(), with some
@@ -7142,9 +7140,9 @@ wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, 
 	}
 	// Finally, there could be an inline non-binding endmarker, like \wj* (words of Jesus)
 	// Note: if unfiltering of material from a location which earlier was post-word, such
-	// as \x ... content ...\x* is to be done, the caller will need to search for any
+	// as \x ... content ...\x* is to be done, the caller will need to search for any 
 	// inline non-binding endmarkers that get added here, and move them to the end of whatever
-	// unfiltered material is restored to visibility in the source text - otherwise, something
+	// unfiltered material is restored to visibility in the source text - otherwise, something 
 	// like \wj* might end up within the punctuation at the end of a word, rather than after it,
 	// therefore we return any non-binding inline markers separately in order to make it easy
 	// to move elsewhere if necessary
@@ -7158,7 +7156,6 @@ wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, 
 	Sstr.Trim();      // and don't return it with a final space, leave that to the caller
 	return Sstr;
 }
-#endif
 
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())
@@ -7454,12 +7451,13 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 	{
 		return TRUE;
 	}
-#if !defined(USE_LEGACY_PARSER)
+//#if !defined(USE_ LEGACY_ PARSER)
+	// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 	if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty())
 	{
 		return TRUE;
 	}
-#endif
+//#endif
 	return FALSE;
 }
 

@@ -24,13 +24,7 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-// Comment out USE_LEGACY_PARSER to cause the simpler and better refactored (Nov-Dec,2016)
-// ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
-// than in the legacy place, after the propagation code in TokenizeText()
-//
-// **** NOTE**** If commenting out, be sure to do the same to the same #define in
-// line 43 of AdaptItConstants.h
-//#define USE_LEGACY_PARSER  // BEW 12Oct22 removedd this in both places, and retained VERSION_NUMBER as 9
+
 #include <wx/string.h>
 
 // comment out to turn off the frequent logging of value of boolean: m_bTypedNewAdaptationInChooseTranslation
@@ -5983,6 +5977,29 @@ public:
 	bool m_bZWSPinDoc;
 	bool IsZWSPinDoc(SPList* pList); // use to set of clear m_bZWSPinDoc at doc load
 									 // or tfer from PT or BE
+	// BEW 2Nov22 Gerald Harkins has a footnote stretch in his document, where \f is followed by \fv
+	// without anything but a space between the \f and \fv. For AI, the lack of something that is
+	// visible (often people put '+' there) is a severe parsing-error producer. One pSrcPhrase
+	// gets its m_markers member set to "\f \fv". I made a change in TokenizeText which forced
+	// a new pSrcPhrase to be created when \fv was detected without anything visible as a m_key on
+	// the previous pSrcPhrase where the \f is stored. This however, was not a complete solution.
+	// m_markers still have the bad sequence "\f \fv" and if the footnote was filtered, the 
+	// unacceptible result was that f content was fine, but \fv was treated as for filtering,
+	// and all the text content up to the next major marker, or to doc end if there was no marker
+	// to halt things, got added as bogus filtered text to the \fv marker. ViewFilteredMaterial dlg
+	// then lists both markers, and the stuff which should be scripture text, is in \fv - thereby
+	// removing non-footnote scripture content wrongly from the GUI layout.
+	// The only reasonable solution, I think, is that if there is no visible content following
+	// the \f marker, we have to provide something that can be a visible m_key and m_srcPhrase
+	// when parsing in the doc text. There is a Unicode character, '...' which is U+2026
+	// "Horizontal Ellipsis" which would fit the bill. We do have placeholders, which are a string
+	// of three periods, so that provides some familiarity for the user. But U+2026  is more
+	// horizontally squeezed, so a nice option.
+	// I'm here going to provide a new puublic member character for the CAdapt_ItApp class, called
+	// m_charHorizEllipsis, which can then be grabbed from wherever it's needed (such as in
+	// ReconstituteAfterFilteringChange() when filtering \f or unfiltering \f )
+	wxChar m_charHorizEllipsis;
+
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 support / as a word-breaking character for some asian languages during
 	// prepublication processing
