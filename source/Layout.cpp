@@ -238,7 +238,7 @@ void CLayout::InitializeCLayout()
 	m_pSavePileList = NULL;
 	m_bInhibitDraw = FALSE;
 
-	m_bAmWithinPhraseBoxChanged = FALSE;
+	m_bAmWithinPhraseBoxChanged = FALSE; // whm 3Nov2022 note: This m_bAmWithinPhraseBoxChanged is not referenced anywhere in code
 	m_pApp->m_bJustKeyedBackspace = FALSE;  // Set TRUE or FALSE in CPhraseBox's OnChar()
 
 #ifdef Do_Clipping

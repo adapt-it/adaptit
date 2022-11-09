@@ -3584,9 +3584,11 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
     CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CAdapt_ItView* pView = (CAdapt_ItView*)pApp->GetView();
 	CLayout* pLayout = pApp->GetLayout();
+	// whm 3Nov2022 Note: The m_bDoExpand and m_bDoContract are initialized to TRUE at
+	// App startup in the View's OnCreate() method.
 	m_bDoExpand = FALSE; // initialise
 	m_bDoContract = FALSE; // initialise
-	pLayout->m_bAmWithinPhraseBoxChanged = TRUE;
+	pLayout->m_bAmWithinPhraseBoxChanged = TRUE; // whm 3Nov2022 note: This m_bAmWithinPhraseBoxChanged is not referenced anywhere in code
 
 	// BEW 13Oct21, save the current box width, in case no change is done, we don't
 	// want to enter ResizeBox() with m_curBoxWidth unset to a huge -ve number
@@ -3914,6 +3916,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 					pLayout->m_curListWidth = pLayout->m_curBoxWidth; // must be same width, so dropdown and box are equally wide
 					// And also a new calc of the phrasebox gap width, appropriate for this context,
 					// and cached in Layout's new member, m_nNewPhraseBoxGapWidth
+					//
+					// whm 4Nov2022 Note The following Layout's m_nNewPhraseBoxGapWidth is only set to an actual value here
+					// within the OnPhraseBoxChanged() method, and this is the only place where m_nNewPhraseBoxGapWidth geta
+					// a value other than -1 assigned to it.
 					pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth + pLayout->ExtraWidth(); // CreateStrip() adds the gap
 //#if defined (_DEBUG)
 //					{
@@ -4079,7 +4085,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	}
 #endif
 */
-	pLayout->m_bAmWithinPhraseBoxChanged = FALSE;
+	pLayout->m_bAmWithinPhraseBoxChanged = FALSE; // whm 3Nov2022 note: This m_bAmWithinPhraseBoxChanged is not referenced anywhere in code
 }
 
 
@@ -7550,6 +7556,15 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 		// abandonable at least here when setting up the dropdown phrasebox for display to the user.
 		// Certain actions at the current location may change the flag to FALSE before the phrasebox
 		// moves - such as any key press that changes the phrasebox contents. 
+		// whm 1Nov2022 Investigating the following assignment of m_bAbandonable to TRUE.
+		// BEW reported on 31Oct2022, "If  do some adapting, and I type a meaning into the box then: 
+		// if I hit Enter key, it often (or always) loses the box contents (but it does seem that what 
+		// was typed goes into the KB - but the former location shows empty space). But if I typing into 
+		// the box, and click to place the box elsewhere, the meaning seems to stick....if a saved 
+		// meaning shows in the box, and I click on the next pile, (without first clicking on what's 
+		// showing in the box first) then what was in the box disappears."
+		// whm TODO: Try to repeat the issue BEW reports above, and track down which boolean flags
+		// may not be set properly, and where, that could be causing the issue.
 		this->m_bAbandonable = TRUE;
 
 		// If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before

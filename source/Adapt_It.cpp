@@ -25250,7 +25250,34 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // The following initializations are for refactored view layout support
     m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
-
+    
+    // whm 3Nov2022 added the following initializations here. The Layout's m_nNewPhraseBoxGapWidth to -1,
+    // and m_bCompareWidthIsLonger to TRUE.
+    // Before this date (3Nov2022) the following two variables m_pLayout->m_nNewPhraseBoxGapWidth 
+    // and m_pLayout->m_bCompareWidthIsLonger were nowhere initialized properly outside of the 
+    // CPhaseBox::OnPhraseBoxChanged() function. However they were used in some code
+    // outside OnPhraseBoxChanged(). For most operations there were minimal side effects since it appears 
+    // that m_bCompareWidthIsLonger happened to be TRUE at its point of declaration (a value of 0 is FALSE, 
+    // but any value other than 0 is TRUE in boolean terms). The int value of m_nNewPhraseBoxGapWidth was
+    // undefined, something like -842150431, and would remain so until the user clicked inside the phrasebox
+    // to make a change. The main negative side effect of m_nNewPhraseBoxGapWidth being uninitialized could
+    // occur if a user attempted to manually resize the main window frame, before clicking into the phrasebox.
+    // In such cases all the piles would seem to disappera beyond the location of the phrasebox. They could
+    // only be "retrieved" by first clicking in a different location, or closing and reopening the document
+    // again. The piles beyond the phrasebox weren't getting "lost", they would simply be added to the end of
+    // the same strip after the phrasebox, but their drawing x-coord offset would be a huge negative number 
+    // in the realm of -842150431, which would draw them miles beyond the left margin of the screen!
+    // To remedy this I'm initializing m_nNewPhraseBoxGapWidth to -1 here in OnInit() at application startup.
+    // That way the CStrip::CreateStrip() routine that references/uses m_nNewPhraseBoxGapWidth is now protected
+    // which prevents bogus x-coord offsets from being saved in the pile array. The result of this change is
+    // that now a user can do a manual resize of the main window frame without "loosing" the piles beyond the
+    // phrasebox.
+    // Note: Two other related variables in the CPhraseBox class m_bDoExpand and m_bDoContract were also 
+    // uninitialized outside of OnPhraseBoxChanged(). They are now both initialized to FALSE in the View's
+    // OnCreate() method.
+    m_pLayout->m_nNewPhraseBoxGapWidth = -1;
+    m_pLayout->m_bCompareWidthIsLonger = TRUE;
+    
     // *** The variable initializations above were moved here from the View ***
 
     /*

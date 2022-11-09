@@ -533,6 +533,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	{
 		count_After = arrMkrs_After.GetCount();
 		nAfterBaseIndex = nBeforeBaseIndex + count_Before;
+		nAfterBaseIndex = nAfterBaseIndex; // avoid gcc warning "set but not used"
 		if (count_After > 0)
 		{
 			int index;
