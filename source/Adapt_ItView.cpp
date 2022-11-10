@@ -2683,6 +2683,15 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		}
 	}
 #endif
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"), 
+			__FILE__, __FUNCTION__, __LINE__,pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert );
+	}
+#endif
+
 	if (bHasNothing)
 	{
 		// there is as yet no translation for this source phrase & no copy from source
@@ -2903,6 +2912,15 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
             // such locations if he wishes)
 			if (pApp->m_bDrafting)
 			{
+#if defined(_DEBUG) && defined(FLAGS)
+				{
+					CAdapt_ItApp* pApp = &wxGetApp();
+					wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+						(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+				}
+#endif
+
                 // lookup did not find a suitable adaptation, or gloss if in glossing mode,
                 // so we want a copy from the sourcePhrase done instead - but not when in
                 // Reviewing mode
@@ -2926,6 +2944,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 						// allowed to do its work when the phrase box moves on, that's best
 					}
 					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#if defined(_DEBUG) && defined(FLAGS)
+					{
+						CAdapt_ItApp* pApp = &wxGetApp();
+						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+							(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+					}
+#endif
 				}
 				else
 				{
@@ -2953,6 +2979,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 			  // don't want a copy done
 		} // end block for tests: bGotOne == FALSE and "is split dialog is
 		  // active currently?" == FALSE
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+#endif
 
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
@@ -3164,6 +3198,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //	wxLogDebug(_T("PlacePhraseBox at start:  m_nCacheLeavingLocation = %d"),
 //		pApp->m_nCacheLeavingLocation);
 
+
 	pApp->m_bDisablePlaceholderInsertionButtons = FALSE;
 								 
 	if (pCell == NULL)
@@ -3178,6 +3213,16 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #endif
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
+
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = pClickedPile->GetSrcPhrase();
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+#endif
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
@@ -3309,9 +3354,15 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3114,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif			
-//			wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-//				pApp->m_pTargetBox->GetTextCtrl()->GetValue());
-
+#if defined(_DEBUG) && defined(FLAGS)
+			{
+				CAdapt_ItApp* pApp = &wxGetApp();
+				CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+				wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+					(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			}
+#endif
 			if (selector == 0 || selector == 3)
 			{
                 // mark invalid the strip preceding the active strip, so as to allow
@@ -3429,16 +3480,22 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
-//#if defined (_DEBUG) && defined (_ABANDONABLE)
-//				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3209);
-//#endif
+
 				if (pOldActivePile != NULL)
 				{
-					pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
+#if defined(_DEBUG) && defined(FLAGS)
+					{
+						CAdapt_ItApp* pApp = &wxGetApp();
+						CSourcePhrase* pSrcPhrase = pOldActivePile->GetSrcPhrase();
+						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+							(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+					}
+#endif					pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 					wxLogDebug(_T("PlacePhraseBox at %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
 						pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
 				}
-#if defined (_DEBUG)
+/* #if defined (_DEBUG)
 				{
 					if (pOldActivePile != NULL)
 					{
@@ -3446,7 +3503,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 							pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
 					}
 				}
-#endif
+#endif */
 				// any existing phraseBox text must be saved to the KB, unless its empty
 				bool bOK = TRUE;
 				if (!pApp->m_targetPhrase.IsEmpty())
@@ -3485,14 +3542,13 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
-
-//						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
-//							__FILE__, __FUNCTION__, __LINE__,
-//							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(FLAGS)
 						{
-//							wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-//								pOldActivePile->GetSrcPhrase()->m_targetStr.c_str(), pOldActivePile->GetSrcPhrase()->m_nSequNumber);
+							CAdapt_ItApp* pApp = &wxGetApp();
+							CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+							wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+								(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 						}
 #endif
 					}
@@ -3561,19 +3617,18 @@ wxBell();
 #endif
 								}
 							}
-//							wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), __LINE__, pSP->m_targetStr.c_str());
+							
 						}
 					} // end of TRUE block for test: if (pOldActivePile != NULL)
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3275,pApp->m_nActiveSequNum);
-//#endif
 
-//					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
-//						__FILE__, __FUNCTION__, __LINE__,
-//						pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
-
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for non-empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3279);
+#if defined(_DEBUG) && defined(FLAGS)
+					{
+						CAdapt_ItApp* pApp = &wxGetApp();
+						CSourcePhrase* pSrcPhrase = pOldActivePile->GetSrcPhrase();
+						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+							(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+					}
 #endif
 				} // end block for test !pApp->m_targetPhrase.IsEmpty()
 				else
@@ -3723,10 +3778,12 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(pApp->m_nActiveSequNum >= 0);
 
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(FLAGS)
 	{
-//		wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-//			pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
+		CAdapt_ItApp* pApp = &wxGetApp();
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 	}
 #endif
 
@@ -3835,9 +3892,6 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3494,pApp->m_nActiveSequNum);
-//#endif
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3497,
 		(int)pApp-> && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL));
@@ -3875,14 +3929,19 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3284,pApp->m_nActiveSequNum);
-//#endif
+
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3537,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
-		goto a;
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+#endif		goto a;
 	}
 	else
 	{
@@ -3983,45 +4042,11 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	}
 	else
 	{
-#if defined(_DEBUG) && defined(GUIFIX)
-		// BEW 12Aug21, DoGetSuitableText_ForPlacePhraseBox() will internally ask for a phrasebox gap calculation,
-		// so that will call Pile's SetPhraseBoxGapWidth() which internally calls CalcPhraseBoxGapWidth() which
-		// internally call's CalcPhraseBoxWidth() - and the latter takes listWidth into account in its calculations.
-		// So log important values to check the calculations are valid.
-		CLayout* pLayout = pApp->GetLayout();
-		int boxWidth = pLayout->GetCurBoxWidth(); // gets m_curBoxWidth
-		int listWidth = pLayout->m_curListWidth;
-		int gapWidth = pLayout->GetSavedGapWidth(); // gets m_nCurGapWidth
-		if (listWidth >= 0)
-		{
-			// it's undefined if negative, so don't try to log here
-			wxLogDebug(_T("%s::%s():line %d, BEFORE DoGetSuitableText_For...(): phrasebox width %d , listWidth %d , and button %d , interpile gap  %d "),
-				__FILE__, __FUNCTION__, __LINE__, boxWidth, listWidth, pLayout->ExtraWidth(), gapWidth);
-			int halt_here = 1;
-			wxUnusedVar(halt_here);
-		}
-		else
-		{
-			wxLogDebug(_T("%s::%s():line %d, BEFORE DoGetSuitableText_For...(): LIST WIDTH UNDEFINED - correct "),__FILE__, __FUNCTION__, __LINE__);
-		}
-#endif
-#if defined (_DEBUG)
-		{
-//			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-//				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
-		}
-#endif
 		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
 										bHasNothing, bNoValidText, bSomethingIsCopied);
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d  after DoGetSuitableText...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3644,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
-#endif
-#if defined (_DEBUG)
-		{
-//			wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-//				pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
-		}
 #endif
 	}
 //#ifdef _DEBUG
@@ -4097,11 +4122,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 				{
 					wxString emptyStr = _T("");
 					if (gbIsGlossing)
-						pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,
-												emptyStr, useGlossOrAdaptationForLookup);
+						pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
 					else
-						pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
-												emptyStr, useGlossOrAdaptationForLookup);
+						pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
 
 					// BEW 28Apr18 Clicking at a hole in the document will, if CopySourceKey() gets called
 					// because KB has no entry available for the source text at that location, the
@@ -4130,11 +4153,13 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 #endif
 						}
 					}
-#if defined (_DEBUG)
-					{
-//						wxLogDebug(_T("%s::%s() line %d : pSrcPhrase m_srcPhrase = %s , sn = %d"), __FILE__, __FUNCTION__, __LINE__,
-//							pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber);
-					}
+#if defined(_DEBUG) && defined(FLAGS)
+			{
+				CAdapt_ItApp* pApp = &wxGetApp();
+				wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+					(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			}
 #endif
 				}
 				else
@@ -4365,10 +4390,15 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 	pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 
-	//#if defined(_DEBUG) && defined(_EXPAND)
-	//	pApp->MyLogger();
-	//#endif
-
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+#endif
 	//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 	//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 

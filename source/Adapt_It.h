@@ -79,12 +79,13 @@
 // to get a handle on places where the tgt word's temporary puncts get lost unwittingly
 //#define TEMP_PUNCTS -- I didn't take this line of refactoring further - too much hacking for too little gain
 
-// BEW changed to force m_bAbandonable to forever by FALSE everywhere - lesser of two
+// BEW changed to force m_bAbandonable to forever be FALSE everywhere - lesser of two
 // evils, because of users forgetting to click in box to make an abandonable adaptation
 // (typically a source copy) "stick" - leading to holes unexpected back in the translation
-// and unnoticed
+// and unnoticed <<--  BEW 10Nov22 I think this comment is no longer correct. it's not 'forever FALSE everywhere' anymore
 #define ABANDON_NOT
-
+// BEW 10Nov22 #defined symbol FLAGS  to be able to show or hide logging for 6 key booleans
+#define FLAGS
 
 // BEW added 10Dec12, a #define for the workaround for scrollPos bug in GTK build;
 // the added code needs to be present in the app permanently because the problem comes

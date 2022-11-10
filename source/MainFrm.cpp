@@ -4534,13 +4534,37 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	{
 		if (pApp->m_pActivePile != NULL && pApp->m_nActiveSequNum != -1)
 		{
-			CCell*pCell = pApp->m_pActivePile->GetCell(1);
+			CCell* pCell = pApp->m_pActivePile->GetCell(1);
+
+/* #if defined(_DEBUG) && defined(FLAGS)
+			{
+				CAdapt_ItApp* pApp = &wxGetApp();
+				CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+				wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+					(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			}
+#endif */
 			int selector = 2; // don't do KB save in first block, but do do KB save in 2nd block
 			pView->PlacePhraseBox(pCell,selector);
 		}
 		// restore the flag's default ('not ON') value
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
-	} 
+	}
+
+/* #if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = NULL;
+		if (pApp->m_pActivePile != NULL)
+		{
+			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+	}
+#endif */
 	if (pApp->m_bSingleStep)
 	{
 		pApp->m_bAutoInsert = FALSE;
@@ -4742,6 +4766,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	{
 		bUserCancelled = FALSE; // ensure its turned back off
 	}
+
+/* #if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = NULL;
+		if (pApp->m_pActivePile != NULL)
+		{
+			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+	}
+#endif */
+
 	// Do support for auto-inserting and the calling of OnePass()
 	if (pApp->m_bAutoInsert)
 	{
@@ -4800,9 +4839,36 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		//if ((bHasAdvanced == TRUE) && !bStationaryBox)
 		if (bHasAdvanced == TRUE)
 		{
+/* #if defined(_DEBUG) && defined(FLAGS)
+			{
+				CAdapt_ItApp* pApp = &wxGetApp();
+				CSourcePhrase* pSrcPhrase = NULL;
+				if (pApp->m_pActivePile != NULL)
+				{
+					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+					wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+						(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+				}
+			}
+#endif */
 			// Do the call, but skip this block if the phrasebox has not advanced
 			bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
+
+/* /#if defined(_DEBUG) && defined(FLAGS)
+			{
+				CAdapt_ItApp* pApp = &wxGetApp();
+				CSourcePhrase* pSrcPhrase = NULL;
+				if (pApp->m_pActivePile != NULL)
+				{
+					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+					wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+						(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+				}
+			}
+#endif */
 		}
 
 		// don't slow things down unless we need to investigate
@@ -4845,6 +4911,20 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// but continue to enable OnIdle calls
 			pApp->m_bAutoInsert = FALSE;
 		}
+
+/* #if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = NULL;
+			if (pApp->m_pActivePile != NULL)
+			{
+				pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+				wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+					(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			}
+		}
+#endif */
 	} // end of TRUE block for test: if (pApp->m_bAutoInsert)
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.

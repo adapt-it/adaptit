@@ -1451,6 +1451,16 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
 	CLayout* pLayout = GetLayout();
 
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = pOldActiveSrcPhrase;
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+#endif
+
 /* #if defined(_DEBUG)
 	CPile* myPilePtr = pApp->GetView()->GetPile(pApp->m_nActiveSequNum);
 	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
@@ -1621,7 +1631,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 			wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile() storing loc'n: %d "), m_nCurrentSequNum);
 #endif
-			
 		}
 
         // set active pile, and same var on the phrase box, and active sequ number - but
@@ -1632,6 +1641,15 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		m_nCurrentSequNum = pApp->m_nActiveSequNum; // global, for use by auto-saving
 
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+#endif
 		// refactored design: we want the old pile's strip to be marked as invalid and the
 		// strip index added to the CLayout::m_invalidStripArray
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
@@ -1868,6 +1886,17 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
             // than the source font then changes along the line throw words off screen and
             // they get missed and eventually app crashes because active pile pointer will
             // get set to NULL
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+#endif
+
+
 		pLayout->PlaceBox();
 
 		// BEW 13Apr20, control goes thru here when TAB or Enter gets a move to next empty
@@ -1893,7 +1922,15 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
         // whm added 22Mar2018 for detecting callers of PlaceBox()
         pApp->m_bMovingToDifferentPile = FALSE;
-
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+		}
+#endif
         return TRUE;
 	}
 }

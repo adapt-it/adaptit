@@ -683,8 +683,19 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 }
 #endif
 
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), __LINE__, gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
+#if defined(_DEBUG) && defined(FLAGS)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (pApp->m_pActivePile != NULL)
+	{
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+}
 #endif
 
 // get the phrase box placed in the active location and made visible, and suitably
@@ -1173,8 +1184,15 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+#endif
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
