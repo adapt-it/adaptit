@@ -2727,7 +2727,13 @@ class CAdapt_ItApp : public wxApp
 	wxString		mariadb_path; // set to C:\Program Files (x86)\MariaDB 10.5\  at end of OnInit()
 
 //#endif // _KBSERVER
-
+	bool		m_bInNormalStore; // BEW 21Nov22 added. TRUE while control is within DoStore_NormalOrTransliterateModes()
+					// We make use of this when we need to force MakeTargetStringIncludingPunctuation() to restore
+					// stripped of ')' for data like word(plural) so that the final ') gets carried forward to the
+					// temporary new pSrcPhrase with sequNum = 0 working on target text, so that the subsequent
+					// ParseWord() call on the same pSrcPhrase has the final ')' present. If not there, ParseWord()
+					// misparses, and the GUI will not have a ') to show when the non-tempory pSrcPhrase displays
+					// m_targetStr
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
 							// sub-class the wxProgressDialog which currently has no
 							// way to get its maximum value held as a private member.
@@ -6000,6 +6006,7 @@ public:
 	// m_charHorizEllipsis, which can then be grabbed from wherever it's needed (such as in
 	// ReconstituteAfterFilteringChange() when filtering \f or unfiltering \f )
 	wxChar m_charHorizEllipsis;
+	wxString m_strQuestions; // BEW added 12Nov22
 
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 support / as a word-breaking character for some asian languages during

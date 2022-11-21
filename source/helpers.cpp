@@ -2144,6 +2144,17 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 	}
 	return span;
 }
+// BEW 12Nov22 added, in support of space or spaces after a word but before an endMkr
+int	CountSpaces(wxChar* pChar, wxChar* pEnd)
+{
+	int counter = 0; wxChar* ptr = pChar;
+	while ((ptr < pEnd) && (*ptr == _T(' ')))
+	{
+		ptr++;
+		counter++;
+	}
+	return counter;
+}
 
 // overload version (slightly different behaviour if charSet is empty), and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
