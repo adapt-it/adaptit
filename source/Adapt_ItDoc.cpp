@@ -36612,10 +36612,7 @@ wxString CAdapt_ItDoc::ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxCh
 		// By using IsWhiteSpace(ptr) I get automatic zwsp support
 		bNotWhitespace = !IsWhiteSpace(ptr);
 	}
-	// Note, if punctuation characters follow the parsed-over word, code lower in ParseWord() will deal with those
-	// whm 28Nov2022 temporarily commenting out the following wxASSERT() so I can 
-	// conduct more testing using the _Hezekiah 7 USFM2.txt input document.
-	//wxASSERT(!word.IsEmpty());
+	wxASSERT(!word.IsEmpty());
 	return word;
 }
 
