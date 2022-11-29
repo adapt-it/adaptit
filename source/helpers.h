@@ -221,6 +221,7 @@ bool      EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 wxString  SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
 wxString  SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10
+int		  CountSpaces(wxChar* ptr, wxChar* pEnd);
 
 wxString  ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, 
 			wxString& wordBuildersForPostWordLoc, wxString charSet,

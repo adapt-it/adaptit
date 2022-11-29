@@ -412,8 +412,10 @@ public:
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd);
 	bool			IsClosingBracketNext(wxChar* pChar);
+	//bool			IsOpenParenBraceBracketWordInternal(wxChar* pChar, wxChar* pEnd, wxString punctsSet); BEW 19Nov22 I don't think I need this - deprecate
 	bool			m_bClosingBracketIsNext;
 	bool			IsOpenBracketAhead(wxChar* pChar);
+	bool			IsDetachedWJtype_endMkr_Ahead(wxChar* pChar, wxChar* pEnd, int& countOfSpaces);
 
 	int				CountWhitesSpan(wxChar* pChar, wxChar* pEnd);
 
@@ -482,7 +484,6 @@ public:
 		int& nEndMarkerCount,
 		bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
 				// added the bTokenizingTargetText boolean
-	wxChar* FindBarBeforeEndMkrOrWhitespace(wxChar* pEnd, wxChar* pChar, bool bIsInline, bool bIsBindingEndMkr); // BEW 9Nov22 added
 	void	ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
 				int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 				wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,

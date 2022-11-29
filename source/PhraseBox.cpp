@@ -1055,6 +1055,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 {
 	bool bOK = TRUE;
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
+	pApp->m_bInNormalStore = TRUE; // MakeTargetStringIncludingPunctuation() uses this
 
 	// m_bSuppressStoreForAltBackspaceKeypress is FALSE, so either we are in normal adapting
 	// or glossing mode; or we could be in transliteration mode but the global boolean
@@ -1126,6 +1127,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	{
 		m_bSuppressStoreForAltBackspaceKeypress = TRUE;
 	}
+
+	pApp->m_bInNormalStore = FALSE;
 	return bOK;
 }
 
@@ -9450,6 +9453,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 {
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK = TRUE;
+	pApp->m_bInNormalStore = TRUE;
 	CRefString* pRefStr = NULL;
 	KB_Entry rsEntry;
 	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
@@ -9528,7 +9532,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = TRUE;
 		}
 	}
-
+	pApp->m_bInNormalStore = FALSE;
 	return bOK;
 }
 

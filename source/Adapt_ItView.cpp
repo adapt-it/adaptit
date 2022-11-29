@@ -14307,10 +14307,12 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 {
 	bool bHasFixedSpaceSymbol = IsFixedSpaceSymbolWithin(*pStr);
 	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE;
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pStr->IsEmpty())
+	{
 		return;
+	}
+
 	wxString spacelessPunctsStr;
 	if (bTgtPuncts)
 	{
@@ -14386,6 +14388,11 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	int itemLen = 0;
 	CSourcePhrase* pSrcPhrase = NULL; // temporarily needed to store our data on
 	wxString theWord;
+	// BEW 19Nov22, I've built a test function for testing, in a spanning loop, if the wxChar pointed
+	// at is one of ( or { or [  These opening ones, if occuring word medial, (like in "word(something" followed by ')'
+	// somewhere later), must not be removed if there's no puntuation on either side. The new function is
+	// called IsParenBraceBracketWordInternal() and returns TRUE if one is detected which should be kept.
+	bool bKeepPBBracket = FALSE; // initialise
 
 	// the following are for word2 when bHasFixedSpaceSymbol is TRUE
 	const wxChar* pBuffStart2 = word2.GetData();
@@ -14508,6 +14515,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 				// scan to halt spot
 				while (ptr < pEnd && *ptr != _T(']'))
 				{
+					//bKeepPBBracket = pApp->GetDocument()->IsOpenParenBraceBracketWordInternal(ptr, pEnd, spacelessPunctsStr); // <<-- don't need it
 					ptr++; // Advance over the scanned character
 					itemLen++;
 				}  // end of while loop
@@ -14523,6 +14531,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 				// there, back up to point at it (at outer loop end)
 				while (ptr < pEnd)
 				{
+					//bKeepPBBracket = pApp->GetDocument()->IsOpenParenBraceBracketWordInternal(ptr, pEnd, spacelessPunctsStr); <<-- don't need it
 					ptr++; // Advance over the scanned character
 					itemLen++;
 
@@ -16820,19 +16829,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							  // will override the latter and the GUI won't reflect the
 							  // changes to the former
 	bool bRemoveUnwantedLastChar = FALSE; // initialise
-/* BEW 4Oct22 needed temporarily, because final outer puncts were failing to be added to the being-built m_targetStr, fix is at 17,408
 #if defined (_DEBUG)
 	{
-		int sn = pSrcPhrase->m_nSequNumber;
-		wxString outerPunct = pSrcPhrase->GetFollowingOuterPunct();
-		wxString iBEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
-		if (sn == 1)
-		{
-			int halt_right_here = 1;
-		}
+		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+			__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 	}
 #endif
-*/
+
 	// The following call gets whatever final puncts are in the phrasebox - these are most
 	// likely user typed ones; and this override sets the app boolean m_bFinalTypedPunctsGrabbedAlready
 	// to TRUE if there are puncts returned in strGrabbedFinalPuncts. Use the boolean TRUE value
@@ -16877,6 +16880,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			::wxBell();
 			return;
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+				__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+		}
+#endif
 
 		// BEW added 19Feb20, handle adding final ) or ], providing that addition is
 		// of a punctuation character, to targetStr. This is to handle new word final puncts
@@ -16926,10 +16935,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		}
 #if defined (_DEBUG)
 		{
-			wxLogDebug(_T("MakeTgtStrIncPunc() line %d: tgtPhrase= %s , sn = %d , m_srcPhrase = %s , plusPuncts = %s "),
-				__LINE__, pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_targetStr.c_str(), plusPuncts.c_str());
+			wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+				__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 		}
 #endif
+
 		return;
 		// Note, m_bTypedNewAdaptationInChooseTranslation is reinitialized to FALSE in PlacePhraseBox() 
 		// control exits from it
@@ -16938,10 +16948,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	pApp->m_nPlacePunctDlgCallNumber++;
 	int theSequNum = pSrcPhrase->m_nSequNumber;
 
-/* #if defined(_DEBUG)
-	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at start: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
-		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
-#endif */
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+			__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+	}
+#endif
+
     // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about
     // to leave a hole which may or may not have had punctuation there; the former
     // m_targetStr is preserved in m_StrSavedTargetStringWithPunctInReviewingMode, and the
@@ -17015,11 +17028,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			{
 #if defined (_DEBUG)
 				{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d:  grabbedFinalPuncts = %s "),
-						__LINE__,  strGrabbedFinalPuncts.c_str());
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 				}
 #endif
-
 				int anOffset = wxNOT_FOUND;
 				if (strGrabbedFinalPuncts == wxString(_T(")")))
 				{
@@ -17046,6 +17058,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 
 			if (pApp->m_bFinalTypedPunctsGrabbedAlready)
 			{
+#if defined (_DEBUG)
+				{
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+				}
+#endif
 				// Allow what user typed, to stand 'as is'; and there is no fixedspace conjoining
 				wxASSERT(!strGrabbedFinalPuncts.IsEmpty());
 				bool bWantPrevCopy = FALSE; // initialise
@@ -17086,8 +17104,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				}
 #if defined (_DEBUG)
 				{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d:  strInitialPunct = %s "),
-						__LINE__, strInitialPunct.c_str());
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 				}
 #endif
 				// Do any needed capitalizing of the first non-punctuation letter
@@ -17122,10 +17140,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				pSrcPhrase->m_targetStr = str;
 #if defined (_DEBUG)
 				{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d:  pSrcPhrase->m_targetStr = %s "),
-						__LINE__, pSrcPhrase->m_targetStr.c_str());
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 				}
-#endif				
+#endif
 				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 				if (pSrcPhrase->m_nSrcWords > 1)
 				{
@@ -17162,7 +17180,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				wxString strCorresp;	// where we build target punctuation strings (from the
 					// punctuation correspondences pairs) before inserting them into m_targetStr
 				strCorresp.Empty();
-
+#if defined (_DEBUG)
+				{
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+				}
+#endif
 				// for auto-capitalization we will attempt to do any needed change to upper
 				// case, no matter what the punctuation behaviour is. If a lookup was done
 				// earlier, and a store not yet done, then the value of the gbMatchedKB_UCentry
@@ -17195,6 +17218,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				bool bSquareBracketOnlyAsPunct = FALSE; // initialize
 				if (str.IsEmpty())
 				{
+#if defined (_DEBUG)
+					{
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+							__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+					}
+#endif
 					// [ if present, needs to be initial if there is more than one preceding punct;
 					// and ] if present, needs to be final if there is more than one following punct
 					// (The TokenizeText() parser nevertheless should immediately break out an [
@@ -17216,6 +17245,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						bSquareBracketOnlyAsPunct = TRUE;
 					}
 				}
+#if defined (_DEBUG)
+				{
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+				}
+#endif
 				if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
 					// Check for any medial punctuation, if there is any, see if it is all in
@@ -17316,6 +17351,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								//pSrcPhrase->m_punctsPattern = _T("");
 							}
 						}
+#if defined (_DEBUG)
+						{
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+						}
+#endif
 
 						// If the m_lastAdaptionsPattern is empty, for any reason, we must do
 						// a punctuation placement using the dialog for that purpose
@@ -17353,6 +17394,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
 													// destroyed when it goes out of scope
 							strCorresp.Empty();
+#if defined (_DEBUG)
+							{
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+									__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+							}
+#endif
 
 							// BEW 23Feb12, Store the placed-punctuation state pending the
 							// possibility that this current active location may be returned to
@@ -17421,6 +17468,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// is empty
 				bool bWantPrevCopy;
 				int punctLen;
+#if defined (_DEBUG)
+				{
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+						__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+				}
+#endif
 
 				// BEW added 20 April 2005 to support the use of the new No Punctuation Copy
 				// button. Don't restore the TRUE value for this flag at the end of this
@@ -17466,8 +17519,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					pSrcPhrase->m_targetStr = str;
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: (m_targetStr) str = %s "),
-							__LINE__, str.c_str());
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+							__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 					}
 #endif
 					// do housekeeping
@@ -17500,8 +17553,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							pSrcPhrase->m_targetStr = pSrcPhrase->m_follPunct;
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s "),
-									__LINE__, pSrcPhrase->m_targetStr.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+									__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+								
 							}
 #endif
 						}
@@ -17519,6 +17573,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 							pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
 						}
+#if defined (_DEBUG)
+						{
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+						}
+#endif
+
 						//#endif
 						return;
 					}
@@ -17549,6 +17610,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							punctLen = strInitialPunct.Len();
 						}
+#if defined (_DEBUG)
+						{
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+						}
+#endif
+
 						// Do any needed capitalizing of the first non-punctuation letter
 						if (bWantChangeToUC)
 						{
@@ -17584,8 +17652,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						}
 #if defined (_DEBUG)
 						{
-							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s "),
-								__LINE__, pSrcPhrase->m_targetStr.c_str());
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str() , pSrcPhrase->m_targetStr.c_str());
 						}
 #endif
 						// If the word or phrase in the source had no preceding punctuation,
@@ -17635,7 +17703,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// in pSrcPhrase's two 'following' puncts members
 						wxChar* pOldEnd = pEnd;
 						bRemoveUnwantedLastChar = FALSE; // initialise (it's local to this function)
+#if defined (_DEBUG)
+						{
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
+						}
+#endif
 						bNoUserTypedFinalPuncts = FindMatchingParenthesisBracketOrBrace(pBeginBuff, pEnd, (size_t)buffLen, matchedAt, charLast);
+						// Returning TRUE means the charLast set above, has not been changed by user typing
 						if ((matchedAt >= 0) && bNoUserTypedFinalPuncts)
 						{
 							// The situation when ) or ] or } gets added at buffer end, but
@@ -17647,13 +17722,28 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// here, so no damage is done, but that hack enables the 
 							// bRemoveUnwantedLastChar boolean to be set TRUE, and the boolean flag 
 							// then functions to signal for last character removal going forward
-							bRemoveUnwantedLastChar = TRUE;
+							// 
+							// BEW 21Nov22 there's a problem here - Roland Fumey's dat requires TRUE,
+							// but I don't what this removal when the phrasebox moving forward
+							// gets DoStore_NormalOrTransliterateMode(), because I want final ')' to
+							// persist beyond the store call to the ParseWord() call - where the
+							// final ')' needs to be there in the adaptation text. So I have a new
+							// app boolean, m_bInNormalStore which I can use it's TRUE value to
+							// give an alternative path thru the rest of MakeTargetString...()
+							if (!pApp->m_bInNormalStore)
+							{
+								bRemoveUnwantedLastChar = TRUE;
+							}
+							else
+							{
+								bRemoveUnwantedLastChar = FALSE;
+							}
 						}
 						pEnd = pOldEnd;  // restore old pEnd
 #if defined (_DEBUG)
 						{
-							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s , bRemoveUnwantedLastChar= %d , bNoUserTypedFinalPuncts= %d"),
-								__LINE__, pSrcPhrase->m_targetStr.c_str() , (int)bRemoveUnwantedLastChar, (int)bNoUserTypedFinalPuncts);
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 						}
 #endif
 						// Do next check first, it may result in the value of bNoUserTypedFinalPuncts
@@ -17681,10 +17771,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						}
 #if defined (_DEBUG)
 						{
-							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s , bRemoveUnwantedLastChar= %d , bNoUserTypedFinalPuncts= %d  Need AND"),
-								__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)bRemoveUnwantedLastChar, (int)bNoUserTypedFinalPuncts);
+							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+								__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str() , pSrcPhrase->m_targetStr.c_str());
 						}
 #endif
+
 						// Do the normal word- or phrase-final punctuation additions
 						if (bNoUserTypedFinalPuncts)
 						{
@@ -17711,61 +17802,63 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							}						
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s , bRemoveUnwantedLastChar= %d , bNoUserTypedFinalPuncts= %d"),
-									__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)bRemoveUnwantedLastChar, (int)bNoUserTypedFinalPuncts);
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+									__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 							}
 #endif
 							wxString tgtFollPunct;
 							tgtFollPunct.Empty();
-							//BEW 4Oct22 added 2nd subtest, because if there was nothing in m_follPunct, there would
-							// be not test for something in m_follOuterPunct <- it could indeed have punctuation, as
-							// when an inline endmarker preceded some punctuation. Introduce a separating space if
-							// two curly end-quotes occur in sequence - it looks better in the GUI
-							if (!pSrcPhrase->m_follPunct.IsEmpty() || !pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+							if (!pApp->m_bInNormalStore)
 							{
-								// copy original's to the target; and also copy any in m_follOuterPunct
-								tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
-								// BEW 11Oct10, added to support m_follOuterPunct
-								if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+								//BEW 4Oct22 added 2nd subtest, because if there was nothing in m_follPunct, there would
+								// be not test for something in m_follOuterPunct <- it could indeed have punctuation, as
+								// when an inline endmarker preceded some punctuation. Introduce a separating space if
+								// two curly end-quotes occur in sequence - it looks better in the GUI
+								if (!pSrcPhrase->m_follPunct.IsEmpty() || !pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 								{
-									wxString tgtFollPunctOuter;
-									tgtFollPunctOuter.Empty();
-									tgtFollPunctOuter = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
-									tgtFollPunct += tgtFollPunctOuter; // join it together
-									// put a space between consecutive curly quotes
-									size_t length = tgtFollPunct.Len();
-									size_t index;
-									for (index = 0; index < length - 1; index++)
+									// copy original's to the target; and also copy any in m_follOuterPunct
+									tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
+									// BEW 11Oct10, added to support m_follOuterPunct
+									if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 									{
-
-										wxChar aChar = tgtFollPunct[index];
-										wxChar nxtChar = tgtFollPunct[index + 1];
-										if (pDoc->IsClosingQuote(&aChar) && pDoc->IsClosingQuote(&nxtChar))
+										wxString tgtFollPunctOuter;
+										tgtFollPunctOuter.Empty();
+										tgtFollPunctOuter = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
+										tgtFollPunct += tgtFollPunctOuter; // join it together
+										// put a space between consecutive curly quotes
+										size_t length = tgtFollPunct.Len();
+										size_t index;
+										for (index = 0; index < length - 1; index++)
 										{
-											// this handles not just curly endquotes, but
-											// straights as well
-											wxString leftStr = tgtFollPunct.Left(index + 1);
-											wxString rightStr = tgtFollPunct.Mid(index + 1);
-											leftStr += _T(" ");
-											tgtFollPunct = leftStr + rightStr;
-											length = tgtFollPunct.Len();
-											index += 1;
+
+											wxChar aChar = tgtFollPunct[index];
+											wxChar nxtChar = tgtFollPunct[index + 1];
+											if (pDoc->IsClosingQuote(&aChar) && pDoc->IsClosingQuote(&nxtChar))
+											{
+												// this handles not just curly endquotes, but
+												// straights as well
+												wxString leftStr = tgtFollPunct.Left(index + 1);
+												wxString rightStr = tgtFollPunct.Mid(index + 1);
+												leftStr += _T(" ");
+												tgtFollPunct = leftStr + rightStr;
+												length = tgtFollPunct.Len();
+												index += 1;
+											}
 										}
-									}
-								} // end of TRUE block for test: 
-								  // if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
-							} // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty())
-							str += tgtFollPunct;
+									} // end of TRUE block for test: 
+									  // if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+								} // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty())
+								str += tgtFollPunct;
 #if defined (_DEBUG)
-							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "),
-									__LINE__, str.c_str());
-							}
+								{
+									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "), __LINE__, str.c_str());
+								}
 #endif
+							} // end of TRUE block for test: if (!pApp->m_bInNormalStore)
 						} // end of TRUE block for test: if (bNoUserTypedFinalPuncts)
 
 						// add the preceding punctuation, if any
-						if (bWantPrevCopy)
+						if (bWantPrevCopy && !pApp->m_bInNormalStore)
 						{
 							wxString tgtPrecPunct;
 							tgtPrecPunct.Empty();
@@ -17782,13 +17875,30 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						pSrcPhrase->m_adaption = _T("]");
 					}
+					else if (pSrcPhrase->m_adaption.IsEmpty() && pApp->m_bInNormalStore)
+					{
+						wxString tgtStr = pSrcPhrase->m_targetStr;
+						/* 
+						// It's fine just to set m_adaption to the same string as m_targetStr, 
+						// because ParseWord() will follow and deal with the final punct
+						int tgtLen = tgtStr.Len();
+						wxChar chLast = tgtStr.Last();
+						int offset = wxNOT_FOUND; // init
+						offset = gSpacelessTgtPunctuation.Find(chLast);
+						if (offset >= 0)
+						{
+							// The last character is punctuation, so it should be removed for m_adaption
+							tgtStr = tgtStr.Left(tgtLen - 1);
+						}
+						*/
+						pSrcPhrase->m_adaption = tgtStr;
+					}
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s ,  pSrcPhrase->m_adaption = %s"),
-							__LINE__, pSrcPhrase->m_targetStr.c_str() , pSrcPhrase->m_adaption.c_str());
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s "),
+							__LINE__, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str());
 					}
 #endif
-
 					//#if defined(FWD_SLASH_DELIM)
 					// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 					if (pSrcPhrase->m_nSrcWords > 1)
