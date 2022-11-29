@@ -571,7 +571,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->LogUserAction(msg);
 
 				pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
-				pApp->m_bJustKeyedBackspace = FALSE;
+				
+				// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+				// phrasebox sizing
+				//pApp->m_bJustKeyedBackspace = FALSE;
 
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
@@ -804,7 +807,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 						delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
 				}
@@ -815,7 +821,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14, restore default
 
-				pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+				// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+				// phrasebox sizing
+				//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
@@ -885,7 +893,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 						if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 							delete pApp->m_pBuffer;
 
-						pApp->m_bJustKeyedBackspace = FALSE;  // initialise,  (altering box width uses this)
+						// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+						// phrasebox sizing
+						//pApp->m_bJustKeyedBackspace = FALSE;  // initialise,  (altering box width uses this)
 
 
 						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -903,7 +913,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 					return TRUE;
 				}
@@ -1033,7 +1045,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 							pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
-							pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+							// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+							// phrasebox sizing
+							//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 							wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -1126,7 +1141,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_curOutputBackupFilename = _T("");
 						pView->Invalidate(); // our own
 
-						pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+						// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+						// phrasebox sizing
+						//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 						GetLayout()->PlaceBox();
 						//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
 						//doc/view black box on which we rely, leading to our event handlers
@@ -1136,8 +1153,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 						wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
-
-						pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+						// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+						// phrasebox sizing
+						//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 						pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
 
@@ -1169,8 +1187,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputPath = _T("");
 					pApp->m_curOutputBackupFilename = _T("");
 
-
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
@@ -1356,8 +1375,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->LogUserAction(msgEnglish);
 					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
 
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -1413,8 +1434,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_bMakeDocCreationLogfile = FALSE;
 					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
 
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -1495,8 +1518,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
 
+				// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+				// phrasebox sizing
+				//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
-				pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 				wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -1509,8 +1534,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// try this for the refactored layout design....
 			CLayout* pLayout = GetLayout();
 
-
-			pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+			// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+			// phrasebox sizing
+			//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and
 						// UpdateTextHeights() and calls other relevant setters
@@ -1568,8 +1594,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pView->Invalidate();
 					pApp->m_nActiveSequNum = 0;
 
-
-					pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+					// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+					// phrasebox sizing
+					//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 					pApp->m_nOldSequNum = -1; // no previous location exists yet
 					// get rid of the stored rebuilt source text, leave a space there instead
@@ -1823,7 +1850,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 
-	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+	// phrasebox sizing
+	//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 	wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -6557,7 +6587,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 
-		pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+		// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+		// phrasebox sizing
+		//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 
 		return TRUE; // Added by JF.
@@ -6638,8 +6670,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// Sequence numbers are properly advancing, from 0
 #endif
 
-
-	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+	// phrasebox sizing
+	//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 	bool bIsOK = TRUE; // initialise
 
 #ifdef _NEW_LAYOUT
@@ -6971,8 +7004,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
-
-	pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
+	// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+	// phrasebox sizing
+	//pApp->m_bJustKeyedBackspace = FALSE; // initialise,  (altering box width uses this)
 
 
 	return TRUE;
@@ -36155,7 +36189,9 @@ wxString CAdapt_ItDoc::ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxCh
 		bNotWhitespace = !IsWhiteSpace(ptr);
 	}
 	// Note, if punctuation characters follow the parsed-over word, code lower in ParseWord() will deal with those
-	wxASSERT(!word.IsEmpty());
+	// whm 28Nov2022 temporarily commenting out the following wxASSERT() so I can 
+	// conduct more testing using the _Hezekiah 7 USFM2.txt input document.
+	//wxASSERT(!word.IsEmpty());
 	return word;
 }
 

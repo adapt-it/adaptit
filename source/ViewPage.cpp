@@ -80,7 +80,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempGapWidth = 0;
 	tempLMargin = 0;
 	tempMinPileWidth = 20;
-	tempMultiplier = pApp->m_nExpandBox;
+	tempMultiplier = pApp->m_nBoxSlop;
 	tempDlgFontSize = 12;
 	tempSuppressFirst = FALSE;
 	tempSuppressLast = FALSE;
@@ -378,9 +378,9 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	strTemp = m_pEditMultiplier->GetValue();
 	nVal = wxAtoi(strTemp);
-	if (nVal != pApp->m_nExpandBox)
+	if (nVal != pApp->m_nBoxSlop)
 		pLayout->m_bViewParamsChanged = TRUE;
-    pApp->m_nExpandBox = nVal;
+    pApp->m_nBoxSlop = nVal;
 
 	strTemp = m_pEditDlgFontSize->GetValue();
 	nVal = wxAtoi(strTemp);
@@ -404,7 +404,7 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempGapWidth = pApp->m_curGapWidth;
 	tempLMargin = pApp->m_curLMargin;
 	tempMinPileWidth = pApp->m_nMinPileWidth;
-	tempMultiplier = pApp->m_nExpandBox;
+	tempMultiplier = pApp->m_nBoxSlop;
 	tempDlgFontSize = pApp->m_dialogFontSize; // added missed initialization
 	tempMakeWelcomeVisible = !pApp->m_bSuppressWelcome;
 	tempUseStartupWizardOnLaunch = pApp->m_bUseStartupWizardOnLaunch; // always remains true since version 3

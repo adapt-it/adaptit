@@ -1700,7 +1700,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item12->SetToolTip( _("When the text is narrow the pile must not be of less width than this many pixels") );
     item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 0 );
 
-    wxStaticText *item13 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box white space slop and expansion multiplier (min 5, max 30)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item13 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box: set tab width, for edits and box resizing ( min 5, max 30, characters)"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );

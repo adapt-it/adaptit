@@ -568,6 +568,15 @@ void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
             int buttonWidth = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect().GetWidth();
 			wxUnusedVar(rectWidthBefore); // used only for the wxLogDebug call
 
+			// whm 11Nov2022 note: When a document is first opened, and at the Layout's PlaceBox()
+			// call the list width is drawn all the way under the button width. This is intentional
+			// (see comment within the CPhraseBox::PopupDropDownList() function), and this under-button
+			// width of the dropdown list is maintained here in CAdapt_ItCanvas::OnTogglePhraseBoxButton().
+			// However, when the phrasebox is resized via call of View's ResizeBox() call, which gets
+			// called whenever the phrasebox needs resizing and also when a manual resize is done of
+			// the main window frame, the calculations for the drop down list change its width to be
+			// the same as the phrasebox control itself, resulting in the the drop down list not 
+			// being drawn all the way under the button width.
             rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
             pApp->m_pTargetBox->SetSizeAndHeightOfDropDownList(rectWidth);
 #if defined (_DEBUG) //&& defined (_OVERLAP)
@@ -704,7 +713,13 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
         // BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
         // in the phrasebox
         pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase());
-        pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+		// whm 11Nov2022 modified. Selecting a list item from dropdown list amounts to a change in the 
+		// phrasebox. So, instead of calling RecalcLayout() here I think it is better to invoke the
+		// OnPhraseBoxChanged() function which does gap recalculations, etc, but also will call
+		// RecalcLayout(..., create_strips_keep_piles) for any box resize that might be needed.
+        //pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+		wxCommandEvent dummyEvent;
+		pApp->m_pTargetBox->OnPhraseBoxChanged(dummyEvent);
 
         pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
     }

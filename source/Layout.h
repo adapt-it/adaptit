@@ -214,7 +214,7 @@ public:
 	enum layout_selector	m_chosenSelector; // RecalcLayout() sets it, CreateStrip() uses it
 private:
 #ifdef Do_Clipping
-	// four ints define the clip rectange top, left, width & height for erasure
+	// four ints define the clip rectangle top, left, width & height for erasure
 	// prior to draw (window client coordinates, (0,0) is client top left)
 	int			m_nClipRectTop;
 	int			m_nClipRectLeft;
@@ -264,12 +264,21 @@ private:
 	int			m_numVisibleStrips;
 public:
 
-	bool		m_bAmWithinPhraseBoxChanged;
-	bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
+	// whm 3Nov2022 removed m_bAmWithinPhraseBoxChanged, it is not referenced anywhere in code
+	//bool		m_bAmWithinPhraseBoxChanged;
+	
+	// whm 11Nov2022 incorporated the m_bCompareWidthIsLonger into the refactored phrasebox
+	// sizing code, in order to preserve the existing calculation of the pileWidth value within
+	// CStrip::CreateStrip() function.
+	// After refactoring and testing I removed m_bCompareWidthIsLonger.
+	//bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
 	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
 	int			m_curBoxWidth;  // BEW 28Jul21 
-	int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
+	// whm 11Nov2022 removed the declaration of the following m_defaultActivePileWidth since
+	// it is assigned in EditPreferencesDlg.cpp but there is no reference/use made of the variable 
+	// within the code base.
+	//int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
 	int			SetDefaultActivePileWidth(); // BEW 17Aug21 created (public:)
 	int			m_curListWidth; // BEW refactored 9Aug21, to be the width value returned 
 						// by calculating string extents from the list's contents
@@ -312,7 +321,7 @@ public:
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
 
-	int	ExtraWidth(); // BEW added 3Aug21, when the legacy boxWidth needed to
+	int	GetExtraWidthForButton(); // BEW added 3Aug21, when the legacy boxWidth needed to
 				// be calculated in CalcPhraseBoxWidth() because at a hole or KB has only
 				// a single CRefString, so that the listWidth cannot be calculated (set as 0),
 				// the active pile's width needs to be augmented by (1 + buttonWidth) because

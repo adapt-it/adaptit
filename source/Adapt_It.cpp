@@ -7443,7 +7443,7 @@ wxString szTgtDiffsTextColor = _T("TargetDifferencesTextColor");
 
 /// The label that identifies the following string encoded number as the application's
 /// "PhraseBoxExpansionMultiplier". This value is written in the "Settings" part of the
-/// basic configuration file. Adapt It stores this path in the App's m_nExpandBox
+/// basic configuration file. Adapt It stores this path in the App's m_nBoxSlop
 /// member variable.
 wxString szPhraseBoxExpansionMultiplier = _T("PhraseBoxExpansionMultiplier");
 
@@ -23337,7 +23337,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bIsWithin_ProhibSpan = FALSE; // cache the returned value from IsWithinSpanProhibitingPlaceholderInsertion()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
-    m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
+    
+    // whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+    // phrasebox sizing
+    //m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
     m_bSuppressPseudoDeleteWhenClosingDoc = FALSE; 
     m_bExists = FALSE; // used in kbserver support, TRUE if input .dat file latest version is in AI exe's folder
 
@@ -23439,7 +23442,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     /// Multiply width of 'w' character this many times to get the slop at right-hand-side
     /// (RHS) of initial phrase box width, or the amount to expand the box by.
-    m_nExpandBox = 8;
+    m_nBoxSlop = 8;
 
 	m_bParsingSource = FALSE;
 	m_chapterNumber_for_ParsingSource = _T("0");
@@ -25276,7 +25279,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // uninitialized outside of OnPhraseBoxChanged(). They are now both initialized to FALSE in the View's
     // OnCreate() method.
     m_pLayout->m_nNewPhraseBoxGapWidth = -1;
-    m_pLayout->m_bCompareWidthIsLonger = TRUE;
+
+    // whm 11Nov2022 note: the following m_bCompareWidthIsLonger variable is incorporated into the refactored
+    // phrasebox sizing code, but it is initialized in different locations than its original usages. It is 
+    // still used mainly within the CStrip::CreateStrip() function.
+    // After refactoring and testing I removed m_bCompareWidthIsLonger.
+    //m_pLayout->m_bCompareWidthIsLonger = TRUE;
     
     // *** The variable initializations above were moved here from the View ***
 
@@ -30197,9 +30205,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
 		// Give it a hard coded width, 22 pixels for Windows/Mac, or 30 pixels for Linux, is about right
 #if defined (__WXGTK__)
-        this->GetLayout()->buttonWidth = 30;
+        this->GetLayout()->buttonWidth = 30; // for Linux
 #else
-        this->GetLayout()->buttonWidth = 22;
+        this->GetLayout()->buttonWidth = 22; // for Windows and Mac
 #endif
     }
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -30214,7 +30222,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString wStr = aChar;
 	wxSize charSize;
 	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
-	GetLayout()->slop = m_nExpandBox*charSize.x;
+	GetLayout()->slop = m_nBoxSlop*charSize.x;
     m_width_of_w = charSize.x; // BEW 15Aug21
     //SetMiniSlop(m_width_of_w * 6); // Putting the setter here in OnInit(), means that if the user BEW removed 7Aug21
         // changes the font size, then on next entry to the app the width of miniSlop will automatically
@@ -41563,7 +41571,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     pf->AddLine(data);
 
     data.Empty();
-    data << szPhraseBoxExpansionMultiplier << tab << m_nExpandBox;
+    data << szPhraseBoxExpansionMultiplier << tab << m_nBoxSlop;
     pf->AddLine(data);
 
     data.Empty();
@@ -43600,7 +43608,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 num = wxAtoi(strValue);
                 if (num < 5 || num > 30)
                     num = 10;
-                m_nExpandBox = num;
+                m_nBoxSlop = num;
             }
             else if (name == szTooNearEndMultiplier)
             {
@@ -44327,7 +44335,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
     m_curGapWidth = 10; // BEW 23Apr15 changed from 16 to 10, config file will override though
     m_bSuppressFirst = TRUE;
     m_bSuppressLast = TRUE;
-    m_nExpandBox = 8;
+    m_nBoxSlop = 8;
     m_nNearEndFactor = 3;
     m_nOldSequNum = -1;
     m_bHidePunctuation = FALSE;

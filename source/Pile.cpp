@@ -401,6 +401,20 @@ int	CPile::GetPhraseBoxGapWidth()
 	return m_nWidth;
 }
 
+// whm 11Nov2022 added the following GetMinPhraseBoxWidth() function as a 
+// convenience function for determining the first (minimum) pixel tab in the
+// arrayTabPositionsInPixels that is used for phrasebox expansion and contraction.
+// When contracting the phrasebox cannot contract smaller than the first pixel 
+// tab value in the array, which is determined by this GetMinPhraseBoxWidth()
+// function.
+// The calculation is:
+//   gpApp->m_nMinPileWidth + gpApp->m_pLayout->GetExtraWidthForButton() 
+//   = 20 + 22 + 1 = 43 (Windows & Mac), or 20 + 30 + 1 = 51 (Linux)
+int CPile::GetMinPhraseBoxWidth()
+{
+	return (gpApp->m_nMinPileWidth + gpApp->m_pLayout->GetExtraWidthForButton());
+}
+
 int	CPile::GetPhraseBoxWidth() //BEW added 19Jul18, gets m_curBoxWidth value
 {
 	return gpApp->m_pLayout->m_curBoxWidth;
@@ -535,6 +549,8 @@ int CPile::CalcPhraseBoxListWidth()
 	return listWidth;
 }
 
+// SetPhraseBoxWidth() is called from:
+// View's OnDraw() and Layout's PlaceBox()
 void CPile::SetPhraseBoxWidth()
 {
 	int listWidth = CalcPhraseBoxListWidth();
@@ -572,6 +588,7 @@ void CPile::SetPhraseBoxWidth()
 	}
 }
 
+// This SetPhraseBoxWidth(int boxwidth) is currently (as of 28Nov2022) not used anywhere in code
 void CPile::SetPhraseBoxWidth(int boxwidth) // accessor, setting the Layout's m_curBoxWidth to a known value
 {
 	//BEW 29Jul21 uncommented out, in case our layout code, refactors, still uses it
@@ -843,6 +860,9 @@ int CPile::CalcPhraseBoxWidth()
 		// the phrasebox is located in the interlinear layout. What we do here must work in
 		// all of Adapt It's modes - adapting, glossing, free translating. 
 		int nStartingWidth = pApp->m_nMinPileWidth; // set at 40 I think, or 20 now
+		// whm 11Nov2022 Note: The comment on the next statement mentions that CalcPileWidth() "checks against
+		// m_defaultActivePileWidth", but that is not currently true, and m_defaultActivePileWidth is never
+		// referenced in the current code base, so we can disregard that part of the comment as a relic.
 		int pileWidth = CalcPileWidth(); // internally itself does a max, based on current text extents
 										 // and checks against m_defaultActivePileWidth, to extend to
 										 /// that value if the min pileWidth value is less
@@ -950,7 +970,7 @@ int CPile::CalcPhraseBoxGapWidth()
 		{
 			// CalcPhraseBoxWidth() must have been run previous to calling this function, as
 			// it takes into acccount the phrasebox width any listWidth etc
-			boxGapWidth += m_pLayout->ExtraWidth(); // ExtraWidth() adds (1 + buttonWidth)
+			boxGapWidth += m_pLayout->GetExtraWidthForButton(); // GetExtraWidthForButton() adds (1 + buttonWidth)
 			int afterExtra = boxGapWidth;
 			wxUnusedVar(afterExtra);
 			boxGapWidth += m_pLayout->m_nCurGapWidth; // adds to that the interPile gap width

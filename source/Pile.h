@@ -93,7 +93,10 @@ public:
 	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
 	int			CalcPhraseBoxGapWidth();
 
-	int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
+	// whm 11Nov2022 removed the following declaration of m_nNewPhraseBoxGapWidth
+	// as it is never used. The one of the same name that is used is actually 
+	// declared as a member of CLayout.
+	//int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
 										 // the phrasebox gap width at the active pile, by a value calculated in
 										 // OnPhraseBoxChanged(), and set there.
 	int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
@@ -139,6 +142,7 @@ public:
 	
 	int			GetMinWidth(); // returns value of m_nMinWidth
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
+	int			GetMinPhraseBoxWidth(); // whm 11Nov2022 added for use as first pixel tab element in arrayTabPositionsInPixels
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
 	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
