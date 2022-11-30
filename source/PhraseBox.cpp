@@ -3654,8 +3654,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	//m_bDoExpand = FALSE; // initialise
 	//m_bDoContract = FALSE; // initialise
 
-	// whm 3Nov2022 removed m_bAmWithinPhraseBoxChanged, it is not referenced anywhere in code
-	//pLayout->m_bAmWithinPhraseBoxChanged = TRUE; 
+	// whm 3Nov2022 repurposed m_bAmWithinPhraseBoxChanged
+	pLayout->m_bAmWithinPhraseBoxChanged = TRUE; 
 
 	// BEW 13Oct21, save the current box width, in case no change is done, we don't
 	// want to enter ResizeBox() with m_curBoxWidth unset to a huge -ve number
@@ -4228,8 +4228,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 	} // end of TRUE block for test: if (this->IsModified())
 
-	// whm 3Nov2022 removed m_bAmWithinPhraseBoxChanged, it is not referenced anywhere in code
-	//pLayout->m_bAmWithinPhraseBoxChanged = FALSE; // whm 3Nov2022 note: This m_bAmWithinPhraseBoxChanged is not referenced anywhere in code
+	// whm 3Nov2022 repurposed m_bAmWithinPhraseBoxChanged
+	pLayout->m_bAmWithinPhraseBoxChanged = FALSE; 
+
 }
 
 

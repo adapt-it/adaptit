@@ -238,8 +238,7 @@ void CLayout::InitializeCLayout()
 	m_pSavePileList = NULL;
 	m_bInhibitDraw = FALSE;
 
-	// whm 3Nov2022 note: This m_bAmWithinPhraseBoxChanged is not referenced anywhere in code
-	//m_bAmWithinPhraseBoxChanged = FALSE; 
+	m_bAmWithinPhraseBoxChanged = FALSE; 
 	
 	// whm 11Nov2022 not longer need to track a global m_bJustKeyedBackspace
 	//m_pApp->m_bJustKeyedBackspace = FALSE;  // Set TRUE or FALSE in CPhraseBox's OnChar()
@@ -1176,7 +1175,17 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
 		}
-		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+
+		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be called
+		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
+		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
+		// a box resize that happens while user is editing, causes the content to suddently be highlighted
+		// resulting in the deletion of what was typed up to that point as the user types on from the point
+		// of the phrasebox resize.
+		if (!m_bAmWithinPhraseBoxChanged)
+		{
+			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+		}
 		//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
 		//wxWindow* fwin = wxWindow::FindFocus();
 		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"),
@@ -1212,7 +1221,16 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); 
 		}
 
-		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be called
+		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
+		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
+		// a box resize that happens while user is editing, causes the content to suddently be highlighted
+		// resulting in the deletion of what was typed up to that point as the user types on from the point
+		// of the phrasebox resize.
+		if (!m_bAmWithinPhraseBoxChanged)
+		{
+			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+		}
 
 #if defined(_DEBUG) && defined(FLAGS)
 		{

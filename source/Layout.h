@@ -264,8 +264,9 @@ private:
 	int			m_numVisibleStrips;
 public:
 
-	// whm 3Nov2022 removed m_bAmWithinPhraseBoxChanged, it is not referenced anywhere in code
-	//bool		m_bAmWithinPhraseBoxChanged;
+	// whm 3Nov2022 repurpopsed m_bAmWithinPhraseBoxChanged, to avoid calling SetFocusAndSetSelectionAtLanding()
+	// while code execution is within CPhraseBox::OnPhraseBoxChanged().
+	bool		m_bAmWithinPhraseBoxChanged;
 	
 	// whm 11Nov2022 incorporated the m_bCompareWidthIsLonger into the refactored phrasebox
 	// sizing code, in order to preserve the existing calculation of the pileWidth value within
