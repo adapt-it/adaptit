@@ -612,7 +612,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		// whm 11Nov2022 removed the following assignment of m_defaultActivePileWidth since
 		//CLayout* pLayout = gpApp->GetLayout();
 		// there is no reference/use made of the variable within the code base.
-		//pLayout->m_defaultActivePileWidth = pLayout->SetDefaultActivePileWidth();
+		//pLayout->m_defaultActivePileWidth = pLayout->GetDefaultActivePileWidth();
 	}
 
 	if (kbPage != NULL)

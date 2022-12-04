@@ -25278,7 +25278,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Note: Two other related variables in the CPhraseBox class m_bDoExpand and m_bDoContract were also 
     // uninitialized outside of OnPhraseBoxChanged(). They are now both initialized to FALSE in the View's
     // OnCreate() method.
+    // whm 11Nov2022 the following initialization of m_nNewPhraseBoxGapWidth is no longer needed
+    // in refactored phrasebox sizing here in OnInit(). The first instance in the App where a phrasebox 
+    // gap width is needed is during doc opening when initial strip creation is done within in 
+    // CPile::CreateStrip() and before user has typed any edits, but does a frame window resize. In that
+    // case the call of CPile::CalcPhraseBoxGapWidth() during strip creation can return a -1 
+    // initialization value if the layout is not yet ready for calculating a true box gap width.
     m_pLayout->m_nNewPhraseBoxGapWidth = -1;
+    //m_pLayout->m_nNewPhraseBoxGapWidth = -1;
 
     // whm 11Nov2022 note: the following m_bCompareWidthIsLonger variable is incorporated into the refactored
     // phrasebox sizing code, but it is initialized in different locations than its original usages. It is 
@@ -30952,8 +30959,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUserRequestsTimedDownload = FALSE;  // set True if user uses GUI to ask for a bulk
 						// download, or ChangedSince (ie. incremental) download. If
 						// TRUE, skip the OnIdle() ChangedSince_Timed request
-    GetLayout()->m_nSaveGap_TgtOnly = 0; // initialise, for this session (Preferences can change it, see ViewPage::OnOK()
-    GetLayout()->m_bNewGapRequested_TgtOnly = FALSE; // intialize - goes TRUE each time
+    // whm 11Nov2022 removed the following two lines, since they are only initialized but
+    // never referenced anywhere in code.
+    //GetLayout()->m_nSaveGap_TgtOnly = 0; // initialise, for this session (Preferences can change it, see ViewPage::OnOK()
+    //GetLayout()->m_bNewGapRequested_TgtOnly = FALSE; // intialize - goes TRUE each time
                  // the use uses Preferences to set a new gap width, when gbShowTargetOnly is TRUE,
                  // and after the TRUE value is used, it is cleared to FALSE, in case the user
                  // goes to Preferences multiple times to change the gap while viewing only src line

@@ -356,8 +356,11 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// BEW added, 30Jul21
 	if (gbShowTargetOnly)
 	{
-		pApp->GetLayout()->m_nSaveGap_TgtOnly = nVal; // save for 'Show Target Only' mode
-		pApp->GetLayout()->m_bNewGapRequested_TgtOnly = TRUE; // set TRUE until it's used
+		// whm 11Nov2022 the followoing Layout variables are never referred to
+		// or used in code, therefore I've removed them.
+		//pApp->GetLayout()->m_nSaveGap_TgtOnly = nVal; // save for 'Show Target Only' mode
+		//pApp->GetLayout()->m_bNewGapRequested_TgtOnly = TRUE; // set TRUE until it's used
+		;
 	}
 	else
 	{

@@ -7584,7 +7584,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 	{
 		CPile* pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
-		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src,
+		pPile->m_nMinWidth = pPile->CalcPileWidth(); // set m_nMinWidth - it's the maximum extent of the src,
 							  // adapt or gloss text
 		// mark the strip invalid and put the parent strip's index into
 		// CLayout::m_invalidStripArray if it is not in the array already

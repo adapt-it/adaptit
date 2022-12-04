@@ -398,6 +398,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						// 
 						// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if m_nNewPhraseBoxGapWidth
 						// is something other than -1, so this modification tests for that -1 value and acts accordingly.
+						int gapWidth = pPile->CalcPhraseBoxGapWidth();// Returns the combined values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
+						gapWidth = gapWidth; // for testing
 						if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
 						{
 							// Were NOT in gbDoingInitialSetup, but creating the strip that will actually 
@@ -524,6 +526,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			// whm 23Sep2021 added the gap value back to calculation of each nCurrentSpan below, otherwise
 			// the value of nCurrentSpan will not have been decremented properly within the if (nCurrentSpan <= m_nFree) 
 			// test block below.
+			// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
 			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)
@@ -789,6 +792,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
+		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
 							// for this pile to be eligible for inclusion in the strip	
 		if (nCurrentSpan <= m_nFree)

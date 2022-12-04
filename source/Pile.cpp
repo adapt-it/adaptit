@@ -356,89 +356,96 @@ void CPile::SetStrip(CStrip* pStrip)
 	m_pOwningStrip = pStrip; // can pass in NULL to set it to nothing
 }
 
-void CPile::SetMinWidth()
-{
-	// OnIdle() may call this more than once at a given location
-	m_nMinWidth = CalcPileWidth();
+// whm 11Nov2022 removed the following function after making m_nMinWidth 
+// a CPile public member
+//void CPile::SetMinWidth()
+//{
+//	// OnIdle() may call this more than once at a given location
+//	m_nMinWidth = CalcPileWidth();
+//
+////#if defined(_DEBUG) 
+////		wxLogDebug(_T("%s::%s():line %d, sets: m_nMinWidth to: %d, for box text: %s   **** called CalcPileWidth() ****"),
+////			__FILE__,__FUNCTION__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
+////#endif
+//}
 
-//#if defined(_DEBUG) 
-//		wxLogDebug(_T("%s::%s():line %d, sets: m_nMinWidth to: %d, for box text: %s   **** called CalcPileWidth() ****"),
-//			__FILE__,__FUNCTION__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
-//#endif
-}
-
+// whm 11Nov2022 removed the following function as it is never used.
 // overload, for using when restoring a cached m_nMinWidth value
-void CPile::SetMinWidth(int width)
-{
-	m_nMinWidth = width;
-}
+//void CPile::SetMinWidth(int width)
+//{
+//	m_nMinWidth = width;
+//}
+
+// whm 11Nov2022 removed the following function as it needlessly complicates
+// the code and wasn't doing anything useful, especially after refactoring.
+//int CPile::SetPhraseBoxGapWidth()
+//{
+//	// When in OnOpenDocument() and creating piles and strips, m_pActivePile is NULL
+//	// 
+//	// m_nWidth is dynamically set, to enable the phrasebox gap width to be
+//	// calculated on demand at a new active location. The code for the above is
+//	// mostly in CalcPhraseBoxWidth(), to which constant width additions are made,
+//	// and code in Strip.cpp CreateStrip() which gets width for Draw() correctly sized.
+//	m_nWidth = CalcPhraseBoxGapWidth();
+//
+////#if defined(_DEBUG) //&& defined(_NEWDRAW)
+//	//	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
+//	//		__FUNCTION__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
+////#endif
+//	return m_nWidth;
+//}
 
 
-int CPile::SetPhraseBoxGapWidth()
-{
-	// When in OnOpenDocument() and creating piles and strips, m_pActivePile is NULL
-	// 
-	// m_nWidth is dynamically set, to enable the phrasebox gap width to be
-	// calculated on demand at a new active location. The code for the above is
-	// mostly in CalcPhraseBoxWidth(), to which constant width additions are made,
-	// and code in Strip.cpp CreateStrip() which gets width for Draw() correctly sized.
-	m_nWidth = CalcPhraseBoxGapWidth();
+// whm 11Nov2022 removed the following functions. They are no longer of value
+// in the refactored phrasebox resizing routines.
+//int	CPile::GetMinWidth()
+//{
+//	return m_nMinWidth;
+//}
 
-//#if defined(_DEBUG) //&& defined(_NEWDRAW)
-	//	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
-	//		__FUNCTION__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
-//#endif
-	return m_nWidth;
-}
+//int	CPile::GetPhraseBoxGapWidth()
+//{
+//	return m_nWidth;
+//}
 
-int	CPile::GetMinWidth()
-{
-	return m_nMinWidth;
-}
+// whm 11Nov2022 removed the following function. GetPhraseBoxWidth() is no longer of value
+// in the refactored phrasebox resizing routines.
+//int	CPile::GetPhraseBoxWidth() //BEW added 19Jul18, gets m_curBoxWidth value
+//{
+//	return gpApp->m_pLayout->m_curBoxWidth;
+//}
 
-int	CPile::GetPhraseBoxGapWidth()
-{
-	return m_nWidth;
-}
+// whm 11Nov2022 removed the following function. GetPhraseBoxListWidth() is no longer 
+// of value in the refactored phrasebox resizing routines.
+//int	CPile::GetPhraseBoxListWidth() //BEW added 24Jul18, gets m_curListWidth value
+//{
+//	return gpApp->m_pLayout->m_curListWidth;
+//}
 
-// whm 11Nov2022 added the following GetMinPhraseBoxWidth() function as a 
-// convenience function for determining the first (minimum) pixel tab in the
-// arrayTabPositionsInPixels that is used for phrasebox expansion and contraction.
-// When contracting the phrasebox cannot contract smaller than the first pixel 
-// tab value in the array, which is determined by this GetMinPhraseBoxWidth()
-// function.
-// The calculation is:
-//   gpApp->m_nMinPileWidth + gpApp->m_pLayout->GetExtraWidthForButton() 
-//   = 20 + 22 + 1 = 43 (Windows & Mac), or 20 + 30 + 1 = 51 (Linux)
-int CPile::GetMinPhraseBoxWidth()
-{
-	return (gpApp->m_nMinPileWidth + gpApp->m_pLayout->GetExtraWidthForButton());
-}
-
-int	CPile::GetPhraseBoxWidth() //BEW added 19Jul18, gets m_curBoxWidth value
-{
-	return gpApp->m_pLayout->m_curBoxWidth;
-}
-
-int	CPile::GetPhraseBoxListWidth() //BEW added 24Jul18, gets m_curListWidth value
-{
-	return gpApp->m_pLayout->m_curListWidth;
-}
-
-void CPile::SetPhraseBoxListWidth(int listWidth)  // accessor, public
-{
-	if (gbDoingInitialSetup)
-		return;
-	gpApp->m_pLayout->m_curListWidth = listWidth;
-	// BEW 27Sep21 called in CalcPhraseBoxWidth()
-//#if defined(_DEBUG) //&& defined(_NEWDRAW)
-//	wxLogDebug(_T("Pile.cpp::SetPhraseBoxListWidth(int listWidth) line = %d, listWidth, <- sets gpApp->m_pLayout->m_curListWidth, for phraseBox text: %s"),
-//		__LINE__, listWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
-//#endif
-}
+// whm 11Nov2022 removed the following function. SetPhraseBoxListWidth() is no longer of value
+// in the refactored phrasebox resizing routines.
+// The only use of the following function is within the SetPhraseBoxWidth()
+// function. 
+//void CPile::SetPhraseBoxListWidth(int listWidth)  // accessor, public
+//{
+//	if (gbDoingInitialSetup)
+//		return;
+//	gpApp->m_pLayout->m_curListWidth = listWidth;
+//	// BEW 27Sep21 called in CalcPhraseBoxWidth()
+////#if defined(_DEBUG) //&& defined(_NEWDRAW)
+////	wxLogDebug(_T("Pile.cpp::SetPhraseBoxListWidth(int listWidth) line = %d, listWidth, <- sets gpApp->m_pLayout->m_curListWidth, for phraseBox text: %s"),
+////		__LINE__, listWidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+////#endif
+//}
 
 // If called at a non-active location, return -1 to indicate to the caller that
 // the value returned is not to be used.
+// whm 11Nov2022 Notes: The CPile::CalcPhraseBoxListWidth() returns the maximum
+// text extent of the dropdown list's visible entries. It does NOT include
+// any button width, nor slop nor any gap. 
+// When the phrasebox and dropdown list are drawn on-screen, the width of the
+// dropdown list and width of the phrasebox + button + 1 are forced to be the same 
+// width.
 int CPile::CalcPhraseBoxListWidth()
 {
 	int listWidth = (int)wxNOT_FOUND; //initialise to -1
@@ -549,8 +556,11 @@ int CPile::CalcPhraseBoxListWidth()
 	return listWidth;
 }
 
+// whm 11Nov2022 removed the following function. SetPhraseBoxWidth() is no longer of value
+// in the refactored phrasebox resizing routines.
 // SetPhraseBoxWidth() is called from:
 // View's OnDraw() and Layout's PlaceBox()
+/*
 void CPile::SetPhraseBoxWidth()
 {
 	int listWidth = CalcPhraseBoxListWidth();
@@ -587,17 +597,18 @@ void CPile::SetPhraseBoxWidth()
 		wxUnusedVar(boxWidth); // prevent compiler warning
 	}
 }
+*/
 
-// This SetPhraseBoxWidth(int boxwidth) is currently (as of 28Nov2022) not used anywhere in code
-void CPile::SetPhraseBoxWidth(int boxwidth) // accessor, setting the Layout's m_curBoxWidth to a known value
-{
-	//BEW 29Jul21 uncommented out, in case our layout code, refactors, still uses it
-	gpApp->m_pLayout->m_curBoxWidth = boxwidth;
-//#if defined(_DEBUG) && defined(_NEWDRAW)
-//	wxLogDebug(_T("CPile::SetPhraseBoxWidth() OVERLOADED manual boxwidth passed in, sets: m_curBoxWidth = %d, for box text: %s"),
-//		boxwidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
-//#endif
-}
+// whm 11Nov2022 removed the following function. It is currently (as of 28Nov2022) not used anywhere in code
+//void CPile::SetPhraseBoxWidth(int boxwidth) // accessor, setting the Layout's m_curBoxWidth to a known value
+//{
+//	//BEW 29Jul21 uncommented out, in case our layout code, refactors, still uses it
+//	gpApp->m_pLayout->m_curBoxWidth = boxwidth;
+////#if defined(_DEBUG) && defined(_NEWDRAW)
+////	wxLogDebug(_T("CPile::SetPhraseBoxWidth() OVERLOADED manual boxwidth passed in, sets: m_curBoxWidth = %d, for box text: %s"),
+////		boxwidth, gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+////#endif
+//}
 
 // BEW about 7Oct21, calculates a width based on the .x extent of thePhrase; thePharse is first
 // set to the contents of pApp's m_targetPhrase (because it will have typing in it which may not
@@ -780,6 +791,9 @@ int CPile::CalcPileWidth()
 				// Do the needed width calculations and comparisons here. No slop is
 				// to be added here - that will be done in CalcPhraseBoxWidth(), which
 				// calls CalcPileWidth() as the starting point, before adding slop there.
+				// 
+				// whm 11Nov2022 BEW's comment below does not apply now with refactored
+				// phrasebox sizing.
 				// BEW 24Aug21, we do have to add slop in the special circumstance that
 				// expansion of the pharsebox has just happend (slop was added), or when
 				// contraction of the phrasebox has just happened (a number of 'w' widths
@@ -789,7 +803,7 @@ int CPile::CalcPileWidth()
 				// the width must be decreased. The int member will be +ve for an expansion, and
 				// -ve for a contraction. 
 
-				int defaultWidth = m_pLayout->SetDefaultActivePileWidth(); // 4 times the width of 'w'
+				int defaultWidth = m_pLayout->GetDefaultActivePileWidth(); // 4 times the width of 'w'
 				// pileWidth, based on src/tgt etc text extents is already calculated above;
 				// if it is less than defaultWidth, widen to be same as defaultWidth
 				int storeOldWidth = pileWidth;
@@ -833,6 +847,10 @@ int CPile::CalcPileWidth()
 // with the dropdown list's width - and the latter is called by a calc function too
 // which internally widens the list to make the widest list member wholely visible in 
 // the list, if the list exists. (Adding the button, etc, gets done in ResizeBox().)
+// whm 11Nov2022 Note: This CalcPhraseBoxWidth() never returns a -1 value, instead it
+// returns the value from Layout's GetDefaultActivePileWidth() if it happens to get
+// called when m_pSrcPhrase is NULL, or when m_nSequNumber is NOT the App's 
+// m_nActiveSequNum. 
 int CPile::CalcPhraseBoxWidth()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -840,7 +858,7 @@ int CPile::CalcPhraseBoxWidth()
 
 	// int currBoxWidth = m_pLayout->m_curBoxWidth; // <<-- do not initialize this way,
 	//                                              // and especially do not update it at end
-	int currBoxWidth = m_pLayout->SetDefaultActivePileWidth(); // safe to start at this width (4 times 'w' width)
+	int currBoxWidth = m_pLayout->GetDefaultActivePileWidth(); // safe to start at this width (4 times 'w' width)
 
 #if defined(_DEBUG) && defined(_EXPAND)
 	//	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (might get augmented by FixBox):  %d , for box text [ %s ]"),
@@ -886,6 +904,12 @@ int CPile::CalcPhraseBoxWidth()
 		m_nMinWidth = pileWidth; // because this pile will sometime not be the active one 
 								 // (calc gap width also sets this) Up to this point, no slop has been added
 		int listWidth = 0; // initialise
+		// whm 11Nov2022 Notes: The CPile::CalcPhraseBoxListWidth() call below returns 
+		// the maximum text extent of the dropdown list's visible entries. It does NOT 
+		// include any button width, nor slop nor any gap. 
+		// When the phrasebox and dropdown list are drawn on-screen, the width of the
+		// dropdown list and width of the phrasebox + button + 1 are forced to be the 
+		// same width.
 		int nCalcWidth = CalcPhraseBoxListWidth(); // gets -1, or 0, or an accurate list width
 		if (nCalcWidth < 0)
 		{
@@ -945,6 +969,7 @@ int CPile::CalcPhraseBoxWidth()
 }
 
 // BEW 4Aug21 refactored for support of dropdown lists 
+// Returns the combined values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
 int CPile::CalcPhraseBoxGapWidth()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -971,9 +996,16 @@ int CPile::CalcPhraseBoxGapWidth()
 			// CalcPhraseBoxWidth() must have been run previous to calling this function, as
 			// it takes into acccount the phrasebox width any listWidth etc
 			boxGapWidth += m_pLayout->GetExtraWidthForButton(); // GetExtraWidthForButton() adds (1 + buttonWidth)
-			int afterExtra = boxGapWidth;
-			wxUnusedVar(afterExtra);
-			boxGapWidth += m_pLayout->m_nCurGapWidth; // adds to that the interPile gap width
+			// whm 11Nov2022 modification. The following statement that increments the boxGapWidth
+			// by the m_pLayout->m_nCurGapWidth should not be done here in CalcPhraseBoxGapWidth(). 
+			// Incrementing the gap width here only results in a noticeably wider than needed gap 
+			// when a document is first opened and layout has completed. Then, a simple resize of 
+			// the main Window frame, or other action that moves the phrasebox to a new location, 
+			// causes the extra width to disappear. With the following line commented out, however, 
+			// the irregularity disappears, and the gap following the phrasebox appears the same 
+			// extent as the gap at other locations, and moreover, the gap width doesn't suddenly 
+			// change when the main frame window is resized.
+			//boxGapWidth += m_pLayout->m_nCurGapWidth; // adds to that the interPile gap width
 											   
 //#if defined(_DEBUG)
 //			if (!gbDoingInitialSetup && pApp->GetLayout()->GetPile(pApp->m_nActiveSequNum) != NULL) // whm 30Sep2021 added last && condition
@@ -1006,11 +1038,12 @@ CCell** CPile::GetCellArray()
 }
 
 
-int CPile::SetPhraseBoxGapWidth(int nNewWidth)
-{
-	m_nWidth = nNewWidth; 
-	return nNewWidth;
-}
+// whm 11Nov2022 removed the following function as it was unused.
+//int CPile::SetPhraseBoxGapWidth(int nNewWidth)
+//{
+//	m_nWidth = nNewWidth; 
+//	return nNewWidth;
+//}
 
 
 // BEW 22Feb10 some changes done for support of doc version 5

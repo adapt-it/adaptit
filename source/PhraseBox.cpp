@@ -3655,7 +3655,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	//m_bDoContract = FALSE; // initialise
 
 	// whm 3Nov2022 repurposed m_bAmWithinPhraseBoxChanged
-	pLayout->m_bAmWithinPhraseBoxChanged = TRUE; 
+	// This bool, while TRUE, is used to supress a call to 
+	// SetFocusAndSetSelectionAtLanding() within the PlaceBox() call.
+	pLayout->m_bAmWithinPhraseBoxChanged = TRUE;
 
 	// BEW 13Oct21, save the current box width, in case no change is done, we don't
 	// want to enter ResizeBox() with m_curBoxWidth unset to a huge -ve number
@@ -3866,7 +3868,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		*/
 
 		// whm 11Nov2022 removed the following two local variables as they are not needed in refactored phrasebox sizing
-		//int defaultPileWidth = pLayout->SetDefaultActivePileWidth(); // a const, set as 4 'w' widths, 4*13=52 currently
+		//int defaultPileWidth = pLayout->GetDefaultActivePileWidth(); // a const, set as 4 'w' widths, 4*13=52 currently
 		//int leftBoundary = defaultPileWidth;   // leftBoundary is used in the 'contracting' test
 
 		// leftBoundary is used for contraction test
@@ -3882,7 +3884,13 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// phrasebox resizing here within OnPhraseBoxChanged() below. But I'll leave BEW's assignment of
 		// the pLayout->m_curListWidth directly from the CalcPhraseBoxListWidth() call, even though I
 		// think that assignment here is redundant.
-		//
+		// 
+		// whm 11Nov2022 Notes: The CPile::CalcPhraseBoxListWidth() call below returns 
+		// the maximum text extent of the dropdown list's visible entries. It does NOT 
+		// include any button width, nor slop nor any gap. 
+		// When the phrasebox and dropdown list are drawn on-screen, the width of the
+		// dropdown list and width of the phrasebox + button + 1 are forced to be the 
+		// same width.
 		int listWidth = pApp->m_pActivePile->CalcPhraseBoxListWidth();
 		// BEW 14Sep21, send the value to Layout's public member, m_curListWidth
 		pLayout->m_curListWidth = listWidth; // other functions can grab it from there
@@ -4104,7 +4112,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// Get the pixel extent of the current string resulting from this current edit.
 		boxContentPixelExtentAtThisEdit = GetTextExtentWidth(pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 		int bestTabForResize = -1; // initialize to no resize is needed
-		// Note: GetBestTabSettingFromArrayForBoxResize() call below 
+		// Note: GetBestTabSettingFromArrayForBoxResize() call below returns a value for
+		// bestTabForResize, in which bestTabForResize is to be the new phrase box's 
+		// actual width (including slop), but not including the button + 1, nor the gap
+		// following the newly sized phrasebox.
 		bestTabForResize = GetBestTabSettingFromArrayForBoxResize(oldPhraseBoxWidthCached, boxContentPixelExtentAtThisEdit);
 
 		if (bestTabForResize == -1 || bestTabForResize == pLayout->m_curBoxWidth)
@@ -4119,26 +4130,53 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// whm note: The oldPhraseBoxWidthCached should only be assigned a value just before
 			// the pLayout->m_curBoxWidth value gets changed by the bestTabForResize value below.
 			oldPhraseBoxWidthCached = pLayout->m_curBoxWidth;
-			// Call the View's ResizeBox() function
-			// inputing the bestTabForResize value into that function's pLayout->m_curBoxWidth input parameter
-			pLayout->m_curBoxWidth = bestTabForResize; // pApp->m_pActivePile->CalcPhraseBoxWidth();
-			pLayout->m_curListWidth = bestTabForResize +pLayout->GetExtraWidthForButton(); // make list + button width agree with box width
-			pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth + pLayout->GetExtraWidthForButton();			
-			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
-				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
-			// whm Note: In Layout's PlaceBox() BEW calls pActivePile->SetPhraseBoxGapWidth() immediately
-			// following the ResizeBox() call there, so I'll do likewise here.
-			// The SetPhraseBoxGapWidth() call sets CPile::m_nWidth = CalcPhraseBoxGapWidth()
-			pApp->m_pActivePile->SetPhraseBoxGapWidth();
+			// Call the View's ResizeBox() function inputing the bestTabForResize value into 
+			// ResizeBox's second input parameter: pLayout->m_curBoxWidth.
+			// First, assign the just-determined bestTabForResize to the Layout's m_curBoxWidth,
+			// since the bestTabForResize will be the new phrasebox size done via the PlaceBox()
+			// call below. A value from CalcPhraseBoxWidth() cannot be used here because it returns
+			// a smaller instantaneous width value based on all the text extents + slop as they exist 
+			// at this instant in OnPhraseBoxChanged(). The new size for the phrasebox bestTabForResize
+			// was determined above as the new phrasebox width, and is generally next tab width 
+			// available from the array arrayTabPositionsInPixels obtained from the 
+			// GetBestTabSettingFromArrayForBoxResize() call above; the bestTabForResize will be a
+			// larger value than the value that CalcPhraseBoxGapWidth() would return, as that larger
+			// value allows for extra editing whitespace after the phrasebox is resized, so as not
+			// to be changing the phrasebox width after every character is typed.
+			pLayout->m_curBoxWidth = bestTabForResize; 
+
+			// TODO: should the Layout's m_curListWidth only be widened in CreateStrip() and not
+			// here in OnPhraseBoxChanged() just before phrasebox ResizeBox() call???
+			pLayout->m_curListWidth = bestTabForResize + pLayout->GetExtraWidthForButton(); // make list + button width agree with box width
+			pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth; // +pLayout->GetExtraWidthForButton();
+			// whm Note: The pLayout->PlaceBox() call below calls ResizeBox() so we need not do it here
+			// within OnPhraseBoxChanged(). The ResizeBox() call there will utilize the adjusted
+			// "best" values we've determined here within OnPhraseBoxChanged().
+			// 
+			//pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
+			//	pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			// 
+			// whm 11Nov2022 removed the following function as it needlessly complicates
+			// the code and wasn't doing anything useful, especially after refactoring.
+			//pApp->m_pActivePile->SetPhraseBoxGapWidth();
+			
 			// The phrasebox's new size may be quite different from what it was before this edit,
-			// so we need to call Layout's RecalcLayout(), and View's Invalidate() to redo the layout.
+			// so we need to call Layout's RecalcLayout(), and View's Invalidate(), and the Layout's
+			// PlaceBox() to redo the layout.
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 			pView->Invalidate();
-			// whm 11Nov2022 added the following PlaceBox(noDropDownInitialization) call. It is needed
-			// here just as in the CMainFrame::OnSize() call - in case the ResizeBox() call above causes
-			// the phrasebox to migrate to a previous or subsequent strip. Without this call it is
-			// possible for the phrasebox to become disassociated from the pile at the active location.
-			pLayout->PlaceBox(noDropDownInitialization);
+			// whm 11Nov2022 experimented with adding a PlaceBox(noDropDownInitialization) call here
+			// below. It worked OK, but required protection so that it wouldn't call the 
+			// SetFocusAndSetSelectionAtLanding() function which would foul up editing especially if
+			// the user had selected Edit > Highlight Copied Source (a box resize while editing could
+			// accidently loose all box content up to the editing point when the resize and highlighting
+			// occurred under the insertion point).
+			// However, it seems best here to just call the CMainFrame::OnSize() function which simplifies
+			// things and still makes the phrasebox behave with it editing causes it to flow up to previous
+			// strip or down to the following strip.
+			pApp->GetMainFrame()->SendSizeEvent();
+			// A PlactBox() call here works OK, but is overkill for doing new layout after a box resize.
+			//pLayout->PlaceBox(noDropDownInitialization); 
 		}
 			
 		// whm 11Nov2022 removed m_bDoContract, not used in refactored phrasebox sizing
@@ -4229,6 +4267,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	} // end of TRUE block for test: if (this->IsModified())
 
 	// whm 3Nov2022 repurposed m_bAmWithinPhraseBoxChanged
+	// This bool, while TRUE, was used to supress a call to 
+	// SetFocusAndSetSelectionAtLanding() within the PlaceBox() call.
 	pLayout->m_bAmWithinPhraseBoxChanged = FALSE; 
 
 }
@@ -4319,7 +4359,9 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 					// box selection in app's m_nStartChar & m_nEndChar members
 			bUpdateOfLayoutNeeded = TRUE;
 
-			pApp->m_pActivePile->SetPhraseBoxGapWidth();
+			// whm 11Nov2022 removed the following function as it needlessly complicates
+			// the code and wasn't doing anything useful, especially after refactoring.
+			//pApp->m_pActivePile->SetPhraseBoxGapWidth();
 		}
 		else // next block is for nSelector == 1 or 2 cases
 		{
@@ -4349,7 +4391,9 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 					pLayout->m_curBoxWidth = newWidth;
 					nPhraseBoxWidthAdjustMode = 0; 
 				}
-				pApp->m_pActivePile->SetPhraseBoxGapWidth();
+				// whm 11Nov2022 removed the following function as it needlessly complicates
+				// the code and wasn't doing anything useful, especially after refactoring.
+				//pApp->m_pActivePile->SetPhraseBoxGapWidth();
 				bUpdateOfLayoutNeeded = TRUE;
 
 			} 
