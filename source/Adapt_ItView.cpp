@@ -1141,22 +1141,35 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		// pile within it.
 		// I'll start with minimal changes, to test out how they work with my other refactorings
 		
-		// hopefully, these hacks are no longer needed. I've place SetPhraseBoxWidth() at the 
+		// [BEW] hopefully, these hacks are no longer needed. I've place SetPhraseBoxWidth() at the 
 		// start of PlaceBox(), and the box gap is now automatically generated from active pile, 
 		// correctly, at RecalcLayout() using pile's m_nWidth. This stuff is no longer needed
 		// but the comment below is accurate regarding the refactored design
 
+		// whm 11Nov2022 adjusted/corrected following comment (see last part of comment below).
 		// BEW 19Jul18 tell CLayout's m_curBoxWidth what the new phrasebox's size (including
-		// the button) is: the cache variable is m_curBoxSize, it has a setter,
-		// void SetPhraseBoxWidth() in CPile class which has a single parameter:
-		// enum widthMode which defaults to the enum value steadyAsSheGoes
-		// if not explicitly set to expanding or contracting. Internally it calls 
-		// CalcPhraseBoxWidth() which does the on-demand calculations, including button with and slop
-		// for the active pile's location. This gets Layout's m_curBoxWidth cache member set, given
-		// the current returned text from the m_pTargetPhrase->GetTextControl(). So set it now.
-		pApp->m_pActivePile->SetPhraseBoxWidth(); // BEW 13Aug18 now includes slop and button width
+		// the button) is. The cache variable is m_curBoxWidth, it has a setter, SetPhraseBoxWidth() 
+		// in CPile class which is called below.
+		// SetPhraseBoxWidth() also calls CalcPhraseBoxListWidth() and assigns that value to the
+		// Layout's m_curListWidth by internally calling SetPhraseBoxListWidth(listWidth).
+		// Internally SetPhraseBoxWidth() calls CalcPhraseBoxWidth() which does the on-demand 
+		// calculations, assigning the result to the Layout's m_curBoxWidth member, that result
+		// including button width and slop for the active pile's location. 
+		// This gets Layout's m_curBoxWidth cache member set, given the current returned text 
+		// from the m_pTargetPhrase->GetTextControl(). So set it now.
+		// BEW 13Aug18 now includes slop and button width
+		// whm 11Nov2022 note: While SetPhraseBoxWidth() calculates the listWidth and sets it in Layout's 
+		// m_curListWidth, nothing here attempts to keep the width of the phrasebox (including button)
+		// in sync with the longest list item in the dropdown list. That is done in 
+		// CStrip::CreateStrip().
+		// 
+		// whm 11Nov2022 removed the following function. SetPhraseBoxWidth() is no longer of value
+		// in the refactored phrasebox resizing routines.
+		//pApp->m_pActivePile->SetPhraseBoxWidth();
 
-		pApp->m_pActivePile->SetPhraseBoxGapWidth(); // BEW 13Aug18, required, as box and gap are no longer the same
+		// whm 11Nov2022 removed the following function as it needlessly complicates
+		// the code and wasn't doing anything useful, especially after refactoring.
+		//pApp->m_pActivePile->SetPhraseBoxGapWidth(); // BEW 13Aug18, required, as box and gap are no longer the same
 
 #if defined(_DEBUG) && defined(_EXPAND)
 //		int boxWidth = pApp->m_pActivePile->GetPhraseBoxWidth();
@@ -1739,27 +1752,27 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
     pApp->DoCreatePhraseBox();
 
 	// whm 3Nov2022 added the following initializations here. 
-	// Before this date (3Nov2022) the following two boolean variables pApp->m_pTargetBox->m_bDoExpand 
+	// Before this date (11Nov2022) the following two boolean variables pApp->m_pTargetBox->m_bDoExpand 
 	// and pApp->m_pTargetBox->m_bDoContract were nowhere initialized to either TRUE or FALSE 
-	// outside of the CPhaseBox::OnPhraseBoxChanged() function. However they were used in some code
-	// outside OnPhraseBoxChanged(). For most operations there were minimal side effects since it appears 
-	// that they just happened to be TRUE at their point of declaration (a value of 0 is FALSE, but any value
-	// other than 0 is TRUE in boolean terms). They were and still are explicitly initialized to FALSE 
-	// within CPhraseBox::OnPhraseBoxChanged(), but that initialization in OnPhraseBoxChanged()
-	// does not happen until the user's first change is made within the phrasebox. Hence when a document is 
-	// first loaded, both m_bDoExpand and m_bDoContract would usually be TRUE, but shift to false after the first
+	// outside of the CPhaseBox::OnPhraseBoxChanged() function. However, they were used in some code
+	// outside OnPhraseBoxChanged() in their uninitialized state. For most operations the negative results
+	// were minimal, since it appears that being booleans, they just happened to be TRUE at their point 
+	// of declaration (a value of 0 is FALSE, but any value other than 0 is TRUE in boolean terms). 
+	// They were explicitly initialized to FALSE within CPhraseBox::OnPhraseBoxChanged(), but that 
+	// initialization in OnPhraseBoxChanged() does not happen until the user's first change is made within 
+	// the phrasebox. Hence when a document is first loaded, both m_bDoExpand and m_bDoContract are in an
+	// uninitialized state, and would usually be TRUE, but then and only then, shift to false after the first
 	// character was typed or some other change made within the phrasebox. A side effect was that the layout
 	// of piles upon first opening of the document would be padded with a gap value from the seccond pile to
 	// the end of the strip in CreateStrip(), but as sooon as a character was typed, that gap would disappear
 	// because m_bDoContract was ALWAYS FALSE for the duration of the session. The m_bDoContract value
-	// has never been set to a TRUE value since BEW's changes made in the commit dated 9Oct2021. Hence, after 
-	// seeing the same phenomenon by initializing m_bDoExpand and m_bDoContract to TRUE, I'm initializing
-	// both m_bDoExpand and m_bDoContract to FALSE here in OnCreate() as BEW has done in OnPhraseBoxChanged().
-	// Note: the initialization of two other CLayout related values related to the proper sizing 
-	// of the phrasebox (m_pLayout->m_nNewPhraseBoxGapWidth = -1; and m_pLayout->m_bCompareWidthIsLonger = TRUE)
-	// is handled in the App's OnInit().
-	pApp->m_pTargetBox->m_bDoExpand = FALSE;
-	pApp->m_pTargetBox->m_bDoContract = FALSE; // whm 3Nov2022 note: since BEW changes 9Oct2021 this has never been set to TRUE
+	// has never been set to a TRUE value since BEW's changes made in the commit dated 9Oct2021. 
+	// 
+	// whm 11Nov2022 remove the following m_bDoExpand and m_bDoContract, as they are not needed 
+	// in refactored phrasebox sizing. Note: m_pLayout->m_bCompareWidthIsLonger boolean was also 
+	// removed in refactoring.
+	//pApp->m_pTargetBox->m_bDoExpand = FALSE;
+	//pApp->m_pTargetBox->m_bDoContract = FALSE; // whm 3Nov2022 note: since BEW changes 9Oct2021 this has never been set to TRUE
 
 	pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 	// hide and disable the target box until input is expected
@@ -2036,7 +2049,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	int charWidth;
 	int charDummyHeight;
 	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
-	pileWidth += pApp->m_nExpandBox*charWidth; // allow same slop factor as for 
+	pileWidth += pApp->m_nBoxSlop*charWidth; // allow same slop factor as for 
 						// RemakePhraseBox & OnChar; (* is 'multiply by)
 	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
 	return pileWidth;
@@ -2988,12 +3001,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		}
 #endif
 
+		// whm 11Nov2022 removed the following function as it needlessly complicates
+		// the code and wasn't doing anything useful, especially after refactoring.
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
 		// m_nSequNumber value set to the same value as the app's member m_nActiveSequNum
 		// - these conditions are guaranteed by code in the caller before this function is
 		// called
-		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to
+		//pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to
                     // same value that it sets in the active pile's m_nWidth member
 	} // end of else block for test: if (bHasNothing)
 }
@@ -3884,11 +3899,13 @@ wxBell();
 		// str is already empty, so nothing much to do
         pApp->m_pTargetBox->m_bEmptyAdaptationChosen = FALSE;
 
-        // this next call relies for it's success on pActivePile being the CPile* at the
+		// whm 11Nov2022 removed the following function as it needlessly complicates
+		// the code and wasn't doing anything useful, especially after refactoring.
+		// this next call relies for it's success on pActivePile being the CPile* at the
         // new active location, and that the partner CSourcePhrase instance has its
         // m_nSequNumber value set to the same value as the app's member m_nActiveSequNum -
         // these conditions are guaranteed by code above in this function
-		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
+		//pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
@@ -3923,11 +3940,13 @@ wxBell();
 		pSrcPhrase->m_bNotInKB = TRUE;
 		str = pSrcPhrase->m_adaption;
 
+		// whm 11Nov2022 removed the following function as it needlessly complicates
+		// the code and wasn't doing anything useful, especially after refactoring.
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
 		// m_nSequNumber value set to the same value as the app's member m_nActiveSequNum
 		// - these conditions are guaranteed by code above in this function (360 lines up)
-		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
+		//pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -3967,11 +3986,13 @@ wxBell();
 		// longer have bundles
 		str = pApp->m_pTargetBox->m_Translation;
 
+		// whm 11Nov2022 removed the following function as it needlessly complicates
+		// the code and wasn't doing anything useful, especially after refactoring.
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
 		// m_nSequNumber value set to the same value as the app's member m_nActiveSequNum
 		// - these conditions are guaranteed by code above in this function (360 lines up)
-		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
+		//pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
@@ -4328,6 +4349,10 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 4098,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+
+	// whm 11Nov2022 removed the following code that didn't actually do anything other
+	// than provide a max variable for a commented out wxLogDebug() statement.
+	/*
 	// BEW 27Jul18 set the phrasebox gap correctly
 
 	CPile* pilePtr = this->GetPile(pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
@@ -4361,17 +4386,17 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		{
 			max = boxWidth;
 		}
-		/* BEW 18Aug21 not needed now but keep in case later testing is wanted
-		wxBitmapToggleButton* pBtn = pApp->m_pTargetBox->GetPhraseBoxButton();
-		wxSize clientSize = pBtn->GetClientSize();
-		int buttonWidth = clientSize.x; // is 22 pixels
-		buttonWidth += 1; // for the 1 pixel space between
-		wxLogDebug(_T("%s::%s() line %d:  buttonWidth + 1: %d"),
-			__FILE__, __FUNCTION__, __LINE__, buttonWidth);
+		// BEW 18Aug21 not needed now but keep in case later testing is wanted
+		//wxBitmapToggleButton* pBtn = pApp->m_pTargetBox->GetPhraseBoxButton();
+		//wxSize clientSize = pBtn->GetClientSize();
+		//int buttonWidth = clientSize.x; // is 22 pixels
+		//buttonWidth += 1; // for the 1 pixel space between
+		//wxLogDebug(_T("%s::%s() line %d:  buttonWidth + 1: %d"),
+		//	__FILE__, __FUNCTION__, __LINE__, buttonWidth);
 
-		wxLogDebug(_T("%s::%s() line %d: boxWidth %d, buttonWidth %d, listWidth %d , tgt = %s"),
-			__FILE__, __FUNCTION__, __LINE__, max, buttonWidth, listWidth, pSPhr->m_adaption.c_str());
-		*/
+		//wxLogDebug(_T("%s::%s() line %d: boxWidth %d, buttonWidth %d, listWidth %d , tgt = %s"),
+		//	__FILE__, __FUNCTION__, __LINE__, max, buttonWidth, listWidth, pSPhr->m_adaption.c_str());
+		//
 	}
 	int pileGap = pApp->GetLayout()->GetGapWidth(); // currently 8 normally 16 (include for debugging)
 	wxUnusedVar(pileGap);
@@ -4380,10 +4405,15 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 
 	// Force the recalculation of the gap width, don't just put max into the parameter list
 	int mnWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth(); // accessor, returns current value
-	pApp->m_pActivePile->SetPhraseBoxGapWidth(); // sets m_nWidth, which belongs to the active pile
 	
 	wxUnusedVar(mnWidth);
 
+	*/
+
+	// whm 11Nov2022 removed the following function as it needlessly complicates
+	// the code and wasn't doing anything useful, especially after refactoring.
+	//pApp->m_pActivePile->SetPhraseBoxGapWidth(); // sets m_nWidth, which belongs to the active pile
+	
 	//wxLogDebug(_T("%s::%s() line %d: max box or list = %d : Layout's m_nCurGapWidth %d, active pile's m_nWidth %d, listWidth %d , tgt = %s"),
 	//	__FILE__, __FUNCTION__, __LINE__, max, pileGap, mnWidth, listWidth, pSPhr->m_adaption.c_str());
 
@@ -6840,6 +6870,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	
 	
 	// BEW 1Sep21 Phrasebox resizes are caused in two different ways. 
+	// whm 11Nov2022 BEW's comments on Way 1 and Way 2 are accurate, except that the boolean
+	// m_bJustKeyedBackspace is not longer needed in refactored phrasebox resizing
+	// 
 	// Way 1: for every character typed, OnChar() will set the Layout boolean m_bJustKeyedBackspace
 	// to FALSE for normal characters typed into the box, or TRUE when backspace was typed. Typing into
 	// the box can lengthen the adaptation till it gets dangerously close to the end of the box. Or,
@@ -6944,6 +6977,26 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	}
 #endif
 
+	// whm 11Nov2022 added. If a long text segment was pasted into the control that was longer 
+	// than the phrasebox's width - before this resize - the first part of the long text will 
+	// be pushed or scrolled out of sight (beyond the left edge of the edit box), because the
+	// text control was (before the resize) not long enough to contain all of the text and it
+	// has scrolled enough of the text beyond the left box edge to keep the pasted end of the
+	// new string in view. This creates a visibility problem, however, because, the SetSize() 
+	// call above doesn't un-hide any of the scrolled-out-of-view text back into view. Hence,
+	// any part of the text that was pushed out of sight will remain out of sight even though 
+	// the phrasebox has been now resized to fully accommodate the new and longer text.
+	// The following is a work-around to get the new longer text fully back into view within 
+	// the newly resized phrasebox. 
+	// We save the insertion point, then temporarily set the insertion point to the beginning of
+	// the box contents (which forces the scrolled beginning part of the string back into view), 
+	// then we reset the insertion point back to its original setting. No part of the string
+	// content gets changed in anyi way, but this action just forces the string part that was 
+	// hidden/scrolled out of the edic box to reappear unscrolled.
+	long saveInsertionPoint = pApp->m_pTargetBox->GetTextCtrl()->GetInsertionPoint();
+	pApp->m_pTargetBox->GetTextCtrl()->SetInsertionPoint(0);
+	pApp->m_pTargetBox->GetTextCtrl()->SetInsertionPoint(saveInsertionPoint);
+
 	// enable complex rendering
     // whm note for wx version: Right-to-left reading is handled automatically in Uniscribe
     // and Pango, but they differ in how they handle Unicode text chars that are from the
@@ -7012,7 +7065,20 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
 	// wider-than-phrasebox width and widens it before ResizeBox() gets called.
 
     pApp->m_pTargetBox->GetDropDownList()->SetPosition(wxPoint(rectBox.GetLeft(), rectBox.GetBottom() -2)); // sets left and top for wxPoint
-    pApp->m_pTargetBox->GetDropDownList()->SetSize(rectBox.GetWidth(), -1); // sets .x value for the width, leaves height unchanged (until Popup...)
+    // whm 11Nov2022 modified the width for the dropdown list's SetSize() call to make the
+	// dropdown list stay all the way under the dropdown button, as it is originally sized in
+	// the CPhraseBox::PopupDropDownList() function and the CAdapt_ItCanvas::OnTogglePhraseBoxButton() 
+	// function. This doesn't affect any list width calculations made elsewhere, it just the width of 
+	// the dropdown listbox as drawn on screen extent all the way under the button, otherwise the dropdown
+	// list width spans under the button when phrasebox lands, and when the list is manually toggled open
+	// or closed, but phrasebox resize events shorten its width/span to end at the phrasebox's border,
+	// until the list is toggled again.
+	// (see more comment/explanation below in whm 11Nov2022 note).
+	int buttonWidth = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect().GetWidth();
+	int rectWidth = rectBox.GetWidth();
+	rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
+	//pApp->m_pTargetBox->GetDropDownList()->SetSize(rectBox.GetWidth(), -1); // sets .x value for the width, leaves height unchanged (until Popup...)
+	pApp->m_pTargetBox->GetDropDownList()->SetSize(rectWidth, -1); // sets .x value for the width, leaves height unchanged (until Popup...)
 
     // whm Note: The SetSize() call above sets the list width to be that of the phrasebox, however, it
     // just sets the height at the default value set on creation (100 pixels). ResizeBox() is called
@@ -7020,8 +7086,19 @@ void CAdapt_ItView::ResizeBox(const wxPoint* pLoc, const int nWidth, const int n
     // CPhraseBox::SetSizeAndHeightOfDropDownList() within the PopupDropDownList() which
     // is in turn only called from OnIdle() in MainFrm.cpp.
 	// BEW 29Jul21 refactoring changes the comment above a bit. Now CalcPhraseBoxWidth() determines
-	// an accurate listWidth, from which we can calculate what the phrasebox width needs to be
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// an accurate listWidth, from which we can calculate what the phrasebox width needs to be.
+	// 
+	// whm 11Nov2022 note: When a document is first opened, and at the Layout's PlaceBox()
+	// call the list width is drawn all the way under the button width. This is intentional
+	// (see comment within the CPhraseBox::PopupDropDownList() function), and this under-button
+	// width of the dropdown list is maintained here in CAdapt_ItCanvas::OnTogglePhraseBoxButton().
+	// However, when the phrasebox is resized via call of View's ResizeBox() call, which gets
+	// called whenever the phrasebox needs resizing and also when a manual resize is done of
+	// the main window frame, the calculations for the drop down list change its width to be
+	// the same as the phrasebox control itself, resulting in the the drop down list not 
+	// being drawn all the way under the button width.
+	//rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(text);
     if (gbIsGlossing && gbGlossingUsesNavFont)
@@ -7199,7 +7276,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		wxString wStr = aChar;
 		wxSize charSize;
 		aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
-		pApp->GetLayout()->slop = pApp->m_nExpandBox*charSize.x;
+		pApp->GetLayout()->slop = pApp->m_nBoxSlop*charSize.x;
 		pApp->m_width_of_w = charSize.x; // BEW 15Aug21 same calc is in OnInit() about line 27921
 
 		// BEW 22Jul21 try a hack to increase the gap with when gbShowTargetOnly is TRUE
@@ -23890,11 +23967,16 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	//wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
 	//	(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
- 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
 	event.Skip();
+
+	// whm 11Nov2022 modified. All of the code within this CAdapt_ItView::OnSize() handler is
+	// duplicated in the CMainFrame::OnSize() handler, and the event.Skip() above results in
+	// the CMainFrame's OnSize() function being ALWAYS called immediately after this View's 
+	// OnSize() is called. Hence, I'm commenting all the remaining code from this OnSize().
+	/*
+ 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free
     // translation mode, and uses either the Shorten of Lengthen buttons (these set
@@ -23995,6 +24077,7 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 //		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 	}
+	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////

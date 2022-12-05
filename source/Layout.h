@@ -214,7 +214,7 @@ public:
 	enum layout_selector	m_chosenSelector; // RecalcLayout() sets it, CreateStrip() uses it
 private:
 #ifdef Do_Clipping
-	// four ints define the clip rectange top, left, width & height for erasure
+	// four ints define the clip rectangle top, left, width & height for erasure
 	// prior to draw (window client coordinates, (0,0) is client top left)
 	int			m_nClipRectTop;
 	int			m_nClipRectLeft;
@@ -264,17 +264,40 @@ private:
 	int			m_numVisibleStrips;
 public:
 
+	// whm 11Nov2022 repurpopsed m_bAmWithinPhraseBoxChanged, to avoid calling 
+	// SetFocusAndSetSelectionAtLanding() while code execution is within 
+	// CPhraseBox::OnPhraseBoxChanged().
 	bool		m_bAmWithinPhraseBoxChanged;
-	bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
+	
+	// whm 11Nov2022 removed m_bCompareWidthIsLonger is no longer needed for refactored
+	// phrasebox sizing
+	//bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
 	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
 	int			m_curBoxWidth;  // BEW 28Jul21 
-	int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
-	int			SetDefaultActivePileWidth(); // BEW 17Aug21 created (public:)
+	// whm 11Nov2022 removed the declaration of the following m_defaultActivePileWidth since
+	// it is assigned in EditPreferencesDlg.cpp but there is no reference/use made of the variable 
+	// within the code base.
+	//int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
+
+	// whm 11Nov2022 renamed the following function from SetDefaultActivePileWidth() to 
+	// GetDefaultActivePileWidth(), since the function does not set any class member. 
+	// It only calculates a default pixel width of 'w' character extents using the App's
+	// m_width_of_w value, and returns the calculated new value to the caller.
+	int			GetDefaultActivePileWidth(); // BEW 17Aug21 created (public:)
+
+	// whm 11Nov2022 Notes: The CPile::CalcPhraseBoxListWidth() call returns 
+	// the maximum text extent of the dropdown list's visible entries. It does NOT 
+	// include any button width, nor slop nor any gap. 
+	// When the phrasebox and dropdown list are drawn on-screen, the width of the
+	// dropdown list and width of the phrasebox + button + 1 are forced to be the 
+	// same width.
 	int			m_curListWidth; // BEW refactored 9Aug21, to be the width value returned 
 						// by calculating string extents from the list's contents
-	int			m_nSaveGap_TgtOnly;
-	bool		m_bNewGapRequested_TgtOnly;
+	// whm 11Nov2022 removed the following two members, since they are initialized
+	// but never referenced within code.
+	//int			m_nSaveGap_TgtOnly;
+	//bool		m_bNewGapRequested_TgtOnly;
 
 private:
 
@@ -312,7 +335,7 @@ public:
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
 
-	int	ExtraWidth(); // BEW added 3Aug21, when the legacy boxWidth needed to
+	int	GetExtraWidthForButton(); // BEW added 3Aug21, when the legacy boxWidth needed to
 				// be calculated in CalcPhraseBoxWidth() because at a hole or KB has only
 				// a single CRefString, so that the listWidth cannot be calculated (set as 0),
 				// the active pile's width needs to be augmented by (1 + buttonWidth) because
@@ -443,8 +466,9 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
-	void		SetCurBoxWidth(int curBoxWidth); // accessor for m_curBoxWidth
-	int			GetCurBoxWidth(); // accessor for m_curBoxWidth
+	// whm 11Nov2022 removed SetCurBoxWidth() and GetCurBoxWidth() below as they are never used.
+	//void		SetCurBoxWidth(int curBoxWidth); // accessor for m_curBoxWidth 
+	//int			GetCurBoxWidth(); // accessor for m_curBoxWidth
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 

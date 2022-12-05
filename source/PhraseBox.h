@@ -87,9 +87,9 @@ public:
 	// BEW 13Sep21 added next two bools, formerly they were local, as bDoExpand and bDoContract in OnPhraseBoxChanged(),
 	// but now I want them as public class members so that Calc...() functions in Pile.cpp can pick them up, when
 	// a change in phrasebox width is happening
-	bool		m_bDoExpand;
-	bool		m_bDoContract;
-
+	// whm 11Nov2022 eliminated the use of the following two bools in refactored phrasebox resizing code in OnPhraseBoxChanged()
+	//bool		m_bDoExpand;
+	//bool		m_bDoContract;
 
     wxString    m_SaveTargetPhrase;
     //CTargetUnit* pTargetUnitFromChooseTrans; // whm 24Feb2018 moved to the App
@@ -170,6 +170,68 @@ public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
+	// whm 11Nov2022 added this convenience function for phrasebox width sizing. 
+	// Only the .x coord text extent is returned of the str input string, based on
+	// the main frame's canvas. The width extent of the App's m_pNavTextFont is returned
+	// if gbIsGlossing && gbGlossingUsesNavFont, otherwise the width extent of the App's
+	// m_pTargetFont is returned.
+	int GetTextExtentWidth(wxString str);
+
+	int boxContentPixelExtentAtLanding;
+
+	// whm 11Nov2022 added the following oldPhraseBoxWidthCached and oldBoxContentPixelExtentCached
+	// values for caching old phrasebox width and old phrasebox content widths.
+	// These values are set just before the OnPhraseBoxChanged() function returns. It is set at that time and used to detect 
+	// the spaceRemainingInBoxAtThisEdit value within the GetBestTabSettingFromArrayForBoxResize() 
+	// function, which is called earlier in OnPhraseBoxChanged(). 
+	// This oldPhraseBoxWidthCached value is used in determining the need for contracting 
+	// the size of the phrasebox after an edit occurs that causes an such an increase in
+	// whitespace at the end of the phrasebox contents, that a phrasebox contraction should
+	// occur.
+	int oldPhraseBoxWidthCached; 
+	int oldBoxContentPixelExtentCached;
+
+	// whm 11Nov2022 added the following array of integer values, to keep track of the
+	// potential tab positions for expanding and/or contracting the phrasebox. The int
+	// values in the array represent potential pixel positions that function as tab stops
+	// along any potential string content within the phrasebox. The pixel tab positions
+	// within the int array are pre-set to pixel positions that are multiples of the
+	// "slop distance" away from (left and right of) the initial starting at the end of 
+	// the phrasebox string content at phrasebox landing.
+	// The first arrayTabPositionInPixels item is normally 0 regardless of the length of
+	// the string content of the phrasebox at landing and regardless of the slop value that
+	// is determined from the View page's setting for the slop.
+	// If the phrasebox has an empty content at landing, all the tab stops within the array
+	// will be multiples of the slop pixel value, starting at 0, each succeeding value being
+	// a positive int of the slop above the previous tab stop in the array.
+	// If the phrasebox has initial string content at landing, the insertion point is at
+	// the end of the string. We make that insertion point's position the reference point
+	// for tab positions both preceeding that point and following that point. So, the 
+	// second element of the array is likely to be a value which is less that a slop 
+	// distance in pixels from the 0 first element, in particular when the extent of the
+	// initial content string is not exactly a slop multiple above 0. Third and all 
+	// remaining array items will be exactly a slop multiple apart in their pixel values.
+	// 
+	// The arrayTabPositionsInPixels is cleared/emptied, and its int values are set at
+	// phrasebox landing within the CLayout::PlaceBox() function. The values for tab 
+	// positions stay constant within the array while the phrasebox remains at the same
+	// location established at the PlaceBox() call.
+	// Hence, whenever the user mades an edit that changes the pixel length of the content
+	// within the phrasebox resulting in that pixel length crossing a pre-set pixel tab 
+	// position, a resize of the phrasebox will be triggered within the 
+	// CPhraseBox::OnPhraseBoxChanged() function. A single edit by the user, such as a
+	// paste of a lengthy portion of text, or the selection and deletion of a significant
+	// portion of text can result in the phrasebox text's pixel extent crossing more than
+	// one pixel tab stop for that single edit action. In that case the phrasebox resize 
+	// may make the resulting phrasebox size grow or shrink by more than one pixel tab 
+	// (slop) amount. For normal typing and backspace key presses, the OnPhraseBoxChanged()
+	// function is called at each key press, and only phrasebox size changes would be 
+	// triggered in those common editing scenarios at the point that the text extent of
+	// the resulting string content within the phrasebox crosses a pixel tab setting
+	// in the in array arrayTabPositionsInPixels.
+	wxArrayInt arrayTabPositionsInPixels;
+	int GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPosition, int boxContentPixelExtentAtThisEdit);
+
 	// BEW 14Aug18 deprecated 
 	// BEW 25Aug21 reinstated, to use the August 6 2018 versions
 	// BEW 23Sep21, kept the reinstatement, despite thinking these may be of limited or no 
@@ -207,8 +269,17 @@ public:
     void SetSizeAndHeightOfDropDownList(int width);
     wxString GetListItemAdjustedforPhraseBox(bool bSetEmptyAdaptationChosen);
     bool bUp_DownArrowKeyPressed; // initialized to FALSE at each location - at end of Layout's PlaceBox().
-    wxString initialPhraseBoxContentsOnLanding; // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
 
+	// whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
+	// whm 11Nov2022 expanded use of the following initialPhraseBoxContentsOnLanding variable
+	// to be the baseline for phrasebox content in refactored phrasebox resizing code within
+	// the OnPhraseBoxChanged() function.
+    wxString initialPhraseBoxContentsOnLanding; 
+	// The following are tab positions in pixels for controlling phrasebox expansion and contraction.
+	// The following value is the phrasebox's edit box width in pixels at PlaceBox() landing
+	int initialPixelTabPositionOnLanding;
+	// The following is the phrasebox's content extent after the current edit
+	int boxContentPixelExtentAtThisEdit;
     // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
     //wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
     //wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);

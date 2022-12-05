@@ -332,59 +332,118 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{	
 				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 				{
+					// We are adding the pile at the active location.
+					// ???????????????????????????????????????????????????????????????????
+					// whm 11Nov2022 TODO: Refactored the following code Lines 335 - 437
+					// Note that before refactoring the m_bDoExpand and m_bComparedWidthIsLonger
+					// boolean values were not initialized properly until OnPhraseBoxChanged() 
+					// executed. Hence, before any user edits both bools generally happen to be TRUE
+					// in their unitilialized state.
+					// After refactoring of 11Nov2022, the m_bDoExpand variable and the 
+					// m_bComparedWidthIsLonger bool are no longer useful/valid and were eliminated.
 
-
-					// BEW 13Sep21 comment out next two lines for present. See if I can get a widening
-					// of the phrasebox gap done here, while OnPhraseBoxChanged() is still active for
-					// a widening or contracting of the phrasebox gap's width. (If I can do that, then
-					// I'm a long way towards conquering the problem of expanding box, gap, and dropdown
-					// width all at the same time
-					if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand )
-					{	
-						if (m_pLayout->m_bCompareWidthIsLonger) // BEW 7Oct21 added this test
+					// whm 11Nov2022 removing the m_bDoExpand test from if () block below
+					//if (!gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand)
+					if (!gbDoingInitialSetup)
+					{
+						// whm testing shows that the other test above (for gbDoingInitialSetup being
+						// FALSE) is needed here because at least one call is made to CreateStrip() 
+						// BEFORE the Layout is completely setup and before the PlaceBox() function 
+						// is called where m_pLayout->m_nNewPhraseBoxGapWidth is initialized to 
+						// something other than -1.
+					
+						// whm 11Nov2022 Note: Before this refactoring, the m_bCompareWidthIsLonger 
+						// test below was not properly initialized until OnPhraseBoxChanged() was 
+						// triggered, and even in its unitialized state, it was generally TRUE 
+						// (because non-initialized bool values that don't happen to be 0 are TRUE 
+						// by definition). 
+						// whm 11Nov2022 UPDATE: The test of m_bCompareWidthIsLonger is not needed 
+						// any longer.
+						//if (m_pLayout->m_bCompareWidthIsLonger) // BEW 7Oct21 added this test
+						//{
+						// At least one successful expand has been done, and the typed text
+						// in the phrasebox (adaption, or gloss if glossing is turned on)
+						// has grown to the point that it has crossed the rightBoundary, and
+						// triggered m_bDoExpand to be TRUE; and an inner bubble of code in
+						// OnPhraseBoxChanged() has set up width values appropriate for a
+						// further width expansion later, if the user continues typing - the 
+						// pile gap is also cached in a new member of pLayout, called 
+						// m_nNewPhraseBoxGapWidth, with public access, so use it now
+						//
+						// whm 3Nov2022 modification. Bruce noticed that when the user manually adjusted the
+						// size of the main frame's window, that "piles were going missing after that point". They
+						// still existed, and coule be restored by clicking on a different target location which
+						// would bring them back into view. I discovered the cause of the problem was that
+						// 3 of the variables used here, especially the m_nNewPhraseBoxGapWidth variable was
+						// a large negative number like -842150451. During a resize of the main window, that large
+						// negative number was getting assigned to pileWidth in the unprotected statementbelow.
+						// The result was that all piles beyond the active phrasebox location were being assigne to
+						// a single strip, and the offsets for drawing those strips became a huge negative number
+						// so that all those remaining piles were being drawn miles off the left end of the screen!
+						// 
+						// To mitigate the problem (see UPDATE comment below), I've set the Layout's 
+						// m_nNewPhraseBoxGapWidth initial value now to -1, which is set in the App's OnInit(). 
+						// The only location where m_nNewPhraseBoxGapWidth [was] set to an actual meaningful value 
+						// [was] in CPhraseBox::GetBestTabSettingFromArrayForBoxResize() where it is assigned a 
+						// value that is intended to be a cached value, i.e., the value that was its most recent "new" 
+						// value due to a change in the phrasebox as detected by the OnPhraseBoxChanged() method. 
+						// If the phrasebox content has not changed up to this point, the value of Layout's 
+						// m_nNewPhraseBoxGapWidth will be -1 in particular, before OnPhraseBoxChanged() is 
+						// triggered due to a user's edit action.
+						// whm 11Nov2022 UPDATE: I've now also initialized the m_nNewPhraseBoxGapWidth within the 
+						// Layout's PlaceBox() routine just before it calls ResizeBox(). That initialization in 
+						// PlaceBox() technically eliminates the need to initialize it within the App's OnInit(), 
+						// as mentioned above, but it is a safety net to have it assigned to value of -1 in case 
+						// it needs to be referenced in a different situation.
+						// 
+						// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if m_nNewPhraseBoxGapWidth
+						// is something other than -1, so this modification tests for that -1 value and acts accordingly.
+						int gapWidth = pPile->CalcPhraseBoxGapWidth();// Returns the combined values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
+						gapWidth = gapWidth; // for testing
+						if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
 						{
-							// At least one successful expand has been done, and the typed text
-							// in the phrasebox (adaption, or gloss if glossing is turned on)
-							// has grown to the point that it has crossed the rightBoundary, and
-							// triggered m_bDoExpand to be TRUE; and an inner bubble of code in
-							// OnPhraseBoxChanged() has set up width values appropriate for a
-							// further width expansion later, if the user continues typing - the 
-							// pile gap is also cached in a new member of pLayout, called 
-							// m_nNewPhraseBoxGapWidth, with public access, so use it now
-							//
-							// whm 3Nov2022 modification. Bruce noticed that when the user manually adjusted the
-							// size of the main frame's window, that "piles were going missing after that point". They
-							// still existed, and coule be restored by clicking on a different target location which
-							// would bring them back into view. I discovered the cause of the problem was that
-							// 3 of the variables used here, especially the m_nNewPhraseBoxGapWidth variable was
-							// a large negative number like -842150451. During a resize of the main window, that large
-							// negative number was getting assigned to pileWidth in the unprotected statementbelow.
-							// The result was that all piles beyond the active phrasebox location were being assigne to
-							// a single strip, and the offsets for drawing those strips became a huge negative number
-							// so that all those remaining piles were being drawn miles off the left end of the screen!
-							// 
-							// To mitigate the problem, I've set the Layout's m_nNewPhraseBoxGapWidth initial value
-							// now to -1, which is set in the App's OnInit(). The only location where m_nNewPhraseBoxGapWidth 
-							// is set to an actual meaningful value is in CPhraseBox::OnPhraseBoxChanged() where it is 
-							// assigned a value that is intended to be a cached value, i.e., the value that was its most 
-							// recent "new" value due to a change in the phrasebox as detected by the OnPhraseBoxChanged() 
-							// method. IF the phrasebox content has not changed up to this point, the value of Layout's 
-							// m_nNewPhraseBoxGapWidth will be -1.
-							// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if m_nNewPhraseBoxGapWidth
-							// is something other than -1, so this modification tests for that -1 value and acts accordingly.
-							if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
-							{
-								pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
-							}
-//#if defined (_DEBUG)
-//							{
-//								wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
-//									__FILE__, __FUNCTION__, __LINE__, pileWidth);
-//							}
-//#endif
+							// Were NOT in gbDoingInitialSetup, but creating the strip that will actually 
+							// be drawn, and Layout's m_nNewPhraseBoxGapWidth is valid, so we'll use it 
+							// here for piieWidth.
+							// Following BEW's code get the largest width of curBoxWidth or curListWidth,
+							// and save them on the Layout's m_curBoxWidth and m_curListWidth.
+							int curBoxWidth = m_pLayout->m_curBoxWidth;
+							int curListWidth = m_pLayout->m_curListWidth;
+							// Take the larger of the two
+							int theMax = wxMax(curBoxWidth, curListWidth);
+							// Make both agree
+							m_pLayout->m_curBoxWidth = theMax;
+							m_pLayout->m_curListWidth = theMax;
+
+							pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth; // includes GetExtraWidthForButton()
 						}
 						else
 						{
+							// The m_nNewPhraseBoxGapWidth is -1 (uninitialized) which should not really happen
+							// anymore since refactoring, but just in case, assign pileWidth using the normal
+							// calculations for m_nNewPhraseBoxGapWidth
+							// Following BEW's code get the largest width of curBoxWidth or curListWidth,
+							// and save them on the Layout's m_curBoxWidth and m_curListWidth.
+							int curBoxWidth = m_pLayout->m_curBoxWidth;
+							int curListWidth = m_pLayout->m_curListWidth;
+							// Take the larger of the two
+							int theMax = wxMax(curBoxWidth, curListWidth);
+							// Make both agree
+							m_pLayout->m_curBoxWidth = theMax;
+							m_pLayout->m_curListWidth = theMax;
+
+							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
+						}
+//#if defined (_DEBUG)
+//						{
+//							wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
+//									__FILE__, __FUNCTION__, __LINE__, pileWidth);
+//						}
+//#endif
+						//}
+						//else
+						//{
+							/*
 							//int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // BEW removed 7Oct21
 							int curBoxWidth = m_pLayout->m_curBoxWidth;
 							int curListWidth = m_pLayout->m_curListWidth;
@@ -395,16 +454,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							m_pLayout->m_curListWidth = theMax;
 
 							// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
-							// following files will move to accomodate it
-							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); //+gap;
+							// following piles will move to accomodate it
+							// whm 11Nov2022 modification: It seems that pileWidth assignment here could be the same
+							// as in the if () block above using m_nNewPhraseBoxGapWidth, i.e., pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth
+							*/
+							//pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); //+gap;
+							//pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
 //#if defined (_DEBUG)
 //							{ // scoped block - BEW added 28Sep21 to track the pileWidth value
 //								wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding buttonwidth %d , pileWidth = %d"),
 //									__FILE__, __FUNCTION__, __LINE__, curBoxWidth, theMax, m_pLayout->m_curBoxWidth, pileWidth);
 //							}
 //#endif
-						}
+						//}
 					}
+					// whm 11Nov2022 Note: The else if block below was never executing because m_bDoContract was always set FALSE
+					// and never set anywhere to TRUE. I've commented out this block because of m_bDoContract never getting
+					// a TRUE value, however, the code below needs some study to see if it should be included in some form
+					// within other code where the phrasebox is actually contracting (such as within the
+					// CPhraseBox::GetBestTabSettingFromArrayForBoxResize() function.
+					/*
 					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
 					{ 
 						int slop = m_pLayout->slop;
@@ -415,33 +484,50 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						// Make both agree
 						m_pLayout->m_curBoxWidth = theMax;
 						m_pLayout->m_curListWidth = theMax;
-						// Subract the slop but add 2 'w' widths, to each, making box 
-						// a little longer (list must agree too); do it provided the currBoxWidth
-						// does not got less than or equal to layout's m_defaultActivePileWidth value
-						m_pLayout->m_curBoxWidth -= slop; 
+						m_pLayout->m_curBoxWidth -= slop;
 						m_pLayout->m_curBoxWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
 						m_pLayout->m_curListWidth -= slop;
 						m_pLayout->m_curListWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
+						// whm 11Nov2022 note: comment below mentions m_defaultActivePileWidth, but
+						// that value is never referenced anywhere within the current code base, and
+						// is only assigned a value within the OnOK() handler of EditPreferencesDlg.cpp
+						// for a font change. 
+						// Subract the slop but add 2 'w' widths, to each, making box 
+						// a little longer (list must agree too); do it provided the currBoxWidth
+						// does not got less than or equal to layout's m_defaultActivePileWidth value
 
 						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
 						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); 
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); 
 						pileWidth += (2 * m_pLayout->m_pApp->m_width_of_w) + 2 *gap + 4;
 					}
+					*/
 					else
 					{
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->ExtraWidth(); 
+						// gbDoingInitialSetup is TRUE so We're still in initial setup, and this strip
+						// won't actually be drawn. Can't really get a max value for curBoxWidth and
+						// curListWidth since curListWidth is undefined while gbDoingInitialSetup is TRUE.
+
+						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); 
 					}
+					// whm 11Nov2022 Refactored the above code Lines 335 - 437
+					// Note that m_bDoExpand and m_bComparedWidthIsLonger are no longer useful/valid bool 
+					// values and were eliminated.
+					// ???????????????????????????????????????????????????????????????????
+
 				}
 				else
 				{
+					// This pile is NOT the active pile, so we assign the pileWidth to the m_nMinWidth 
+					// value and add the gap for nCurrentSpan
 					pileWidth = pPile->m_nMinWidth;
 				}
 			}
 			// whm 23Sep2021 added the gap value back to calculation of each nCurrentSpan below, otherwise
 			// the value of nCurrentSpan will not have been decremented properly within the if (nCurrentSpan <= m_nFree) 
-			// test block below.  
-			nCurrentSpan = pileWidth +gap; // this much has to fit in the m_nFree space for this
+			// test block below.
+			// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
+			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)
 			{
@@ -706,6 +792,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
+		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
 							// for this pile to be eligible for inclusion in the strip	
 		if (nCurrentSpan <= m_nFree)
@@ -714,21 +801,20 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			m_arrPiles.Add(pPile); // store it
 			//if (m_pLayout->m_boxMode == contracting)  BEW 12Oct21 removed
 			// 
-			// whm 3Nov2022 Note that the if ... else blocks below add a gap to the
+			// whm 11Nov2022 Note that the if ... else blocks below add a gap to the
 			// second and following lines of the strip when m_bDoContract is TRUE, but
-			// not when it is FALSE. The m_bDoContract value is initialized within
-			// CPhraseBox::OnPhraseBoxChanged() to be FALSE.
-			// here the gap value is added to the second and following pile offsets
-			// however, after the first character is typed, the gap value is not included
-
-			if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
-			{
-				m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
-			}
-			else
-			{
-				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-			}
+			// not when it is FALSE. The m_bDoContract value was initialized within
+			// the codebase in several places to be FALSE, but was never set TRUE!
+			// The refactored phrasebox sizing no longer uses the m_bDoContract bool
+			// variable, and is now removed.
+			//if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
+			//{
+			//	m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
+			//}
+			//else
+			//{
+			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			//}
 			numPlaced++; // increment counter of how many placed
 			pileIndex++; // set tracker index to index of next pile to be placed
 			m_nFree -= nCurrentSpan; // reduce the free space accordingly

@@ -74,10 +74,9 @@ private:
 	CStrip* m_pOwningStrip;
 	CCell* m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nPile; // what my index is in the strip object
-	int				m_nWidth; // stores width as calculated from PhraseBox width, so is valid only at active
 							  // location; at other piles it stores -1
-	int				m_nMinWidth; // this stores the actual pile width based on the extent of the text
 	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
+	int			m_nWidth; // stores width as calculated from PhraseBox width, so is valid only at active
 
 	// destructor
 public:
@@ -88,15 +87,22 @@ public:
 	void		PrintPhraseBox(wxDC* pDC);
 	bool		IsWrapPile();
 
+	// whm 11Nov2022 moved m_nMinWidth to public
+	int			m_nMinWidth; // this stores the actual pile width based on the extent of the text
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	int			CalcExtentsBasedWidth(); // a cut down version of CalcPileWidth for use in OnPhraseBoxChanged
-	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
-	int			CalcPhraseBoxGapWidth();
+	// whm 11Nov2022 Note: The following CalcPhraseBoxGapWidth() combines returned values from 
+	// CalcPhraseBoxWidth() + GetExtraWidthForButton()
+	int			CalcPhraseBoxGapWidth(); // combines returned values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
 
-	int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
+	// whm 11Nov2022 removed the following declarations of m_nNewPhraseBoxGapWidth
+	// and m_nOldPhraseBoxGapWidth as they are never used. 
+	// The one of the same name m_nNewPhraseBoxGapWidth that is used is actually 
+	// declared as a member of CLayout.
+	//int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
 										 // the phrasebox gap width at the active pile, by a value calculated in
 										 // OnPhraseBoxChanged(), and set there.
-	int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
+	//int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
 	int			CalcPhraseBoxWidth();
 
 	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
@@ -124,28 +130,33 @@ public:
 	wxRect		GetPileRect(); // overloaded version
 	void		TopLeft(wxPoint& ptTopLeft);
 
-	void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
-	void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
+	// whm 11Nov2022 removed the following function as it is never used.
+	//void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
+	//void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
 
-//GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
-	int			SetPhraseBoxGapWidth();
+	// whm 11Nov2022 removed the following functions. They are no longer of value
+	// in the refactored phrasebox resizing routines.
+	//int			SetPhraseBoxGapWidth();
 	// sets m_nWidth (the width to be used at active 
 	//location, calls CalcPhraseBoxGapWidth())
 
-	int			SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets Layout's the m_nWidth pile member
+	// whm 11Nov2022 removed the following function as it was unused.
+	//int			SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets Layout's the m_nWidth pile member
 					// to an explicit number of pixels, as calculated externally, and returns its value
 					// To be correct, it must have the new boxWidth value + buttonWidth + 1 + interpilegap
 					// already added to it, as no further calcs of with will be done.
 	
-	int			GetMinWidth(); // returns value of m_nMinWidth
-	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
-	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
-	void		SetPhraseBoxWidth(); // BEW added 19Jul18
-	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
-	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  accessor, gets Layout's m_curListWidth value
-	void		SetPhraseBoxListWidth(int listWidth); // BEW changed 27Sep21  accessor, set's Layout's m_curListWidth value, 
+	// whm 11Nov2022 removed the following functions. They are no longer of value
+	// in the refactored phrasebox resizing routines.
+	//int		GetMinWidth(); // returns value of m_nMinWidth
+	//int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
+	//int		GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
+	//void		SetPhraseBoxWidth(); // BEW added 19Jul18
+	//void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width - unused
+	//int			GetPhraseBoxListWidth(); // BEW added 24Jul18  accessor, gets Layout's m_curListWidth value
+	//void		SetPhraseBoxListWidth(int listWidth); // BEW changed 27Sep21  accessor, set's Layout's m_curListWidth value, 
 					 // after calling int CalcPhraseBoxListWidth() at m_pActivePile
 
 	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width

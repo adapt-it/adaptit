@@ -4573,7 +4573,8 @@ public:
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     bool        m_bMovingToDifferentPile;
 
-    short       m_nExpandBox;
+	// whm 11Nov2022 renamed m_nExpandBox to m_nBoxSlop for greater clarity and self-documentation.
+    short       m_nBoxSlop;
 	bool		m_bFinalGapWidthReady; // False, until set TRUE by a RecalcLayout() call.
 
     /// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so
@@ -5871,7 +5872,10 @@ private:
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
 
-	bool    m_bJustKeyedBackspace; // BEW 3Sep21
+	// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
+	// phrasebox sizing
+	//bool    m_bJustKeyedBackspace; // BEW 3Sep21
+
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day
 #endif
