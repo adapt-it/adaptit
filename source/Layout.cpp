@@ -1472,7 +1472,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	// Set the Layout's m_curListWidth value here at the end of PlaceBox() to the value
 	// calculated from the active pile's CalcPhraseBoxListWidth().
 	m_pApp->m_pLayout->m_curListWidth = m_pApp->m_pActivePile->CalcPhraseBoxListWidth();
-
 }
 
 // BEW added 3Aug21, when the legacy boxWidth needed to
@@ -2554,6 +2553,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			//gbContracting = FALSE;
 			return TRUE;
 		}
+
+		// whm 11Nov2022 added SendSizeEvent() which helps to make sure that if a phrasebox pile
+		// is moved to a following line that the piles following it are properly laid out.
+		m_pApp->GetMainFrame()->SendSizeEvent();
+
 	}
 	/*
 	#ifdef _DEBUG
