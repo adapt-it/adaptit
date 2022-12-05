@@ -19230,14 +19230,14 @@ force_new:
 					// Might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
 					// test and jump to further down -- so that \yy ends up in m_markers, and
 					// not somewhere else
-					int xxx = 0; wxUnusedVar(xxx); // enables clean jump to isnull label
-					wxString pointsAt = wxEmptyString; // init
-					wxString wholeMkrAtPtr = wxEmptyString; // init
-					wxString pointsAtFirst = wxEmptyString; // init
-					wxString pointsAtPtr = wxEmptyString; // init
-					wxString strAuxPointsAt = wxEmptyString; //init
-					wxString fMkr = wxEmptyString; wxString feMkr = wxEmptyString; 
-					wxString xMkr = wxEmptyString; wxString exMkr = wxEmptyString;
+					int xxx;
+					wxString pointsAt;
+					wxString wholeMkrAtPtr;
+					wxString pointsAtFirst;
+					wxString pointsAtPtr;
+					wxString strAuxPointsAt;
+					wxString fMkr; wxString feMkr;
+					wxString xMkr; wxString exMkr;
 					if (pUsfmAnalysis == NULL)
 					{
 						goto isnull;
@@ -19253,13 +19253,13 @@ force_new:
 					// This test will be TRUE for a marker like \fig when it's not to be filtered,
 					// because at the begin-marker, baseOfEndMkr will be empty and bIsToBeFiltered will
 					// be FALSE. So a span of CSourcePhrases, not yet tokenized, would lie ahead of ptr. 
-					bool bIsAMkr = FALSE; // init
+					bool bIsAMkr;
 					bIsAMkr = IsMarker(ptr);
-					bool bNotEndMkr = FALSE;
+					bool bNotEndMkr;
 					bNotEndMkr = !IsEndMarker2(ptr);
-					bool bInLine = FALSE;
+					bool bInLine;
 					bInLine = (bool)pUsfmAnalysis->inLine;
-					bool bNotForFiltering = FALSE;
+					bool bNotForFiltering;
 					bNotForFiltering = !bIsToBeFiltered;
 
 					wholeMkrAtPtr = GetWholeMarker(ptr);
@@ -19315,7 +19315,8 @@ force_new:
 					}
 					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-					wxChar* pSavePtr = ptr;
+					wxChar* pSavePtr;
+					pSavePtr = ptr;
 					if (bIsAMkr && bNotEndMkr && bInLine && bNotForFiltering && m_bIsWithinUnfilteredInlineSpan)
 					{
 						m_strUnfilteredInlineBeginMarker = gSFescapechar + tagOnly; // e.g. \f or \fig etc
@@ -19834,7 +19835,7 @@ force_new:
 						// or it's not one that can be filtered (by checking in pUsfmAnalysis)
 						// BEW 30Sep19  Attribute hiding, if to be done, is done in ParseWord()
 						// so there is nothing to be added here for USFM 3.0
-isnull:	xxx = 0;		// dummy convenience variable as a destination for jump
+isnull:	xxx;		// dummy convenience variable as a destination for jump
 
 						// BEW 30Sep19, since control will go to ParsePreWord() which needs
 						// to know correct values for the booleans:
@@ -32942,13 +32943,25 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						// What comes next? maybe space, maybe and endMkr, maybe a beginMkr, maybe space followed by more punctuation
 						// provide such punctuation is not curly initial quote (because the latter would signal the start of the
 						// next pSrcPhrase and hence a return of len is due). Work thru the options....
-						wxString wholeMkr = wxEmptyString; // init
+						wxString wholeMkr;
+						bool bIsEndMkr;
+						bool bIsBeginMkr;
+						int saveLen;
+						wxChar space;
+						wxChar* pAux;
+						int newLen;
+						int nSpacesCount;
+						wxString extraSpaces;
+						wxString morePuncts;
+						int nHowMany;
+
+						wholeMkr = wxEmptyString; // init
 						//wxString wholeMkr2 = wxEmptyString; // init
-						bool bIsEndMkr = FALSE; // init
-						bool bIsBeginMkr = FALSE; // init
-						int saveLen = 0; // init
-						wxChar space = _T(' ');
-						wxChar* pAux = NULL; // init
+						
+						bIsBeginMkr = FALSE; // init
+						saveLen = 0; // init
+						space = _T(' ');
+						pAux = NULL; // init
 						//wxChar* pAux2 = NULL; // init
 						//int saveLen2 = 0; // init
 						bIsBeginMkr = IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr);
@@ -32987,14 +33000,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								{
 									saveLen = len;
 									pAux = ptr;
-									int newLen = len;
+									newLen = len;
 									// The next call will git pAux past the space, leaving pAux pointing at what follows - 
 									// potentially one or more following puncts - such as ”
 									newLen = ParseOverAndIgnoreWhiteSpace(pAux, pEnd, newLen); // pAux and newLen are updated within
 									if (newLen > saveLen)
 									{
-										int nSpacesCount = newLen - saveLen;
-										wxString extraSpaces = wxEmptyString;
+										nSpacesCount = newLen - saveLen;
+										extraSpaces = wxEmptyString;
 										if (nSpacesCount > 0)
 										{
 											extraSpaces = wxString(ptr, nSpacesCount);
@@ -33004,8 +33017,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										itemLen = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);
 										if (itemLen > 0) // space or a marker of any kind would have halted the parse
 										{
-											wxString morePuncts = wxString(pAux, itemLen);
-											int nHowMany = morePuncts.Len();
+											morePuncts = wxString(pAux, itemLen);
+											nHowMany = morePuncts.Len();
 											if (nSpacesCount > 0)
 											{
 												pSrcPhrase->m_follPunct += extraSpaces;
@@ -33399,7 +33412,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					}
 				}
 #endif
-				bool bIsBeginMkr = FALSE;
+				bool bIsBeginMkr;
+
+				bIsBeginMkr = FALSE;
 				if (*ptr == gSFescapechar)
 				{
 					wxString wholeMarker = GetWholeMarker(ptr);
@@ -33426,13 +33441,21 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					return len;
 				}
 				// now we are sure if we have a marker at ptr, it isn't a begin marker - e.g. \f
-				bool bFoundEndMkr = FALSE; // init
-				bool bIsEndMkr = IsEndMarker(ptr, pEnd);
-				bool bFoundAtLeastOne = FALSE;
+				bool bFoundEndMkr;
+				bool bIsEndMkr;
+				bool bFoundAtLeastOne;
+
+				bIsEndMkr = IsEndMarker(ptr, pEnd);
 				if (bIsEndMkr)
 				{
 					bFoundEndMkr = TRUE;
 					bFoundAtLeastOne = TRUE; // provided this is TRUE, return updated len when all are parsed
+				}
+				else
+				{
+					bFoundEndMkr = FALSE;
+					bFoundAtLeastOne = FALSE; // provided this is TRUE, return updated len when all are parsed
+
 				}
 #if defined (_DEBUG) && defined(WHERE)
 				{
@@ -34004,7 +34027,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					return len;
 				} // end of else block for test: if ((ptr < pEnd) && bWJ_or_Similar_Is_Ahead && (nHowManyPrecedingPuncts > 0)) -- correct indent
 
-				wxChar* pSavePtr = NULL;
+				wxChar* pSavePtr;
+
 				pSavePtr = ptr; // we may need to restore ptr to here in what follows
 				wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
@@ -34061,7 +34085,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// strFirstPuncts is either empty, or one or more punctuation chars
 				// What's next. After a word, there might be an inline binding mkr to be parsed over, and added to
 				// pSrcPhrase->m_inlineBindingEndMarkers (private, so use accessors)
-				bool bIsAnEndMkr = IsEndMarker(ptr, pEnd);
+				bool bIsAnEndMkr;
+
+				bIsAnEndMkr = IsEndMarker(ptr, pEnd);
 #if defined (_DEBUG) && defined(WHERE)
 				{
 					wxString pointsAt = wxString(ptr, 20);
