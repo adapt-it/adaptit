@@ -474,25 +474,22 @@ public:
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar* pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar* pChar,
-		wxChar* pBuffStart, wxChar* pEnd);
-	wxChar* FindParseHaltLocation(wxChar* ptr, wxChar* pEnd,
-		bool* pbFoundInlineBindingEndMarker,
-		bool* pbFoundFixedSpaceMarker,
-		bool* pbFoundClosingBracket,
-		bool* pbFoundHaltingWhitespace,
-		int& nFixedSpaceOffset,
-		int& nEndMarkerCount,
-		bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
-				// added the bTokenizingTargetText boolean
-	void	ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
-				int nEndMkrsCount, wxString& inlineBindingEndMarkers,
-				wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
-				wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
-	wxString	SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
+	wxChar*			pBuffStart, wxChar* pEnd);
+	wxChar*			FindParseHaltLocation(wxChar* ptr, wxChar* pEnd, bool* pbFoundInlineBindingEndMarker,
+						bool* pbFoundFixedSpaceMarker, bool* pbFoundClosingBracket,
+						bool* pbFoundHaltingWhitespace, int& nFixedSpaceOffset,
+						int& nEndMarkerCount, bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
+						// and added the bTokenizingTargetText boolean
+	void			ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+						int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+						wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+						wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
+	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
-	bool		m_bIsInFigSpan;
-	wxString	m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
-	bool		m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
+	bool			m_bIsInFigSpan;
+	wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
+	bool			m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
+	bool			IsBeginMarker(wxChar* pChar, wxChar* pEnd, wxString& wholeMarker, bool& bIsEndMkr);
 
 	// BEW 30Sep19 created this (valid for ParseWord() or ParseWord2()) to pull out
 	// pre-word-proper processing into TokenizeText() - because things like \fig were

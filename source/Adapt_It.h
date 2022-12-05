@@ -2451,6 +2451,8 @@ class CAdapt_ItApp : public wxApp
 	wxString m_temp_password;
 	wxString m_temp_useradmin_flag;
 
+	int m_curSequNum_ForPlacementDialog;
+
 	// BEW 20jUl17, the following boolean, when TRUE, is used to switch to being on,
 	// the discovery of one or more KBservers which are able to accept access, in a single session.
 	bool m_bDiscoverKBservers;

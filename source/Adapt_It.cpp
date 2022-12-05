@@ -63605,6 +63605,11 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 
 // BEW added 17May18 returns the adaptation string with saved punctuation restored,
 // for setting m_targetStr
+// BEW 24Nov22, refactored so that it will suffice for working only to restore following and
+// following outer punctuation. Use the endingStr empty as the needed flag for suppressing
+// addition of preceding punctuation. Use this in MakeTargetStringIncludingPunctuation().
+// I also add a check of tgt punctuation not being already at the end of m_adaption, to
+// ensure there is no duplication of following puncts
 wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr)
 {
 	wxString str = wxEmptyString;
@@ -63613,11 +63618,31 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, w
 		wxASSERT(pSrcPhrase != NULL);
 		return str;
 	}
-	if (pSrcPhrase->m_adaption.IsEmpty())
+	if (pSrcPhrase->m_adaption.IsEmpty() && m_pTargetBox->GetTextCtrl()->IsEmpty())
 	{
 		return str;
 	}
-	str = pSrcPhrase->m_adaption;
+    else
+    {
+        if (endingStr.IsEmpty())
+        {
+            // Value targetBox's wxTextCtrl has content, so set m_adaption to it
+            pSrcPhrase->m_adaption = m_pTargetBox->GetTextCtrl()->GetValue();
+        }
+        // When endingStr is not empty, leave m_adaption alone - it's typically unset
+        // in the legacy way of doing things, at this point
+    }
+	str = pSrcPhrase->m_adaption; // likely to be empty, if endingStr had content
+    bool bNoFinalPuncts = TRUE; // init
+    //BEW 24Nov22, if what's in the box already has final puncts, don't go adding them again. Check
+    if (endingStr.IsEmpty() && !str.IsEmpty())
+    {
+        wxChar chLast = str.Last();
+        if (m_strSpacelessTargetPuncts.Find(chLast) >= 0)
+        {
+            bNoFinalPuncts = FALSE;
+        }
+    }
 	// BEW added 19Feb20, use of endingStr if non-empty, to add ] or ) when needed (as punctuation)
 	// - it has to be added before any other puncts originating from source text can get added
 	if (!endingStr.IsEmpty())
@@ -63625,17 +63650,20 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, w
 		str += endingStr; // endingStr will, if it has anything, whatever is the appropriate
 						  // ending, whether ] or )
 	}
-	if (!pSrcPhrase->m_precPunct.IsEmpty())
+	if (!pSrcPhrase->m_precPunct.IsEmpty() && !endingStr.IsEmpty()) // BEW added 2nd test, 24Nov22
 	{
-		str = pSrcPhrase->m_precPunct + str;
+        wxString precPunct_tgt = GetConvertedPunct(pSrcPhrase->m_precPunct);
+		str = precPunct_tgt + str;
 	}
-	if (!pSrcPhrase->m_follPunct.IsEmpty())
+	if (!pSrcPhrase->m_follPunct.IsEmpty() && bNoFinalPuncts)
 	{
-		str += pSrcPhrase->m_follPunct;
+        wxString follPunct_tgt = GetConvertedPunct(pSrcPhrase->m_follPunct);
+		str += follPunct_tgt;
 	}
-	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() && bNoFinalPuncts)
 	{
-		str += pSrcPhrase->GetFollowingOuterPunct();
+        wxString follOuterPunct_tgt = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
+		str += follOuterPunct_tgt;
 	}
 	return str;
 }
@@ -63892,6 +63920,7 @@ bool CAdapt_ItApp::FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& en
 		{
 			// Found \f*
 			endMkr = mkr;
+
 			return TRUE;
 		}
 		mkr = _T("\\x*");
