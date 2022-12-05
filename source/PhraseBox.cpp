@@ -1464,14 +1464,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	}
 #endif
 
-/* #if defined(_DEBUG)
-	CPile* myPilePtr = pApp->GetView()->GetPile(pApp->m_nActiveSequNum);
-	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
-	wxLogDebug(_T("MoveToNextPile() at start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
-		mySrcPhrasePtr->m_targetStr.c_str(), pApp->m_targetPhrase.c_str());
-#endif */
-
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
 	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
