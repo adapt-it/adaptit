@@ -462,7 +462,7 @@ protected:
 	void OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event);
 	void OnMarkerWrapsStrip(wxCommandEvent& event);
 	void OnUpdateEditUndo(wxUpdateUIEvent& event);
-	void OnEditUndo(wxCommandEvent& event);
+	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateImportToKb(wxUpdateUIEvent& event);
 	void OnImportToKb(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonGoTo(wxUpdateUIEvent& event); // whm 25Oct2022 changed from OnUpdateButtonBack() to OnUpdateButtonGoTo()

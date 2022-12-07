@@ -746,11 +746,11 @@ void CCell::Draw(wxDC* pDC)
 				// default text colors and most that the user might choose
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 				pDC->SetTextBackground(m_pLayout->m_pApp->m_AutoInsertionsHighlightColor); // light purple
-#ifdef Highlighting_Bug
-				// BEW changed 9Apr12 to reflect supported discontinuous auto-insertions highlighting
-				wxLogDebug(_T("Cell::Draw(), *PURPLE* at %d  %s"),
-					m_pOwningPile->m_pSrcPhrase->m_nSequNumber, m_pOwningPile->m_pSrcPhrase->m_srcPhrase);
-#endif
+//#ifdef Highlighting_Bug
+//				// BEW changed 9Apr12 to reflect supported discontinuous auto-insertions highlighting
+//				wxLogDebug(_T("Cell::Draw(), *PURPLE* at %d  %s"),
+//					m_pOwningPile->m_pSrcPhrase->m_nSequNumber, m_pOwningPile->m_pSrcPhrase->m_srcPhrase);
+//#endif
 			}
 		}
 	}

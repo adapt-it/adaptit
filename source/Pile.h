@@ -87,22 +87,15 @@ public:
 	void		PrintPhraseBox(wxDC* pDC);
 	bool		IsWrapPile();
 
-	// whm 11Nov2022 moved m_nMinWidth to public
+	// whm 11Nov2022 moved m_nMinWidth here to public
 	int			m_nMinWidth; // this stores the actual pile width based on the extent of the text
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	int			CalcExtentsBasedWidth(); // a cut down version of CalcPileWidth for use in OnPhraseBoxChanged
-	// whm 11Nov2022 Note: The following CalcPhraseBoxGapWidth() combines returned values from 
-	// CalcPhraseBoxWidth() + GetExtraWidthForButton()
+	
+	// whm 11Nov2022 Note: The following CalcPhraseBoxGapWidth() combines the returned values 
+	// from CalcPhraseBoxWidth() + GetExtraWidthForButton()
 	int			CalcPhraseBoxGapWidth(); // combines returned values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
 
-	// whm 11Nov2022 removed the following declarations of m_nNewPhraseBoxGapWidth
-	// and m_nOldPhraseBoxGapWidth as they are never used. 
-	// The one of the same name m_nNewPhraseBoxGapWidth that is used is actually 
-	// declared as a member of CLayout.
-	//int			m_nNewPhraseBoxGapWidth; // BEW 2Sep21, public, 0 except when expanding or contracting the phrasebox
-										 // the phrasebox gap width at the active pile, by a value calculated in
-										 // OnPhraseBoxChanged(), and set there.
-	//int			m_nOldPhraseBoxGapWidth; // the width, in OnPhraseBoxChange(), before any width change is computed
 	int			CalcPhraseBoxWidth();
 
 	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
@@ -130,37 +123,9 @@ public:
 	wxRect		GetPileRect(); // overloaded version
 	void		TopLeft(wxPoint& ptTopLeft);
 
-	// whm 11Nov2022 removed the following function as it is never used.
-	//void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
-	//void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
-
-	// whm 11Nov2022 removed the following functions. They are no longer of value
-	// in the refactored phrasebox resizing routines.
-	//int			SetPhraseBoxGapWidth();
-	// sets m_nWidth (the width to be used at active 
-	//location, calls CalcPhraseBoxGapWidth())
-
-	// whm 11Nov2022 removed the following function as it was unused.
-	//int			SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets Layout's the m_nWidth pile member
-					// to an explicit number of pixels, as calculated externally, and returns its value
-					// To be correct, it must have the new boxWidth value + buttonWidth + 1 + interpilegap
-					// already added to it, as no further calcs of with will be done.
-	
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
-	// whm 11Nov2022 removed the following functions. They are no longer of value
-	// in the refactored phrasebox resizing routines.
-	//int		GetMinWidth(); // returns value of m_nMinWidth
-	//int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
-	//int		GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
-	//void		SetPhraseBoxWidth(); // BEW added 19Jul18
-	//void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width - unused
-	//int			GetPhraseBoxListWidth(); // BEW added 24Jul18  accessor, gets Layout's m_curListWidth value
-	//void		SetPhraseBoxListWidth(int listWidth); // BEW changed 27Sep21  accessor, set's Layout's m_curListWidth value, 
-					 // after calling int CalcPhraseBoxListWidth() at m_pActivePile
 
-	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
-	//int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 
@@ -168,7 +133,6 @@ private:
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information. MFC uses DECLARE_DYNCREATE(CClassName)
-
 };
 
 #endif // Pile_h

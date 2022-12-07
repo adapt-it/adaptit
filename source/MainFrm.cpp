@@ -3972,7 +3972,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 		pView->Invalidate();
-        // whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
+        // whm 18Aug2018 the PlaceBox() call here should use noDropDownInitialization enum value.
 		// whm 11Nov2022 note: The following PlaceBox() call is needed in the event that the
 		// frame resize causes the phrasebox to move to a different strip. Without the PlaceBox() 
 		// call, the phrasebox may not stay together with the active pile it is associated with.
