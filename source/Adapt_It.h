@@ -62,7 +62,6 @@
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 //#define _NEWDRAW
-//#define _EXPAND
 //#define _OVERLAP
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
@@ -5871,10 +5870,6 @@ private:
 	bool	SetupCustomWorkFolderLocation();
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
-
-	// whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
-	// phrasebox sizing
-	//bool    m_bJustKeyedBackspace; // BEW 3Sep21
 
 #if defined(_DEBUG)
 //	void	RemoveDeveloperMenuItem(); // BEW added 10Oct19 & removed same day

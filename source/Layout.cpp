@@ -1,13 +1,3 @@
-// Deprecation List..... get rid of these later....
-/*
-gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
-but the view still uses them at the moment, so I've not removed them yet
-
-m_bSaveAsXML on app, not needed in WX version -- but not removed yet,
-it's used in a lot of tests and removing it will take a bit of careful work
-gbBundleChanged  defined in CAdapt_ItView.cpp
-
-*/
 
 //#define _OFFSETS_BUG
 
@@ -240,9 +230,6 @@ void CLayout::InitializeCLayout()
 
 	m_bAmWithinPhraseBoxChanged = FALSE; 
 	
-	// whm 11Nov2022 not longer need to track a global m_bJustKeyedBackspace
-	//m_pApp->m_bJustKeyedBackspace = FALSE;  // Set TRUE or FALSE in CPhraseBox's OnChar()
-
 #ifdef Do_Clipping
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
 	m_bDoFullWindowDraw = FALSE;
@@ -251,13 +238,6 @@ void CLayout::InitializeCLayout()
 	// the session-persistent m_pLayout pointer on the app class have the basic info it
 	// needs, other document-related initializations can be done in SetupLayout()
 	slop = 40; // low, default value
-	// whm 11Nov2022 Note: I'm not sure why BEW commented out the following m_defaultActivePileWidth line which
-	// he did in his commit of 18Aug2021, but left no comment.
-	// This is the only place in code other than the OnOK() handler of the EditPreferencesDlg - after a font change.
-	// In any case, the m_defaultActivePileWidth variable is nowhere referenced within the code base. There is only
-	// a comment about its use in Strip.cpp at abouit line 430. 
-	// Therefore, I'm removing m_defaultActivePileWidth entirely from the code.
-	//m_defaultActivePileWidth = GetDefaultActivePileWidth(); // value will change if font size changes
 }
 
 // for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
@@ -636,7 +616,6 @@ bool CLayout::GetFullWindowDrawFlag()
 // m_width_of_w value, and returns the calculated new value to the caller.
 int CLayout::GetDefaultActivePileWidth()
 {
-	// Use this to set the public m_defaultActivePileWidth Layout member int
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	int width = (pApp->m_width_of_w * 4); // 4 times about 13 pixels for font around 14 to 16 pts size
 	// Note, this calculation is only used from CalcPileWidth() when the pile is the active one
@@ -750,15 +729,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		bool bSetTextColor = FALSE; // initialize, governs whether or not we reset
 									// the box's text colour
 
-
-		// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
-		// and list, the box gap may also be much smaller than it needs to be - so while
-		// we have a valid pActivePile, get the gap and box width calculations refreshed
-		// before they get used in a RecalcLayout() call.
-		// 
-		// whm 11Nov2022 removed the following function. SetPhraseBoxWidth() is no longer of value
-		// in the refactored phrasebox resizing routines.
-		//pActivePile->SetPhraseBoxWidth(); // this is the legacy call - always been here
 
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
@@ -1033,9 +1003,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
-		//#if defined(_DEBUG)
-		//	wxLogDebug(_T("CLayout::PlaceBox() line %d: PhraseBox contents:   %s"), __LINE__, m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
-		//#endif
 
 		// whm 11Nov2022 added initialization of m_nNewPhraseBoxGapWidth here in PlaceBox().
 		// I had already added a -1 initialization within the App's OnInit() because the
@@ -1048,6 +1015,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// located. With this initialization here to a real valid value, the protective code
 		// aroung the use of m_nNewPhraseBoxGapWidth in CreateStrip() should no longer be 
 		// necessary.
+		// 
 		// whm 11Nov2022 observation: The phrasebox gap width at initial PlaceBox() appears wider
 		// at document opening and after simply placing the phrasebox randomly around under
 		// source text. The extra width I think is due to a width addition that gets added
@@ -1061,7 +1029,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// was calculated afresh above. It seems that the extra width is due to faulty gap
 		// calculations somewhere, rather than being a fault in the calculations of the left
 		// offsets.
-		//m_nNewPhraseBoxGapWidth = m_curBoxWidth + GetExtraWidthForButton();
 		m_nNewPhraseBoxGapWidth = phraseBoxWidth + GetExtraWidthForButton();
 
 
@@ -1069,8 +1036,8 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
 		// causes it to be visible again; CPhraseBox has a color variable & uses reflected
 		// notification; and m_targetPhrase passed in here internally sets m_pTargetBox contents
-		// whm 11Nov2022 note: phraseBoxWidth here from CPile::CalcPhraseBoxWidth() which gets
-		// the width of the box, without  buttonWidth + 1 added - see above
+		// whm 11Nov2022 note: fhs phraseBoxWidth used here is from CPile::CalcPhraseBoxWidth() 
+		// farther above which gets the width of the box, without  buttonWidth + 1 added - see above
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
 			m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetNavTextHeight(),
@@ -1085,11 +1052,6 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 				pActivePile);
 			m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
 		}
-
-		// whm 11Nov2022 removed the following function as it needlessly complicates
-		// the code and wasn't doing anything useful, especially after refactoring.
-		//pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18  (moved from 751 to here, 13Aug21)
-
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 1066);
@@ -1204,12 +1166,15 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
 		}
 
-		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be called
+		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be executed
 		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
 		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
 		// a box resize that happens while user is editing, causes the content to suddently be highlighted
 		// resulting in the deletion of what was typed up to that point as the user types on from the point
-		// of the phrasebox resize.
+		// of the phrasebox resize. 
+		// whm 11Nov2022 update: The OnPhraseBoxChanged() routine now doesn't call PlaceBox(), so the test
+		// below is not as crucial, but we keep the protections in case for some reason we add a PlaceBox()
+		// call back into OnPhraseBoxChanged().
 		if (!m_bAmWithinPhraseBoxChanged)
 		{
 			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1249,13 +1214,15 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); 
 		}
 
-		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not 
-		// be called while within the OnPhraseBoxChanged() routine at the point of a phrasebox 
-		// resize event. If it is called during that process and if the app's View > 'Select 
-		// Copied Source' menu is toggled on, any box resize that happens while user is editing, 
-		// causes the content to suddently be highlighted resulting in the deletion by the next 
-		// typed character of what was typed up to that point as the user types on from the point
-		// of the phrasebox resize.
+		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be executed
+		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
+		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
+		// a box resize that happens while user is editing, causes the content to suddently be highlighted
+		// resulting in the deletion of what was typed up to that point as the user types on from the point
+		// of the phrasebox resize. 
+		// whm 11Nov2022 update: The OnPhraseBoxChanged() routine now doesn't call PlaceBox(), so the test
+		// below is not as crucial, but we keep the protections in case for some reason we add a PlaceBox()
+		// call back into OnPhraseBoxChanged().
 		if (!m_bAmWithinPhraseBoxChanged)
 		{
 			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
@@ -1278,14 +1245,15 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 	
-	// whm 11Nov2022 revised and added initializations here in PlaceBox() for phrasebox 
-	// resizing which is actually carried out entirely within the 
+	// whm 11Nov2022 revised and added the following initializations here in PlaceBox() 
+	// for phrasebox resizing which is actually carried out entirely within the 
 	// CPhraseBox::OnPhraseBoxChanged() function.
 	// 
 	// Initialize the initialPhraseBoxContentsOnLanding with phrasebox contents - on 
-	// landing at this location, and store the size of the targetbox on landing at this 
-	// location. These values are used within the CPhraseBox::OnPhraseBoxChanged() method 
-	// for the refactored phrasebox sizing routines.
+	// landing at this location, and store the text contents of the targetbox on landing 
+	// at this location. 
+	// This and the following values are used within the CPhraseBox::OnPhraseBoxChanged() 
+	// method for the refactored phrasebox sizing routines.
 	m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 
 	// Initialize the following for text-extent-based phrasebox resizing calcs done in 
@@ -1479,8 +1447,8 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 // a single CRefString, so that the listWidth cannot be calculated (set as 0),
 // the active pile's width needs to be augmented by (1 + buttonWidth) because
 // the button will be shown but disabled
-// whm 11Nov2022 renamed from ExtraWidth() to GetExtraWidthForButton() to better
-// self-document its purpose. 
+// whm 11Nov2022 renamed the following function from ExtraWidth() to 
+// GetExtraWidthForButton() to better self-document its purpose. 
 // The value returned is:
 //		Windows and Mac: 22 + 1 = 23
 //		Linux: 30 + 1 = 31
@@ -2097,14 +2065,6 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 												  // an active sequ number and m_targetPhrase set before a value can be
 												  // calculated, but only at the pile which is located at the active location
 	}
-	else
-	{
-		// whm 11Nov2022 removed the following function as it needlessly complicates
-		// the code and wasn't doing anything useful, especially after refactoring.
-		// this pile is going to be the active one, so calculate its m_nWidth value using
-		// m_targetPhrase
-		//pPile->SetPhraseBoxGapWidth(); // calculates, and sets value in m_nWidth
-	}
 
 	// pile creation always creates the (fixed) array of CCells which it manages
 	int index;
@@ -2249,34 +2209,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 #endif
 
-#if defined (_DEBUG) //&& defined (_EXPAND)
-	wxString modePassedIn = wxEmptyString;
-
-	wxString selector_0 = _T("create_strips_and_piles");
-	wxString selector_1 = _T("create_strips_keep_piles");
-	wxString selector_2 = _T("keep_strips_keep_piles");
-	wxString selector_3 = _T("create_strips_update_pile_widths");
-	wxString selectorPassedIn = wxEmptyString;
-	if (selector == create_strips_and_piles)
-	{
-		modePassedIn = selector_0;
-	}
-	else if (selector == create_strips_keep_piles)
-	{
-		modePassedIn = selector_1;
-	}
-	else if (selector == keep_strips_keep_piles)
-	{
-		modePassedIn = selector_2;
-	}
-	else if (selector == create_strips_update_pile_widths)
-	{
-		modePassedIn = selector_3;
-	}
-#if defined(_DEBUG) && defined(GUIFIX)
-	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s"), modePassedIn.c_str());
-#endif
-#endif
 	// RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
 	// function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
@@ -2476,28 +2408,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-			//if (boxMode == contracting)
-			// whm 11Nov2022 removed the following if () block, since the m_bDoContract bool
-			// was always set FALSE and never set TRUE, and therefore the if block below was 
-			// never executing.
-			//if (m_pApp->m_pTargetBox->m_bDoContract)
-			//{
-			//	// phrase box is meant to contract for this recalculation, so suppress the
-			//	// size calculation internally for the active location because it would be
-			//	// larger than the contracted width we want
-			//	// BEW 10Sep21, looking inside, default is the FALSE value, but even so,
-			//	// the function makes no use of the boolean now, so it's immaterial what
-			//	// value we give it.
-			//	m_pDoc->ResetPartnerPileWidth(pSrcPhrase, TRUE); // TRUE is the boolean
-			//						// bNoActiveLocationCalculation
-			//}
-			//else // not contracting, could be expanding or no size change
-			//{
 			
 			// allow the active location gap calculation to be done
 			m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
-
-			//}
 		}
 	}
 	else // control is past the end of the document
@@ -2554,26 +2467,15 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			return TRUE;
 		}
 
-		// whm 11Nov2022 added SendSizeEvent() which helps to make sure that if a phrasebox pile
-		// is moved to a following line that the piles following it are properly laid out.
-		m_pApp->GetMainFrame()->SendSizeEvent();
+		// whm 11Nov2022 tested calling SendSizeEvent() here to help make sure that 
+		// if a phrasebox pile is moved to a following line that the piles following 
+		// it are properly laid out.
+		// 
+		// whm 11Nov2022 update. It's better to call SendSizeEvent() from the end of the
+		// View's PlacePhraseBox(), rather than here
+		//m_pApp->GetMainFrame()->SendSizeEvent();
 
 	}
-	/*
-	#ifdef _DEBUG
-		{
-			PileList::Node* pos = m_pileList.GetFirst();
-			CPile* pPile = NULL;
-			while (pos != NULL)
-			{
-				pPile = pos->GetData();
-				wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %x"),
-					pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
-				pos = pos->GetNext();
-			}
-		}
-	#endif
-	*/
 
 	if (!m_pApp->m_bIsPrinting)
 	{
@@ -2912,21 +2814,6 @@ wxArrayInt* CLayout::GetInvalidStripArray()
 {
 	return &m_invalidStripArray;
 }
-
-// whm 11Nov2022 removed as it is never used.
-//// BEW 12Aug21 added
-//void CLayout::SetCurBoxWidth(int curBoxWidth)
-//{
-//	this->m_curBoxWidth = curBoxWidth; // view.cpp will use this
-//}
-
-// whm 11Nov2022 removed as it is never used.
-//// BEW 12Aug21 added
-//int CLayout::GetCurBoxWidth()
-//{
-//	return this->m_curBoxWidth; // dunno if ever needed, but here it is in case
-//}
-
 
 void CLayout::CreateStrips(int nStripWidth, int gap)
 {

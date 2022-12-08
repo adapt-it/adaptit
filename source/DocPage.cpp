@@ -794,18 +794,6 @@ void CDocPage::OnCheckMakeDocCreationLogfile(wxCommandEvent & WXUNUSED(event))
 
 }
 
-// BEW added 04Aug05
-//void CDocPage::OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event))
-//{
-//	wxCheckBox* pCheck = (wxCheckBox*)FindWindowById(IDC_SAVE_DOCSKB_AS_XML);
-//
-//	// wx version: remind user that the wx version only handles xml docs and kb files
-//	wxMessageBox(_("Sorry, this version of Adapt It only handles Adapt It documents\nand knowledge bases in xml format. If you have .adt or .KB\nfiles created by a previous version of Adapt It, you will need\nto first convert those files to .xml format by saving them\nusing Version 3.x of Adapt It."),_T(""),wxICON_INFORMATION | wxOK);
-//	pCheck->SetValue(TRUE);
-//	gpApp->m_bSaveAsXML = TRUE;
-//	return;
-//}
-
 void CDocPage::OnCallWizardFinish(wxCommandEvent& WXUNUSED(event)) // since 2.5.3 two handlers cant call same function
 {
 	wxWizardEvent wevent(wxEVT_WIZARD_FINISHED);
