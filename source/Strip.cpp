@@ -178,6 +178,7 @@ void CStrip::Draw(wxDC* pDC)
 // strips for a whole document)
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 19Aug18 refactored for supporting dropdown list phrasebox
+// whm 11Nov2022 refactored for new phrasebox sizing methodology and simplifications.
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -220,7 +221,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		// Is this first pile to be placed in the strip, the doc's current active one?
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			pileWidth = pPile->CalcPhraseBoxGapWidth();
+			// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+			// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+			// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+			// 
+			// Get the largest width of curBoxWidth or curListWidth, and save them on 
+			// the Layout's m_curBoxWidth and m_curListWidth.
+			// Note: When there needed to be a phrasebox resize (larger or smaller) the
+			// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+			// in the CPhraseBox::OnPhraseBoxChanged() function.
+			int curBoxWidth = m_pLayout->m_curBoxWidth;
+			int curListWidth = m_pLayout->m_curListWidth;
+			// Take the larger of the two
+			int theMax = wxMax(curBoxWidth, curListWidth);
+			// Make both agree
+			m_pLayout->m_curBoxWidth = theMax;
+			m_pLayout->m_curListWidth = theMax;
+
+			// The pileWidth at the active location is simply the current box width plus
+			// the width of the dropdown button.
+			pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 		}
 		else
 		{
@@ -279,68 +299,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		{	
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				// We are adding the pile at the active location.
-				if (!gbDoingInitialSetup)
-				{
-					// whm testing shows that the other test above (for gbDoingInitialSetup being
-					// FALSE) is needed here because at least one call is made to CreateStrip() 
-					// BEFORE the Layout is completely setup and before the PlaceBox() function 
-					// is called where m_pLayout->m_nNewPhraseBoxGapWidth is initialized to 
-					// something other than -1.
-					
-					// whm 11Nov2022 Note: I've now also initialized the m_nNewPhraseBoxGapWidth 
-					// within the Layout's PlaceBox() routine just before it calls ResizeBox(). 
-					// That initialization in PlaceBox() technically eliminates the need to 
-					// initialize it within the App's OnInit(), as mentioned above, but it is 
-					// a safety net to have it assigned to value of -1 in case it needs to be 
-					// referenced in a different situation.
-					// 
-					// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if 
-					// m_nNewPhraseBoxGapWidth is something other than -1, so this modification 
-					// tests for that -1 value and acts accordingly.
-					if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
-					{
-						// Were NOT in gbDoingInitialSetup, but creating the strip that will actually 
-						// be drawn, and Layout's m_nNewPhraseBoxGapWidth is valid, so we'll use it 
-						// here for piieWidth.
-						// Get the largest width of curBoxWidth or curListWidth, and save them on 
-						// the Layout's m_curBoxWidth and m_curListWidth.
-						int curBoxWidth = m_pLayout->m_curBoxWidth;
-						int curListWidth = m_pLayout->m_curListWidth;
-						// Take the larger of the two
-						int theMax = wxMax(curBoxWidth, curListWidth);
-						// Make both agree
-						m_pLayout->m_curBoxWidth = theMax;
-						m_pLayout->m_curListWidth = theMax;
+				// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+				// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+				// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+				// 
+				// Get the largest width of curBoxWidth or curListWidth, and save them on 
+				// the Layout's m_curBoxWidth and m_curListWidth.
+				// Note: When there needed to be a phrasebox resize (larger or smaller) the
+				// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+				// in the CPhraseBox::OnPhraseBoxChanged() function.
+				int curBoxWidth = m_pLayout->m_curBoxWidth;
+				int curListWidth = m_pLayout->m_curListWidth;
+				// Take the larger of the two
+				int theMax = wxMax(curBoxWidth, curListWidth);
+				// Make both agree
+				m_pLayout->m_curBoxWidth = theMax;
+				m_pLayout->m_curListWidth = theMax;
 
-						pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth; // includes GetExtraWidthForButton()
-					}
-					else
-					{
-						// The m_nNewPhraseBoxGapWidth is -1 (uninitialized) which may happen on opening
-						// a document but not subsequent editing. Assign pileWidth using the normal
-						// calculations for m_nNewPhraseBoxGapWidth
-						// Get the largest width of curBoxWidth or curListWidth, and save them on the 
-						// Layout's m_curBoxWidth and m_curListWidth.
-						int curBoxWidth = m_pLayout->m_curBoxWidth;
-						int curListWidth = m_pLayout->m_curListWidth;
-						// Take the larger of the two
-						int theMax = wxMax(curBoxWidth, curListWidth);
-						// Make both agree
-						m_pLayout->m_curBoxWidth = theMax;
-						m_pLayout->m_curListWidth = theMax;
-
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
-					}
-				}
-				else
-				{
-					// gbDoingInitialSetup is TRUE so We're still in initial setup, and this strip
-					// won't actually be drawn. Can't really get a max value for curBoxWidth and
-					// curListWidth since curListWidth is undefined while gbDoingInitialSetup is TRUE.
-
-					pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); 
-				}
+				// The pileWidth at the active location is simply the current box width plus
+				// the width of the dropdown button.
+				pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 			}
 			else
 			{
@@ -349,10 +327,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
-		// whm 23Sep2021 added the gap value back to calculation of each nCurrentSpan below, 
-		// otherwise the value of nCurrentSpan will not have been decremented properly within 
-		// the if (nCurrentSpan <= m_nFree) test block below.
-		// 
 		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within 
 		// m_nFree span of strip.
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
@@ -413,6 +387,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // should not be called if there are no more piles to be placed.
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 19Aug18 refactored for supporting dropdown list phrasebox
+// whm 11Nov2022 refactored for new phrasebox sizing methodology and simplifications,
+// and to make this override function work like its parent CreateStrip() function.
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -458,7 +434,26 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			pileWidth = pPile->CalcPhraseBoxGapWidth();
+			// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+			// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+			// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+			// 
+			// Get the largest width of curBoxWidth or curListWidth, and save them on 
+			// the Layout's m_curBoxWidth and m_curListWidth.
+			// Note: When there needed to be a phrasebox resize (larger or smaller) the
+			// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+			// in the CPhraseBox::OnPhraseBoxChanged() function.
+			int curBoxWidth = m_pLayout->m_curBoxWidth;
+			int curListWidth = m_pLayout->m_curListWidth;
+			// Take the larger of the two
+			int theMax = wxMax(curBoxWidth, curListWidth);
+			// Make both agree
+			m_pLayout->m_curBoxWidth = theMax;
+			m_pLayout->m_curListWidth = theMax;
+
+			// The pileWidth at the active location is simply the current box width plus
+			// the width of the dropdown button.
+			pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 		}
 		else
 		{
@@ -533,17 +528,38 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
-//#if defined (_DEBUG)
-//				{
-//					int nStripIndex = this->GetStripIndex();
-//					wxLogDebug(_T("%s::%s(), line %d , in active CREATE-STRIP, CalcPhraseBoxGapWidth(boxMode) returned pileWidth = %d , storing nHorzOffset_FromLeft = %d , at strip index = %d"),
-//						__FILE__, __FUNCTION__, __LINE__, pileWidth, nHorzOffset_FromLeft, nStripIndex);
-//				}
-//#endif	
+				// whm 11Nov2022 modification. This override function of CreateStrip() should have the same
+				// coding as its parent function CreateStrip() as far as the mechanism for ensuring that
+				// any new gap width is taken into account in the refactored code. Hence, instead of just
+				// assigning the value returned from Pile's CalcPhraseBoxGapWidth() here to pileWidth, I'm
+				// makine the coding here conform to that in the parent function CreateStrip().
+				// pileWidth = pPile->CalcPhraseBoxGapWidth(); 
+				// 
+				// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+				// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+				// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+				// 
+				// Get the largest width of curBoxWidth or curListWidth, and save them on 
+				// the Layout's m_curBoxWidth and m_curListWidth.
+				// Note: When there needed to be a phrasebox resize (larger or smaller) the
+				// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+				// in the CPhraseBox::OnPhraseBoxChanged() function.
+				int curBoxWidth = m_pLayout->m_curBoxWidth;
+				int curListWidth = m_pLayout->m_curListWidth;
+				// Take the larger of the two
+				int theMax = wxMax(curBoxWidth, curListWidth);
+				// Make both agree
+				m_pLayout->m_curBoxWidth = theMax;
+				m_pLayout->m_curListWidth = theMax;
+
+				// The pileWidth at the active location is simply the current box width plus
+				// the width of the dropdown button.
+				pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 			}
 			else
 			{
+				// This pile is NOT the active pile, so we assign the pileWidth to the m_nMinWidth 
+				// value and add the gap for nCurrentSpan
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}

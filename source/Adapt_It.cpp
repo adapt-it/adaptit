@@ -25251,34 +25251,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // The following initializations are for refactored view layout support
     m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
     
-    // whm 3Nov2022 added the following initializations here. The Layout's m_nNewPhraseBoxGapWidth to -1,
-    // and m_bCompareWidthIsLonger to TRUE.
-    // Before this date (3Nov2022) the following two variables m_pLayout->m_nNewPhraseBoxGapWidth 
-    // and m_pLayout->m_bCompareWidthIsLonger were nowhere initialized properly outside of the 
-    // CPhaseBox::OnPhraseBoxChanged() function. However they were used in some code
-    // outside OnPhraseBoxChanged(). For most operations there were minimal side effects since it appears 
-    // that m_bCompareWidthIsLonger happened to be TRUE at its point of declaration (a value of 0 is FALSE, 
-    // but any value other than 0 is TRUE in boolean terms). The int value of m_nNewPhraseBoxGapWidth was
-    // undefined, something like -842150431, and would remain so until the user clicked inside the phrasebox
-    // to make a change. The main negative side effect of m_nNewPhraseBoxGapWidth being uninitialized could
-    // occur if a user attempted to manually resize the main window frame, before clicking into the phrasebox.
-    // In such cases all the piles would seem to disappera beyond the location of the phrasebox. They could
-    // only be "retrieved" by first clicking in a different location, or closing and reopening the document
-    // again. The piles beyond the phrasebox weren't getting "lost", they would simply be added to the end of
-    // the same strip after the phrasebox, but their drawing x-coord offset would be a huge negative number 
-    // in the realm of -842150431, which would draw them miles beyond the left margin of the screen!
-    // To remedy this I'm initializing m_nNewPhraseBoxGapWidth to -1 here in OnInit() at application startup.
-    // That way the CStrip::CreateStrip() routine that references/uses m_nNewPhraseBoxGapWidth is now protected
-    // which prevents bogus x-coord offsets from being saved in the pile array. The result of this change is
-    // that now a user can do a manual resize of the main window frame without "loosing" the piles beyond the
-    // phrasebox.
-    // whm 11Nov2022 Initialize m_nNewPhraseBoxGapWidth to a value of -1 to signal uninitialization state.
-    // Note: The first instance in the App where a phrasebox gap width is needed is during doc opening when 
-    // initial strip creation is done within in CPile::CreateStrip() and before user has typed any edits, 
-    // but does a frame window resize. In that case the call of CPile::CalcPhraseBoxGapWidth() during 
-    // strip creation can return a -1 value if the layout is not yet ready for calculating a true box 
-    // gap width.
-    m_pLayout->m_nNewPhraseBoxGapWidth = -1;
+    // whm 22Nov2022 Eliminated the Layout's m_nNewPhraseBoxGapWidth member as it was only
+    // adding complexity to establishing an appropriate gap for the phrasebox whether the
+    // phrasebox needed resizing or not.
 
     /*
     // Testing the GetBookCodeFastFromDiskFile() function

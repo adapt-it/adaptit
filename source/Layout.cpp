@@ -1004,33 +1004,9 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 
-		// whm 11Nov2022 added initialization of m_nNewPhraseBoxGapWidth here in PlaceBox().
-		// I had already added a -1 initialization within the App's OnInit() because the
-		// m_nNewPhraseBoxGapWidth was otherwise unitialized if the user resized the mainframe
-		// manually before typing any characters and OnPhraseBoxChanged() was called. The result
-		// was CStrip::CreateStrip() was setting offsets of all piles after the active one to
-		// a very large negative number making them invisible off the left side of the viewport.
-		// Initializing m_nNewPhraseBoxGapWidth here seems the best place, since PlaceBox() is
-		// called (several times) in the process of opening a document and getting the phrasebox
-		// located. With this initialization here to a real valid value, the protective code
-		// aroung the use of m_nNewPhraseBoxGapWidth in CreateStrip() should no longer be 
-		// necessary.
-		// 
-		// whm 11Nov2022 observation: The phrasebox gap width at initial PlaceBox() appears wider
-		// at document opening and after simply placing the phrasebox randomly around under
-		// source text. The extra width I think is due to a width addition that gets added
-		// to the left offset array value for both the initial gap width, as well as in the
-		// left offset of following the phrasebox when manually moving the phrasebox around.
-		// The phrasebox gap shrinks a bit to what it is supposed to be when a frame resize is
-		// done manually, but the extra gap added to visited piles is not corrected upon a 
-		// manual frame resize.
-		// In attempting to fix this irregularity, I found that the extra width's observed don't
-		// change by initializing the Layout's m_curBoxWidth to the value of phraseBoxWidth, which
-		// was calculated afresh above. It seems that the extra width is due to faulty gap
-		// calculations somewhere, rather than being a fault in the calculations of the left
-		// offsets.
-		m_nNewPhraseBoxGapWidth = phraseBoxWidth + GetExtraWidthForButton();
-
+		// whm 22Nov2022 Eliminated the Layout's m_nNewPhraseBoxGapWidth member as it was only
+		// adding complexity to establishing an appropriate gap for the phrasebox whether the
+		// phrasebox needed resizing or not.
 
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
 		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and

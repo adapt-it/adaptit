@@ -269,7 +269,10 @@ public:
 	// CPhraseBox::OnPhraseBoxChanged().
 	bool		m_bAmWithinPhraseBoxChanged;
 	
-	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
+	// whm 22Nov2022 Eliminated the Layout's m_nNewPhraseBoxGapWidth member as it was only
+	// adding complexity to establishing an appropriate gap for the phrasebox whether the
+	// phrasebox needed resizing or not.
+	//int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
 	int			m_curBoxWidth;  // BEW 28Jul21 
 

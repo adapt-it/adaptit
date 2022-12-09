@@ -3812,40 +3812,41 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			oldPhraseBoxWidthCached = pLayout->m_curBoxWidth;
 
 			// First, assign the just-determined bestTabForResize to the Layout's 
-			// m_curBoxWidth, since the bestTabForResize will be the new phrasebox size 
-			// done via the PlaceBox() call below. A value from CalcPhraseBoxWidth() 
-			// cannot be used here because it returns a smaller instantaneous width 
-			// value based on all the text extents + slop as they exist at this instant 
-			// in OnPhraseBoxChanged(). The new size for the phrasebox bestTabForResize
-			// was determined above as the new phrasebox width, and is generally next 
-			// tab width available from the arrayTabPositionsInPixels array obtained 
-			// from the GetBestTabSettingFromArrayForBoxResize() call above; the 
-			// bestTabForResize will be a larger value than the value that 
-			// CalcPhraseBoxGapWidth() would return, as that larger value allows for 
-			// extra editing whitespace after the phrasebox is resized, so as not
-			// to be changing the phrasebox width after every character is typed.
+			// m_curBoxWidth, since the bestTabForResize will be the new phrasebox size. 
+			// A value from CalcPhraseBoxWidth() cannot be used here because it returns 
+			// a smaller instantaneous width value based on all the text extents + slop 
+			// as they exist at this instant in OnPhraseBoxChanged(). The new size for 
+			// the phrasebox bestTabForResize was determined above as the new phrasebox 
+			// width, and is generally the next tab width available from the 
+			// arrayTabPositionsInPixels array obtained from the 
+			// GetBestTabSettingFromArrayForBoxResize() call above; the bestTabForResize 
+			// will be a larger value than the value that CalcPhraseBoxGapWidth() would 
+			// return, as that larger value allows for extra editing whitespace after the 
+			// phrasebox is resized, so as not to be changing the phrasebox width after 
+			// every character is typed.
 			pLayout->m_curBoxWidth = bestTabForResize; 
 
 			// Make list + button width agree with the box width.
-			pLayout->m_curListWidth = bestTabForResize + pLayout->GetExtraWidthForButton(); 
-			pLayout->m_nNewPhraseBoxGapWidth = pLayout->m_curBoxWidth; // +pLayout->GetExtraWidthForButton();
+			// The CStrip::CreateStrip() function and its override also guarantee that 
+			// the m_cruListWidth and the m_curBoxWidth agree.
+			pLayout->m_curListWidth = bestTabForResize;
 			
 			// whm 11Nov2022 Note: I experimented with adding a pLayout->PlaceBox() call below 
 			// after the RecalcLayout() and Invalidate() calls, since PlaceBox() internally calls 
 			// ResizeBox(). The ResizeBox() call in PlaceBox() would utilize the adjusted "best" 
-			// values we've determined here within OnPhraseBoxChanged().
-			// 
-			// As it turns out we need not call ResizeBox() here nor call the Layout's PlaceBox()
-			// below. Just calling the main frame's SendSizeEvent() below is sufficient to get the
-			// layout straight.
+			// values we've determined here within OnPhraseBoxChanged(). But calling ResizeBox()
+			// and PlaceBox() here is not needed. Just calling the main frame's SendSizeEvent() 
+			// below is sufficient to get the layout straight, since SendSizeEvent() does itself
+			// call ReCalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles), Invalidate(),
+			// and PlaceBox().
 			//pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
 			//	pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
 			// 
 			// The phrasebox's new size may be quite different from what it was before this edit,
 			// so call Layout's RecalcLayout(), and View's Invalidate(), and the Layout's
 			// PlaceBox() to redo the layout.
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-			pView->Invalidate();
+			//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+			//pView->Invalidate();
 			// whm 11Nov2022 Note: I experimented with adding a PlaceBox(noDropDownInitialization) 
 			// call here below. It worked OK, but required protection so that it wouldn't call the 
 			// SetFocusAndSetSelectionAtLanding() function which would foul up editing especially if
