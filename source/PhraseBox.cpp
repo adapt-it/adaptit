@@ -3797,9 +3797,11 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// following the newly sized phrasebox.
 		bestTabForResize = GetBestTabSettingFromArrayForBoxResize(oldPhraseBoxWidthCached, boxContentPixelExtentAtThisEdit);
 
-		if (bestTabForResize == -1 || bestTabForResize == pLayout->m_curBoxWidth)
+		if (bestTabForResize == -1)
 		{
 			// No resize of phrasebox needed
+			int halt_here = 1;
+			wxUnusedVar(halt_here);
 			;
 		}
 		else // bestTabForResize is not -1, so a resize of the phrasebox IS NEEDED
@@ -3831,35 +3833,18 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// the m_cruListWidth and the m_curBoxWidth agree.
 			pLayout->m_curListWidth = bestTabForResize;
 			
-			// whm 11Nov2022 Note: I experimented with adding a pLayout->PlaceBox() call below 
-			// after the RecalcLayout() and Invalidate() calls, since PlaceBox() internally calls 
-			// ResizeBox(). The ResizeBox() call in PlaceBox() would utilize the adjusted "best" 
-			// values we've determined here within OnPhraseBoxChanged(). But calling ResizeBox()
-			// and PlaceBox() here is not needed. Just calling the main frame's SendSizeEvent() 
-			// below is sufficient to get the layout straight, since SendSizeEvent() does itself
-			// call ReCalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles), Invalidate(),
-			// and PlaceBox().
-			//pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
-			//	pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
-			// 
+			// whm 11Nov2022 Notes:
 			// The phrasebox's new size may be quite different from what it was before this edit,
-			// so call Layout's RecalcLayout(), and View's Invalidate(), and the Layout's
-			// PlaceBox() to redo the layout.
-			//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-			//pView->Invalidate();
-			// whm 11Nov2022 Note: I experimented with adding a PlaceBox(noDropDownInitialization) 
-			// call here below. It worked OK, but required protection so that it wouldn't call the 
-			// SetFocusAndSetSelectionAtLanding() function which would foul up editing especially if
-			// the user had selected Edit > Highlight Copied Source (a box resize while editing could
-			// accidently loose all box content up to the editing point when the resize and highlighting
-			// occurred under the insertion point).
-			// However, it seems best here to just call the CMainFrame::OnSize() function which 
+			// so a recalculation of the strip/pile layout and refresh of the screen layout may
+			// be required. 
+			// We do not need to invoke RecalcLayout(), nor Invalidate(), nor ResizeBox() here. 
+			// All we need do here is just call the CMainFrame::OnSize() function which 
 			// simplifies things and still makes the phrasebox behave when editing causes it to 
 			// flow up to previous strip or down to the following strip.
+			// Note: SendSizeEvent() invokes the main frame's OnSize() handler. The frame's OnSize() in
+			// turn calls RecalcLayout(..., create_strips_keep_piles), Invalidate(), and PlaceBox(),
+			// and PlaceBox() internally calls ResizeBox().
 			pApp->GetMainFrame()->SendSizeEvent();
-			// A PlactBox() call here works OK, but is overkill for doing new layout after a 
-			// box resize.
-			//pLayout->PlaceBox(noDropDownInitialization); 
 		}
 			
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
@@ -7088,11 +7073,12 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 	// pLayout->slop + 3 * pApp->m_width_of_w pixels of white space remaining in the edit box.
 	// 
 	// Note: At the commencement of editing in the phrasebox, more than a slop equivalent of characters 
-	// may be added to the initial content string, particularly when the phrasebox at that landing 
-	// starts with few or no characters in it. This is because the phrasebox has a fairly wide minimum 
-	// width that is calculated by the Pile's CalcPhraseBoxWidth() function. Hence, it will often be 
-	// the case that the initial edit space remaining in the phrasebox beyond its string content extent 
-	// will be more than the default slop's 8 'w' character-widths of whitespace.
+	// may be typed into the initial content string before a resize is called for, particularly when the 
+	// phrasebox at that landing initially has few or no characters in it. This extra whitespace is present
+	// because the phrasebox has a fairly wide minimum width that is calculated by the Pile's 
+	// CalcPhraseBoxWidth() function. Hence, it will often be the case that the initial edit whitespace 
+	// remaining in the phrasebox beyond its string content extent will be more than the default 
+	// slop's 8 'w' character-widths of whitespace.
 	// 
 	// We test for the need for phrasebox expandion/contraction by examining the state of this 
 	// whitespace now that an edit has occurred, comparing it with the whitespace at the beginning of 
@@ -7140,10 +7126,13 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 		// significantly longer. White space "running out" is here defined as BEW did, 
 		// to be <= 3 'w' widths of space left.
 		// 
-		// whm possible TODO: Seems to me that 3 'w' widths of extent is perhaps more 
-		// than enough, perhaps try 2 'w' widths, or even 1 'w' width ???
+		// whm possible suggestion TODO: Seems to me that 3 'w' widths of extent is perhaps 
+		// more than enough, perhaps we could try 2 'w' widths, or even 1 'w' width ???
 		if (spaceRemainingInBoxAtThisEdit <= (3 * pApp->m_width_of_w))
 		{
+#if defined (_DEBUG)
+			wxLogDebug(_T("Expanding - space remaining TOO LONG - needs resize"));
+#endif
 			// The content is expanding, but there is only 3 'w' extent widths or 
 			// less available, so this condition triggers a resize the phrasebox to 
 			// a tab unit that will accommodate the contents and new slop. The pixel 
@@ -7180,18 +7169,25 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 				if (arrayIntValue >= extentNeededForNewString)
 				{
 					newTabValue = arrayIntValue;
+#if defined (_DEBUG)
+					wxLogDebug(_T("Expanding - new size = %d"),newTabValue);
+#endif
 					break;
 				}
 			}
-			// Note: The RecalcLayout(), Invalidate() and SendSizeEvent() are called back in 
-			// the caller OnPhraseBoxChanged() after this GetBestTabSettingFromArrayForBoxResize() 
-			// function returns with a newTabValue.
+			// Note: Back in OnPhraseBoxChanged() if the returned newTabValue is not -1, we call the
+			// CMainFrame's SendSizeEvent() which invokes the main frame's OnSize() handler. The frame's 
+			// OnSize() handler in turn calls RecalcLayout(..., create_strips_keep_piles), Invalidate(), 
+			// and PlaceBox() - and PlaceBox() internally calls ResizeBox().
 		}
 		else
 		{
 			// There is still sufficient white space for more editing while expanding, 
 			// so do nothing, signaled by returning -1.
 			newTabValue = -1;
+#if defined (_DEBUG)
+			wxLogDebug(_T("Expanding - no resize"));
+#endif
 		}
 	}
 	else // content is shortening (and whitespace at end of phrasebox is growing) 
@@ -7203,18 +7199,20 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 		// widths of white space
 		if (spaceRemainingInBoxAtThisEdit >= (pLayout->slop + 3 * pApp->m_width_of_w))
 		{
+#if defined (_DEBUG)
+			wxLogDebug(_T("Shortening - space remaining TOO SHORT - needs resize"));
+#endif
 			// The content is shortening and whitespace is now >= the amount of slop 
 			// plus 3 'w' widths, so, get a newTabValue for contracting the phrasebox. 
 			// This value should be greater or equal to the extent needed for the 
-			// current content string, but also greater or equal to the greatest list 
+			// current content string + slop, but also greater or equal to the greatest list 
 			// item width, i.e., whichever has the greatest extent.
-			int extentNeededForNewString = boxContentPixelExtentAtThisEdit;
+			int extentNeededForCurrentString = boxContentPixelExtentAtThisEdit;
 			int extentNeededForlongestListItem;
 			if (pLayout->m_curListWidth != -1)
 				extentNeededForlongestListItem = pLayout->m_curListWidth;
 			else
 				extentNeededForlongestListItem = pLayout->m_curBoxWidth;
-			int curPhraseBoxWidth = pApp->m_pActivePile->CalcPhraseBoxWidth(); // includes slop
 			// Initialize newTabValue to initialPixelTabPosition in case we don't find a new value in array.
 			newTabValue = initialPixelTabPosition; 
 			// Scan array for a new tab value to return to the caller.
@@ -7224,21 +7222,16 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 				// The minimum phrasebox size value is the first tab value in the array which
 				// was established at landing in PlaceBox(). The new tab has minimal 
 				// constraints: We should contract the phrasebox to a width value that is 
-				// greater or equal to the extentNeededForNewString + slop, AND is greater 
-				// than or equal to the extentNeededForlongestListItem, AND the new tab value
-				// should be greater than or eqal to the current phrasebox width as calculated 
-				// by CalcPhraseBoxWidth().
-				// Note: including curPhraseBoxWidth in the test constraints below means the 
-				// phrasebox won't contract to a smaller size during the current edit, unless 
-				// an expansion has already occured in the same edit session earlier (pasting 
-				// content and then removing content). This keeps the phrasebox longer than 
-				// might otherwise seem necessary for text that is shortening, but makes for 
-				// less box jumping around during backspace or relatively small deletions.
-				if (arrayIntValue >= extentNeededForNewString
-					&& arrayIntValue >= extentNeededForlongestListItem
-					&& arrayIntValue >= curPhraseBoxWidth)
+				// greater or equal to the extentNeededForCurrentString + slop, AND is greater 
+				// than or equal to the extentNeededForlongestListItem. I don't think we need
+				// to consider the slop along with the extentNeededForlongestListItem.
+				if (arrayIntValue >= extentNeededForCurrentString + pLayout->slop
+					&& arrayIntValue >= extentNeededForlongestListItem) // + pLayout->slop)
 				{					
 					newTabValue = arrayIntValue;
+#if defined (_DEBUG)
+					wxLogDebug(_T("Shortening - new size = %d"), newTabValue);
+#endif
 					break;
 				}
 			}
@@ -7247,10 +7240,14 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 		{
 			// The whitespace isn't getting too long, so do nothing signaled by returning -1
 			newTabValue = -1;
+#if defined (_DEBUG)
+			wxLogDebug(_T("Shortening - no resize"));
+#endif
 		}
-		// Note: RecalcLayout(), Invalidate() and SendSizeEvent() are called back in the 
-		// caller OnPhraseBoxChanged() after this GetBestTabSettingFromArrayForBoxResize() 
-		// returns with a newTabValue.
+		// Note: Back in OnPhraseBoxChanged() if the returned newTabValue is not -1, we call the
+		// CMainFrame's SendSizeEvent() which invokes the main frame's OnSize() handler. The frame's 
+		// OnSize() handler in turn calls RecalcLayout(..., create_strips_keep_piles), Invalidate(), 
+		// and PlaceBox() - and PlaceBox() internally calls ResizeBox().
 	}
 	
 	return newTabValue;
