@@ -23338,9 +23338,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pCachedActivePile = NULL; // compare m_pActivePile with this, if different, call the
     m_bUserClickedTgtWordInRetranslation = FALSE; // default
     
-    // whm 11Nov2022 removed the App global m_bJustKeyedBackspace, not needed in refactored 
-    // phrasebox sizing
-    //m_bJustKeyedBackspace = FALSE; // used for OnPhraseBoxChanged()
     m_bSuppressPseudoDeleteWhenClosingDoc = FALSE; 
     m_bExists = FALSE; // used in kbserver support, TRUE if input .dat file latest version is in AI exe's folder
 
@@ -25254,46 +25251,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // The following initializations are for refactored view layout support
     m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
     
-    // whm 3Nov2022 added the following initializations here. The Layout's m_nNewPhraseBoxGapWidth to -1,
-    // and m_bCompareWidthIsLonger to TRUE.
-    // Before this date (3Nov2022) the following two variables m_pLayout->m_nNewPhraseBoxGapWidth 
-    // and m_pLayout->m_bCompareWidthIsLonger were nowhere initialized properly outside of the 
-    // CPhaseBox::OnPhraseBoxChanged() function. However they were used in some code
-    // outside OnPhraseBoxChanged(). For most operations there were minimal side effects since it appears 
-    // that m_bCompareWidthIsLonger happened to be TRUE at its point of declaration (a value of 0 is FALSE, 
-    // but any value other than 0 is TRUE in boolean terms). The int value of m_nNewPhraseBoxGapWidth was
-    // undefined, something like -842150431, and would remain so until the user clicked inside the phrasebox
-    // to make a change. The main negative side effect of m_nNewPhraseBoxGapWidth being uninitialized could
-    // occur if a user attempted to manually resize the main window frame, before clicking into the phrasebox.
-    // In such cases all the piles would seem to disappera beyond the location of the phrasebox. They could
-    // only be "retrieved" by first clicking in a different location, or closing and reopening the document
-    // again. The piles beyond the phrasebox weren't getting "lost", they would simply be added to the end of
-    // the same strip after the phrasebox, but their drawing x-coord offset would be a huge negative number 
-    // in the realm of -842150431, which would draw them miles beyond the left margin of the screen!
-    // To remedy this I'm initializing m_nNewPhraseBoxGapWidth to -1 here in OnInit() at application startup.
-    // That way the CStrip::CreateStrip() routine that references/uses m_nNewPhraseBoxGapWidth is now protected
-    // which prevents bogus x-coord offsets from being saved in the pile array. The result of this change is
-    // that now a user can do a manual resize of the main window frame without "loosing" the piles beyond the
-    // phrasebox.
-    // Note: Two other related variables in the CPhraseBox class m_bDoExpand and m_bDoContract were also 
-    // uninitialized outside of OnPhraseBoxChanged(). They are now both initialized to FALSE in the View's
-    // OnCreate() method.
-    // whm 11Nov2022 the following initialization of m_nNewPhraseBoxGapWidth is no longer needed
-    // in refactored phrasebox sizing here in OnInit(). The first instance in the App where a phrasebox 
-    // gap width is needed is during doc opening when initial strip creation is done within in 
-    // CPile::CreateStrip() and before user has typed any edits, but does a frame window resize. In that
-    // case the call of CPile::CalcPhraseBoxGapWidth() during strip creation can return a -1 
-    // initialization value if the layout is not yet ready for calculating a true box gap width.
-    m_pLayout->m_nNewPhraseBoxGapWidth = -1;
-    //m_pLayout->m_nNewPhraseBoxGapWidth = -1;
-
-    // whm 11Nov2022 note: the following m_bCompareWidthIsLonger variable is incorporated into the refactored
-    // phrasebox sizing code, but it is initialized in different locations than its original usages. It is 
-    // still used mainly within the CStrip::CreateStrip() function.
-    // After refactoring and testing I removed m_bCompareWidthIsLonger.
-    //m_pLayout->m_bCompareWidthIsLonger = TRUE;
-    
-    // *** The variable initializations above were moved here from the View ***
+    // whm 22Nov2022 Eliminated the Layout's m_nNewPhraseBoxGapWidth member as it was only
+    // adding complexity to establishing an appropriate gap for the phrasebox whether the
+    // phrasebox needed resizing or not.
 
     /*
     // Testing the GetBookCodeFastFromDiskFile() function
@@ -30944,10 +30904,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
 //#if defined(_KBSERVER)
     
-    // whm 22Feb2021 removed the following two lines
-	//wxString execPath = PathToExecFolder(); // app removed from end, ends now in separator
-	//distPath = GetDistFolder();  // set the path to dist folder, for this session
- 
     // BEW 27Feb2021 modified the line below to use m_dataKBsharingPath instead of exePath
     wxLogDebug(_T("Calling CreateInputDatBlanks for KB Sharing in: %s"), m_dataKBsharingPath.c_str());
 	CreateInputDatBlanks(m_dataKBsharingPath); // path ends in PathSeparator, no file yet
@@ -30959,14 +30915,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUserRequestsTimedDownload = FALSE;  // set True if user uses GUI to ask for a bulk
 						// download, or ChangedSince (ie. incremental) download. If
 						// TRUE, skip the OnIdle() ChangedSince_Timed request
-    // whm 11Nov2022 removed the following two lines, since they are only initialized but
-    // never referenced anywhere in code.
-    //GetLayout()->m_nSaveGap_TgtOnly = 0; // initialise, for this session (Preferences can change it, see ViewPage::OnOK()
-    //GetLayout()->m_bNewGapRequested_TgtOnly = FALSE; // intialize - goes TRUE each time
-                 // the use uses Preferences to set a new gap width, when gbShowTargetOnly is TRUE,
-                 // and after the TRUE value is used, it is cleared to FALSE, in case the user
-                 // goes to Preferences multiple times to change the gap while viewing only src line
-                 // 
+
     // In case the path to the MariaDB 10.5 subfolders is needed in AI.exe, the wxString following
     // is set - but I suspect this won't ever be needed 
     mariadb_path = "C:\\Program Files (x86)\\MariaDB 10.5\\"; // declared at .h 2647

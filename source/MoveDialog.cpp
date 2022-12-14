@@ -288,10 +288,7 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 		// type we have elected to save
 		wxString extn;
 		// wx version only uses .xml extensions on documents
-		//if (gpApp->m_bSaveAsXML)
-			extn = _T(".xml");
-		//else
-		//	extn = _T(".adt");
+		extn = _T(".xml");
 		NewFileName = noExtnName + extn;
 
 		// wx version note: The MFC version's MoveFile() cannot move files/directories across diferent

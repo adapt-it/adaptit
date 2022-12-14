@@ -605,14 +605,6 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			fontPage->fontPgCommon.tempNavTextSize = 12;
 			return;
 		}
-
-		// BEW 17Aug21 changing the font size will change the extent (in pixels) of the 'w' character, which is
-		// used for calculating the width of the layout's slop, and the default active pile size; so redo that
-		// setting here. The other place it's done is in the creator for the CLayout class.
-		// whm 11Nov2022 removed the following assignment of m_defaultActivePileWidth since
-		//CLayout* pLayout = gpApp->GetLayout();
-		// there is no reference/use made of the variable within the code base.
-		//pLayout->m_defaultActivePileWidth = pLayout->GetDefaultActivePileWidth();
 	}
 
 	if (kbPage != NULL)

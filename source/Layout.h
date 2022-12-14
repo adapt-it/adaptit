@@ -269,16 +269,12 @@ public:
 	// CPhraseBox::OnPhraseBoxChanged().
 	bool		m_bAmWithinPhraseBoxChanged;
 	
-	// whm 11Nov2022 removed m_bCompareWidthIsLonger is no longer needed for refactored
-	// phrasebox sizing
-	//bool		m_bCompareWidthIsLonger; // BEW 7Oct21 added
-	int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
+	// whm 22Nov2022 Eliminated the Layout's m_nNewPhraseBoxGapWidth member as it was only
+	// adding complexity to establishing an appropriate gap for the phrasebox whether the
+	// phrasebox needed resizing or not.
+	//int			m_nNewPhraseBoxGapWidth; // BEW 7Oct21 added, cache location for the new gap width
 
 	int			m_curBoxWidth;  // BEW 28Jul21 
-	// whm 11Nov2022 removed the declaration of the following m_defaultActivePileWidth since
-	// it is assigned in EditPreferencesDlg.cpp but there is no reference/use made of the variable 
-	// within the code base.
-	//int			m_defaultActivePileWidth; // BEW 17Aug21 created (public:)
 
 	// whm 11Nov2022 renamed the following function from SetDefaultActivePileWidth() to 
 	// GetDefaultActivePileWidth(), since the function does not set any class member. 
@@ -294,10 +290,6 @@ public:
 	// same width.
 	int			m_curListWidth; // BEW refactored 9Aug21, to be the width value returned 
 						// by calculating string extents from the list's contents
-	// whm 11Nov2022 removed the following two members, since they are initialized
-	// but never referenced within code.
-	//int			m_nSaveGap_TgtOnly;
-	//bool		m_bNewGapRequested_TgtOnly;
 
 private:
 
@@ -466,9 +458,6 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
-	// whm 11Nov2022 removed SetCurBoxWidth() and GetCurBoxWidth() below as they are never used.
-	//void		SetCurBoxWidth(int curBoxWidth); // accessor for m_curBoxWidth 
-	//int			GetCurBoxWidth(); // accessor for m_curBoxWidth
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 

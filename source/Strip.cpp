@@ -178,20 +178,10 @@ void CStrip::Draw(wxDC* pDC)
 // strips for a whole document)
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 19Aug18 refactored for supporting dropdown list phrasebox
+// whm 11Nov2022 refactored for new phrasebox sizing methodology and simplifications.
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
-	/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-	{
-	int nStripIndex = this->GetStripIndex();
-	
-		wxLogDebug(_T("%s::%s() line %d : CREATE_STRIP, JUST ENTERED for strip index %d"),
-			__FILE__, __FUNCTION__, __LINE__, nStripIndex);
-	}
-
-#endif
-	*/
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
@@ -202,387 +192,188 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	m_arrPiles.Clear();
 	m_arrPileOffsets.Clear();
 
-	// BEW 16Sep21 refresh the active pile ptr
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	//CAdapt_ItView* pView = pApp->GetView();
-	//pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-
 	// lay out the piles
 
-    // this refactored code is commented out because it turned out that RTL layout and LRT
-    // layout of the piles in the strip uses exactly the same code - they are appended to
-    // the strip in logical order, and it is only the rectangle calculations (none of which
-    // are done here) which specify the differing locations of pile[0], pile[1] etc for RTL
-    // versus LTR layout -- so that information will be in the coordinate calculations -
-    // specifically, in CPile::Left()
-//	if (!gbRTL_Layout)
-	{
-		// Unicode version, and Left to Right layout is wanted
-		int nHorzOffset_FromLeft = 0;
-		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
-		int nWidthOfPreviousPile = 0;
+    // Note: RTL layout and LRT layout of the piles in the strip uses exactly the same code,
+	// they are appended to the strip in logical order, and it is only the rectangle 
+	// calculations (none of which are done here) which specify the differing locations 
+	// of pile[0], pile[1] etc for RTL versus LTR layout - so that information will be 
+	// in the coordinate calculations - specifically, in CPile::Left()
+	
+	// Unicode version, and Left to Right layout is wanted
+	int nHorzOffset_FromLeft = 0;
+	int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
+	int nWidthOfPreviousPile = 0;
 
-        // we must always have at least one pile in the strip in order to prevent an
-        // infinite loop of empty strips if the width of the first pile should happen to
-        // exceed the strip's width; so we place the first unilaterally, regardless of its
-        // width
+    // we must always have at least one pile in the strip in order to prevent an
+    // infinite loop of empty strips if the width of the first pile should happen to
+    // exceed the strip's width; so we place the first unilaterally, regardless of its
+    // width
+	pPile = (CPile*)pos->GetData();
+	// set the pile's m_pOwningStrip member
+	pPile->m_pOwningStrip = this;
+	if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
+	{
+		pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+	}
+	else 
+	{ 
+		// Is this first pile to be placed in the strip, the doc's current active one?
+		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+			// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+			// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+			// 
+			// Get the largest width of curBoxWidth or curListWidth, and save them on 
+			// the Layout's m_curBoxWidth and m_curListWidth.
+			// Note: When there needed to be a phrasebox resize (larger or smaller) the
+			// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+			// in the CPhraseBox::OnPhraseBoxChanged() function.
+			int curBoxWidth = m_pLayout->m_curBoxWidth;
+			int curListWidth = m_pLayout->m_curListWidth;
+			// Take the larger of the two
+			int theMax = wxMax(curBoxWidth, curListWidth);
+			// Make both agree
+			m_pLayout->m_curBoxWidth = theMax;
+			m_pLayout->m_curListWidth = theMax;
+
+			// The pileWidth at the active location is simply the current box width plus
+			// the width of the dropdown button.
+			pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
+	}
+	m_arrPiles.Add(pPile); // store it
+	m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+	m_nFree -= pileWidth; // reduce the free space accordingly
+	pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
+
+	// prepare for next iteration
+	nWidthOfPreviousPile = pileWidth;
+	pileIndex_InStrip++;
+	pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
+	nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
+	// if m_nFree went negative or zero, we can't fit any more piles, so declare
+	// the strip full
+	if (m_nFree <= 0)
+	{
+		m_bValid = TRUE;
+		return pos;
+	}
+
+	// append second and later piles to the strip
+	while (pos != NULL  && m_nFree > 0)
+	{
 		pPile = (CPile*)pos->GetData();
-		// set the pile's m_pOwningStrip member
-		pPile->m_pOwningStrip = this;
+		wxASSERT(pPile != NULL);
+
+		// break out of the loop without including this pile in the strip if it is a
+		// non-initial pile which contains a marker in its pointed at pSrcPhrase which is a
+		// wrap marker for text (we want strips to wrap too, provided the view menu item has
+		// that feature turned on)
+		if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
+		{
+			bool bCausesWrap = pPile->IsWrapPile();
+			// do the wrap only if it is a wrap marker and we have not just deal with
+			// a document-initial marker, such as \id
+			if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
+			{
+				// if we need to wrap, discontinue assigning piles to this strip (the
+				// nPileIndex_InList value is already correct for returning to caller)
+				m_bValid = TRUE;
+				return pos;
+			}
+		}
+
+		// if control gets to here, the pile is a potential candidate for inclusion in this
+		// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
 		if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
 		else 
-		{ 
-			// Is this first pile to be placed in the strip, the doc's current active one?
+		{	
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				//boxMode = m_pLayout->m_boxMode;
-				pileWidth = pPile->CalcPhraseBoxGapWidth();
-				// BEW 17Aug18 add this, to force the following piles wider - Nah, it's good for only one widening
-				//if (boxMode == expanding)
-				//{
-				//	pileWidth += m_pLayout->slop;
-				//}
+				// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+				// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+				// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+				// 
+				// Get the largest width of curBoxWidth or curListWidth, and save them on 
+				// the Layout's m_curBoxWidth and m_curListWidth.
+				// Note: When there needed to be a phrasebox resize (larger or smaller) the
+				// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+				// in the CPhraseBox::OnPhraseBoxChanged() function.
+				int curBoxWidth = m_pLayout->m_curBoxWidth;
+				int curListWidth = m_pLayout->m_curListWidth;
+				// Take the larger of the two
+				int theMax = wxMax(curBoxWidth, curListWidth);
+				// Make both agree
+				m_pLayout->m_curBoxWidth = theMax;
+				m_pLayout->m_curListWidth = theMax;
 
-#if defined(_DEBUG) && defined(_EXPAND)
-				// currently boxMode is unused, except for logging purposes
-				if (boxMode == expanding)
-				{
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-				else if (boxMode == steadyAsSheGoes)
-				{
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-				else
-				{
-					// must be 'contracting'
-					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-				}
-#endif
+				// The pileWidth at the active location is simply the current box width plus
+				// the width of the dropdown button.
+				pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 			}
 			else
 			{
+				// This pile is NOT the active pile, so we assign the pileWidth to the m_nMinWidth 
+				// value and add the gap for nCurrentSpan
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
-		m_arrPiles.Add(pPile); // store it
-		m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-		m_nFree -= pileWidth; // reduce the free space accordingly
-		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
+		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within 
+		// m_nFree span of strip.
+		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
+										// pile to be eligible for inclusion in the strip
+		if (nCurrentSpan <= m_nFree)
+		{
+			// this pile will fit in the strip, so add it
+			m_arrPiles.Add(pPile); // store it
+			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			m_nFree -= nCurrentSpan; // reduce the free space accordingly
+			pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 
-		// prepare for next iteration
-		nWidthOfPreviousPile = pileWidth;
-		pileIndex_InStrip++;
-		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
-		/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-		{
-			int stripIndex = this->GetStripIndex();
-			wxLogDebug(_T("    %s::%s(), line %d: CREATING STRIP %d , nWidthOfPreviousPile %d , pileIndex_InStrip %d , nHorzOffset_FromLeft (includes + interPile gap) %d\n"),
-				__FILE__,__FUNCTION__,__LINE__, stripIndex, nWidthOfPreviousPile, pileIndex_InStrip, nHorzOffset_FromLeft);
+//#if defined (_DEBUG)
+//				{
+//					int stripIndex = this->GetStripIndex();
+//					wxLogDebug(_T("    %s::%s(), line %d: CREATING STRIP %d , nWidthOfPreviousPile %d , pileIndex_InStrip %d , nHorzOffset_FromLeft (includes + interPile gap) %d\n"),
+//						__FILE__, __FUNCTION__, __LINE__, stripIndex, nWidthOfPreviousPile, pileIndex_InStrip, nHorzOffset_FromLeft);
+//				}
+//#endif
+
 		}
-#endif
-		*/
-		// if m_nFree went negative or zero, we can't fit any more piles, so declare
-		// the strip full
-		if (m_nFree <= 0)
+		else
 		{
+			// this pile won't fit, so the strip is full - declare it full and return
+			// the pile list's index for use in the next strip's creation
 			m_bValid = TRUE;
+			// This is the normal exit point for control, when creating strips
 			return pos;
 		}
 
-		// append second and later piles to the strip
-		while (pos != NULL  && m_nFree > 0)
-		{
-			pPile = (CPile*)pos->GetData();
-			wxASSERT(pPile != NULL);
+		// set the pile's m_pOwningStrip member
+		pPile->m_pOwningStrip = this;
 
-			// break out of the loop without including this pile in the strip if it is a
-			// non-initial pile which contains a marker in its pointed at pSrcPhrase which is a
-			// wrap marker for text (we want strips to wrap too, provided the view menu item has
-			// that feature turned on)
-			if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
-			{
-				bool bCausesWrap = pPile->IsWrapPile();
-				// do the wrap only if it is a wrap marker and we have not just deal with
-				// a document-initial marker, such as \id
-				if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
-				{
-					// if we need to wrap, discontinue assigning piles to this strip (the
-					// nPileIndex_InList value is already correct for returning to caller)
-					m_bValid = TRUE;
-					return pos;
-				}
-			}
+		// update index for next iteration
+		pileIndex_InStrip++;
+		nWidthOfPreviousPile = pileWidth;
 
-			// if control gets to here, the pile is a potential candidate for inclusion in this
-			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
-			if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
-			{
-				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
-			}
-			else 
-			{	
-				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-				{
-					// We are adding the pile at the active location.
-					// ???????????????????????????????????????????????????????????????????
-					// whm 11Nov2022 TODO: Refactored the following code Lines 335 - 437
-					// Note that before refactoring the m_bDoExpand and m_bComparedWidthIsLonger
-					// boolean values were not initialized properly until OnPhraseBoxChanged() 
-					// executed. Hence, before any user edits both bools generally happen to be TRUE
-					// in their unitilialized state.
-					// After refactoring of 11Nov2022, the m_bDoExpand variable and the 
-					// m_bComparedWidthIsLonger bool are no longer useful/valid and were eliminated.
+		// advance the iterator for the CLayout's m_pileList list of pile pointers
+		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
-					// whm 11Nov2022 removing the m_bDoExpand test from if () block below
-					//if (!gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoExpand)
-					if (!gbDoingInitialSetup)
-					{
-						// whm testing shows that the other test above (for gbDoingInitialSetup being
-						// FALSE) is needed here because at least one call is made to CreateStrip() 
-						// BEFORE the Layout is completely setup and before the PlaceBox() function 
-						// is called where m_pLayout->m_nNewPhraseBoxGapWidth is initialized to 
-						// something other than -1.
-					
-						// whm 11Nov2022 Note: Before this refactoring, the m_bCompareWidthIsLonger 
-						// test below was not properly initialized until OnPhraseBoxChanged() was 
-						// triggered, and even in its unitialized state, it was generally TRUE 
-						// (because non-initialized bool values that don't happen to be 0 are TRUE 
-						// by definition). 
-						// whm 11Nov2022 UPDATE: The test of m_bCompareWidthIsLonger is not needed 
-						// any longer.
-						//if (m_pLayout->m_bCompareWidthIsLonger) // BEW 7Oct21 added this test
-						//{
-						// At least one successful expand has been done, and the typed text
-						// in the phrasebox (adaption, or gloss if glossing is turned on)
-						// has grown to the point that it has crossed the rightBoundary, and
-						// triggered m_bDoExpand to be TRUE; and an inner bubble of code in
-						// OnPhraseBoxChanged() has set up width values appropriate for a
-						// further width expansion later, if the user continues typing - the 
-						// pile gap is also cached in a new member of pLayout, called 
-						// m_nNewPhraseBoxGapWidth, with public access, so use it now
-						//
-						// whm 3Nov2022 modification. Bruce noticed that when the user manually adjusted the
-						// size of the main frame's window, that "piles were going missing after that point". They
-						// still existed, and coule be restored by clicking on a different target location which
-						// would bring them back into view. I discovered the cause of the problem was that
-						// 3 of the variables used here, especially the m_nNewPhraseBoxGapWidth variable was
-						// a large negative number like -842150451. During a resize of the main window, that large
-						// negative number was getting assigned to pileWidth in the unprotected statementbelow.
-						// The result was that all piles beyond the active phrasebox location were being assigne to
-						// a single strip, and the offsets for drawing those strips became a huge negative number
-						// so that all those remaining piles were being drawn miles off the left end of the screen!
-						// 
-						// To mitigate the problem (see UPDATE comment below), I've set the Layout's 
-						// m_nNewPhraseBoxGapWidth initial value now to -1, which is set in the App's OnInit(). 
-						// The only location where m_nNewPhraseBoxGapWidth [was] set to an actual meaningful value 
-						// [was] in CPhraseBox::GetBestTabSettingFromArrayForBoxResize() where it is assigned a 
-						// value that is intended to be a cached value, i.e., the value that was its most recent "new" 
-						// value due to a change in the phrasebox as detected by the OnPhraseBoxChanged() method. 
-						// If the phrasebox content has not changed up to this point, the value of Layout's 
-						// m_nNewPhraseBoxGapWidth will be -1 in particular, before OnPhraseBoxChanged() is 
-						// triggered due to a user's edit action.
-						// whm 11Nov2022 UPDATE: I've now also initialized the m_nNewPhraseBoxGapWidth within the 
-						// Layout's PlaceBox() routine just before it calls ResizeBox(). That initialization in 
-						// PlaceBox() technically eliminates the need to initialize it within the App's OnInit(), 
-						// as mentioned above, but it is a safety net to have it assigned to value of -1 in case 
-						// it needs to be referenced in a different situation.
-						// 
-						// We should only assign pileWidth the value of m_nNewPhraseBoxGapWidth if m_nNewPhraseBoxGapWidth
-						// is something other than -1, so this modification tests for that -1 value and acts accordingly.
-						int gapWidth = pPile->CalcPhraseBoxGapWidth();// Returns the combined values from CalcPhraseBoxWidth() + GetExtraWidthForButton()
-						gapWidth = gapWidth; // for testing
-						if (m_pLayout->m_nNewPhraseBoxGapWidth != -1) // whm 3Nov2022 added this test
-						{
-							// Were NOT in gbDoingInitialSetup, but creating the strip that will actually 
-							// be drawn, and Layout's m_nNewPhraseBoxGapWidth is valid, so we'll use it 
-							// here for piieWidth.
-							// Following BEW's code get the largest width of curBoxWidth or curListWidth,
-							// and save them on the Layout's m_curBoxWidth and m_curListWidth.
-							int curBoxWidth = m_pLayout->m_curBoxWidth;
-							int curListWidth = m_pLayout->m_curListWidth;
-							// Take the larger of the two
-							int theMax = wxMax(curBoxWidth, curListWidth);
-							// Make both agree
-							m_pLayout->m_curBoxWidth = theMax;
-							m_pLayout->m_curListWidth = theMax;
-
-							pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth; // includes GetExtraWidthForButton()
-						}
-						else
-						{
-							// The m_nNewPhraseBoxGapWidth is -1 (uninitialized) which should not really happen
-							// anymore since refactoring, but just in case, assign pileWidth using the normal
-							// calculations for m_nNewPhraseBoxGapWidth
-							// Following BEW's code get the largest width of curBoxWidth or curListWidth,
-							// and save them on the Layout's m_curBoxWidth and m_curListWidth.
-							int curBoxWidth = m_pLayout->m_curBoxWidth;
-							int curListWidth = m_pLayout->m_curListWidth;
-							// Take the larger of the two
-							int theMax = wxMax(curBoxWidth, curListWidth);
-							// Make both agree
-							m_pLayout->m_curBoxWidth = theMax;
-							m_pLayout->m_curListWidth = theMax;
-
-							pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
-						}
-//#if defined (_DEBUG)
-//						{
-//							wxLogDebug(_T("%s::%s() line %d: PREP for ANOTHER EXPAND: m_pLayout->m_nNewPhraseBoxGapWidth = %d"),
-//									__FILE__, __FUNCTION__, __LINE__, pileWidth);
-//						}
-//#endif
-						//}
-						//else
-						//{
-							/*
-							//int miniSlop = m_pLayout->m_pApp->GetMiniSlop(); // BEW removed 7Oct21
-							int curBoxWidth = m_pLayout->m_curBoxWidth;
-							int curListWidth = m_pLayout->m_curListWidth;
-							// Take the larger of the two
-							int theMax = wxMax(curBoxWidth, curListWidth);
-							// Make both agree
-							m_pLayout->m_curBoxWidth = theMax;
-							m_pLayout->m_curListWidth = theMax;
-
-							// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
-							// following piles will move to accomodate it
-							// whm 11Nov2022 modification: It seems that pileWidth assignment here could be the same
-							// as in the if () block above using m_nNewPhraseBoxGapWidth, i.e., pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth
-							*/
-							//pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); //+gap;
-							//pileWidth = m_pLayout->m_nNewPhraseBoxGapWidth;
-//#if defined (_DEBUG)
-//							{ // scoped block - BEW added 28Sep21 to track the pileWidth value
-//								wxLogDebug(_T("%s::%s() line %d: For m_bDoExpand TRUE: initial box width %d , box & list Max  %d , after adding buttonwidth %d , pileWidth = %d"),
-//									__FILE__, __FUNCTION__, __LINE__, curBoxWidth, theMax, m_pLayout->m_curBoxWidth, pileWidth);
-//							}
-//#endif
-						//}
-					}
-					// whm 11Nov2022 Note: The else if block below was never executing because m_bDoContract was always set FALSE
-					// and never set anywhere to TRUE. I've commented out this block because of m_bDoContract never getting
-					// a TRUE value, however, the code below needs some study to see if it should be included in some form
-					// within other code where the phrasebox is actually contracting (such as within the
-					// CPhraseBox::GetBestTabSettingFromArrayForBoxResize() function.
-					/*
-					else if ( !gbDoingInitialSetup && m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
-					{ 
-						int slop = m_pLayout->slop;
-						int curBoxWidth = m_pLayout->m_curBoxWidth;
-						int curListWidth = m_pLayout->m_curListWidth;
-						// Take the larger of the two
-						int theMax = wxMax(curBoxWidth, curListWidth);
-						// Make both agree
-						m_pLayout->m_curBoxWidth = theMax;
-						m_pLayout->m_curListWidth = theMax;
-						m_pLayout->m_curBoxWidth -= slop;
-						m_pLayout->m_curBoxWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
-						m_pLayout->m_curListWidth -= slop;
-						m_pLayout->m_curListWidth += 2 * m_pLayout->m_pApp->m_width_of_w;
-						// whm 11Nov2022 note: comment below mentions m_defaultActivePileWidth, but
-						// that value is never referenced anywhere within the current code base, and
-						// is only assigned a value within the OnOK() handler of EditPreferencesDlg.cpp
-						// for a font change. 
-						// Subract the slop but add 2 'w' widths, to each, making box 
-						// a little longer (list must agree too); do it provided the currBoxWidth
-						// does not got less than or equal to layout's m_defaultActivePileWidth value
-
-						// Need a phrasebox gap calculation, so that the expanded or contracted phrasebox will fit and the
-						// following files will move to accomodate it
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); 
-						pileWidth += (2 * m_pLayout->m_pApp->m_width_of_w) + 2 *gap + 4;
-					}
-					*/
-					else
-					{
-						// gbDoingInitialSetup is TRUE so We're still in initial setup, and this strip
-						// won't actually be drawn. Can't really get a max value for curBoxWidth and
-						// curListWidth since curListWidth is undefined while gbDoingInitialSetup is TRUE.
-
-						pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton(); 
-					}
-					// whm 11Nov2022 Refactored the above code Lines 335 - 437
-					// Note that m_bDoExpand and m_bComparedWidthIsLonger are no longer useful/valid bool 
-					// values and were eliminated.
-					// ???????????????????????????????????????????????????????????????????
-
-				}
-				else
-				{
-					// This pile is NOT the active pile, so we assign the pileWidth to the m_nMinWidth 
-					// value and add the gap for nCurrentSpan
-					pileWidth = pPile->m_nMinWidth;
-				}
-			}
-			// whm 23Sep2021 added the gap value back to calculation of each nCurrentSpan below, otherwise
-			// the value of nCurrentSpan will not have been decremented properly within the if (nCurrentSpan <= m_nFree) 
-			// test block below.
-			// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
-			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
-											// pile to be eligible for inclusion in the strip
-			if (nCurrentSpan <= m_nFree)
-			{
-				// this pile will fit in the strip, so add it
-				m_arrPiles.Add(pPile); // store it
-				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-				m_nFree -= nCurrentSpan; // reduce the free space accordingly
-				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
-/*
-#if defined (_DEBUG)
-				{
-					int stripIndex = this->GetStripIndex();
-					wxLogDebug(_T("    %s::%s(), line %d: CREATING STRIP %d , nWidthOfPreviousPile %d , pileIndex_InStrip %d , nHorzOffset_FromLeft (includes + interPile gap) %d\n"),
-						__FILE__, __FUNCTION__, __LINE__, stripIndex, nWidthOfPreviousPile, pileIndex_InStrip, nHorzOffset_FromLeft);
-				}
-#endif
-*/
-			}
-			else
-			{
-				// this pile won't fit, so the strip is full - declare it full and return
-				// the pile list's index for use in the next strip's creation
-				m_bValid = TRUE;
-/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-				{
-					int nStripIndex = this->GetStripIndex();
-
-					wxLogDebug(_T("%s::%s() line %d : CREATE_STRIP, EXITING earlier, for strip index %d  Strip Is Full"),
-						__FILE__, __FUNCTION__, __LINE__, nStripIndex);
-				}
-#endif
-*/
-				// Testing reveals this is the normal exit point for control, when creating strips
-				return pos;
-			}
-
-			// set the pile's m_pOwningStrip member
-			pPile->m_pOwningStrip = this;
-
-			// update index for next iteration
-			pileIndex_InStrip++;
-			nWidthOfPreviousPile = pileWidth;
-
-			// advance the iterator for the CLayout's m_pileList list of pile pointers
-			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-
-			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
-		}
+		// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
+		nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 	}
-
-	// if the loop exits because the while test yields FALSE, then either we are at the end of the
-	// document or the first pile was wider than the whole strip - in either case we must declare
-	// this strip filled and we are done
+	
+	// If the loop exits because the while test yields FALSE, then either we are at the 
+	// end of the document or the first pile was wider than the whole strip - in either 
+	// case we must declare this strip filled and we are done.
 	m_bValid = TRUE;
 
 	return pos; // the iterator value where we start when we create the next strip
@@ -596,19 +387,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // should not be called if there are no more piles to be placed.
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 19Aug18 refactored for supporting dropdown list phrasebox
+// whm 11Nov2022 refactored for new phrasebox sizing methodology and simplifications,
+// and to make this override function work like its parent CreateStrip() function.
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
-	/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-	{
-		int nStripIndex = this->GetStripIndex();
-		wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, ENTERING at line 452, for strip index %d, , and nInitialPileIndex %d"),
-			__FILE__, __FUNCTION__, __LINE__, nStripIndex, nInitialPileIndex);
-	}
-#endif	
-	//boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
-	*/
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
@@ -622,14 +405,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	wxASSERT(pos);
 	int numPlaced = 0;
 	int pileIndex = nInitialPileIndex;
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("0.	CreateStrip: Remaining to be placed:  %d"),nEndPileIndex - nInitialPileIndex + 1);
-	}
-#endif
-*/
-    // clear the two arrays - failure to do this leaves gargage in their members (such as
+
+	// clear the two arrays - failure to do this leaves gargage in their members (such as
     // m_size & m_count being left as huge numbers) & could lead to an app crash
 	m_arrPiles.Clear();
 	m_arrPileOffsets.Clear();
@@ -657,17 +434,26 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			//boxMode = m_pLayout->m_boxMode;
-			pileWidth = pPile->CalcPhraseBoxGapWidth();
-			/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-			{
-				int nStripIndex = this->GetStripIndex();
-				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, for strip index %d,  pileWidth calced by CalcPhraseBoxGapWidth(boxMode) = %d"), 
-					__FILE__, __FUNCTION__, __LINE__, nStripIndex , pileWidth);
-			}
-#endif	
-			*/
+			// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+			// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+			// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+			// 
+			// Get the largest width of curBoxWidth or curListWidth, and save them on 
+			// the Layout's m_curBoxWidth and m_curListWidth.
+			// Note: When there needed to be a phrasebox resize (larger or smaller) the
+			// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+			// in the CPhraseBox::OnPhraseBoxChanged() function.
+			int curBoxWidth = m_pLayout->m_curBoxWidth;
+			int curListWidth = m_pLayout->m_curListWidth;
+			// Take the larger of the two
+			int theMax = wxMax(curBoxWidth, curListWidth);
+			// Make both agree
+			m_pLayout->m_curBoxWidth = theMax;
+			m_pLayout->m_curListWidth = theMax;
+
+			// The pileWidth at the active location is simply the current box width plus
+			// the width of the dropdown button.
+			pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 		}
 		else
 		{
@@ -680,25 +466,10 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	pileIndex++; // set tracker index to index of next pile to be placed
 	m_nFree -= pileWidth; // reduce the free space accordingly
 	pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("1.	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d"),
-					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree);
-	}
-#endif
-*/
 	if (pileIndex > nEndPileIndex)
 	{
 		// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
 		// to TRUE, and let the caller work out if it should instead by set to FALSE
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("1.1	CreateStrip: Early exit: pileIndex > nEndPileIndex is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
-	}
-#endif
-*/
 		m_bValid = TRUE;
 		return numPlaced;
 	}
@@ -710,13 +481,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	if (pos == NULL)
 	{
 		// no more piles available for placement, so return
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("1.2	CreateStrip: Early exit: pos == NULL is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
-	}
-#endif
-*/
 		m_bValid = TRUE;
 		return numPlaced;
 	}
@@ -726,13 +490,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	// the strip full
 	if (m_nFree <= 0)
 	{
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("1.3	CreateStrip: Early exit: m_nFree <= 0 is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
-	}
-#endif
-*/
 		m_bValid = TRUE;
 		return numPlaced;
 	}
@@ -756,13 +513,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			{
 				// if we need to wrap, discontinue assigning piles to this strip (the
 				// nPileIndex_InList value is already correct for returning to caller)
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("1.4	CreateStrip: Exit due to WRAP condition satisfied,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
-	}
-#endif
-*/
 				m_bValid = TRUE;
 				return numPlaced;
 			}
@@ -778,43 +528,50 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
-//#if defined (_DEBUG)
-//				{
-//					int nStripIndex = this->GetStripIndex();
-//					wxLogDebug(_T("%s::%s(), line %d , in active CREATE-STRIP, CalcPhraseBoxGapWidth(boxMode) returned pileWidth = %d , storing nHorzOffset_FromLeft = %d , at strip index = %d"),
-//						__FILE__, __FUNCTION__, __LINE__, pileWidth, nHorzOffset_FromLeft, nStripIndex);
-//				}
-//#endif	
+				// whm 11Nov2022 modification. This override function of CreateStrip() should have the same
+				// coding as its parent function CreateStrip() as far as the mechanism for ensuring that
+				// any new gap width is taken into account in the refactored code. Hence, instead of just
+				// assigning the value returned from Pile's CalcPhraseBoxGapWidth() here to pileWidth, I'm
+				// makine the coding here conform to that in the parent function CreateStrip().
+				// pileWidth = pPile->CalcPhraseBoxGapWidth(); 
+				// 
+				// whm 11Nov2022 simplification. I removed the tests for gbDoingInitialSetup and 
+				// m_nNewPhraseBoxGapWidth here in CreateStrip(). They proved redundant and only 
+				// added complexity. The m_nMewPhraseBoxGapWidth was removed entirely from the app.
+				// 
+				// Get the largest width of curBoxWidth or curListWidth, and save them on 
+				// the Layout's m_curBoxWidth and m_curListWidth.
+				// Note: When there needed to be a phrasebox resize (larger or smaller) the
+				// m_pLayout->m_curBoxWidth and m_curListWidth were adjusted to the new width
+				// in the CPhraseBox::OnPhraseBoxChanged() function.
+				int curBoxWidth = m_pLayout->m_curBoxWidth;
+				int curListWidth = m_pLayout->m_curListWidth;
+				// Take the larger of the two
+				int theMax = wxMax(curBoxWidth, curListWidth);
+				// Make both agree
+				m_pLayout->m_curBoxWidth = theMax;
+				m_pLayout->m_curListWidth = theMax;
+
+				// The pileWidth at the active location is simply the current box width plus
+				// the width of the dropdown button.
+				pileWidth = m_pLayout->m_curBoxWidth + m_pLayout->GetExtraWidthForButton();
 			}
 			else
 			{
+				// This pile is NOT the active pile, so we assign the pileWidth to the m_nMinWidth 
+				// value and add the gap for nCurrentSpan
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
-		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit within m_nFree span of strip.
+		// whm 11Nov2022 note: Addition of + gap below is required for piles to fit 
+		// within m_nFree span of strip.
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
 							// for this pile to be eligible for inclusion in the strip	
 		if (nCurrentSpan <= m_nFree)
 		{
 			// this pile will fit in the strip, so add it
 			m_arrPiles.Add(pPile); // store it
-			//if (m_pLayout->m_boxMode == contracting)  BEW 12Oct21 removed
-			// 
-			// whm 11Nov2022 Note that the if ... else blocks below add a gap to the
-			// second and following lines of the strip when m_bDoContract is TRUE, but
-			// not when it is FALSE. The m_bDoContract value was initialized within
-			// the codebase in several places to be FALSE, but was never set TRUE!
-			// The refactored phrasebox sizing no longer uses the m_bDoContract bool
-			// variable, and is now removed.
-			//if (m_pLayout->m_pApp->m_pTargetBox->m_bDoContract)
-			//{
-			//	m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
-			//}
-			//else
-			//{
 			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-			//}
 			numPlaced++; // increment counter of how many placed
 			pileIndex++; // set tracker index to index of next pile to be placed
 			m_nFree -= nCurrentSpan; // reduce the free space accordingly
@@ -828,15 +585,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			// this pile won't fit, so the strip is full - declare it full and return
 			// the pile list's index for use in the next strip's creation
-			/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-			{
-				int nStripIndex = this->GetStripIndex();
-				wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, EXITING at line 721, for strip index %d, and m_nFree %d  Strip Is Full"),
-					__FILE__, __FUNCTION__, __LINE__, nStripIndex , m_nFree);
-			}
-#endif	
-			*/
 			m_bValid = TRUE;
 			return numPlaced;
 		}
@@ -849,15 +597,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
 			// to TRUE, and let the caller work out if it should instead by set to FALSE
 			m_bValid = TRUE;
-/*
-#ifdef _DEBUG
-	{
-		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-		wxLogDebug(_T("2.2	inloop	CreateStrip: pileIndex > nEndPileIndex is TRUE, so return,  pile[%d] Placed %d srcPhrase %s"),
-						pileIndex - 1, numPlaced, src);
-	}
-#endif
-*/
 			return numPlaced;
 		}
 		else
@@ -868,33 +607,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-/*
-#ifdef _DEBUG
-	{
-		if (pos != NULL)
-		{
-			CPile* pile = pos->GetData();
-			wxString src = pile->GetSrcPhrase()->m_srcPhrase;
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %p, last pile was [%d] Placed %d Trying srcPhrase %s"),
-				pos, pileIndex - 1, numPlaced, src);
-		}
-		else
-		{
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %p, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"),
-				pos, pileIndex - 1, numPlaced);
-		}
-	}
-#endif
-*/
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
 			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
-/*
-#ifdef _DEBUG
-	{
-		wxLogDebug(_T("	inloop	CreateStrip: ** Iterate Loop Now **, for next pile, nHorzOffset_FromLeft is %d"), nHorzOffset_FromLeft);
-	}
-#endif
-*/
 		}
 	}
 
@@ -907,15 +621,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	// width of a strip)
 	m_bValid = TRUE;
 
-	/* BEW commented out to simplify logging output, on 16Sep21
-#if defined (_DEBUG)
-	{
-		int nStripIndex = this->GetStripIndex();
-		wxLogDebug(_T("%s::%s(), line %d , in OVERLOAD, EXITING at line 790, END, for strip index %d, , and m_nFree %d"),
-			__FILE__, __FUNCTION__, __LINE__, nStripIndex, m_nFree);
-	}
-#endif	
-	*/
 	return numPlaced;
 }
 
