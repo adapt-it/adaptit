@@ -14409,7 +14409,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	// at is one of ( or { or [  These opening ones, if occuring word medial, (like in "word(something" followed by ')'
 	// somewhere later), must not be removed if there's no puntuation on either side. The new function is
 	// called IsParenBraceBracketWordInternal() and returns TRUE if one is detected which should be kept.
-	bool bKeepPBBracket = FALSE; // initialise
+	//bool bKeepPBBracket = FALSE; // initialise
 
 	// the following are for word2 when bHasFixedSpaceSymbol is TRUE
 	const wxChar* pBuffStart2 = word2.GetData();
@@ -14474,7 +14474,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			wxString ptrStr = wxString(ptr,5);
 			if (timeStr == ptrStr)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 		}
 #endif	// BEW 18Feb20 check if [ and ] are punctuation characters, or word-building
@@ -16853,7 +16853,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif
@@ -16974,10 +16974,24 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	// and it will do the needed restoration of following puncts
 	else
 	{
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 8)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+		}
+#endif
 		wxString strEnding = wxEmptyString;
 		wxString strResult = wxEmptyString;
+		// BEW 12Dec22 SimplePunctuationRestoration(pSrcPhrase, strEnding) will return any punctuation from, say,
+		// m_follPunct that was stored in pSrcPhrase->m_follPunct etc, so be careful below not to add it again,
+		// so as to cause an erroneous doubling. MakeTargetStringIncluding...() gets called when adapting, so
+		// m_pPhraseBox will already have the punctuation where appropriate.
 		strResult = pApp->SimplePunctuationRestoration(pSrcPhrase, strEnding);
-		if (!strResult.IsEmpty())
+		if (!strResult.IsEmpty() && !strEnding.IsEmpty())
 		{
 			pSrcPhrase->m_targetStr = strResult;
 			// Check m_follPunct for content, and add that
@@ -17105,7 +17119,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -17153,7 +17167,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -17201,10 +17215,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
-	#endif
+#endif
 				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 				if (pSrcPhrase->m_nSrcWords > 1)
 				{
@@ -17235,7 +17249,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					wxLogDebug(_T("MakeTgtStrIncPunc() line %d:  strEnding = %s "),__LINE__, strEnding.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif	
@@ -17251,7 +17265,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -17293,7 +17307,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
@@ -17324,7 +17338,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif	
@@ -17434,7 +17448,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17481,7 +17495,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here);
 								}
 							}
 #endif
@@ -17560,7 +17574,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
@@ -17613,7 +17627,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
@@ -17666,7 +17680,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17705,7 +17719,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17749,7 +17763,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17778,7 +17792,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17809,7 +17823,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17850,7 +17864,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17883,7 +17897,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
@@ -17918,7 +17932,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here);
 								}
 							}
 #endif
@@ -17970,7 +17984,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "), __LINE__, str.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 5)
 									{
-										int halt_here = 1;
+										int halt_here = 1; wxUnusedVar(halt_here);
 									}
 								}
 #endif
@@ -17992,43 +18006,66 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// may have produced a pSrcPhrase->m_targetStr value already correctly set
 					// with the restored following punctuation. So to here unilaterally set
 					// the same member with str, which probably lacks the restored following punctuation,
-					// would ruin what I've done above. So give it protection. If the left side is
-					// longer than the right and the last char of the left is punctuation, don't change it
-					int leftLen = pSrcPhrase->m_targetStr.Len();
-					int rightLen = str.Len();
-					wxChar chLeftLast = pSrcPhrase->m_targetStr.Last();
-					int anOffset = pApp->m_strSpacelessTargetPuncts.Find(chLeftLast);
-					// If anOffset is >= zero, then the extra length of the left can be attributed to final
-					// puncts having been added to the contents of RHSide's str.
-					if (!((leftLen > rightLen) && (anOffset >= 0)))
+					// would ruin what I've done above. So give it protection.
+					// 
+					// BEW 12Dec22 oops, str can be here expected to have an m_adaptation non-empty value,
+					// but very possibly pSrcPhrase->m_targetStr could be empty. If the latter is so, then
+					// an attempt to call .Last() on an empty string, will generate a bounds error crash.
+					// So make the following lines smarter. Calling .Len() on an empty string returns 0,
+					// so that is safe
+					wxString follPuncts = wxEmptyString;
+					wxString follOuterPuncts = wxEmptyString;
+					int tgtStrLen = pSrcPhrase->m_targetStr.Len();
+					if (tgtStrLen == 0)
 					{
-						// Test is not true, so go ahead and set m_targetStr to str; otherwise, leave it unchanged
-						pSrcPhrase->m_targetStr = str;
+						// There is no m_targetStr value defined as yet
+						pSrcPhrase->m_targetStr = str;  // set the best possible value so far, then check for puncts to add, below
 					}
+					if (!str.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty())
+					{
+						follPuncts = pSrcPhrase->m_follPunct; 
+						// What puncts set? If first char of follPuncts belongs in the pApp->m_strSpacelessSourcePuncts,
+						// the we should do punctuation conversion of the whole of follPuncts to target puncts; otherwise
+						// the need for conversion can be assumed absent
+						wxChar chfirstPunct = follPuncts.GetChar(0); // we can be certain there is at least one
+						int anOffset = pApp->m_strSpacelessSourcePuncts.Find(chfirstPunct);
+						if (anOffset >= 0)
+						{
+							// it's src punctuation, so do a conversion. Tgt punctuation may be identical, but
+							// that won't matter; but if there are different tgt punct glyphs, this will catch it
+							follPuncts = GetConvertedPunct(follPuncts);
+						}
+						// Now add them to m_targetStr
+						pSrcPhrase->m_targetStr += follPuncts;
+					} // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty())
+
+					// pSrcPhrase->m_follOuterPuncts may have content, if so, add these too, and do conversions
+					// if appropriate (like above)
+					follOuterPuncts = pSrcPhrase->GetFollowingOuterPunct();
+					if (!str.IsEmpty() && !follOuterPuncts.IsEmpty())
+					{
+						wxChar chfirstOuterPunct = follOuterPuncts.GetChar(0); // we can be certain there is at least one
+						int anOffset = pApp->m_strSpacelessSourcePuncts.Find(chfirstOuterPunct);
+						if (anOffset >= 0)
+						{
+							// it's src punctuation, so do a conversion. Tgt punctuation may be identical, but
+							// that won't matter; but if there are different tgt punct glyphs, this will catch it
+							follOuterPuncts = GetConvertedPunct(follOuterPuncts);
+						}
+						// Now add them to m_targetStr
+						pSrcPhrase->m_targetStr += follOuterPuncts;
+					} // end of TRUE block for test: if (!follOuterPuncts.IsEmpty())
 
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "), __LINE__, str.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s , pSrcPhrase->m_targetStr= %s"), 
+							__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 1)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
-/* may not need this
-					// BEW 1Dec22 check if contents of m_follPunct need to be appended to pSrcPhrase->m_targetStr
-					if (!pSrcPhrase->m_follPunct.IsEmpty())
-					{
-						wxString follPuncts = pSrcPhrase->m_follPunct;
-						int offset = wxNOT_FOUND; // init
-						offset = pSrcPhrase->m_targetStr.Find(follPuncts);
-						if (offset == wxNOT_FOUND)
-						{
-							// append them
-							pSrcPhrase->m_targetStr += follPuncts;
-						}
-					}
-*/
 					// BEW 14Oct22, this function may not register that detached ] is
 					// to be treated as content for m_adaption, so check, and do so if empty still
 					if (pSrcPhrase->m_adaption.IsEmpty() && (str == _T("]")))
@@ -18038,19 +18075,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					else if (pSrcPhrase->m_adaption.IsEmpty() && pApp->m_bInNormalStore)
 					{
 						wxString tgtStr = pSrcPhrase->m_targetStr;
-						/*
-						// It's fine just to set m_adaption to the same string as m_targetStr,
-						// because ParseWord() will follow and deal with the final punct
-						int tgtLen = tgtStr.Len();
-						wxChar chLast = tgtStr.Last();
-						int offset = wxNOT_FOUND; // init
-						offset = gSpacelessTgtPunctuation.Find(chLast);
-						if (offset >= 0)
-						{
-							// The last character is punctuation, so it should be removed for m_adaption
-							tgtStr = tgtStr.Left(tgtLen - 1);
-						}
-						*/
 						pSrcPhrase->m_adaption = tgtStr;					
 					}
 #if defined (_DEBUG)
@@ -18059,7 +18083,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
@@ -18075,8 +18099,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				} // end of else block for test: if (!pApp->m_bCopySourcePunctuation) -- correct indent, matched { }
 
 			} // end of else block for test: if (pApp->m_bFinalTypedPunctsGrabbedAlready) -- correct indent, matched { }
-// MISMATCH
-		} // end of TRUE block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))  <<-- mismatched at one tab, matches {} start of block at 2 tabs in; work backwards
+
+		} // end of TRUE block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 
 		else
 		{
@@ -18338,10 +18362,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				pSrcPhrase->m_targetStr = targetStr;
 			}
 #if defined (_DEBUG)
-					{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s "),
-						__LINE__, pSrcPhrase->m_targetStr.c_str());
-					}
+			{
+				wxLogDebug(_T("MakeTgtStrIncPunc() line %d: pSrcPhrase->m_targetStr = %s "),
+				__LINE__, pSrcPhrase->m_targetStr.c_str());
+			}
 #endif
 
 //#if defined(FWD_SLASH_DELIM)
@@ -18370,7 +18394,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
 	if (pSrcPhrase->m_nSequNumber >= 5)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here);
 	}
 #endif
 }

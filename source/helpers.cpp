@@ -6229,7 +6229,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			{
 				if (pSingleSrcPhrase->m_nSequNumber == 408)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 			}
 #endif

@@ -402,6 +402,7 @@ public:
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsWmkrWithBar(wxChar* ptr); //BEW added 12Sep22 in support 
 						// of the dual identities of \w .. \w* markers - for Tokenising properly
+	wxString		GetLastBeginMkr(wxString mkrs); // BEW 13Dec22 get the last one in m_markers, as this sets the TextType
 
 	void			GetLengthToWhitespace(wxChar* pChar, unsigned int& counter, wxChar* pEnd); // BEW 20Oct22
 	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
@@ -411,6 +412,11 @@ public:
 							// be a digit, parse over things like 4:17, or 5:4-9. but do not include the 
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd);
+	//CSourcePhrase*  GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase); // BEW added 13Dec22, and commented out 13Dec22 - it isn't needed yet, but is robust
+	bool			IsWordInternalPunctuation(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 12Dec22 added in order to handle 
+						// word-internal punctuation (e.g. ' used for glottal stop) because the old parser used to parse in from both ends, 
+						// but ParseAWord now only parses forwards, and so without this compensating function being in the while loop's set
+						// of tests, an internal punctuation character will cause a misparse that could lead to serious error (or worse)
 	bool			IsClosingBracketNext(wxChar* pChar);
 	//bool			IsOpenParenBraceBracketWordInternal(wxChar* pChar, wxChar* pEnd, wxString punctsSet); BEW 19Nov22 I don't think I need this - deprecate
 	bool			m_bClosingBracketIsNext;
@@ -487,6 +493,8 @@ public:
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
 	bool			m_bIsInFigSpan;
+	int				nFirstSequNumOfSpan; // used for \fig .... \fig* span
+
 	wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
 	bool			m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
 	bool			IsBeginMarker(wxChar* pChar, wxChar* pEnd, wxString& wholeMarker, bool& bIsEndMkr);

@@ -4926,16 +4926,6 @@ public:
 	TextType m_bTempTextType_Cached;
 	TextType m_bNoneOrNoType_Cached;
 
-	void	SetDefaultTextType_Cached(); // BEW 23Apr20
-	// BEW 23Apr20, copies the pAnalysis members to the cache variables *_Cached above
-	void	SetTextType_Cached(USFMAnalysis* pAnalysis, TextType ttTemp = verse, TextType ttNoneOr = verse);
-	TextType GetTextTypeFromBeginMkr(wxString mkr); // pass in un-augmented begin-mkr
-	bool	IsNoType(wxString mkr); // pass in un-augmented begin-mkr
-
-	//bool	m_bInform_Cached;
-	//wxString m_navigationText_Cached;
-
-
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is
 				// being viewed in the ViewFilteredMaterial dialog
 
