@@ -675,20 +675,20 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	}
 #endif
 
-#if defined(_DEBUG) && defined(FLAGS)
-	{
-		CAdapt_ItApp* pApp = &wxGetApp();
-		CSourcePhrase* pSrcPhrase = NULL;
-		if (pApp->m_pActivePile != NULL)
-		{
-			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
-		}
-	}
-#endif
+//#if defined(_DEBUG) && defined(FLAGS)
+//	{
+//		CAdapt_ItApp* pApp = &wxGetApp();
+//		CSourcePhrase* pSrcPhrase = NULL;
+//		if (pApp->m_pActivePile != NULL)
+//		{
+//			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+//
+//			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+//				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+//				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+//		}
+//	}
+//#endif
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -1386,7 +1386,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	}
 
 #if defined (_DEBUG)
-	wxString msg;
+	wxString msg = _T("Tab stops:");
 	int totNumTabs = (int)m_pApp->m_pTargetBox->arrayTabPositionsInPixels.GetCount();
 	int count;
 	int arrayItem;
@@ -1394,11 +1394,15 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	{
 		arrayItem = m_pApp->m_pTargetBox->arrayTabPositionsInPixels.Item(count);
 		if (arrayItem == m_pApp->m_pTargetBox->initialPixelTabPositionOnLanding)
-			msg.Printf(_T("Tab Stop %d at: %d <- initial tab at landing"), count, arrayItem);
+		{
+			msg = msg + msg.Format(_T(" [%d <- tab at landing],"), arrayItem);
+		}
 		else
-			msg.Printf(_T("Tab Stop %d at: %d"), count, arrayItem);
-		wxLogDebug(msg);
+		{
+			msg = msg + msg.Format(_T(" %d,"), arrayItem);
+		}
 	}
+	wxLogDebug(msg);
 #endif
 
 	// whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
