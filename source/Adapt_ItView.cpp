@@ -1076,6 +1076,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // latter too, and when that happens, force the recalc before the draw.
 
 	CPile* pActivePile = pApp->m_pActivePile;
+	wxUnusedVar(pActivePile);
 
 	// draw the layout
 	GetLayout()->Draw(pDC);

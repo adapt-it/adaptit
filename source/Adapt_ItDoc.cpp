@@ -2905,8 +2905,8 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			if (!bRemovedSuccessfully)
 			{
 				// tell developer or user, if the removal failed
-				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
-				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2904. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2904. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
@@ -2953,7 +2953,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 						if (!bRenamedSuccessfully)
 						{
 							// tell developer or user, if the rename failed
-							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRenameFile() failed, at line 1754. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the truncated old file, and then relaunch the application"));
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRenameFile() failed, at line 2952. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the truncated old file, and then relaunch the application"));
 							return TRUE;
 						}
 					}
@@ -2985,7 +2985,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 						if (!bRemovedSuccessfully)
 						{
 							// tell developer or user, if the removal failed
-							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of wxRemoveFile() failed, at line 2984. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
 							return TRUE;
 						}
 					}
@@ -3140,7 +3140,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem, wxString msgDi
 		// and keep on processing
 		if (!bMovedTextOK)
 		{
-			wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 1472. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
+			wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 3138. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
 			return FALSE;
 		}
 		resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
@@ -5989,7 +5989,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 		// fails, and keep on processing
 		if (!bOK)
 		{
-			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnSaveModified() at lines 5743+"));
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnSaveModified() at lines 5986+"));
 		}
 	}
 
@@ -6460,29 +6460,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			if (!pApp->m_recovery_pending)
 			{
 				wxString s;
-				// whm 1Oct12 removed MRU code
-				/*
-				if (gbTryingMRUOpen)
-				{
-					// a nice warm & comfy message about the file perhaps not actually existing
-					// any longer will keep the user from panic
-					// IDS_MRU_NO_FILE
-					s = _(
-	"The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
-					wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-					gpApp->LogUserAction(s);
-					wxCommandEvent dummyevent;
-					OnFileOpen(dummyevent); // have another go, via the Start Working wizard
-					if (nTotal > 0 && bShowProgress)
-					{
-						pStatusBar->FinishProgress(_("Opening the Document"));
-					}
-					return TRUE;
-				}
-				else
-				{
-				*/
-				// uglier message because we expect a good read, but we allow the user to continue
+				// ugly message because we expect a good read, but we allow the user to continue
 				// IDS_XML_READ_ERR
 				s = _(
 					"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
@@ -18176,7 +18154,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s   (next 15 chars)"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // I want to know it's value eachnew pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -18200,7 +18178,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		{
 			// Successfully created a 'next' instance after filtering out src text
 			// but not yet storing it, we do so here;  and clear the flag
-			pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+			// 
+			// BEW 14Dec22 error here, the delay is fine, it's not easily able to
+			// get it done on the previous pSrcPhrase; so here using pSrcPhrase stores
+			// it later than it should; so change to pLastSrcPhrase instead, and all
+			// will be sweet.
+			//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent); 
+			pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 			bDelayStoringFilteredInfo = FALSE;
 
 			strCacheDelayedFilteredContent = wxEmptyString; // unnecessary, but safer
@@ -18436,8 +18420,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					{
 #if defined (_DEBUG)
 						{
-							//wxString strPointAt = wxString(ptr, 40);
-							//wxUnusedVar(strPointAt);
+							wxString strPointAt = wxString(ptr, 40);
+							wxUnusedVar(strPointAt);
+							if (pSrcPhrase->m_nSequNumber >= 1)
+							{
+								int halt_here = 1; wxUnusedVar(halt_here);
+							}
 						}
 #endif 
 						// If it's for hiding the metadata, we can't do the hiding
@@ -18824,7 +18812,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							pLayout->m_nSequNum_LastSrcPhrase = 0; // safe, if the document exists
 						}
-
+						wxString strApproxLocation;
 						//int badMkrLength = wholeEndMkr.Len();
 						CPile* pPile = this->GetPile(pLayout->m_nSequNum_LastSrcPhrase);
 						if (pPile != NULL)
@@ -18837,8 +18825,32 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							strPrevKey = pLastSrcPhrase->m_key;
 							strPrevAdaption = pLastSrcPhrase->m_adaption;
 						}
-						wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s and target: %s\n at sequence number: %d. Fix the input source text file, then re-load to re-create the document.");
-						msg = msg.Format(msg, wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation);
+						// BEW15Dec22 try to provide an approximate src string for the error - 30 chars either side
+						// of the ptr value, or less if near start of end of input doc
+						wxChar* pDocStart = pBufStart;
+						wxChar* pLocBefore;
+						wxChar* pLocAfter;
+						if ((ptr - 30) > pDocStart)
+						{
+							pLocBefore = (ptr - 30);
+						}
+						else
+						{
+							pLocBefore = pDocStart;
+						}
+						if ((ptr + 30) > pEnd)
+						{
+							pLocAfter = (ptr + 30);
+						}
+						else
+						{
+							pLocAfter = pEnd;
+						}
+						size_t width = (size_t)(pLocAfter - pLocBefore);
+						strApproxLocation = wxString(pLocBefore, width);
+
+						wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s and target: %s\n at sequence number: %d, and near middle of span: %s \nFix the input source text file, then re-load to re-create the document.");
+						msg = msg.Format(msg, wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
 						wxString title = _T("Warning: Unexpected End Marker");
 
 						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
@@ -19016,7 +19028,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG)
 				// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 				//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
-				if (pSrcPhrase->m_nSequNumber >= 3)
+				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -19067,7 +19079,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wholeMkrAtPtr = GetWholeMarker(ptr);
 #if defined (_DEBUG)
 				pointsAtPtr = wxString(ptr, 20);
-				if (pSrcPhrase->m_nSequNumber >= 0)
+				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -19357,7 +19369,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				bCanFilterIt = FALSE;
 			}
 			wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 1)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+#endif
 			// Code following is for versions 6.9.4 and earlier
 			bFilteringIsWanted = bIsToBeFiltered;
 			if (bFilteringIsWanted)
@@ -19926,7 +19943,7 @@ parsing:
 #if defined (_DEBUG)
 		//wxLogDebug(_T("TokenizeText: line %d  , entering ParseWord():  itemLen = %d , ptr->%s , sn= %d , precPunct= %s , m_markers= %s"),
 		//	__LINE__, itemLen, (wxString(ptr, 15)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 8)
+		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -32591,7 +32608,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 5631)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
