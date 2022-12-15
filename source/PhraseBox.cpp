@@ -1840,9 +1840,18 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		}
 		else
 		{
-		    // do we need this one?? I think so, but should step it to make sure
+			// whm 15Dec2022 Note. In certain circumstances (especially when the phrasebox is moving
+			// from a location near the right end of a strip, but is followied by one or more piles on
+			// the same strip), the alignment of piles following the phrasebox gets bunched up and they
+			// overlap the source phrase once the phrasebox has moved. I think this is caused by the 
+			// RecalcLayout() call below being called with keep_strips_keep_piles, rather than 
+			// create_strips_keep_piles to cause the piles following the phrasebox to flow to the next
+			// strip. My testing, however, reveals other alignment issues if I try using the 
+			// create_strips_keep_piles argument here, so I've opted to leave the RecalcLayout()
+			// call as it is, and instead add a SendSizeEvent() after the Invalidate and PlaceBox()
+			// calls below. That straightens out the layout. 
 #ifdef _NEW_LAYOUT
-		    pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
 		    pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -1912,6 +1921,22 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
 
 		pLayout->PlaceBox();
+		
+		// whm 15Dec2022 added. In certain circumstances (especially when the phrasebox is moving
+		// from a location near the right end of a strip, but is followied by one or more piles on
+		// the same strip), the alignment of piles following the phrasebox gets bunched up and they
+		// overlap the source phrase once the phrasebox has moved. This bunching up is straightened
+		// out by doing a simple vertical frame window resize (triggering CMainFrame's OnSize())
+		// suggesting that the RecalcLayout() has done its job, but the layout wasn't refreshed
+		// properly afterwards. While this could be caused by the RecalcLayout() call above being 
+		// called with keep_strips_keep_piles, rather than create_strips_keep_piles to cause the 
+		// piles following the phrasebox to flow to the next strip. My testing, however, reveals 
+		// other alignment issues if I try using the create_strips_keep_piles argument there, so 
+		// I've opted to leave the RecalcLayout() call as it is, and instead add a SendSizeEvent() 
+		// here after the Invalidate and PlaceBox() calls above. That straightens out the layout. 
+		// Note that the OnSize() handler does call RecalcLayout(... create_strips_keep_piles)
+		// followed by an Invalidate() and PlaceBox(noDropDownInitialization) call.
+		pApp->GetMainFrame()->SendSizeEvent();
 
 		// BEW 13Apr20, control goes thru here when TAB or Enter gets a move to next empty
 		// pile done - and PlacePhraseBox() does not get called (nor Jump()), so we have
@@ -3841,9 +3866,14 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// All we need do here is just call the CMainFrame::OnSize() function which 
 			// simplifies things and still makes the phrasebox behave when editing causes it to 
 			// flow up to previous strip or down to the following strip.
-			// Note: SendSizeEvent() invokes the main frame's OnSize() handler. The frame's OnSize() in
-			// turn calls RecalcLayout(..., create_strips_keep_piles), Invalidate(), and PlaceBox(),
+			// Note: SendSizeEvent() invokes the main frame's OnSize() handler - which likely
+			// executes in the next available tick of idle time. The frame's OnSize() in turn
+			// calls RecalcLayout(..., create_strips_keep_piles), Invalidate(), and PlaceBox(),
 			// and PlaceBox() internally calls ResizeBox().
+			pApp->GetMainFrame()->SendSizeEvent();
+			// whm 11Nov2022 Note: Not quite sure why - it could be a idle timing issue - but
+			// to get the layout finalized in its near perfect position with exact phrasebox width 
+			// and the pile layout in final positions, we need a second call here of SendSizeEvent()
 			pApp->GetMainFrame()->SendSizeEvent();
 		}
 			
@@ -7145,7 +7175,7 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 			// 
 			// Grab the appropriate tab unit from the array and resize the box to 
 			// that width value.
-			int extentNeededForNewString = boxContentPixelExtentAtThisEdit + pLayout->slop;
+			int boxWidthNeededForNewString = boxContentPixelExtentAtThisEdit + pLayout->slop;
 			// Initialize newTabValue to initialPixelTabPosition in case we don't find a new 
 			// tab value in the array.
 			newTabValue = initialPixelTabPosition; 
@@ -7166,7 +7196,7 @@ int CPhraseBox::GetBestTabSettingFromArrayForBoxResize(int initialPixelTabPositi
 				// phrasebox (which would push the long text off the right end view). This 
 				// situation would be better than having the phrasebox itself extend beyond 
 				// the visible canvas.
-				if (arrayIntValue >= extentNeededForNewString)
+				if (arrayIntValue >= boxWidthNeededForNewString)
 				{
 					newTabValue = arrayIntValue;
 #if defined (_DEBUG)
