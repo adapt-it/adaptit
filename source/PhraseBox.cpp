@@ -3875,6 +3875,12 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// to get the layout finalized in its near perfect position with exact phrasebox width 
 			// and the pile layout in final positions, we need a second call here of SendSizeEvent()
 			pApp->GetMainFrame()->SendSizeEvent();
+			// whm 15Dec added. On Linux at this point after a phrasebox resize, the insertion
+			// point moves to position 0 which is undesirable. To prevent this on Linux I'm adding 
+			// a conditional compiled call to SetFocusAndSetSelectionAtLanding() here.
+# if defined __WXGTK__
+			SetFocusAndSetSelectionAtLanding();
+#endif
 		}
 			
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
@@ -9268,7 +9274,12 @@ void CPhraseBox::SetFocusAndSetSelectionAtLanding()
     else
     {
         // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-        if (gpApp->m_bSelectCopiedSource)
+		// whm 15Dec2022 modified. Don't select all if the SetFocusAndSetSelectionAtLanding() was called
+		// from within the OnPhraseBoxChanged() since this can potentially cause disruption during
+		// Backspace key operations when the phraseBox changes and the next Backspace key stroke would
+		// then remove all of the remaining text from the control leaving it empty instead of rubbing 
+		// out the character the previous character.
+        if (gpApp->m_bSelectCopiedSource && !gpApp->GetLayout()->m_bAmWithinPhraseBoxChanged)
             this->GetTextCtrl()->SetSelection(-1, -1); // select it all
         else
             this->GetTextCtrl()->SetSelection(len, len); // Set insertion point at end of text.
