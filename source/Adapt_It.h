@@ -3804,16 +3804,23 @@ public:
 
 	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
 	wxString m_strSpacelessTargetPuncts; // ditto
-	wxString MakeTargetFinalPuncts(wxString tgtPuncts); // includes a space
-	wxString m_finalTgtPuncts; // stores what MakeTargetFinalPuncts() returns
+	
 	wxString MakeSourceFinalPuncts(wxString srcPuncts); // does not include a space
 	wxString m_finalSrcPuncts; // stores what MakeSourceFinalPuncts() returns
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
 	wxString m_verseNumber_for_ParsingSource;
 
+	wxString MakeTargetFinalPuncts(wxString tgtPuncts); // may include a space, excludes opening quote
+	wxString m_finalTgtPuncts; // stores what MakeTargetFinalPuncts() returns
+	// BEW 23Dec22 make a "preceding" tgt puncts supporting pair - excludes closing quote of course
+	wxString MakeTargetPrecPuncts(wxString tgtPuncts); // may include a space, excludes opening quote - new
+	wxString m_precTgtPuncts; // stores what MakeSourceFinalPuncts() returns - new
+
+
     bool	 m_bMakeDocCreationLogfile;
 	bool	 m_bFinalTypedPunctsGrabbedAlready;
+	bool     m_bPrecTypedPunctsGrabbedAlready; // BEW 23Dec22 added, to simplify SimplePunctuationRestoration()
 
 	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
@@ -5687,9 +5694,7 @@ public:
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
-	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr); // BEW added 17May18
-				// makes the adaptation string with saved punctuation restored, for setting m_targetStr;
-				// and on 19Feb20 added the second param endingStr to handle user typed ] or ) as punctuation;
+	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase); // , wxString endingStr); // BEW added 17May18, 23Dec22 removed 2nd arg, only called for 2nd arg empty
 				
 	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15

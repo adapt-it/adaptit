@@ -202,8 +202,13 @@ public:
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
+
 	wxString	GetManuallyAddedFinalPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 26Feb20 added
-	wxString	GetManuallyAddedFinalPuncts(wxString targetStr); // BEW added 27Feb20, override
+	wxString	GetManuallyAddedFinalPuncts(wxString targetStr); // BEW added 27Feb20, calls the above
+
+	wxString	GetManuallyAddedPrecPuncts(wxChar* pBeginBuff, wxChar* pEnd); // BEW 23Dec22 added
+	wxString	GetManuallyAddedPrecPuncts(wxString targetStr); // BEW added 23Dec22, calls the above
+
 	bool		FindMatchingParenthesisBracketOrBrace(wxChar* pBuffStart, wxChar*& pEnd, size_t len,
 						int& matchedAt, wxChar matchThis);
 	void		MergeWords();

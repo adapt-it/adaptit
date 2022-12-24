@@ -431,12 +431,10 @@ public:
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn,
 	bool&           bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
-//bool			IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
-//							wxChar* endPoint, bool bTokenizingTargetText); <<-- not needed in changed design
 	bool			IsEndMarker(wxChar* pChar, wxChar* pEnd);
 	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
-	bool			IsInlineNonbindingEndMarker(wxString& mkr);
+	wxChar			FindWordBreakChar(wxChar* ptr, wxChar* pBufStart);
 	bool			IsInLineMarker(wxChar* pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar* pChar, wxChar* pEnd); // whm added 10Feb05
 	// Next four are tests made for what precedes pChar when parsing what follows the

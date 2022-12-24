@@ -1466,7 +1466,7 @@ wxString GetConvertedPunct(const wxString& rStr)
 		}
 
 		// try match a single char source punctuation
-a:		ch = rStr.GetChar(j);
+	a:		ch = rStr.GetChar(j);
 
 		bFound = FALSE;
 		for (i = 0; i < MAXPUNCTPAIRS; i++)
@@ -1491,25 +1491,46 @@ a:		ch = rStr.GetChar(j);
 			// that a space between successive closing quotes would be removed, and we
 			// don't want that to happen. We'll accept a space provided a quote character
 			// follows it.
-			if (ch == _T(' '))
+			// BEW 21Dec22 we need to support hairspace here (U+200A). It's a whitespace
+			// and so is not listed in the punctuation correspondences; yet it could precede
+			// a closing quote - and if it does, we need to retain it for the GUI restoration
+			// of puncts. So hack a solution here.
+			wxChar hairspace = (wxChar)0x200A;
+			if (ch == _T(' ') || ch == hairspace)
 			{
-				// it's a space - so test if a quote of some description follows
+				// it's a space or hairspace 
+				bool bIsHairspace = ch == hairspace ? TRUE : FALSE;
+				bool bIsLatinSpace = ch == _T(' ') ? TRUE : FALSE;
 				if (j + 1 < len)
 				{
 					// there's another character available, check if its a quote one
-					wxChar chNext = rStr.GetChar(j + 1);
-					bool bQuote = pApp->GetDocument()->IsClosingQuote(&chNext);
-					if (bQuote)
+					//wxChar chNext = rStr.GetChar(j + 1);
+					//bool bQuote = pApp->GetDocument()->IsClosingQuote(&chNext);
+					//if (bQuote)
+					if (bIsLatinSpace || bIsHairspace)
 					{
-						s += ch;
+						if (bIsHairspace)
+						{
+							// ch is hairspace
+							s += hairspace;
+						}
+						else if (bIsLatinSpace)
+						{
+							// ch is normal (latin) space
+							s += _T(' ');
+						}
 					}
 					else
 					{
-						bQuote = pApp->GetDocument()->IsOpeningQuote(&chNext);
+						// If neither, check for opening quote
+						bool bQuote = FALSE; // init
+						bQuote = pApp->GetDocument()->IsOpeningQuote(&ch);
 						if (bQuote)
 						{
 							s += ch;
 						}
+						// The else block below should pick up a closing quote at
+						// the next iteration
 					}
 				}
 			}
@@ -1523,12 +1544,13 @@ a:		ch = rStr.GetChar(j);
 			}
 		}
 
-b:		if (bMatchedTwo)
-			j += 1;
+	b:		if (bMatchedTwo)
+		j += 1;
 	}
 
 	return s; // if we get here, we got no match, which is an error
 }
+
 
 // functions added by whm
 // whm Note: the following group of functions share a lot of code with
@@ -2145,15 +2167,47 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 	return span;
 }
 // BEW 12Nov22 added, in support of space or spaces after a word but before an endMkr
+// BEW 17Dec22, added hairspace (U+200A) to the while test, so latin space or hairspace
+// will be treated alike (hairspace needed for MATBVM.SFM from Gerald Harkins)
 int	CountSpaces(wxChar* pChar, wxChar* pEnd)
 {
+	wxChar hairspace = (wxChar)0x200A;
 	int counter = 0; wxChar* ptr = pChar;
-	while ((ptr < pEnd) && (*ptr == _T(' ')))
+	while ((ptr < pEnd) && ((*ptr == _T(' ')) || (*ptr == hairspace)) )
 	{
 		ptr++;
 		counter++;
 	}
 	return counter;
+}
+
+wxString MakeUNNNN_Hex(wxString& chStr) 
+{
+	wxString prefix = _T(""); // some people said U+ makes the strings too wide, so leave
+							 // it off_T("U+");
+	// whm 11Jun12 Note: I think chStr will always have at least a value of T('\0'), so
+	// GetChar(0) won't ever be called on an empty string, but to be safe test for empty
+	// string.
+	wxChar theChar;
+	if (!chStr.IsEmpty())
+		theChar = chStr.GetChar(0);
+	else
+		theChar = _T('\0');
+	wxChar str[6] = { _T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0') };
+	wxChar* pStr = str;
+	wxSnprintf(pStr, 6, _T("%x"), (int)theChar);
+	wxString s = pStr;
+	if (s == _T("0"))
+	{
+		s.Empty();
+		return s;
+	}
+	int len = s.Length();
+	if (len == 2)
+		s = _T("00") + s;
+	else if (len == 3)
+		s = _T("0") + s;
+	return prefix + s;
 }
 
 // overload version (slightly different behaviour if charSet is empty), and with the
