@@ -1142,19 +1142,12 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
 		}
 
-		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be executed
-		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
-		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
-		// a box resize that happens while user is editing, causes the content to suddently be highlighted
-		// resulting in the deletion of what was typed up to that point as the user types on from the point
-		// of the phrasebox resize. 
-		// whm 11Nov2022 update: The OnPhraseBoxChanged() routine now doesn't call PlaceBox(), so the test
-		// below is not as crucial, but we keep the protections in case for some reason we add a PlaceBox()
-		// call back into OnPhraseBoxChanged().
-		if (!m_bAmWithinPhraseBoxChanged)
-		{
-			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
-		}
+		// whm 15Dec2022 update: Although the OnPhraseBoxChanged() routine now doesn't call PlaceBox() directly
+		// it does call SendSizeEvent() that in turn calls PlaceBox() while within OnPhraseBoxChanged(), so 
+		// I've moved the test checking for !m_bAmWithinPhraseBoxChanged into the SetFocusAndSetSelectionAtLanding() 
+		// function itself.
+		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+		
 		//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
 		//wxWindow* fwin = wxWindow::FindFocus();
 		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"),
@@ -1190,19 +1183,11 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); 
 		}
 
-		// whm 11Nov2022 modified. The following SetFocusAndSetSelectionAtLanding() should not be executed
-		// while within the OnPhraseBoxChanged() routine at the point of a phrasebox resize event. If it
-		// is called during that process and if the app's View > 'Select Copied Source' menu is toggled on,
-		// a box resize that happens while user is editing, causes the content to suddently be highlighted
-		// resulting in the deletion of what was typed up to that point as the user types on from the point
-		// of the phrasebox resize. 
-		// whm 11Nov2022 update: The OnPhraseBoxChanged() routine now doesn't call PlaceBox(), so the test
-		// below is not as crucial, but we keep the protections in case for some reason we add a PlaceBox()
-		// call back into OnPhraseBoxChanged().
-		if (!m_bAmWithinPhraseBoxChanged)
-		{
-			m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
-		}
+		// whm 15Dec2022 update: Although the OnPhraseBoxChanged() routine now doesn't call PlaceBox() directly
+		// it does call SendSizeEvent() that in turn calls PlaceBox() while within OnPhraseBoxChanged(), so 
+		// I've moved the test checking for !m_bAmWithinPhraseBoxChanged into the SetFocusAndSetSelectionAtLanding() 
+		// function itself.
+		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 
 #if defined(_DEBUG) && defined(FLAGS)
 		{
@@ -2442,8 +2427,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			// with the input parameter create_strips_keep_piles, and will have already
 			// done the layout recalculation by destroying and recreating all the strips,
 			// and so we've nothing to do here except return immediately
-			//GDLC Removed setting of gbContracting 2010-02-09
-			//gbContracting = FALSE;
 			return TRUE;
 		}
 
