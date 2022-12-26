@@ -3301,7 +3301,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
 							(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 					}
-#endif					pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
+#endif					
+					pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 					wxLogDebug(_T("PlacePhraseBox at %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
 						pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
 				}
