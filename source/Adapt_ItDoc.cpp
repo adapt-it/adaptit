@@ -19385,8 +19385,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// BEW 16Dec20 added 2nd test and OR logic, because bIsToBeFiltered and bCanFilterIt must
 			// be allowed to carry their TRUE values thru to the filter code below for markers other
 			// than \x or \ex
-			bool bFirstTest = (wholeMkr == _T("\\ex") && gpApp->m_bExt_ex_NotFiltered == TRUE);
-			bool bSecondTest = (wholeMkr == _T("\\x") && gpApp->m_bMkr_x_NotFiltered == TRUE);
+			// whm modified the declarations and assignments below to declare the bool variables on
+			// one line and do the assignments on a second line
+			bool bFirstTest;
+			bFirstTest = (wholeMkr == _T("\\ex") && gpApp->m_bExt_ex_NotFiltered == TRUE);
+			bool bSecondTest;
+			bSecondTest = (wholeMkr == _T("\\x") && gpApp->m_bMkr_x_NotFiltered == TRUE);
 #if defined (_DEBUG)
 			if (pSrcPhrase->m_nSequNumber >= 1) // was 5626
 			{
