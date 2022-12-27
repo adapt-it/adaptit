@@ -32831,7 +32831,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					wxString pointsAt = wxString(ptr, 20);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 3)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -32924,7 +32924,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							wxString pointsAt = wxString(ptr, 20);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 3)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -32948,7 +32948,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							wxString pointsAt = wxString(ptr, 20);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 3)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -32973,7 +32973,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								wxString pointsAt = wxString(ptr, 20);
 								wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 3)
+								if (pSrcPhrase->m_nSequNumber >= 1)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -32996,7 +32996,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								wxString pointsAt = wxString(ptr, 20);
 								wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 3)
+								if (pSrcPhrase->m_nSequNumber >= 1)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -33015,7 +33015,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 									wxString pointsAt = wxString(ptr, 20);
 									wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 3)
+									if (pSrcPhrase->m_nSequNumber >= 1)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -33039,7 +33039,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 											wxString pointsAt = wxString(ptr, 20);
 											wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 												__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-											if (pSrcPhrase->m_nSequNumber >= 3)
+											if (pSrcPhrase->m_nSequNumber >= 1)
 											{
 												int halt_here = 1; wxUnusedVar(halt_here);
 											}
@@ -33056,13 +33056,31 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										pSrcPhrase->m_follPunct += morePuncts;
 										pSrcPhrase->m_srcPhrase += morePuncts;
 										ptr = pAux + nHowMany;
-										newLen += nHowMany;
+										//newLen += nHowMany; oops counted the spaces twice, so comment out
 										// Transfer newLen to len
 										len = newLen;
 										//return newLen; BEW 20Dec22, no return yet, try for detached \wj* etc first
 									}
 								} // end of TRUE block for test: if (newLen > saveLen)
 							} // end of TRUE block for test: if (*ptr == space && !bBeginMkr && !IsOpeningQuote)
+#if defined (_DEBUG) //&& defined(WHERE)
+							{
+								wxString pointsAt = wxString(ptr, 20);
+								wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 1)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here);
+								}
+							}
+#endif
+
+							// BEW 26Dec22 check again for a begin mkr here, if so, return len to TokenizeText
+							bool bIsBeginMkr = ( (*ptr == gSFescapechar) && !IsEndMarker(ptr, pEnd)) ? TRUE : FALSE;
+							if (bIsBeginMkr)
+							{
+								return len;
+							}
 
 							int  nHowManyPrecedingPuncts = 0; // init  (these two for the \wj* search)
 							bool bWJ_or_Similar_Is_Ahead = FALSE; // init
@@ -33080,7 +33098,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								wxString pointsAt = wxString(ptr, 20);
 								wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 3)
+								if (pSrcPhrase->m_nSequNumber >= 1)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -33117,7 +33135,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 									wxString pointsAt = wxString(ptr, 20);
 									wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= %s , len= %d , bWJ_or_Similar_Is_Ahead= %d , ptr->%s"),
 										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, (int)bWJ_or_Similar_Is_Ahead, pointsAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 3)
+									if (pSrcPhrase->m_nSequNumber >= 1)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
