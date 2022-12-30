@@ -18131,6 +18131,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// The boolean is defined now, and a caching wxString after it:
 	bool bDelayStoringFilteredInfo = FALSE;
 	wxString strCacheDelayedFilteredContent = wxEmptyString;
+	// BEW 30Dec22 make sure a Doc member variable is initialise to FALSE
+	m_bWidowedParenth = FALSE;
 
 	// the parsing loop commences...
 	while (ptr < pEnd)
@@ -18175,23 +18177,38 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 3Sep19 added next line, for support of USFM3
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
 												// BEW 30Sep19 added next block
-		/*
-		if (bDelayStoringFilteredInfo)
-		{
-			// Successfully created a 'next' instance after filtering out src text
-			// but not yet storing it, we do so here;  and clear the flag
-			pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
-			bDelayStoringFilteredInfo = FALSE;
 
-			strCacheDelayedFilteredContent = wxEmptyString; // unnecessary, but safer
-			// Note: about clearing bDelayStoringFilteredInfo to FALSE. We do it at
-			// only 4 places: 1. here because a successful store was done,
-			// 2. filtered info at doc end requires a dummy instance at doc end be
-			// appended to carry the filtered info, we do it there after the store
-			// is done.  3. When TokenizeText() exits. 4. And of course, at initialization
-			// above - before the outer loop commences.
+		// BEW 29Dec22, one of the test files recevied from the field, "04-JHN-NY-test" had a couple of problems for
+		// our parser which uses ParseAWord(). The first problem was that < << >> and > were used througout, for punctuations
+		// from around 2013, which, if not changed to curlies, ‘ “ ” and ’ would require me to write a heap of additional
+		// code to handle a legacy markup not likely to be used these days. I fixed that by using a little CC file to convert
+		// them to the curly quotes. (the CC file is called wedges2curlies.cct). This is it:
+		// "<<" > "“"
+		// ">>" > "”"
+		// "<" > "‘"
+		// ">" > "’"
+		// The second problem was that about a half dozen places in the file, the user had a line-ending open parenthesis,
+		// preceded by space, and followed by space. Here's a little file of sample data illustrating that:
+		//  anyu iri. ( 
+		//  \v 24 kabin Herot le ai.)
+		// The problem here is that '(' is a punctuation character, and if ParseAWord(ptr, spacelessPuncts, pEnd) is
+		// called with ptr pointing at punctuation character, the parse of a 'word' returns empty string, which causes
+		// ParseAWord to wxASSERT.
+		// I've worked out a solution for the source text parse, but it invoves a pSrcPhrase which has ( as the m_srcPhrase 
+		// value, and empty m_key. Target text adapting has a problem I've not yet solved.
+
+		wxChar chOpenParen;
+		chOpenParen = _T('(');
+		wxChar chPrecSpace;
+		chPrecSpace = _T(' ');
+		// What's diagnostic (and essential) is that a space (or hairspace, U+200A) precedes the open parenthesis 
+		// character. What follows could be space or no space, and then a newline (this is diagnostic for the test too)
+		if ((*ptr == chPrecSpace) && (*(ptr + 1) == chOpenParen))
+		{
+			// BEW 30Dec22 just set the doc member boolean m_bWidowedParenth to TRUE, this indicates we have problem to sort out
+			m_bWidowedParenth = TRUE; // Early in ParseWord() the solution will be implemented 
 		}
-		*/
+
 		precWordDelim.Empty(); // BEW added 10Jul14, it should be emptied before we break
 							   // out each 'next' parsed word
 #if defined (_DEBUG)
@@ -31961,7 +31978,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG)
 	wxString pointsAt = wxString(pChar, 20);
 	wxLogDebug(_T("ParseWord() START, line %d : sequNum= %d , ptr->%s "),__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
-	if (pSrcPhrase->m_nSequNumber >= 2)
+	if (pSrcPhrase->m_nSequNumber >= 1)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -32042,6 +32059,44 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	{
 		return len;
 	}
+
+	// BEW 30Dec22 check doc member boolean, m_bWidowedParenth for TRUE, (it's TRUE when ptr in TokenizeText()
+	// has registed the "problem" of ptr there pointing at an isolated (i.e. widowed) open parenthesis character
+	// preceded by space (and typically followed by a space). The problem is that if ParseAWord() has to deal 
+	// that, it immediately asserts. But ParseAWord() is called a much further down, so the problem has to be fixed
+	// here, and an appropriate len value sent to TokenizeText() so that the after the "solution" has been
+	// implemented, the next pSrcPhrase can point at the start of the next src text line - which may start with
+	// a beginMkr, such as \v. To help in this solution, TokenizeText has to determine the problem exists, and
+	// set a doc member boolean dedicated to this solution alone, m_bWidowedParenth. Encapsulate the solution
+	// in the TRUE block of its test, and make sure than the boolean is cleared to FALSE afterwards.
+	if (m_bWidowedParenth)
+	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber %d , len %d"), __LINE__, pSrcPhrase->m_nSequNumber, len);
+#endif
+		wxChar chOpenParenth = _T('(');
+		pSrcPhrase->m_precPunct = chOpenParenth;
+		// Make the '(' character visible in the GUI, even though pSrcPhrase->m_key is, and must remain, empty
+		pSrcPhrase->m_srcPhrase = chOpenParenth;
+		// Find out the distance from ptr to the next newline, since the data in which this problem occurs
+		// only has the ( character near line end, and only space (or spaces, or perhaps no spaces) follow until
+		// newline is encountered. However much there is after the ( character is in the document src text being
+		// parsed, so to keep in sync with TokenizeText, we want to return a len value which includes the newline,
+		// so that the next pSrcPhrase will be generated for whatever follows on the next data line - perhaps \v
+		wxChar newline = _T('\n');
+		int counter = 0;
+		wxChar* pAux;
+		pAux = ptr;
+		while (*pAux != newline)
+		{
+			pAux++;
+			counter++;
+		}
+		len = counter + 1; // we want to newline included in the len value
+		m_bWidowedParenth = FALSE; // gotta turn it back off before returning a len value to TokenizeText()
+		return len;
+	}
+
 	// we are now at the first character of the word (or phrase)
 	wxChar* pWordProper = ptr;
 	// the next four variables are for support of words separated by ~ fixed space symbol
@@ -32796,7 +32851,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 3)
+						if (pSrcPhrase->m_nSequNumber >= 1)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}

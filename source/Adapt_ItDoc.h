@@ -424,7 +424,7 @@ public:
 	bool			IsDetachedWJtype_endMkr_Ahead(wxChar* pChar, wxChar* pEnd, int& countOfSpaces);
 
 	int				CountWhitesSpan(wxChar* pChar, wxChar* pEnd);
-
+	bool			m_bWidowedParenth; // BEW 29Dec22 when there's an isolate '(' after space in the source text end of line
 	bool			IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): ).<space>(<space>nxtwrd 
 	bool			IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): .<space>(<space>nxtwrd 
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
