@@ -16553,8 +16553,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	{
 		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
+
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
@@ -16699,7 +16700,26 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		if (!strResult.IsEmpty())
 		{
 			pSrcPhrase->m_targetStr = strResult;
-		}	
+		}
+		else
+		{
+			// BEW 30Dec22 Empty strResult means that targetStr passed in is empty. A diagnostic of a detached openParenthesis
+			// The other two diagnostics are that m_precPunct contains only '(', and m_srcPhrase also contains only '('
+			// and all other values are empty, except for sequ number, and number of words (which will be 1). Check
+			if (pSrcPhrase->m_precPunct == _T('(') && pSrcPhrase->m_srcPhrase == _T('('))
+			{
+				// The only thing that moving the empty box forward with an Enter or Tab keypress, would be to leave
+				// m_adaption empty, and m_targetStr set to _T('(')
+				pSrcPhrase->m_targetStr = _T('(');
+				return;
+			}
+			// Another isolate punct is the [ on its own line following \p marker, and then a newline follows (or after a space)
+			if (pSrcPhrase->m_precPunct == _T('[') && pSrcPhrase->m_srcPhrase == _T('['))
+			{
+				pSrcPhrase->m_targetStr = _T('[');
+				return;
+			}
+		}
 	}
 
 	pApp->m_nPlacePunctDlgCallNumber++;
@@ -17005,7 +17025,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -17036,7 +17056,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				{
 					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: [ or ], sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -17146,7 +17166,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: ..Pattern support: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17193,7 +17213,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: DONE PLACE internal DLG: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 0)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -17272,7 +17292,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				{
 					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -17324,7 +17344,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NO SRC COPY: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -17377,7 +17397,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: DO COPY SRC: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17416,7 +17436,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: PREC_PUNCT: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17460,7 +17480,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: PREC PUNCTS DONE: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17489,7 +17509,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17520,7 +17540,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17561,7 +17581,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17594,7 +17614,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: TYPED FINAL PUNCTS: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -17629,7 +17649,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 0)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -17684,7 +17704,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 #if defined (_DEBUG)
 								{
 									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "), __LINE__, str.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 0)
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -17706,7 +17726,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 #if defined (_DEBUG)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: ADDED PREC PUNCTS: str = %s "), __LINE__, str.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 0)
+								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -17742,7 +17762,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , What's m_targetStr already?: pSrcPhrase->m_targetStr= %s"),
 							__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -17852,7 +17872,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock: str = %s , pSrcPhrase->m_targetStr= %s"), 
 							__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -17873,7 +17893,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
