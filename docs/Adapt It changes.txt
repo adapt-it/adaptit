@@ -17,6 +17,29 @@ Previously the Print Preview was too small especially if the compose box was ope
 text) now works more like the Note Dialog and disappears when the user clicks away from
 the dialog. Any changes made to the text of filtered material are automatically saved
 if they hadn't been saved by explicitly clicking on the dialog's OK button.
+* The parser of input source text has been extensively revised. It's more capable, and
+works well with a greater variety of novel (but correct) USFM markup structures.
+* We do not advise using << >> < or > as indicators of opening and/or closing quotes.
+Data of that kind can be reprocessed out of Adapt It with the supplied CC folder in
+each new release. Change these character to: “ ” ‘ ’ respectively. The latter 4 come
+standard in the punctuation set for source and target text. If your data uses, for the
+latter two, U+02BB and U+02BC, you should use the Preferences... Punctuation tab, to
+add them to the existing characters. (Adapt It's defaults for the last two are:
+U+2018 and U+2019 - these have been in every release since version 4.) U+2018 is
+visually identical to U+02BB; and U+2019 is visually identical to U+02BC.
+* The automatic expanding and contracting of the phrasebox when the user types, or
+or deletes, characters; has been improved. In older versions, this was clunky.
+* In earlier versions, certain errors when parsing in source text, could crash the app.
+Now, Adapt It will put up a message dialog, saying where the data error occurs, and shows
+the input text for about 30 characters either side if where the error lies. You should
+take note of the information, and try to fix the relevant part of your input document
+in a word processor, and then retry loading it in to Adapt It. Sometimes you can ignore
+the message, click it away a few times, and parsing from that location will continue -
+although at the problem location the parsed text will not look right in some way.
+* Sometimes users will have footnote data in which expected information after the \f
+is absent, or is absent preceding the ending \f* marker. When that is the case, Adapt It
+will automatically try to show ??? in such locations, to alert you that perhaps you
+might like to edit the footnote to put in correct text manually.
 ----------------------------------------------
 Bug fixes in 6.11.0 update
 ---------------------------------------------
