@@ -11819,8 +11819,10 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 	// reverse the string
 	if (span.IsEmpty())
 	{
-		wxBell();
-		wxMessageBox(_T("Error: in ParseSpanBackwards(), input string 'span' is empty"));
+		// BEW 6Jan23 we make limited use of this function, it's for fixed-space support, and 
+		// if span is empty, return without showing a message box, and don't sound the bell.
+		//wxBell();
+		//wxMessageBox(_T("Error: in ParseSpanBackwards(), input string 'span' is empty"));
 		return;
 	}
 	int length = span.Len();
