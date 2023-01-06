@@ -33021,6 +33021,22 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				len += strWordLen;
 				ptr += strWordLen;
 
+				// BEW 6Dec23 old data from Madagascar has a word followed by space and then colon. Left unhandled,
+				// the space will cause return to TokenizeText, and in the next pSrcPhrase, the colon gets handled 
+				// as preceding punctuation, and there is no text to span over in ParseAWord(), and the latter then
+				// asserts. We need to identify when after ParseAWord() has parsed a word, a <space><punct> sequence
+				// has those two characters pulled into the current pSrcPhrase as an addition to m_follPunct, provided
+				// whitespace follows the <punct>. Don't generalize, to any punct, stick with just colon. Omit the
+				// space for what's stored on pSrcPhrase, as that a m_srcPhrase value containing space would be a problem
+				if ( (*ptr == _T(' ')) && (*(ptr + 1) == _T(':')) && IsWhiteSpace(ptr + 2) )
+				{
+					pSrcPhrase->m_follPunct += _T(':');
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key + _T(':');
+					len += 2;
+					ptr += 2;
+					return len;
+				}
+
 				// BEW 1Jan23 is pSrcPhrase within an unfiltered inline span, such as for \f to \f* ?
 				// This current pSrcPhrase might be the last in such a span. If it is, ptr will be
 				// pointing at, say, \f*; or if there is a nested endmarker, to something like \fq*\f*
