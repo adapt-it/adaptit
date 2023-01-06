@@ -33026,12 +33026,15 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// as preceding punctuation, and there is no text to span over in ParseAWord(), and the latter then
 				// asserts. We need to identify when after ParseAWord() has parsed a word, a <space><punct> sequence
 				// has those two characters pulled into the current pSrcPhrase as an addition to m_follPunct, provided
-				// whitespace follows the <punct>. Don't generalize, to any punct, stick with just colon. Omit the
-				// space for what's stored on pSrcPhrase, as that a m_srcPhrase value containing space would be a problem
-				if ( (*ptr == _T(' ')) && (*(ptr + 1) == _T(':')) && IsWhiteSpace(ptr + 2) )
+				// whitespace follows the <punct>. Don't generalize, to any punct, stick with just colon and semicolon
+				// - because these occur detached in the test data. But omit the space for what's stored on pSrcPhrase,
+				// as that a m_srcPhrase value containing space followed by punctuation would be a problem
+				wxChar colon; wxChar semiColon;
+				colon = _T(':'); semiColon = _T(';');
+				if ( (*ptr == _T(' ')) && ((*(ptr + 1) == colon) || (*(ptr + 1) == semiColon)) && IsWhiteSpace(ptr + 2) )
 				{
-					pSrcPhrase->m_follPunct += _T(':');
-					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key + _T(':');
+					pSrcPhrase->m_follPunct += *(ptr + 1);
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key + *(ptr + 1);
 					len += 2;
 					ptr += 2;
 					return len;
