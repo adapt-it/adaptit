@@ -447,6 +447,7 @@ public:
 	bool			PunctuationPrecedes(wxChar* pChar, wxString& precedingPunct, bool bTokenizingTargetText);
 	bool			WordPrecedes(wxChar* pChar, wxString& theWord, CSourcePhrase*  pSrcPhrase, wxString& spacelessPuncts);
 	bool			SpacePrecedes(wxChar* pChar, wxString& precedingSpace);
+	int				ScanToNextMarker(wxChar* pChar, wxChar* pEnd);
 
 	// more unfiltering stuff goes just above, if needed
 

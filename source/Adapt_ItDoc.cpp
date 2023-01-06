@@ -32943,7 +32943,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 3)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -32975,7 +32975,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 3)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -33074,7 +33074,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					wxString pointsAt = wxString(ptr, 20);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 3)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -33094,6 +33094,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					wxChar chBar = _T('|');
 					wxChar* pAux = ptr; // leave ptr pointing at the bar
 					wxChar* pWhitePtr = NULL;
+					wxChar* pBar = ptr; // BEW 6Jan23 need this for hunting to the next mkr
 					// we need to save the post-bar pointer location, for use in the code below. Use pAuxSave
 					wxChar* pAuxSave = ptr;
 					if (pAuxSave < pEnd)
@@ -33133,10 +33134,30 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							len += (1 + len); // '1' included to get past the bar
 							return len; // go back to TText(), the bogus markup should now be fixed
 						}
-						
-						// (no else block; if theWord was empty, we've nothing to remove, so let parsing continue
-					} // end of TRUE block for test: if (*ptr == charBar)				}
-				}
+						// Not correcting something like abaib|abaib, so scan to the end of endMkr (if the scan
+						// gets to a beginMkr, return the count, without including the beinMkr width)
+						ptr = pBar;
+						int nScannedWidth = ScanToNextMarker(pBar, pEnd);
+						if (nScannedWidth > 0)
+						{
+							// squirrel the span away in pSrcPhrase->m_punctsPattern, and set m_bUnused = TRUE
+							wxString contents = wxString(pBar, nScannedWidth);
+							len += nScannedWidth;
+							pSrcPhrase->m_punctsPattern = contents;
+							pSrcPhrase->m_bUnused = TRUE;
+							return len;
+						}
+						else
+						{
+							pSrcPhrase->m_punctsPattern.Empty();
+							// don't send len zero to TokenizeText. Since we started by pointing at a bar,
+							// increase len by 1, to give TokenizeText() a chance to advance without a crash
+							len += 1;
+							return len;
+						}
+
+					} // end of TRUE block for test: if (*pAux == chBar)				
+				} // end of the TRUE block for test: if (*ptr == _T('|'))
 				
 				// Give m_srcPhrase it's initial value, and add following puncts for get a value for m_srcPhrase.
 				// (When parsing target text words, the chunks are small - so pEnd is at the end of the word chunk
@@ -39985,6 +40006,57 @@ bool CAdapt_ItDoc::IsBeginMarker(wxChar* pChar, wxChar* pEnd, wxString& wholeMar
 		bIsEndMkr = TRUE;
 	}
 	return FALSE;
+}
+
+int CAdapt_ItDoc::ScanToNextMarker(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar;
+	if (ptr >= pEnd)
+	{
+		return 0;
+	}
+	int count = 0;
+	while (ptr < (pEnd - 3)) // -3 because minimal endMkr has at least 3 chars
+	{
+		if (*ptr == gSFescapechar)
+		{
+			// The backslash of a marker was matched, get the marker
+			wxString wholeMkr = GetWholeMarker(ptr);
+			if (wholeMkr != wxEmptyString)
+			{
+				// so far so far, so good. Our marker needs to be an endMarker
+				bool bIsEndMkr = IsEndMarker(ptr, pEnd);
+				if (bIsEndMkr)
+				{
+					// Great, could be something like \w* or another endMkr for something
+					// in m_inlineBindingMarkers (see app, 23,856++). We don't actually need
+					// to know if it is inLine or not, because this function is called only
+					// in order to get the the endMkr which ends a span started by | (bar)
+					int mkrLen = wholeMkr.Len();
+					count += mkrLen;
+					break;
+				}
+				else
+				{
+					// Not an endmarker. Unexpected, but we will squirrel away what we've
+					// scanned over, and leave off the beginMkr
+					return count;
+				}
+			}
+			else
+			{
+				// No marker can be an empty string, so return 0
+				return 0;
+			}
+		}
+		else
+		{
+			// no marker is at ptr
+			count++;
+			ptr++;
+		}
+	} // end of while loop: while (ptr < (pEnd - 2))
+	return count;
 }
 
 /*  BEW 19Nov22 I don't think I need this - deprecate
