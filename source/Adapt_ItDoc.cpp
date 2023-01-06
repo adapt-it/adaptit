@@ -32546,19 +32546,6 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wordBuildersForPostWordLoc, spacelessPuncts,
 				bTokenizingTargetText); // the punctuationSet passed in has all spaces removed
 
-#if defined (_DEBUG) && defined(WHERE)
-			{
-				wxString pointsAt = wxString(ptr, 10);
-				wxString followingPuncts = pSrcPhrase->m_follPunct;
-				wxString precedingPuncts = pSrcPhrase->m_precPunct;
-				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 0)
-				{
-					int halt_here = 1; wxUnusedVar(halt_here);
-				}
-			}
-#endif
 			wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 			// BEW 29Sep22 insurance...
@@ -35627,20 +35614,6 @@ parenth:
 	// BEW 22Sep22 added second subtest
 	if (bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan)
 	{
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber ,  pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
-		}
-#endif
-
 		// create the children & store them; we create a pseudo-merger, so that if
 		// the user elects to unmerge, he in effect removes the fixed space, but
 		// retains the meaning unchanged
@@ -35709,48 +35682,35 @@ parenth:
 	// bits of the final punctuation characters, we'll append them to m_srcPhrase as we go.
 	size_t length1 = 0;
 	size_t length2 = 0;
+	bool bSecondWordExists;
+	bSecondWordExists = FALSE;// init
+	wxString secondWord;
+	secondWord = wxEmptyString; // init
 	// BEW 22Sep22 added 2nd subtest, this block irrelevant when in an attributes span
 	if (bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan)
-	{		
+	{
 		// NOTE: we are assuming ~ only ever joins TWO words in sequence, never 3 or more
 		length1 = pEndWordProper - pWordProper;
 		wxString firstWord(pWordProper, length1);
 		wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-#if defined (_DEBUG) && defined(WHERE)
+		// BEW 6Jan23 some data (e.g in Madagascar) makes use of ~ but not for conjoining,
+		// and so control getting to here will have matched a ~ after a word, but there is no
+		// 'second' word. In this case, pSecondWordBegins will be NULL. Check, and prevent
+		// crash in the code following 
+		if (pSecondWordBegins != NULL && pSecondWordEnds != NULL)
 		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
+			length2 = pSecondWordEnds - pSecondWordBegins;
+			secondWord = wxString(pSecondWordBegins, length2);
+			bSecondWordExists = TRUE;
 		}
-#endif //*/
-
-		length2 = pSecondWordEnds - pSecondWordBegins;
-		wxString secondWord(pSecondWordBegins, length2);
-
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
-		}
-#endif //*/
 
 		pSrcPhrase->m_key = firstWord;
 		pSrcPhrase->m_key += usfmFixedSpace; // usfmFixedSpace is ~
-		pSrcPhrase->m_key += secondWord;
+		if (bSecondWordExists)
+		{
+			pSrcPhrase->m_key += secondWord;
+		}
 		// an inline binding beginmarker on the parent also needs to be stored on word1
 		if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 		{
@@ -35769,61 +35729,41 @@ parenth:
 			pSrcPhrase->m_srcPhrase += finalPunctBeforeFixedSpaceSymbol;
 		}
 		pSrcPhrase->m_srcPhrase += usfmFixedSpace; // usfmFixedSpace is ~
-		if (!precedingPunctAfterFixedSpaceSymbol.IsEmpty())
+		if (bSecondWordExists)
 		{
-			pSrcPhrWord2->m_precPunct = precedingPunctAfterFixedSpaceSymbol;
-			// also add it to m_srcPhrase being built up
-			pSrcPhrase->m_srcPhrase += precedingPunctAfterFixedSpaceSymbol;
-		}
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
+			if (!precedingPunctAfterFixedSpaceSymbol.IsEmpty())
 			{
-				int halt_here = 1; wxUnusedVar(halt_here);
+				pSrcPhrWord2->m_precPunct = precedingPunctAfterFixedSpaceSymbol;
+				// also add it to m_srcPhrase being built up
+				pSrcPhrase->m_srcPhrase += precedingPunctAfterFixedSpaceSymbol;
 			}
 		}
-#endif //*/
+
 		wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-
-		// BEW added 2Feb11, if a word-building character at secondWord's start has
-		// become punctuation, it has to be added to m_precPunct for that word's
-		// CSourcePhrase & len incremented; there could be more than one such
-		if (!newPunctFrom2ndPreWordLoc.IsEmpty())
+		if (bSecondWordExists)
 		{
-			pSrcPhrWord2->m_precPunct += newPunctFrom2ndPreWordLoc;
-			//len += newPunctFrom2ndPreWordLoc.Len(); We must not add to the len value
-			//like this here - an explanation is appropriate. Back when nChangeInLenValue
-			//was calculated, it was computed from the ptr location (at word start before
-			//any now-punctuation character due to user's punct changes was saved and
-			//skipped over, so nChangeInLenValue already includes the len value for this
-			//one or more characters, if in fact ptr and pSecondWordBegins don't point at
-			//the same location (if they do, the user didn't make any punct changes that
-			//resulted in any character at the start of the second word becoming punctuation)
-
-			// also add the new punctuation char(s) to m_srcPhrase being built up
-			pSrcPhrase->m_srcPhrase += newPunctFrom2ndPreWordLoc;
-		}
-
-		pSrcPhrase->m_srcPhrase += secondWord;
-		// add any final punctuation to pSrcPhrase->m_srcPhrase further below
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
+			// BEW added 2Feb11, if a word-building character at secondWord's start has
+			// become punctuation, it has to be added to m_precPunct for that word's
+			// CSourcePhrase & len incremented; there could be more than one such
+			if (!newPunctFrom2ndPreWordLoc.IsEmpty())
 			{
-				int halt_here = 1; wxUnusedVar(halt_here);
+				pSrcPhrWord2->m_precPunct += newPunctFrom2ndPreWordLoc;
+				//len += newPunctFrom2ndPreWordLoc.Len(); We must not add to the len value
+				//like this here - an explanation is appropriate. Back when nChangeInLenValue
+				//was calculated, it was computed from the ptr location (at word start before
+				//any now-punctuation character due to user's punct changes was saved and
+				//skipped over, so nChangeInLenValue already includes the len value for this
+				//one or more characters, if in fact ptr and pSecondWordBegins don't point at
+				//the same location (if they do, the user didn't make any punct changes that
+				//resulted in any character at the start of the second word becoming punctuation)
+
+				// also add the new punctuation char(s) to m_srcPhrase being built up
+				pSrcPhrase->m_srcPhrase += newPunctFrom2ndPreWordLoc;
 			}
+
+			pSrcPhrase->m_srcPhrase += secondWord;
 		}
-#endif
+		// add any final punctuation to pSrcPhrase->m_srcPhrase further below
 
 		// if we found an inline binding endmarker before the ~, store it - we can only
 		// store it in the embedded CSourcePhrase which is first (the parent can't
@@ -35833,98 +35773,71 @@ parenth:
 		{
 			pSrcPhrWord1->SetInlineBindingEndMarkers(inlineBindingEndMkrBeforeFixedSpace);
 		}
-		// if we found an inline binding marker after the ~, store it - we can only
-		// store it in the embedded CSourcePhrase which is second
-		if (!inlineBindingMkrAfterFixedSpace.IsEmpty())
+		if (bSecondWordExists)
 		{
-			pSrcPhrWord2->SetInlineBindingMarkers(inlineBindingMkrAfterFixedSpace);
-		}
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
+			// if we found an inline binding marker after the ~, store it - we can only
+			// store it in the embedded CSourcePhrase which is second
+			if (!inlineBindingMkrAfterFixedSpace.IsEmpty())
 			{
-				int halt_here = 1; wxUnusedVar(halt_here);
+				pSrcPhrWord2->SetInlineBindingMarkers(inlineBindingMkrAfterFixedSpace);
 			}
 		}
-#endif
+
 		wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 		// next, the parent, pSrcPhrase, now needs to have the m_key and m_srcPhrase
 		// members set on each of its children instances, in case the user unmerges later
 		// on
 		pSrcPhrWord1->m_key = firstWord;
-		pSrcPhrWord2->m_key = secondWord;
-		pSrcPhrWord1->m_srcPhrase = pSrcPhrase->m_precPunct; // parent's m_precPunct
+		if (bSecondWordExists)
+		{
+			pSrcPhrWord2->m_key = secondWord;
+			pSrcPhrWord1->m_srcPhrase = pSrcPhrase->m_precPunct; // parent's m_precPunct
+		}
 		pSrcPhrWord1->m_srcPhrase += firstWord;
 		pSrcPhrWord1->m_srcPhrase += finalPunctBeforeFixedSpaceSymbol;
-		// now for secondWord, after the ~ symbol, except we don't know about any possible
-		// final puncts on the former as yet
-		pSrcPhrWord2->m_srcPhrase = precedingPunctAfterFixedSpaceSymbol;
-		// append any former word-initial character just now having become punctuation but
-		// don't increment len value because we've counted it above already
-		if (!newPunctFrom2ndPreWordLoc.IsEmpty())
+		if (bSecondWordExists)
 		{
-			pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPreWordLoc;
-		}
-		pSrcPhrWord2->m_srcPhrase += secondWord;
-#if defined (_DEBUG)  && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
+			// now for secondWord, after the ~ symbol, except we don't know about any possible
+			// final puncts on the former as yet
+			pSrcPhrWord2->m_srcPhrase = precedingPunctAfterFixedSpaceSymbol;
+			// append any former word-initial character just now having become punctuation but
+			// don't increment len value because we've counted it above already
+			if (!newPunctFrom2ndPreWordLoc.IsEmpty())
 			{
-				int halt_here = 1; wxUnusedVar(halt_here);
+				pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPreWordLoc;
 			}
+			pSrcPhrWord2->m_srcPhrase += secondWord;
 		}
-#endif
 
-		// add any final punctuation to pSrcPhrWord2->m_srcPhrase further below; however,
-		// if the user just changed the punctuation settings such that the end of the
-		// secondWord had one or more word-building characters that have just become final
-		// punctuation characters, they will be in newPunctFrom2ndPostWordLoc and will
-		// need to be put at the start of secondWord's CSourcePhrase's m_follPunct member,
-		// and len incremented so that the parsing pointer is in sync with what was parsed
-		// over - then later, the normal puncts (if any) can be appended
-		if (!newPunctFrom2ndPostWordLoc.IsEmpty())
+		if (bSecondWordExists)
 		{
-			len += newPunctFrom2ndPostWordLoc.Len();
-			pSrcPhrWord2->m_follPunct = newPunctFrom2ndPostWordLoc;
-			// don't empty newPunctFrom2ndPostWordLoc in case we need it later to
-			// increment ptr value without doing a further len increment
+			// add any final punctuation to pSrcPhrWord2->m_srcPhrase further below; however,
+			// if the user just changed the punctuation settings such that the end of the
+			// secondWord had one or more word-building characters that have just become final
+			// punctuation characters, they will be in newPunctFrom2ndPostWordLoc and will
+			// need to be put at the start of secondWord's CSourcePhrase's m_follPunct member,
+			// and len incremented so that the parsing pointer is in sync with what was parsed
+			// over - then later, the normal puncts (if any) can be appended
+			if (!newPunctFrom2ndPostWordLoc.IsEmpty())
+			{
+				len += newPunctFrom2ndPostWordLoc.Len();
+				pSrcPhrWord2->m_follPunct = newPunctFrom2ndPostWordLoc;
+				// don't empty newPunctFrom2ndPostWordLoc in case we need it later to
+				// increment ptr value without doing a further len increment
 
-			// append it also to pSrcPhrase->m_srcPhrase which is being built up, and also
-			// to pSrcPhrWord2->m_srcPhrase, which will then have further parsed following
-			// punctuation appended in the blocks below if there is more present in the buffer
-			pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPostWordLoc;
-			pSrcPhrase->m_srcPhrase += newPunctFrom2ndPostWordLoc;
+				// append it also to pSrcPhrase->m_srcPhrase which is being built up, and also
+				// to pSrcPhrWord2->m_srcPhrase, which will then have further parsed following
+				// punctuation appended in the blocks below if there is more present in the buffer
+				pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPostWordLoc;
+				pSrcPhrase->m_srcPhrase += newPunctFrom2ndPostWordLoc;
+			}
 		}
 		// At this point, the tweaks for the user's changing non-puncts to puncts, or
 		// adding a new punct, are done -- only potentially more post-word stuff, such as
 		// endmarkers and more punctuation is to be checked for below, as now ptr is in
 		// sync with len
 		wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-
-#if defined (_DEBUG) && defined(WHERE)
-		{
-			wxString pointsAt = wxString(ptr, 15);
-			wxString followingPuncts = pSrcPhrase->m_follPunct;
-			wxString precedingPuncts = pSrcPhrase->m_precPunct;
-			wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
-				__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 3)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
-		}
-#endif
 
 	} // end of TRUE block for test: if (bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan)
 
