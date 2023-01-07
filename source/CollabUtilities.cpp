@@ -3063,13 +3063,13 @@ extern bool gbDoingInitialSetup;
 			} // end of TRUE block for test: if (nHowMany > 0)
 		} // end of TRUE block for test: if (bDoMerger)
 
-#if defined (_DEBUG)
-		if (pApp->m_pSourcePhrases != NULL)
-		{
-			wxLogDebug(_T("%s::%s() line %d; pApp->m_pSourcePhrases size = %d"),
-				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pSourcePhrases->GetCount());
-		}
-#endif
+//#if defined (_DEBUG)
+//		if (pApp->m_pSourcePhrases != NULL)
+//		{
+//			wxLogDebug(_T("%s::%s() line %d; pApp->m_pSourcePhrases size = %d"),
+//				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pSourcePhrases->GetCount());
+//		}
+//#endif
 
 		// exit here if we only wanted m_pSourcePhrases populated with the merged new source
 		// text

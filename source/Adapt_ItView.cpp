@@ -3211,8 +3211,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// set by the contents of m_targetPhrase (and m_pTargetBox should have the same contents)
 				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
-				wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-					pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+				wxLogDebug(_T("%s:%s():line %d, ****Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+					pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 
 				// BEW 30Apr18  added next test to fix a bug where 'landing' the phrasebox can get a wrong m_adaption
 				// when box moves off - i.e. leaves, because a non-empty list copies top entry to the box before 
@@ -15576,9 +15576,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_pTargetBox->m_nWordsInPhrase > nCurLongest)
 	{
 		// something is really wrong, this should not be possible
-		wxString str =
-		_T(
-"Error: longest phrase in KB is shorter than current source phrase's number of words!\n");
+		wxString str =_T("Error: longest phrase in KB is shorter than current source phrase's number of words!\n");
 		str += _T("So this command will be ignored.\n");
 		wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
         pApp->m_pTargetBox->m_nWordsInPhrase = 0;
@@ -16574,12 +16572,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase); // BEW 23Dec22, will be empty
 	// if the user did not manually type overriding preceding punctuation, as determined by contents of m_pTargetBox
 
-#if defined (_DEBUG)
-	{
-		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: strGrabbedPrecPuncts= %s , strGrabbedFinalPuncts= %s "),
-			__LINE__, strGrabbedPrecPuncts.c_str(), strGrabbedFinalPuncts.c_str());
-	}
-#endif
+//#if defined (_DEBUG)
+//	{
+//		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: strGrabbedPrecPuncts= %s , strGrabbedFinalPuncts= %s "),
+//			__LINE__, strGrabbedPrecPuncts.c_str(), strGrabbedFinalPuncts.c_str());
+//	}
+//#endif
 
 	// BEW 17May18 added a SimplePunctuationRestoration(pSrcPhrase) call here, which is
 	// only called when pApp->m_bTypedNewAdaptationInChooseTranslation is TRUE. This 'simple'
@@ -16964,15 +16962,15 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					targetStr += strEnding; // add it also to what was passed in
 					pApp->m_pTargetBox->SetValue(targetStr); // get the phrasebox agreeing
 				}
-#if defined (_DEBUG)
-				{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: else: support of ] } ),  strEnding = %s "),__LINE__, strEnding.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
-					{
-						int halt_here = 1; wxUnusedVar(halt_here);
-					}
-				}
-#endif	
+//#if defined (_DEBUG)
+//				{
+//					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: else: support of ] } ),  strEnding = %s "),__LINE__, strEnding.c_str());
+//					if (pSrcPhrase->m_nSequNumber >= 0)
+//					{
+//						int halt_here = 1; wxUnusedVar(halt_here);
+//					}
+//				}
+//#endif	
 				// Legacy code continues...
 				str = targetStr; // make a copy
 				wxArrayString remainderList;
