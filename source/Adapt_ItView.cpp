@@ -3211,8 +3211,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// set by the contents of m_targetPhrase (and m_pTargetBox should have the same contents)
 				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
-				wxLogDebug(_T("%s:%s():line %d, ****Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
-					pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+				//wxLogDebug(_T("%s:%s():line %d, ****Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+				//	pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 
 				// BEW 30Apr18  added next test to fix a bug where 'landing' the phrasebox can get a wrong m_adaption
 				// when box moves off - i.e. leaves, because a non-empty list copies top entry to the box before 
