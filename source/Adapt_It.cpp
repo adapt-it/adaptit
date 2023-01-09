@@ -23877,7 +23877,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the span embedded sets, binding set (and add binding endMkrs), and most from non-binding.
 	// Hmmm. An Ignore set (very large) is not needed - as anything not in the Red sets, or the
 	// single Blue set, does NOT change the text type.
-	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr \\rq  ");
+	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr  ");
 
 	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\fig* \\esbe \\cat* ");
 
