@@ -11599,7 +11599,7 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 
 		// BEW 9Jan23 add support for endMkr being one of the pApp->m_BlueEndMarkers set, such as \rq*
 		// pLastSrcPhrase is what was passed in, it should have one of the just returned endmarkers string
-		bool bBlueEndMkrs = FALSE; // init
+		//bool bBlueEndMkr = FALSE; // init
 		int offset = wxNOT_FOUND;
 		if (endmarkers.IsEmpty())
 		{
@@ -11608,7 +11608,7 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 		else
 		{
 			// there is an endMkr in pSrcPhrase->GetEndMarkers(), i.e. in endmarkers string
-			int offset = wxNOT_FOUND; // init
+			offset = wxNOT_FOUND; // init
 			wxString blueEndMkr = endmarkers; // blue ones should be the only endMkr
 			wxString augBlueEndMkr = blueEndMkr + _T(' ');
 			offset = gpApp->m_RedEndMarkers.Find(augBlueEndMkr);
@@ -19540,9 +19540,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//	wxUnusedVar(bInUnfilteredInlineSpan);
 			//}
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 0) // was 5626
+			if (pSrcPhrase->m_nSequNumber >= 4)
 			{
-				wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
+				//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 				int halt_here = 1;
 			}
 #endif
@@ -19574,7 +19574,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// So we'll code in bleeding order - get the special cases out of the way
 				// first, and the general stuff handled last.
 #if defined (_DEBUG)
-				if (pSrcPhrase->m_nSequNumber >= 0) // was 5626
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1;
 				}
@@ -19613,6 +19613,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					wxString temp = wxEmptyString;
 					itemLen = 0; // initialize
+#if defined (_DEBUG)
+					if (pSrcPhrase->m_nSequNumber >= 4)
+					{
+						int halt_here = 1;
+					}
+#endif
 
 					// Obtain the string to be filtered out
 					itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
@@ -19651,21 +19657,47 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// things - but most likely whitespace, so parse over & exit the block
 					// iterate the inner loop, to see if another marker follows - if not
 					// control will break from the loop to get to ParsePreWord()
-					itemLen = 0; // if ptr is not pointing at whitespace, itemLen will remain zero									
-					itemLen = ParseWhiteSpace(ptr); // parse any white space following it,
+					//itemLen = 0; // if ptr is not pointing at whitespace, itemLen will remain zero
+					int aCount;
+					aCount = 0;
+					aCount = ParseWhiteSpace(ptr); // parse any white space following it,
 													// return 0  if not pointing at whitespace
 					// In the AppendItem() call, tokBuffer is unused, input ptr and itemLen,
 					// and internally those two values will be used to construct a string, temp,
 					// which is returned by reference, so that ptr can be updated to point past
 					// the whitespace
+					if (aCount > 0)
+					{
+						ptr += aCount;
+						itemLen += aCount;
+					}
 					AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
-					ptr += itemLen; // advance ptr past its following whitespace
+					//ptr += itemLen; // advance ptr past its following whitespace
 					tokBuffer.Empty();
 #if defined (_DEBUG)
-					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
+					wxString prtPointsAt = wxString(ptr, 15);
 					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
+					if (pSrcPhrase->m_nSequNumber >= 5)
+					{
+						int halt_here = 1;
+					}
 #endif
-
+					/* didn't get the colour changed from red to blue - check IsTextTypeChangingEndMarker() 
+					// BEW 10Jan23, if we have just filtered something, the the TextType for what preceded
+					// what has just been filtered out, may not be 'verse' for instance, it could be a \s1 subheading
+					// which would be red. So if ptr points at newline, let's assume we are about to return to 'verse'
+					// for the m_curTextType. 
+					// ParseFilteringSFM() parses from start of beginMkr, but goes over any final space followed by \n
+					// so ptr will be pointing at what the next line is - that is likely to be \p or even \v, so returning
+					// to verse TextType here is quite appropriate
+					if (*ptr == _T('\n') || *(ptr-1) == _T('\n') || *(ptr - 1) == _T(' '))
+					{
+						pSrcPhrase->m_curTextType = verse;
+						pSrcPhrase->m_bSpecialText = FALSE;
+						pSrcPhrase->m_bFirstOfType = TRUE;
+						pSrcPhrase->m_bBoundary = TRUE;
+					}
+					*/
 					continue; // iterate the inner loop
 				} // end of TRUE block for test: if (bItsSourceText)
 				else
@@ -20437,7 +20469,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					{
 #if defined (_DEBUG)
 						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-						if (pSrcPhrase->m_nSequNumber >= 6)
+						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -20450,6 +20482,50 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 								// it pLastSrcPhrase has things like \f* \fe* \x* or \ex*, then
 								// fast access strings are tested, and if the relevant endMkr is found
 								// TRUE will be returned, and m_bIsWithinUnfilteredInlineSpan cleared to FALSE
+						if (bIsChanger == FALSE)
+						{
+							// If pSrcPhrase is carrying filtered info, use that as a flag to reconstitue verse TextType
+							if (!(pSrcPhrase->GetFilteredInfo()).IsEmpty())
+							{
+								wxString filteredInfo;
+								filteredInfo = pSrcPhrase->GetFilteredInfo();
+								wxString bkSlashr;
+								bkSlashr = _T("\\r");
+								if (filteredInfo.Find(bkSlashr) != wxNOT_FOUND)
+								{
+									bIsChanger = TRUE;
+								}
+							}
+							else
+							{
+								// other criteria for returning TRUE
+								if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_curTextType != verse && pLastSrcPhrase->m_bSpecialText)
+								{
+									// need more... we want m_markers to have either \p or \v in it, to
+									// return a TRUE value for bIsChanger
+									if (pSrcPhrase->m_markers.Find(_T("\\p")) || pSrcPhrase->m_markers.Find(_T("\\v")))
+									{
+										bIsChanger = TRUE;
+									}
+								}
+								else
+								{
+									if (pSrcPhrase->m_curTextType != verse && pSrcPhrase->m_markers.IsEmpty() && pLastSrcPhrase->m_bSpecialText)
+									{
+										bIsChanger = TRUE;
+
+
+
+
+										// TODO..
+
+									}
+
+									// TODO -- more?
+								}
+							}
+						} // end of TRUE block for test: if (bIsChanger == FALSE)
+
 						if (bIsChanger)
 						{
 							// the test is TRUE if pSrcPhase in its m_endMarkers member contains one
@@ -33094,14 +33170,47 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// whitespace follows the <punct>. Don't generalize, to any punct, stick with just colon and semicolon
 				// - because these occur detached in the test data. But omit the space for what's stored on pSrcPhrase,
 				// as that a m_srcPhrase value containing space followed by punctuation would be a problem
-				wxChar colon; wxChar semiColon;
-				colon = _T(':'); semiColon = _T(';');
-				if ( (*ptr == _T(' ')) && ((*(ptr + 1) == colon) || (*(ptr + 1) == semiColon)) && IsWhiteSpace(ptr + 2) )
+				// BEW 10Jan22 Bill's MAT Nyindrou doc (46-MATlid.usfm) has the same issue in 3:4, a <space>. before
+				// \f*, the <space> needs to be ignored, and we need to allow ptr + 2 to be whitespace, or gSFescapechar
+				wxChar colon; wxChar semiColon; wxChar period;
+				colon = _T(':'); semiColon = _T(';'); period = _T('.');
+				if ( (*ptr == _T(' ')) && ((*(ptr + 1) == colon) || (*(ptr + 1) == semiColon) || (*(ptr + 1) == period )) 
+					&& (IsWhiteSpace(ptr + 2) || (*(ptr + 2) == gSFescapechar)) )
 				{
 					pSrcPhrase->m_follPunct += *(ptr + 1);
 					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key + *(ptr + 1);
 					len += 2;
 					ptr += 2;
+					// if ptr now points at the gSFescapechar, find out if it is an endMkr (e.g. \f*) as that would
+					// have to be added to the current pSrcPhrase's m_endMarkers member
+					if (*ptr == gSFescapechar)
+					{
+						wxString wholeMkr;
+						wholeMkr = GetWholeMarker(ptr);
+						wxChar asterisk;
+						asterisk = _T('*');
+						int offset;
+						offset = wholeMkr.Find(asterisk);
+						if (offset > 0)
+						{
+							// it's an endmarker. Get it's length
+							int mkrLen;
+							mkrLen = wholeMkr.Len();
+							// append it to m_endMarkers
+							wxString endMkrs;
+							endMkrs = pSrcPhrase->GetEndMarkers();
+							endMkrs += wholeMkr;
+							pSrcPhrase->SetEndMarkers(endMkrs);
+							// If the endMkr is \f*, then we need to set m_inform, and m_bFootnoteEnd to TRUE
+							if (wholeMkr == _T("\\f*"))
+							{
+								pSrcPhrase->m_inform = _("end fn");
+								pSrcPhrase->m_bFootnoteEnd = TRUE;
+							}
+							len += mkrLen;
+							ptr += mkrLen;
+						}
+					} // end of TRUE block for test: if (*ptr == gSFescapechar)
 					return len;
 				}
 
