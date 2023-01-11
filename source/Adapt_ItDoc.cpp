@@ -19167,7 +19167,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				bool bIsAMkr;
 #if defined (_DEBUG)
 				pointsAtPtr = wxString(ptr, 20);
-				bool bIsItRed = m_bInRedSet;
+				// whm 11Jan2023 separated declaration from assignment below to avoid gcc goto error 
+				bool bIsItRed;
+				bIsItRed = m_bInRedSet;
 				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
