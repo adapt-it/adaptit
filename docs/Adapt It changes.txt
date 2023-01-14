@@ -51,6 +51,9 @@ Filtered Material dialog, and attempts to close the dialog window by clicking th
 in the upper right corner of the dialog.
 * Fixed a bug that prevented the Auto Correct function from working when editing a note
 within the Note dialog.
+* Fixed a bug that prevented a copied source word/phrase from "sticking" when the user 
+judges that an auto-copied word/phrase into the phrase box needs no editing change, but
+just presses the Enter or Tab key at that location to move ahead in the text. 
 
 ----------------------------------------------
 Version 6.10.7  20 May 2022

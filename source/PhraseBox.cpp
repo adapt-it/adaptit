@@ -3408,6 +3408,20 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 //			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, from  pile at sequnum = %d   SrcText:  "),
 //				pSPhr->m_nSequNumber, pSPhr->m_srcPhrase);
 //#endif
+			// BEW 14Jan23, Ngalambirra got "Holy-Spirit" auto-copied from the source text, but she forgot to click in the phrasebox to make
+			// the inserted text "stick" by causing m_bAbandonable to be reest to FALSE, - so when MoveToNextPile() got called, the phrasebox
+			// at the kick-off location lost the "Holy-Spirit" content. She didn't notice, and the text - because of how Gupapuyngu works,
+			// still made sense. This type of error is common, and potentially disasterous. I think the user should not have to click in
+			// the box, when moving forward by ENTER or TAB key. OnKeyUp() handles ENTER or TAB keypress, and calls JumpForward() just before
+			// exiting. So I will here check for m_bAbandonable still with TRUE value, and if so, reset it FALSE, so that a box click is
+			// not required anymore. Clicking around holes in the doc will still autoclear the copied src text at each location, so my
+			// original intent for such clicking still applies because JumpForward(pView) is not called in such a circumstance.
+			if (pApp->m_pTargetBox->m_bAbandonable)
+			{
+				pApp->m_pTargetBox->m_bAbandonable = FALSE; // yep, checking and resetting FALSE here relieves the user of responsibility
+															// to make the content 'stick' by first doing something, eg. a click, in the box
+															// before using ENTER key or TAB key to cause an advance to a hole
+			}
 
 			pLayout->m_docEditOperationType = relocate_box_op;
 		}
