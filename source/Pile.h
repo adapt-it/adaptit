@@ -111,6 +111,7 @@ public:
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	void		SetStrip(CStrip* pStrip);
+	int			SetPhraseBoxGapWidth(); // whm 24Jan2023 restored from older code.
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();

@@ -1076,7 +1076,19 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // latter too, and when that happens, force the recalc before the draw.
 
 	CPile* pActivePile = pApp->m_pActivePile;
-	wxUnusedVar(pActivePile);
+
+	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
+	{
+		// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+		// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+		// BEW reported this date that he was unable to select the source phrase at the active
+		// location and that the problem was due to the CPile::m_nWidth member still had a -1
+		// uninitializaion value.
+		// However, testing with the call commented out indicates that the SetPhraseBoxGapWidth() 
+		// call is not really needed here to solve the issue of not being able to select the source
+		// phrase at the active location.
+		//pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
+	}
 
 	// draw the layout
 	GetLayout()->Draw(pDC);
@@ -2808,6 +2820,22 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		}
 #endif
 
+		// this next call relies for it's success on pActivePile being the CPile* at the
+		// new active location, and that the partner CSourcePhrase instance has its
+		// m_nSequNumber value set to the same value as the app's member m_nActiveSequNum
+		// - these conditions are guaranteed by code in the caller before this function is
+		// called.
+		// 
+		// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+		// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+		// BEW reported this date that he was unable to select the source phrase at the active
+		// location and that the problem was due to the CPile::m_nWidth member still had a -1
+		// uninitializaion value.
+		// However, testing with the call commented out indicates that the SetPhraseBoxGapWidth() 
+		// call is not really needed here to solve the issue of not being able to select the source
+		// phrase at the active location.
+		//pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
+
 	} // end of else block for test: if (bHasNothing)
 }
 
@@ -3692,6 +3720,15 @@ wxBell();
 		// str is already empty, so nothing much to do
         pApp->m_pTargetBox->m_bEmptyAdaptationChosen = FALSE;
 
+		// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+		// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+		// BEW reported this date that he was unable to select the source phrase at the active
+		// location and that the problem was due to the CPile::m_nWidth member still had a -1
+		// uninitializaion value.
+		// TODO: Test without the following call to see if it's really needed here - for this
+		// situation when pApp->m_pTargetBox->m_bEmptyAdaptationChosen is TRUE.
+		pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
+
 		goto a;
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -3724,6 +3761,15 @@ wxBell();
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 		pSrcPhrase->m_bNotInKB = TRUE;
 		str = pSrcPhrase->m_adaption;
+
+		// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+		// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+		// BEW reported this date that he was unable to select the source phrase at the active
+		// location and that the problem was due to the CPile::m_nWidth member still had a -1
+		// uninitializaion value.
+		// TODO: Test without the following call to see if it's really needed here - for this
+		// situation when the test conditions above are TRUE.
+		pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3537,
@@ -3761,6 +3807,16 @@ wxBell();
 		// -- but later changes mean we need selector == 3 case anyway, even though we no
 		// longer have bundles
 		str = pApp->m_pTargetBox->m_Translation;
+
+		// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+		// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+		// BEW reported this date that he was unable to select the source phrase at the active
+		// location and that the problem was due to the CPile::m_nWidth member still had a -1
+		// uninitializaion value.
+		// TODO: Test without the following call to see if it's really needed here - for this
+		// situation when the test conditions above are TRUE.
+		// TODO: Test without the following call to see if it's really needed here.
+		pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after str set to m_pTargetBox->m_Translation, & before goto a;"), _T("Adapt_ItView.cpp"), 3576);
@@ -4116,6 +4172,17 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 4098,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+
+	// whm 24Jan2023 added back the SetPhraseBoxGapWidth() call, which assigns the 
+	// returned value of CalcPhraseBoxGapWidth() to CPile::m_nWidth.
+	// BEW reported this date that he was unable to select the source phrase at the active
+	// location and that the problem was due to the CPile::m_nWidth member still had a -1
+	// uninitializaion value.
+	// Testing with the following call of SetPhraseBoxGapWidth() commented out, indicate that
+	// the issue of CPile::m_nWidth being uninitialized with a -1 value is not mitigated byi
+	// calling SetPhraseBoxGapWidth() here. Therefore, after testing, I've commented the call
+	// out below.
+	//pActivePile->SetPhraseBoxGapWidth(); // Assigns value of CalcPhraseBoxGapWidth() to m_nWidth
 
 	// whm 11Nov2022 the two calls below have already been done above with the same parameters at
 	// the current active location, so I'm commenting them out as a duplication since the old

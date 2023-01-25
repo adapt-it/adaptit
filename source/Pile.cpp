@@ -356,6 +356,28 @@ void CPile::SetStrip(CStrip* pStrip)
 	m_pOwningStrip = pStrip; // can pass in NULL to set it to nothing
 }
 
+// whm 24Jan2023 restored the following function that I had removed when refactoring
+// the phrasebox sizing routines. Testing this date indicates that m_nWidth needs to
+// be initialized within the Layout's PlaceBox() call, and that is conveniently done
+// by the restored SetPhraseBoxGapWidth() call below.
+int CPile::SetPhraseBoxGapWidth()
+{
+	// When in OnOpenDocument() and creating piles and strips, m_pActivePile is NULL
+	// 
+	// m_nWidth is dynamically set, to enable the phrasebox gap width to be
+	// calculated on demand at a new active location. The code for the above is
+	// mostly in CalcPhraseBoxWidth(), to which constant width additions are made,
+	// and code in Strip.cpp CreateStrip() which gets width for Draw() correctly sized.
+	m_nWidth = CalcPhraseBoxGapWidth();
+
+//#if defined(_DEBUG) //&& defined(_NEWDRAW)
+	//	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
+	//		__FUNCTION__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
+//#endif
+	return m_nWidth;
+}
+
+
 // If called at a non-active location, return -1 to indicate to the caller that
 // the value returned is not to be used.
 // whm 11Nov2022 Notes: The CPile::CalcPhraseBoxListWidth() returns the maximum

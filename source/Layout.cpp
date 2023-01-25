@@ -729,6 +729,25 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		bool bSetTextColor = FALSE; // initialize, governs whether or not we reset
 									// the box's text colour
 
+		// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
+		// and list, the box gap may also be much smaller than it needs to be - so while
+		// we have a valid pActivePile, get the gap and box width calculations refreshed
+		// before they get used in a RecalcLayout() call.
+		// 
+		// whm 24Jan2023 Modification. On this date BEW reported that he was unable to select 
+		// a source phrase at the active location (light yellow highlighting would not appear). 
+		// He concluded the problem was due to Pile's m_nWidth being uninitialized and remaining 
+		// at a value of -1. I restored the SetPhraseBoxGapWidth() function that I had eliminated
+		// last month while refactoring the phrasebox sizing and positioning routines, putting it
+		// tentatively back in its original locations (6 in the View and 2 here in Layout.cpp), then
+		// tested all of them to see which locations the SetPhraseBoxGapWidth() call was necessary
+		// to prevent the issue and which had no effect. I determined that the main location that
+		// caused the issue was that this Layout's PlaceBox() needed to call SetPhraseBoxGapWidth()
+		// in order to get the CPile::m_nWidth value set correctly (internally calling the
+		// Pile's CalcPhraseBoxGapWidth() function and assigning its value to CPile::m_nWidth. 
+		// Calling SetPhraseBoxGapWidth().
+		pActivePile->SetPhraseBoxGapWidth(); // (BEW) this is what I added on 25Jul18
+
 
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
@@ -2030,6 +2049,24 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 												  // an active sequ number and m_targetPhrase set before a value can be
 												  // calculated, but only at the pile which is located at the active location
 	}
+	// whm 24Jan2023 Note. On this date BEW reported that he was unable to select a source 
+	// phrase at the active location (light yellow highlighting would not appear). 
+	// He concluded the problem was due to Pile's m_nWidth being uninitialized and remaining 
+	// at a value of -1. I restored the SetPhraseBoxGapWidth() function that I had eliminated
+	// last month while refactoring the phrasebox sizing and positioning routines, putting it
+	// tentatively back in its original locations (6 in the View and 2 here in Layout.cpp), then
+	// tested all of them to see which locations the SetPhraseBoxGapWidth() call was necessary
+	// to prevent the issue and which had no effect. I determined that the main location that
+	// caused the issue was that the Layout's PlaceBox() needed to call SetPhraseBoxGapWidth()
+	// in order to get the CPile::m_nWidth value set correctly. Calling SetPhraseBoxGapWidth()
+	// here is not needed to initialize CPile::m_nWidth and be able to select the source phrase 
+	// at the active location by click of the mouse. Therefore I'm commenting out the added
+	// else block below.
+	//else
+	//{
+	//	// This pile is going to be the active one, so calculate its m_nWidth value.
+	//	pPile->SetPhraseBoxGapWidth(); // calculates, and sets value in m_nWidth
+	//}
 
 	// pile creation always creates the (fixed) array of CCells which it manages
 	int index;
