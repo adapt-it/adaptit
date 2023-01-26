@@ -23982,6 +23982,12 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 	return TRUE; // it's unstructured data
 }
 
+// whm 25Jan2023 Note: A size event is first detected in the View's EVT_SIZE() event table,
+// which calls the CAdapt_ItView::OnSize() below. Now, the only thing this OnSize() handler 
+// does is to call event.Skip(), which passes the size event on and is caught by CMainFrame's 
+// EVT_SIZE() event table, which calls CMainFrame::OnSize handler there in MainFrm.cpp. 
+// Therefore, this OnSize() handler here in the View does nothing but to call event.Skip(). 
+// The real work of responding to the size event is done elsewhere in CMainFrame::OnSize(). 
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
 	//wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,

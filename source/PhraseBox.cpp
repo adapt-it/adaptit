@@ -3872,6 +3872,16 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// the m_cruListWidth and the m_curBoxWidth agree.
 			pLayout->m_curListWidth = bestTabForResize;
 			
+			// whm 25Jan2023 added. Fix the cursor location, so it doesn't jump to end of phrasebox text
+			// when the box size changes, especially when backspacing in middle of a text.
+			// Note: We need to update the App's m_nStartChar and m_nEndChar global members too!
+			// The other change that makes the cursor behave during editing is made within the
+			// SetFocusAndSetSelectionAtLanding() function where the SetSelection(len,len) calls
+			// there are suppressed while OnPhraseBoxChanged() is executing.
+			this->GetTextCtrl()->SetSelection(nStartChar, nEndChar);
+			pApp->m_nStartChar = nStartChar;
+			pApp->m_nEndChar = nEndChar;
+
 			// whm 11Nov2022 Notes:
 			// The phrasebox's new size may be quite different from what it was before this edit,
 			// so a recalculation of the strip/pile layout and refresh of the screen layout may
@@ -3892,9 +3902,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// whm 15Dec added. On Linux at this point after a phrasebox resize, the insertion
 			// point moves to position 0 which is undesirable. To prevent this on Linux I'm adding 
 			// a conditional compiled call to SetFocusAndSetSelectionAtLanding() here.
-# if defined __WXGTK__
-			SetFocusAndSetSelectionAtLanding();
-#endif
+			
+//# if defined __WXGTK__
+			//SetFocusAndSetSelectionAtLanding();
+//#endif
 		}
 			
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
@@ -9279,11 +9290,24 @@ void CPhraseBox::SetFocusAndSetSelectionAtLanding()
     // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
     // View menu's 'Select Copied Source' toggle menu item. 
     int len = this->GetTextCtrl()->GetValue().Length();
-    if (this->GetDropDownList()->GetCount() > 1)
+	// Never select phrasebox contents when there a > 1 items in list.
+	if (this->GetDropDownList()->GetCount() > 1)
     {
-        // Never select phrasebox contents when there a > 1 items in list.
-        // Set insertion point at end of text.
-        this->GetTextCtrl()->SetSelection(len, len);
+		// The dropdown list has more than one item so it will be open and displaying its
+		// list items. In this situation we set the cursor to the end of the text, but
+		// not during editing - i.e., within the OnPhraseBoxChanged(), otherwise the cursor
+		// won't behave during editing, deletions, backspaces, etc.
+        // Set insertion point at end of text, except when this SetFocusAndSetSelectionAtLanding()
+		// function is called while within the OnPhraseBoxChanged() method.
+		// whm 25Jan2023 added. Fix for curson jumping to end of word while within
+		// OnPhraseBoxChanged() when a phrasebox size change is done. This change
+		// combined with the call of SetSelection(nStartChar, nEndChar) command, and 
+		// the setting of the App's m_nStartChar and m_nEndChar to the local values 
+		// nStartChar and nEndChar within OnPhraseBoxChanged() - fixed the problem.
+		if (!gpApp->GetLayout()->m_bAmWithinPhraseBoxChanged)
+		{
+			this->GetTextCtrl()->SetSelection(len, len);
+		}
     }
     else
     {

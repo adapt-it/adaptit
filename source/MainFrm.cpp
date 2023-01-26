@@ -3707,6 +3707,12 @@ void CMainFrame::OnUpdateViewAdminMenu(wxUpdateUIEvent& event)
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// whm 25Jan2023 Note: A size event is first detected in the View's EVT_SIZE() event table,
+// which calls CAdapt_ItView::OnSize(). All the View's OnSize() handler does is to call 
+// event.Skip(), which passes the size event on and is caught by CMainFrame's EVT_SIZE() 
+// event table, which ends up calling this CMainFrame::OnSize handler below. Therefore, 
+// the OnSize() handler in the View does nothing but to call event.Skip(). The real work 
+// of responding to the size event is done here in CMainFrame::OnSize. 
 void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
 #if defined(_DEBUG) && defined(_NEWDRAW)
