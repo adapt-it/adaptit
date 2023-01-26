@@ -20996,6 +20996,11 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 
 wxChar CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 {
+	// whm 26Jan2023 note: The assignment of a wxChar to NULL in the first line of code below
+	// generates a warning from gcc "warning: converting to non-pointer type 'wxChar' {aka 'wchar_t'} from NULL"
+	// What this does it make the chReturn wxChar become '\0' whenever it is not assigned to a whitespace character or
+	// sequence. The value of '\0' happens to work out OK here since '\0' will convert to an empty wxString when 
+	// the caller of FindWordBreakChar() assigns its returned value to the source phrase's m_srcWordBreak (a wxString).
 	wxChar chReturn = NULL; // initialise
 #if defined(_DEBUG)
 	wxChar* pSpann = NULL; pSpann = ptr; 
