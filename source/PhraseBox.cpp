@@ -3872,16 +3872,6 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// the m_cruListWidth and the m_curBoxWidth agree.
 			pLayout->m_curListWidth = bestTabForResize;
 			
-			// whm 25Jan2023 added. Fix the cursor location, so it doesn't jump to end of phrasebox text
-			// when the box size changes, especially when backspacing in middle of a text.
-			// Note: We need to update the App's m_nStartChar and m_nEndChar global members too!
-			// The other change that makes the cursor behave during editing is made within the
-			// SetFocusAndSetSelectionAtLanding() function where the SetSelection(len,len) calls
-			// there are suppressed while OnPhraseBoxChanged() is executing.
-			this->GetTextCtrl()->SetSelection(nStartChar, nEndChar);
-			pApp->m_nStartChar = nStartChar;
-			pApp->m_nEndChar = nEndChar;
-
 			// whm 11Nov2022 Notes:
 			// The phrasebox's new size may be quite different from what it was before this edit,
 			// so a recalculation of the strip/pile layout and refresh of the screen layout may
@@ -3899,10 +3889,20 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// to get the layout finalized in its near perfect position with exact phrasebox width 
 			// and the pile layout in final positions, we need a second call here of SendSizeEvent()
 			pApp->GetMainFrame()->SendSizeEvent();
+			
 			// whm 15Dec added. On Linux at this point after a phrasebox resize, the insertion
 			// point moves to position 0 which is undesirable. To prevent this on Linux I'm adding 
 			// a conditional compiled call to SetFocusAndSetSelectionAtLanding() here.
-			
+			// whm 25Jan2023 added. Fix the cursor location, so it doesn't jump to end of phrasebox text
+			// when the box size changes, especially when backspacing in middle of a text.
+			// Note: We need to update the App's m_nStartChar and m_nEndChar global members too!
+			// The other change that makes the cursor behave during editing is made within the
+			// SetFocusAndSetSelectionAtLanding() function where the SetSelection(len,len) calls
+			// there are suppressed while OnPhraseBoxChanged() is executing.
+			this->GetTextCtrl()->SetSelection(nStartChar, nEndChar);
+			pApp->m_nStartChar = nStartChar;
+			pApp->m_nEndChar = nEndChar;
+
 //# if defined __WXGTK__
 			//SetFocusAndSetSelectionAtLanding();
 //#endif
