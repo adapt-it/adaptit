@@ -20616,7 +20616,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 										wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , *** bIsChanger = %d ***"),
 											__FILE__, __FUNCTION__, __LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 											(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger);
-										if (pSrcPhrase->m_nSequNumber >= 2)
+										if (pSrcPhrase->m_nSequNumber >= 3)
 										{
 											int halt_here = 1;
 										}
@@ -20708,7 +20708,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , *** bIsChanger = %d ***"),
 								__FILE__, __FUNCTION__, __LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, 
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger);
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 3)
 							{
 								int halt_here = 1;
 							}
@@ -20729,14 +20729,35 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							bEnded_f_fe_x_span = TRUE; // <<-- the only place it is set TRUE
 							// propagation from pLastSrcPhrase to pSrcPhrase is required here, because
 							// this one's TextType isn't changed
-							pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
-							pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+							
+							// BEW 3Feb23, m_markers may have \io1 marker when intro material is being processed.
+							// we don't want the code below to cause reversion to verse and m_bSpecialText set FALSE.
+							// Set a bool here to be used to skip reverting to verse, etc, in such a context
+							bool bProtectRed;
+							bProtectRed = FALSE; // initialise
+							if (!pSrcPhrase->m_markers.IsEmpty())
+							{
+								wxString srch;
+								srch = _T("\\io1");
+								int offset;
+								offset = pSrcPhrase->m_markers.Find(srch);
+								if (offset != wxNOT_FOUND)
+								{
+									// such a marker is present in m_markers, so do protection
+									bProtectRed = TRUE;
+								}
+							}
+							if (bProtectRed == FALSE)
+							{
+								pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+								pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+							}
 #if defined (_DEBUG)
 							{
 								wxString ptrPointsAt = wxString(ptr, 15);
 								wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
 									(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 0)
+								if (pSrcPhrase->m_nSequNumber >= 3)
 								{
 									int halt_here = 1;
 								}
@@ -20748,7 +20769,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							// if my grasp of the logic is correct - it should be the instance which
 							// is after the previous which has all the parameters, from the call of
 							// IsTextTypeChangingEndMarker() above
-							if (bEnded_f_fe_x_span)
+							if (bEnded_f_fe_x_span && bProtectRed == FALSE)
 							{
 								// this block re-establishes verse type, and m_bSpecialText FALSE, after a
 								// footnote, endnote or crossReference has ended
@@ -20803,7 +20824,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							*/
 #if defined (_DEBUG)
 							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 3)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -40080,6 +40101,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	wxChar ahyphen = _T('-');
 	wxChar acomma = _T(',');
 	wxChar horiz_bar = (wxChar)0x2015;
+	wxChar longHyphen = (wxChar)0x2013;
 	wxString partsSet = _T("abc"); //for things like 2:5a
 	wxChar rangeChar = (wxChar)0; // initialise
 	bool   bIsDigit = FALSE; // intialise
@@ -40126,7 +40148,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	// Now get past whatever delimiter separates firstPart from what follows. ( ?secondPart? maybe)
 	wxString secondPart = wxEmptyString; // initialise
 	wxString allowedDelimiters = _T(":.;");
-	wxString RangeSet = wxString(ahyphen) + wxString(acomma) + wxString(horiz_bar);
+	wxString RangeSet = wxString(ahyphen) + wxString(acomma) + wxString(horiz_bar) + wxString(longHyphen);
 
 	// Terminators for 2nd part will be whitespace or any punctuation or delimiter or a RangeSet char
 	bool bIsOne = IsOneOf(ptr, spacelessPuncts);
@@ -40249,7 +40271,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	}
 	else
 	{
-		// It's not a hyphen, comma or horizontal bar; so we should be dealing with a verse number or a b or c at end of digits
+		// It's not a hyphen, comma or horizontal bar or longHyphen; so we should be dealing with a verse number or a b or c at end of digits
 		if ((ptr < pEnd) && IsAnsiDigit(*ptr))
 		{
 			// scanning loop here, to parse over the verse number - same halters as above. but
