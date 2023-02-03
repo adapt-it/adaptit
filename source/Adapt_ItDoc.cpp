@@ -19210,7 +19210,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptr += itemLen;
 						itemLen = 0;
 						pSrcPhrase->m_bSpecialText = TRUE;
-						pSrcPhrase->m_inform = _("x-ref to source");
+						//pSrcPhrase->m_inform = _("x-ref to source"); // NOTE: "x-ref to source" is m_inform for \rq ... \rq* rightMarginReference (TType 32)
 						pSrcPhrase->m_bBoundary = TRUE;
 						// jump to ParsePreWord() to get quickly to ParseWord(), with ptr pointing at the word following the beginMkr
 						goto parsing;
@@ -19368,7 +19368,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								{
 									//wxLogDebug(_T("%s::%s(), line %d : sequNum= %d , pSrcPhrase->m_key= %s , In ??? insert block for \\ft \\f* content-less"),
 									//	__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 0)
+									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -19542,7 +19542,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//	wxUnusedVar(bInUnfilteredInlineSpan);
 			//}
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 4)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 				int halt_here = 1;
@@ -19576,8 +19576,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// So we'll code in bleeding order - get the special cases out of the way
 				// first, and the general stuff handled last.
 #if defined (_DEBUG)
-				if (pSrcPhrase->m_nSequNumber >= 4)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
+					wxString ptrPointsAt = wxString(ptr, 15);
+					wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__, 
+						(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 					int halt_here = 1;
 				}
 #endif
@@ -19616,7 +19619,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString temp = wxEmptyString;
 					itemLen = 0; // initialize
 #if defined (_DEBUG)
-					if (pSrcPhrase->m_nSequNumber >= 4)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1;
 					}
@@ -19676,15 +19679,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
 					//ptr += itemLen; // advance ptr past its following whitespace
 					tokBuffer.Empty();
-#if defined (_DEBUG)
-					wxString prtPointsAt = wxString(ptr, 15);
-					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
-					if (pSrcPhrase->m_nSequNumber >= 5)
-					{
-						int halt_here = 1;
-					}
-#endif
-					/* didn't get the colour changed from red to blue - check IsTextTypeChangingEndMarker() 
+
+					//* didn't get the colour changed from red to blue? - check IsTextTypeChangingEndMarker() 
+					// BEW 2Feb23 reinstate this block & add test of ptr -> gSFexcapechar
 					// BEW 10Jan23, if we have just filtered something, the the TextType for what preceded
 					// what has just been filtered out, may not be 'verse' for instance, it could be a \s1 subheading
 					// which would be red. So if ptr points at newline, let's assume we are about to return to 'verse'
@@ -19692,14 +19689,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// ParseFilteringSFM() parses from start of beginMkr, but goes over any final space followed by \n
 					// so ptr will be pointing at what the next line is - that is likely to be \p or even \v, so returning
 					// to verse TextType here is quite appropriate
-					if (*ptr == _T('\n') || *(ptr-1) == _T('\n') || *(ptr - 1) == _T(' '))
+					if (*ptr == _T('\n') || *(ptr-1) == _T('\n') || *(ptr - 1) == _T(' ') || *ptr == gSFescapechar)
 					{
 						pSrcPhrase->m_curTextType = verse;
 						pSrcPhrase->m_bSpecialText = FALSE;
 						pSrcPhrase->m_bFirstOfType = TRUE;
 						pSrcPhrase->m_bBoundary = TRUE;
 					}
-					*/
+					//*/
+#if defined (_DEBUG)
+					wxString ptrPointsAt = wxString(ptr, 15);
+					wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+						(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 2)
+					{
+						int halt_here = 1;
+					}
+#endif
+
 					continue; // iterate the inner loop
 				} // end of TRUE block for test: if (bItsSourceText)
 				else
@@ -19712,8 +19719,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// Ready for the filtering code...
 					itemLen = 0; // initialize
 #if defined (_DEBUG)
-					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
-					//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
+					wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+						(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 #endif
 
 					// Obtain the string to be filtered out
@@ -19860,6 +19867,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					ptr += itemLen;
 
 					// legacy code ends
+#if defined (_DEBUG)
+					wxString ptrPointsAt = wxString(ptr, 15);
+					wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+						(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 2)
+					{
+						int halt_here = 1;
+					}
+#endif
+
+
 				}  // end of else block for test: if (bItsSourceText)
 
 				wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
@@ -19982,8 +20000,13 @@ isnull:	xxx;		// dummy convenience variable as a destination for jump
 						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 #if defined (_DEBUG)
-						//wxLogDebug(_T("TokenizeText: line %d  , in TRUE block of: if (!bFoundOne);  itemLen = %d , points at: %s , sn= %d , m_key= %s"),
-						//	__LINE__, itemLen, (wxString(ptr, 24)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
+						wxString ptrPointsAt = wxString(ptr, 15);
+						wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+							(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 2)
+						{
+							int halt_here = 1;
+						}
 #endif
 						itemLen = 0;
 					}
@@ -20031,11 +20054,20 @@ goto parsing;
 					pSrcPhrase->m_srcPhrase.Empty();
 					pSrcPhrase->m_markers = tokBuffer;
 					pSrcPhrase->m_bFirstOfType = TRUE;
+#if defined (_DEBUG)
+					wxString ptrPointsAt = wxString(ptr, 15);
+					wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+						(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 2)
+					{
+						int halt_here = 1;
+					}
+#endif
 					break;
 				}
 				wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 #if defined (_DEBUG)
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
 					int halt_here = 1;
 				}
@@ -20091,8 +20123,15 @@ goto parsing;
 		// the verse is verse 1)
 		// (5) ptr is pointing at a word, or punctuation which precedes the word
 #if defined (_DEBUG)
-	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
-		//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
+			{
+				wxString ptrPointsAt = wxString(ptr, 15);
+				wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+					(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 2)
+				{
+					int halt_here = 1;
+				}
+			}
 #endif
 
 		if (bEmptyUSFM)
@@ -20214,19 +20253,21 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 		//	__LINE__, itemLen, (wxString(ptr, 12)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
 #endif
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 6)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 #endif
 
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
-			//wxLogDebug(_T("%s::%s() line %d : AFTER PARSEWORD() has returned: sn= %d m_key= %s m_markers= %s  m_endMarkers= %s  TextType= %d  bSpecial= %d  bWithinAttrSpan= %d , itemLen= %d"),
-			//	__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(),
-			//	pSrcPhrase->m_markers.c_str(), pSrcPhrase->GetEndMarkers().c_str(),
-			//	(int)pSrcPhrase->m_curTextType, (int)pSrcPhrase->m_bSpecialText, (int)m_bWithinMkrAttributeSpan, itemLen);
+			wxString ptrPointsAt = wxString(ptr, 15);
+			wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 2)
+			{
+				int halt_here = 1;
+			}
 		}
 #endif
 			if (itemLen == -1)
@@ -20250,7 +20291,15 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 #endif
 
 			ptr += itemLen; // advance ptr over what we parsed
-
+#if defined (_DEBUG)
+			wxString ptrPointsAt = wxString(ptr, 15);
+			wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 2)
+			{
+				int halt_here = 1;
+			}
+#endif
 			// We do NormalizeToSpaces() only on the string of standard format markers which
 			// we store on sourcephrase instances in m_markers, it's not needed elsewhere in
 			// CSourcePhrase storage members.
@@ -20325,7 +20374,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 			} // end of TRUE block for test: if (m_bIsInFigSpan && pSrcPhrase->m_nSequNumber > nFirstSequNumOfSpan)
 #if defined (_DEBUG)
 			wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-			if (pSrcPhrase->m_nSequNumber >= 6)
+			if (pSrcPhrase->m_nSequNumber >= 2)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -20406,6 +20455,17 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 						}
 						if (pLastSrcPhrase != NULL)
 						{
+#if defined (_DEBUG)
+							{
+								wxString ptrPointsAt = wxString(ptr, 15);
+								wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+									(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 0)
+								{
+									int halt_here = 1;
+								}
+							}
+#endif	
 							// Check for a change in TextType when going from pLastSrcPhrase to
 							// the current pSrcPhrase
 							if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
@@ -20422,9 +20482,20 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 												 // to a correct marker, or deletes it if it should not be there
 					}
 
-				}
-			} // end of TRUE block for test: if (!wholeBeginMkr.IsEmpty() && !bEndedffexspanUsedToChangedTextType)
+				} // end of TRUE block for test: if (wholeBeginMkr.Find(gSFescapechar) != wxNOT_FOUND)
 
+			} // end of TRUE block for test: if (!wholeBeginMkr.IsEmpty() && !bEndedffexspanUsedToChangedTextType)
+#if defined (_DEBUG)
+			{
+				wxString ptrPointsAt = wxString(ptr, 15);
+				wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+					(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 0)
+				{
+					int halt_here = 1;
+				}
+			}
+#endif			
 			// BEW comment 14Dec22: the above stuff was for the start of spans, where the marker examined is a
 			// beginMkr. The code which now follows is for propagating after ParseWord has completed. It should
 			// be the case that pSrcPhrase for that has moved to the next sequNum, so that values will be
@@ -20470,12 +20541,16 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					else
 					{
 #if defined (_DEBUG)
-						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1; wxUnusedVar(halt_here);
+							wxString ptrPointsAt = wxString(ptr, 15);
+							wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 0)
+							{
+								int halt_here = 1;
+							}
 						}
-#endif
+#endif			
 						// BEW 14Dec22, hmmm, pSrcPhrase should have moved on, if so passing it in
 						// is incorrect, because we get parameter values from the pLastSrcPhrase instance
 						//bool bIsChanger = IsTextTypeChangingEndMarker(pSrcPhrase);
@@ -20501,33 +20576,144 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							else
 							{
 								// other criteria for returning TRUE
+#if defined (_DEBUG)
+								{
+									wxString ptrPointsAt = wxString(ptr, 15);
+									wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+										(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 2)
+									{
+										int halt_here = 1;
+									}
+								}
+#endif			
 								if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_curTextType != verse && pLastSrcPhrase->m_bSpecialText)
 								{
-									// need more... we want m_markers to have either \p or \v in it, to
-									// return a TRUE value for bIsChanger
-									if (pSrcPhrase->m_markers.Find(_T("\\p")) || pSrcPhrase->m_markers.Find(_T("\\v")))
+									// Look for \p or \v
+									bIsChanger = FALSE;
+									int offset;
+									wxString strParagraph = _T("\\p");
+									wxString strVerse = _T("\\v ");
+									offset = pSrcPhrase->m_markers.Find(strParagraph);
+									bool bHasParagraph = offset != wxNOT_FOUND ? TRUE : FALSE;
+									offset = pSrcPhrase->m_markers.Find(strVerse);
+									bool bHasVerse = offset != wxNOT_FOUND ? TRUE : FALSE;
+									if (bHasParagraph || bHasVerse)
 									{
-										bIsChanger = TRUE;
+										bTextTypeChangeBlockEntered = FALSE; // if bIsChanger is FALSE, then this should be too 
+												// (else the block at 20754 would wrongly change m_bSpecialText to TRUE, giving red run-on)
+										pSrcPhrase->m_bSpecialText = FALSE;
+										pSrcPhrase->m_curTextType = verse;
+										pSrcPhrase->m_bBoundary = TRUE;
+										pSrcPhrase->m_bFirstOfType = TRUE;
 									}
 								}
 								else
 								{
-									if (pSrcPhrase->m_curTextType != verse && pSrcPhrase->m_markers.IsEmpty() && pLastSrcPhrase->m_bSpecialText)
+#if defined (_DEBUG)
 									{
-										bIsChanger = TRUE;
-
-
-
-
-										// TODO..
-
+										wxString ptrPointsAt = wxString(ptr, 15);
+										wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , *** bIsChanger = %d ***"),
+											__FILE__, __FUNCTION__, __LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
+											(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger);
+										if (pSrcPhrase->m_nSequNumber >= 2)
+										{
+											int halt_here = 1;
+										}
 									}
+#endif		
+									// Check if nSequNum_ToForceVerseEtc has a value other that -1, if so, set default
+									// verse and m_bSpecialText FALSE when pSrcPhrase->m_nSequNumber matches
+									if (nSequNum_ToForceVerseEtc != -1)
+									{
+										if (pSrcPhrase->m_nSequNumber == nSequNum_ToForceVerseEtc)
+										{
+											pSrcPhrase->m_bSpecialText = FALSE;
+											pSrcPhrase->m_curTextType = verse;
+											pSrcPhrase->m_bBoundary = TRUE;
+											pSrcPhrase->m_bFirstOfType = TRUE;
+											nSequNum_ToForceVerseEtc = -1;
 
-									// TODO -- more?
-								}
+											// jump to just prior to where the pSrcPhrase is appended to the m_pSourcePhrases list
+											// but don't jump if control is in an unfiltered span, such as footnote span
+											if (pLastSrcPhrase->m_curTextType == sectionHead)
+											{
+												goto backToVerse;
+											}
+										}
+									}
+									// pLastSrcPhrase gets set way further down, about 21,035 plus or minus, so use and ptr
+									// for testing here
+									// Use pAux, as there may be a space or spaces before \n or \p or gSFescapechar to parse over;
+									// but of course, in something like a \s1 span, other words than the first must pick up the
+									// pLastSrcPhrase values for text type and special text, and ptr may be pointing at a space
+									// before the word, so we must advance over that (and update itemLen) if it's the case
+									wxChar* pAux;
+									pAux = ptr; // protect ptr location
+									int countSpaces;
+									countSpaces = CountSpaces(pAux, pEnd);
+									if (countSpaces > 0)
+									{
+										pAux += countSpaces;
+									}
+									countSpaces = 0;
+									//nSequNum_ToForceVerseEtc = -1; //initialise - no do later 
+									// If it's not verse, or poetry; it has to be red text, so m_bSpecialText is TRUE to enter this block
+									// But further testing is required. If, for example, it is special text because control is runing thru
+									// a sequence of words within a \s1 marker, these all have to stay as special text.
+									// The ptr value is how we can determine when the marker's  text has to have a m_curTextType change
+									// back to 'verse' (while the above text allows for a poetry enum, in case legacy stuff uses it, there
+									// is nothing to gain from poetry value, as poetry has to be blue anyway - so just use verse (enum value 1))
+									// Typically, end of line is a place where texttype change would be expected. So a test of ptr pointing
+									// at one of these, \n or \p or gSFescapechar would catch most if not all markups
+									if ((*pAux == _T('\n')) || (*pAux == gSFescapechar && *(pAux + 1) == _T('p')) || (*pAux == gSFescapechar) )
+									{
+										// update ptr
+										ptr = pAux;
+										bIsChanger = FALSE;
+										bTextTypeChangeBlockEntered = FALSE; // if bIsChanger is FALSE, then this should be too 
+												// (else the block at 20754 would wrongly change m_bSpecialText to TRUE, giving red run-on)
+
+										// get the propagation done
+										if (pLastSrcPhrase != NULL)
+										{
+											pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+											pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+										}
+										// set the sequNumber for matching at the next pSrcPhrase when created - that's where verse, etc, will start again
+										nSequNum_ToForceVerseEtc = pSrcPhrase->m_nSequNumber + 1;
+									}
+									else
+									{
+										// Control did not come to where ptr is pointing at info beyond a specialText span,
+										// so we want to just propagate from pLastSrcPhrase; but set bIsChanger to FALSE to protect
+										// against the TRUE block of if(bIsChanger) below, from overriding with wrong values
+										if (pLastSrcPhrase != NULL)
+										{
+											bIsChanger = FALSE;
+											pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+											pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+										}
+									} // end of else block for test:
+									  // if ( ((pSrcPhrase->m_curTextType != verse) || (pSrcPhrase->m_curTextType != poetry)) && pSrcPhrase->m_bSpecialText)
+
+								} // end of else block for test: 
+								  // if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_curTextType != verse && pLastSrcPhrase->m_bSpecialText)
+						
 							}
 						} // end of TRUE block for test: if (bIsChanger == FALSE)
-
+#if defined (_DEBUG)
+						{
+							wxString ptrPointsAt = wxString(ptr, 15);
+							wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , *** bIsChanger = %d ***"),
+								__FILE__, __FUNCTION__, __LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, 
+								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), (int)bIsChanger);
+							if (pSrcPhrase->m_nSequNumber >= 2)
+							{
+								int halt_here = 1;
+							}
+						}
+#endif			
 						if (bIsChanger)
 						{
 							// the test is TRUE if pSrcPhase in its m_endMarkers member contains one
@@ -20545,6 +20731,17 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							// this one's TextType isn't changed
 							pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
 							pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+#if defined (_DEBUG)
+							{
+								wxString ptrPointsAt = wxString(ptr, 15);
+								wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+									(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 0)
+								{
+									int halt_here = 1;
+								}
+							}
+#endif			
 
 							// BEW 14Dec22 moved the following from much earlier, where it never got called,
 							// to here. I think the CSourcePhrase pointer to use is the current pSrcPhrase
@@ -20606,7 +20803,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							*/
 #if defined (_DEBUG)
 							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 0)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -20614,7 +20811,8 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 							// BEW 24Dec22 any punctuation chars following a \f* should be TextType verse
 							// that is, blue colour (or whatever is the current setting for verse text); so
 							// check for puncts after \f*, and have them coloured same as verse enum
-							bool bIsFootnoteEnd = (pLastSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ? TRUE : FALSE;
+							bool bIsFootnoteEnd;
+							bIsFootnoteEnd = (pLastSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ? TRUE : FALSE;
 							if (bIsFootnoteEnd ||
 								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\ef*")) != wxNOT_FOUND) ||
 								(pLastSrcPhrase->GetEndMarkers().Find(_T("\\fe")) != wxNOT_FOUND) ||
@@ -20642,12 +20840,23 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 						} // end of TRUE block for test: if (bIsChanger)
 						else
 						{
+#if defined (_DEBUG)
+							{
+								wxString ptrPointsAt = wxString(ptr, 15);
+								wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+									(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 0)
+								{
+									int halt_here = 1;
+								}
+							}
+#endif			
 							// don't propagate values from pLastSrcPhrase if the TRUE block for
 							// bTextTypeChanges was entered - when that block is entered, a new
 							// TextType and possibly a change of m_bSpecialText value is commencing
 							// and we don't want the new values wiped out here by overwriting with
 							// those from pLastSrcPhrase
-							if (!bTextTypeChangeBlockEntered)
+							if (bTextTypeChangeBlockEntered)
 							{
 								pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
 								pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
@@ -20733,7 +20942,17 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 				follOuterPunct.Trim(FALSE); // trim left end
 				pSrcPhrase->SetFollowingOuterPunct(follOuterPunct);
 			}
-			wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+#if defined (_DEBUG)
+			{
+				wxString ptrPointsAt = wxString(ptr, 15);
+				wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+					(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 0)
+				{
+					int halt_here = 1;
+				}
+			}
+#endif			
 
 			// handle propagation of the m_bHasFreeTrans flag, and termination of the free
 			// translation section by setting m_bEndFreeTrans to TRUE, when we've counted
@@ -20784,10 +21003,14 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 			// been reached, m_key in pSrcPhrase will be empty. So, providing m_precPunct is
 			// empty, pSrcPhrase is not a valid CSourcePhrase instance. We need to check and
 			// remove it.
-			bool bPrecedingPunctIsEmpty = pSrcPhrase->m_precPunct.IsEmpty();
-			bool bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
-			wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
-			bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
+			bool bPrecedingPunctIsEmpty;
+			bPrecedingPunctIsEmpty = pSrcPhrase->m_precPunct.IsEmpty();
+			bool bHasNonEndMarkers; 
+			bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
+			wxString someFilteredInfo;
+			someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
+			bool bHasFilteredInfo;
+			bHasFilteredInfo = !someFilteredInfo.IsEmpty();
 			if (pSrcPhrase->m_key.IsEmpty() && bPrecedingPunctIsEmpty)
 			{
 				if ((ptr >= pEnd))
@@ -20825,6 +21048,8 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 				if ((!bHasFilteredInfo && !bHasNonEndMarkers) ||
 					(!bHasFilteredInfo && bHasNonEndMarkers && !gbVerticalEditInProgress))
 				{
+					CSourcePhrase* pWord2;
+					SPList::Node* pos;
 					if (bFreeTranslationIsCurrent)
 					{
 						// we default to always turning off a free translation section at the end
@@ -20839,8 +21064,8 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 								// the last child instance
 								if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
 								{
-									SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
-									CSourcePhrase* pWord2 = pos->GetData();
+									pos = pLastSrcPhrase->m_pSavedWords->GetLast();
+									pWord2 = pos->GetData();
 									pWord2->m_bEndFreeTrans = TRUE;
 								}
 								break;
@@ -20869,11 +21094,22 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					}
 				}
 			} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty()) -- correct level, 3 tabs
-			
-
 
 		} // end of else block for text: if (bEmptyUSFM)
-		wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+
+backToVerse:
+		//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+#if defined (_DEBUG)
+		{
+			wxString ptrPointsAt = wxString(ptr, 15);
+			wxLogDebug(_T("%s::%s(), line %d :@@@ sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 0)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif			
 
 		// store the pointer in the SPList (in order of occurrence in text)
 		if (pSrcPhrase != NULL)
@@ -20903,7 +21139,18 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
-		wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+		//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+#if defined (_DEBUG)
+		{
+			wxString ptrPointsAt = wxString(ptr, 15);
+			wxLogDebug(_T("%s::%s(), line %d :@@@ ** pLastSrcPhrase now set **: sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
+				(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 0)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif			
 
 		// If logging is wanted, update with this entry
 		// whm 6Apr2020 modified to use new doc creation logging routine

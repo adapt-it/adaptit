@@ -687,6 +687,7 @@ public:
 		// has to be FALSE until the source text edit is done with; so here cache the 
 		// boolean's value across the handler for editing source text
 	bool m_bInRedSet; // TRUE if it's a marker like \rq which is of the type like \f and others
+	int nSequNum_ToForceVerseEtc; // to help in getting text type colouring working right in TokenizeText
 
 	// Prototypes for determining the span of CSourcePhrase instances for \f, \ef or \x inline markers
 	bool IsForbiddenMarker(wxString mkr, bool bCheckForEndMkr); // BEW 3Apr20, for refactored placeholder insertion
