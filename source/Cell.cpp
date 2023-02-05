@@ -296,13 +296,20 @@ wxColour CCell::GetColor()
 			return m_pLayout->m_navTextColor;
 		else
 		{
-			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
+			if (pSrcPhrase->m_bSpecialText)
 			{
-				return m_pLayout->GetTgtDiffsTextColor();
+				return m_pLayout->GetSpecialTextColor();
 			}
 			else
 			{
-				return m_pLayout->m_tgtColor;
+				if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
+				{
+					return m_pLayout->GetTgtDiffsTextColor();
+				}
+				else
+				{
+					return m_pLayout->m_tgtColor;
+				}
 			}
 		}
 	case 2:
