@@ -3815,7 +3815,7 @@ public:
 	wxString m_finalTgtPuncts; // stores what MakeTargetFinalPuncts() returns
 	// BEW 23Dec22 make a "preceding" tgt puncts supporting pair - excludes closing quote of course
 	wxString MakeTargetPrecPuncts(wxString tgtPuncts); // may include a space, excludes opening quote - new
-	wxString m_precTgtPuncts; // stores what MakeSourceFinalPuncts() returns - new
+	wxString m_precTgtPuncts; // stores what MakeTargetPrecPuncts() returns - new
 
 
     bool	 m_bMakeDocCreationLogfile;

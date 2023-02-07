@@ -14489,12 +14489,23 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	// The passed in pStr pointer may introduce new 'following' punctuation (such
 	// as ] or ) if these are listed as punctuation characters) in addition to what
 	// is already in m_follPunct; and we will have to identify further below if that
-	// is the case; and if so, and because of how the parser works from both ends 
-	// inwards, any new punctuation not already in the active CSourcePhrase instance
+	// is the case; and if so, 
+	// [[and because of how the parser works from both ends inwards, ]] <- BEW 6Feb23: this line is no longer true
+	// any new punctuation not already in the active CSourcePhrase instance
 	// will need to be inserted prior to whatever is already in the active instance's
 	// m_follPunct member. Failing to do this results in an xml doc file which lacks
 	// that additional punctuation,and hence a doc error of parsing. The addition
 	// of any final ] or ) needs to be done in the view's public function:
+	// 
+	// BEW 6Feb23 it is no longer the case that we parse in from both ends. We parse from
+	// left to right now. We do NOT want to try provide a matching ), } or ] when there is
+	// one of { , ( or [  occurring word-initially; as this matching function is for things
+	// like word(1sg) or word(some phrase), not (word  for example which would be an attempt
+	// to override something like “word  -- with no final punctuation, with (word   -- with
+	// still no final punctuation. To make this work, I think I only need change the .Find()
+	// calls to check for offset == 0, rather than >= 0  within this function, and if == 0, then
+	// return without attempting a match.
+	// This function is called from:
 	// MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
 
 	// BEW 25Oct22 added this check. keyTgtText might be empty (e.g. it may have been user-declared
@@ -14585,9 +14596,14 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	{
 		// search for a "(" in the s string
 		offset = s.Find(strLeftParenthesis);
-		if (offset != wxNOT_FOUND)
+		// BEW 6Feb23 if offset is 0, then '(' is word initial, so don't try to match with a word-ending ')'
+		if (offset == 0)
 		{
-			// There is a ( present in s string, so check if there is a matching
+			return strToReturn = wxEmptyString;
+		}
+		if (offset > 0)
+		{
+			// There is a ( non-initial in s string, so check if there is a matching
 			// ) at the end of s. Note, data like ([ ... ]) would be a problem for our algorithm.
 			// We assume there is either (....) or [....], but not immediate nesting of one in 
 			// the other; but non-immediate nesting should be ok. I.e. things like text[text(text)text]
@@ -14611,9 +14627,14 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	{
 		// search for a "[" in the s string
 		offset = s.Find(strLeftBracket);
-		if (offset != wxNOT_FOUND)
+		// BEW 6Feb23 if offset is 0, then '[' is word initial, so don't try to match with a word-ending ']'
+		if (offset == 0)
 		{
-			// There is a [ present in s string, so check if there is a matching
+			return strToReturn = wxEmptyString; // unchanged
+		}
+		if (offset > 0)
+		{
+			// There is a [ non-initial in s string, so check if there is a matching
 			// ] at the end of s. Note, data like [( ... )] would be a problem for our algorithm.
 			// We assume there is either (....) or [....], but not immediate nesting of one in 
 			// the other; but non-immediate nesting should be ok. I.e. things like text[text(text)text]
@@ -14637,9 +14658,14 @@ wxString CAdapt_ItView::ProvideMatchingEndBracketOrParenthesis(wxString keyTgtTe
 	{
 		// search for a "{" in the s string
 		offset = s.Find(strLeftBrace);
-		if (offset != wxNOT_FOUND)
+		// BEW 6Feb23 if offset is 0, then '{' is word initial, so don't try to match with a word-ending '}'
+		if (offset == 0)
 		{
-			// There is a { present in s string, so check if there is a matching
+			return strToReturn = wxEmptyString; // unchanged
+		}
+		if (offset > 0)
+		{
+			// There is a { non-initial in s string, so check if there is a matching
 			// } at the end of s. Note, data like {( ... )} would be a problem for our algorithm.
 			// We assume there is either (....) or [....] or {...}, but not immediate nesting 
 			// of one in the other; but non-immediate nesting should be ok. I.e. things like 
@@ -16634,11 +16660,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	wxString boxContents = pApp->m_pTargetBox->GetValue();
 	pApp->m_targetPhrase = boxContents;
 
-	wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(pApp->m_targetPhrase); // will be empty
-		// if the user did not manually type overriding final punctuation, as determined by contents of m_pTargetBox
+	// BEW changed 6Feb23, pApp->m_TargetPhrase won't be uptodate with any manually type preceding or final
+	// punctuation yet, but the passed in targetStr value WILL have what the phrasebox currently has, so
+	// change to grabbing what's in targetStr, instead, for next two calls
+	//wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(pApp->m_targetPhrase);
+	wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(targetStr);
 
-	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase); // BEW 23Dec22, will be empty
-	// if the user did not manually type overriding preceding punctuation, as determined by contents of m_pTargetBox
+	//wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase);
+	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(targetStr);
 
 //#if defined (_DEBUG)
 //	{
@@ -16910,8 +16939,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				}
 #endif
 				// Allow what user typed, to stand 'as is'; and there is no fixedspace conjoining
-				wxASSERT(!strGrabbedFinalPuncts.IsEmpty());
-				bool bWantPrevCopy = FALSE; // initialise
+				bool bWantPrecCopy = FALSE; // initialise
 				int punctLen = 0; // initialise
 
 				// str was set above to the targetStr value passed in
@@ -16929,8 +16957,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 
 				if (!pSrcPhrase->m_precPunct.IsEmpty())
 				{
-					bWantPrevCopy = TRUE; // maybe wants puncts preceding the word copied
-							// but only if there were no user-type alternatives
+					bWantPrecCopy = TRUE; // init; maybe wants puncts preceding the word copied
+							// (but only if there were no user-typed alternatives - determined later)
 				}
 				bool bUserTypedSomeInitialPuncts = FALSE; // initialise
 
@@ -16940,10 +16968,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
 				// If strInitialPunct is non-empty, then the user must have typed some
 				// initial punctuation intending it be retained rather than whatever is
-				// in m_prevPuncts being copied to the start of str
+				// in m_precPuncts being copied to the start of str
 				if (!strInitialPunct.IsEmpty())
 				{
-					// Non-empty, so assume user typed them preceding the word or merger
+					// Non-empty, so assume user typed it or them preceding the word or merger
 					punctLen = strInitialPunct.Len();
 					bUserTypedSomeInitialPuncts = TRUE;
 				}
@@ -16977,7 +17005,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// type any initial puncts
 
 				// add the preceding punctuation, if any
-				if (bWantPrevCopy && !bUserTypedSomeInitialPuncts)
+				if (bWantPrecCopy && !bUserTypedSomeInitialPuncts)
 				{
 					wxString tgtPrecPunct;
 					tgtPrecPunct.Empty();
@@ -17030,15 +17058,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					targetStr += strEnding; // add it also to what was passed in
 					pApp->m_pTargetBox->SetValue(targetStr); // get the phrasebox agreeing
 				}
-//#if defined (_DEBUG)
-//				{
-//					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: else: support of ] } ),  strEnding = %s "),__LINE__, strEnding.c_str());
-//					if (pSrcPhrase->m_nSequNumber >= 0)
-//					{
-//						int halt_here = 1; wxUnusedVar(halt_here);
-//					}
-//				}
-//#endif	
+	
 				// Legacy code continues...
 				str = targetStr; // make a copy
 				wxArrayString remainderList;
@@ -17352,7 +17372,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// the target text I do it here and not for the internal punctuation case above
 				// because it would make no sense to do the block of code above when the target
 				// is empty
-				bool bWantPrevCopy;
+				bool bWantPrecCopy;
 				int punctLen;
 #if defined (_DEBUG)
 				{
@@ -17480,7 +17500,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// can still be used safely, because there will be nonpunctuation and
 					// nonspace characters prior to any spaces in the phrase; and similarly
 					// when reversed
-					bWantPrevCopy = FALSE;
+					bWantPrecCopy = FALSE;
 					punctLen = 0; // for auto caps support
 					if (!bEmptyTarget)
 					{
@@ -17527,14 +17547,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						if (!pSrcPhrase->m_precPunct.IsEmpty())
 						{
 							// If the user did not manually type any initial punctuation, then
-							// we want to later have the m_prevPuncts contents copied tothe
-							// start of str, later on below (i.e. set bWantPrevCopy to TRUE)
+							// we want to later have the m_precPuncts contents copied tothe
+							// start of str, later on below (i.e. set bWantPrecCopy to TRUE)
 							if (strInitialPunct.IsEmpty())
 							{
 								// there was no initial punctuation typed, so silently copy
 								// original's to the target later on (not here, in case it mucks up
 								// the check for following punct)
-								bWantPrevCopy = TRUE;
+								bWantPrecCopy = TRUE;
 							}
 							else
 							{
@@ -17780,7 +17800,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						} // end of TRUE block for test: if (bNoUserTypedFinalPuncts)
 
 						// add the preceding punctuation, if any
-						if (bWantPrevCopy && !pApp->m_bInNormalStore)
+						if (bWantPrecCopy && !pApp->m_bInNormalStore)
 						{
 							// BEW added comment, 24Dec22. Why no check to add hairspace between successive
 							// preceding puncts? Because typically there are intervening words between the
@@ -18318,8 +18338,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
     // will skip the code contained in this function; the m_nPlacePunctDlgCallNumber value
     // is reset to 0 at the end of CLayout::Draw(), and at the same place the
     // m_nCurSequNum_ForPlacementDialog is reset to default -1
-	//pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
-	pApp->m_nCurSequNum_ForPlacementDialog = 18; // does the literal do away with the compile error?
+	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
+	//pApp->m_nCurSequNum_ForPlacementDialog = 18; 
 
 #if defined(_DEBUG)
 	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at end: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
@@ -18437,6 +18457,13 @@ wxString CAdapt_ItView::GetManuallyAddedPrecPuncts(wxString targetStr)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString typedPuncts = wxEmptyString;
 	pApp->m_bPrecTypedPunctsGrabbedAlready = FALSE; // initialise
+
+	// BEW 6Feb23 It may be the case that app's m_precTgtPuncts is still empty. Check,
+	// and set it's content if so.
+	if (pApp->m_precTgtPuncts.IsEmpty())
+	{
+		pApp->m_precTgtPuncts = pApp->MakeTargetPrecPuncts(pApp->m_strSpacelessTargetPuncts);
+	}
 
 	//Get starting and ending ptrs
 	const wxChar* pBuffStart = targetStr.GetData();

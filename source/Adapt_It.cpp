@@ -63616,7 +63616,10 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
 	str = pSrcPhrase->m_adaption; // Note: the punctuation-less ** adaptation ** (not the source text's m_key)
     bool bNoFinalPuncts = TRUE; // init
     bool bNoPrecPuncts = TRUE; // init
-
+    // BEW 6Feb23, Top half of this function checks what's on m_adaption, which is likely to have no puncts,
+    // so it will initialise bNoFinalPuncts to TRUE, and bNoPrecPuncts to TRUE. The lower half then checks
+    // if pSrcPhrase has stored puncts in m_precPunt, m_follPunct, or m_follOuterPunt; and depending on the
+    // result of those tests, preceding and/or following puncts will be added
     if (!str.IsEmpty())
     {
         wxChar chLast = str.Last();
@@ -63634,18 +63637,18 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
             bNoPrecPuncts = FALSE;
         }
     }
-    // endingStr is empty, so puncts are garnered from the current pSrcPhrase
-    if (!pSrcPhrase->m_precPunct.IsEmpty() && !bNoPrecPuncts) 
+    // get any from pSrcPhrase's main three punctuation storage members, if non-empty
+    if (!pSrcPhrase->m_precPunct.IsEmpty() ) // && !bNoPrecPuncts) 
     {
         wxString precPunct_pSP = GetConvertedPunct(pSrcPhrase->m_precPunct);
         str = precPunct_pSP + str;
     }
-    if (!pSrcPhrase->m_follPunct.IsEmpty() && !bNoFinalPuncts)
+    if (!pSrcPhrase->m_follPunct.IsEmpty() ) // && !bNoFinalPuncts)
     {
         wxString follPunct_pSP = GetConvertedPunct(pSrcPhrase->m_follPunct);
         str += follPunct_pSP;
     }
-    if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() && !bNoFinalPuncts)
+    if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() ) // && !bNoFinalPuncts)
     {
         wxString follOuterPunct_pSP = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
         str += follOuterPunct_pSP;

@@ -1430,6 +1430,8 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	// call of ParseInlineEndMarkers() -- see Doc.cpp
 	gpApp->m_finalTgtPuncts = gpApp->MakeTargetFinalPuncts(gpApp->m_strSpacelessTargetPuncts);
 	gpApp->m_finalSrcPuncts = gpApp->MakeSourceFinalPuncts(gpApp->m_strSpacelessSourcePuncts);
+	// BEW 6Feb23 I forgot to add a line for 'Preceding' target puncts, add it now
+	gpApp->m_precTgtPuncts = gpApp->MakeTargetPrecPuncts(gpApp->m_strSpacelessTargetPuncts);
 }
 
 #ifdef _UNICODE
