@@ -759,7 +759,6 @@ wxArrayString* KbServer::GetTargetArray()
 	return &m_arrTarget;
 }
 
-
 // If the data download succeeds, the 'last sync' timestamp is extracted & stored in the 
 // private member variable: m_kbServerLastTimestampReceived
 // If there is a subsequent error then -1 is returned and the timestamp value in 
@@ -801,27 +800,35 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	{
 		execPath += separator; // has path separator at end now
 	}
-	//wxString distPath = execPath + _T("dist"); // always a child folder of execPath
+
 	// BEW 10Mar22 we can keep name distPath, so that lower code still works, but we have to
 	// rename the folder to _DATA_KB_SHARING and provide a new path to that folder
 	wxString dataFolderName = m_pApp->m_dataKBsharingFolderName; // set to _T("_DATA_KB_SHARING");
-	wxString distPath = execPath + dataFolderName;
+	wxString distPath = execPath + dataFolderName; // execPath is where the running AI executable is
 
 	// put the timestamp passed in, into app storage so that ConfigureDATfile() can grab it
+	bool bExecutedOK;
+	wxString resultsFilename;
+	bool bConfiguredOK;
+	bool bReportResult;
+	wxString execFileName;
 	m_pApp->m_ChangedSinceTimed_Timestamp = timeStamp;
+	// preserve the bDoTimestampUpdate value for other calls to use
+	m_pApp->m_bDoTimestampUpdate = bDoTimestampUpdate;
 
-	bool bExecutedOK = FALSE; // initialise
-	wxString resultsFilename = wxEmptyString;
+	bExecutedOK = FALSE; // initialise
+	resultsFilename = wxEmptyString;
 	m_pApp->RemoveDatFileAndEXE(changed_since_timed); // BEW 11May22 added, must precede call of ConfigureDATfile()
-	bool bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed);
+	bConfiguredOK = m_pApp->ConfigureDATfile(changed_since_timed); // = 8
 	if (bConfiguredOK)
 	{
-		wxString execFileName = _T("do_changed_since_timed.exe");
+		execFileName = _T("do_changed_since_timed.exe");
 		resultsFilename = _T("changed_since_timed_results.dat");
-		bool bReportResult = FALSE;
-		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath,
-			resultsFilename, 99, 99, bReportResult);
+		bReportResult = FALSE;
+		bExecutedOK = m_pApp->CallExecute(changed_since_timed, execFileName, execPath, resultsFilename, 99, 99, bReportResult);
 	}
+
+
 	// ***** at step 2, progress
 	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 	// ***** progress
@@ -841,7 +848,10 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	wxString s;
 	KbServerEntry* pEntryStruct = NULL;
 	unsigned int listSize = 0; // temp value until I set it properly
-	this->m_kbServerLastTimestampReceived = wxEmptyString; //initialise, the temporary storage
+	if (m_pApp->m_bDoTimestampUpdate)
+	{
+		this->m_kbServerLastTimestampReceived = wxEmptyString; //initialise, the temporary storage for incremental downloads
+	}
 
 	// Get the results .dat file, open for reading, and get line count... 1st line special
 	wxString datPath = execPath + resultsFilename;
@@ -854,6 +864,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 		// Now deal with the returned entry lines - whether a file, or the whole lot in
 		// kbserver for the current project
+		bool bGoodArray = TRUE;
 		wxTextFile f;
 		bool bIsOpened = FALSE;
 		f.Create(datPath);
@@ -865,42 +876,88 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 			// this function, ChangedSince_Timed(timeStamp,bDoTimestampUpdate) - [flag is default true] is
 			// invoked by the always-running timer firing. That, if nothing is done, would kill the attempt
 			// to do a do_changed_since_timed.exe (or .py) call. An automatic solution is required. The best
-			// thing would be to do a changed_since_timed from "1920-01-01 00:00:00" (a bulk download), because
+			// thing would be to do a changed_since_timed from "1920-01-01" (a bulk download), because
 			// this would get any new entries for the local KB (at the cost of a bit of time wasted), but
-			// importantly, the download's changed_since_timed_results.dat file will be:
-			// "success,<the timestamp of the sync call>" - which then makes all subsequent calls start from
-			// a correct timestamp of last sync. So the next lines will handle that storage.
+			// importantly, the download's results.dat file, if it extracts a datetime, we'll hide it in
+			// m_bulkDownload_Timestamp. We can delete it there anytime, we don't use the value anywhere.
+			listSize = (unsigned int)f.GetLineCount();
+
 			aLine = f.GetFirstLine();
 			wxString tstamp = ExtractTimestamp(aLine);
 			timeStamp = tstamp;
 			if (!timeStamp.IsEmpty())
 			{
-				// BEW 22Mar22, use the passed in timeStamp value if it is not empty
-				this->m_kbServerLastTimestampReceived = timeStamp; // used when setting the file storage for the timestamp
+				// BEW 17Mar23, check if aLine contains "success". If so, remove it; if not, it's a failure message and
+				// and the listSize should be small, perhaps just 1. If so, set listSize = 0; so as to abort processing here
+				int myoffset = wxNOT_FOUND;
+				wxString strSuccess = _T("success");
+				myoffset = aLine.Find(strSuccess);
+				if (myoffset != wxNOT_FOUND)
+				{
+					bGoodArray = TRUE;
+				}
+				else
+				{
+					bGoodArray = FALSE;
+				}
+				// If it's a good array, remove the top line, and write out the file without that top line
+				if (bGoodArray)
+				{
+					f.RemoveLine(0); // don't want "success,<datetime string>" in the array passed to DatFile2StringArray
+					bool bWroteOK = f.Write();
+					wxASSERT(bWroteOK == TRUE);
+				}
+				else
+				{
+					if (f.GetLineCount() < 2)
+					{
+						// probably no useful data, so empty the arrLines array, which will prevent lower down
+						// processing from trying to handle garbage
+						f.Clear(); // deletes all lines, sets current line number to 0
+						listSize = (unsigned int)f.GetLineCount(); // will be zero
+					}
+				}
+				if (bGoodArray)
+				{
+					// BEW 22Mar22, use/store the passed in timeStamp value if it is not empty, and not 1920
+					this->m_kbServerLastTimestampReceived = timeStamp; // used when setting the file storage for the timestamp
 					// If UpdateLastSyncTimestamp() is called below, this value is made
 					// semi-permanent (ie. saved to a file for later importing) if
 					// bDoTimestampUpdate is TRUE (see below)
+				}
 			}
 			else 
 			{
-				if (bExecutedOK == FALSE || timeStamp.IsEmpty())
+				// warn user, something's wrong because changed_since_timed.exe got no returned timestamp
+				if (m_pApp->m_bDoTimestampUpdate)
 				{
-					// empty timestamp string, or the .exe failed, so return -1 to the caller
-					// and a msg in LogUserAction for the developer
-					wxString msg = _T("ChangedSince_Timed(): either the do_changed_since_timed.exe call failed, or the timeStamp passed in was empty");
-					wxMessageBox(msg, _T("Error"), wxICON_ERROR | wxOK); // tell user too
-					m_pApp->LogUserAction(msg);
-					return -1;
+					if (bExecutedOK == FALSE || timeStamp.IsEmpty())
+					{
+						// empty timestamp string, or the .exe failed, so return -1 to the caller
+						// and a msg in LogUserAction for the developer
+						wxString msg = _T("ChangedSince_Timed(): either the do_changed_since_timed.exe call failed, or the timeStamp passed in was empty");
+						wxMessageBox(msg, _T("Error"), wxICON_ERROR | wxOK); // tell user too
+						m_pApp->LogUserAction(msg);
+						return -1;
+					}
 				}
 			}
-
-			// Note, it's possible that ChangedSince_Timed() will return no data for
-			// adding to the local KB, e.g. if time span is short and for some reason the
-			// user is thinking rather than adapting, so that the timer trips but nothing is
+			// Note, it's possible that ChangedSince_Timed() will return no data for adding to
+			// the local KB, e.g. if timer's time span is short and for some reason the user 
+			// is thinking rather than adapting, so that the timer trips but nothing is
 			// newly added to the remote server. This is not an error situation, so don't
-			// treat it like one. Just ignore and give no message back
-			listSize = (unsigned int)f.GetLineCount();
-			if (listSize > 0)
+			// treat it like one. Just ignore and give no message back.
+			// Removal of "success,<datetime>" first line, changes the array length, so
+			//re-get the listSize
+			int oldListSize = listSize;
+			listSize = f.GetLineCount();
+			int newListSize = listSize;
+			if (bGoodArray)
+			{
+				wxASSERT(newListSize < oldListSize);
+				wxUnusedVar(newListSize); // to avoid compiler warning
+			}
+			if (listSize > 1)
 			{
 				// There is at least one line of entry table data in the file
 				wxArrayString arrLines;
@@ -1049,11 +1106,11 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 			UpdateLastSyncTimestamp();
 		}
 		break;
+		// BEW 14Mar23 getAll enum value can no longer be one of the changed_since_timed actions, it has to
+		// be based on do_bulk_download.exe which is based on do_bulk_download.py
 	case getAll:
-		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+		timestamp = _T("1920-01-01"); // earlier than everything!
 		rval = ChangedSince_Timed(timestamp, FALSE); // 2nd param, bool bDoTimestampUpdate is default TRUE
-		// if there was no error, update the m_kbServerLastSync value, and export it to
-		// the persistent file in the project folder
 		// BEW 22Mar22, explicit FALSE in the call above, causes ChangedSince_Timed() to skip updating the
 		// project folder's lastsync_adaptations.txt file's value (or glossing on if a glossing KB), because
 		// a 1920 datetime would ruin the incremental data downloads protocal (getting everything instead of a few)
@@ -1238,17 +1295,17 @@ KbServerEntry KbServer::GetEntryStruct()
 
 void KbServer::ClearUserStruct()
 {
-	m_userStruct.id = 0;
-	m_userStruct.username.Empty();
-	m_userStruct.fullname.Empty();
-	m_userStruct.timestamp.Empty();
-	m_userStruct.kbadmin = false;
-	m_userStruct.useradmin = false;
+	m_structUser.id = 0;
+	m_structUser.username.Empty();
+	m_structUser.fullname.Empty();
+	m_structUser.password.Empty();
+	m_structUser.useradmin = _T('0');
+	m_structUser.datetime.Empty();
 }
 
 KbServerUser KbServer::GetUserStruct()
 {
-	return m_userStruct;
+	return m_structUser;
 }
 
 UsersListForeign* KbServer::GetUsersListForeign() // a 'for manager' scenario
@@ -1636,6 +1693,7 @@ void KbServer::UploadToKbServer()
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString execFileName = _T("do_upload_local_kb.exe");
 		wxString resultFile = _T("upload_local_kb_results.dat");
+		//m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99); 
 		m_pApp->CallExecute(upload_local_kb, execFileName, execPath, resultFile, 99, 99);
 	}
 }
@@ -1680,8 +1738,7 @@ bool KbServer::DatFile2StringArray(wxString& execPath, wxString& resultFile, wxA
 			{
 				strCurLine = f.GetLine(lineIndex);
 #if defined (_DEBUG) && defined (SYNC_LOGS)
-				wxLogDebug(_T("%s::%s() line %d: For adding to arrLines, strCurLine = %s"),
-					__FILE__, __FUNCTION__, __LINE__, strCurLine.c_str());
+				wxLogDebug(_T("DatFile2StringArray() line %d: strCurLine = %s"),__LINE__, strCurLine.c_str());
 #endif
 				arrLines.Add(strCurLine);
 			}
@@ -1701,90 +1758,84 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 	int index = 0; // initialise iterator
 
 	offset = wxNOT_FOUND;
-	int nLen = 0; // initialize
 	wxString left;
 	//int anID = 0; // initialise
 	
-	int fieldCount = 8; // srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
+	int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
 	wxString resultLine = aLine;
 
 #if defined (_DEBUG) && defined (SYNC_LOGS)
-	wxLogDebug(_T("%s::%s() line %d: resultLine, strCurLine = %s : For building m_entryStruct fields"),
-		__FILE__, __FUNCTION__, __LINE__, resultLine.c_str());
+	wxLogDebug(_T("Line2EntryStruct() line %d: resultLine = %s"),__LINE__, resultLine.c_str());
 #endif
 
+	// BEW 17Mar23 the old way is potentially dangerous, any small error would mess things up.
+	// Instead, use a wxStringArray with SmartTokenize(), a delimiter string _T(","), and ignore
+	// any empty strings (there should be none anyway).
+	wxArrayString arrFields;
+	wxString delimiters = _T(","); // the data has a final comma at end of each line, so safe
+	// bStoreEmptyStringsToo is default TRUE, so give explicit FALSE;
+	long numStringsInArray = SmartTokenize(delimiters, aLine, arrFields, FALSE);
+	wxUnusedVar(numStringsInArray);
+	/* KbServerEntry struct looks like this: (id field is ignored, so indexing arrFields starts at 1)
+	struct KbServerEntry {
+		//wxString 	id; //python: str(id) converts int to string, and atoi(id) converts back to int <- no longer wanted
+		wxString	srcLangName;
+		wxString	tgtLangName;
+		wxString	source;
+		wxString	nonSource; // for gloss, or tgt text, according to mode
+		wxString	username;
+		wxString	timestamp;
+		wxChar		type;    //  values allowed are '1' (adapting) or '2' (glossing)
+		wxChar		deleted; // values allowed are '0' (not pseudo-deleted) or '1' (pseudo-deleted)
+	};
+	*/
 	for (index = 0; index < fieldCount; index++)
 	{
-		// Progressively shorten the resultLine as we extract each field
-		// (the final field should have a terminating comma, so number of
-		// commas should equal number of fields)
-		offset = resultLine.Find(comma);
-		if (offset >= 0)
+		if (index == 0)
 		{
-			if (index == 0)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.srcLangName = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted srcLangName field
-			}
-			else if (index == 1)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.tgtLangName = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted tgtLangName field
-			}
-			else if (index == 2)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.source = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted source field
-			}
-			else if (index == 3)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.nonSource = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted nonSource field
-			}
-			else if (index == 4)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.username = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted username field
-			}
-			else if (index == 5)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.timestamp = left;
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted timestamp field
-			}
-			else if (index == 6)
-			{
-				left = resultLine.Left(offset);
-				m_entryStruct.type = left[0];
-				nLen = left.Len();
-				resultLine = resultLine.Mid(nLen + 1); // extracted type field
-			}
-			else
-			{
-				// This block is for the deleted flag, index = 7. Just in case there is no
-				// final comma, do it differently
-				int length = resultLine.Len();
-				wxChar lastChar = resultLine[length - 1];
-				if (lastChar == comma)
-				{
-					resultLine = resultLine.Left(length - 1);
-				}
-				m_entryStruct.deleted = resultLine[0]; // extracted deleted field
-			}
+			continue;
+		}
+		if (index == 1)
+		{
+			m_entryStruct.srcLangName = arrFields.Item((size_t)index);
+		}
+		else if (index == 2)
+		{
+			m_entryStruct.tgtLangName = arrFields.Item((size_t)index);
+		}
+		else if (index == 3)
+		{
+			m_entryStruct.source = arrFields.Item((size_t)index);
+		}
+		else if (index == 4)
+		{
+			m_entryStruct.nonSource = arrFields.Item((size_t)index);
 
-		} // end of TRUE block for test: if (offset >= 0)
-	} // end of for loop
+#if defined (_DEBUG)  && defined (SYNC_LOGS)
+			// BEW added 17Mar23 to track progress by logging .source and .nonSource
+			wxLogDebug(_T("Line2EntryStruct() at line %d: [src:tgt] = [%s:%s]"), __LINE__, m_entryStruct.source.c_str(), m_entryStruct.nonSource.c_str());
+#endif
+		}
+		else if (index == 5)
+		{
+			m_entryStruct.username = arrFields.Item((size_t)index);
+		}
+		else if (index == 6)
+		{
+			m_entryStruct.timestamp = arrFields.Item((size_t)index);
+		}
+		else if (index == 7)
+		{
+			wxString value = arrFields.Item((size_t)index);
+			m_entryStruct.type = value.GetChar(0);
+		}
+		else if (index == 8)
+		{
+			wxString value = arrFields.Item((size_t)index);
+			m_entryStruct.deleted = value.GetChar(0);
+		}
+	}
+	// KbServer.cpp has a public m_entryStruct; it also has an accessor for it, GetEntryStruct();
 	return TRUE;
 }
 
@@ -1816,9 +1867,20 @@ bool KbServer::FileToEntryStruct(wxString execFolderPath, wxString datFileName)
 				wxString TopLine = f.GetLine((size_t)0);
 				offset = TopLine.Find(strSuccess);
 				wxString left;
-				//int anID = 0; // initialise
 				if (offset >= 0)
 				{
+					// The top line is not data, but for indicating success of the do_lookup_entry.exe call.
+					
+					//BEW 18Mar23 this function is only used in LookupEntry, which we no longer use.
+					// Even so, the "success" first line will cause the code below to fail, and crash
+					// the app if called. So we must remove the top line with "success" and then write out
+					// the array to the file, to give it a hope of completing. (Better, if I also change the
+					// lower for loop to not do progressive shortening (too fragile), but instead do as in
+					// Line2EntryStruct() (approx 1777) which uses SmartTokenizer to build the subfields array.)
+					f.RemoveLine(0); // now preserve this change by writing the changed data back to file
+					bool bWroteOK = f.Write();
+					wxASSERT(bWroteOK == TRUE);
+
 					wxString resultLine = f.GetLine((size_t)1); // comma separated, in entry table LTR order
 					//int fieldCount = 9; // id,srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted
 					int fieldCount = 8; // srcLangName,tgtLangName,src,tgt,username,timestamp,type,deleted

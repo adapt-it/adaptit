@@ -17159,8 +17159,17 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 		// prior to handing control over to ParseWord() occurs here a little further down
 		if (IsWhiteSpace(ptr))
 		{
-			pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
-			++ptr;
+			wxChar chWhite = *ptr;
+			if (chWhite == _T('\n'))
+			{
+				pSrcPhrase->m_precPunct += _T('\n');
+			}
+			else
+			{
+				// if not \n then normalise to Latin space
+				pSrcPhrase->m_precPunct += _T(' ');
+			}
+			++ptr; // point past the whitespace character
 		}
 		else
 		{
@@ -17213,6 +17222,33 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 			wxString aWholeMkr = GetWholeMarker(ptr);
 			wxString augmentedMkr = aWholeMkr + _T(' ');
 			int offset = wxNOT_FOUND;
+			// BEW 21Mar23 the legacy code here assumed that if it was not an inline binding marker,
+			// then control shoule exit ParsePreWord and pass the marker along to ParseWord. Ouch,
+			// ParseWord calls ParseAWord() and if there is a gSFescapechar in the internal while
+			// loop, ParseAWord will fail - finding no text at all. Can't have that. Bill's Nyindou
+			// data, uses a lot of \rq ... \rq* "Inline quotation reference" markup, for showing
+			// tyically Old Testament quotes right justified in the printed/published doc.
+			// The \rq and \rq* markers are in the "Red" fast access marker sets. So handle these
+			// now, and only go on to inlineBindingMarkers if none of the (large) Red marker sets
+			// is found. ParseWord() should handle \rq* fine, as it handles all ending markers. 
+			// We only need to handle \rq here.
+			offset = gpApp->m_RedBeginMarkers.Find(augmentedMkr);
+			if (offset >= 0)
+			{
+				// We found one of the red fast-access begin mkrs set (could be \rq or one of
+				// very many other possible markers)
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s::%s(), line %d : Found Red begin marker:  %s"), __FILE__, __FUNCTION__, __LINE__, aWholeMkr.c_str());
+#endif
+				// Store the augmented begin mkr in pSrcPhrase->m_markers, update len, and return to caller
+				int length = augmentedMkr.Length();
+				len += length;
+				pSrcPhrase->m_markers += augmentedMkr;
+				// ParseWord() can now be called next, to handle the marker's content safely
+				return len;
+			}
+			// if a Red begin marker was not found, then do the legacy code following
+			// which tests for inlineBinding begin markers
 			offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
 			wxChar* pTemp = ptr;
 			int aWhiteSpanLength = 0;
@@ -32856,7 +32892,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				}
 			}
 #endif
-			// BEW 17Oct22 don't try parsing with ParseAWord() if ptr is pointing at whitespace priot
+			// BEW 17Oct22 don't try parsing with ParseAWord() if ptr is pointing at whitespace prior
 			// to the word we want to parse over. Check for whitespace, deal with it, and then we
 			// can do the call to ParseAWord(). Do the insurance...
 			itemLen = ParseWhiteSpace(ptr);

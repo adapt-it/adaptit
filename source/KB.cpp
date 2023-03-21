@@ -1945,6 +1945,11 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 
 	// get the size of any of the above arrays - that's our loop bound; define an iterator
 	size_t size = pKeyArray->GetCount();
+	// BEW 16Mar23 if size is zero, then the attempt failed, so check and if zero then return here
+	if (size == 0)
+	{
+		return;
+	}
 	size_t index;
 
 	// scratch variables for key, tgtPhrase, and deleted flag, for a single entry

@@ -329,7 +329,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
  // user for a valid kbserver-supported installation for his/her adapting project.)
  // So here we need to get lookup_user.dat suitably initialized and filled with
  // correct parameters, so do_lookup_user.exe can be called by system(), and return
- // a filled one-line lookup_user_results.dat file, with the usedadmin flag value
+ // a filled one-line lookup_user_results.dat file, with the useradmin flag value
  // in it so we can stored it, and use that for the subsequent list users code further below.
 	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bUserLookupSucceeded = m_pApp->ConfigureDATfile(lookup_user);

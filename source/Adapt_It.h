@@ -2402,6 +2402,13 @@ class CAdapt_ItApp : public wxApp
 	wxString execPath; // the "executablePath" with the executable app at end removed
 	//wxString GetDistFolder(); // ending in the path separator
 
+	//int system_hidden(const char* cmdArgs); // for suppressing showing of CMD window with system() is called
+//	extern "C"
+//	{
+//		//auto main(const char* cmdArgs) -> int;
+//		int main(const char* cmdArgs);
+//	}
+
 	bool m_bDoingChangeFullname; // BEW added, 9Dec20, default FALSE - for KB Sharing Mgr
 	bool m_bDoingChangePassword; // BEW added, 11Jan21, default FALSE - for KB Sharing Mgr
 
@@ -3879,6 +3886,18 @@ public:
 	// This wxString array is kept in LIFO ordering like a stack
 	wxArrayString m_prevVisitedChVsReferences;
 
+	// BEW 21Mar23 added next 4 in support of the "NewUserCredentialsFunc" dialog in wxDesigner
+	// which shows a dialog titled "Type New User Details" - which is used in the KB Sharing Mgr
+	// in support of its Add User button. I want to use the OnOK() handler to copy the dialog's
+	// values (3 text controls, and one checkbox for granting permission or not) to here, so
+	// that the KBSharingMgrTabbedDlg instantiation can grab these values for it's own text
+	// controls and checkbox: namely for ID_THE_USERNAME, ID_TEXTCTRL_INFORMAL_NAME, 
+	// ID_TEXTCTRL_PASSWORD, ID_TEXTCTRL_PASSWORD_TWO, and ID_CHECKBOX_USERADMIN
+	wxString m_newUserDlg_newusername;
+	wxString m_newUserDlg_newfullname;
+	wxString m_newUserDlg_newpassword;
+	int      m_newUserDlg_newuserpermission;
+
 /*
 // Don't use an enum, int values are simpler
 	const int noDatFile = 0;
@@ -3911,6 +3930,7 @@ public:
 	void MakeChangePermission(const int funcNumber, wxString dataPath); // = 10  // whm Note: removed execPath parameter
 	void MakeChangeFullname(const int funcNumber, wxString dataPath); // = 11  // whm Note: removed execPath parameter
 	void MakeChangePassword(const int funcNumber, wxString dataPath); // = 12  // whm Note: removed execPath parameter
+	//void MakeBulkDownload(const int funcNumber, wxString dataPath); // = 13  UNNEEDED
 
 	bool m_bAddUser2UserTable; // BEW 24Dec21, defaul FALSE, but True in app's OnAddUsersToKBserver() handler
 
@@ -3921,9 +3941,15 @@ public:
 						// after the system() call has finished. This way makes sure old
 						// input .dat files don't linger to be a potential source of error
 	wxString m_ChangedSinceTimed_Timestamp;
+	bool m_bDoTimestampUpdate; // BEW added 14Mar23, so that the local bDoTimestampUpdate value in signature of ChangedSince_Timed()
+							// can be set in this member boolean, so that the value can be carried to other calls, such as
+							// RemoveDatFileAndEXE(), ConfigureDATfile(), and CallExecute()'s signature params.
 	bool m_bUserRequestsTimedDownload; // set True if user uses GUI to ask for a bulk
 						// download, or ChangedSince (ie. incremental) download. If
 						// TRUE, skip the OnIdle() ChangedSince_Timed request
+	bool m_bDoingDevelopment; // TRUE of a Find() of string _T("adaptit-git") done on the path string: 
+							  //  m_appInstallPathOnly, yields an int offset >= 0 ( or not -1); else
+							  // a FALSE value, meaning that the executable is running within Program Files (x86)
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of

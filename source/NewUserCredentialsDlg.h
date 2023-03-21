@@ -45,11 +45,11 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-
+public:
 	wxTextCtrl* m_pNewUsernameCtrl;
 	wxTextCtrl* m_pNewFullnameCtrl;
 	wxTextCtrl* m_pNewPasswordCtrl;
-
+protected:
 	DECLARE_EVENT_TABLE()
 };
 

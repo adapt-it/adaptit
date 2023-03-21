@@ -108,9 +108,9 @@ struct KbServerUser {
 	long		id; // 1-based, from the user table
 	wxString	username; // the unique one, or we would like it to be unique (but it doesn't have to be)
 	wxString	fullname; // the informal name, such as John Nerd
-	bool		kbadmin;
-	bool		useradmin;
-	wxString	timestamp;
+	wxString	password; // assigned password to username
+	wxChar		useradmin; // 1 or 0
+	wxString	datetime;
 };
 
 // BEW 26Aug20 modified legacy structs can have "Foreign" added to their name, 
@@ -119,7 +119,7 @@ struct KbServerUserForeign {
 	wxString	username;  // the unique one, (but it doesn't have to be)
 	wxString	fullname;  // the informal name
 	wxString	password;
-	bool		useradmin; // permission to change user table _T('1') or _T('0')
+	wxChar		useradmin; // permission to change user table _T('1') or _T('0')
 };
 
 
@@ -411,7 +411,7 @@ public:
 	// LookupEntryFields() call, to determine what call is then needed after that
 	KbServerEntry	m_entryStruct;
 	// Ditto, but for a single entry from the user table
-	KbServerUser	m_userStruct;
+	KbServerUser	m_structUser;
 
     // public accessors for the private arrays (these are for bulk uploading and
     // downloading; UploadToKbServer() uses DoGetAll(), and the downloaders are
