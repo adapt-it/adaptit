@@ -16745,7 +16745,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// wxUnusedVar() for those which are not now referenced
 	wxUnusedVar(inlineNonbindingEndMrks);
 #if defined (_DEBUG) //&& defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 3)
+	if (pSrcPhrase->m_nSequNumber >= 4)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -17574,7 +17574,9 @@ else
 		// The legacy code is in this block
 #if defined (_DEBUG)
 // BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
-		wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
+		wxString pointsAt = wxString(ptr, 20);
+		wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d  pointsAt=%s"),
+			__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource, pointsAt.c_str());
 #endif
 
 		// BEW 5Oct/22 the while test is only allowed provided there were no inline
@@ -17592,7 +17594,8 @@ else
 #endif
 
 			// If one or the other kind of marker, or both, were handled earlier,
-			// don't let this while loop be entered
+			// don't let this while loop be entered. Use this loop to get past any
+			// unhandled word-final punctuation
 			while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
 			{
 				// The test checks to see if the character at the location of ptr belongs to
@@ -17612,7 +17615,9 @@ else
 				}
 				else
 				{
-					pSrcPhrase->m_precPunct += *ptr++;
+					// BEW 22Mar23, Bill's data had the last > of a >> pair unparsed. Preceding
+					// puncts were handled earlier, so here we deal with finals
+					pSrcPhrase->m_follPunct += *ptr++;
 				}
 				len++;
 #if defined (_DEBUG)
@@ -17623,6 +17628,14 @@ else
 			}
 		}
 	}
+	// BEW 22Mar23, after the loop, whitespace may be next - check and parse over it
+	int numWhiteSpaces = CountWhitesSpan(ptr, pEnd);
+	if (numWhiteSpaces > 0)
+	{
+		ptr += numWhiteSpaces;
+		len += numWhiteSpaces;
+	}
+ 
 	// BEW 5Oct22 added the next bool, for use further down
 	bAllowPunctChangeBlock = FALSE; // default, disallow unless wordBuiders... is non-empty
 	 
@@ -17689,6 +17702,7 @@ else
 	// non-inline marker being encountered
 	if (IsMarker(ptr))
 	{
+		// Deal with any endmarkers...
 		if (IsEndMarker2(ptr)) // TRUE if it's an endMkr at ptr
 		{
 			// Time to return from ParseWord() correctly, deal with what remains
@@ -17739,7 +17753,82 @@ else
 
 				return len;
 			}
+			// BEW 22Mar23 It's quite possible that ptr is now pointing at a beginMkr, for example
+			// \rq or some other marker from the Red fast-access set of beginMkrs. Check, and handle
+			// any such here - if a whitespace preceds the beginMkr, it will have been parsed over
+			// at 17,622 above. Store the Red mkr in pSrcPhrase->m_markers (with following space)
+			// and then return len.
+			if (*ptr == gSFescapechar)
+			{
+				// a begin-marker is at ptr
+				wxString aWholeMkr = GetWholeMarker(ptr);
+				wxString augmentedMkr = aWholeMkr + _T(' ');
+				int offset = wxNOT_FOUND;
+				offset = gpApp->m_RedBeginMarkers.Find(augmentedMkr);
+				if (offset >= 0)
+				{
+					// We found one of the red fast-access begin mkrs set (could be \rq or one of
+					// very many other possible markers)
+#if defined (_DEBUG)
+					wxLogDebug(_T("%s::%s(), line %d : Found Red begin marker:  %s"), __FILE__, __FUNCTION__, __LINE__, aWholeMkr.c_str());
+#endif
+					// Store the augmented begin mkr in pSrcPhrase->m_markers, update len, and return to caller
+					int length = augmentedMkr.Length();
+					len += length;
+					pSrcPhrase->m_markers += augmentedMkr;
+					// ParseWord() can now be called next, to handle the marker's content safely
+					return len;
+				}
+				// BEW 22Mar23 there may be following markers NOT from the Red set at ptr, perhaps \p,
+				// could be a \n, and then \v - because they are begin markers, they must get parsed
+				// over to allow ptr to get to the verse number, which ParseWord() can handle safely
+				if (*ptr == gSFescapechar)
+				{
+					// Further non-red beginMkr(s) follow, maybe separated by space or newline (each
+					// is whitespace). Check, parse, and return the updated len value
+					wxString wholeMkr = GetWholeMarker(ptr);
+					wxString paragraph = _T("\\p");
+					if (wholeMkr == paragraph)
+					{
+						pSrcPhrase->m_markers += paragraph;
+						len += 2;
+						ptr += 2;
+						// check for following whitespace
+						int whites = CountWhitesSpan(ptr, pEnd);
+						if (whites > 0)
+						{
+							wxChar chFinalWhite = *(ptr + (whites - 1)); // the last may be \n not space
+							len += whites;
+							ptr += whites;
+							pSrcPhrase->m_markers += chFinalWhite; // either \n or space or some other whitespace
+						}
+					}
+					// that handles \p or \p<space> or \p\n etc
+					// There may be a verse marker next. Check and handle
+					if (*ptr == gSFescapechar)
+					{
+						// A beginMkr follows at ptr
+						wxString wholeMkr = GetWholeMarker(ptr);
+						wxString verse = _T("\\v");
+						if (wholeMkr == verse)
+						{
+							pSrcPhrase->m_markers += verse;
+							len += 2;
+							ptr += 2;
+							// we don't need to worry about what follows \v
+							// as ParseWord() will handle that fine
+							return len;
+						}
+					}
+					else
+					{
+						// not a marker next, so return len
+						return len;
+					}
+				}
+			}
 		} // end of else block for test: if (IsEndMarker2(ptr))
+
 	} // end of TRUE block for test: if (IsMarker(ptr))
 
 #if defined (_DEBUG) //&& defined (LOGMKRS)
@@ -21311,15 +21400,29 @@ wxChar CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 	wxString mySpan; 
 	if (ptr < (pBufStart + 4))
 	{
-		mySpan = wxEmptyString;
-		chReturn = NULL;
-		return chReturn;
+		// BEW 22Mar23, try not to return a NULL. pBuffStart is a small local span, typically starting with
+		// a begin mkr. So what we want to return is the first whitespace earlier than pBuffStart, which is
+		// where ptr starts of pointing at as well.
+		wxChar* pTemp = ptr; // don't corrupt ptr value
+		wxChar chLast1 = *(pTemp - 1);
+		bool bIsWhitespace = FALSE;
+		bIsWhitespace = IsWhiteSpace(pTemp - 1);
+		if (bIsWhitespace)
+		{
+			return chLast1;
+		}
+		else
+		{
+			mySpan = wxEmptyString;
+			chReturn = NULL;
+			return chReturn;
+		}
 	}
 	else
 	{
 		mySpan = wxString((pSpann - 4), 7);
 	}
-	wxLogDebug(_T("Doc:FindWordBreakChar Line %d: 7 CHAR SPAN: mySpah=%s  *******************************************************************"), __LINE__,mySpan.c_str());
+	wxLogDebug(_T("Doc:FindWordBreakChar Line %d: 7 CHAR SPAN: mySpan=%s  *******************************************************************"), __LINE__,mySpan.c_str());
 #endif
 	if (ptr > (pBufStart + 4))
 	{
