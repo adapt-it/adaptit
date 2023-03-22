@@ -17189,8 +17189,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 				pSrcPhrase->m_precPunct += *ptr++;
 			}
 		}
-		len++; // we might be storing whitespace between words, so be careful below
-			   // to backtrack if that is the case
+		len++;
 #if defined (_DEBUG)
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 		wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
@@ -17247,8 +17246,25 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 				// ParseWord() can now be called next, to handle the marker's content safely
 				return len;
 			}
-			// if a Red begin marker was not found, then do the legacy code following
-			// which tests for inlineBinding begin markers
+
+			// BEW 22Mar23 we've maybe parsed over some precPunct characters, so there might be a marker
+			// following. In Bill's Revelation document, <<\fk a\fk*>> occurs, or similar, so ptr may
+			// be pointing at, say, \fk or some other marker (but not \p or \v as these do not follow
+			// preceding punctuation). So test, and store the marker, if present.
+			if (*ptr == gSFescapechar)
+			{
+				// there's a beginMkr to handle
+				wxString aWholeMkr = GetWholeMarker(ptr);
+				wxString augmentedMkr = aWholeMkr + _T(' ');
+				int mkrLen = aWholeMkr.Length();
+				pSrcPhrase->m_markers += augmentedMkr; // begin-markers must have a trailing space
+				len += mkrLen + 1; 
+				ptr += mkrLen + 1; // no need for this line, only len matters at the return
+				return len;
+			}
+
+			// Finally, if a Red begin marker was not found, and no other beginMkr was found,
+			// then do the legacy code following which tests for inlineBinding begin markers
 			offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
 			wxChar* pTemp = ptr;
 			int aWhiteSpanLength = 0;
@@ -17286,7 +17302,6 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 				wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
-
 				return len;
 			} // end of TRUE block for test: if (offset == wxNOT_FOUND)
 
@@ -18311,7 +18326,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s   (next 15 chars)"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		if (pSrcPhrase->m_nSequNumber >= 3)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // I want to know it's value eachnew pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -33543,7 +33558,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 4)
+						if (pSrcPhrase->m_nSequNumber >= 3)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -33587,7 +33602,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// BEW 10Jan22 Bill's MAT Nyindrou doc (46-MATlid.usfm) has the same issue in 3:4, a <space>. before
 				// \f*, the <space> needs to be ignored, and we need to allow ptr + 2 to be whitespace, or gSFescapechar
 				wxChar colon; wxChar semiColon; wxChar period;
-				colon = _T(':'); semiColon = _T(';'); period = _T('.');
+				colon = _T(':'); 
+				semiColon = _T(';'); 
+				period = _T('.');
 				if ( (*ptr == _T(' ')) && ((*(ptr + 1) == colon) || (*(ptr + 1) == semiColon) || (*(ptr + 1) == period )) 
 					&& (IsWhiteSpace(ptr + 2) || (*(ptr + 2) == gSFescapechar)) )
 				{
@@ -33683,6 +33700,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				augEndMkr = wxEmptyString; // init
 				if (*ptr == gSFescapechar)
 				{
+					// BEW 23Mar23, refactor, augEndMkr here is needed for the test at 33710,
 					aWholeMkr = GetWholeMarker(ptr);
 					if (IsEndMarker(ptr, pEnd))
 					{
@@ -33830,7 +33848,29 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						}
 					}
 #endif
-
+					wxString curEndMkrs; wxString myMkr; int myMkrLen;
+					bool bStoredEndMkr; wxString curOuterPuncts;
+					bStoredEndMkr = FALSE; // initialise
+					if (*ptr == gSFescapechar)
+					{
+						// BEW 23Mar23, handle data like this from Bill's Nyindrou revelation .SFM file,
+						// <<\fk a\fk*>> where here, 'a' is parsed over, and ptr points at  \fk*>> followed by space.
+						// If we have an endmkr, we want to hide it in m_endMarkers (use accessors) and then use
+						// ParseFinalPuncts() below to get the ">>" pair, add them to m_srcPhrase, and we can test 
+						// for a following space and if present after updating len we can return it to TokenizeText 
+						myMkr = GetWholeMarker(ptr);
+						myMkrLen = myMkr.Length();
+						if (IsEndMarker(ptr, pEnd))
+						{
+							// It's an endmkr
+							curEndMkrs = pSrcPhrase->GetEndMarkers(); // could be empty
+							curEndMkrs += myMkr;
+							pSrcPhrase->SetEndMarkers(curEndMkrs);
+							bStoredEndMkr = TRUE;
+							len += myMkrLen;
+							ptr += myMkrLen;
+						}
+					}
 					itemLen = ParseFinalPuncts(ptr, pEnd, spacelessPuncts);
 					if (itemLen > 0)
 					{
@@ -33844,9 +33884,26 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						{
 							pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct + pSrcPhrase->m_key + finalPuncts;
 						}
-						pSrcPhrase->m_follPunct += finalPuncts;
+						if (bStoredEndMkr)
+						{
+							// stored an endMkr, so following puncts belong in m_follOuterPunct
+							curOuterPuncts = pSrcPhrase->GetFollowingOuterPunct();
+							curOuterPuncts += finalPuncts;
+							pSrcPhrase->SetFollowingOuterPunct(curOuterPuncts);
+						}
+						else
+						{
+							pSrcPhrase->m_follPunct += finalPuncts;
+						}
 						ptr += itemLen;
 						len += itemLen;
+
+						// BEW add the return code here
+						if (bStoredEndMkr && (finalPuncts == _T(">>")) && (*ptr == _T(' ')) )
+						{
+							// space follows ">>" pair, so return len
+							return len;
+						}
 #if defined (_DEBUG) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 20);
