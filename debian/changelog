@@ -1,3 +1,9 @@
+adaptit (6.11.0-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 22 May 2023 18:30:00 -0600
+
 adaptit (6.10.7-1) unstable; urgency=low
 
   * pull in updates
