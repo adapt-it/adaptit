@@ -16819,6 +16819,13 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	bool bIsNestedMkr = FALSE;
 	wxString baseOfEndMkr;
 
+	// BEW 23Mar23 pass an isolate backslash on to let ParseWord() handle it before ParseAWord() gets called
+	if ((*ptr == gSFescapechar) && (*(ptr + 1) == _T(' ')))
+	{
+		len = 0;
+		return len;
+	}
+
 /* #if defined (_DEBUG) && defined (LOGMKRS)
 	wxLogDebug(_T("1. Within %s::%s(), line %d , m_bWithinMkrAttributeSpan = %d"),
 		__FILE__, __FUNCTION__, __LINE__, (int)m_bWithinMkrAttributeSpan);
@@ -33581,6 +33588,30 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					}
 					else
 					{
+						// BEW 23Mar23 Bill wants a \v which gets it's 'v' tag lost, so it's an isolate '\\',
+						// to be handled benignly. If I don't, ParseAWord() will cause an infinite loop
+						// until app crashes. 6.10.7 showed it with it's missing ch:vs string corrected
+						// and in m_inform, so I need to support that too.
+						if ((*ptr == gSFescapechar) && (*(ptr + 1) == _T(' ')) && gpApp->m_bParsingSource)
+						{
+							// Store it on the pSrcPhrase
+							pSrcPhrase->m_key == _T('\\');
+							pSrcPhrase->m_srcPhrase = _T('\\');
+							// Move past it
+							len += 1;
+							ptr += 1;
+
+							// Now locate this pSrcPhrase in the m_pSourcePhrases list, and use view's
+							// GetChapterAndVerse(CSourcePhrase* pSourcePhrase_lastCompeted) which returns
+							// a ch:vs wxString, to search for which chapter and verse the current instance
+							// belongs to, by searching back for a non-empty m_chapterVerse string in an
+							// earlier pSrcPhrase instance. When found, assume the isolate backslash is
+							// a mistyped \v marker for the next verse, i.e. ch:(vs + 1), and display that
+							// in m_inform.
+							// No need!! I tested the above, and the smarts for doing the right thing are
+							// still in our code somewhere, so no more to do here, except return len value
+							return len;
+						}
 						strWord = ParseAWord(ptr, spacelessPuncts, pEnd); // any foll puncts are included
 					}
 
