@@ -20,7 +20,7 @@
 /// wxScrollingDialog when built with wxWidgets prior to version 2.9.x, but derived 
 /// from wxDialog for version 2.9.x and later. The AutoCorrectTextCtrl class derives 
 /// from wxTextCtrl.
-///////////////////////////////////////////////////////////////////////////// 
+/////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
