@@ -467,6 +467,9 @@ class CPlaceholder;
 // forward reference for read-only support
 class ReadOnlyProtection;
 
+// forward reference for Add User button in Knowledge Base Sharing Manager
+class NewUserCredentialsDlg;
+
 // forward reference for Oxes export support
 // BEW removed 15Jun11 until we provide OXES support
 // BEW reinstated 19May12, for OXES v1 support
@@ -3392,6 +3395,7 @@ public:
 
 	// for note support
 	CNoteDlg*	m_pNoteDlg; // non-modal
+	NewUserCredentialsDlg* m_pNewUserCredentialsDlg;
 
 	// attributes in support of the travelling edit box (CPhraseBox)
     // wxWidgets design Note: whm I've changed the MFC m_targetBox to m_pTargetBox.

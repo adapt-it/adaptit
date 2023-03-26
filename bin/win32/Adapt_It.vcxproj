@@ -675,7 +675,6 @@ echo ********** EndPost-Build Event Batch Process **********
     <ClInclude Include="..\..\source\Xhtml.h" />
     <ClInclude Include="..\..\source\XML.h" />
     <ClInclude Include="..\..\source\XMLErrorDlg.h" />
-    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\source\NewClassHeaderTemplate.txt" />

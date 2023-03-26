@@ -25581,6 +25581,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
     m_pViewFilteredMaterialDlg = (CViewFilteredMaterialDlg*)NULL; // needed in wx version
 
+    m_pNewUserCredentialsDlg = (NewUserCredentialsDlg*)NULL; // accessor
+
     //m_pBundle = (CSourceBundle*)NULL;
     m_pActivePile = (CPile*)NULL; // start with null, in case user invokes Allow Glossing
         // in the Advanced menu after launching and only a project is open but not a document
