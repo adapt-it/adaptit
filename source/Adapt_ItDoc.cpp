@@ -32434,7 +32434,6 @@ bool CAdapt_ItDoc::IsUpperCaseCharInFirstWord(wxString& str, int& offset, wxChar
 ///
 ////////////////////////////////////////////////
 
-
 // this is public
 void CAdapt_ItDoc::DoBookName()
 {
@@ -40799,6 +40798,28 @@ int CAdapt_ItDoc::ScanToNextMarker(wxChar* pChar, wxChar* pEnd)
 		}
 	} // end of while loop: while (ptr < (pEnd - 2))
 	return count;
+}
+
+// BEW 25Mar23 created, to access the "Type New User Details" dialog, for Add User button in KB Sharing Mgr
+void CAdapt_ItDoc::DoNewUserCredentials()
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->LogUserAction(_T("Initiated DoNewUserCredentials()"));
+	wxString titleStr = _("Type New User Details");
+	bool bShowItCentered = TRUE;
+	NewUserCredentialsDlg dlg(
+		(wxWindow*)pApp->GetDocument(),
+		&titleStr,
+		bShowItCentered);
+	if (dlg.ShowModal() == wxID_OK)
+	{
+
+
+
+	}
+
+
+
 }
 
 /*  BEW 19Nov22 I don't think I need this - deprecate

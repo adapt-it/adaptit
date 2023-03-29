@@ -1045,16 +1045,26 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	// selection, and clear the controls & return. In fact, ensure no duplication of username
 	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
-	wxString strPassword = m_pEditPersonalPassword->GetValue();
-	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
+	// BEW 24Mar23 couple of problems here. First, strPassword ad strPasswordTwo are going
+	// to be empty, even if the chosen user's password shown by "Show Password" is visible.
+	// So out test must not ask for these two to be non-empty.
+	// Second, our selected user must have a password anyway, otherwise he'd not be in the list.
+	// So there's no point in checking it exists. The only test value relevant are the first two,
+	// and last - the strUseradmin value - it has to be TRUE for the chosen user to be able
+	// to add any other users - regardless of what permission level those others are to receive
+	wxString strPassword = m_pEditPersonalPassword->GetValue(); // variable needs to be defined, even if empty
+	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();  //  ditto
 	bool bUseradmin = m_pCheckUserAdmin->GetValue();
 	wxString strUseradmin = bUseradmin ? _T("1") : _T("0");
 
-	// First, test all the textboxes that should have a value in them, actually have something
-	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty() || strPasswordTwo.IsEmpty())
+	// First, test the relevant parameters have enabling values in them
+	if (strUsername.IsEmpty() || strFullname.IsEmpty() || (bUseradmin == FALSE) )
 	{
-		wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want this new user to have the privilege to add other users, tick the checkbox also.");
-		wxString title = _("Warning: Incomplete user definition");
+		wxString msg = _("First click a user with full permission level from the user table.\nThe Add User button only works when you have selected a username\ntogether with the fullname, and that username's password.\nYou can see this password by clicking the Show Password button.\nTo give your new user the privilege to add other users\ntick the User Administrator checkbox also.");
+		wxString title = _("Warning: No user selected");
+
+		//wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want this new user to have the privilege to add other users, tick the checkbox also.");
+		//wxString title = _("Warning: Incomplete user definition");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
 	}
