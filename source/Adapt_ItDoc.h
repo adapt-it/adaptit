@@ -631,7 +631,6 @@ public:
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void DoBookName(); // to access the Book Naming dialog from anywhere, calls OnBookNameDlg()
-	void DoNewUserCredentials(); // to access the "Type New User Details" dialog, for Add User button in KB Sharing Mgr
 	//void UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse);
 private:
 	void OnSplitDocument(wxCommandEvent& WXUNUSED(event));

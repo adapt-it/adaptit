@@ -35147,6 +35147,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         if (bOK)
         {
             m_bKBReady = TRUE;
+            this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
             // BEW 19Feb13, added a wrapping test, because if LoadGuesser() fails, the
             // wizard crashes before the project can be entered and so even manually
             // setting the UseAdaptationsGuesser flag in the project config file to 0
@@ -35195,6 +35196,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         if (bOK)
         {
             m_bKBReady = TRUE;
+            this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
             // whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
         }
         else
@@ -35277,6 +35279,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         if (bOK)
         {
             m_bGlossingKBReady = TRUE;
+            this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
             // whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
         }
         else

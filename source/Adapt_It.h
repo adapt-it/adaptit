@@ -3330,6 +3330,8 @@ public:
 
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
+	//void DoNewUserCredentials(); // to access the "Type New User Details" dialog, for Add User button in KB Sharing Mgr
+
 
 	// BEW added 15Aug16 for suppressing option to have or not have collab mode restored
 	// in a Shift-Launch
@@ -3395,7 +3397,7 @@ public:
 
 	// for note support
 	CNoteDlg*	m_pNoteDlg; // non-modal
-	NewUserCredentialsDlg* m_pNewUserCredentialsDlg;
+	NewUserCredentialsDlg* m_pNewUserCredentialsDlg; // BEW 27Mar23, this is needed
 
 	// attributes in support of the travelling edit box (CPhraseBox)
     // wxWidgets design Note: whm I've changed the MFC m_targetBox to m_pTargetBox.

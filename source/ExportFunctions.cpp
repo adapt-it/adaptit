@@ -245,6 +245,7 @@ bool DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	// First determine whether or not the data is unstructured plain text - Xhtml cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
 	// USFM")
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	wxString msg;
 		// gpApp->m_bProtectXhtmlOutputsFolder is TRUE
 	wxString bookCode; bookCode.Empty();
@@ -485,6 +486,7 @@ bool DeclineIfUnstructuredData()
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
+		gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 		return TRUE;
 	}
 	return FALSE;
@@ -510,6 +512,7 @@ bool DeclineIfNoBookCode(wxString& bookCode)
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg,_("Invalid or Absent Book Code"), wxICON_EXCLAMATION | wxOK);
+		gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 		return TRUE;
 	}
 	return FALSE;
@@ -607,6 +610,7 @@ bool DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode)
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg,_("No Language Code Is Set"),wxICON_EXCLAMATION | wxOK);
+		gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 		return TRUE;
 	}
 	return FALSE;
@@ -620,7 +624,9 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 {
 	int nTextLength;
 	wxString text;
+	wxString* ptext = &text; // BEW 29Mar23 added because passing by reference made << or += fail
 	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 
 	// do the reconstruction from CSourcePhrase instances in the document...
 
@@ -633,7 +639,9 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	{
 	case sourceTextExport:
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
-		nTextLength = RebuildSourceText(text);
+		nTextLength = RebuildSourceText(ptext);  // BEW 29Mar23 this fails, m_str is NULL
+		//text = RebuildSrcText(gpApp->m_pSourcePhrases); // BEW 29Mar23, new version, returns sourceStr
+		//nTextLength = text.Length();
 		break;
 	case glossesTextExport:
 		gpApp->LogUserAction(_T("Exporting XHTML from Glosses Text"));
@@ -1650,10 +1658,14 @@ void DoExportAsType(enum ExportType exportType)
 	// current free translations data, as the case may be
 	wxString source;	// a buffer built from pSrcPhrase->m_srcPhrase strings
 	source.Empty();
+	wxString* psrcText = &source;
+
 	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
 	target.Empty();
+
 	wxString glosses;	// a buffer built from pSrcPhrase->m_gloss strings
 	glosses.Empty();
+
 	wxString freeTrans;	// a buffer built from filtered free translation strings
 						// stored in the m_markers member of pSrcPhrase instances
 	freeTrans.Empty();
@@ -1677,7 +1689,10 @@ void DoExportAsType(enum ExportType exportType)
 	switch (exportType)
 	{
 	case sourceTextExport:
-		nTextLength = RebuildSourceText(source, pList);
+		//nTextLength = RebuildSourceText(source, pList);
+		nTextLength = RebuildSourceText(psrcText, pList); // BEW 29Mar23
+		//source = RebuildSrcText(gpApp->m_pSourcePhrases);
+		//nTextLength = source.Length();
 		nTextLength = nTextLength; // avoid warning TODO: test for failures? (BEW
 								   // 3Jan12, No, allow length to be zero)
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
@@ -2419,6 +2434,7 @@ bool IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxStri
 			if (offset == wxNOT_FOUND)
 			{
 				// wholeMarker is not in the inventory
+				gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 				return FALSE;
 			}
 			return TRUE; // it's in the inventory
@@ -2427,6 +2443,7 @@ bool IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxStri
 	}
 	else
 	{
+		gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 		return FALSE;
 	}
 }
@@ -2807,6 +2824,7 @@ void DoExportInterlinearRTF()
 	{
 		//bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 		gpApp->LogUserAction(_T("Cancelled DoExportInterlinearRTF()"));
+		gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 		return; // user cancelled
 	}
 
@@ -17033,7 +17051,11 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // supplying the list pointer, it can rebuild the source text from any SPList (I want this
 // capability so that it can be used in the marker filtering mechanism, when the user
 // changes a marker from being unfiltered, to filtered, using Preferences)
-int RebuildSourceText(wxString& source, SPList* pUseThisList)
+//int RebuildSourceText(wxString& source, SPList* pUseThisList)
+// BEW 29Mar23 NOTE: the call will fail (ie. give an empty rebuild) if, after the document 
+// is created and saved, it is not then clobbered and re-opened (e.g. Open Document on File menu)
+// so that it's available for choosing in the CAdapt_ItDoc instance's list of documents
+int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
 	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
@@ -17084,9 +17106,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// must be given special treatment.
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
-	source.Empty();
+	psource->Empty();
 	wxString tempStr;
-	//TRACE0("\n");
 	// BEW added 16Jan08 A boolean added in support of adequate handling of markers which
 	// get added to a placeholder due to it being inserted at the beginning of a stretch of
 	// text where there are markers. Before this, placeholders were simply ignored, which
@@ -17196,30 +17217,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
 		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
-		//*
-#if defined(_DEBUG)
-		/*
-		if (!aBreak.IsEmpty())
-		{
-			wxChar aChar = aBreak.GetChar(0);
-			if (aChar == (wxChar)0x200B || aChar == _T(' '))
-			{
-				wxString s = aChar == _T(' ') ? _T("<space>") : _T("&#x200B");
-				wxLogDebug(_T("WordBreak before src: %s   =  %s"), pSrcPhrase->m_srcPhrase.c_str(), s.c_str());
-				//if (aChar == (wxChar)0x200B)
-				//{
-					// replace with <ZWSP> string temporarily, and note the output
-				//	aBreak = _T("<ZWSP>");
-				//}
-			}
-		}
-		*/
-#endif
-		//*/
 		if (!aBreak.IsEmpty())
 		{
 			str += aBreak;
-			source << str; // do it now, as str is emptied in a few places further below
+			*psource << str; // do it now, as str is emptied in a few places further below
 			str.Empty();
 		}
 		// BEW added to following block 16Jan09, for handling relocated markers on
@@ -17368,7 +17369,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				}
 				str.Trim();
 				str << aSpace; // end it with a space when it's marker material
-				source << str;
+				*psource << str;
 			} // end of TRUE block for test: if (bHasFilteredMaterial)
 			else
 			{
@@ -17390,7 +17391,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 					}
 					tempStr.Empty();
 				}
-				source << str;
+				*psource << str;
 			} // end of else block for test: if (bHasFilteredMaterial)
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
@@ -17411,7 +17412,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// BEW 21Jul14, we put in the word delimiter at the start now, not adding
 			// it at the end, so don't add a space first, just add the str only
 			//source << aSpace << str;
-			source << str;
+			*psource << str;
 			str.Empty();
 		}
 		else
@@ -17449,7 +17450,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			}
 			tempStr.Empty();
 
-			source << str;
+			*psource << str;
 			str.Empty();
 
 
@@ -17472,6 +17473,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
+
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
 			// on, then check for hidden metadata - if present, pSrcPhrase->m_bUnused 
@@ -17479,7 +17481,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// start with a bar (|) and end with an endmarker of form \mkr*). Do the 
 			// tests and unhide before the filtering is finished - it will lengthen
 			// the string which is to be filtered out.
-			if (gpApp->GetDocument()->m_bCurrentlyFiltering)
+			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+			bool IsCurrentlyFiltering = pDoc->m_bCurrentlyFiltering;
+			if (IsCurrentlyFiltering)
 			{
 				if ((gpApp->HasBarFirstInPunctsPattern(pSrcPhrase) == TRUE) 
 					&& !gpApp->m_bClipboardAdaptMode)
@@ -17510,12 +17514,24 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
 			// the caller, we should not risk clobbering a space after the verse of
 			// a verse marker, so comment next line out
-			//source.Trim();
+			//sourceStr.Trim();
 
 			// BEW added 13Jul1 next 3 lines: support Paratext usfm-only contentless
 			// chapters or books - the legacy code would output \v 1 followed by newline,
 			// but Paratext has \v 1 followed by space, then the newline - so test for
 			// m_key empty, and if so, add a space to str here and don't trim it off below
+			//
+			// BEW 28Mar23 a strange error can manifestin the use of the << operator in the
+			// if else code blocks 2,3,4 below. I was testing a short file, created it, and
+			// saved to file. Then, if I close the doc and reopen it, I can successfully get
+			// the expected content when doing a USFM export which includes all markers (i.e.
+			// the default situation). But if I don't close and reopen, but do do the Save,
+			// then when I ask for the source text export (and if I had identity adapations, 
+			// and asked for the target text export), either of those returns an empty
+			// file. Testing, it turns out that the "source << str" line misbehaves. Str has
+			// the expected content, but << operator does not transfer the contents of str,
+			// if source was passed in by reference. So I'll try passing in a ptr instead.
+
 			if (pSrcPhrase->m_key.IsEmpty())
 			{
 				str += aSpace; // needs to be a latin space, no ZWSP here
@@ -17524,35 +17540,39 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// if we return ']' bracket, we don't want a preceding space
 			if (str[0] == _T(']'))
 			{
-				source << str;
+				*psource << str;
 			}
-			else if (!source.IsEmpty() && source[source.Len() - 1] == _T('['))
+			else if (!(*psource).IsEmpty() && (*psource)[(*psource).Len() - 1] == _T('['))
 			{
 				// in this circumstance we don't want an intervening space
 				// between the [ and what follows it
-				source << str;
+				*psource << str;
 			}
 			else
 			{
 				// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
-				//source << aSpace << str;
-				source << str;
+				*psource << str;
 			}
 			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
-	source.Trim();
-	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
-	//source << aSpace;
-//#if defined(FWD_SLASH_DELIM)
-	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
-	source = DoFwdSlashConsistentChanges(removeAtPunctuation, source);
-	source = FwdSlashtoZWSP(source);
-//#endif
+	(*psource).Trim();
 
+	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
+	//sourceStr << aSpace;
+	//#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+	*psource = DoFwdSlashConsistentChanges(removeAtPunctuation, *psource);
+	*psource = FwdSlashtoZWSP(*psource);
+
+	//#endif
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	// update length
-	return source.Len();
+	int nLen = 0;
+	nLen = (*psource).Length();
+
+	return nLen;
 }
 
 // RebuildText_For_Collaboration() is a wrapper for the RebuildSourceText(),
@@ -17579,6 +17599,8 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 {
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString usfmText; usfmText.Empty();
+	wxString* pusfmText = &usfmText; // BEW 29Mar23 for rebuilding source
+
 	wxArrayString arrCustomBareMkrs;
 	wxString mkr = _T("note");
 	arrCustomBareMkrs.Add(mkr);
@@ -17600,7 +17622,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 		break;
 	default:
 	case sourceTextExport:
-		nTextLength = RebuildSourceText(usfmText, pList);
+		nTextLength = RebuildSourceText(pusfmText, pList); // BEW 29Mar23 pass 1st param as pointer
 		break;
 	}
 	if (nTextLength > 0)
@@ -17614,6 +17636,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 		FormatMarkerBufferForOutput(usfmText, exportType);
 		usfmText = RemoveMultipleSpaces(usfmText);
 	}
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	return usfmText;
 }
 
@@ -18049,6 +18072,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 	glosses = DoFwdSlashConsistentChanges(removeAtPunctuation, glosses);
 	glosses = FwdSlashtoZWSP(glosses);
 //#endif
+ 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	// update length
 	return glosses.Length();
 }
@@ -18415,6 +18439,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	freeTrans = DoFwdSlashConsistentChanges(removeAtPunctuation, freeTrans);
 	freeTrans = FwdSlashtoZWSP(freeTrans);
 //#endif
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	// update length
 	return freeTrans.Length();
 }
@@ -18850,7 +18875,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
     // whm 4Mar2021 commented out to reduce debug console output during collaboration
 	//wxLogDebug(_T("\n%s::%s() line= %d , (tgt)textLen= %d  (tgt)text= %s\n"),
 	//	__FILE__, __FUNCTION__, __LINE__, textLen, target.c_str());
-
+	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	return textLen;
 }// end of RebuildTargetText
 

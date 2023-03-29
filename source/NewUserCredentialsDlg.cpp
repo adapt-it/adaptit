@@ -41,7 +41,7 @@
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
 #include "Adapt_It.h"
-#include "Adapt_ItDoc.h"
+//#include "Adapt_ItDoc.h"
 #include "NewUserCredentialsDlg.h"
 
 // event handler table

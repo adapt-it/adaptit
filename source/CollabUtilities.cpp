@@ -11497,7 +11497,7 @@ extern bool gbDoingInitialSetup;
 	{
 		CAdapt_ItApp* pApp = &wxGetApp();
 		wxString source = _T(""); // a buffer built from pSrcPhrase->m_srcPhrase strings
-
+		wxString* psource = &source; // BEW added line, 29Mar23 use pointer as 1st param, else << or += fail
 		SPList* pList = pApp->m_pSourcePhrases;
 		wxASSERT(pList);
 		bool bIsUnstructuredData = gpApp->GetView()->IsUnstructuredData(pList);
@@ -11523,7 +11523,7 @@ extern bool gbDoingInitialSetup;
 		wxString footnote = _T("\\f ");
 		wxString filteredMkrs = pApp->gCurrentFilterMarkers;
 
-		nTextLength = RebuildSourceText(source);
+		nTextLength = RebuildSourceText(psource); // BEW 29Mar23 need to pass 1st param by pointer, not reference
 		wxUnusedVar(nTextLength); // avoid warning
 								  // BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
