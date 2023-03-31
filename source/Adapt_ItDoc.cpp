@@ -17625,7 +17625,7 @@ else
 
 			// If one or the other kind of marker, or both, were handled earlier,
 			// don't let this while loop be entered. Use this loop to get past any
-			// unhandled word-final punctuation
+			// unhandled word-final punctuation, or ( or { which should be in m_precPunct
 			while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
 			{
 				// The test checks to see if the character at the location of ptr belongs to
@@ -17643,16 +17643,23 @@ else
 					// Disallow store, exit from ParsePreWord()
 					return len;
 				}
+				else if (chWhatever == _T('('))
+				{
+					pSrcPhrase->m_precPunct += *ptr++;
+					len++;
+					return len;
+				}
+				else if (chWhatever == _T('{'))
+				{
+					pSrcPhrase->m_precPunct += *ptr++;
+					len++;
+					return len;
+				}
 				else
 				{
-					// BEW 22Mar23, Bill's data had the last > of a >> pair unparsed. Preceding
-					// puncts were handled earlier, so here we deal with finals
-					if (*ptr == _T('>'))
-					{
-						// found a punct, iterate
-						pSrcPhrase->m_follPunct += *ptr++;
-						len++;
-					}
+					// found a punct, iterate
+					pSrcPhrase->m_follPunct += *ptr++;
+					len++;
 				}
 #if defined (_DEBUG)
 				// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
@@ -33649,7 +33656,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d ,  ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 3)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
