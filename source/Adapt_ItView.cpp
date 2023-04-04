@@ -16643,8 +16643,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	bool bRemoveUnwantedLastChar = FALSE; // initialise
 #if defined (_DEBUG)
 	{
-		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
-			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
+		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s , m_markers= %s "),
+			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str(), pSrcPhrase->m_markers.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 
@@ -17899,7 +17899,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 									__LINE__, str.c_str(), follPuncts.c_str());
 							}
 #endif
-							// Now add them to m_targetStr
+							// Now add them to m_targetStr, after first setting pSrcPhrase->m_adaption (so it's not
+							// empty further down, at 17982, which would give m_adaption a final punct - leading to doubling
+							if (pSrcPhrase->m_adaption.IsEmpty())
+							{
+								pSrcPhrase->m_adaption = pSrcPhrase->m_targetStr;
+							}
+							// Now add the contents of follPuncts
 							pSrcPhrase->m_targetStr += follPuncts;
 #if defined (_DEBUG)
 							{
@@ -18342,8 +18348,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	//pApp->m_nCurSequNum_ForPlacementDialog = 18; 
 
 #if defined(_DEBUG)
-	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at end: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
-		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
+	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at end: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s , m_markers = %s"),
+		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_markers.c_str());
 	if (pSrcPhrase->m_nSequNumber >= 5)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);

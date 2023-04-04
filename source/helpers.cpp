@@ -7031,6 +7031,20 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxString theSymbol = _T("~");
 	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
 	wxString srcStr = pSP->m_key;
+	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
+	// but m_srcPhrase will be _T("\\"), we want to keep the backslash in the exported
+	// source text, so test and set srcStr to it
+	if (pSP->m_key.IsEmpty() && pSP->m_srcPhrase == _T("\\"))
+	{
+		srcStr = _T("\\");
+		if (!pSP->m_markers.IsEmpty())
+		{
+			srcStr = pSP->m_markers + srcStr;
+		}
+		Sstr = srcStr;
+		return Sstr;
+	}
+
 	if (bIsFixedSpaceConjoined)
 	{
 		CSourcePhrase* pWord1;
