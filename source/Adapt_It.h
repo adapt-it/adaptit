@@ -2761,6 +2761,7 @@ class CAdapt_ItApp : public wxApp
     /// method.
     wxDocManager* m_pDocManager; // for managing the doc/view // made doc manager public
 								 // so wxGetApp() can access it in the View
+	wxArrayString m_sourceDataArr; // for storing the lines from wxTextFile in RebuildSourceText, see ExportFunctions.cpp
 
     /// The application's m_pConfig member is used to store and retrieve certain settings
     /// and/or information that needs to persist between application sessions. Since it is

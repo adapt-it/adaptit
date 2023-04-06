@@ -16694,6 +16694,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	// adaptation value is instead taken from pSrcPhrase->m_adaption, and we do not set pSrcPhrase->m_targetStr
 	// within the function - but instead pass the adaptation with punctuation restored back to the caller for
 	// the caller to do with it whatever is wanted.
+	wxString strResult = wxEmptyString;
 	if (pApp->m_bTypedNewAdaptationInChooseTranslation)
 	{
 		if (pSrcPhrase == NULL)
@@ -16787,7 +16788,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			}
 		}
 #endif
-		wxString strResult = wxEmptyString; 
+ 
 		// BEW 12Dec22 SimplePunctuationRestoration(pSrcPhrase, strEnding) will return any punctuation from, say,
 		// m_follPunct that was stored in pSrcPhrase->m_follPunct etc and preceding puncts too
 		strResult = pApp->SimplePunctuationRestoration(pSrcPhrase);
@@ -16814,6 +16815,21 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				pSrcPhrase->m_targetStr = _T('[');
 				return;
 			}
+		}
+	}
+	// BEW 6Apr23 test for SimplePunctuationRestoration() having added pSrcPhrase->m_follPunct, use .Find(). and if
+	// offset is >0, then the punct(s) are already added. Have a bool here that we can then text below where
+	// bAlreadyHasFollPunct is, and don't default it to FALSE at initialization, make it TRUE if the puncts were added
+	// just above
+	bool bSimpleHasAppendedPuncts = FALSE; // init
+	int offsett = wxNOT_FOUND;
+	wxString follPunctsStr = pSrcPhrase->m_follPunct;
+	if (!follPunctsStr.IsEmpty())
+	{
+		offsett = strResult.Find(follPunctsStr);
+		if (offsett != wxNOT_FOUND)
+		{
+			bSimpleHasAppendedPuncts = TRUE;
 		}
 	}
 
@@ -17012,6 +17028,16 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
 					str = tgtPrecPunct + str;
 				}
+#if defined (_DEBUG)
+				{
+					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: GRABBING: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 2)
+					{
+						int halt_here = 1; wxUnusedVar(halt_here);
+					}
+				}
+#endif
 
 				// Assign final contents of str to the instance's m_targetStr member
 				// BEW 1Dec22 following puncts may have been appended early above. str here will
@@ -17023,16 +17049,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					str = pSrcPhrase->m_targetStr;
 				}
 				pSrcPhrase->m_targetStr = str;
-#if defined (_DEBUG)
-				{
-					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: GRABBING: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
-						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
-					{
-						int halt_here = 1; wxUnusedVar(halt_here);
-					}
-				}
-#endif
 				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 				if (pSrcPhrase->m_nSrcWords > 1)
 				{
@@ -17789,7 +17805,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								str += tgtFollPunct;
 #if defined (_DEBUG)
 								{
-									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: str = %s "), __LINE__, str.c_str());
+									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
@@ -17811,7 +17828,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							str = tgtPrecPunct + str;
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: ADDED PREC PUNCTS: str = %s "), __LINE__, str.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 2)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
@@ -17846,8 +17864,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					}
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , What's m_targetStr already?: pSrcPhrase->m_targetStr= %s"),
-							__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: Nitty Gritty block, sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
@@ -17858,27 +17876,21 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// has following puncts - otherwise, we'd double them up
 					wxChar follPunctFirst = (wxChar)0;
 					bool bAlreadyHasFollPunct = FALSE; // init
-					if (!pSrcPhrase->m_follPunct.IsEmpty())
+					if (bSimpleHasAppendedPuncts)
 					{
-						follPunctFirst = pSrcPhrase->m_follPunct.GetChar(0); // a following punct exists in m_follPunct
-						// Does str have this following punct within it - reverse str first, to make sure we are
-						// finding on the following puncts, not preceding ones
-						wxString revStr = MakeReverse(str);
-						int offset = wxNOT_FOUND;
-						offset = revStr.Find(follPunctFirst);
-						if (offset >= 0)
-						{
-							// following puncts have already been added to str, so skip next code block
-							bAlreadyHasFollPunct = TRUE;
+						// Don't append m_follPunct contents a second time below. Set TRUE here
+						bAlreadyHasFollPunct = TRUE;
+					}
 #if defined (_DEBUG)
-							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , ALREADY HAS FOLLOWING PUNCTS from m_follPunct"),
-									__LINE__, str.c_str());
-							}
-#endif
+					{
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 2)
+						{
+							int halt_here = 1; wxUnusedVar(halt_here);
 						}
-					} // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty())
-
+					}
+#endif
 					// BEW 24Dec22, added 3rd subtest
 					if (!str.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty() && !bAlreadyHasFollPunct)
 					{
@@ -17895,8 +17907,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							follPuncts = GetConvertedPunct(follPuncts);
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , follPunct= %s"),
-									__LINE__, str.c_str(), follPuncts.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							}
 #endif
 							// Now add them to m_targetStr, after first setting pSrcPhrase->m_adaption (so it's not
@@ -17909,8 +17921,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							pSrcPhrase->m_targetStr += follPuncts;
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , pSrcPhrase->m_targetStr= %s"),
-									__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							}
 #endif
 						}
@@ -17936,8 +17948,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							bAlreadyHasFollOuterPunct = TRUE;
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , ALREADY HAS FOLLOWING OUTER PUNCTS from m_follOuterPunct"),
-									__LINE__, str.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							}
 #endif
 						}
@@ -17962,8 +17974,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 
 #if defined (_DEBUG)
 					{
-						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock: str = %s , pSrcPhrase->m_targetStr= %s"), 
-							__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
+						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
@@ -18038,8 +18050,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							pSrcPhrase->m_targetStr = precPuncts + pSrcPhrase->m_targetStr;
 #if defined (_DEBUG)
 							{
-								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , pSrcPhrase->m_targetStr= %s"),
-									__LINE__, str.c_str(), pSrcPhrase->m_targetStr.c_str());
+								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 							}
 #endif
 						}

@@ -38,6 +38,7 @@
 #include <wx/dir.h>
 #include <wx/longlong.h>
 #include <wx/docview.h>
+#include <wx/textfile.h>
 
 // BEW removed 15Jun11 until we support OXES
 // BEW reinstated 19May12, for OXES v1 support
@@ -624,11 +625,16 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 {
 	int nTextLength;
 	wxString text;
-	wxString* ptext = &text; // BEW 29Mar23 added because passing by reference made << or += fail
 	bool bRTFOutput = FALSE; // we are working with USFM marked up text
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 
 	// do the reconstruction from CSourcePhrase instances in the document...
+	size_t numLines;
+	numLines = 0;
+	text.Empty();
+	wxString strContent;
+	strContent = wxEmptyString;
+	size_t index;
 
     // RebuildTargetText, RebuildSourceText, etc, expose previously filtered material as it
     // was before input tokenization, and also exposes new information added and filtered
@@ -639,9 +645,20 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	{
 	case sourceTextExport:
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
-		nTextLength = RebuildSourceText(ptext);  // BEW 29Mar23 this fails, m_str is NULL
-		//text = RebuildSrcText(gpApp->m_pSourcePhrases); // BEW 29Mar23, new version, returns sourceStr
-		//nTextLength = text.Length();
+		nTextLength = RebuildSourceText(text);  // BEW 29Mar23 this fails, m_str is NULL
+		//nTextLength now returned as 0);
+		numLines = gpApp->m_sourceDataArr.GetCount();
+		if (numLines > 0)
+		{
+			for (index = 0; index < numLines; index++)
+			{
+				strContent = gpApp->m_sourceDataArr.Item(index);
+				if (!strContent.IsEmpty())
+				{
+					text += strContent;
+				}
+			}
+		}
 		break;
 	case glossesTextExport:
 		gpApp->LogUserAction(_T("Exporting XHTML from Glosses Text"));
@@ -1658,7 +1675,6 @@ void DoExportAsType(enum ExportType exportType)
 	// current free translations data, as the case may be
 	wxString source;	// a buffer built from pSrcPhrase->m_srcPhrase strings
 	source.Empty();
-	wxString* psrcText = &source;
 
 	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
 	target.Empty();
@@ -1686,15 +1702,31 @@ void DoExportAsType(enum ExportType exportType)
 	bool bIsFiltered = FALSE; // initializations
 	wxString footnote = _T("\\f ");
 	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+
+	CAdapt_ItApp* pApp = gpApp;
+	size_t numLines = 0;
+	size_t index = 0;
+	wxString strContent = wxEmptyString;
+
 	switch (exportType)
 	{
 	case sourceTextExport:
-		//nTextLength = RebuildSourceText(source, pList);
-		nTextLength = RebuildSourceText(psrcText, pList); // BEW 29Mar23
-		//source = RebuildSrcText(gpApp->m_pSourcePhrases);
-		//nTextLength = source.Length();
-		nTextLength = nTextLength; // avoid warning TODO: test for failures? (BEW
-								   // 3Jan12, No, allow length to be zero)
+		nTextLength = RebuildSourceText(source, pList);
+		//nTextLength is 0 now
+		nTextLength = nTextLength; 
+		numLines = pApp->m_sourceDataArr.GetCount();
+		if (numLines > 0)
+		{
+			for (index = 0; index < numLines; index++)
+			{
+				strContent = pApp->m_sourceDataArr.Item(index);
+				if (!strContent.IsEmpty())
+				{
+					source += strContent;
+				}
+			}
+		}
+
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
 
@@ -17055,7 +17087,8 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // BEW 29Mar23 NOTE: the call will fail (ie. give an empty rebuild) if, after the document 
 // is created and saved, it is not then clobbered and re-opened (e.g. Open Document on File menu)
 // so that it's available for choosing in the CAdapt_ItDoc instance's list of documents
-int RebuildSourceText(wxString* psource, SPList* pUseThisList)
+//int RebuildSourceText(wxString* psource, SPList* pUseThisList)
+int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
 	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
@@ -17077,8 +17110,82 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 	}
 	wxASSERT(pList != NULL);
 
-	// As we traverse the list of CSourcePhrase instances, the special things we must be
-	// careful of are 1. null source phrase placeholders (we ignore these, but we don't
+	// BEW 5Apr23 << is failing to transfer data to the caller. So I'll try get round
+	// this problem by avoiding use of <<, and  instead send each srcText string to
+	// a temporary wxTextFile, and when the loop finishes, get the file data and 
+	// assign that to srcText passed in str by ref. If that fails, then I could instead
+	// get the caller to grab the data from the file - provided it gets into it in the first place.
+
+	// We need a unique filename
+	wxString filename = _T("fileRebuildSrc");
+	// The running executable's folder will do for a suitable path.
+	CAdapt_ItApp* pApp = gpApp;
+	wxString pathOnly = pApp->m_appInstallPathOnly + pApp->PathSeparator; // needs to end with \ or /
+	// Make the path to the what will be a line-oriented wxTextFile
+	wxString filePath = pathOnly + filename;
+	// We create the file, and once created, we'll leave it in place permanently
+	wxTextFile textFile;
+	bool bFileExists = FALSE; // initialise
+	bool bIsOpened = FALSE; // initialise
+	bFileExists = wxFileName::FileExists(filePath);
+	//wxASSERT(!bFileExists);
+	if (!bFileExists)
+	{
+		// Create the file -- only a valid operation when the file does not yet exist
+		textFile.Create(filePath);
+		// Note textFile is empty at this point. Now we must Open it, and this may fail,
+		// so capture the returned boolean
+		textFile.Open();
+		bIsOpened = textFile.IsOpened(); // remember, .Write() must be used before closing
+		if (!bIsOpened)
+		{
+			// Failure to open the file, log the failure and return 0 length so that the caller
+			// knows the RebuildSourcText() attempt failed. The wxTextFile will be auto cleaned up
+			return 0;
+		}
+		// line numbering is 0-based
+	}
+	else
+	{
+		// the file exists, try to open it and clear its contents
+		bIsOpened = textFile.Open(filePath);
+		if (bIsOpened)
+		{
+			textFile.Clear();
+		}
+		else
+		{
+			// Unable to be opened
+			return 0;
+		}
+	}
+	// If control gets to here, the opened wxTextFile is ready to have wxStrings appended
+
+	// BEW 5Mar23 I cannot get += or << to append one string to another in this function,
+	// so I'll leave the textFile open (it DOES accept the str bits loaded into it, and
+	// in the caller I'll get what textFile has in it, to form the exported src text
+#if defined (_DEBUG)
+	wxString strDestination = wxEmptyString;
+	wxString strSource = _T("Some test words are these");
+	strDestination += strSource;
+	strSource = _T(" MORE WORDS");
+	strDestination += strSource;
+
+	wxString strTwo;
+	wxString strOne;
+	strTwo = _T("A second string");
+	strOne = _T(" EVEN MORE");
+	strTwo += strOne;
+	// The above are two options. First lot create and set content on the same line.
+	// Second lot initialises only on a line, and sets content on a separate line.
+	// I made the test because at the += at 17146, typing strOne the IDE did not show
+	// strOne as selectable in the list of possibilities. I hoped this might be a clue
+	// why exporting the souce text refuses to append wxString data following += or <<
+	// Sadly, += worked equally well in this test block.
+#endif
+	// BEW 5Apr23, (legacy commenting...) As we traverse the list of CSourcePhrase 
+	// instances, the special things we must be careful of are:
+	// 1. source phrase placeholders (we ignore these, but we don't
 	// ignore any m_markers, m_endMarkers, m_freeTrans, m_collectedBackTrans, m_note,
 	// m_filteredInfo, m_precPunt, m_follPunct, and, since 11Oct10, m_follOuterPunct, &
 	// inline beginmarkers or endmarkers of binding or non-binding type which are now also
@@ -17087,7 +17194,7 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 	// 2. retranslations (we can ignore the fact these instances belong to a retranslation),
 	// 3. mergers (these give us a headache - we have to look at the stored list of
 	// original CSourcePhrase instances on each such merged one, and build the source text
-	// from those - since they will have any sf markers in the right places, and that info
+	// from those - since they will have any USFM markers in the right places, and that info
 	// is lost to the parent merged one; and handling filtered information complicates
 	// this even further)
 	//
@@ -17106,7 +17213,7 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 	// must be given special treatment.
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
-	psource->Empty();
+	srcText.Empty();
 	wxString tempStr;
 	// BEW added 16Jan08 A boolean added in support of adequate handling of markers which
 	// get added to a placeholder due to it being inserted at the beginning of a stretch of
@@ -17196,7 +17303,7 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 	// non-placeholder - whether or not it has had information moved to it. That's why the
 	// RebuildTargetText() function doesn't need all this extra apparatus.
 
-	bool bHasFilteredMaterial = FALSE;
+	bool bHasFilteredMaterial = FALSE; // initialise
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -17220,7 +17327,8 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 		if (!aBreak.IsEmpty())
 		{
 			str += aBreak;
-			*psource << str; // do it now, as str is emptied in a few places further below
+			//srcText << str; // do it now, as str is emptied in a few places further below
+			textFile.AddLine(str);
 			str.Empty();
 		}
 		// BEW added to following block 16Jan09, for handling relocated markers on
@@ -17368,8 +17476,9 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 					}
 				}
 				str.Trim();
-				str << aSpace; // end it with a space when it's marker material
-				*psource << str;
+				str += aSpace; // end it with a space when it's marker material
+				//srcText << str;
+				textFile.AddLine(str);
 			} // end of TRUE block for test: if (bHasFilteredMaterial)
 			else
 			{
@@ -17387,11 +17496,12 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 					// here if it is needed
 					if (!tempStr.IsEmpty() && tempStr.GetChar(tempStr.Len() - 1) != aSpace)
 					{
-						str << aSpace;
+						str += aSpace;
 					}
 					tempStr.Empty();
 				}
-				*psource << str;
+				//srcText << str;
+				textFile.AddLine(str);
 			} // end of else block for test: if (bHasFilteredMaterial)
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
@@ -17408,11 +17518,12 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 			//the space insertion below is no longer done unilaterally, resulting in an
 			//error which is a USFM markup error, so I commented this line out
 
-			// append str to source
+			// append str to srcText
 			// BEW 21Jul14, we put in the word delimiter at the start now, not adding
 			// it at the end, so don't add a space first, just add the str only
 			//source << aSpace << str;
-			*psource << str;
+			//srcText << str;
+			textFile.AddLine(str);
 			str.Empty();
 		}
 		else
@@ -17449,10 +17560,12 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 				// a disaster
 			}
 			tempStr.Empty();
-
-			*psource << str;
+			//srcText << str;
+			if (!str.IsEmpty())
+			{
+				textFile.AddLine(str);
+			}
 			str.Empty();
-
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
 			// non-binding markers, endmarkers, outer punct, as needed
@@ -17511,6 +17624,18 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 				}
 			}
 
+			// BEW 5Apr23, for languages which use zero-width space, but '/' to delineate
+			// words as a typing aid we need to support what Paratext does. But since
+			// we are going to use a textFile, the change (if needed) must be done here,
+			// on str, so that when srcText gets sent to our textFile (to avoid use of <<)
+			// the changs will have been completed. The change is to remove any temporarily
+			// inserted / characters from the source text.
+			//#if defined(FWD_SLASH_DELIM)
+			// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+			// (removeAtPunctuation is an enum value, see line 39 of helpers.h)
+			str = DoFwdSlashConsistentChanges(removeAtPunctuation, str);
+			str = FwdSlashtoZWSP(str);
+
 			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
 			// the caller, we should not risk clobbering a space after the verse of
 			// a verse marker, so comment next line out
@@ -17540,39 +17665,75 @@ int RebuildSourceText(wxString* psource, SPList* pUseThisList)
 			// if we return ']' bracket, we don't want a preceding space
 			if (str[0] == _T(']'))
 			{
-				*psource << str;
+				//srcText << str;
+				textFile.AddLine(str);
 			}
-			else if (!(*psource).IsEmpty() && (*psource)[(*psource).Len() - 1] == _T('['))
+			else if (!str.IsEmpty() && str[str.Len() - 1] == _T('['))
 			{
 				// in this circumstance we don't want an intervening space
 				// between the [ and what follows it
-				*psource << str;
+				//srcText << str;
+				textFile.AddLine(str);
 			}
 			else
 			{
-				// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
-				*psource << str;
+				// Control usually goes thru here
+				//srcText << str;
+				if (!str.IsEmpty())
+				{
+					textFile.AddLine(str);
+				}
 			}
 			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
-	(*psource).Trim();
 
-	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
-	//sourceStr << aSpace;
-	//#if defined(FWD_SLASH_DELIM)
-	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
-	*psource = DoFwdSlashConsistentChanges(removeAtPunctuation, *psource);
-	*psource = FwdSlashtoZWSP(*psource);
+	// When control gets to here, the rebuild is complete. Grab the data from textFile, 
+	// and kill the file. Return the data via srcText parameter. If that fails, we've
+	// more work to do. But first, .Write() has to be called
+	bool bWroteOK = textFile.Write();
+	wxASSERT(bWroteOK);
+	// textFile will be auto-destroyed when it goes out of scope at end of RebuildSourceText
+	// so a doc member wxArrayString needs to preserve the lineData lines, for use externally
+
+	// TODO - the above comment
+	int lineCount = (int)textFile.GetLineCount(); // returns size_t
+
+	// Need a persistent place to store the textFile's wxString lines, before the textFile goes out of scope
+	pApp->m_sourceDataArr.Empty();
+	size_t indexForAdded = 0;
+
+
+	wxString lineData; lineData = wxEmptyString;
+	if (lineCount > 0)
+	{
+		// There is data to grab, use a local wxString for accumulating it in a loop
+		for (lineData = textFile.GetFirstLine(); !textFile.Eof(); lineData = textFile.GetNextLine())
+		{
+			indexForAdded = pApp->m_sourceDataArr.Add(lineData);
+#if defined (_DEBUG)
+			wxLogDebug(_T("RebuildSourceText loop: lineData= %s"), lineData.c_str());
+#endif
+		} // end of for loop
+		// No need to Close(), the textFile will go out of scope and be auto-deleted
+	}
+	else
+	{
+		// Something went wrong, textFile is empty
+		wxASSERT(lineCount > 0);
+		return 0;
+
+		// TODO -- add LogUserAction support where file failures are possible
+	}
 
 	//#endif
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	// update length
-	int nLen = 0;
-	nLen = (*psource).Length();
-
-	return nLen;
+	//int nLen = 0;
+	//nLen = srcText.Length();
+	return 0;
+	//return nLen;
 }
 
 // RebuildText_For_Collaboration() is a wrapper for the RebuildSourceText(),
@@ -17599,7 +17760,6 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 {
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString usfmText; usfmText.Empty();
-	wxString* pusfmText = &usfmText; // BEW 29Mar23 for rebuilding source
 
 	wxArrayString arrCustomBareMkrs;
 	wxString mkr = _T("note");
@@ -17609,6 +17769,13 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	mkr = _T("bt");
 	arrCustomBareMkrs.Add(mkr);
 	int nTextLength;
+
+	size_t numLines;
+	numLines = 0;
+	wxString strContent;
+	strContent = wxEmptyString;
+	size_t index;
+
 	switch(exportType)
 	{
 	case targetTextExport:
@@ -17622,7 +17789,22 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 		break;
 	default:
 	case sourceTextExport:
-		nTextLength = RebuildSourceText(pusfmText, pList); // BEW 29Mar23 pass 1st param as pointer
+		nTextLength = RebuildSourceText(usfmText, pList);
+		//nTextLength is 0 now
+		nTextLength = nTextLength;
+		numLines = gpApp->m_sourceDataArr.GetCount();
+		if (numLines > 0)
+		{
+			for (index = 0; index < numLines; index++)
+			{
+				strContent = gpApp->m_sourceDataArr.Item(index);
+				if (!strContent.IsEmpty())
+				{
+					usfmText += strContent;
+				}
+			}
+		}
+
 		break;
 	}
 	if (nTextLength > 0)

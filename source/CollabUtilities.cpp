@@ -11030,6 +11030,15 @@ extern bool gbDoingInitialSetup;
 					// something was changed in the external editor's data since the last time
 					// it was grabbed. If no changes to it were done externally, we can forgo
 					// the merger and just open the Adapt It document again 'as is'.
+					// 
+					// BEW 6Apr23, the doc parser is now more clever, but the code which compares
+					// mdf5sum values needs to work on the result of having done the complex merging
+					// of the Paratext or Bibledit source data. Otherwise, a source text with markup
+					// problems but which is identical to what the AI document's loaded src text was,
+					// will bring the markup problems into the AI document - to cause problems there.
+					// This problem can be fixed by the simple change to always do a complex merger
+					// at the start of every new session. Setting bDoMerger TRUE here, for both the 
+					// true and else blocks should be enough to fix the issue. See else block below.
 					bool bDoMerger;
 					if (m_collab_bTextOrPunctsChanged || m_collab_bUsfmStructureChanged)
 					{
@@ -11037,14 +11046,15 @@ extern bool gbDoingInitialSetup;
 					}
 					else
 					{
-						bDoMerger = FALSE; // use the AI document 'as is'
+						//bDoMerger = FALSE; // use the AI document 'as is'
+						bDoMerger = TRUE; // do not use the AI document 'as is'
 					}
 
-#if defined(_DEBUG)
+//#if defined(_DEBUG)
 					// Force bDoMerger to be TRUE, for testing the source text Merger process
 					//	int remove_this = 1;
 					//	bDoMerger = TRUE;
-#endif
+//#endif
 
 
 
@@ -11497,7 +11507,6 @@ extern bool gbDoingInitialSetup;
 	{
 		CAdapt_ItApp* pApp = &wxGetApp();
 		wxString source = _T(""); // a buffer built from pSrcPhrase->m_srcPhrase strings
-		wxString* psource = &source; // BEW added line, 29Mar23 use pointer as 1st param, else << or += fail
 		SPList* pList = pApp->m_pSourcePhrases;
 		wxASSERT(pList);
 		bool bIsUnstructuredData = gpApp->GetView()->IsUnstructuredData(pList);
@@ -11523,14 +11532,33 @@ extern bool gbDoingInitialSetup;
 		wxString footnote = _T("\\f ");
 		wxString filteredMkrs = pApp->gCurrentFilterMarkers;
 
-		nTextLength = RebuildSourceText(psource); // BEW 29Mar23 need to pass 1st param by pointer, not reference
+		nTextLength = RebuildSourceText(source); // BEW 29Mar23 need to pass 1st param by pointer, not reference
 		wxUnusedVar(nTextLength); // avoid warning
-								  // BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
+		size_t numLines;
+		numLines = 0;
+		source.Empty();
+		wxString strContent;
+		strContent = wxEmptyString;
+		size_t index;
+		numLines = gpApp->m_sourceDataArr.GetCount();
+		if (numLines > 0)
+		{
+			for (index = 0; index < numLines; index++)
+			{
+				strContent = gpApp->m_sourceDataArr.Item(index);
+				if (!strContent.IsEmpty())
+				{
+					source += strContent;
+				}
+			}
+		}
+
+		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
 
-												// Apply output filter to the source text
-												// m_exportBareMarkers is a global wxArrayString defined in ExportSOptions.cpp (I think)
-												// and m_exportFilterFlags is a wxArrayInt which works in parallel to indicate filtered or not
+		// Apply output filter to the source text
+		// m_exportBareMarkers is a global wxArrayString defined in ExportSOptions.cpp (I think)
+		// and m_exportFilterFlags is a wxArrayInt which works in parallel to indicate filtered or not
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output

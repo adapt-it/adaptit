@@ -9472,7 +9472,6 @@ g:				bIsUnknownMkr = FALSE;
 				// filteredStr
 				wxString strFilteredStuff;
 				strFilteredStuff.Empty();
-				wxString* pstrFilteredStuff = &strFilteredStuff; // BEW added 29Mar23
 				if (!pSublist->IsEmpty())
 				{
 					// BEW addition 9Apr15
@@ -9502,8 +9501,26 @@ g:				bIsUnknownMkr = FALSE;
 					}
 					// end of addition done on 9Apr15
 					 // BEW changed 29Mar23, pass in pointer, not a reference
-					int textLen = RebuildSourceText(pstrFilteredStuff, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
+					size_t numLines;
+					numLines = 0;
+					strFilteredStuff.Empty();
+					wxString strContent;
+					strContent = wxEmptyString;
+					size_t index;
+					numLines = gpApp->m_sourceDataArr.GetCount();
+					if (numLines > 0)
+					{
+						for (index = 0; index < numLines; index++)
+						{
+							strContent = gpApp->m_sourceDataArr.Item(index);
+							if (!strContent.IsEmpty())
+							{
+								strFilteredStuff += strContent;
+							}
+						}
+					}
 
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 
@@ -10207,8 +10224,6 @@ g:				bIsUnknownMkr = FALSE;
 				// here 'export' the src text into a wxString, and then append that to
 				// filteredStr
 				wxString strFilteredStuff;
-				strFilteredStuff.Empty();
-				wxString* pstrFilteredStuff = &strFilteredStuff; // BEW 29Mar23 added this line
 				if (!pSublist->IsEmpty())
 				{
 					// BEW addition 9Apr15 to fix a bug where two consecutive filterable spans such
@@ -10253,9 +10268,27 @@ g:				bIsUnknownMkr = FALSE;
 					}
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 					// end of addition done on 9Apr15
-					// BEW 29Mar23 don't pass in by reference, pass in pointer as first param
-					int textLen = RebuildSourceText(pstrFilteredStuff, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
+					size_t numLines;
+					numLines = 0;
+					strFilteredStuff.Empty();
+					wxString strContent;
+					strContent = wxEmptyString;
+					size_t index;
+					strFilteredStuff.Empty();
+					numLines = gpApp->m_sourceDataArr.GetCount();
+					if (numLines > 0)
+					{
+						for (index = 0; index < numLines; index++)
+						{
+							strContent = gpApp->m_sourceDataArr.Item(index);
+							if (!strContent.IsEmpty())
+							{
+								strFilteredStuff += strContent;
+							}
+						}
+					}
 
 					// BEW 30Sep19 the above RebuildSourceText() will, embedded in it,
 					// check for the existence of hidden USFM5 attributes metadata, and
@@ -16763,7 +16796,7 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	// wxUnusedVar() for those which are not now referenced
 	wxUnusedVar(inlineNonbindingEndMrks);
 #if defined (_DEBUG) //&& defined (LOGMKRS)
-	if (pSrcPhrase->m_nSequNumber >= 0)
+	if (pSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -18183,7 +18216,7 @@ if (bAllowPunctChangeBlock && bParsedInlineBindingMkr) // BEW 5Oct22 added subte
 	}
 }
 #if defined (_DEBUG)
-wxLogDebug(_T("ParsePreWord: line %d , sn= %d , m_srcPhrase= %s , m_markers= [%s] , m_targetStr= %s"),
+wxLogDebug(_T("ParsePreWord: line %d , END sn= %d , m_srcPhrase= %s , m_markers= [%s] , m_targetStr= %s"),
 	__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_targetStr.c_str());
 #endif
 
@@ -33806,7 +33839,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 25);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 8)
+						if (pSrcPhrase->m_nSequNumber >= 4)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
