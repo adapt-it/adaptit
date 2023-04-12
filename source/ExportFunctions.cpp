@@ -1709,13 +1709,20 @@ void DoExportAsType(enum ExportType exportType)
 	//size_t numLines = 0;
 	//size_t index = 0;
 	wxString strContent = wxEmptyString;
+	wxString strAccum; strAccum = wxEmptyString;
+	// ************* IMPORTANT NOTE ********* 12Apr23 ****** about limiting scope in a switch's case block
+	// Wrap with { and } when introducing new variables in a case block. Even when the variables are created
+	// and initialized before the switch, such as source, and strAccum, above, failure to add curly braces
+	// is likely to cause the operators =, or += , or << , to fail to transfer data, because the linker can't
+	// find where to send the data to.
+	// ************** end of note **************************
 	switch (exportType)
 	{
 	case sourceTextExport:
+	{
 		nTextLength = RebuildSourceText(source, pList);
 		//nTextLength is 0 now
-		nTextLength = nTextLength; 
-		wxString strAccum; strAccum = wxEmptyString;
+		nTextLength = nTextLength;
 		strAccum = AccumulateSourceExportStrings();
 		source = strAccum;
 		if (!gpApp->m_sourceDataArr.IsEmpty())
@@ -1736,7 +1743,7 @@ void DoExportAsType(enum ExportType exportType)
 		source = RemoveMultipleSpaces(source);
 
 		if (gbIsUnstructuredData)
-			FormatUnstructuredTextBufferForOutput(source,bRTFOutput);
+			FormatUnstructuredTextBufferForOutput(source, bRTFOutput);
 
 		// do the check for a document with only paragraph markers (not needed, I fixed
 		// FormatUnstructuredTextBufferForOutput() instead)
@@ -1757,8 +1764,10 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to
 														   // \z... markers for Paratext
 		}
+	}
 		break;
 	case glossesTextExport:
+	{
 		nTextLength = RebuildGlossesText(glosses);
 
 		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the
@@ -1796,7 +1805,7 @@ void DoExportAsType(enum ExportType exportType)
 		glosses = RemoveMultipleSpaces(glosses);
 
 		if (gbIsUnstructuredData)
-			FormatUnstructuredTextBufferForOutput(glosses,bRTFOutput);
+			FormatUnstructuredTextBufferForOutput(glosses, bRTFOutput);
 
 		if (bRTFOutput)
 		{
@@ -1808,8 +1817,10 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(glosses); // change our custom markers to
 														   // \z... markers for Paratext
 		}
+	}
 		break;
 	case freeTransTextExport:
+	{
 		nTextLength = RebuildFreeTransText(freeTrans);
 
 		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the
@@ -1847,7 +1858,7 @@ void DoExportAsType(enum ExportType exportType)
 		freeTrans = RemoveMultipleSpaces(freeTrans);
 
 		if (gbIsUnstructuredData)
-			FormatUnstructuredTextBufferForOutput(freeTrans,bRTFOutput);
+			FormatUnstructuredTextBufferForOutput(freeTrans, bRTFOutput);
 
 		if (bRTFOutput)
 		{
@@ -1859,9 +1870,13 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(freeTrans); // change our custom markers
 														   // to \z... markers for Paratext
 		}
+	}
 		break;
 	default:
+	{
+	}
 	case targetTextExport:
+	{
 		nTextLength = RebuildTargetText(target);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
@@ -1897,7 +1912,7 @@ void DoExportAsType(enum ExportType exportType)
 #endif
 
 		// Apply output filter to the target text
-		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 #if defined(_DEBUG) && defined(TRUNCATED)
 		wxLogDebug(_T("DoExportAsType() after ApplyOutputFilterToText(): text length = %d"), target.Length());
@@ -1946,6 +1961,7 @@ void DoExportAsType(enum ExportType exportType)
 			wxLogDebug(_T("DoExportAsType() after ChangeCustomMarkersToParatextPrivates(): text length = %d"), target.Length());
 #endif
 		}
+	}
 		break;
 	}
 	if (bRTFOutput)
