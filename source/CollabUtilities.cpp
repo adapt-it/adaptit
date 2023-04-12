@@ -11540,6 +11540,7 @@ extern bool gbDoingInitialSetup;
 		wxString strContent;
 		strContent = wxEmptyString;
 		size_t index;
+		wxString strAccum;
 		numLines = gpApp->m_sourceDataArr.GetCount();
 		if (numLines > 0)
 		{
@@ -11548,9 +11549,10 @@ extern bool gbDoingInitialSetup;
 				strContent = gpApp->m_sourceDataArr.Item(index);
 				if (!strContent.IsEmpty())
 				{
-					source += strContent;
+					strAccum += strContent;
 				}
 			}
+			source = strAccum;
 		}
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export

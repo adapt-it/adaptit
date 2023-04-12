@@ -635,6 +635,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	wxString strContent;
 	strContent = wxEmptyString;
 	size_t index;
+	wxString strAccum;
 
     // RebuildTargetText, RebuildSourceText, etc, expose previously filtered material as it
     // was before input tokenization, and also exposes new information added and filtered
@@ -655,9 +656,10 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 				strContent = gpApp->m_sourceDataArr.Item(index);
 				if (!strContent.IsEmpty())
 				{
-					text += strContent;
+					strAccum += strContent;
 				}
 			}
+			text = strAccum;
 		}
 		break;
 	case glossesTextExport:
@@ -1703,28 +1705,23 @@ void DoExportAsType(enum ExportType exportType)
 	wxString footnote = _T("\\f ");
 	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 
-	CAdapt_ItApp* pApp = gpApp;
-	size_t numLines = 0;
-	size_t index = 0;
+	//CAdapt_ItApp* pApp = gpApp;
+	//size_t numLines = 0;
+	//size_t index = 0;
 	wxString strContent = wxEmptyString;
-
 	switch (exportType)
 	{
 	case sourceTextExport:
 		nTextLength = RebuildSourceText(source, pList);
 		//nTextLength is 0 now
 		nTextLength = nTextLength; 
-		numLines = pApp->m_sourceDataArr.GetCount();
-		if (numLines > 0)
+		wxString strAccum; strAccum = wxEmptyString;
+		strAccum = AccumulateSourceExportStrings();
+		source = strAccum;
+		if (!gpApp->m_sourceDataArr.IsEmpty())
 		{
-			for (index = 0; index < numLines; index++)
-			{
-				strContent = pApp->m_sourceDataArr.Item(index);
-				if (!strContent.IsEmpty())
-				{
-					source += strContent;
-				}
-			}
+			// Empty it, ready for next use
+			gpApp->m_sourceDataArr.Empty();
 		}
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
@@ -17775,6 +17772,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	wxString strContent;
 	strContent = wxEmptyString;
 	size_t index;
+	wxString strAccum;
 
 	switch(exportType)
 	{
@@ -17800,11 +17798,11 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 				strContent = gpApp->m_sourceDataArr.Item(index);
 				if (!strContent.IsEmpty())
 				{
-					usfmText += strContent;
+					strAccum += strContent;
 				}
 			}
+			usfmText = strAccum;
 		}
-
 		break;
 	}
 	if (nTextLength > 0)

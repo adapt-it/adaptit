@@ -624,6 +624,7 @@ bool	IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly,
 //void ShowSPandPile(int atSequNum, int whereTis);
 //void ShowInvalidStripRange();
 
+wxString AccumulateSourceExportStrings(); // BEW added 12Apr23
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

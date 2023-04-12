@@ -13427,3 +13427,34 @@ int do_upload_local_kbw(void)
 
 	return rv;
 }
+
+// BEW added 12Apr23 to help with source text exporting
+wxString AccumulateSourceExportStrings()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString accum = wxEmptyString;
+	// sanity test
+	if (pApp->m_sourceDataArr.IsEmpty())
+	{
+		return accum; // empty
+	}
+	int numLines;
+	numLines = pApp->m_sourceDataArr.GetCount();
+	// another sanity test
+	if (numLines == 0)
+	{
+		return accum;
+	}
+	wxString strContent;
+	strContent = wxEmptyString;
+	int index;
+	for (index = 0; index < numLines; index++)
+	{
+		strContent = pApp->m_sourceDataArr.Item(index);
+		if (!strContent.IsEmpty())
+		{
+			accum += strContent;
+		}
+	}
+	return accum;
+}
