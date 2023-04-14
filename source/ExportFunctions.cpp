@@ -539,9 +539,12 @@ wxString GetTheLanguageDirectionality(ExportType exportType)
 	switch (exportType)
 	{
 	case sourceTextExport:
+	{
 		bIsRTL = gpApp->m_bSrcRTL;
+	}
 		break;
 	case glossesTextExport:
+	{
 		if (gbGlossingUsesNavFont)
 		{
 			bIsRTL = gpApp->m_bNavTextRTL;
@@ -550,19 +553,26 @@ wxString GetTheLanguageDirectionality(ExportType exportType)
 		{
 			bIsRTL = gpApp->m_bTgtRTL;
 		}
+	}
 		break;
 	case freeTransTextExport:
+	{
 		// so far, we always use target text's font, encoding and directionality for any
 		// free translations that are done
 		bIsRTL = gpApp->m_bTgtRTL;
+	}
 		break;
 	case targetTextExport:
+	{
 		bIsRTL = gpApp->m_bTgtRTL;
+	}
 		break;
 	default:
+	{
 		bIsRTL = FALSE;
-		break;
 	}
+		break;
+	} // end of switch (exportType)
 	if (bIsRTL)
 	{
 		myDirectionality = strRTL;
@@ -591,19 +601,29 @@ bool DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode)
 	switch (exportType)
 	{
 	case sourceTextExport:
+	{
 		langCode = gpApp->m_sourceLanguageCode;
+	}
 		break;
 	case glossesTextExport:
+	{
 		langCode = gpApp->m_glossesLanguageCode;
+	}
 		break;
 	case freeTransTextExport:
+	{
 		langCode = gpApp->m_freeTransLanguageCode;
-		break;
-	case targetTextExport:
-	default:
-		langCode = gpApp->m_targetLanguageCode;
-		break;
 	}
+		break;
+	case targetTextExport: //fall thru
+	{
+	}
+	default:
+	{
+		langCode = gpApp->m_targetLanguageCode;
+	}
+		break;
+	} // end of switch (exportType)
 	if (langCode.IsEmpty())
 	{
 		msg = msg.Format(_(
@@ -645,6 +665,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	switch(exportType)
 	{
 	case sourceTextExport:
+	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
 		nTextLength = RebuildSourceText(text);  // BEW 29Mar23 this fails, m_str is NULL
 		//nTextLength now returned as 0);
@@ -661,21 +682,31 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 			}
 			text = strAccum;
 		}
+	}
 		break;
 	case glossesTextExport:
+	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Glosses Text"));
 		nTextLength = RebuildGlossesText(text);
+	}
 		break;
 	case freeTransTextExport:
+	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Free Translation Text"));
 		nTextLength = RebuildFreeTransText(text);
+	}
 		break;
 	default:
+	{
+	}
 	case targetTextExport:
+	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Target Text"));
 		nTextLength = RebuildTargetText(text);
-		break;
 	}
+		break;
+	} // end of switch(exportType)
+
 	nTextLength = nTextLength; // whm 27Jun12 added to avoid "set but not used" compiler warning;
 	// remove the following markers and their text content... \free, \note, \bt and
 	// any \bt-initial custom markers, and \rem (Paratext note marker) from the string
@@ -707,7 +738,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 	// format for text oriented output in next call, param 2 is from enum ExportType in Adapt_It.h
-	FormatMarkerBufferForOutput(text, targetTextExport);
+	FormatMarkerBufferForOutput(text, targetTextExport); // targetTextExport = 1, enum value
 	return text;
 }
 
@@ -1006,40 +1037,40 @@ void DoExportAsType(enum ExportType exportType)
 	switch (exportType)
 	{
 	case sourceTextExport:
-		{
-			// BEW 28July removed the "new_" part of the string, as it is misleading and
-			// serves no useful purpose
-			//expTypePrefixStr = _("new_source_text_");
-			expTypePrefixStr = _("source_text_");
-			gpApp->LogUserAction(_T("Initiated Export Source Text"));
-			s = _("Export Source Text");
-			sadlg.SetTitle(s);
-			break;
-		}
+	{
+		// BEW 28July removed the "new_" part of the string, as it is misleading and
+		// serves no useful purpose
+		//expTypePrefixStr = _("new_source_text_");
+		expTypePrefixStr = _("source_text_");
+		gpApp->LogUserAction(_T("Initiated Export Source Text"));
+		s = _("Export Source Text");
+		sadlg.SetTitle(s);
+	}
+	break;
 	case targetTextExport:
-		{
-			expTypePrefixStr = _("target_text_");
-			gpApp->LogUserAction(_T("Initiated Export Target Text"));
-			s = _("Export Translation (Target) Text");
-			sadlg.SetTitle(s);
-			break;
-		}
+	{
+		expTypePrefixStr = _("target_text_");
+		gpApp->LogUserAction(_T("Initiated Export Target Text"));
+		s = _("Export Translation (Target) Text");
+		sadlg.SetTitle(s);
+	}
+	break;
 	case glossesTextExport:
-		{
-			expTypePrefixStr = _("glosses_text_");
-			gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
-			s = _("Export Glosses As Text");
-			sadlg.SetTitle(s);
-			break;
-		}
+	{
+		expTypePrefixStr = _("glosses_text_");
+		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
+		s = _("Export Glosses As Text");
+		sadlg.SetTitle(s);
+	}
+	break;	
 	case freeTransTextExport:
-		{
-			expTypePrefixStr = _("freetrans_text_");
-			gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
-			s = _("Export Free Translation Text");
-			sadlg.SetTitle(s);
-			break;
-		}
+	{
+		expTypePrefixStr = _("freetrans_text_");
+		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
+		s = _("Export Free Translation Text");
+		sadlg.SetTitle(s);
+	}
+	break;
 	}
 
 	// substitute the actual project name string into the %s placeholder
@@ -1101,17 +1132,18 @@ void DoExportAsType(enum ExportType exportType)
 	switch(sadlg.GetSaveAsType())
 	{
 	    case ExportSaveAsRTF:
+		{
 			/////////////////////////////////////
 			// Export to RTF
 			/////////////////////////////////////
 			// make a suitable default output filename for the export function
-			exportFilename.Remove(len-3,3); // remove the extension
+			exportFilename.Remove(len - 3, 3); // remove the extension
 			exportFilename += _T("rtf"); // make it an *.rtf file type
-            // Prepare a unique filename from the exportFilename. This unique filename and
-            // path is used when the export is nav protected or when the user has ticked
-            // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
-            // date-time stamp is to be suffixed to the export filename, which ensures that
-            // any existing exports are not overwritten.
+			// Prepare a unique filename from the exportFilename. This unique filename and
+			// path is used when the export is nav protected or when the user has ticked
+			// the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
+			// date-time stamp is to be suffixed to the export filename, which ensures that
+			// any existing exports are not overwritten.
 			exportFilename = PrepareUniqueFilenameForExport(exportFilename, TRUE,
 				incrementViaDate_TimeStamp, gpApp->m_bUseSuffixExportDateTimeOnFilename);
 			filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
@@ -1146,18 +1178,21 @@ void DoExportAsType(enum ExportType exportType)
 					gpApp->m_lastTargetRTFOutputPath, defaultDir);
 				break;
 			} // switch (exportType)
+		} // case ExportSaveAsRTF
 			break;
-		case ExportSaveAsXHTML:
+		case ExportSaveAsXHTML: // fall thru
+		{
+		}
 		case ExportSaveAsPathway:
-			/////////////////////////////////////
-			// Export to XHTML / Pathway
-			/////////////////////////////////////
+		
+		/////////////////////////////////////
+		// Export to XHTML / Pathway
+		/////////////////////////////////////
 
-			// (Note: both XHTML and Pathway exports result in the same export;
-			// the Pathway export causes Pathway's command line (pathwayb.exe) to get
-			// called on the xhtml results after the export occurs below.)
-
-			{
+		// (Note: both XHTML and Pathway exports result in the same export;
+		// the Pathway export causes Pathway's command line (pathwayb.exe) to get
+		// called on the xhtml results after the export occurs below.)
+		{
 			//////////////////////////////////////////////////////////////////////////////
 			// Export to XHTML (which type, src or tgt or glosses or free trans is handled
 			// within, as is saving to disk, so when DoExportAsXTHML() returns, return
@@ -1168,18 +1203,26 @@ void DoExportAsType(enum ExportType exportType)
 			switch(exportType)
 			{
 			case sourceTextExport:
+			{
 				strType = _T("sourceTextExport");
+			}
 				break;
 			case targetTextExport:
+			{
 				strType = _T("targetTextExport");
+			}
 				break;
 			case glossesTextExport:
+			{
 				strType = _T("glossesTextExport");
+			}
 				break;
 			case freeTransTextExport:
+			{
 				strType = _T("freeTransTextExport");
-				break;
 			}
+				break;
+			} // end of switch(exportType)
 			aMsg = aMsg.Format(_T("Export XHTML Text of type: %s"), strType.c_str());
 			gpApp->LogUserAction(aMsg);
 			// make a suitable default output filename for the export function
@@ -1308,9 +1351,7 @@ void DoExportAsType(enum ExportType exportType)
                 // for linux, collecting the command line stdout and stderr doesn't
                 // seem to be an issue in sync mode.
 				code = wxExecute(commandLine,textIOArray,errorsIOArray);
-
 #endif
-
                 if (code)
                 {
 					aMsg = _("Error: Pathway export could not be started,");
@@ -1508,29 +1549,32 @@ void DoExportAsType(enum ExportType exportType)
                     exportFilename, filter, true);
                 return;
             }
-			}
+		} // end of case ExportSaveAsPathway:
 			break;
 	    case ExportSaveAsTXT:
+		{
+		}
 	    default:
-			/////////////////////////////////////
-			// Export to SFM / TXT
-			/////////////////////////////////////
+		/////////////////////////////////////
+		// Export to SFM / TXT
+		/////////////////////////////////////
+		{
 			// make a suitable default output filename for the export function
-			exportFilename.Remove(len-3,3); // remove the extension
+			exportFilename.Remove(len - 3, 3); // remove the extension
 			exportFilename += _T("txt"); // make it a *.txt file type
-            // Prepare a unique filename from the exportFilename. This unique filename and
-            // path is used when the export is nav protected or when the user has ticked
-            // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
-            // date-time stamp is to be suffixed to the export filename, which ensures that
-            // any existing exports are not overwritten.
+			// Prepare a unique filename from the exportFilename. This unique filename and
+			// path is used when the export is nav protected or when the user has ticked
+			// the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
+			// date-time stamp is to be suffixed to the export filename, which ensures that
+			// any existing exports are not overwritten.
 			exportFilename = PrepareUniqueFilenameForExport(exportFilename, TRUE,
 				incrementViaDate_TimeStamp, gpApp->m_bUseSuffixExportDateTimeOnFilename);
 			// prepare for getting a file Save As dialog for Source Text Output
 			filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||");
-						// I changed the above to allow *.txt and *.*, with the
-						// *.* one first (shows all) so it comes up as default This has the
-						// nice property that if the user types an extension in the
-						// filename, .txt won't be appended to it.
+			// I changed the above to allow *.txt and *.*, with the
+			// *.* one first (shows all) so it comes up as default This has the
+			// nice property that if the user types an extension in the
+			// filename, .txt won't be appended to it.
 			bRTFOutput = FALSE;
 			// determine the defaultDir path, and whether the use is to protected from
 			// doing folder navigation
@@ -1562,7 +1606,8 @@ void DoExportAsType(enum ExportType exportType)
 					gpApp->m_lastTargetOutputPath, defaultDir);
 				break;
 			} // switch (exportType)
-			break;
+		} // end of case default:
+		break;
 	} // switch (sadlg.GetSaveAsType())
 
 	wxString exportPath;
@@ -1594,31 +1639,39 @@ void DoExportAsType(enum ExportType exportType)
 		switch (exportType)
 		{
 		case sourceTextExport:
+		{
 			if (!bRTFOutput)
 				exportPath = gpApp->m_sourceOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			else
 				exportPath = gpApp->m_sourceRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-			break;
+		}
+		break;
 		case glossesTextExport:
+		{
 			if (!bRTFOutput)
 				exportPath = gpApp->m_glossOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			else
 				exportPath = gpApp->m_glossRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-			break;
+		}
+		break;
 		case freeTransTextExport:
+		{
 			if (!bRTFOutput)
 				exportPath = gpApp->m_freeTransOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			else
 				exportPath = gpApp->m_freeTransRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-			break;
+		}
+		break;
 		case targetTextExport:
+		{
 			if (!bRTFOutput)
 				exportPath = gpApp->m_targetOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			else
 				exportPath = gpApp->m_targetRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-			break;
 		}
-	}
+		break;
+		} // end of switch (exportType)
+	} // end of else block for test: if (!bBypassFileDialog_ProtectedNavigation)
 
 	wxLogNull logNo; // avoid spurious messages from the system
 
@@ -1629,41 +1682,63 @@ void DoExportAsType(enum ExportType exportType)
 	wxString path, fname, ext;
 	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
 	if (bRTFOutput)
+	{
 		switch (exportType)
 		{
 		case sourceTextExport:
+		{
 			gpApp->m_lastSourceRTFOutputPath = path;
-			break;
-		case glossesTextExport:
-			gpApp->m_lastGlossesRTFOutputPath = path;
-			break;
-		case freeTransTextExport:
-			gpApp->m_lastFreeTransRTFOutputPath = path;
-			break;
-		default:
-		case targetTextExport:
-			gpApp->m_lastTargetRTFOutputPath = path;
-			break;
 		}
+		break;
+		case glossesTextExport:
+		{
+			gpApp->m_lastGlossesRTFOutputPath = path;
+		}
+		break;
+		case freeTransTextExport:
+		{
+			gpApp->m_lastFreeTransRTFOutputPath = path;
+		}
+		break;
+		default:
+		{
+		}
+		case targetTextExport:
+		{
+			gpApp->m_lastTargetRTFOutputPath = path;
+		}
+		break;
+		}
+	} // end of TRUE block for test: if (bRTFOutput)
 	else
 	{
 		switch (exportType)
 		{
 		case sourceTextExport:
+		{
 			gpApp->m_lastSourceOutputPath = path;
+		}
 			break;
 		case glossesTextExport:
+		{
 			gpApp->m_lastGlossesOutputPath = path;
+		}
 			break;
 		case freeTransTextExport:
+		{
 			gpApp->m_lastFreeTransOutputPath = path;
+		}
 			break;
 		default:
-		case targetTextExport:
-			gpApp->m_lastTargetOutputPath = path;
-			break;
+		{
 		}
-	}
+		case targetTextExport:
+		{
+			gpApp->m_lastTargetOutputPath = path;
+		}
+			break;
+		} // end of switch (exportType)
+	} // end of else block for test: if (bRTFOutput)
 
 	// first determine whether or not the data was unstructured plain text
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -1730,17 +1805,31 @@ void DoExportAsType(enum ExportType exportType)
 			// Empty it, ready for next use
 			gpApp->m_sourceDataArr.Empty();
 		}
+#if defined(_DEBUG)
+		wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+#if defined(_DEBUG)
+		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 
 		// Apply output filter to the source text
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+#if defined(_DEBUG)
+		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(source, sourceTextExport);
-
+#if defined(_DEBUG)
+		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 		source = RemoveMultipleSpaces(source);
+#if defined(_DEBUG)
+		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(source, bRTFOutput);
@@ -1763,8 +1852,11 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to
 														   // \z... markers for Paratext
+#if defined(_DEBUG)
+			wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+#endif
 		}
-	}
+	} // end of case sourceTextExport:
 		break;
 	case glossesTextExport:
 	{
@@ -1817,7 +1909,7 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(glosses); // change our custom markers to
 														   // \z... markers for Paratext
 		}
-	}
+	} // end of case glossesTextExport:
 		break;
 	case freeTransTextExport:
 	{
@@ -1870,7 +1962,7 @@ void DoExportAsType(enum ExportType exportType)
 			ChangeCustomMarkersToParatextPrivates(freeTrans); // change our custom markers
 														   // to \z... markers for Paratext
 		}
-	}
+	} // end of case freeTransTextExport:
 		break;
 	default:
 	{
@@ -1961,7 +2053,7 @@ void DoExportAsType(enum ExportType exportType)
 			wxLogDebug(_T("DoExportAsType() after ChangeCustomMarkersToParatextPrivates(): text length = %d"), target.Length());
 #endif
 		}
-	}
+	} // end of case targetTextExport:
 		break;
 	}
 	if (bRTFOutput)
@@ -1999,64 +2091,83 @@ void DoExportAsType(enum ExportType exportType)
 		switch (exportType)
 		{
 		case sourceTextExport:
-			#ifdef _DEBUG
+		{
+#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export source text file\n"));
-			#endif
-			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"),exportPath.c_str());
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+#endif
+			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"), exportPath.c_str());
+			// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+		}
 			break;
 		case glossesTextExport:
-			#ifdef _DEBUG
+		{
+#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export glosses text file\n"));
-			#endif
-			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"),exportPath.c_str());
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-
+#endif
+			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"), exportPath.c_str());
+			// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+		}
 			break;
 		case freeTransTextExport:
-			#ifdef _DEBUG
+		{
+#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export free translation text file\n"));
-			#endif
-			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"),exportPath.c_str());
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+#endif
+			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"), exportPath.c_str());
+			// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 			break;
+		}
 		default:
+		{
+		}
 		case targetTextExport:
-			#ifdef _DEBUG
+		{
+#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export target text file\n"));
-			#endif
-			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
-            // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-            gpApp->m_bUserDlgOrMessageRequested = TRUE;
-            wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+#endif
+			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"), exportPath.c_str());
+			// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+			gpApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 			break;
+		}
 		}
 		gpApp->LogUserAction(msg);
 		return;
-	}
+	} // emd of TRUE block for test: if( !f.Open( exportPath, wxFile::write))
 
 	// output the final form of the string
 	#ifndef _UNICODE // ANSI
 	switch (exportType)
 	{
 	case sourceTextExport:
+	{
 		f.Write(source);
+	}
 		break;
 	case glossesTextExport:
+	{
 		f.Write(glosses);
+	}
 		break;
 	case freeTransTextExport:
+	{
 		f.Write(freeTrans);
+	}
 		break;
 	default:
+	{
+	}
 	case targetTextExport:
+	{
 		f.Write(target);
+	}
 		break;
 	}
 
@@ -2069,35 +2180,36 @@ void DoExportAsType(enum ExportType exportType)
 	switch (exportType)
 	{
 	case sourceTextExport:
-		{
+	{
 		// Bruce added 8Dec06 two following lines
 		wxFontEncoding saveSrcEncoding = gpApp->m_srcEncoding; // I don't want
-			// to mess with checking whether the enforced conversion is safe
-			// to leave in place or not, so I'll restore afterwards
+		// to mess with checking whether the enforced conversion is safe
+		// to leave in place or not, so I'll restore afterwards
 		gpApp->m_srcEncoding = wxFONTENCODING_UTF8; // BEW added 8Dec06 to
-			// force conversion to UTF-8 always when exporting, same as is now
-			// done for SFM export of the target text
-			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
-			source = theBom + source;
-			// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
-			// so that source text exports don't get written with a null char embedded as
-			// the last character of the file. The spurious null character was causing
-			// programs like WinMerge to consider "new source text.txt" files as binary
-			// files rather than plain text files. This (and else block below) are the
-			// only places where the FALSE parameter was used in the MFC code.
-			gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
-			gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
-		}
+		// force conversion to UTF-8 always when exporting, same as is now
+		// done for SFM export of the target text
+		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+		source = theBom + source;
+		// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
+		// so that source text exports don't get written with a null char embedded as
+		// the last character of the file. The spurious null character was causing
+		// programs like WinMerge to consider "new source text.txt" files as binary
+		// files rather than plain text files. This (and else block below) are the
+		// only places where the FALSE parameter was used in the MFC code.
+		gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
+		gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
+	}
 		break;
 	case glossesTextExport:
+	{
 		wxFontEncoding saveGlossEncoding;
 		if (gbGlossingUsesNavFont)
 		{
 			saveGlossEncoding = gpApp->m_navtextFontEncoding;
 			gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
 			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
-			glosses = theBom +  glosses;
-			gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,glosses);
+			glosses = theBom + glosses;
+			gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding, &f, glosses);
 			gpApp->m_navtextFontEncoding = saveGlossEncoding; // restore encoding
 		}
 		else // it uses target text's encoding
@@ -2105,13 +2217,14 @@ void DoExportAsType(enum ExportType exportType)
 			saveGlossEncoding = gpApp->m_tgtEncoding;
 			gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
 			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
-			glosses = theBom +  glosses;
-			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,glosses);
+			glosses = theBom + glosses;
+			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding, &f, glosses);
 			gpApp->m_tgtEncoding = saveGlossEncoding; // restore encoding
 		}
+	}
 		break;
 	case freeTransTextExport:
-		{
+	{
 		// for free translations we'll temporarily redefine the navTextFontEncoding
 		// to be UTF-8, it doesn't really matter what one we use though (in the view,
 		// the encoding used is that for the target text font) so long as the
@@ -2122,20 +2235,25 @@ void DoExportAsType(enum ExportType exportType)
 		freeTrans = theBom +  freeTrans;
 		gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,freeTrans);
 		gpApp->m_navtextFontEncoding = saveFreeTransEncoding; // restore encoding
-		}
+	}
 		break;
 	default:
+	{
+	}
 	case targetTextExport:
+	{
 		// assume the encoding is utf-safe & send it out as UTF-8
 		wxFontEncoding saveTgtEncoding;
 		saveTgtEncoding = gpApp->m_tgtEncoding;
 		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
 		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
-		target = theBom +  target;
-		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
+		target = theBom + target;
+		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding, &f, target);
 		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
-		break;
 	}
+		break;
+	} // end of switch (exportType)
+
 	#endif // for _UNICODE
 
 	// whm 7Jul11 Note:
@@ -17177,6 +17295,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 	// BEW 5Mar23 I cannot get += or << to append one string to another in this function,
 	// so I'll leave the textFile open (it DOES accept the str bits loaded into it, and
 	// in the caller I'll get what textFile has in it, to form the exported src text
+	/*
 #if defined (_DEBUG)
 	wxString strDestination = wxEmptyString;
 	wxString strSource = _T("Some test words are these");
@@ -17196,6 +17315,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 	// why exporting the souce text refuses to append wxString data following += or <<
 	// Sadly, += worked equally well in this test block.
 #endif
+	*/
 	// BEW 5Apr23, (legacy commenting...) As we traverse the list of CSourcePhrase 
 	// instances, the special things we must be careful of are:
 	// 1. source phrase placeholders (we ignore these, but we don't
@@ -17362,10 +17482,15 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// association, but if there are some from a left association (ie.
 				// ending-stuff as discussed above), then don't set the flag but instead
 				// append the relevant material directly to source parameter.
-
+#if defined(_DEBUG)
+				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
+#if defined(_DEBUG)
+				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 				// now deal with the beginning-stuff, which isn't immediately placeable:
 				// 2nd, 3rd & 4th booleans as follows:
@@ -17383,6 +17508,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// held over until the loop "sees" the next CSourcePhrase instance, it is
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
+#if defined(_DEBUG)
+				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
@@ -17430,6 +17558,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// was preceding punctuation for the word, a space inserted here would be
 				// a disaster
 			}
+#if defined(_DEBUG)
+			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			// next, deal with pSrcPhrase itself - if it has filtered information, etc, we need
 			// a function to aggregate such stuff and return it as a string, so use the
@@ -17504,6 +17635,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 					// of those markers is not at the start of tempStr
 					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
 					str += tempStr;
+#if defined(_DEBUG)
+					wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 					// BEW 21Jul14, after a begin-marker or begin-markers there is always
 					// a space, even in texts where ZWSP is used, so we test and add one
 					// here if it is needed
@@ -17520,6 +17654,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
+#if defined(_DEBUG)
+			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
@@ -17571,6 +17708,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// obtained from strCollectedBeginnings just above, and if the last data
 				// was preceding punctuation for the word, a space inserted here would be
 				// a disaster
+#if defined(_DEBUG)
+				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 			}
 			tempStr.Empty();
 			//srcText << str;
@@ -17597,8 +17737,17 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			bool bAttach_m_markers = TRUE;
 			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
 			// words in the source text of the free translation section, if any)
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber == 14)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+#endif 
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
+#if defined(_DEBUG)
+			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
@@ -17648,6 +17797,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			// (removeAtPunctuation is an enum value, see line 39 of helpers.h)
 			str = DoFwdSlashConsistentChanges(removeAtPunctuation, str);
 			str = FwdSlashtoZWSP(str);
+#if defined(_DEBUG)
+			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
 			// the caller, we should not risk clobbering a space after the verse of
@@ -17695,6 +17847,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				if (!str.IsEmpty())
 				{
 					textFile.AddLine(str);
+#if defined(_DEBUG)
+					wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 				}
 			}
 			str.Empty();
@@ -17793,16 +17948,25 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	switch(exportType)
 	{
 	case targetTextExport:
+	{
 		nTextLength = RebuildTargetText(usfmText, pList);
+	}
 		break;
 	case freeTransTextExport:
+	{
 		nTextLength = RebuildFreeTransText(usfmText, pList);
+	}
 		break;
 	case glossesTextExport:
+	{
 		nTextLength = RebuildGlossesText(usfmText, pList);
+	}
 		break;
 	default:
+	{
+	}
 	case sourceTextExport:
+	{
 		nTextLength = RebuildSourceText(usfmText, pList);
 		//nTextLength is 0 now
 		nTextLength = nTextLength;
@@ -17819,8 +17983,9 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 			}
 			usfmText = strAccum;
 		}
-		break;
 	}
+		break;
+	} // end of switch(exportType)
 	if (nTextLength > 0)
 	{
 		// filter out unwanted custom markers, if any are present, and their text
@@ -20439,8 +20604,8 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 								//	IsWrapMarker = TRUE;
 								if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 									IsInLineMarker = TRUE;
-								break;
 							}
+							break;
 						case PngOnly:
 							{
 								//if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
@@ -20453,16 +20618,16 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 								if (gpApp->PngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1
 									|| wholeMkr + _T(' ') == _T("\\fe ") || wholeMkr + _T(' ') == _T("\\F "))
 									IsInLineMarker = TRUE;
-								break;
 							}
+							break;
 						case UsfmAndPng:
 							{
 								//if (gpApp->UsfmAndPngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 								//	IsWrapMarker = TRUE;
 								if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 									IsInLineMarker = TRUE;
-								break;
 							}
+							break;
 						default:
 							{
 								//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
@@ -20470,7 +20635,8 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 								if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 									IsInLineMarker = TRUE;
 							}
-						}
+						} // end of switch(gpApp->gCurrentSfmSet)
+
 						// insert any eol char(s) needed for current marker here. In this block
 						// the marker cannot be an end marker, nor located at the beginning of
 						// the file. We will always add eol unless the marker's attribute is

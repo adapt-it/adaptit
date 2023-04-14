@@ -259,19 +259,27 @@ void CExportSaveAsDlg::SetExportTypeDescription(ExportSaveAsType newType)
     switch (newType)
     {
         case ExportSaveAsRTF:
-            newString = _("Export a Rich Text Format file that can be loaded into a Word processor like MS Word. Adapt It will format the file using the Word Scripture Template, so that you can print it in a publishable format.");
+		{
+			newString = _("Export a Rich Text Format file that can be loaded into a Word processor like MS Word. Adapt It will format the file using the Word Scripture Template, so that you can print it in a publishable format.");
+		}
             break;
         case ExportSaveAsXHTML:
-            newString = _("Export an XHTML file that can be viewed using a current web browser.");
+		{
+			newString = _("Export an XHTML file that can be viewed using a current web browser.");
+		}
             break;
         case ExportSaveAsPathway:
-            newString = _("Export through SIL Pathway to produce a file in other formats, such as cell phones or e-book readers.");
+		{
+			newString = _("Export through SIL Pathway to produce a file in other formats, such as cell phones or e-book readers.");
+		}
             break;
         case ExportSaveAsTXT:
         default:
-            newString = _("Export a Standard Format Text file (containing backslash markers for formatting) that can be used as a source text for another Adapt It project, or can be edited in a text editor, or loaded into the Paratext program.");
+		{
+			newString = _("Export a Standard Format Text file (containing backslash markers for formatting) that can be used as a source text for another Adapt It project, or can be edited in a text editor, or loaded into the Paratext program.");
+		}
             break;
-    }
+    } // end of  switch (newType)
     lblExportTypeDescription->SetLabel(newString);
     lblExportTypeDescription->Wrap(425); // wrap if needed
 }

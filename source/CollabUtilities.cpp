@@ -1169,14 +1169,19 @@ extern bool gbDoingInitialSetup;
 		switch (textKind)
 		{
 		case collab_source_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
 			path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+		}
 			break;
 		case collab_target_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
 			path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+		}
 			break;
 		case collab_freeTrans_text:
+		{
 			if (gpApp->m_bCollaborationExpectsFreeTrans)
 			{
 				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
@@ -1186,8 +1191,9 @@ extern bool gbDoingInitialSetup;
 			{
 				path.Empty();
 			}
-			break;
 		}
+			break;
+		} // end of switch (textKind)
 		return path;
 	}
 
@@ -1240,19 +1246,25 @@ extern bool gbDoingInitialSetup;
 		switch (textKind)
 		{
 		case collab_source_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
 			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+		}
 			break;
 		case collab_target_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
 			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+		}
 			break;
 		case collab_freeTrans_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
 			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind); // will  be returned empty if
 							// m_bCollaborationExpectsFreeTrans is FALSE
-			break;
 		}
+			break;
+		} // end of switch (textKind)
 
 		wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
 
@@ -1494,15 +1506,21 @@ extern bool gbDoingInitialSetup;
 		switch (textKind)
 		{
 		case collab_source_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
+		}
 			break;
 		case  collab_target_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
+		}
 			break;
 		case collab_freeTrans_text:
+		{
 			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
-			break;
 		}
+			break;
+		} // end of switch (textKind)
 		beProjPath += gpApp->PathSeparator + shortProjName;
 		wxString fullBookName = gpApp->m_CollabBookSelected;
 		wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
@@ -5396,7 +5414,7 @@ extern bool gbDoingInitialSetup;
 			return TRUE;
 		default:
 			return FALSE;
-		}
+		} // end of switch (value)
 	}
 
 	// overload of the above, taking arrays and start & finish item indices as parameters;
@@ -5422,7 +5440,7 @@ extern bool gbDoingInitialSetup;
 			return TRUE;
 		default:
 			return FALSE;
-		}
+		} // end of switch (value)
 	}
 
 	// Use the MD5 checksums approach to compare two text files for differences: the MD5
@@ -5449,7 +5467,7 @@ extern bool gbDoingInitialSetup;
 			return TRUE;
 		default:
 			return FALSE;
-		}
+		} // end of switch (value)
 	}
 
 	// whm 20Mar2018 refactored to correct bad parse of Language Identifier field which in Paratext 8 may
@@ -5958,6 +5976,7 @@ extern bool gbDoingInitialSetup;
 		switch (whichArray)
 		{
 		case aiData:
+		{
 			for (index = 0; index < (int)aiCount; index++)
 			{
 				vi = (VerseInf*)postEditVerseArr.Item((size_t)index);
@@ -5968,8 +5987,10 @@ extern bool gbDoingInitialSetup;
 				}
 			}
 			// If no VerseInf was matched, break out and return FALSE
+		}
 			break;
 		case editorData:
+		{
 			for (index = 0; index < (int)editorCount; index++)
 			{
 				vi = (VerseInf*)fromEditorVerseArr.Item((size_t)index);
@@ -5980,8 +6001,9 @@ extern bool gbDoingInitialSetup;
 				}
 			}
 			// If no VerseInf was matched, break out and return FALSE
-			break;
 		}
+			break;
+		} // end of switch (whichArray)
 		return FALSE;
 	}
 
@@ -7153,7 +7175,7 @@ extern bool gbDoingInitialSetup;
 			// to ensure the existence of any \id XXX line, therefore the second parameter
 			// in the GetTextFromAbsolutePathAndRemoveBOM() call below is wxEmptyString
 			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath, wxEmptyString);
-		}
+		} // end of switch (makeTextType)
 		break;
 		default:
 		case makeTargetText:
@@ -7212,7 +7234,7 @@ extern bool gbDoingInitialSetup;
 #endif
 		}
 		break;
-		};
+		} // end of switch (makeTextType)
 
 		// if the document has no content, just return an empty wxString to the caller
 		if (pDocList->IsEmpty())
@@ -7230,15 +7252,19 @@ extern bool gbDoingInitialSetup;
 			switch (makeTextType)
 			{
 			case makeFreeTransText:
+			{
 				// rebuild the free translation USFM marked-up text in ExportTargetText_For_Collab()
 				text = ExportFreeTransText_For_Collab(pDocList);
+			}
 				break;
 			default:
 			case makeTargetText:
+			{
 				// rebuild the adaptation USFM marked-up text
 				text = ExportTargetText_For_Collab(pDocList);
-				break;
 			}
+				break;
+			} // end of switch (makeTextType)
 			// BEW 5Sep14 next lines copied for support of better syncing with filter settings,
 			// from the code within Export
 			bool bRTFOutput = FALSE;
@@ -7370,7 +7396,7 @@ extern bool gbDoingInitialSetup;
 			}
 		}
 		break;
-		}
+		} // end of switch (makeTextType)
 
 		// Abandon any wxChars which precede first marker in text, for each of the 3 texts, so
 		// that we make sure each text we compare starts with a marker
@@ -7584,13 +7610,17 @@ extern bool gbDoingInitialSetup;
 			switch (makeTextType)
 			{
 			case makeFreeTransText:
+			{
 				s = _T("freeTrans text:");
+			}
 				break;
 			default:
 			case makeTargetText:
+			{
 				s = _T("target text:");
-				break;
 			}
+				break;
+			} // end of switch (makeTextType)
 			int count1, count2;
 			count1 = (int)postEditMd5Arr.GetCount();
 			count2 = (int)fromEditorMd5Arr.GetCount();

@@ -105,6 +105,7 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choi
 	switch (m_enumLangCodesChoice)
 	{
 	case source_and_target_only:
+	{
 		pEditGlossLangCode->Show(FALSE);
 		pEditFreeTransLangCode->Show(FALSE);
 		pStaticGlsLangName->Show(FALSE);
@@ -113,8 +114,10 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choi
 		pEditCodeMsg1->SetLabel(msg1);
 		pBtnUseSelectionAsGloss->Show(FALSE);
 		pBtnUseSelectionAsFreeTrans->Show(FALSE);
+	}
 		break;
 	case source_and_glosses_only:
+	{
 		pEditTargetLangCode->Show(FALSE);
 		pEditFreeTransLangCode->Show(FALSE);
 		pStaticTgtLangName->Show(FALSE);
@@ -123,10 +126,13 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choi
 		pEditCodeMsg1->SetLabel(msg2);
 		pBtnUseSelectionAsTarget->Show(FALSE);
 		pBtnUseSelectionAsFreeTrans->Show(FALSE);
+	}
 		break;
 	case all_possibilities:
+	{
 		break;
 	}
+	} // end of switch (m_enumLangCodesChoice)
 }
 
 void CLanguageCodesDlg::SetPointers()

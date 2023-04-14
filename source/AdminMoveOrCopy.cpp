@@ -1413,20 +1413,26 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 			switch (lastWay)
 			{
 			case copyAndReplace:
+			{
 				theRightPath = rightPath + gpApp->PathSeparator + filename;
 				bSuccess = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
+			}
 				break;
 			case copyWithChangedName:
+			{
 				newFilenameStr = BuildChangedFilenameForCopy(&filename);
 				theRightPath = rightPath + gpApp->PathSeparator + newFilenameStr;
 				bSuccess = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
+			}
 				break;
 			default:
 			case noCopy:
+			{
 				// treat this as an unsuccessful copy, & don't copy this file
 				bSuccess = FALSE;
-				break;
 			}
+				break;
+			} // end of switch (lastWay)
 			return bSuccess;
 		}
 		else
@@ -1445,20 +1451,26 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 				switch (copyType)
 				{
 				case copyAndReplace:
+				{
 					theRightPath = rightPath + gpApp->PathSeparator + filename;
 					bSuccess = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
+				}
 					break;
 				case copyWithChangedName:
+				{
 					newFilenameStr = BuildChangedFilenameForCopy(&filename);
 					theRightPath = rightPath + gpApp->PathSeparator + newFilenameStr;
 					bSuccess = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
+				}
 					break;
 				default:
 				case noCopy:
+				{
 					// treat this as an unsuccessful copy, & don't copy this file
 					bSuccess = FALSE;
-					break;
 				}
+					break;
+				} // end of switch (copyType)
 			}
 			else
 			{
@@ -1594,7 +1606,7 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 				EnableButtons();
 				return;
 			}
-	} // end of switch
+	} // end of switch (sideWithFocus)
 
 	if (pPaneSelectedFolders != NULL)
 		foldersLimit = pPaneSelectedFolders->GetCount(); // populated in SetSelectionArray() call earlier
@@ -1813,7 +1825,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				EnableButtons();
 				return;
 			}
-	} // end of switch
+	} // end of switch (sideWithFocus)
 
 	if (pPaneSelectedFolders->GetCount() == 1)
 	{
@@ -2389,7 +2401,7 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 				EnableButtons();
 				return;
 			}
-	} // end of switch
+	} // end of switch (sideWithFocus)
 
 	// do nothing if the source folder is not yet defined, or the destination folder
 	if (pathToSourcePane.IsEmpty())
@@ -2588,7 +2600,7 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 				EnableButtons();
 				return;
 			}
-	} // end of switch
+	} // end of switch (sideWithFocus)
 
 	// do nothing if the source folder is not yet defined, or the destination folder
 	if (pathToSourcePane.IsEmpty())
@@ -2900,7 +2912,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 			wxBell();
 		}
 		break;
-	}
+	} // end of switch (sideWithFocus)
 
 	// update the pane's list
 	if (sideWithFocus == leftSideHasFocus)

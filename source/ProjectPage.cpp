@@ -1125,9 +1125,11 @@ Reminder: You cannot open this project until your administrator installs Paratex
                     }
 
                     default:
-                        wxASSERT(FALSE); // this would be a programming error
+					{
+						wxASSERT(FALSE); // this would be a programming error
+					}
                         break;
-                    } // end of inner switch
+                    } // end of inner switch (result)
 
 					event.Veto();
 					return;
@@ -1515,7 +1517,7 @@ Reminder: You cannot open this project until your administrator installs Paratex
 					pApp->LogUserAction(_T("GetAIProjectCollabStatus() returned collabProjNotConfigured"));
 					break;
 				}
-			}
+			} // end of switch (aiProjCollabStatus)
 
 			// We will *not* arrive here if any of the following conditions prevailed above:
 			// 1. The "Work with my %s Scripture texts (Collaboration on)" radio button was selected

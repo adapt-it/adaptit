@@ -225,13 +225,18 @@ wxFont* CCell::GetFont()
 	switch (m_nCell)
 	{
 	case 0:
+	{
 		return m_pLayout->m_pSrcFont;
+	}
 	case 1:
+	{
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 			return m_pLayout->m_pNavTextFont;
 		else
 			return m_pLayout->m_pTgtFont;
+	}
 	case 2:
+	{
 		if (gbIsGlossing)
 			return m_pLayout->m_pTgtFont;
 		else
@@ -242,6 +247,7 @@ wxFont* CCell::GetFont()
 				return m_pLayout->m_pTgtFont;
 		}
 	}
+	} // end of switch (m_nCell)
 	return m_pLayout->m_pTgtFont; // never accessed, it's here just to
 								  // avoid a compiler warning
 }
@@ -292,6 +298,7 @@ wxColour CCell::GetColor()
 			}
 		}
 	case 1:
+	{
 		if (gbIsGlossing)
 			return m_pLayout->m_navTextColor;
 		else
@@ -312,7 +319,9 @@ wxColour CCell::GetColor()
 				}
 			}
 		}
+	}
 	case 2:
+	{
 		if (gbIsGlossing)
 		{
 			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
@@ -327,6 +336,7 @@ wxColour CCell::GetColor()
 		else
 			return m_pLayout->m_navTextColor;
 	}
+	} // end of switch (m_nCell)
 	return m_pLayout->m_tgtColor; // never accessed, it's here
 							// just to avoid a compiler warning
 }
@@ -353,6 +363,7 @@ int CCell::Height()
 	switch (m_nCell)
 	{
 	case 0:
+	{
 		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1))
 		{
 			height = 0; // no source text line showing
@@ -362,7 +373,9 @@ int CCell::Height()
 			height = m_pLayout->GetSrcTextHeight();
 		}
 		return height;
+	}
 	case 1:
+	{
 		if (gbIsGlossing)
 		{
 			if (gbGlossingUsesNavFont)
@@ -379,7 +392,9 @@ int CCell::Height()
 			height = m_pLayout->GetTgtTextHeight();
 		}
 		return height;
+	}
 	case 2:
+	{
 		if (gbIsGlossing)
 		{
 			height = m_pLayout->GetTgtTextHeight();
@@ -397,6 +412,8 @@ int CCell::Height()
 		}
 		return height;
 	}
+	
+	} // end of switch (m_nCell)
 	return height; // to avoid a compiler warning
 }
 
@@ -413,6 +430,7 @@ int CCell::Top()
 	switch (m_nCell)
 	{
 	case 0:
+	{
 		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW chagned 22Dec14
 		{
 			// the source text line is suppressed, but no harm if we return
@@ -426,7 +444,9 @@ int CCell::Top()
 			top = m_pOwningPile->Top();
 		}
 		return top;
+	}
 	case 1:
+	{
 		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW changed 22Dec 14
 		{
 			// the target, or gloss text, line is at the top of the pile when
@@ -435,12 +455,14 @@ int CCell::Top()
 		}
 		else
 		{
-            // source text line is not suppressed, so the target line's top will be the
-            // source text height lower down in the pile (whether glossing or adapting) or only selection part is suppressed
+			// source text line is not suppressed, so the target line's top will be the
+			// source text height lower down in the pile (whether glossing or adapting) or only selection part is suppressed
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 		}
 		return top;
+	}
 	case 2:
+	{
 		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW changed 22Dec14
 		{
 			// this line is never shown when source line is suppressed, so a nonsense
@@ -449,10 +471,10 @@ int CCell::Top()
 		}
 		else
 		{
-            // source text line is not suppressed, so the third line's top, if the line is
-            // visible, will be the second line's top, plus the height of the text in the
-            // second line -- where the latter will depend on whether it is showing target
-            // text font; or only the selected part of src text line is suppressed from being drawn
+			// source text line is not suppressed, so the third line's top, if the line is
+			// visible, will be the second line's top, plus the height of the text in the
+			// second line -- where the latter will depend on whether it is showing target
+			// text font; or only the selected part of src text line is suppressed from being drawn
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
@@ -467,6 +489,7 @@ int CCell::Top()
 		}
 		return top;
 	}
+	} // end of switch (m_nCell)
 	return top; // to avoid a compiler warning
 }
 
@@ -1185,20 +1208,21 @@ wxString* CCell::GetCellText()
 	switch (m_nCell)
 	{
 	case 0: // source text line
+	{
+		if (m_pLayout->m_pApp->m_bHidePunctuation)
 		{
-			if (m_pLayout->m_pApp->m_bHidePunctuation)
-			{
-				// showing the text with punctuation stripped off
-				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_key;
-			}
-			else
-			{
-				// showing punctuation with the text
-				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_srcPhrase;
-			}
-			break;
+			// showing the text with punctuation stripped off
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_key;
 		}
+		else
+		{
+			// showing punctuation with the text
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_srcPhrase;
+		}
+		break;
+	}
 	case 2: // gloss text line if glossing, else adaptation text line
+	{
 		if (gbIsGlossing)
 		{
 			// this is the adaptation line, when glossing mode is on
@@ -1219,7 +1243,9 @@ wxString* CCell::GetCellText()
 			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_gloss;
 		}
 		break;
+	}
 	default: // adaptation line
+	{
 		if (gbIsGlossing)
 		{
 			// this line has the glosses when glossing mode is on
@@ -1241,5 +1267,6 @@ wxString* CCell::GetCellText()
 		}
 		break;
 	}
+	} // end of switch (m_nCell)
 	return m_pPhrase;
 }

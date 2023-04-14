@@ -1596,7 +1596,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(strMessage);
 			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
-		}
+		} // end of case getNewFile_error_at_open:
 		case getNewFile_error_opening_binary:
 		{
 			// A binary file - probably not a valid input file such as a MS Word doc.
@@ -1627,7 +1627,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(strMessage2);
 			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
-		}
+		} // end of case getNewFile_error_opening_binary:
 		case getNewFile_error_ansi_CRLF_not_in_sequence:
 		{
 			// this error cannot occur, because the code where it may be generated is
@@ -1639,7 +1639,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(_T("Input data malformed: CR and LF not in sequence"));
 			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
-		}
+		} // end of case getNewFile_error_ansi_CRLF_not_in_sequence:
 		case getNewFile_error_no_data_read:
 		{
 			// we got no data, so this constitutes a read failure
@@ -1647,7 +1647,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(_T("File read error: no data was read in"));
 			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
-		}
+		} // end of case getNewFile_error_no_data_read:
 		case getNewFile_error_unicode_in_ansi:
 		{
 			// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
@@ -1668,9 +1668,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(strMessage2);
 			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
-		}
-		}// end of switch()
-	}// end of if (bKBReady)
+		} // end of case getNewFile_error_unicode_in_ansi:
+
+		}// end of switch (GetNewFile(pApp->m_pBuffer, pApp->m_nInputFileLength, pathName))
+
+	} // end of if (bKBReady)
 
 	// get rid of the stored rebuilt source text, leave a space there instead (the value of
 	// m_nInputFileLength can be left unchanged)
@@ -5108,13 +5110,19 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 {
 	switch (index)
 	{
-	default: // default to the current doc version number
+	default: // default to the current doc version number, fall thru
+	{
+	}
 	case 0:
+	{
 		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 9 in AdaptitConstant.h
 		break;
+	}
 	case 1:
+	{
 		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
 		break;
+	}
 	}
 }
 
@@ -5568,7 +5576,9 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 			switch (fieldNum)
 			{
 			case 0: // this is the first field which should be "@#@#" - we don't do anything with it
+			{
 				break;
+			}
 			case 1: // book mode field
 			{
 				// whm 1Oct12 removed MRU related code
@@ -5600,7 +5610,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 				}
 				*/
 				break;
-			}
+			} // end of case 1:
 			case 2: // book index field
 			{
 				// whm 1Oct12 removed MRU related code
@@ -5627,13 +5637,13 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 				}
 				*/
 				break;
-			}
+			} // end of case 2:
 			case 3: // gCurrentSfmSet field
 			{
 				// gCurrentSfmSet is updated below.
 				SetSavedInDoc = (SfmSet)wxAtoi(field); //_ttoi(field);
 				break;
-			}
+			} // end of case 3:
 			case 4: // filtered markers string field
 			{
 				// gCurrentFilterMarkers is updated below.
@@ -5653,7 +5663,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 				// to do the job.
 				strFilterMarkersSavedInDoc = gpApp->CleanupFilterMarkerOrphansInString(strFilterMarkersSavedInDoc);
 				break;
-			}
+			} // end of case 4:
 			case 5: // unknown markers string field
 			{
 				// The doc has not been serialized in yet so we cannot use
@@ -5706,13 +5716,13 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 				}
 
 				break;
-			}
+			} // end of case 5:
 			default:
 			{
 				// unknown field - ignore
 				;
 			}
-			}
+			} // end of switch (fieldNum)
 			fieldNum++;
 		} // end of while (tkz.HasMoreTokens())
 	}
@@ -6031,8 +6041,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 	switch (result)
 	{
 	case wxCANCEL:
+	{
 		return FALSE;       // don't continue
-
+	}
 	case wxYES:
 	{
 		// If so, either Save or Update, as appropriate
@@ -6086,16 +6097,20 @@ bool CAdapt_ItDoc::OnSaveModified()
 		}
 		pStatusBar->FinishProgress(_("Saving File"));
 		break;
-	}
+	} // end of case wxYES:
 
 	case wxNO:
+	{
 		// If not saving changes, revert the document (& ask for a KB save)
 		break;
-
+	}
 	default:
+	{
 		wxASSERT(FALSE);
 		break;
 	}
+	} // end of switch (result)
+
 	// whm Note: Since the progDlg is created on the stack, it will automatically
 	// be disposed of when this funciton returns.
 	return TRUE;    // keep going
@@ -14703,21 +14718,30 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar)
 	switch (gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
-		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
-		break;
-	case PngOnly:
-		iter = gpApp->m_pPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pPngStylesMap->end());
-		break;
-	case UsfmAndPng:
-		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
-		break;
-	default:
+	{
 		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 	}
+		break;
+	case PngOnly:
+	{
+		iter = gpApp->m_pPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pPngStylesMap->end());
+	}
+		break;
+	case UsfmAndPng:
+	{
+		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
+	}
+		break;
+	default:
+	{
+		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
+	}
+	} // end o fo switch (gpApp->gCurrentSfmSet)
+
 	if (bFound)
 	{
 		// iter->second points to the USFMAnalysis struct
@@ -14814,21 +14838,30 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar, wxString& tagOnly,
 	switch (gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
-		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
-		break;
-	case PngOnly:
-		iter = gpApp->m_pPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pPngStylesMap->end());
-		break;
-	case UsfmAndPng:
-		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
-		break;
-	default:
+	{
 		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 	}
+		break;
+	case PngOnly:
+	{
+		iter = gpApp->m_pPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pPngStylesMap->end());
+	}
+		break;
+	case UsfmAndPng:
+	{
+		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
+	}
+		break;
+	default:
+	{
+		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
+	}
+	} // end of switch (gpApp->gCurrentSfmSet)
+
 	if (bFound)
 	{
 		// iter->second points to the USFMAnalysis struct
@@ -14921,21 +14954,30 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 	switch (gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
-		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
-		break;
-	case PngOnly:
-		iter = gpApp->m_pPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pPngStylesMap->end());
-		break;
-	case UsfmAndPng:
-		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
-		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
-		break;
-	default:
+	{
 		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 	}
+		break;
+	case PngOnly:
+	{
+		iter = gpApp->m_pPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pPngStylesMap->end());
+	}
+		break;
+	case UsfmAndPng:
+	{
+		iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
+	}
+		break;
+	default:
+	{
+		iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
+		bFound = (iter != gpApp->m_pUsfmStylesMap->end());
+	}
+	} // end of switch (gpApp->gCurrentSfmSet)
+
 	if (bFound)
 	{
 		// iter->second points to the USFMAnalysis struct
@@ -15910,27 +15952,7 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar* pChar, wxChar* WXUNUSED(pEnd))
 	switch (gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
-		if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr) != -1)
-		{
-			// it's an inLine marker
-			return TRUE;
-		}
-		break;
-	case PngOnly:
-		if (gpApp->PngInLineMarkersStr.Find(wholeMkr) != -1)
-		{
-			// it's an inLine marker
-			return TRUE;
-		}
-		break;
-	case UsfmAndPng:
-		if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr) != -1)
-		{
-			// it's an inLine marker
-			return TRUE;
-		}
-		break;
-	default:
+	{
 		if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr) != -1)
 		{
 			// it's an inLine marker
@@ -15938,6 +15960,34 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar* pChar, wxChar* WXUNUSED(pEnd))
 		}
 		break;
 	}
+	case PngOnly:
+	{
+		if (gpApp->PngInLineMarkersStr.Find(wholeMkr) != -1)
+		{
+			// it's an inLine marker
+			return TRUE;
+		}
+		break;
+	}
+	case UsfmAndPng:
+	{
+		if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr) != -1)
+		{
+			// it's an inLine marker
+			return TRUE;
+		}
+		break;
+	}
+	default:
+	{
+		if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr) != -1)
+		{
+			// it's an inLine marker
+			return TRUE;
+		}
+		break;
+	}
+	} // end of switch (gpApp->gCurrentSfmSet)
 	return FALSE;
 }
 
@@ -18636,7 +18686,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxUnusedVar(strPointAt);
 		}
 #endif 
-		wxChar* pSavePtr = ptr;
+		//wxChar* pSavePtr = ptr;
 
 		// The normal situation, when we are not adding "???" to m_key and m_srcPhrase
 		// BEW 10Mar23 need a boolean here to record if a \n gets parsed over; the FindWordBreakChar()
@@ -18649,7 +18699,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// have to be stored on the pSrcPhrase, so they can be restored at export, so add
 			// code below, with precWordDelim as the intermediate storage wxString, and add it
 			// to pSrcPhrase->m_srcWordBreak wxString
-			wxChar chWhat;
+			//wxChar chWhat;
 			itemLen = ParseWhiteSpace(ptr);
 			if (itemLen == 1)
 			{
@@ -30004,7 +30054,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// update the original kb (not pKBCopy)
 					switch (pAutoFixRec->incType)
 					{
-					case member_empty_flag_on_noPTU:
+					case member_empty_flag_on_noPTU: // fall thru
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 					{
 						// do the fixit action
@@ -30098,9 +30148,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 						break;
 						} // end of switch (pAutoFixRec->fixAction)
-					}
+					} // end of case member_empty_flag_on_PTUexists_deleted_Refstr:
 					break;
-					case member_exists_flag_on_noPTU:
+					case member_exists_flag_on_noPTU: // fall thru
 					case member_exists_flag_off_noPTU:
 					{
 						// do the fixit action
@@ -30155,7 +30205,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 						break;
 						} // end of switch (pAutoFixRec->fixAction)
-					}
+					} // end of case member_exists_flag_off_noPTU:
 					break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:
 					case member_exists_flag_off_PTUexists_deleted_RefStr:
@@ -30245,11 +30295,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							pKB->StoreText(pSrcPhrase, strNotInKB);
 						}
 
-					} // end of TRUE block for test of ShowModal() == wxID_OK
+					}  // rnf of case member_exists_deleted_from_KB_KB_has_translations:, and two other falls thru
 					break;
 					case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					{
-						// do the fixit action
+						// do the fixit action - inner switch
 						switch (pAutoFixRec->fixAction)
 						{
 						case store_nonempty_meaning:
@@ -30273,7 +30323,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pTU_OnOrig->DeleteOnlyNotInKB();
 								}
 							}
-						}
+						} // end of case store_nonempty_meaning:
 						break;
 						case store_empty_meaning:
 						{
@@ -30292,7 +30342,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pTU_OnOrig->DeleteOnlyNotInKB();
 								}
 							}
-						}
+						} // end of case store_empty_meaning:
 						break;
 						case make_it_Not_In_KB:
 						{
@@ -30320,7 +30370,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 #ifdef CONSCHK
 							ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
-						}
+						} // end of case make_it_Not_In_KB:
 						break;
 						case no_GUI_needed:
 						case turn_flag_on:
@@ -30334,7 +30384,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 						break;
 						} // end of switch (pAutoFixRec->fixAction)
-					}
+					} // end of case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					break;
 					default:
 					{
@@ -30353,20 +30403,20 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					// ********************* the DIALOGS are in this block *******************************
 
-										// no match, so this is has to be handled with user intervention via
-										// the dialogs
+					// no match, so this is has to be handled with user intervention via
+					// the dialogs
 
-										// update the view to show the location where this source pile is, and
-										// put the phrase box there ready to accept user input indirectly from
-										// the dialog, return ptr to the phrase box's cell in the view
+					// update the view to show the location where this source pile is, and
+					// put the phrase box there ready to accept user input indirectly from
+					// the dialog, return ptr to the phrase box's cell in the view
 					CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases);
 
 					switch (pAutoFixRec->incType)
 					{
 					case member_empty_flag_on_noPTU:
-
+					{
 						wxMessageBox(_T("here we are!!!"));
-
+					}
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 					{
 						pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
@@ -30427,7 +30477,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("9 FIX. (4 choices) turn_flag_off  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // end of case turn_flag_off:
 							break;
 							case store_empty_meaning:
 							{
@@ -30454,7 +30504,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("10 FIX. (4 choices) store_empty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // end of case store_empty_meaning:
 							break;
 							case make_it_Not_In_KB:
 							{
@@ -30481,7 +30531,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
-							}
+							} // end of case make_it_Not_In_KB:
 							break;
 							case store_nonempty_meaning:
 							{
@@ -30509,7 +30559,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("11 extra! FIX. (4 choices) store nonempty adaptation  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // end of case store_nonempty_meaning:
 							break;
 							case no_GUI_needed:
 							case turn_flag_on:
@@ -30527,7 +30577,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case member_empty_flag_on_PTUexists_deleted_Refstr:
 					break;
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
@@ -30585,7 +30635,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("12 FIX. (2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // e,d of case store_nonempty_meaning:
 							break;
 							case make_it_Not_In_KB:
 							{
@@ -30611,7 +30661,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
-							}
+							} // end of case make_it_Not_In_KB:
 							break;
 							case no_GUI_needed:
 							case store_empty_meaning:
@@ -30631,7 +30681,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case member_exists_flag_off_noPTU: and a fall thru
 					break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:
 					case member_exists_flag_off_PTUexists_deleted_RefStr:
@@ -30796,7 +30846,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case member_exists_deleted_from_KB_KB_has_translations: and two falls thru
 					break;
 					case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					{
@@ -30862,7 +30912,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("15 FIX. (msgNumber=2, 2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // end o f case store_nonempty_meaning:
 							break;
 							case store_empty_meaning:
 							{
@@ -30885,7 +30935,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								wxLogDebug(_T("16 FIX. (msgNumber=2, 2 choices) store_empty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
-							}
+							} // end of case store_empty_meaning:
 							break;
 							case make_it_Not_In_KB:
 							{
@@ -30916,7 +30966,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
-							}
+							} // end of case make_it_Not_In_KB:
 							break;
 							case no_GUI_needed:
 							case turn_flag_on:
@@ -30936,7 +30986,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					break;
 					default:
 					{
@@ -31574,7 +31624,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						}
 						break;
 						} // end of switch (pAutoFixRec->fixAction)
-					}
+					} // end of case member_empty_flag_on_PTUexists_deleted_Refstr:
 					break;
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
@@ -31609,7 +31659,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							pKB->StoreText(pSrcPhrase, tempStr);
 						}
 
-					} // end of TRUE block for test of ShowModal() == wxID_OK
+					} // end of case member_exists_flag_off_PTUexists_deleted_RefStr:
 					break;
 					case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					default:
@@ -31734,7 +31784,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case member_empty_flag_on_PTUexists_deleted_Refstr:
 					break;
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
@@ -31838,7 +31888,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							bUserCancelled = TRUE;
 							break;
 						}
-					}
+					} // end of case member_exists_flag_off_PTUexists_deleted_RefStr:
 					break;
 					case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 					default:
@@ -34311,63 +34361,29 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						// because we are dealing with stuff to put in pSrcPhrase->m_follPunct, and we want the
 						// next pSrcPhrase to handle the tokenizing of the whitespace followed by verse mkr
 						space = _T(' ');
-
-
-						//wxChar* ptr2;
-						wxString strToFix;
-						strToFix = wxEmptyString;
-						//wxChar chWhich;
-						bool bItsParen; //bool bItsBracket;
-						bItsParen = *(ptr + 1) == _T('(') ? TRUE : FALSE;
-						//bItsBracket = *(ptr + 1) == _T('[') ? TRUE : FALSE;
-						bool bItsNewline;
-						bItsNewline = *(ptr + 2) == _T('\n') ? TRUE : FALSE;
-
-						if (*ptr == space && bItsParen && bItsNewline && *(ptr + 3) == gSFescapechar && *(ptr + 4) == _T('v') )
+#if defined (_DEBUG) //&& defined(WHERE)
 						{
-							strToFix = space;
-							strToFix += _T('(');
-							pSrcPhrase->m_follPunct += strToFix;
+							wxString pointsAt = wxString(ptr, 25);
+							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
+								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 14)
+							{
+								int halt_here = 1; wxUnusedVar(halt_here);
+							}
+						}
+#endif
+						// BEW 13Apr23 handle <space> followed by '(' at line end
+						wxString strExtra2;
+						if (*ptr == space && *(ptr + 1) == _T('(') && IsWhiteSpace(ptr + 2))
+						{
+							strExtra2 = _T(" (");
+							pSrcPhrase->m_follPunct += strExtra2;
+							pSrcPhrase->m_srcPhrase += strExtra2;
 							len += 2;
-							pSrcPhrase->m_key = _T('(');
-							pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
-							ptr += len;
+							ptr += 2; // this line unneeded, but it documents the advance of ptr past 2 wxChars
+							// no augmenting of m_key is to be done here
 							return len;
 						}
-
-/* try it simpler, just for '('
-						if (*ptr == space &&
-							(bItsParen || bItsBracket) &&
-							(*(ptr + 2) == _T('\n') || *(ptr + 2) == space))
-						{
-							// In the test I allow, at ptr+2, either newline or latin space before whatever follow
-							// (typically, a verse beginMkr might follow, but I'm allowing for \v to not be at 
-							// a line's start). We parse over the space followed by ( or [ and whichever is the
-							// case, we append the space and the ( or [ to pSrcPhrase->m_follPunct, and we also
-							// must augment len appropriately, and also add the space followed by ( or [ to both
-							// pSrcPhrase->m_key, and pSrcPhrase->m_srcPhrase -- the latter is needed, else the
-							// GUI will not show the ( or the [ 
-							if (bItsParen)
-							{
-								chWhich = _T('(');
-							}
-							else
-							{
-								wxASSERT(bItsBracket);
-								chWhich = _T('[');
-							}
-							len += 2;  // for length of word & punct, plus space and [ or (
-							ptr2 = ptr; // temporarily preserve location ptr
-							ptr += len; // return this value to TokenizeText()
-							strToFix = space;
-							strToFix += chWhich;
-							pSrcPhrase->m_follPunct += strToFix;
-							pSrcPhrase->m_key = chWhich; // set to ( or [
-							pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
-							// all's done, so return len to TokenizeText(), for it to parse what follows the ( or [
-							return len;
-						}
-*/
 
 						// What comes next? maybe space, maybe and endMkr, maybe a beginMkr, maybe space followed by more punctuation
 						// provide such punctuation is not curly initial quote (because the latter would signal the start of the
@@ -39493,25 +39509,37 @@ bool CAdapt_ItDoc::IsPunctuationOnlyFollowedByEndmarker(wxChar* pChar, wxChar* p
 		// The character at ptr is not part of a word, so check out punctuation, whitespace & a marker;
 		// anything else should cause a return of FALSE
 		WordParseEndsAt myresult = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
-		switch (myresult) {
+		switch (myresult)
+		{
 		case unknownCharType:
+		{
 			return FALSE;
 			break;
+		}
 		case endoftextbuffer:
+		{
 			return FALSE; // all the conditions were not satisfied before end reached
 			break;
+		}
 		case whitespace:
+		{
 			bPunctsSubstringFinished = TRUE;
 			ptr = ptr + 1; // point at next character
 			break; // iterate
+		}
 		case closingbracket:
+		{
 			return FALSE;
 			break;
+		}
 		case punctuationchar:
+		{
 			punctsCounter++;
 			ptr = ptr + 1; // point at next character
 			break; // iterate
+		}
 		case backslashofmkr:
+		{
 			if (punctsCounter > 0)
 			{
 				bPunctsSubstringFinished = TRUE;
@@ -39528,6 +39556,7 @@ bool CAdapt_ItDoc::IsPunctuationOnlyFollowedByEndmarker(wxChar* pChar, wxChar* p
 			}
 			break;
 		}
+		} // end of switch (myresult)
 		if ((punctsCounter > 0) && bPunctsSubstringFinished && bHasPunctsOnly && bMarkerIsEndmarker)
 		{
 			// The hack is needed

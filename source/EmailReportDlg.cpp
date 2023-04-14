@@ -408,14 +408,20 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	switch (layoutDir)
 	{
 	case wxLayout_LeftToRight: // wxLayout_LeftToRight has enum value of 1
+	{
 		layoutDirStr = _("Left-to-Right");
+	}
 		break;
 	case wxLayout_RightToLeft: // wxLayout_LeftToRight has enum value of 2
+	{
 		layoutDirStr = _("Right-to-Left");
+	}
 		break;
 	default:
+	{
 		layoutDirStr = _("System Default");// = wxLayout_Default which has enum value of 0
 	}
+	} // end of switch (layoutDir)
 	pStaticSysLayoutDir->SetLabel(layoutDirStr); //ID_TEXT_SYS_LAYOUT_DIR
 	
 	wxString versionStr;
@@ -2043,14 +2049,20 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	switch (layoutDir)
 	{
 	case wxLayout_LeftToRight: // wxLayout_LeftToRight has enum value of 1
+	{
 		layoutDirStr = _("Left-to-Right");
+	}
 		break;
 	case wxLayout_RightToLeft: // wxLayout_LeftToRight has enum value of 2
+	{
 		layoutDirStr = _("Right-to-Left");
+	}
 		break;
 	default:
+	{
 		layoutDirStr = _("System Default");// = wxLayout_Default which has enum value of 0
 	}
+	} // end of switch (layoutDir)
 	sysInfoStr += _T("Sys Layout Dir: ");
 	sysInfoStr += layoutDirStr; //ID_TEXT_SYS_LAYOUT_DIR
 	sysInfoStr += _T('\n');

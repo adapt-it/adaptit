@@ -696,7 +696,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			m_pApp->LogUserAction(msg);
 			break;
 		}
-	}
+	} // end of switch (projVerseContent)
 
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForSourceInputs != m_TempCollabProjectForSourceInputs)
@@ -918,7 +918,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			m_pApp->LogUserAction(msg);
 			break;
 		}
-	}
+	} // end of switch (projVerseContent)
 
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
@@ -1218,7 +1218,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			m_pApp->LogUserAction(msg);
 			break;
 		}
-	}
+	} // end of switch (projVerseContent)
 
 	// If we get here the administrator made a selection. If the value changed mark it dirty.
 	if (saveCollabProjectForFreeTransExports != m_TempCollabProjectForFreeTransExports)
@@ -1478,8 +1478,10 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 switch (result)
                 {
                 case wxCANCEL:
-                    // Tell user what happened and what should be done.
-                    // Don't put any project data into controls, just return (user can select a different AI project or close the dialog
+				{
+					// Tell user what happened and what should be done.
+					// Don't put any project data into controls, just return (user can select a different AI project or close the dialog
+				}
                     return;
 
                 case wxYES:
@@ -1599,52 +1601,54 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 }
 
                 default:
-                    wxASSERT(FALSE); // this would be a programming error
-
+				{
+					wxASSERT(FALSE); // this would be a programming error
+				}
                 case wxNO:
-                    // Administrator/User decided not to remove the settings
-                    // Tell user what happened and what should be done.
-                    wxString projects;
-                    projects = m_TempCollabProjectForSourceInputs + _T("\n") + m_TempCollabProjectForTargetExports, +_T("\n") + m_TempCollabProjectForFreeTransExports;
+				{
+					// Administrator/User decided not to remove the settings
+					// Tell user what happened and what should be done.
+					wxString projects;
+					projects = m_TempCollabProjectForSourceInputs + _T("\n") + m_TempCollabProjectForTargetExports, +_T("\n") + m_TempCollabProjectForFreeTransExports;
 
-                    wxString msg =
-                        _("The collaboration settings for the \"%s\" AI project were not changed.\n\n\
+					wxString msg =
+						_("The collaboration settings for the \"%s\" AI project were not changed.\n\n\
 Reminder: The user will not be able to open this project until you install Paratext or Bibledit along with these projects:\n\n\
 %s\n\n");
-                    msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), projects.c_str());
-                    // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                    m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
-                    m_pApp->LogUserAction(msg);
-                    // Disable and refresh the dialog AI Project selection controls
-                    pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
-                    pComboAiProjects->Refresh();
-                    SetStateOfRemovalButton();
-                    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
-                                                   // any of project name, editor, source text, or target text project names
-                                                   // are empty
-                    // The call to GetCollaborationSettingsOfAIProject() at the beginning of this function assigned
-                    // project config values to all of the m_TempCollab... variables. We should zero out those temp
-                    // variables here so that they don't influence something else in the dialog.
-                    // zero out the local Temp... variables as we did in OnInit()
-                    m_TempCollabProjectForSourceInputs = _T("");
-                    m_TempCollabProjectForTargetExports = _T("");
-                    m_TempCollabProjectForFreeTransExports = _T("");
-                    m_TempCollabAIProjectName = _T("");
-                    m_TempCollaborationEditor = _T("");
-                    m_TempCollabEditorVersion = _T(""); // whm 25June2016 added
-                    m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
-                    m_TempCollabBookSelected = _T("");
-                    m_TempCollabSourceProjLangName = _T("");
-                    m_TempCollabTargetProjLangName = _T("");
-                    m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
-                    m_TempCollabChapterSelected = _T("");
-                    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
-                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
-
+					msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), projects.c_str());
+					// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+					m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+					wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
+					m_pApp->LogUserAction(msg);
+					// Disable and refresh the dialog AI Project selection controls
+					pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+					pComboAiProjects->Refresh();
+					SetStateOfRemovalButton();
+					SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+												   // any of project name, editor, source text, or target text project names
+												   // are empty
+					// The call to GetCollaborationSettingsOfAIProject() at the beginning of this function assigned
+					// project config values to all of the m_TempCollab... variables. We should zero out those temp
+					// variables here so that they don't influence something else in the dialog.
+					// zero out the local Temp... variables as we did in OnInit()
+					m_TempCollabProjectForSourceInputs = _T("");
+					m_TempCollabProjectForTargetExports = _T("");
+					m_TempCollabProjectForFreeTransExports = _T("");
+					m_TempCollabAIProjectName = _T("");
+					m_TempCollaborationEditor = _T("");
+					m_TempCollabEditorVersion = _T(""); // whm 25June2016 added
+					m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+					m_TempCollabBookSelected = _T("");
+					m_TempCollabSourceProjLangName = _T("");
+					m_TempCollabTargetProjLangName = _T("");
+					m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+					m_TempCollabChapterSelected = _T("");
+					m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+					m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
+				}
                     return;
 
-                }
+                } // end of switch (result)
 // ---------------------------------------------------------------------------------------------------------------
             }
 		} // end of else // m_TempCollaborationEditor is not an empty string

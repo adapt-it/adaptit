@@ -2315,14 +2315,20 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	switch (layoutDir)
 	{
 	case wxLayout_LeftToRight: // wxLayout_LeftToRight has enum value of 1
+	{
 		layoutDirStr = _("Left-to-Right");
+	}
 		break;
 	case wxLayout_RightToLeft: // wxLayout_LeftToRight has enum value of 2
+	{
 		layoutDirStr = _("Right-to-Left");
+	}
 		break;
 	default:
+	{
 		layoutDirStr = _("System Default");// = wxLayout_Default which has enum value of 0
 	}
+	} // end of switch (layoutDir)
 	layoutDirStr.Trim(FALSE);
 	layoutDirStr.Trim(TRUE);
 	layoutDirStr = _T(' ') + layoutDirStr;
@@ -4663,20 +4669,28 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		switch (pApp->m_enumWhichFreeTransOp)
 		{
 		case join_with_next:
+		{
 			eventCustom.SetEventType(wxEVT_Join_With_Next);
 			wxPostEvent(this, eventCustom);
+		}
 			break;
 		case join_with_previous:
+		{
 			eventCustom.SetEventType(wxEVT_Join_With_Previous);
 			wxPostEvent(this, eventCustom);
+		}
 			break;
 		case split_it:
+		{
 			eventCustom.SetEventType(wxEVT_Split_It);
 			wxPostEvent(this, eventCustom);
+		}
 			break;
         case no_op:
-            DoNoOp(); // does nothing
+		{
+			DoNoOp(); // does nothing
 		}
+		} // end of switch (pApp->m_enumWhichFreeTransOp)
 		event.RequestMore(); // request more idle events
 
         // Restore default to FALSE (a test of this boolean wraps the call of Adjust dialog
@@ -7988,14 +8002,17 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			switch (gEditStep)
 			{
 			case noEditStep:
+			{
 				return; // don't do anything if we don't have vertical edit mode currently on
+			}
 			case backTranslationsStep:
+			{
 				// backTranslationsStep is never an entry point for the vertical edit process,
 				// but because of the potential for a failure during backTranslationsStep, we
 				// have to cater for cancellation from within this step
-
+			}
 			case freeTranslationsStep:
-
+			{
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8014,9 +8031,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				{
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep; // unneeded, but it documents where we are
-                    // whm changed 1Apr09 SetValue() to ChangeValue() below so that is
-                    // doesn't generate the wxEVT_COMMAND_TEXT_UPDATED event, which now
-                    // deprecated SetValue() generates.
+					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is
+					// doesn't generate the wxEVT_COMMAND_TEXT_UPDATED event, which now
+					// deprecated SetValue() generates.
 					pEdit->ChangeValue(_T("")); // clear the box
 					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep
@@ -8045,7 +8062,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					}
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
 				} // fall through
+			} // end of case freeTranslationsStep:
 			case glossesStep:
+			{
 				if (gEntryPoint == glossesEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8102,7 +8121,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 									 // the needed redraw
 					pView->ToggleGlossingMode(); // turn off glossing mode
 				} // fall through
+			} // end of case glossesStep:
 			case adaptationsStep:
+			{
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8123,28 +8144,28 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					if (pRec->nNewSpanCount > 0)
 					{
 #if defined(_DEBUG) && defined(_VERTEDIT)
-	{
-		wxArrayString arr;
-		int snStart = 234;
-		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
-		wxString src;
-		for (i = 0; i < 30; i++)
-		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
-			arr.Add(src);
-		}
-		wxString spaces = _T("  ");
-        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
-        wxString tempStr = _T("");
-        for (i = 0; i < 30; i++)
-        {
-            tempStr += arr.Item(i);
-            tempStr += spaces;
-        }
-        wxLogDebug(_T("A 6497:%s"), tempStr.c_str());
-	}
+						{
+							wxArrayString arr;
+							int snStart = 234;
+							int i;
+							SPList::Node* pos = pSrcPhrases->Item(snStart);
+							wxString src;
+							for (i = 0; i < 30; i++)
+							{
+								src = pos->GetData()->m_srcPhrase;
+								pos = pos->GetNext();
+								arr.Add(src);
+							}
+							wxString spaces = _T("  ");
+							// whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+							wxString tempStr = _T("");
+							for (i = 0; i < 30; i++)
+							{
+								tempStr += arr.Item(i);
+								tempStr += spaces;
+							}
+							wxLogDebug(_T("A 6497:%s"), tempStr.c_str());
+						}
 #endif
 						// restore the editable span to what it was when adaptationsStep
 						// was started
@@ -8168,40 +8189,42 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 #if defined(_DEBUG) && defined(_VERTEDIT)
-	{
-		wxArrayString arr;
-		int snStart = 234;
-		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
-		wxString src;
-		for (i = 0; i < 30; i++)
-		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
-			arr.Add(src);
-		}
-		wxString spaces = _T("  ");
-        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
-        wxString tempStr = _T("");
-        for (i = 0; i < 30; i++)
-        {
-            tempStr += arr.Item(i);
-            tempStr += spaces;
-        }
-        wxLogDebug(_T("B 6541: %s"), tempStr.c_str());
-	}
+						{
+							wxArrayString arr;
+							int snStart = 234;
+							int i;
+							SPList::Node* pos = pSrcPhrases->Item(snStart);
+							wxString src;
+							for (i = 0; i < 30; i++)
+							{
+								src = pos->GetData()->m_srcPhrase;
+								pos = pos->GetNext();
+								arr.Add(src);
+							}
+							wxString spaces = _T("  ");
+							// whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+							wxString tempStr = _T("");
+							for (i = 0; i < 30; i++)
+							{
+								tempStr += arr.Item(i);
+								tempStr += spaces;
+							}
+							wxLogDebug(_T("B 6541: %s"), tempStr.c_str());
+						}
 #endif
 					}
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 				} // fall through
+			} // end of case adaptationsStep:
 			case sourceTextStep:
+			{
 				if (gEntryPoint == sourceTextEntryPoint)
 				{
-                    // restore to the number of instances when editableSpan had not had any
-                    // user edits yet (they don't have to be the correct ones, as the
-                    // restoration of the cancel span will remove them all and insert the
-                    // cancel span ones, later)
+					// restore to the number of instances when editableSpan had not had any
+					// user edits yet (they don't have to be the correct ones, as the
+					// restoration of the cancel span will remove them all and insert the
+					// cancel span ones, later)
 					gEditStep = sourceTextStep;
 					//bool bWasOK = TRUE;
 					int nHowMany = 0;
@@ -8222,10 +8245,10 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// only if shorter or longer do we need to make an insertion or deletion, respectively
 						if (bNewIsShorter)
 						{
-                            // need to make some insertions, just take them from start of
-                            // cancel span (the only need we have is to move the right
-                            // context rightwards so is gets located correctly before the
-                            // replacement later on)
+							// need to make some insertions, just take them from start of
+							// cancel span (the only need we have is to move the right
+							// context rightwards so is gets located correctly before the
+							// replacement later on)
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nNewSpanCount,
@@ -8233,14 +8256,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 								&pRec->cancelSpan_SrcPhraseList,
 								0, // start at index 0, ie. insert whole of deep copied list
 								nHowMany);
-						if (!bWasOK)
-						{
-							// tell the user there was a problem, but keep processing even if
-							// FALSE was returned (English message will suffice, the error is
-							// unlikely
-							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing will continue however"));
-							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing continues"));
-						}
+							if (!bWasOK)
+							{
+								// tell the user there was a problem, but keep processing even if
+								// FALSE was returned (English message will suffice, the error is
+								// unlikely
+								wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing will continue however"));
+								gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing continues"));
+							}
 						}
 						if (bOldIsShorter)
 						{
@@ -8261,35 +8284,35 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							}
 						}
 					}
-                    // some of the instances in the span above are wrong, but the span is
-                    // now co-extensive with the cancel span, so when we overwrite this
-                    // with the cancel span, we've restored the original state (except
-                    // perhaps if the propagation span sticks out past the end of the
-                    // cancel span) - we do these copies in the sourceTextStp case below.
+					// some of the instances in the span above are wrong, but the span is
+					// now co-extensive with the cancel span, so when we overwrite this
+					// with the cancel span, we've restored the original state (except
+					// perhaps if the propagation span sticks out past the end of the
+					// cancel span) - we do these copies in the sourceTextStp case below.
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 #if defined(_DEBUG) && defined(_VERTEDIT)
-	{
-		wxArrayString arr;
-		int snStart = 234;
-		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
-		wxString src;
-		for (i = 0; i < 30; i++)
-		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
-			arr.Add(src);
-		}
-		wxString spaces = _T("  ");
-        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
-        wxString tempStr = _T("");
-        for (i = 0; i < 30; i++)
-        {
-            tempStr += arr.Item(i);
-            tempStr += spaces;
-        }
-        wxLogDebug(_T("b 6640: %s"), tempStr.c_str());
-	}
+					{
+						wxArrayString arr;
+						int snStart = 234;
+						int i;
+						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						wxString src;
+						for (i = 0; i < 30; i++)
+						{
+							src = pos->GetData()->m_srcPhrase;
+							pos = pos->GetNext();
+							arr.Add(src);
+						}
+						wxString spaces = _T("  ");
+						// whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+						wxString tempStr = _T("");
+						for (i = 0; i < 30; i++)
+						{
+							tempStr += arr.Item(i);
+							tempStr += spaces;
+						}
+						wxLogDebug(_T("b 6640: %s"), tempStr.c_str());
+					}
 #endif
 					// handle the user edits done in the Edit Source Text dialog
 					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
@@ -8310,28 +8333,28 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 #if defined(_DEBUG) && defined(_VERTEDIT)
-	{
-		wxArrayString arr;
-		int snStart = 234;
-		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
-		wxString src;
-		for (i = 0; i < 30; i++)
-		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
-			arr.Add(src);
-		}
-		wxString spaces = _T("  ");
-        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
-        wxString tempStr = _T("");
-        for (i = 0; i < 30; i++)
-        {
-            tempStr += arr.Item(i);
-            tempStr += spaces;
-        }
-        wxLogDebug(_T("C 6681: %s"), tempStr.c_str());
-	}
+					{
+						wxArrayString arr;
+						int snStart = 234;
+						int i;
+						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						wxString src;
+						for (i = 0; i < 30; i++)
+						{
+							src = pos->GetData()->m_srcPhrase;
+							pos = pos->GetNext();
+							arr.Add(src);
+						}
+						wxString spaces = _T("  ");
+						// whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+						wxString tempStr = _T("");
+						for (i = 0; i < 30; i++)
+						{
+							tempStr += arr.Item(i);
+							tempStr += spaces;
+						}
+						wxLogDebug(_T("C 6681: %s"), tempStr.c_str());
+					}
 #endif
 
 					// if the end of the propagation span is beyond end of cancel span, restore
@@ -8357,28 +8380,28 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 #if defined(_DEBUG) && defined(_VERTEDIT)
-	{
-		wxArrayString arr;
-		int snStart = 234;
-		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
-		wxString src;
-		for (i = 0; i < 30; i++)
-		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
-			arr.Add(src);
-		}
-		wxString spaces = _T("  ");
-        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
-        wxString tempStr = _T("");
-        for (i = 0; i < 30; i++)
-        {
-            tempStr += arr.Item(i);
-            tempStr += spaces;
-        }
-        wxLogDebug(_T("D 6727: %s"), tempStr.c_str());
-	}
+					{
+						wxArrayString arr;
+						int snStart = 234;
+						int i;
+						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						wxString src;
+						for (i = 0; i < 30; i++)
+						{
+							src = pos->GetData()->m_srcPhrase;
+							pos = pos->GetNext();
+							arr.Add(src);
+						}
+						wxString spaces = _T("  ");
+						// whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+						wxString tempStr = _T("");
+						for (i = 0; i < 30; i++)
+						{
+							tempStr += arr.Item(i);
+							tempStr += spaces;
+						}
+						wxLogDebug(_T("D 6727: %s"), tempStr.c_str());
+					}
 #endif
 #if defined(__WXGTK__)
 					// BEW 20Nov12 In Linux build, OnDraw() crashes because a CPile instances
@@ -8394,6 +8417,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 									 // the needed redraw
 #endif
 				}
+			} // end of case sourceTextStep:
 				break;
 			} // end of switch (gEditStep)
 		} // end of TRUE block for test (gbAdaptBeforeGloss)
@@ -8404,13 +8428,17 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			switch (gEditStep)
 			{
 			case noEditStep:
+			{
 				return; // don't do anything if we don't have vertical edit mode currently on
+			}
 			case backTranslationsStep:
+			{
 				// backTranslationsStep is never an entry point for the vertical edit process,
 				// but because of the potential for a failure during backTranslationsStep, we
 				// have to cater for cancellation from within this step
-
+			}
 			case freeTranslationsStep:
+			{
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8458,7 +8486,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					}
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
 				} // fall through
+			} // end of case freeTranslationsStep:
 			case adaptationsStep:
+			{
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8516,7 +8546,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 				} // fall through
+			} // end of case adaptationsStep:
 			case glossesStep:
+			{
 				if (gEntryPoint == glossesEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
@@ -8571,14 +8603,16 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 									 // do the needed redraw
 					pView->ToggleGlossingMode(); // turn glossing mode back off
 				} // fall through
+			} // end of case glossesStep:
 			case sourceTextStep:
+			{
 				if (gEntryPoint == sourceTextEntryPoint)
 				{
 					// rollback this step and then exit...
-                    // restore to the number of instances when editableSpan had not had any
-                    // user edits yet (they don't have to be the correct ones, as the
-                    // restoration of the cancel span will remove them all and insert the
-                    // cancel span ones, later)
+					// restore to the number of instances when editableSpan had not had any
+					// user edits yet (they don't have to be the correct ones, as the
+					// restoration of the cancel span will remove them all and insert the
+					// cancel span ones, later)
 					int nHowMany = 0;
 					bool bNewIsShorter = FALSE;
 					bool bOldIsShorter = FALSE;
@@ -8598,10 +8632,10 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// only if shorter or longer do we need to make an insertion or deletion, respectively
 						if (bNewIsShorter)
 						{
-                            // need to make some insertions, just take them from start of
-                            // cancel span (the only need we have is to move the right
-                            // context rightwards so is gets located correctly before the
-                            // replacement later on)
+							// need to make some insertions, just take them from start of
+							// cancel span (the only need we have is to move the right
+							// context rightwards so is gets located correctly before the
+							// replacement later on)
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nNewSpanCount,
@@ -8637,11 +8671,11 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							}
 						}
 					}
-                    // some of the instances in the span above are wrong, but the span is
-                    // now co-extensive with the cancel span, so when we overwrite this
-                    // with the cancel span, we've restored the original state (except
-                    // perhaps if the propagation span sticks out past the end of the
-                    // cancel span) - we do these copies in the sourceTextStp case below.
+					// some of the instances in the span above are wrong, but the span is
+					// now co-extensive with the cancel span, so when we overwrite this
+					// with the cancel span, we've restored the original state (except
+					// perhaps if the propagation span sticks out past the end of the
+					// cancel span) - we do these copies in the sourceTextStp case below.
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					gEditStep = sourceTextStep;
 
@@ -8700,6 +8734,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 									 // the needed redraw
 #endif
 				}
+			} // end of case sourceTextStep:
 				break;
 			} // end of switch (gEditStep)
 		} // end of FALSE block for test (gbAdaptBeforeGloss)

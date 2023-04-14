@@ -154,19 +154,25 @@ void CToolbarPagePrefs::CreateControls()
 	switch (m_toolbarSize)
 	{
 	case btnLarge:
+	{
 		pRdo = (wxRadioButton*)FindWindowById(ID_RDO_TOOLBAR_LARGE);
 		pRdo->SetValue(true);
+	}
 		break;
 	case btnMedium:
+	{
 		pRdo = (wxRadioButton*)FindWindowById(ID_RDO_TOOLBAR_MEDIUM);
 		pRdo->SetValue(true);
+	}
 		break;
 	case btnSmall:
 	default:
+	{
 		pRdo = (wxRadioButton*)FindWindowById(ID_RDO_TOOLBAR_SMALL);
 		pRdo->SetValue(true);
-		break;
 	}
+		break;
+	} // end of switch (m_toolbarSize)
 	m_bShowToobarText = pApp->m_bShowToolbarIconAndText;
 	wxChoice *pShowText = (wxChoice*)FindWindowById(ID_CBO_TOOLBAR_ICON);
 	pShowText->Select((m_bShowToobarText == true) ? 0 : 1); 

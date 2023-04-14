@@ -2601,7 +2601,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 		switch (m_whichTagEnum)
 		{
 		case no_value_: // this applies when text takes off again without an initial marker
-
+		{
 			// first test must be to check if the m_endMkr member contains \wj*, if so we
 			// must turn off m_bWordsOfChrist after building the span to be built here
 			if (m_endMkr == wordsOfChristEndMkr)
@@ -2647,29 +2647,37 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case id_:
+		{
 			// do nothing, the bookID has been extracted before Xhtml::DoXhtmlExport() was entered
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case running_hdr_:
+		{
 			// do nothing, the running header was extracted before Xhtml::DoXhtmlExport() was entered
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		// whichever of the \mt markers we come to first, process it and and any
 		// others which follow it in the one function, and return only having
 		// parsed beyond them all, and deal with them all
 		case title_main_: // for \mt or \mt1
 		case title_secondary_: // for \mt2
 		case title_tertiary_: // for \mt3
+		{
 			myxml = BuildTitleInfo(m_pBuffer);
 			xhtmlStr += myxml;
 			myxml.Empty(); // clear, for next production
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case c_: // the begin-marker was \c (chapter num production has been build already)
+		{
 			// nothing to do, except indicate Introduction material is finished with
 			if (m_bFirstIntroSectionHasBeenStarted)
 			{
@@ -2680,8 +2688,11 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
-		case p_: // normal paragraph (always opens a newline and closes off with </div> 
-			     // before starting a new <div>
+		}
+		case p_:
+		{
+			// normal paragraph (always opens a newline and closes off with </div> 
+				 // before starting a new <div>
 			m_bMajorSectionJustOpened = FALSE;
 			if (!m_bFirstSectionHasBeenStarted) // got to a verse without any srcSection being done yet
 			{
@@ -2689,7 +2700,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 				// newline there will be a problem when rendering
 				xhtmlStr += m_eolStr; // open a new line
 				xhtmlStr += m_divCloseTemplate; // </div>
-				
+
 				// do "columns" <div> now, and then a <div> for scrSection -- then make
 				// the flag TRUE and it stays that way until the end of the export 
 				myxml = BuildDivTag(columns_);
@@ -2750,7 +2761,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case m_: // continuation paragraph (I'm assuming these would open a new line)
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
 			// and don't forget that \p can have text after it, so check for m_data
@@ -2787,8 +2800,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case intro_paragraph_: // inscription paragraph (always opens a newline and closes off with </div> 
 			     // before starting a new <div>), it's usually centred, so USFM is \pc
+		{
 			m_bMajorSectionJustOpened = FALSE;
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
@@ -2807,21 +2822,27 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case intro_list_item_1_:
+		{
 			myxml = BuildSpan(plusClass, intro_list_item_1_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case intro_list_item_2_:
+		{
 			myxml = BuildSpan(plusClass, intro_list_item_2_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case line1_:
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
 			myxml = BuildDivTag(line1_);
@@ -2834,10 +2855,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			}
 			else
 			{
-                // There's data to be handled after the \q or \q1, maybe Words_Of_Christ
-                // was turned on earlier, so check for that, otherwise it's just a 'simple'
-                // span type
-                if (m_bWordsOfChrist)
+				// There's data to be handled after the \q or \q1, maybe Words_Of_Christ
+				// was turned on earlier, so check for that, otherwise it's just a 'simple'
+				// span type
+				if (m_bWordsOfChrist)
 				{
 					// there was a \wj encountered preceding a previous span 
 					myxml = BuildSpan(plusClass, words_of_christ_, GetLanguageCode(), ConvertData(m_data));
@@ -2858,7 +2879,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case line2_:
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
 			myxml = BuildDivTag(line2_);
@@ -2871,10 +2894,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			}
 			else
 			{
-                // There's data to be handled after the \q or \q1, maybe Words_Of_Christ
-                // was turned on earlier, so check for that, otherwise it's just a 'simple'
-                // span type
-                if (m_bWordsOfChrist)
+				// There's data to be handled after the \q or \q1, maybe Words_Of_Christ
+				// was turned on earlier, so check for that, otherwise it's just a 'simple'
+				// span type
+				if (m_bWordsOfChrist)
 				{
 					// there was a \wj encountered preceding a previous span 
 					myxml = BuildSpan(plusClass, words_of_christ_, GetLanguageCode(), ConvertData(m_data));
@@ -2895,7 +2918,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case line3_:
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
 			myxml = BuildDivTag(line3_);
@@ -2908,10 +2933,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			}
 			else
 			{
-                // There's data to be handled after the \q or \q1, maybe Words_Of_Christ
-                // was turned on earlier, so check for that, otherwise it's just a 'simple'
-                // span type
-                if (m_bWordsOfChrist)
+				// There's data to be handled after the \q or \q1, maybe Words_Of_Christ
+				// was turned on earlier, so check for that, otherwise it's just a 'simple'
+				// span type
+				if (m_bWordsOfChrist)
 				{
 					// there was a \wj encountered preceding a previous span 
 					myxml = BuildSpan(plusClass, words_of_christ_, GetLanguageCode(), ConvertData(m_data));
@@ -2932,7 +2957,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case quoted_text_:
+		{
 			myxml = BuildSpan(plusClass, quoted_text_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			// THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
@@ -2944,8 +2971,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case inscription_paragraph_: // inscription paragraph (always opens a newline and closes off with </div> 
 			     // before starting a new <div>), it's usually centred, so USFM is \pc
+		{
 			m_bMajorSectionJustOpened = FALSE;
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
@@ -2983,14 +3012,18 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case inscription_:
+		{
 			myxml = BuildSpan(plusClass, inscription_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case inline_crossReference_: // for USFM \rq ... \rq*  [but handle like in BuildFXRefFe() ]
+		{
 			myUuid = MakeUUID();
 			myxml = BuildFootnoteMarkerSpan(myUuid);
 			xhtmlStr += myxml;
@@ -3000,7 +3033,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case v_: // the begin-marker was \v (verse num production has been built already)
+		{
 			m_bMajorSectionJustOpened = FALSE;
 			if (!m_bFirstSectionHasBeenStarted) // got to a verse without any srcSection being done yet
 			{
@@ -3008,7 +3043,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 				// newline there will be a problem when rendering
 				xhtmlStr += m_eolStr; // open a new line
 				xhtmlStr += m_divCloseTemplate; // </div>
-				
+
 				// do "columns" <div> now, and then a <div> for scrSection -- then make
 				// the flag TRUE and it stays that way until the end of the export 
 				myxml = BuildDivTag(columns_);
@@ -3091,7 +3126,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case major_section_:
+		{
 			m_bMajorSectionJustOpened = TRUE; // this prevents a following \s or \s1 from
 											  // trying to (wrongly) open the section a second time
 			// major sections always start a new line, and close off the last <div> tag with </div>
@@ -3104,13 +3141,13 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 				xhtmlStr += m_divCloseTemplate; // </div>
 			}
 			myxml = BuildDivTag(scrSection_); // builds <div class="scrSection">, and is always
-                    // followed by a <div> of class Section_Head_Major; minor likewise has
-                    // <div with class Section_Head_Minor but does not nest and so doesn't
-                    // require div of class scrSection as there is already one such opening
-                    // the section; and a norm Section_Head, if it follows, doesn't start
-                    // another <div class="scrSection"> because the major section marker
-                    // has opened the section, and in that case a following normal section
-                    // just builds it's Section_Head and following text span
+					// followed by a <div> of class Section_Head_Major; minor likewise has
+					// <div with class Section_Head_Minor but does not nest and so doesn't
+					// require div of class scrSection as there is already one such opening
+					// the section; and a norm Section_Head, if it follows, doesn't start
+					// another <div class="scrSection"> because the major section marker
+					// has opened the section, and in that case a following normal section
+					// just builds it's Section_Head and following text span
 			m_bFirstSectionHasBeenStarted = TRUE; // is only false at start of parse, and is
 					// used for forcing a section to start if one hasn't started by the time
 					// a verse marker is encountered
@@ -3124,7 +3161,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case section_:
+		{
 			// sections always start a new line, and close off the last <div> tag with </div>
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
@@ -3162,7 +3201,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case minor_section_:
+		{
 			// minor sections don't cause a <div class="scrSection"> to be created, but
 			// instead they just have a Section_Head_Minor and span with text following;
 			// they do start a new line, but do not close off the current section
@@ -3174,12 +3215,14 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case intro_section_:
+		{
 			// sections always start a new line, and close off the last <div> tag with </div>
 			xhtmlStr += m_eolStr; // open a new line
 			xhtmlStr += m_divCloseTemplate; // </div>
-            // intro sections are containers, and so if an intro section was already
-            // opened, then this new intro section most close it with an extra </div> now
+			// intro sections are containers, and so if an intro section was already
+			// opened, then this new intro section most close it with an extra </div> now
 			if (m_bFirstIntroSectionHasBeenStarted)
 			{
 				xhtmlStr += m_divCloseTemplate; // </div>
@@ -3191,7 +3234,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			myxml = BuildDivTag(scrIntroSection_); // builds <div class="scrIntroSection">,
 					// and is always followed by a <div> of class Intro_Section_Head
 			xhtmlStr += myxml;
-			
+
 			// add the intro section's header <div> tag, followed by the span with the
 			// text of the introduction subheading (a header doesn't start a new line)
 			// Note, the \is or \is1 may, or may not, have no text - if none, the element
@@ -3203,7 +3246,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case list_item_1_:
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			myxml = BuildDivTag(list_item_1_);
 			xhtmlStr += myxml;
@@ -3212,7 +3257,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case list_item_2_:
+		{
 			xhtmlStr += m_eolStr; // open a new line
 			myxml = BuildDivTag(list_item_2_);
 			xhtmlStr += myxml;
@@ -3221,7 +3268,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
-		case alt_quote_: // for USFM \fqa 
+		}
+		case alt_quote_: // for USFM \fqa
+		{
 			// I'm assuming USFM \fqa maps to TE's Alternate_Reading" -- see Oxes v1 documentation
 			myxml = BuildSpan(plusClass, alt_quote_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
@@ -3229,7 +3278,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case footnote_quote_: // for USFM \fq
+		{
 			// Greg Trihus says USFM \fq maps to TE's "Alternate_Reading"
 			myxml = BuildSpan(plusClass, footnote_quote_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
@@ -3237,28 +3288,36 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case v_num_in_note_: // for USFM \fv
+		{
 			myxml = BuildSpan(plusClass, v_num_in_note_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case chapter_head_: // for USFM \cl 'chapter label' (Oxes documentation wrongly gives this as \cp). Do 'in place', it can be before or after \c
+		{
 			myxml = BuildSpan(plusClass, chapter_head_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case parallel_passage_ref_:
+		{
 			myxml = BuildSpan(plusClass, parallel_passage_ref_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case words_of_christ_:
+		{
 			m_bWordsOfChrist = TRUE;
 			myxml = BuildSpan(plusClass, words_of_christ_, GetLanguageCode(), ConvertData(m_data));
 			if (m_endMkr == wordsOfChristEndMkr)
@@ -3291,46 +3350,54 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case citation_line_1_:
+		{
 			myxml = BuildSpan(plusClass, citation_line_1_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
-            // THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
-            // (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
-            // seems to be a reasonable assumption on the basis of scripture. (If they did
-            // occur together, we've no way to mark them in this xhtml standard, as the
-            // class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
-            // (Citation_Line#) not any two of them.)
+			// THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
+			// (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
+			// seems to be a reasonable assumption on the basis of scripture. (If they did
+			// occur together, we've no way to mark them in this xhtml standard, as the
+			// class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
+			// (Citation_Line#) not any two of them.)
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case citation_line_2_:
+		{
 			myxml = BuildSpan(plusClass, citation_line_2_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
-            // THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
-            // (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
-            // seems to be a reasonable assumption on the basis of scripture. (If they did
-            // occur together, we've no way to mark them in this xhtml standard, as the
-            // class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
-            // (Citation_Line#) not any two of them.)
+			// THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
+			// (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
+			// seems to be a reasonable assumption on the basis of scripture. (If they did
+			// occur together, we've no way to mark them in this xhtml standard, as the
+			// class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
+			// (Citation_Line#) not any two of them.)
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case citation_line_3_:
+		{
 			myxml = BuildSpan(plusClass, citation_line_3_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
-            // THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
-            // (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
-            // seems to be a reasonable assumption on the basis of scripture. (If they did
-            // occur together, we've no way to mark them in this xhtml standard, as the
-            // class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
-            // (Citation_Line#) not any two of them.)
+			// THERE IS AN IMPLICIT ASSUMPTION HERE -- that \wj (Words_Of_Christ) and \qt
+			// (Quoted_Text) and \sc# ... \sc* (Citation_Line#) never occur together. This
+			// seems to be a reasonable assumption on the basis of scripture. (If they did
+			// occur together, we've no way to mark them in this xhtml standard, as the
+			// class attribute in a span can only be Words_Of_Christ or Quoted_Text, or
+			// (Citation_Line#) not any two of them.)
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case emphasis_:
+		{
 			// we are assuming here that \it ... \it* will apply only to a short stretch
 			// of text in which there were no other markers - if there were, the
 			// emphasized span would only apply up to the begin-marker of the embedded
@@ -3343,7 +3410,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case emphasized_text_:
+		{
 			// we are assuming here that \em ... \em* will apply only to a short stretch
 			// of text in which there were no other markers - if there were, the
 			// emphasized span would only apply up to the begin-marker of the embedded
@@ -3356,28 +3425,36 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case remark_:
+		{
 			myxml = BuildSpan(plusClass, remark_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case stanza_break_:
+		{
 			myxml = BuildSpan(plusClass, stanza_break_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case see_glossary_:
+		{
 			myxml = BuildSpan(plusClass, see_glossary_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		}
 		case figure_:
+		{
 			// increase the picture number (1-based)
 			m_nPictureNum++;
 			// construct the picture ID (it's unique, of form "Figure-XXX-number" where
@@ -3390,33 +3467,32 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
-
+		}
 
 // TODO?  more cases go here ***************************************
 
 		default:
+		{
+		// unsupported markers will go thru here, and do nothing -- but we can give a wxLogDebug()
+		// to warn me
+		wxString msg;
+		msg = msg.Format(_T(" *** Not yet supported Marker (as yet):  %s    ***"), m_beginMkr.c_str());
+		wxLogDebug(msg);
 
-			{
-			// unsupported markers will go thru here, and do nothing -- but we can give a wxLogDebug()
-			// to warn me
-			wxString msg;
-			msg = msg.Format(_T(" *** Not yet supported Marker (as yet):  %s    ***"), m_beginMkr.c_str());
-			wxLogDebug(msg);
-
-			// put something in the text too
-			CBString unsupportedStr;
-			wxString txtMsg;
-			txtMsg = txtMsg.Format(_T("<!-- ******** Not yet supported:  %s  ******** -->"),m_beginMkr.c_str());
-			unsupportedStr = ToUtf8(txtMsg);
-			xhtmlStr += m_eolStr;
-			xhtmlStr += unsupportedStr;
-			//xhtmlStr += m_divCloseTemplate;
-			}
-
-			m_beginMkr.Empty();
-			m_endMkr.Empty();
-			break;
+		// put something in the text too
+		CBString unsupportedStr;
+		wxString txtMsg;
+		txtMsg = txtMsg.Format(_T("<!-- ******** Not yet supported:  %s  ******** -->"),m_beginMkr.c_str());
+		unsupportedStr = ToUtf8(txtMsg);
+		xhtmlStr += m_eolStr;
+		xhtmlStr += unsupportedStr;
+		//xhtmlStr += m_divCloseTemplate;
 		}
+
+		m_beginMkr.Empty();
+		m_endMkr.Empty();
+		break;
+	} // end of switch (m_whichTagEnum)
 		
 		// Are we at the end of the book?
         // Our present code will not support multiple books in the one export. If we want

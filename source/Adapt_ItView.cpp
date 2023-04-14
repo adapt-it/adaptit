@@ -5385,7 +5385,7 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 							if (pApp->UsfmSectionHeadMarkersStr.Find(sfm) != -1)
 								return pSrcPhrase->m_nSequNumber;
 						}
-					}
+					} // end of switch (pApp->gCurrentSfmSet)
 				}
 			}
 		}
@@ -6141,7 +6141,7 @@ void CAdapt_ItView::GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPo
 								if (pApp->UsfmSectionHeadMarkersStr.Find(sfm) != -1)
 									return; // preLastPos value is the value the caller wants
 							}
-						}
+						} // end of switch (pApp->gCurrentSfmSet)
 					}
 				}
 			}
@@ -7808,7 +7808,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 					if (pApp->UsfmWrapMarkersStr.Find(sfm) != -1)
 						return TRUE; // found the sfm, so start a new strip
 				}
-			}
+			} // end of switch (pApp->gCurrentSfmSet)
 		}
 	}
 
@@ -17874,7 +17874,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 #endif
 					// BEW 24Dec22, don't do the next block for adding following puncts, if str already
 					// has following puncts - otherwise, we'd double them up
-					wxChar follPunctFirst = (wxChar)0;
+					//wxChar follPunctFirst = (wxChar)0;
 					bool bAlreadyHasFollPunct = FALSE; // init
 					if (bSimpleHasAppendedPuncts)
 					{
@@ -21602,28 +21602,29 @@ bool CAdapt_ItView::DoExtendedSearch(int			selector,
 	switch (selector)
 	{
 	case 0: // source only
+	{
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
 			pos1 = pos1->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
 			nWordCount = pSrcPhrase->m_nSrcWords;
-			nLimit = wxMin(nTotal,nWordCount);
+			nLimit = wxMin(nTotal, nWordCount);
 			nCount++; // count this source phrase (it could have more than
 					  // one word in its m_key or m_srcPhrase)
 			if (bFirstOnly)
 			{
 				bFirstOnly = FALSE;
 				pos = pos1; // we need to return only this one, because the caller
-                            // needs to know when the end of pList has been reached, so
-                            // that the caller's loop can be exited cleanly
+							// needs to know when the end of pList has been reached, so
+							// that the caller's loop can be exited cleanly
 			}
 			else
 			{
 				nIteration = 0; // no iterations allowed for src phrases
 								// other than the first
 			}
-			if(pSrcPhrase->m_bNullSourcePhrase)
+			if (pSrcPhrase->m_bNullSourcePhrase)
 			{
 				if (nCount == 1)
 					return FALSE; // if first is a null source phrase,
@@ -21648,222 +21649,226 @@ bool CAdapt_ItView::DoExtendedSearch(int			selector,
 				strSearchTarget.MakeLower();
 
 			// how many iterations left to be tried, for the first phrase
-a:			if (nCount == 1)
+		a:			if (nCount == 1)
+		{
+			nTotal = nElements; // reset, for each iteration
+			nIteration++;  // which iteration within the nCount == 1 loop are we on
+			nLimit = wxMin(nTotal, nWordCount) - nIteration + 1;
+		}
+		else
+			nLimit = wxMin(nTotal, nWordCount);
+
+		if (nIteration > wxMin(nTotal, nWordCount))
+			return FALSE; // couldn't make a match in the first source phrase,
+						  // and the rest match also
+
+		// we use nWordCount together with pTempList data in order to build a
+		// strConstruct which has nWordCount words in it - either with or without
+		// punctuation depending on the bIncludePunct value, (or there can be less than
+		// nWordCount words, if the search string is short enough); then for each
+		// nIterations decrement, try building one word less each time (provided no
+		// earlier iteration produced a match)
+		if (nCount == 1)
+		{
+			// go back to the start of the user's typed string,
+			// for every iteration while nCount == 1
+			pos2 = pTempList->GetFirst();
+		}
+		count = 0; // count of words from user's typed string which
+				   // are to be used for this test
+		while (pos2 != NULL)
+		{
+			pSP = (CSourcePhrase*)pos2->GetData();
+			pos2 = pos2->GetNext();
+			wxASSERT(pSP != NULL);
+			if (bIncludePunct)
 			{
-				nTotal = nElements; // reset, for each iteration
-				nIteration++;  // which iteration within the nCount == 1 loop are we on
-				nLimit = wxMin(nTotal,nWordCount) - nIteration + 1;
+				if (count == 0)
+				{
+					strConstruct = pSP->m_srcPhrase;
+				}
+				else
+				{
+					strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
+				}
 			}
 			else
-				nLimit = wxMin(nTotal,nWordCount);
+			{
+				if (count == 0)
+				{
+					strConstruct = pSP->m_key;
+				}
+				else
+				{
+					strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
+				}
+			}
+			count++; // count the word represented by this source phrase
+			if (count == nLimit)
+			{
+				break;
+			}
+		}
+		if (bIgnoreCase)
+			strConstruct.MakeLower();
 
-			if (nIteration > wxMin(nTotal,nWordCount))
-				return FALSE; // couldn't make a match in the first source phrase,
-							  // and the rest match also
+		// we exit either because nTotal is less than nLimit (in which case pos2 became
+		// null before count was able to become equal to nLimit), or because count
+		// equals nLimit. So now we must update the value of nTotal, so that it equals
+		// the number of remaining words (ie. srcPhrases) in the pTempList list.
+		nTotal -= count;
+		wxASSERT(nTotal >= 0);
 
-            // we use nWordCount together with pTempList data in order to build a
-            // strConstruct which has nWordCount words in it - either with or without
-            // punctuation depending on the bIncludePunct value, (or there can be less than
-            // nWordCount words, if the search string is short enough); then for each
-            // nIterations decrement, try building one word less each time (provided no
-            // earlier iteration produced a match)
+		// now we must check for a match. If nTotal is zero, the match can be a
+		// substring, and if bFirstAttempt is TRUE, that substring can be not at the
+		// start of the search string, etc. The test is different if we are on an
+		// iteration other than 1st, for nCount == 1
+		if (nCount == 1 && nIteration > 1)
+		{
+			nFound = IsMatchedToEnd(strConstruct, strSearchTarget);
+		}
+		else
+		{
+			nFound = strSearchTarget.Find(strConstruct);
+		}
+		if (nFound == -1)
+		{
+			// no match, so goto a: to try next iteration, provided nCount is still 1;
+			// if nCount is greater than 1 we are not in the first SrcPhrase, and so a
+			// non-match means we must return FALSE
 			if (nCount == 1)
 			{
-				// go back to the start of the user's typed string,
-				// for every iteration while nCount == 1
-				pos2 = pTempList->GetFirst();
-			}
-			count = 0; // count of words from user's typed string which
-					   // are to be used for this test
-			while (pos2 != NULL)
-			{
-				pSP = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
-				wxASSERT(pSP != NULL);
-				if (bIncludePunct)
-				{
-					if (count == 0)
-					{
-						strConstruct = pSP->m_srcPhrase;
-					}
-					else
-					{
-						strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
-					}
-				}
-				else
-				{
-					if (count == 0)
-					{
-						strConstruct = pSP->m_key;
-					}
-					else
-					{
-						strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
-					}
-				}
-				count++; // count the word represented by this source phrase
-				if (count == nLimit)
-				{
-					break;
-				}
-			}
-			if (bIgnoreCase)
-				strConstruct.MakeLower();
-
-            // we exit either because nTotal is less than nLimit (in which case pos2 became
-            // null before count was able to become equal to nLimit), or because count
-            // equals nLimit. So now we must update the value of nTotal, so that it equals
-            // the number of remaining words (ie. srcPhrases) in the pTempList list.
-			nTotal -= count;
-			wxASSERT(nTotal >= 0);
-
-            // now we must check for a match. If nTotal is zero, the match can be a
-            // substring, and if bFirstAttempt is TRUE, that substring can be not at the
-            // start of the search string, etc. The test is different if we are on an
-            // iteration other than 1st, for nCount == 1
-			if (nCount == 1 && nIteration > 1)
-			{
-				nFound = IsMatchedToEnd(strConstruct,strSearchTarget);
+				// try next iteration (with a shorter search string)
+				goto a;
 			}
 			else
 			{
-				nFound = strSearchTarget.Find(strConstruct);
+				return FALSE;
 			}
-			if (nFound == -1)
-			{
-                // no match, so goto a: to try next iteration, provided nCount is still 1;
-                // if nCount is greater than 1 we are not in the first SrcPhrase, and so a
-                // non-match means we must return FALSE
-				if (nCount == 1)
-				{
-					// try next iteration (with a shorter search string)
-					goto a;
-				}
-				else
-				{
-					return FALSE;
-				}
-			}
+		}
 
-			// we have a match, so check out whether it is exact, or a substring, etc.
-			nTargetLength = strSearchTarget.Length();
-			nSearchLength = strConstruct.Length();
-			nAddParts = 0;
-			if (nTotal > 0)
+		// we have a match, so check out whether it is exact, or a substring, etc.
+		nTargetLength = strSearchTarget.Length();
+		nSearchLength = strConstruct.Length();
+		nAddParts = 0;
+		if (nTotal > 0)
+		{
+			// there is more in the search string yet to be matched, so we are not at
+			// the last source phrase to be tested when in this nTotal > 0 == TRUE code
+			// block
+			if (bFirstAttempt)
 			{
-                // there is more in the search string yet to be matched, so we are not at
-                // the last source phrase to be tested when in this nTotal > 0 == TRUE code
-                // block
-				if (bFirstAttempt)
+				// nFound can be non-zero, but the matching must be done up to the end
+				// of the strSearchTarget string, else we have a discontinuity and so
+				// return FALSE or iterate
+				nAddParts = nFound + nSearchLength;
+				if (nAddParts < nTargetLength)
 				{
-                    // nFound can be non-zero, but the matching must be done up to the end
-                    // of the strSearchTarget string, else we have a discontinuity and so
-                    // return FALSE or iterate
-					nAddParts = nFound + nSearchLength;
-					if (nAddParts < nTargetLength)
+					if (nCount == 1 && nIteration < nLimit)
 					{
-						if (nCount == 1 && nIteration < nLimit)
-						{
-                            // no match: we can try with a shorter search string, so
-                            // iterate
-							goto a;
-						}
-						else
-						{
-							// nCount > 1, can't possibly match because of discontinuity,
-							// so return FALSE
-							return FALSE;
-						}
+						// no match: we can try with a shorter search string, so
+						// iterate
+						goto a;
 					}
-					wxASSERT(nAddParts == nTargetLength); // we can continue,
-														  // valid matching so far
-				}
-				else
-				{
-                    // there was a previous match or matches, so this matched string must
-                    // be coextensive with strSearchTarget itself, to avoid a discontinuity
-                    // in the matching, since there is yet more waiting to be tested for a
-                    // match in a later srcPhrase; if there is a discontinuity, check for
-                    // the possibility of an iteration and do so if the conditions are
-                    // right, else return FALSE
-					if (nSearchLength != nTargetLength)
+					else
 					{
-						// discontinuity, check for iteration possibility
-						if (nCount == 1 && nIteration < nLimit)
-						{
-							goto a; // have another try with a shorter search string
-						}
-						else
-						{
-							return FALSE;
-						}
+						// nCount > 1, can't possibly match because of discontinuity,
+						// so return FALSE
+						return FALSE;
 					}
-					wxASSERT(nSearchLength == nTargetLength); // okay so far, so continue
 				}
+				wxASSERT(nAddParts == nTargetLength); // we can continue,
+													  // valid matching so far
 			}
 			else
 			{
-                // nTotal must be zero, and so this current match is the last - but it must
-                // match from the beginning of strSearchTarget, unless bFirstAttempt is
-                // also TRUE
-				wxASSERT(nTotal == 0);
-				if (bFirstAttempt)
+				// there was a previous match or matches, so this matched string must
+				// be coextensive with strSearchTarget itself, to avoid a discontinuity
+				// in the matching, since there is yet more waiting to be tested for a
+				// match in a later srcPhrase; if there is a discontinuity, check for
+				// the possibility of an iteration and do so if the conditions are
+				// right, else return FALSE
+				if (nSearchLength != nTargetLength)
 				{
-                    // we have just made our first match, ie, we are at the start of the
-                    // search string, so nFind can be non-zero legitimately, so we can
-                    // return TRUE, since we are done
+					// discontinuity, check for iteration possibility
+					if (nCount == 1 && nIteration < nLimit)
+					{
+						goto a; // have another try with a shorter search string
+					}
+					else
+					{
+						return FALSE;
+					}
+				}
+				wxASSERT(nSearchLength == nTargetLength); // okay so far, so continue
+			}
+		}
+		else
+		{
+			// nTotal must be zero, and so this current match is the last - but it must
+			// match from the beginning of strSearchTarget, unless bFirstAttempt is
+			// also TRUE
+			wxASSERT(nTotal == 0);
+			if (bFirstAttempt)
+			{
+				// we have just made our first match, ie, we are at the start of the
+				// search string, so nFind can be non-zero legitimately, so we can
+				// return TRUE, since we are done
+				return TRUE;
+			}
+			else
+			{
+				// we are at the end of the search string, and there were previous
+				// matches, so the offset to the first matched character must be zero,
+				// if not, we do not have continuity in the matching, hence not a
+				// legitimate match
+				if (nFound == 0)
+				{
 					return TRUE;
 				}
 				else
 				{
-                    // we are at the end of the search string, and there were previous
-                    // matches, so the offset to the first matched character must be zero,
-                    // if not, we do not have continuity in the matching, hence not a
-                    // legitimate match
-					if (nFound == 0)
+					// discontinuity, check for iteration possibility
+					if (nCount == 1 && nIteration < nLimit)
 					{
-						return TRUE;
+						goto a; // have another try with a shorter search string
 					}
 					else
 					{
-						// discontinuity, check for iteration possibility
-						if (nCount == 1 && nIteration < nLimit)
-						{
-							goto a; // have another try with a shorter search string
-						}
-						else
-						{
-							return FALSE;
-						}
+						return FALSE;
 					}
 				}
 			}
+		}
 
-            // we have finished our first attempt (ie. trying to match in first srcPhrase),
-            // so make bFirstAttempt FALSE for subsequent traverses through the loop
-			bFirstAttempt = FALSE;
+		// we have finished our first attempt (ie. trying to match in first srcPhrase),
+		// so make bFirstAttempt FALSE for subsequent traverses through the loop
+		bFirstAttempt = FALSE;
 		}
 		return FALSE;
-		break;
+	} // end of case 0:
+	break;
 
-	case 1: // target only
+	case 1: // target only; fall thru
+	{
+	}
 	default:
+	{
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
 			pos1 = pos1->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
 
-            // count the words in the m_adaption member, using TokenizeText, which is more
-            // sophisticated than just counting white space etc.
+			// count the words in the m_adaption member, using TokenizeText, which is more
+			// sophisticated than just counting white space etc.
 			wxString aString = pSrcPhrase->m_adaption;
 			SPList* pAList = new SPList;
 			int	length = aString.Length();
 			int numElements = 0;
 			if (!aString.IsEmpty())
 			{
-				numElements = pDoc->TokenizeText(0,pAList,aString,length);
+				numElements = pDoc->TokenizeText(0, pAList, aString, length);
 				DeleteTempList(pAList);
 			}
 			else
@@ -21878,7 +21883,7 @@ a:			if (nCount == 1)
 			}
 			nWordCount = numElements;
 
-			nLimit = wxMin(nTotal,nWordCount);
+			nLimit = wxMin(nTotal, nWordCount);
 			nCount++; // count this source phrase (it could have more than one word in its
 					  // m_key or m_srcPhrase)
 			if (bFirstOnly)
@@ -21906,205 +21911,206 @@ a:			if (nCount == 1)
 				strSearchTarget.MakeLower();
 
 			// how many iterations left to be tried, for the first phrase
-b:			if (nCount == 1)
+		b:			if (nCount == 1)
+		{
+			nTotal = nElements; // reset, for each iteration
+			nIteration++;  // which iteration within the nCount == 1 loop are we on
+			nLimit = wxMin(nTotal, nWordCount) - nIteration + 1;
+		}
+		else
+			nLimit = wxMin(nTotal, nWordCount);
+
+		if (nIteration > wxMin(nTotal, nWordCount))
+			return FALSE; // couldn't make a match in the first source phrase,
+						  // and the rest match also
+
+		// we use nWordCount together with pTempList data in order to build a
+		// strConstruct which has nWordCount words in it - either with or without
+		// punctuation depending on the bIncludePunct value, (or there can be less than
+		// nWordCount words, if the search string is short enough); then for each
+		// nIterations decrement, try building one word less each time (provided no
+		// earlier iteration produced a match)
+		if (nCount == 1)
+		{
+			// go back to the start of the user's typed string, for every
+			// iteration while nCount == 1
+			pos2 = pTempList->GetFirst();
+		}
+		count = 0; // count of words from user's typed string which are
+				   // to be used for this test
+		while (pos2 != NULL)
+		{
+			pSP = (CSourcePhrase*)pos2->GetData();
+			pos2 = pos2->GetNext();
+			wxASSERT(pSP != NULL);
+			if (bIncludePunct)
 			{
-				nTotal = nElements; // reset, for each iteration
-				nIteration++;  // which iteration within the nCount == 1 loop are we on
-				nLimit = wxMin(nTotal,nWordCount) - nIteration + 1;
+				if (count == 0)
+				{
+					strConstruct = pSP->m_srcPhrase;
+				}
+				else
+				{
+					strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
+				}
 			}
 			else
-				nLimit = wxMin(nTotal,nWordCount);
+			{
+				if (count == 0)
+				{
+					strConstruct = pSP->m_key;
+				}
+				else
+				{
+					strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
+				}
+			}
+			count++; // count the word represented by this source phrase
+			if (count == nLimit)
+			{
+				break;
+			}
+		}
+		if (bIgnoreCase)
+			strConstruct.MakeLower();
 
-			if (nIteration > wxMin(nTotal,nWordCount))
-				return FALSE; // couldn't make a match in the first source phrase,
-							  // and the rest match also
+		// we exit either because nTotal is less than nLimit (in which case pos2 became
+		// null before count was able to become equal to nLimit), or because count
+		// equals nLimit. So now we must update the value of nTotal, so that it equals
+		// the number of remaining words (ie. srcPhrases) in the pTempList list.
+		nTotal -= count;
+		wxASSERT(nTotal >= 0);
 
-            // we use nWordCount together with pTempList data in order to build a
-            // strConstruct which has nWordCount words in it - either with or without
-            // punctuation depending on the bIncludePunct value, (or there can be less than
-            // nWordCount words, if the search string is short enough); then for each
-            // nIterations decrement, try building one word less each time (provided no
-            // earlier iteration produced a match)
+		// now we must check for a match. If nTotal is zero, the match can be a
+		// substring, and if bFirstAttempt is TRUE, that substring can be not at the
+		// start of the search string, etc. The test is different if we are on an
+		// iteration other than 1st, for nCount == 1
+		if (nCount == 1 && nIteration > 1)
+		{
+			nFound = IsMatchedToEnd(strConstruct, strSearchTarget);
+		}
+		else
+		{
+			nFound = strSearchTarget.Find(strConstruct);
+		}
+		if (nFound == -1)
+		{
+			// no match, so goto a: to try next iteration, provided nCount is still 1;
+			// if nCount is greater than 1 we are not in the first SrcPhrase, and so a
+			// non-match means we must return FALSE
 			if (nCount == 1)
 			{
-				// go back to the start of the user's typed string, for every
-				// iteration while nCount == 1
-				pos2 = pTempList->GetFirst();
-			}
-			count = 0; // count of words from user's typed string which are
-					   // to be used for this test
-			while (pos2 != NULL)
-			{
-				pSP = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
-				wxASSERT(pSP != NULL);
-				if (bIncludePunct)
-				{
-					if (count == 0)
-					{
-						strConstruct = pSP->m_srcPhrase;
-					}
-					else
-					{
-						strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
-					}
-				}
-				else
-				{
-					if (count == 0)
-					{
-						strConstruct = pSP->m_key;
-					}
-					else
-					{
-						strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
-					}
-				}
-				count++; // count the word represented by this source phrase
-				if (count == nLimit)
-				{
-					break;
-				}
-			}
-			if (bIgnoreCase)
-				strConstruct.MakeLower();
-
-            // we exit either because nTotal is less than nLimit (in which case pos2 became
-            // null before count was able to become equal to nLimit), or because count
-            // equals nLimit. So now we must update the value of nTotal, so that it equals
-            // the number of remaining words (ie. srcPhrases) in the pTempList list.
-			nTotal -= count;
-			wxASSERT(nTotal >= 0);
-
-            // now we must check for a match. If nTotal is zero, the match can be a
-            // substring, and if bFirstAttempt is TRUE, that substring can be not at the
-            // start of the search string, etc. The test is different if we are on an
-            // iteration other than 1st, for nCount == 1
-			if (nCount == 1 && nIteration > 1)
-			{
-				nFound = IsMatchedToEnd(strConstruct,strSearchTarget);
+				// try next iteration (with a shorter search string)
+				goto b;
 			}
 			else
 			{
-				nFound = strSearchTarget.Find(strConstruct);
+				return FALSE;
 			}
-			if (nFound == -1)
-			{
-                // no match, so goto a: to try next iteration, provided nCount is still 1;
-                // if nCount is greater than 1 we are not in the first SrcPhrase, and so a
-                // non-match means we must return FALSE
-				if (nCount == 1)
-				{
-					// try next iteration (with a shorter search string)
-					goto b;
-				}
-				else
-				{
-					return FALSE;
-				}
-			}
+		}
 
-			// we have a match, so check out whether it is exact, or a substring, etc.
-			nTargetLength = strSearchTarget.Length();
-			nSearchLength = strConstruct.Length();
-			nAddParts = 0;
-			if (nTotal > 0)
+		// we have a match, so check out whether it is exact, or a substring, etc.
+		nTargetLength = strSearchTarget.Length();
+		nSearchLength = strConstruct.Length();
+		nAddParts = 0;
+		if (nTotal > 0)
+		{
+			// there is more in the search string yet to be matched, so we are not at
+			// the last source phrase to be tested when in this nTotal > 0 == TRUE code
+			// block
+			if (bFirstAttempt)
 			{
-                // there is more in the search string yet to be matched, so we are not at
-                // the last source phrase to be tested when in this nTotal > 0 == TRUE code
-                // block
-				if (bFirstAttempt)
+				// nFound can be non-zero, but the matching must be done up to the end
+				// of the strSearchTarget string, else we have a discontinuity and so
+				// return FALSE or iterate
+				nAddParts = nFound + nSearchLength;
+				if (nAddParts < nTargetLength)
 				{
-                    // nFound can be non-zero, but the matching must be done up to the end
-                    // of the strSearchTarget string, else we have a discontinuity and so
-                    // return FALSE or iterate
-					nAddParts = nFound + nSearchLength;
-					if (nAddParts < nTargetLength)
+					if (nCount == 1 && nIteration < nLimit)
 					{
-						if (nCount == 1 && nIteration < nLimit)
-						{
-							// no match: we can try with a shorter search string,
-							// so iterate
-							goto b;
-						}
-						else
-						{
-							// nCount > 1, can't possibly match because of discontinuity,
-							// so return FALSE
-							return FALSE;
-						}
+						// no match: we can try with a shorter search string,
+						// so iterate
+						goto b;
 					}
-					wxASSERT(nAddParts == nTargetLength); // we can continue,
-														  // valid matching so far
-				}
-				else
-				{
-                    // there was a previous match or matches, so this matched string must
-                    // be coextensive with strSearchTarget itself, to avoid a discontinuity
-                    // in the matching, since there is yet more waiting to be tested for a
-                    // match in a later srcPhrase; if there is a discontinuity, check for
-                    // the possibility of an iteration and do so if the conditions are
-                    // right, else return FALSE
-					if (nSearchLength != nTargetLength)
+					else
 					{
-						// discontinuity, check for iteration possibility
-						if (nCount == 1 && nIteration < nLimit)
-						{
-							goto b; // have another try with a shorter search string
-						}
-						else
-						{
-							return FALSE;
-						}
+						// nCount > 1, can't possibly match because of discontinuity,
+						// so return FALSE
+						return FALSE;
 					}
-					wxASSERT(nSearchLength == nTargetLength); // okay so far, so continue
 				}
+				wxASSERT(nAddParts == nTargetLength); // we can continue,
+													  // valid matching so far
 			}
 			else
 			{
-                // nTotal must be zero, and so this current match is the last - but it must
-                // match from the beginning of strSearchTarget, unless bFirstAttempt is
-                // also TRUE
-				wxASSERT(nTotal == 0);
-				if (bFirstAttempt)
+				// there was a previous match or matches, so this matched string must
+				// be coextensive with strSearchTarget itself, to avoid a discontinuity
+				// in the matching, since there is yet more waiting to be tested for a
+				// match in a later srcPhrase; if there is a discontinuity, check for
+				// the possibility of an iteration and do so if the conditions are
+				// right, else return FALSE
+				if (nSearchLength != nTargetLength)
 				{
-                    // we have just made our first match, ie, we are at the start of the
-                    // search string, so nFind can be non-zero legitimately, so we can
-                    // return TRUE, since we are done
+					// discontinuity, check for iteration possibility
+					if (nCount == 1 && nIteration < nLimit)
+					{
+						goto b; // have another try with a shorter search string
+					}
+					else
+					{
+						return FALSE;
+					}
+				}
+				wxASSERT(nSearchLength == nTargetLength); // okay so far, so continue
+			}
+		}
+		else
+		{
+			// nTotal must be zero, and so this current match is the last - but it must
+			// match from the beginning of strSearchTarget, unless bFirstAttempt is
+			// also TRUE
+			wxASSERT(nTotal == 0);
+			if (bFirstAttempt)
+			{
+				// we have just made our first match, ie, we are at the start of the
+				// search string, so nFind can be non-zero legitimately, so we can
+				// return TRUE, since we are done
+				return TRUE;
+			}
+			else
+			{
+				// we are at the end of the search string, and there were previous
+				// matches, so the offset to the first matched character must be zero,
+				// if not, we do not have continuity in the matching, hence not a
+				// legitimate match
+				if (nFound == 0)
+				{
 					return TRUE;
 				}
 				else
 				{
-                    // we are at the end of the search string, and there were previous
-                    // matches, so the offset to the first matched character must be zero,
-                    // if not, we do not have continuity in the matching, hence not a
-                    // legitimate match
-					if (nFound == 0)
+					// discontinuity, check for iteration possibility
+					if (nCount == 1 && nIteration < nLimit)
 					{
-						return TRUE;
+						goto b; // have another try with a shorter search string
 					}
 					else
 					{
-						// discontinuity, check for iteration possibility
-						if (nCount == 1 && nIteration < nLimit)
-						{
-							goto b; // have another try with a shorter search string
-						}
-						else
-						{
-							return FALSE;
-						}
+						return FALSE;
 					}
 				}
 			}
+		}
 
-            // we have finished our first attempt (ie. trying to match in first srcPhrase),
-            // so make bFirstAttempt FALSE for subsequent traverses through the loop
-			bFirstAttempt = FALSE;
+		// we have finished our first attempt (ie. trying to match in first srcPhrase),
+		// so make bFirstAttempt FALSE for subsequent traverses through the loop
+		bFirstAttempt = FALSE;
 		}
 		return FALSE;
+	} // end of case default or case 1:
 		break;
-	}
+	} // end of switch (selector)
 #ifndef __VISUALC__
 	return FALSE; // unreachable according to VC7.1, but gcc says it is needed!!!
 #endif
@@ -27582,20 +27588,30 @@ bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum 
 	switch (whichList)
 	{
 	case adaptationsList:
+	{
 		pList = &pRec->deletedAdaptationsList;
+	}
 		break;
 	case glossesList:
+	{
 		pList = &pRec->deletedGlossesList;
+	}
 		break;
 	case freeTranslationsList:
+	{
 		pList = &pRec->deletedFreeTranslationsList;
+	}
 		break;
 	case notesList:
+	{
 		pList = &pRec->storedNotesList;
+	}
 		break;
 	default:
-		return FALSE; // unknown list, must be a bad enum value passed in
+	{
 	}
+		return FALSE; // unknown list, must be a bad enum value passed in
+	} // end of switch (whichList)
     // In wx we don't have an equivalent of AddHead() where one array is being inserted at
     // the head of another array. Wx has Insert() which by default inserts a single item
     // into the arrau at a position n in the array. In this case we want to preserve the
@@ -27804,7 +27820,7 @@ bool CAdapt_ItView::RemoveInformationDuringEdit(CSourcePhrase*	pSrcPhrase,
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE; // indicate an error state
 		}
-	}
+	} // end of switch (gEntryPoint)
 
 	// find the adaptation & if non-empty transfer a copy to the temporary string list
 	// for later insertion in the string list within pRec (done in the caller); but only
@@ -31520,17 +31536,25 @@ wxPanel* CAdapt_ItView::GetBar(enum VertEditBarType vertEditBarType)
 	switch (vertEditBarType)
 	{
 	case Vert_Edit_RemovalsBar:
+	{
 		pBar = pFrame->m_pRemovalsBar;
+	}
 		break;
 	case Vert_Edit_Bar:
+	{
 		pBar = pFrame->m_pVertEditBar;
+	}
 		break;
 	case Vert_Edit_ComposeBar:
+	{
 		pBar = pFrame->m_pComposeBar;
+	}
 		break;
 	default:
+	{
 		pBar = (wxPanel*)NULL;
 	}
+	} // end of switch (vertEditBarType)
 	return pBar;
 }
 
@@ -31597,13 +31621,15 @@ bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRe
 			pStrList = &pRec->deletedFreeTranslationsList;
 			break;
 		}
-		default:
+		default: // fall thru
+		{
+		}
 		case adaptationsStep:
 		{
 			pStrList = &pRec->deletedAdaptationsList;
 			break;
 		}
-	}
+	} // end of switch (step)
 
 	// populate the combo's list, etc...
 
@@ -31832,23 +31858,33 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 	switch (anEntryPoint)
 	{
 	case noEntryPoint:
-        // this should never happen, but if it does it means no source text or vertical
-        // edit was done -- in which case we just return and no do anything
+	{
+		// this should never happen, but if it does it means no source text or vertical
+		// edit was done -- in which case we just return and no do anything
 		return TRUE;
+	}
 	case sourceTextEntryPoint:
+	{
 		nBackTranslationSpanExtent += (pRec->nNewSpanCount - pRec->nOldSpanCount);
 		nBackTranslationSpanExtent += pRec->nAdaptationStep_ExtrasFromUserEdits;
+	}
 		break;
 	case adaptationsEntryPoint:
-        // the only possibility for span extent changes is due to mergers, retranslations,
-        // or placeholder insertions
+	{
+		// the only possibility for span extent changes is due to mergers, retranslations,
+		// or placeholder insertions
 		nBackTranslationSpanExtent += pRec->nAdaptationStep_ExtrasFromUserEdits;
+	}
 		break;
 	// the next two cases involve no change to the span length, so they have no work to do
 	case glossesEntryPoint:
+	{
+	}
 	case freeTranslationsEntryPoint:
+	{
 		;
 	}
+	} // end of switch (anEntryPoint)
 
     // use the final value of nBackTranslationSpanExtent, together with
     // nBackTrans_StartingSequNum to define which CSourcePhrase instances in the
@@ -31911,7 +31947,7 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 /// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
-							ActionSelector select, bool bForceTransition)
+	ActionSelector select, bool bForceTransition)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	EditRecord* pRec = &gEditRecord;
@@ -31920,159 +31956,178 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 		switch (gEditStep)
 		{
 		case adaptationsStep:
+		{
+			// inner switch
+			switch (select)
 			{
-				switch (select)
-				{
-				case pleaseIgnore:
-					return FALSE; // **TODO** eliminate this case,
-								  // the return, and the enum value later on
-				case nextStep:
-					if (gbAdaptBeforeGloss)
-					{
-						wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					}
-					else
-					{
-						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					}
-					return TRUE;
-				case previousStep:
-					if (gbAdaptBeforeGloss)
-						::wxBell(); // cannot roll back to the edit source text
-									// dialog, cancel is better
-					else
-					{
-						wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					}
-					return TRUE;
-				case endNow:
-					{
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
-				case cancelAllSteps:
-					{
-					wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
-				}
-				break;
+			case pleaseIgnore:
+			{
+				return FALSE; // **TODO** eliminate this case,
+							  // the return, and the enum value later on
 			}
-		case glossesStep:
+			case nextStep:
 			{
-				switch (select)
+				if (gbAdaptBeforeGloss)
 				{
-				case pleaseIgnore:
-					return FALSE; // **TODO** eliminate this case,
-								  // the return, and the enum value later on
-				case nextStep:
-					if (gbAdaptBeforeGloss)
-					{
-						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-										// the event handlers are in CMainFrame
-					}
-					else
-					{
-						wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-										// the event handlers are in CMainFrame
-					}
-					return TRUE;
-				case previousStep:
-					if (gbAdaptBeforeGloss)
-					{
-						wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-										// the event handlers are in CMainFrame
-					}
-					else
-						::wxBell(); // cannot roll back to the edit source text
-									// dialog, cancel is better
-					return TRUE;
-				case endNow:
-					{
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
-				case cancelAllSteps:
-					{
-					wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
+					// the event handlers are in CMainFrame
 				}
-				break;
-			}
-		case freeTranslationsStep:
-			{
-				switch (select)
+				else
 				{
-				case pleaseIgnore:
-					return FALSE; // **TODO** eliminate this case,
-								  // the return, and the enum value later on
-				case nextStep:
-					{
-						pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
-						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
-				case previousStep:
-					if (gbAdaptBeforeGloss)
-					{
-						wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					}
-					else
-					{
-						wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					}
-					return TRUE;
-				case endNow:
-					{
-						pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
-						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-					return TRUE;
-					}
-				case cancelAllSteps:
-					{
-						wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-						wxPostEvent(pApp->GetMainFrame(), eventCustom);
-									// the event handlers are in CMainFrame
-						return TRUE;
-					}
+					wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
 				}
-				break;
+				return TRUE;
 			}
-		default:
+			case previousStep:
 			{
-				// control should never come here, but if it does,
-				// make vertical edit mode end immediately
+				if (gbAdaptBeforeGloss)
+					::wxBell(); // cannot roll back to the edit source text
+								// dialog, cancel is better
+				else
+				{
+					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				return TRUE;
+			}
+			case endNow:
+			{
 				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 				wxPostEvent(pApp->GetMainFrame(), eventCustom);
-							// the event handlers are in CMainFrame
+				// the event handlers are in CMainFrame
+				return TRUE;
 			}
+			case cancelAllSteps:
+			{
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
+			break;
+		} // end of case adaptationsStep:
+		case glossesStep:
+		{
+			// inner switch
+			switch (select)
+			{
+			case pleaseIgnore:
+			{
+				return FALSE; // **TODO** eliminate this case,
+							  // the return, and the enum value later on
+			}
+			case nextStep:
+			{
+				if (gbAdaptBeforeGloss)
+				{
+					wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				else
+				{
+					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				return TRUE;
+			}
+			case previousStep:
+			{
+				if (gbAdaptBeforeGloss)
+				{
+					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				else
+					::wxBell(); // cannot roll back to the edit source text
+								// dialog, cancel is better
+				return TRUE;
+			}
+			case endNow:
+			{
+				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case cancelAllSteps:
+			{
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
+			break;
+		} // end of case glossesStep:
+		case freeTranslationsStep:
+		{
+			// inner switch
+			switch (select)
+			{
+			case pleaseIgnore:
+			{
+				return FALSE; // **TODO** eliminate this case,
+							  // the return, and the enum value later on
+			}
+			case nextStep:
+			{
+				pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+				wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case previousStep:
+			{
+				if (gbAdaptBeforeGloss)
+				{
+					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				else
+				{
+					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
+					wxPostEvent(pApp->GetMainFrame(), eventCustom);
+					// the event handlers are in CMainFrame
+				}
+				return TRUE;
+			}
+			case endNow:
+			{
+				pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case cancelAllSteps:
+			{
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
+			break;
+		} // end of case freeTranslationsStep:
+		default:
+		{
+			// control should never come here, but if it does,
+			// make vertical edit mode end immediately
+			wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+			wxPostEvent(pApp->GetMainFrame(), eventCustom);
+			// the event handlers are in CMainFrame
 		}
+		} // end of switch (gEditStep)
 		return TRUE;
 	} // end block for test (bForceTransition == TRUE)
 
@@ -32081,28 +32136,35 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 	switch (gEditStep)
 	{
 	case adaptationsStep:
+	{
 		if (nSequNum > pRec->nAdaptationStep_EndingSequNum)
 		{
+			// inner switch
 			switch (select)
 			{
 			case pleaseIgnore:
+			{
 				return FALSE; // **TODO** eliminate this case,
 							  // the return, and the enum value later on
+			}
 			case nextStep:
+			{
 				if (gbAdaptBeforeGloss)
 				{
 					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				else
 				{
 					wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				return TRUE;
+			}
 			case previousStep:
+			{
 				if (gbAdaptBeforeGloss)
 					::wxBell(); // cannot roll back to the edit source text
 								// dialog, cancel is better
@@ -32111,130 +32173,148 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 					// rollback to glossesStep
 					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				return TRUE;
-			case endNow:
-				{
-					// end vertical edit immediately
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
-			case cancelAllSteps:
-				{
-					// cancel vertical edit (restores original state)
-					wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-				return TRUE;
-				}
 			}
+			case endNow:
+			{
+				// end vertical edit immediately
+				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case cancelAllSteps:
+			{
+				// cancel vertical edit (restores original state)
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
 		}
+	} // end of case adaptationsStep:
 		break;
 	case glossesStep:
+	{
 		if (nSequNum > pRec->nGlossStep_EndingSequNum)
 		{
+			// inner switch
 			switch (select)
 			{
 			case pleaseIgnore:
+			{
 				return FALSE; // **TODO** eliminate this case,
 							  // the return, and the enum value later on
+			}
 			case nextStep:
+			{
 				if (gbAdaptBeforeGloss)
 				{
 					wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				else
 				{
 					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				return TRUE;
+			}
 			case previousStep:
+			{
 				if (gbAdaptBeforeGloss)
 				{
 					// rollback to adaptationsStep
 					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-							// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				else
 					::wxBell(); // cannot roll back to the edit source text
 								// dialog, cancel is better
 				return TRUE;
-			case endNow:
-				{
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
-			case cancelAllSteps:
-				{
-					wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
 			}
+			case endNow:
+			{
+				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case cancelAllSteps:
+			{
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
 		}
+	} // end of case glossesStep:
 		break;
 	case freeTranslationsStep:
+	{
 		if (nSequNum > pRec->nFreeTranslationStep_EndingSequNum)
 		{
+			// inner switch
 			switch (select)
 			{
 			case pleaseIgnore:
+			{
 				return FALSE; // **TODO** eliminate this case,
 							  // the return, and the enum value later on
+			}
 			case nextStep:
-				{
-					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
-							// re-storing an already stored f.t. but it's safety first
-					wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
+			{
+				pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
+						// re-storing an already stored f.t. but it's safety first
+				wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
 			case previousStep:
+			{
 				if (gbAdaptBeforeGloss)
 				{
 					// rollback to glossesStep
 					wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				else
 				{
 					// rollback to adaptationsStep
 					wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
+					// the event handlers are in CMainFrame
 				}
 				return TRUE;
-			case endNow:
-				{
-					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
-							// re-storing an already stored f.t. but it's safety first
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
-			case cancelAllSteps:
-				{
-					wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
-					wxPostEvent(pApp->GetMainFrame(), eventCustom);
-								// the event handlers are in CMainFrame
-					return TRUE;
-				}
 			}
+			case endNow:
+			{
+				pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
+						// re-storing an already stored f.t. but it's safety first
+				wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			case cancelAllSteps:
+			{
+				wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+				wxPostEvent(pApp->GetMainFrame(), eventCustom);
+				// the event handlers are in CMainFrame
+				return TRUE;
+			}
+			} // end of inner switch: switch (select)
 		}
+	} // end of case freeTranslationsStep:
 		break;
 	default:
 		{
@@ -32244,7 +32324,7 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 		wxPostEvent(pApp->GetMainFrame(), eventCustom);
 					// the event handlers are in CMainFrame
 		}
-	}
+	} // end of switch (gEditStep)
 	return FALSE; // no PostMessage() has been done,
 				  // so caller can just continue processing
 

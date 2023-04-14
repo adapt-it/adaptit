@@ -6649,6 +6649,7 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 	switch (set)
 	{
 	case PngOnly:
+	{
 		// test for indicators that the sfm set is the 1998 PNG SFM set, count any found
 		{
 			if (!pSrcPhrase->m_markers.IsEmpty())
@@ -6701,9 +6702,11 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 				}
 			}
 		}
+	}
 		break;
 	default:
 	case UsfmOnly:
+	{
 		// test for indicators that the sfm set is USFM, count any found
 		{
 			// for USFM, Adapt It stores \f and \x and \fe in m_markers, and \f* and \x*
@@ -6737,9 +6740,9 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 						mkr = beginMkrsArray.Item(index);
 						if (mkr != _T("\\f"))
 						{
-                            // the \f marker is a begin-marker belonging to both SFM sets,
-                            // so we are interested only in begin-markers which are not that
-                            // one
+							// the \f marker is a begin-marker belonging to both SFM sets,
+							// so we are interested only in begin-markers which are not that
+							// one
 							mkrPlusSpace = mkr + aSpace;
 							if (gpApp->m_usfmIndicatorMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 							{
@@ -6793,7 +6796,7 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 				wxArrayString filteredEndMarkers;	filteredEndMarkers.Clear();
 				wxArrayString filteredContent;		filteredContent.Clear();
 				bool bIsOkay = pSrcPhrase->GetFilteredInfoAsArrays(&filteredMarkers,
-											&filteredEndMarkers, &filteredContent);
+					&filteredEndMarkers, &filteredContent);
 				if (bIsOkay)
 				{
 					// look for \f* or \x* or \fe* being endmarkers for filtered footnote,
@@ -6851,8 +6854,9 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 				} // end of TRUE block for test: if (bIsOkay)
 			}
 		}
+	} // end of case UsfmOnly:
 		break;
-	}
+	} // end of switch (set)
 	return count;
 }
 
@@ -10849,6 +10853,7 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	switch (constraint)
 	{
 	case centered_above:
+	{
 		// The best option is to obscure nothing, so if it will fit without overlap, do
 		// that; if not try for our preferred overlap option - if that isn't enough, then
 		// take the max overlap option
@@ -10870,15 +10875,17 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
 #if defined(__WXGTK__)
 #if defined(_DEBUG)
-        valueBefore = myTopCoord;
-        valueAfter = myTopCoord - (barHeight+2);
-        wxLogDebug(_T("\nmyTopCoord: ABOVE:  BEFORE Kludge %d   AFTER kludge %d: "),valueBefore, valueAfter);
-        wxLogDebug(_T("\n\n"));
+		valueBefore = myTopCoord;
+		valueAfter = myTopCoord - (barHeight + 2);
+		wxLogDebug(_T("\nmyTopCoord: ABOVE:  BEFORE Kludge %d   AFTER kludge %d: "), valueBefore, valueAfter);
+		wxLogDebug(_T("\n\n"));
 #endif
-        myTopCoord -= barHeight +2;
+		myTopCoord -= barHeight + 2;
 #endif
+	}
 		break;
 	case centered_below:
+	{
 		// Try for the most amount of non-obscuring
 		if (bCanFitBelowWithoutOverlap)
 		{
@@ -10895,33 +10902,42 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
 #if defined(__WXGTK__)
 #if defined(_DEBUG)
-        valueBefore = myTopCoord;
-        valueAfter = myTopCoord + (barHeight+2);
-        wxLogDebug(_T("\nmyTopCoord: BEFORE Kludge %d   AFTER kludge %d: "),valueBefore, valueAfter);
-        wxLogDebug(_T("\n\n"));
+		valueBefore = myTopCoord;
+		valueAfter = myTopCoord + (barHeight + 2);
+		wxLogDebug(_T("\nmyTopCoord: BEFORE Kludge %d   AFTER kludge %d: "), valueBefore, valueAfter);
+		wxLogDebug(_T("\n\n"));
 #endif
-        myTopCoord += barHeight +2; // the +2 makes it right
+		myTopCoord += barHeight + 2; // the +2 makes it right
 #endif
+	}
 		break;
 	case top_right:
-        // Dialog has to lie within myMonitor, and the dialog is located at the
-        // top right edge of the monitor
-        myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
+	{
+		// Dialog has to lie within myMonitor, and the dialog is located at the
+		// top right edge of the monitor
+		myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
 		myLeftCoord = pArea->x + (pArea->width - dlgWidth);
+	}
 		break;
 	case bottom_right:
+	{
 		myTopCoord = pArea->y + pArea->height - dlgHeight;
 		myLeftCoord = pArea->x + (pArea->width - dlgWidth);
+	}
 		break;
 	case top_left:
-        myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
+	{
+		myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
 		myLeftCoord = pArea->x;
+	}
 		break;
 	case bottom_left:
+	{
 		myTopCoord = pArea->y + pArea->height - dlgHeight;
 		myLeftCoord = pArea->x;
-		break;
 	}
+		break;
+	} // end of switch (constraint)
 
 	// clear the display and rectangle objects from the heap
 	for (monIndex = 0; monIndex < numMonitors; monIndex++)
@@ -13415,7 +13431,7 @@ wxString ConvertToUtf16(CBString& bstr)
 	wxWCharBuffer buf(wxConvUTF8.cMB2WC(bstr.GetBuffer()));
 	return wxString(buf);
 }
-
+/* BEW 14Apr23 commented out, because it's never called
 int do_upload_local_kbw(void)
 {
 	int rv = -1;
@@ -13427,7 +13443,7 @@ int do_upload_local_kbw(void)
 
 	return rv;
 }
-
+*/
 // BEW added 12Apr23 to help with source text exporting
 wxString AccumulateSourceExportStrings()
 {

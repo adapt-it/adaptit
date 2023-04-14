@@ -976,26 +976,40 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		switch (pChunk->type)
 		{
 		case unknownChunkType:
+		{
 			typeStr = unStr;
 			break;
+		}
 		case bookInitialChunk:
+		{
 			typeStr = biStr;
 			break;
+		}
 		case introductionChunk:
+		{
 			typeStr = inStr;
 			break;
+		}
 		case preFirstChapterChunk:
+		{
 			typeStr = preFChStr;
 			break;
+		}
 		case chapterPlusVerseChunk:
+		{
 			typeStr = cvStr;
 			break;
+		}
 		case subheadingPlusVerseChunk:
+		{
 			typeStr = svStr;
 			break;
+		}
 		case verseChunk:
+		{
 			typeStr = vsStr;
 			break;
+		}
 		}
 		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
 		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText,
@@ -1012,26 +1026,40 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		switch (pChunk->type)
 		{
 		case unknownChunkType:
+		{
 			typeStr = unStr;
 			break;
+		}
 		case bookInitialChunk:
+		{
 			typeStr = biStr;
 			break;
+		}
 		case introductionChunk:
+		{
 			typeStr = inStr;
 			break;
+		}
 		case preFirstChapterChunk:
+		{
 			typeStr = preFChStr;
 			break;
+		}
 		case chapterPlusVerseChunk:
+		{
 			typeStr = cvStr;
 			break;
+		}
 		case subheadingPlusVerseChunk:
+		{
 			typeStr = svStr;
 			break;
+		}
 		case verseChunk:
+		{
 			typeStr = vsStr;
 			break;
+		}
 		}
 		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
 		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText,
@@ -7727,50 +7755,67 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 		switch (oldSPtype)
 		{
 		case singleton:
+		{
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
 			// line switch (these are unrelated new features for 6.5.4)
 			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, pSubspan,
-							oldEndedAt, newEndedAt);
+				oldEndedAt, newEndedAt);
+		}
 			break;
 		case singleton_in_retrans:
+		{
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
 			// line switch (these are unrelated new features for 6.5.4)
-			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, pSubspan, 
-							oldEndedAt, newEndedAt);
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, pSubspan,
+				oldEndedAt, newEndedAt);
+		}
 			break;
 		case merger:
+		{
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
 			// line switch (these are unrelated new features for 6.5.4)
 			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex, newIndex,
-					pSubspan, oldEndedAt, newEndedAt);
+				pSubspan, oldEndedAt, newEndedAt);
+		}
 			break;
-		case singleton_matches_new_conjoined:
+		case singleton_matches_new_conjoined: // fall thru
+		{
+		}
 		case conjoined:
+		{
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
 			// line switch (these are unrelated new features for 6.5.4)
 			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, newIndex,
-					pSubspan, oldEndedAt, newEndedAt);
+				pSubspan, oldEndedAt, newEndedAt);
+		}
 			break;
 		case manual_placeholder:
+		{
 			// BW enhanced 21May14 to support external editor punctuation-only changes
 			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
 			// line switch (these are unrelated new features for 6.5.4)
 			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex, newIndex,
-					pSubspan, oldEndedAt, newEndedAt);
+				pSubspan, oldEndedAt, newEndedAt);
+		}
 			break;
 		case placeholder_in_retrans:
+		{
 			// BW not enhanced 21May14 - checked, and nothing needs to be done
 			// BEW enhanced 21Jul14 to support ZWSP transfer
 			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex,
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
+				newIndex, pSubspan, oldEndedAt, newEndedAt);
+		}
 			break;
 		default: // assume singleton
+		{
 			break;
 		}
+		} // end of switch (oldSPtype)
+
 		if (!bOK)
 		{
 			// check if it is a grave error from which recovery is impossible

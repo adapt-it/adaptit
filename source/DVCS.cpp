@@ -473,15 +473,31 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 	switch (action)
 	{
-		case DVCS_COMMIT_FILE:		result = commit_file (m_pApp->m_curOutputFilename);             break;
-
-        case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
-        case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
-        case DVCS_ANY_CHANGES:      result = any_diffs (m_pApp->m_curOutputFilename);               break;
-
+		case DVCS_COMMIT_FILE:
+		{
+			result = commit_file(m_pApp->m_curOutputFilename);
+			break;
+		}
+        case DVCS_SETUP_VERSIONS:
+		{
+			result = setup_versions(m_pApp->m_curOutputFilename);
+			break;
+		}
+        case DVCS_GET_VERSION:
+		{
+			result = get_version(parm, m_pApp->m_curOutputFilename);
+			break;
+		}
+        case DVCS_ANY_CHANGES:
+		{
+			result = any_diffs(m_pApp->m_curOutputFilename);
+			break;
+		}
 		default:
-			wxMessageBox (_T("Internal error - illegal DVCS command"));
+		{
+			wxMessageBox(_T("Internal error - illegal DVCS command"));
 			result = -1;
+		}
 	}
 
 	// whm 8Apr2021 added wxLogNull block below

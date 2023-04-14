@@ -645,11 +645,11 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 CBString ConvertToUtf8(const wxString& str);
 wxString ConvertToUtf16(CBString& bstr);
 
-extern "C" {
-#ifndef DO_UPLOAD_KBW_H_
-#define DO_UPLOAD_KBW_H_
-	int do_upload_local_kbw(void);
-#endif
-}
+//extern "C" {  // BEW 14Apr23 commented out, as it's never called
+//#ifndef DO_UPLOAD_KBW_H_
+//#define DO_UPLOAD_KBW_H_
+//	int do_upload_local_kbw(void);
+//#endif
+//}
 
 #endif	// helpers_h

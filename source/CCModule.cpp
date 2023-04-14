@@ -961,33 +961,43 @@ void CCCModule::Process_msg(short nMsgIndex, wxString errStr, long unsigned lPar
     switch (formatType)
     {
     case MSG_S_S:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
-			((MSG_STRUCT_S_S *) lParam)->string1.c_str(),
-			((MSG_STRUCT_S_S *) lParam)->string2.c_str());
-		wxMessageBox(tempStr,_("Consistent Changes Error"),MsgIcon);
+    {
+        tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
+            ((MSG_STRUCT_S_S*)lParam)->string1.c_str(),
+            ((MSG_STRUCT_S_S*)lParam)->string2.c_str());
+        wxMessageBox(tempStr, _("Consistent Changes Error"), MsgIcon);
+    }
         break;
     case MSG_S_C_S:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
-                ((MSG_STRUCT_S_C_S *) lParam)->string1.c_str(),
-                ((MSG_STRUCT_S_C_S *) lParam)->char1,
-                ((MSG_STRUCT_S_C_S *) lParam)->string2.c_str());
-		wxMessageBox(tempStr,_T(""),MsgIcon);
+    {
+        tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
+            ((MSG_STRUCT_S_C_S*)lParam)->string1.c_str(),
+            ((MSG_STRUCT_S_C_S*)lParam)->char1,
+            ((MSG_STRUCT_S_C_S*)lParam)->string2.c_str());
+        wxMessageBox(tempStr, _T(""), MsgIcon);
+    }
         break;
     case MSG_S:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg, errStr.c_str());
-		wxMessageBox(tempStr,_T(""),MsgIcon);
+    {
+        tempStr = tempStr.Format(errortable[nMsgIndex].errmsg, errStr.c_str());
+        wxMessageBox(tempStr, _T(""), MsgIcon);
+    }
         break;
     case MSG_LD:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
-                (long signed) lParam);
-		wxMessageBox(tempStr,_T(""),MsgIcon);
+    {
+        tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
+            (long signed)lParam);
+        wxMessageBox(tempStr, _T(""), MsgIcon);
+    }
         break;
     case MSG_noparms:
     default:            // We should never just default actually!
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg);
-		wxMessageBox(tempStr,_T(""),MsgIcon);
-        break;
+    {
+        tempStr = tempStr.Format(errortable[nMsgIndex].errmsg);
+        wxMessageBox(tempStr, _T(""), MsgIcon);
     }
+        break;
+    } // end of switch (formatType)
 }
 
 /****************************************************************************/
@@ -2405,36 +2415,45 @@ void CCCModule::completterset()					 /* Compute first-letter set for matching */
                 switch ( ch )
                 {
                 case ANYCMD:												/* any */
-                case ANYUCMD:												/* any */
+                case ANYUCMD:
+                {								                            /* any */
                     storeact[*tp] = TRUE;
                     tp9 = storend[*tp];
-                    for ( tp = storebegin[*tp]; tp < tp9; )
+                    for (tp = storebegin[*tp]; tp < tp9; )
                         letterset[(*tp++) & 0xFF] = TRUE;
                     goto L60;
+                }
                 case CONTCMD:												/* cont */
+                {
                     storeact[*tp] = TRUE;
                     letterset[*storebegin[*tp] & 0xFF] = TRUE;
                     goto L60;
+                }
                 case FOLCMD:												/* fol */
                 case PRECCMD:												/* prec */
                 case WDCMD:													/* wd */
                 case FOLUCMD:												/* fol */
                 case PRECUCMD:												/* prec */
                 case WDUCMD:												/* wd */
+                {
                     tp++;
                     break;						/* Doesn't affect 1st letter */
-
+                }
                 case TOPBITCMD:                  /* High-bit element */
+                {
                     /* DAR use only lower byte of letter.
-                    	 Otherwise letterset would have to be 64K */
+                         Otherwise letterset would have to be 64K */
                     letterset[*tp & 0x00ff] = TRUE;
                     goto L60;
+                }
                 default:
-                    if ( (ch & HIGHBIT) == 0 )
+                {
+                    if ((ch & HIGHBIT) == 0)
                     {
                         letterset[(ch & 0x00ff)] = TRUE;
                         goto L60;
                     }
+                }
                 } /* End--switch */
 
             } /* End--while (ch != SPECWEDGE) */

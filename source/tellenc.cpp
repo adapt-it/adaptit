@@ -363,45 +363,62 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
 
         // Check for UTF-8 validity
         if (is_valid_utf8) {
-            switch (utf8_char_table[ch]) {
+            switch (utf8_char_table[ch])
+            {
             case UTF8_INVALID:
+            {
                 is_valid_utf8 = false;
                 break;
+            }
             case UTF8_1:
+            {
                 if (utf8_state != UTF8_1) {
-                    is_valid_utf8 = false;
-                }
-                break;
-            case UTF8_2:
-                if (utf8_state != UTF8_1) {
-                    is_valid_utf8 = false;
-                } else {
-                    utf8_state = UTF8_2;
-                }
-                break;
-            case UTF8_3:
-                if (utf8_state != UTF8_1) {
-                    is_valid_utf8 = false;
-                } else {
-                    utf8_state = UTF8_3;
-                }
-                break;
-            case UTF8_4:
-                if (utf8_state != UTF8_1) {
-                    is_valid_utf8 = false;
-                } else {
-                    utf8_state = UTF8_4;
-                }
-                break;
-            case UTF8_TAIL:
-                if (utf8_state > UTF8_1) {
-                    utf8_state--;
-                } else {
                     is_valid_utf8 = false;
                 }
                 break;
             }
-        }
+            case UTF8_2:
+            {
+                if (utf8_state != UTF8_1) {
+                    is_valid_utf8 = false;
+                }
+                else {
+                    utf8_state = UTF8_2;
+                }
+                break;
+            }
+            case UTF8_3:
+            {
+                if (utf8_state != UTF8_1) {
+                    is_valid_utf8 = false;
+                }
+                else {
+                    utf8_state = UTF8_3;
+                }
+                break;
+            }
+            case UTF8_4:
+            {
+                if (utf8_state != UTF8_1) {
+                    is_valid_utf8 = false;
+                }
+                else {
+                    utf8_state = UTF8_4;
+                }
+                break;
+            }
+            case UTF8_TAIL:
+            {
+                if (utf8_state > UTF8_1) {
+                    utf8_state--;
+                }
+                else {
+                    is_valid_utf8 = false;
+                }
+                break;
+            }
+            } // end of switch (utf8_char_table[ch])
+        } // end of if (is_valid_utf8)
 
         // Check whether non-Latin1 characters appear
         if (is_valid_latin1) {

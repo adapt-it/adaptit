@@ -10563,16 +10563,23 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
             switch (m_toolbarSize)
             {
             case btnLarge:
+            {
                 bmp = tbInfo[index].bmpLarge;
+            }
                 break;
             case btnMedium:
+            {
                 bmp = tbInfo[index].bmpMedium;
+            }
                 break;
             case btnSmall:
             default:
+            {
                 bmp = tbInfo[index].bmpSmall;
-                break;
             }
+                break;
+            } // end of switch (m_toolbarSize)
+
             // add the toolbar item
             pAuiToolbar->AddTool(tbInfo[index].toolId, tbInfo[index].label, bmp,
                 wxNullBitmap, wxITEM_NORMAL, tbInfo[index].shortHelpString, tbInfo[index].longHelpString, NULL);
@@ -12711,7 +12718,7 @@ int CAdapt_ItApp::GetTopLevelMenuID(TopLevelMenu topLevelMenu)
         wxASSERT_MSG(FALSE, _T("Programmer Error in GetTopLevelMenuID() function - Unknown top level menu ID symbol."));
         return -1;
     }
-    }
+    } // end of switch (topLevelMenu)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -17071,7 +17078,7 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
         nTotal = (int)m_pSourcePhrases->GetCount();
         break;
     }
-    }
+    } // end of  switch (progDlgType)
     return nTotal;
 }
 
@@ -18955,7 +18962,7 @@ void CAdapt_ItApp::CreateInputDatBlanks(wxString execPth)
 			{
 				break;// do nothing
 			}
-			}
+			} // end of switch (i)
 			i++;
 		}
 	} // end of TRUE block for test: if (execExists && dataExists)
@@ -19543,7 +19550,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		{
 			break; // do nothing
 		}
-		}
+		} // end of switch (funcNumber)
 		
 	} // end of TRUE block for test: if (execExists && dataExists)
 	else
@@ -19724,7 +19731,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
         {
             break; // do nothing
         }
-        }
+        } // end of switch (funcNumber)
         this->m_bExists = FALSE;
 
     } // end of TRUE block for test: if (execExists && dataExists)
@@ -20067,7 +20074,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
         }
         break;
 
-        } // end of switch
+        } // end of switch (funcNumber)
     } // end of TRUE block for test: if (execExists && dataExists)
     else
     {
@@ -20406,7 +20413,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case credentials_for_user:
 	case lookup_user: // = 2
 	{
 		m_resultDatFileName = _T("lookup_user_results.dat");
@@ -20901,7 +20908,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             }
 		}
 		break;
-	}
+	} // end of case list_users:
 	case create_entry: // = 4
 	{
 		// Build the create_entry.dat file for input, making the commandLine for 
@@ -21068,7 +21075,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         }
         */
 		break;
-	}
+	} // end of case create_entry:
 	case pseudo_delete: // = 5
 	{
 		// Build the pseudo_delete.dat file for input, making the commandLine for 
@@ -21192,7 +21199,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case pseudo_delete:
 	case pseudo_undelete: // = 6
 	{
 		// Build the pseudo_undelete.dat file for input, making the commandLine for 
@@ -21303,7 +21310,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case pseudo_undelete:
 	case lookup_entry: // = 7
 	{
 		// Build the lookup_entry.dat file for input, making the commandLine for 
@@ -21416,7 +21423,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case lookup_entry:
 	case changed_since_timed: // = 8
 	{
 		// Build the changed_since_timed.dat file for input, making the commandLine for 
@@ -21531,7 +21538,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case changed_since_timed:
     /* unneeded
 	case bulk_download: // = 13
     {
@@ -21755,7 +21762,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case upload_local_kb:
 	case change_permission: // = 10
 	{
 		m_resultDatFileName = _T("change_permission_results.dat");
@@ -21859,7 +21866,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case change_permission:
 	case change_fullname: // = 11
 	{
 		m_resultDatFileName = _T("change_fullname_results.dat");
@@ -21928,7 +21935,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case change_fullname:
 	case change_password: // = 12
 	{
 		m_resultDatFileName = _T("change_password_results.dat");
@@ -21987,7 +21994,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			wxBell();
 		}
 		break;
-	}
+	} // end of case change_password:
 	case blanksEnd:
 	{
 		break; // do nothing
@@ -23028,7 +23035,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         ;
     }
 		break;
-	};
+	} // end of switch (funcNumber)
 
     // Restore the earlier location of the current working directory
     if (bTempCwd)
@@ -23420,7 +23427,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 						// so go there to get it - at index m_nMgrSel - in LoadDataForPage()
 						break;
 					}
-					} // end of switch
+					} // end of switch (funcNumber)
 			
 				} // end of TRUE block for test: if (bSuccess)
 				
@@ -30351,7 +30358,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     // folder.
                     bSetupFoldersVersionCanReplace = FALSE;
                 }
-                }
+                } // end of switch (versionComparison)
             }
 //			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //				__LINE__, m_szView.x, m_szView.y);
@@ -39182,71 +39189,79 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 			switch (pos)
 			{
 			case 0:
-				offset = str.Find(comma);
-				wxASSERT(offset >= 0);
-				field = wxString(str.Left(offset));
+            {
+                offset = str.Find(comma);
+                wxASSERT(offset >= 0);
+                field = wxString(str.Left(offset));
 #if defined (_DEBUG)
-				username = field;
-				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber list_users = %d, username: %s , for field index: %d"),
-					__FILE__, __FUNCTION__, __LINE__, list_users, username.c_str(), pos);
+                username = field;
+                wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber list_users = %d, username: %s , for field index: %d"),
+                    __FILE__, __FUNCTION__, __LINE__, list_users, username.c_str(), pos);
 #endif
-				m_mgrUsernameArr.Add(field);
-				// Shorten
-				str = str.Mid(offset + 1);
-				field.Empty();
+                m_mgrUsernameArr.Add(field);
+                // Shorten
+                str = str.Mid(offset + 1);
+                field.Empty();
+            }
 				break;
 			case 1:
-				offset = str.Find(comma);
-				wxASSERT(offset >= 0);
-				field = wxString(str.Left(offset));
+            {
+                offset = str.Find(comma);
+                wxASSERT(offset >= 0);
+                field = wxString(str.Left(offset));
 #if defined (_DEBUG)
-				fullname = field;
-				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, fullname: %s , for field index: %d"),
-					__FILE__, __FUNCTION__, __LINE__, list_users, fullname.c_str(), pos);
+                fullname = field;
+                wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, fullname: %s , for field index: %d"),
+                    __FILE__, __FUNCTION__, __LINE__, list_users, fullname.c_str(), pos);
 #endif
-				m_mgrFullnameArr.Add(field);
-				// Shorten
-				str = str.Mid(offset + 1);
-				field.Empty();
+                m_mgrFullnameArr.Add(field);
+                // Shorten
+                str = str.Mid(offset + 1);
+                field.Empty();
+            }
 				break;
 			case 2:
-				offset = str.Find(comma);
-				wxASSERT(offset >= 0);
-				field = wxString(str.Left(offset));
+            {
+                offset = str.Find(comma);
+                wxASSERT(offset >= 0);
+                field = wxString(str.Left(offset));
 #if defined (_DEBUG)
-				password = field;
-				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, password: %s , for field index: %d"),
-					__FILE__, __FUNCTION__, __LINE__, list_users, password.c_str(), pos);
+                password = field;
+                wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, password: %s , for field index: %d"),
+                    __FILE__, __FUNCTION__, __LINE__, list_users, password.c_str(), pos);
 #endif
-				m_mgrPasswordArr.Add(field);
-				// Shorten
-				str = str.Mid(offset + 1);
-				field.Empty();
+                m_mgrPasswordArr.Add(field);
+                // Shorten
+                str = str.Mid(offset + 1);
+                field.Empty();
+            }
 				break;
 			case 3:
-				offset = str.Find(comma);
-				wxASSERT(offset >= 0);
-				field = wxString(str.Left(offset));
-				if (field == _T("0"))
-				{
-					m_mgrUseradminArr.Add(0);
+            {
+                offset = str.Find(comma);
+                wxASSERT(offset >= 0);
+                field = wxString(str.Left(offset));
+                if (field == _T("0"))
+                {
+                    m_mgrUseradminArr.Add(0);
 #if defined (_DEBUG)
-					useradmin = 0;
+                    useradmin = 0;
 #endif
-				}
-				else
-				{
-					// The only other possibility is useradmin == '1'
-					m_mgrUseradminArr.Add(1);
+                }
+                else
+                {
+                    // The only other possibility is useradmin == '1'
+                    m_mgrUseradminArr.Add(1);
 #if defined (_DEBUG)
-					useradmin = 1;
+                    useradmin = 1;
 #endif
-				}
+                }
 
-				wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, useradmin: %d , for field index: %d"),
-					__FILE__, __FUNCTION__, __LINE__, list_users, useradmin, pos);
+                wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, useradmin: %d , for field index: %d"),
+                    __FILE__, __FUNCTION__, __LINE__, list_users, useradmin, pos);
+            }
 				break;
-			};
+			} // end of switch (pos)
 		} // end of for loop: for (pos = 0; pos <= fieldsCount; pos++)
 
 #if defined (_DEBUG)
@@ -39652,23 +39667,33 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
             switch (whichOne)
             {
             case 0:
+            {
                 m_bCCTableLoaded[0] = m_bCCTableLoaded[1] = m_bCCTableLoaded[2] =
                     m_bCCTableLoaded[3] = FALSE;
+            }
                 break;
             case 1:
+            {
                 m_bCCTableLoaded[1] = m_bCCTableLoaded[2] =
                     m_bCCTableLoaded[3] = FALSE;
+            }
                 break;
             case 2:
+            {
                 m_bCCTableLoaded[2] = m_bCCTableLoaded[3] = FALSE;
+            }
                 break;
             case 3:
+            {
                 m_bCCTableLoaded[3] = FALSE;
+            }
                 break;
             default:
+            {
                 wxASSERT(FALSE); // this would only be a programming error
                 wxExit();
             }
+            } // end of switch (whichOne)
         }
 
         // our algorithm above allows processing to proceed even if an exception was
@@ -39897,7 +39922,7 @@ void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
                 // Don't show the dialog
                 ;
             }
-        }
+        } // end of switch (result)
     }
     else
     {
@@ -42563,7 +42588,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             case 5: ff = wxFONTFAMILY_DECORATIVE; break;	//5 = FF_DECORATIVE
             case 0: ff = wxFONTFAMILY_DEFAULT; break;		//0 = FF_DONTCARE
             default: ff = wxFONTFAMILY_DEFAULT;
-            }
+            } // end of switch (FF)
             // set the family of the actual font on the App
             if (fi.fLangType == _T("SourceFont"))
                 m_pSourceFont->SetFamily(ff);
@@ -45233,7 +45258,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
                 return FALSE;
                 break;
             }
-            }
+            } // end of switch (returnValue)
         } // end of TRUE block for test:  if (!bDirectoryExists)
 
           // the custom work folder exists, so commit to it, provided the setting of
@@ -45853,11 +45878,26 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
     switch (gProjectSfmSetForConfig)
     {
-    case UsfmOnly: number = szUsfmOnly; break;
-    case PngOnly: number = szPngOnly; break;
-    case UsfmAndPng: number = szUsfmAndPng; break;
-    default: number = szUsfmOnly;
+    case UsfmOnly: 
+    {
+        number = szUsfmOnly;
     }
+        break;
+    case PngOnly:
+    {
+        number = szPngOnly;
+    }
+        break;
+    case UsfmAndPng:
+    {
+        number = szUsfmAndPng;
+    }
+        break;
+    default:
+    {
+        number = szUsfmOnly;
+    }
+    } // end of switch (gProjectSfmSetForConfig)
     data.Empty();
     data << szUseSFMarkerSet << tab << number;
     pf->AddLine(data);
@@ -51571,11 +51611,26 @@ void CAdapt_ItApp::SetupMarkerStrings()
     switch (gCurrentSfmSet) // gCurrentSfmSet is UsfmOnly when SetupMarkerStrings
                             // is called from InitInstance
     {
-    case UsfmOnly: gCurrentFilterMarkers = UsfmFilterMarkersStr; break;
-    case PngOnly: gCurrentFilterMarkers = PngFilterMarkersStr; break;
-    case UsfmAndPng: gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr; break;
-    default: gCurrentFilterMarkers = UsfmFilterMarkersStr;
+    case UsfmOnly:
+    {
+        gCurrentFilterMarkers = UsfmFilterMarkersStr;
     }
+        break;
+    case PngOnly:
+    {
+        gCurrentFilterMarkers = PngFilterMarkersStr;
+    }
+        break;
+    case UsfmAndPng:
+    {
+        gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr;
+    }
+        break;
+    default:
+    {
+        gCurrentFilterMarkers = UsfmFilterMarkersStr;
+    }
+    } // end of switch (gCurrentSfmSet)
 #ifdef _DEBUG
     ShowFilterMarkers(5); // location 5
 #endif
@@ -52218,6 +52273,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //	aStr = "IBM037";
         //	break;
     case wxFONTENCODING_CP437: //case 437:
+    {
         aStr = "IBM437";
         break;
         //case 500:
@@ -52235,13 +52291,19 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 775:
         //	aStr = "ibm775";
         //	break;
+    }
     case wxFONTENCODING_CP850: //case 850:
+    {
         aStr = "ibm850";
         break;
+    }
     case wxFONTENCODING_CP852: //case 852:
+    {
         aStr = "ibm852";
         break;
+    }
     case wxFONTENCODING_CP855: //case 855:
+    {
         aStr = "IBM855";
         break;
         //case 857:
@@ -52268,7 +52330,9 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 865:
         //	aStr = "IBM865";
         //	break;
+    }
     case wxFONTENCODING_CP866: //case 866:
+    {
         aStr = "cp866";
         break;
         //case 869:
@@ -52277,22 +52341,32 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 870:
         //	aStr = "IBM870";
         //	break;
+    }
     case wxFONTENCODING_CP874: //case 874:
+    {
         aStr = "windows-874";
         break;
         //case 875:
         //	aStr = "cp875";
         //	break;
+    }
     case wxFONTENCODING_CP932: //case 932:
+    {
         aStr = "shift_jis";
         break;
+    }
     case wxFONTENCODING_CP936: //case 936:
+    {
         aStr = "gb2312";
         break;
+    }
     case wxFONTENCODING_CP949: //case 949:
+    {
         aStr = "ks_c_5601-1987";
         break;
+    }
     case wxFONTENCODING_CP950: //case 950:
+    {
         aStr = "big5";
         break;
         //case 1026:
@@ -52337,25 +52411,39 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 1201:
         //	aStr = "unicodeFFFE";
         //	break;
+    }
     case wxFONTENCODING_CP1250: //case 1250:
+    {
         aStr = "windows-1250";
         break;
+    }
     case wxFONTENCODING_CP1251: //case 1251:
+    {
         aStr = "windows-1251";
         break;
+    }
     case wxFONTENCODING_CP1253: //case 1253:
+    {
         aStr = "windows-1253";
         break;
+    }
     case wxFONTENCODING_CP1254: //case 1254:
+    {
         aStr = "windows-1254";
         break;
+    }
     case wxFONTENCODING_CP1255: //case 1255:
+    {
         aStr = "windows-1255";
         break;
+    }
     case wxFONTENCODING_CP1256: //case 1256:
+    {
         aStr = "windows-1256";
         break;
+    }
     case wxFONTENCODING_CP1257: //case 1257:
+    {
         aStr = "windows-1257";
         break;
         //case 1258:
@@ -52364,52 +52452,82 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 1361:
         //	aStr = "Johab";
         //	break;
+    }
     case wxFONTENCODING_MACROMAN: //case 10000:
+    {
         aStr = "macintosh";
         break;
+    }
     case wxFONTENCODING_MACJAPANESE: //case 10001:
+    {
         aStr = "x-mac-japanese";
         break;
+    }
     case wxFONTENCODING_MACCHINESETRAD: //case 10002:
+    {
         aStr = "x-mac-chinesetrad";
         break;
+    }
     case wxFONTENCODING_MACKOREAN: //case 10003:
+    {
         aStr = "x-mac-korean";
         break;
+    }
     case wxFONTENCODING_MACARABIC: //case 10004:
+    {
         aStr = "x-mac-arabic";
         break;
+    }
     case wxFONTENCODING_MACHEBREW: //case 10005:
+    {
         aStr = "x-mac-hebrew";
         break;
+    }
     case wxFONTENCODING_MACGREEK: //case 10006:
+    {
         aStr = "x-mac-greek";
         break;
+    }
     case wxFONTENCODING_MACCYRILLIC: //case 10007:
+    {
         aStr = "x-mac-cyrillic";
         break;
+    }
     case wxFONTENCODING_MACCHINESESIMP: //case 10008:
+    {
         aStr = "x-mac-chinesesimp";
         break;
+    }
     case wxFONTENCODING_MACROMANIAN: //case 10010:
+    {
         aStr = "x-mac-romanian";
         break;
         //case 10017:
         //	aStr = "x-mac-ukrainian";
         //	break;
+    }
     case wxFONTENCODING_MACTHAI: //case 10021:
+    {
         aStr = "x-mac-thai";
         break;
+    }
     case wxFONTENCODING_MACCENTRALEUR: //case 10029:
+    {
         aStr = "x-mac-ce"; // "ce" stands for "central european"
         break;
+    }
     case wxFONTENCODING_MACICELANDIC: //case 10079:
+    {
         aStr = "x-mac-icelandic";
         break;
+    }
     case wxFONTENCODING_MACTURKISH: //case 10081:
+    {
         aStr = "x-mac-turkish";
         break;
+    }
     case wxFONTENCODING_MACCROATIAN: //case 10082:
+    {
         aStr = "x-mac-croatian";
         break;
         //case 20000:
@@ -52505,7 +52623,9 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 20924:
         //	aStr = "IBM00924";
         //	break;
+    }
     case wxFONTENCODING_EUC_JP: //case 20932:
+    {
         aStr = "EUC-JP";
         break;
         //case 20936:
@@ -52517,42 +52637,64 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 21025:
         //	aStr = "cp1025";
         //	break;
+    }
     case wxFONTENCODING_KOI8_U: //case 21866:
+    {
         aStr = "koi8-u";
         break;
         //case CP_SYMBOL: // ??? The enum value for this in Windows is 42 which is wxFONTENCODING_EUC_JP
+    }
     case wxFONTENCODING_ISO8859_1: //case 28591:
+    {
         aStr = "iso-8859-1";
         break;
+    }
     case wxFONTENCODING_ISO8859_2: //case 28592:
+    {
         aStr = "iso-8859-2";
         break;
+    }
     case wxFONTENCODING_ISO8859_3: //case 28593:
+    {
         aStr = "iso-8859-3";
         break;
+    }
     case wxFONTENCODING_ISO8859_4: //case 28594:
+    {
         aStr = "iso-8859-4";
         break;
+    }
     case wxFONTENCODING_ISO8859_5: //case 28595:
+    {
         aStr = "iso-8859-5";
         break;
+    }
     case wxFONTENCODING_ISO8859_6: //case 28596:
         aStr = "iso-8859-6";
         break;
     case wxFONTENCODING_ISO8859_7: //case 28597:
+    {
         aStr = "iso-8859-7";
         break;
+    }
     case wxFONTENCODING_ISO8859_8: //case 28598:
+    {
         aStr = "iso-8859-8";
         break;
+    }
     case wxFONTENCODING_ISO8859_9: //case 28599:
+    {
         aStr = "iso-8859-9";
         break;
         // Note: wxFONTENCODING_CP1252 is just above the default: case below
+    }
     case wxFONTENCODING_ISO8859_13: //case 28603:
+    {
         aStr = "iso-8859-13";
         break;
+    }
     case wxFONTENCODING_ISO8859_15: //case 28605:
+    {
         aStr = "iso-8859-15";
         break;
         //case 29001:
@@ -52621,24 +52763,34 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
         //case 57011:
         //	aStr = "x-iscii-pa";
         //	break;
+    }
     case wxFONTENCODING_UTF7: //case 65000:
+    {
         aStr = "utf-7";
         break;
+    }
     case wxFONTENCODING_UTF8: //case 65001:
+    {
         aStr = "utf-8";
         break;
+    }
     case wxFONTENCODING_UTF32LE: // case 65005: // I assume utf-32 is Little Endian LE
+    {
         aStr = "utf-32";
         break;
+    }
     case wxFONTENCODING_UTF32BE: //case 65006:
+    {
         aStr = "utf-32BE";
         break;
-
+    }
     case wxFONTENCODING_CP1252: //case 1252: // falls through to "Windows-1252"
     default:
+    {
         aStr = "Windows-1252";
         break;
     }
+    }  // end of switch (m_srcEncoding)
 
     aStr = "<?xml version=\"1.0\" encoding=\"" + aStr + "\" standalone=\"yes\"?>\r\n";
 #endif
@@ -54034,21 +54186,29 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
     switch (font->GetWeight())
     {
     case wxFONTWEIGHT_LIGHT:
+    {
         fInfo.fWeight = 400;
         fInfo.fWeightConfSave = 400;
+    }
         break; // same as normal
     case wxFONTWEIGHT_NORMAL:
+    {
         fInfo.fWeight = 400;
         fInfo.fWeightConfSave = 400;
+    }
         break;
     case wxFONTWEIGHT_BOLD:
-        fInfo.fWeight = 700;
-        fInfo.fWeightConfSave = 700;
-        break;
-    default:
+    {
         fInfo.fWeight = 700;
         fInfo.fWeightConfSave = 700;
     }
+        break;
+    default:
+    {
+        fInfo.fWeight = 700;
+        fInfo.fWeightConfSave = 700;
+    }
+    } // end of switch (font->GetWeight())
     if (font->GetStyle() == wxFONTSTYLE_NORMAL)
         fInfo.fItalic = 0;
     else if (font->GetStyle() == wxFONTSTYLE_ITALIC || font->GetStyle() == wxFONTSTYLE_SLANT)
@@ -54067,14 +54227,42 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
         //fInfo.fQuality = 2; // quality ignored in wxWidgets, so leave current value
     switch (font->GetFamily())
     {
-    case wxFONTFAMILY_ROMAN: fInfo.fFamily = 1; break;     //1 = FF_ROMAN (MFC)
-    case wxFONTFAMILY_SWISS: fInfo.fFamily = 2; break;     //2 = FF_SWISS (MFC)
-    case wxFONTFAMILY_MODERN: fInfo.fFamily = 3; break;    //3 = FF_MODERN (MFC)
-    case wxFONTFAMILY_SCRIPT: fInfo.fFamily = 4; break;    //4 = FF_SCRIPT (MFC)
-    case wxFONTFAMILY_DECORATIVE: fInfo.fFamily = 5; break;//5 = FF_DECORATIVE (MFC)
-    case wxFONTFAMILY_DEFAULT: fInfo.fFamily = 0; break;   //0 = FF_DONTCAR (MFC)
-    default: fInfo.fFamily = 0;
+    case wxFONTFAMILY_ROMAN:
+    {
+        fInfo.fFamily = 1;
     }
+        break;     //1 = FF_ROMAN (MFC)
+    case wxFONTFAMILY_SWISS:
+    {
+        fInfo.fFamily = 2;
+    }
+        break;     //2 = FF_SWISS (MFC)
+    case wxFONTFAMILY_MODERN:
+    {
+        fInfo.fFamily = 3;
+    }
+        break;    //3 = FF_MODERN (MFC)
+    case wxFONTFAMILY_SCRIPT:
+    {
+        fInfo.fFamily = 4;
+    }
+        break;    //4 = FF_SCRIPT (MFC)
+    case wxFONTFAMILY_DECORATIVE:
+    {
+        fInfo.fFamily = 5;
+    }
+        break;//5 = FF_DECORATIVE (MFC)
+    case wxFONTFAMILY_DEFAULT:
+    {
+        fInfo.fFamily = 0;
+    }
+        break;   //0 = FF_DONTCAR (MFC)
+    default:
+    {
+        fInfo.fFamily = 0;
+    }
+    } // end of switch (font->GetFamily())
+
     // wxWidgets is only interested in the family which is encoded in bits 4-7
     // of the fPitchAndFamily value. The Pitch is encoded in the two lower order
     // bits of fPitchAndFamily (bits 1 and 2), and can be (MFC) DEFAULT_PITCH,
@@ -55066,7 +55254,7 @@ int CAdapt_ItApp::MapWXtoMFCPaperSizeCode(wxPaperSize id)
     case wxPAPER_A3_TRANSVERSE: return 8;  // A3 Transverse 297 x 420 mm // same size as wxPAPER_A3
     case wxPAPER_A3_EXTRA_TRANSVERSE: return 8;  // A3 Extra Transverse 322 x 445 mm  // no equiv just map to wxPAPER_A3
     default: return 9;
-    }
+    } // end of switch (id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -55123,7 +55311,7 @@ wxPaperSize CAdapt_ItApp::MapMFCtoWXPaperSizeCode(int id)
     case 41: return wxPAPER_FANFOLD_LGL_GERMAN; // 	 41 German Legal Fanfold, 8 1/2 by 13 inches
                                                 // The Windows 95 only values don't map to any unique wxPaperSize
     default: return wxPAPER_A4;
-    }
+    } // end of switch (id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -57684,6 +57872,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
     switch (pathType)
     {
     case customPathsFix:
+    {
         // scan the in-memory file line-by-line and process those needing path updates
         for (fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine())
         {
@@ -57817,9 +58006,11 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
                 pf->InsertLine(fileLine, lineNum);
             }
         }
+    } // end off case customPathsFix:
         break;
     default:
     case defaultPathsFix:
+    {
         // scan the in-memory file line-by-line and process those needing path updates
         // whm 29Dec06 TODO: determine if we should call convertToLocalCharset() here on fileLine
         for (fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine())
@@ -58008,8 +58199,9 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
                 }
             }
         }
+    } // end of case defaultPathsFix:
         break;
-    }
+    } // end of switch (pathType)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -559,14 +559,26 @@ void CUsfmFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 			{
 				switch (tempSfmSetAfterEditDoc)
 				{
-				case UsfmOnly: tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
+				case UsfmOnly: 
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
 					break;
-				case PngOnly: tempFilterMarkersAfterEditDoc = gpApp->PngFilterMarkersStr;
-					break;
-				case UsfmAndPng: tempFilterMarkersAfterEditDoc = gpApp->UsfmAndPngFilterMarkersStr;
-					break;
-				default: tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
 				}
+				case PngOnly:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->PngFilterMarkersStr;
+					break;
+				}
+				case UsfmAndPng:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmAndPngFilterMarkersStr;
+					break;
+				}
+				default:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
+				}
+				} // end of switch (tempSfmSetAfterEditDoc)
 			}
 			else
 			{
@@ -587,14 +599,26 @@ void CUsfmFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 			{
 				switch (tempSfmSetAfterEditDoc)
 				{
-				case UsfmOnly: tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
+				case UsfmOnly:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
 					break;
-				case PngOnly: tempFilterMarkersAfterEditDoc = gpApp->PngFilterMarkersStr;
-					break;
-				case UsfmAndPng: tempFilterMarkersAfterEditDoc = gpApp->UsfmAndPngFilterMarkersStr;
-					break;
-				default: tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
 				}
+				case PngOnly: 
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->PngFilterMarkersStr;
+					break;
+				}
+				case UsfmAndPng:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmAndPngFilterMarkersStr;
+					break;
+				}
+				default:
+				{
+					tempFilterMarkersAfterEditDoc = gpApp->UsfmFilterMarkersStr;
+				}
+				} // end of switch (tempSfmSetAfterEditDoc)
 			}
 			else
 			{
@@ -727,14 +751,26 @@ void CUsfmFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 			{
 				switch (tempSfmSetAfterEditProj)
 				{
-				case UsfmOnly: tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
+				case UsfmOnly:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
 					break;
-				case PngOnly: tempFilterMarkersAfterEditProj = gpApp->PngFilterMarkersStr;
-					break;
-				case UsfmAndPng: tempFilterMarkersAfterEditProj = gpApp->UsfmAndPngFilterMarkersStr;
-					break;
-				default: tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
 				}
+				case PngOnly:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->PngFilterMarkersStr;
+					break;
+				}
+				case UsfmAndPng:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmAndPngFilterMarkersStr;
+					break;
+				}
+				default:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
+				}
+				} // end of switch (tempSfmSetAfterEditProj)
 			}
 			else
 			{
@@ -755,14 +791,26 @@ void CUsfmFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 			{
 				switch (tempSfmSetAfterEditProj)
 				{
-				case UsfmOnly: tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
+				case UsfmOnly:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
 					break;
-				case PngOnly: tempFilterMarkersAfterEditProj = gpApp->PngFilterMarkersStr;
-					break;
-				case UsfmAndPng: tempFilterMarkersAfterEditProj = gpApp->UsfmAndPngFilterMarkersStr;
-					break;
-				default: tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
 				}
+				case PngOnly:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->PngFilterMarkersStr;
+					break;
+				}
+				case UsfmAndPng:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmAndPngFilterMarkersStr;
+					break;
+				}
+				default:
+				{
+					tempFilterMarkersAfterEditProj = gpApp->UsfmFilterMarkersStr;
+				}
+				} // end of switch (tempSfmSetAfterEditProj)
 			}
 			else
 			{
@@ -841,11 +889,15 @@ wxString CUsfmFilterPageCommon::GetSetNameStr(enum SfmSet set)
 	UsfmAndPngStr = _("USFM 2.0/3.0 and PNG 1998 Marker Sets"); //IDS_BOTH_SETS_ABBR
 	switch (set)
 	{
-	case UsfmOnly: return UsfmOnlyStr;
-	case PngOnly: return PngOnlyStr;
-	case UsfmAndPng: return UsfmAndPngStr;
-	default: return UsfmOnlyStr;
-	}
+	case UsfmOnly: 
+		return UsfmOnlyStr;
+	case PngOnly: 
+		return PngOnlyStr;
+	case UsfmAndPng: 
+		return UsfmAndPngStr;
+	default: 
+		return UsfmOnlyStr;
+	} // end of switch (set)
 }
 
 wxString CUsfmFilterPageCommon::GetFilterMkrStrFromFilterArrays(wxArrayString* pSfmMarkerAndDescr, wxArrayInt* pFilterFlags)
@@ -3413,49 +3465,72 @@ void CUsfmFilterPageCommon::UpdateButtons()
 	// the doc sfm set radio buttons
 	switch (tempSfmSetAfterEditDoc)
 	{
-	case UsfmOnly: 
+	case UsfmOnly:
+	{
 		pRadioUsfmOnly->SetValue(TRUE);
 		pRadioPngOnly->SetValue(FALSE);
-		pRadioUsfmAndPng->SetValue(FALSE); break;
+		pRadioUsfmAndPng->SetValue(FALSE);
+	}
+	break;
 	case PngOnly:
+	{
 		pRadioUsfmOnly->SetValue(FALSE);
 		pRadioPngOnly->SetValue(TRUE);
-		pRadioUsfmAndPng->SetValue(FALSE); break;
+		pRadioUsfmAndPng->SetValue(FALSE);
+	}
+	break;
 	case UsfmAndPng:
+	{
 		pRadioUsfmOnly->SetValue(FALSE);
 		pRadioPngOnly->SetValue(FALSE);
-		pRadioUsfmAndPng->SetValue(TRUE); break;
+		pRadioUsfmAndPng->SetValue(TRUE);
+	}
+	break;
 	default:
+	{
 		pRadioUsfmOnly->SetValue(TRUE);
 		pRadioPngOnly->SetValue(FALSE);
-		pRadioUsfmAndPng->SetValue(FALSE); break;
+		pRadioUsfmAndPng->SetValue(FALSE);
 	}
+	break;
+	} // end of switch (tempSfmSetAfterEditDoc)
+
 	// the project sfm set radio buttons
 	switch (tempSfmSetAfterEditProj)
 	{
-	case UsfmOnly: 
+	case UsfmOnly:
+	{
 		pRadioUsfmOnlyProj->SetValue(TRUE);
 		pRadioPngOnlyProj->SetValue(FALSE);
-		pRadioUsfmAndPngProj->SetValue(FALSE); break;
+		pRadioUsfmAndPngProj->SetValue(FALSE);
+	}
+	break;
 	case PngOnly:
+	{
 		pRadioUsfmOnlyProj->SetValue(FALSE);
 		pRadioPngOnlyProj->SetValue(TRUE);
-		pRadioUsfmAndPngProj->SetValue(FALSE); break;
+		pRadioUsfmAndPngProj->SetValue(FALSE);
+	}
+	break;
 	case UsfmAndPng:
+	{
 		pRadioUsfmOnlyProj->SetValue(FALSE);
 		pRadioPngOnlyProj->SetValue(FALSE);
-		pRadioUsfmAndPngProj->SetValue(TRUE); break;
+		pRadioUsfmAndPngProj->SetValue(TRUE);
+	}
+	break;
 	default:
+	{
 		pRadioUsfmOnlyProj->SetValue(TRUE);
 		pRadioPngOnlyProj->SetValue(FALSE);
-		pRadioUsfmAndPngProj->SetValue(FALSE); break;
+		pRadioUsfmAndPngProj->SetValue(FALSE);
 	}
+		break;
+	} // end of switch (tempSfmSetAfterEditProj)
 
 	// update the change-fixed-space-to-regular-space check box
 	pChangeFixedSpaceToRegular->SetValue(bChangeFixedSpaceToRegularSpace);
 }
-
-
 
 ///////////////////// CUsfmFilterPageWiz /////////////////////////////////////////////////
 IMPLEMENT_DYNAMIC_CLASS( CUsfmFilterPageWiz, wxWizardPage )

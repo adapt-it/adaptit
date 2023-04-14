@@ -910,6 +910,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 	default:
 	case 6: // BEW added 13Feb12 for docVersion6
 	case 5:
+	{
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
@@ -1052,10 +1053,10 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			}
 		}
 
-        // fourth line -- 6 attributes in doc version 5, 1 in doc version 4, all possibly
-        // absent, m_markers and, for vers 5, also m_endMarkers, m_inlineBindingMarkers,
-        // m_inlineBindingEndMarkers, m_inlineNonbindingMarkers, and
-        // m_inlineNonbindingEndMarkers; in vers 4 m_markers may be very long (eg. it may
+		// fourth line -- 6 attributes in doc version 5, 1 in doc version 4, all possibly
+		// absent, m_markers and, for vers 5, also m_endMarkers, m_inlineBindingMarkers,
+		// m_inlineBindingEndMarkers, m_inlineNonbindingMarkers, and
+		// m_inlineNonbindingEndMarkers; in vers 4 m_markers may be very long (eg. it may
 		// contain filtered material), but in vers 5 it won't have filtered material
 		// because (filtered info will be elsewhere), so em etc can be on same line as m;
 		// entity conversions are not needed for standard format markers of any kind
@@ -1137,10 +1138,10 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// fifth, sixth, seventh and eighth & ninth lines -- 1 attribute each, each is possibly absent
 		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
 			|| !m_filteredInfo.IsEmpty()
-//#if !defined(USE_LEGACY_PARSER)
-			// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
+			//#if !defined(USE_LEGACY_PARSER)
+						// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 			|| !m_filteredInfo_After.IsEmpty()
-//#endif			
+			//#endif			
 			)
 		{
 			// there is something in this group, so form the needed lines
@@ -1216,11 +1217,11 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				InsertEntities(btemp);
 				bstr += btemp; // add m_filteredInfo string
 				bstr += "\"";
-//#if defined(USE_LEGACY_PARSER)
-// 				// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser -- probably not, while doc version is 9
-				//bStarted = TRUE; // uncomment out if we add more attributes to this block
-				//}
-//#endif
+				//#if defined(USE_LEGACY_PARSER)
+				// 				// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser -- probably not, while doc version is 9
+								//bStarted = TRUE; // uncomment out if we add more attributes to this block
+								//}
+				//#endif
 				bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
 			// ninth
@@ -1243,16 +1244,16 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"";
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
-//#endif
+			//#endif
 		}
 
 		// tenth line -- 4 attributes each is possibly absent
 		// Supporting new docVersion6 storage strings (skip this block if docVersion is 5):
 		// 	m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, m_punctsPattern
-		if ( ( docVersion >= 6) && 
-			 (!m_lastAdaptionsPattern.IsEmpty() || !m_tgtMkrPattern.IsEmpty() || 
-			  !m_glossMkrPattern.IsEmpty() || !m_punctsPattern.IsEmpty())
-		   )
+		if ((docVersion >= 6) &&
+			(!m_lastAdaptionsPattern.IsEmpty() || !m_tgtMkrPattern.IsEmpty() ||
+				!m_glossMkrPattern.IsEmpty() || !m_punctsPattern.IsEmpty())
+			)
 		{
 			// there is something in this group, so form the needed line
 			bstr += "\r\n"; // TODO?: EOL chars may need to be changed under Linux and Mac
@@ -1315,9 +1316,9 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// eleventh line -- 2 attributes each is possibly absent
 		// Supporting new docVersion9 storage strings (skip this block if docVersion is < 9):
 		// 	m_srcWordBreak, a wxString, and m_tgtWordBreak, a wxString
-		if ( ( docVersion >= 9) && 
-			 (!m_srcWordBreak.IsEmpty() || !m_tgtWordBreak.IsEmpty())
-		   )
+		if ((docVersion >= 9) &&
+			(!m_srcWordBreak.IsEmpty() || !m_tgtWordBreak.IsEmpty())
+			)
 		{
 			// there is something in this group, so form the needed line
 			bstr += "\r\n";
@@ -1370,7 +1371,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			for (i = 0; i < nCount; i++)
 			{
 				bstr += "<MP mp=\"";
-				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i));
 				InsertEntities(btemp);
 				bstr += btemp; // add punctuation string
 				bstr += "\"/>";
@@ -1407,7 +1408,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			CSourcePhrase* pSrcPhrase;
 			bstr += "\r\n"; // get a new line open
 			posSW = m_pSavedWords->GetFirst();
-			while(posSW != NULL)
+			while (posSW != NULL)
 			{
 				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
 				posSW = posSW->GetNext();
@@ -1416,19 +1417,20 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		}
 		// now close off the element, at the original indentation level
 		len = bstr.GetLength();
-		if (bstr.GetAt(len-1) != '\n')
+		if (bstr.GetAt(len - 1) != '\n')
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
-
+	} // end of case 5:
 		break; // for Unicode version, building for VERSION_NUMBER (currently 5)
 	case 4:
 	case 3:
 	case 2:
 	case 1:
+	{
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
@@ -1597,7 +1599,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			for (i = 0; i < nCount; i++)
 			{
 				bstr += "<MP mp=\"";
-				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i));
 				InsertEntities(btemp);
 				bstr += btemp; // add punctuation string
 				bstr += "\"/>";
@@ -1634,7 +1636,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			CSourcePhrase* pSrcPhrase;
 			bstr += "\r\n"; // get a new line open
 			posSW = m_pSavedWords->GetFirst();
-			while(posSW != NULL)
+			while (posSW != NULL)
 			{
 				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
 				posSW = posSW->GetNext();
@@ -1643,16 +1645,16 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		}
 		// now close off the element, at the original indentation level
 		len = bstr.GetLength();
-		if (bstr.GetAt(len-1) != '\n')
+		if (bstr.GetAt(len - 1) != '\n')
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
-
+	} // end of cases 1,2,3,4
 		break; // for Unicode version, building for DOCVERSION4 (currently 4) or earlier
-	}
+	} // end of switch (docVersion)
 #else // regular version
 
 	switch (docVersion)

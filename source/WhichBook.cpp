@@ -324,23 +324,35 @@ void CWhichBook::OnSelchangeChooseBook(wxCommandEvent& WXUNUSED(event))
 	switch (division)
 	{
 	case 0: // History books
+	{
 		gpApp->m_nBookIndex = m_nDivIndex;
+	}
 		break;
 	case 1: // Widsom books
+	{
 		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + m_nDivIndex;
+	}
 		break;
 	case 2: // Prophecy books
+	{
 		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + gpApp->m_nDivSize[1] + m_nDivIndex;
+	}
 		break;
 	case 3: // New Testament books
-		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + gpApp->m_nDivSize[1] + 
-					gpApp->m_nDivSize[2] + m_nDivIndex;
-		break;
-	case 4: // Other Texts
-	default:
-		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + gpApp->m_nDivSize[1] + 
-					gpApp->m_nDivSize[2] + gpApp->m_nDivSize[3] + m_nDivIndex;
+	{
+		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + gpApp->m_nDivSize[1] +
+			gpApp->m_nDivSize[2] + m_nDivIndex;
 	}
+		break;
+	case 4: // Other Texts, fall thru
+	{
+	}
+	default:
+	{
+		gpApp->m_nBookIndex = gpApp->m_nDivSize[0] + gpApp->m_nDivSize[1] +
+			gpApp->m_nDivSize[2] + gpApp->m_nDivSize[3] + m_nDivIndex;
+	}
+	} // end of switch (division)
 
 	// set the name pair structure, and the Bible books folder path
 	gpApp->m_pCurrBookNamePair = (BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex]; 

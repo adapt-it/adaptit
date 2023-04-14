@@ -6708,7 +6708,6 @@ bool AtKBTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			
 		case KB_VERSION2:
 		case KB_VERSION3:
-
 		{
 			if (tag == xml_map)
 			{
@@ -6752,7 +6751,7 @@ bool AtKBTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			}
 		}
 		break;
-	}
+	} // end of switch (gnKbVersionBeingParsed)
 	return TRUE; // no error
 }
 
@@ -7074,7 +7073,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				return TRUE;
 			}
 #endif // for _UNICODE #defined
-		}
+		} // end of case KB_VERSION1:
 		break;
 
 		case KB_VERSION2:
@@ -7512,9 +7511,9 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				return TRUE;
 			}
 #endif // for _UNICODE #defined
-		}
+		} // end of case KB_VERSION3:
 		break;
-	}
+	} // end of switch (gnKbVersionBeingParsed)
 	return TRUE; // no error
 }
 
@@ -7566,8 +7565,8 @@ bool AtKBEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				return TRUE;
 			}
 			break;
-		}
-	}
+		} // end of case KB_VERSION3:
+	} // end of switch (gnKbVersionBeingParsed) 
 	return TRUE;
 }
 

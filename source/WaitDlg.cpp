@@ -156,8 +156,10 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	WaitMsg = _("Please wait while Adapt It saves the File...");
 		//	break;
 		case 5: // whm 28Aug11 Note: May be useful somewhere
+		{
 			WaitMsg = _T("");
 			pStaticText->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
+		}
 			break;
 		//case 6:
 		//	WaitMsg = _("Please wait while Adapt It saves the KB...");
@@ -181,7 +183,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	WaitMsg = _("Please wait while Adapt It prepares the document for printing");
 		//	break;
 		case 13: // whm 28Aug11 Note: this is only used in KBEditSearch::InitDialog()
+		{
 			WaitMsg = _("Searching...");
+		}
 			break;
 		//case 14:
 		//	WaitMsg = _("Please wait while Adapt It exports the KB...");
@@ -208,52 +212,77 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	WaitMsg = _("Please wait, getting the chapter and laying out the document...");
 		//	break;
 		case 22:  // whm 28Aug11 Note: This is used in OnCloseDocument()
+		{
 			WaitMsg = _("Closing the document...");
+		}
 			break;
 		case 23:  // BEW 4Sep15 this is used in DoGlobalRestoreOfSaveToKB() within view's OnCheckKBSave()
 			WaitMsg = _("This may take a while. Identical changes are being done in all the documents...");
 			break;
 //#if defined(_KBSERVER)
 		case 24: // feedback to user that the running KBserver was connected to successfully
+		{
 			WaitMsg = _("Connected to KBserver successfully");
+		}
 			break;
 		case 25: // feedback to the user that there is now no connection to a KBserver for KB sharing
+		{
 			WaitMsg = _("Knowledge base sharing is OFF");
+		}
 			break;
 		case 26: // a wait message so that the user knows KBserver discovery is taking place
+		{
 			WaitMsg = _("Discovery of running KBservers is happening...");
+		}
 			break;
 //#endif
 		case 27: // a wait message if the user turns on the diagnostic log file creation for a doc parse failure
-            //WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
-            // whm 6Apr2020 reformulating the wait message below. Previously this message was presented
-            // due to the long time it took to generate the doc creation log file. Log file creation now
-            // however, is not the source of the delay in creating a new document in OnNewDocument, rather
-            // it is the time taken to process TokenizeText(). Hence, I'm making this waitMsg a more
-            // general one as shown below
-            WaitMsg = _("Please wait while creating a new document...");
+		{
+			//WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
+			// whm 6Apr2020 reformulating the wait message below. Previously this message was presented
+			// due to the long time it took to generate the doc creation log file. Log file creation now
+			// however, is not the source of the delay in creating a new document in OnNewDocument, rather
+			// it is the time taken to process TokenizeText(). Hence, I'm making this waitMsg a more
+			// general one as shown below
+			WaitMsg = _("Please wait while creating a new document...");
+		}
             break;
 		case 28: // a wait message if the user enters or leaves "See Glosses" mode from or to adapting mode, respectively
+		{
 			WaitMsg = _("Please wait: all widths are being resized, then strips created again");
+		}
 			break;
         case 29:
-            WaitMsg = _("Please wait while creating a new document - and creating a diagnostic log file in folder _LOGS_EMAIL_REPORTS...");
+		{
+			WaitMsg = _("Please wait while creating a new document - and creating a diagnostic log file in folder _LOGS_EMAIL_REPORTS...");
+		}
             break;
 		case 30:
+		{
 			WaitMsg = _("Adding a user to kbserver succeeded.");
+		}
 			break;
 		case 31:
+		{
 			WaitMsg = _("Adding a user to kbserver failed.");
+		}
 			break;
 		case 32:
+		{
 			WaitMsg = _("Authentication succeeded.");
+		}
 			break;
 		case 33:
+		{
 			WaitMsg = _("Authentication failed.");
+		}
 			break;
 		default: // whm 28Aug11 Note: keep as a default message
+		{
 			WaitMsg = _("Please wait. This may take a while...");
-	}
+		}
+	} // end of switch (m_nWaitMsgNum)
+
 	// We take control of setting the window's size, based on the extents of the text
 	// within it
 	pStaticText->SetLabel(WaitMsg);

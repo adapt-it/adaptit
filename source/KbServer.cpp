@@ -1069,8 +1069,9 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	switch (action)
 	{
 	case getForOneKeyOnly:
-        // I'll populate this case with minimal required code, but I'm not planning we ever
-        // call this case (too slow)
+	{
+		// I'll populate this case with minimal required code, but I'm not planning we ever
+		// call this case (too slow)
 		currKey = (m_pApp->m_pActivePile->GetSrcPhrase())->m_key;
 		// *** NOTE *** in the above call, I've got no support for AutoCapitalization; if
 		// that was wanted, more code would be needed here - or alternatively, use the
@@ -1081,8 +1082,10 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		{
 			ClearAllPrivateStorageArrays(); // don't risk passing on possibly bogus values
 		}
+	}
 		break;
 	case changedSince:
+	{
 		// get the last sync timestamp value
 		timestamp = GetKBServerLastSync();
 		if (timestamp.IsEmpty())
@@ -1105,17 +1108,20 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		{
 			UpdateLastSyncTimestamp();
 		}
+	}
 		break;
 		// BEW 14Mar23 getAll enum value can no longer be one of the changed_since_timed actions, it has to
 		// be based on do_bulk_download.exe which is based on do_bulk_download.py
 	case getAll:
+	{
 		timestamp = _T("1920-01-01"); // earlier than everything!
 		rval = ChangedSince_Timed(timestamp, FALSE); // 2nd param, bool bDoTimestampUpdate is default TRUE
 		// BEW 22Mar22, explicit FALSE in the call above, causes ChangedSince_Timed() to skip updating the
 		// project folder's lastsync_adaptations.txt file's value (or glossing on if a glossing KB), because
 		// a 1920 datetime would ruin the incremental data downloads protocal (getting everything instead of a few)
-		break;
 	}
+		break;
+	} // end of switch (action)
 	if (rval != 0)
 	{
 		// there was an error, display a general error

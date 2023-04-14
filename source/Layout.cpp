@@ -781,7 +781,8 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 			break;
 			}
-			*/		case char_typed_op:
+			*/		
+			case char_typed_op:
 			{
 				// don't interfere with the m_nStartChar and m_nEndChar values, just set
 				// modify flag
@@ -834,7 +835,8 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 			break;
 			}
-			*/		case remove_placeholder_op:
+			*/		
+			case remove_placeholder_op:
 			{
 				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 				break;
@@ -861,7 +863,8 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 			break;
 			}
-			*/		case on_button_no_adaptation_op:
+			*/		
+			case on_button_no_adaptation_op:
 			{
 				m_pApp->m_nStartChar = 0;
 				m_pApp->m_nEndChar = 0;
@@ -1010,7 +1013,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 				// do nothing additional
 				break;
 			}
-		}
+		} // end of switch (opType)
 	
 		// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
 		// the user's editing operation, or programmatic operation, the default: case will
@@ -3398,7 +3401,7 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 		m_pApp->m_nEndChar = -1;
 		break;
 	}
-	}
+	} // end of switch (state)
 }
 
 // Detect if the user's edit area is not adequately defined, in which case reenter

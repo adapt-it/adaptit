@@ -163,62 +163,78 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 		switch (Result) 
 		{
 			case DOCUMENTMOVER_SUCCESS :
+			{
 				UpdateFileList();
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION | wxOK); //IDS_SUCCESSFUL_MOVE
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				wxMessageBox(_("Moving the document was successful."), _T(""), wxICON_INFORMATION | wxOK); //IDS_SUCCESSFUL_MOVE
 				gpApp->LogUserAction(_T("Moving the document was successful."));
+			}
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTSAVECHANGES :
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
+			{
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
 				switch (nAnswer)
 				{
-					case wxYES: //case +1 :
-						m.SaveChanges = true;
-						break;
-					case wxNO: //case -1 :
-						m.DiscardChanges = true;
-						break;
-					case wxCANCEL: //0 :
-						m.CancelMove();
-						Result = 0;
-						break;
+				case wxYES: //case +1 :
+				{
+					m.SaveChanges = true;
 				}
+					break;
+				case wxNO: //case -1 :
+				{
+					m.DiscardChanges = true;
+				}
+					break;
+				case wxCANCEL: //0 :
+				{
+					m.CancelMove();
+					Result = 0;
+				}
+					break;
+				} // end of switch (nAnswer)
 				gpApp->LogUserAction(msg);
+			}
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTOVERWRITEEXISTINGFILE :
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                nAnswer = wxMessageBox(_("A file with this name already exists in the destination folder.  Do you want to overwrite it?"), _T(""), wxYES | wxCANCEL);
+			{
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				nAnswer = wxMessageBox(_("A file with this name already exists in the destination folder.  Do you want to overwrite it?"), _T(""), wxYES | wxCANCEL);
 				if (nAnswer == wxYES) //IDS_THIS_FILE_EXISTS_ALREADY
 				{
 					m.OverwriteExistingFile = true;
-				} 
-				else 
+				}
+				else
 				{
 					m.CancelMove();
 					Result = 0;
 				}
 				gpApp->LogUserAction(_T("A file with this name already exists in the destination folder.  Do you want to overwrite it?"));
+			}
 				break;
 			case DOCUMENTMOVER_ERROR_BOOKVIOLATION :
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
+			{
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."), _T(""), wxICON_EXCLAMATION | wxOK); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
 				gpApp->LogUserAction(_T("Sorry, the file you are trying to move belongs to a different book folder than the current one."));
+			}
 				break;
-			default :
+			default:
+			{
 				m.CancelMove();
-                // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-                gpApp->m_bUserDlgOrMessageRequested = TRUE;
-                wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_UNEXPECTED_MOVE_ERROR
+				// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+				gpApp->m_bUserDlgOrMessageRequested = TRUE;
+				wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."), _T(""), wxICON_EXCLAMATION | wxOK); //IDS_UNEXPECTED_MOVE_ERROR
 				gpApp->LogUserAction(_T("An unexpected error occured while trying to do the move.  The move has been aborted."));
+			}
 				break;
-		}
+		} // end of switch (Result)
 
 		gpApp->RefreshStatusBarInfo();
 
@@ -264,14 +280,20 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 		switch (nAnswer)
 		{
 			case wxYES: //case +1 :
+			{
 				gpApp->SaveDocChanges();
+			}
 				break;
 			case wxNO: //case -1 :
+			{
 				gpApp->DiscardDocChanges();
+			}
 				break;
 			case wxCANCEL: //case 0 :
+			{
 				return;
-		}
+			}
+		} // end of switch (nAnswer)
 	}
 	wxString caption;
 	caption = _("Enter A New Document Name"); //IDS_DOC_NAME_CAPTION
