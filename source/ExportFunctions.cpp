@@ -649,14 +649,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 
 	// do the reconstruction from CSourcePhrase instances in the document...
-	size_t numLines;
-	numLines = 0;
 	text.Empty();
-	wxString strContent;
-	strContent = wxEmptyString;
-	size_t index;
-	wxString strAccum;
-
     // RebuildTargetText, RebuildSourceText, etc, expose previously filtered material as it
     // was before input tokenization, and also exposes new information added and filtered
     // in the document, such as backtranslations, notes, and free translations.
@@ -668,20 +661,6 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
 		nTextLength = RebuildSourceText(text);  // BEW 29Mar23 this fails, m_str is NULL
-		//nTextLength now returned as 0);
-		numLines = gpApp->m_sourceDataArr.GetCount();
-		if (numLines > 0)
-		{
-			for (index = 0; index < numLines; index++)
-			{
-				strContent = gpApp->m_sourceDataArr.Item(index);
-				if (!strContent.IsEmpty())
-				{
-					strAccum += strContent;
-				}
-			}
-			text = strAccum;
-		}
 	}
 		break;
 	case glossesTextExport:
@@ -1796,18 +1775,6 @@ void DoExportAsType(enum ExportType exportType)
 	case sourceTextExport:
 	{
 		nTextLength = RebuildSourceText(source, pList);
-		//nTextLength is 0 now
-		nTextLength = nTextLength;
-		strAccum = AccumulateSourceExportStrings();
-		source = strAccum;
-		if (!gpApp->m_sourceDataArr.IsEmpty())
-		{
-			// Empty it, ready for next use
-			gpApp->m_sourceDataArr.Empty();
-		}
-#if defined(_DEBUG)
-		wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
-#endif
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
@@ -2055,7 +2022,8 @@ void DoExportAsType(enum ExportType exportType)
 		}
 	} // end of case targetTextExport:
 		break;
-	}
+	} // end of switch (exportType)
+
 	if (bRTFOutput)
 	{
 		// whm 7Jul11 Note:
@@ -17214,12 +17182,7 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // supplying the list pointer, it can rebuild the source text from any SPList (I want this
 // capability so that it can be used in the marker filtering mechanism, when the user
 // changes a marker from being unfiltered, to filtered, using Preferences)
-//int RebuildSourceText(wxString& source, SPList* pUseThisList)
-// BEW 29Mar23 NOTE: the call will fail (ie. give an empty rebuild) if, after the document 
-// is created and saved, it is not then clobbered and re-opened (e.g. Open Document on File menu)
-// so that it's available for choosing in the CAdapt_ItDoc instance's list of documents
-//int RebuildSourceText(wxString* psource, SPList* pUseThisList)
-int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
+int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
 	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
@@ -17241,81 +17204,6 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 	}
 	wxASSERT(pList != NULL);
 
-	// BEW 5Apr23 << is failing to transfer data to the caller. So I'll try get round
-	// this problem by avoiding use of <<, and  instead send each srcText string to
-	// a temporary wxTextFile, and when the loop finishes, get the file data and 
-	// assign that to srcText passed in str by ref. If that fails, then I could instead
-	// get the caller to grab the data from the file - provided it gets into it in the first place.
-
-	// We need a unique filename
-	wxString filename = _T("fileRebuildSrc");
-	// The running executable's folder will do for a suitable path.
-	CAdapt_ItApp* pApp = gpApp;
-	wxString pathOnly = pApp->m_appInstallPathOnly + pApp->PathSeparator; // needs to end with \ or /
-	// Make the path to the what will be a line-oriented wxTextFile
-	wxString filePath = pathOnly + filename;
-	// We create the file, and once created, we'll leave it in place permanently
-	wxTextFile textFile;
-	bool bFileExists = FALSE; // initialise
-	bool bIsOpened = FALSE; // initialise
-	bFileExists = wxFileName::FileExists(filePath);
-	//wxASSERT(!bFileExists);
-	if (!bFileExists)
-	{
-		// Create the file -- only a valid operation when the file does not yet exist
-		textFile.Create(filePath);
-		// Note textFile is empty at this point. Now we must Open it, and this may fail,
-		// so capture the returned boolean
-		textFile.Open();
-		bIsOpened = textFile.IsOpened(); // remember, .Write() must be used before closing
-		if (!bIsOpened)
-		{
-			// Failure to open the file, log the failure and return 0 length so that the caller
-			// knows the RebuildSourcText() attempt failed. The wxTextFile will be auto cleaned up
-			return 0;
-		}
-		// line numbering is 0-based
-	}
-	else
-	{
-		// the file exists, try to open it and clear its contents
-		bIsOpened = textFile.Open(filePath);
-		if (bIsOpened)
-		{
-			textFile.Clear();
-		}
-		else
-		{
-			// Unable to be opened
-			return 0;
-		}
-	}
-	// If control gets to here, the opened wxTextFile is ready to have wxStrings appended
-
-	// BEW 5Mar23 I cannot get += or << to append one string to another in this function,
-	// so I'll leave the textFile open (it DOES accept the str bits loaded into it, and
-	// in the caller I'll get what textFile has in it, to form the exported src text
-	/*
-#if defined (_DEBUG)
-	wxString strDestination = wxEmptyString;
-	wxString strSource = _T("Some test words are these");
-	strDestination += strSource;
-	strSource = _T(" MORE WORDS");
-	strDestination += strSource;
-
-	wxString strTwo;
-	wxString strOne;
-	strTwo = _T("A second string");
-	strOne = _T(" EVEN MORE");
-	strTwo += strOne;
-	// The above are two options. First lot create and set content on the same line.
-	// Second lot initialises only on a line, and sets content on a separate line.
-	// I made the test because at the += at 17146, typing strOne the IDE did not show
-	// strOne as selectable in the list of possibilities. I hoped this might be a clue
-	// why exporting the souce text refuses to append wxString data following += or <<
-	// Sadly, += worked equally well in this test block.
-#endif
-	*/
 	// BEW 5Apr23, (legacy commenting...) As we traverse the list of CSourcePhrase 
 	// instances, the special things we must be careful of are:
 	// 1. source phrase placeholders (we ignore these, but we don't
@@ -17346,7 +17234,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 	// must be given special treatment.
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
-	srcText.Empty();
+	source.Empty();
 	wxString tempStr;
 	// BEW added 16Jan08 A boolean added in support of adequate handling of markers which
 	// get added to a placeholder due to it being inserted at the beginning of a stretch of
@@ -17409,27 +17297,14 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 	// additional local variables are created here, adding to those just above.
 	// Ending-stuff storage ones: (for information moved forward to be ending on the
 	// placeholder)
-	// I've commented these out, because I can place the information immediately without
-	// temporarily storing it in a local string variable -- see a little further down
-	//wxString strPlaceholderBindingEndMkrs;
-	//wxString strPlaceholderNonbindingEndMkrs;
-	//wxString strPlaceholderFollPuncts;
-	//wxString strPlaceholderFollOuterPunct;
+
 	// The above strPlaceholderEndMarkers also belongs to the above ending set
 	//
 	// Beginning-stuff storage ones: (for information moved backwards to be at the beginning
 	// on the placeholder)
 	wxString strCollectedBeginnings; // <<-- use this one when its okay to get the lot as 1 string
-	// I may not need the next 4, the above strCollectedBeginnings may suffice
-	//wxString strPlaceholderBindingMkrs;
-	//wxString strPlaceholderNonbindingMkrs;
-	//wxString strPlaceholderPrecPuncts;
-	//wxString strPlaceholderFilteredInfo; // for m_filteredInfo, freetrans, collbacktrans
-										 // but not notes because in docV5 we don't move
-										 // a note to or from the placeholder
-	// The above strPlaceholderMarkers also belongs to the above beginning set
-	//
-	// In case you are wondering... All these shenanigans are not required for target text
+
+	// In case someone is wondering... All these shenanigans are not required for target text
 	// export for the following reason. The placeholder's m_targetStr will have one or more
 	// target text words in it which are vital to the meaning expressed. So, as far as the
 	// export code is concerned, it must treat the placeholder just like any
@@ -17456,12 +17331,64 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 		str.Empty();
 
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
-		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
+		// BEW 16Apr23, but for sequNum == 0, there will be no preceding swbk content, so don't
+		// search for it when sequNum is zero
+		wxString aBreak; aBreak = wxEmptyString;
+		if (pSrcPhrase->m_nSequNumber > 0)
+		{
+			aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
+			/* uncomment out, ifyou want to see what aBreak is, shown on every line of the Output in debug mode
+#ifdef _DEBUG
+
+			int breakLen = aBreak.Length();
+			int sn;
+			sn = pSrcPhrase->m_nSequNumber;
+			wxChar chFirst;
+			wxChar chSecond;
+			if (breakLen > 0)
+			{
+				if (breakLen == 1)
+				{
+					chFirst = aBreak.GetChar(0);
+					if (chFirst == _T('\n'))
+					{
+						wxLogDebug(_T("RebuildSourcText: src_word_break, is NEWLINE   sn=%d"), sn);
+					}
+					else
+					{
+						wxChar space;
+						space = _T(' ');
+						if (chFirst == space)
+						{
+							wxLogDebug(_T("RebuildSourcText: src_word_break, is SPACE   sn=%d"), sn);
+						}
+					}
+				}
+				else if (breakLen == 2)
+				{
+					wxString first; wxString second;
+					chFirst = aBreak.GetChar(0);
+					first = chFirst;
+					chSecond = aBreak.GetChar(1);
+					second = chSecond;
+					wxLogDebug(_T("RebuildSourcText: src_word_break is TWO CHARS, first= %s , last= %s   sn=%d"), first.c_str(), second.c_str(), sn);
+				}
+				else
+				{
+					wxLogDebug(_T("RebuildSourcText: src_word_break, LONGER THAN 2 wxChars   sn=%d"), sn);
+				}
+			}
+			else
+			{
+				wxLogDebug(_T("RebuildSourcText: src_word_break, is EMPTY   sn=%d"), sn);
+			}
+#endif
+*/
+		} // end of TRUE block for test: if (pSrcPhrase->m_nSequNumber > 0)
 		if (!aBreak.IsEmpty())
 		{
 			str += aBreak;
-			//srcText << str; // do it now, as str is emptied in a few places further below
-			textFile.AddLine(str);
+			source << str; // do it now, as str is emptied in a few places further below
 			str.Empty();
 		}
 		// BEW added to following block 16Jan09, for handling relocated markers on
@@ -17488,9 +17415,6 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
-#if defined(_DEBUG)
-				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 
 				// now deal with the beginning-stuff, which isn't immediately placeable:
 				// 2nd, 3rd & 4th booleans as follows:
@@ -17508,9 +17432,6 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// held over until the loop "sees" the next CSourcePhrase instance, it is
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
-#if defined(_DEBUG)
-				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
@@ -17558,9 +17479,6 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				// was preceding punctuation for the word, a space inserted here would be
 				// a disaster
 			}
-#if defined(_DEBUG)
-			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 
 			// next, deal with pSrcPhrase itself - if it has filtered information, etc, we need
 			// a function to aggregate such stuff and return it as a string, so use the
@@ -17621,8 +17539,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				}
 				str.Trim();
 				str += aSpace; // end it with a space when it's marker material
-				//srcText << str;
-				textFile.AddLine(str);
+				source << str;
 			} // end of TRUE block for test: if (bHasFilteredMaterial)
 			else
 			{
@@ -17635,20 +17552,17 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 					// of those markers is not at the start of tempStr
 					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
 					str += tempStr;
-#if defined(_DEBUG)
-					wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 					// BEW 21Jul14, after a begin-marker or begin-markers there is always
 					// a space, even in texts where ZWSP is used, so we test and add one
 					// here if it is needed
 					if (!tempStr.IsEmpty() && tempStr.GetChar(tempStr.Len() - 1) != aSpace)
 					{
-						str += aSpace;
+						str << aSpace;
 					}
 					tempStr.Empty();
 				}
-				//srcText << str;
-				textFile.AddLine(str);
+				source << str;
+				//textFile.AddLine(str);
 			} // end of else block for test: if (bHasFilteredMaterial)
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
@@ -17657,23 +17571,10 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 #if defined(_DEBUG)
 			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
-
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
-#if defined(_DEBUG)
-			//wxLogDebug(_T("Merger: FromMergerMakeSstr produced:   %s"), str.c_str());
-#endif
-			//source.Trim(); <<-- a mistake, BEW 21Jul14, as it clobbers any space at end
-			//of m_markers, so that the verse number is followed immediately by text if
-			//the space insertion below is no longer done unilaterally, resulting in an
-			//error which is a USFM markup error, so I commented this line out
 
-			// append str to srcText
-			// BEW 21Jul14, we put in the word delimiter at the start now, not adding
-			// it at the end, so don't add a space first, just add the str only
-			//source << aSpace << str;
-			//srcText << str;
-			textFile.AddLine(str);
+			source << str;
 			str.Empty();
 		}
 		else
@@ -17704,20 +17605,9 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				}
 				// placeholder information is handled, so the flag can be cleared
 				bMarkersOnPlaceholder = FALSE;
-				// don't add a space, any needed will be already in place in the data
-				// obtained from strCollectedBeginnings just above, and if the last data
-				// was preceding punctuation for the word, a space inserted here would be
-				// a disaster
-#if defined(_DEBUG)
-				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 			}
 			tempStr.Empty();
-			//srcText << str;
-			if (!str.IsEmpty())
-			{
-				textFile.AddLine(str);
-			}
+			source << str;
 			str.Empty();
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
@@ -17737,17 +17627,8 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			bool bAttach_m_markers = TRUE;
 			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
 			// words in the source text of the free translation section, if any)
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber == 14)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
-#endif 
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
-#if defined(_DEBUG)
-			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
@@ -17765,6 +17646,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 				{
 #if defined (_DEBUG)
 					// Check we are in the right (sub)list...
+					/*
 					int nListSize = (int)pUseThisList->GetCount();
 					wxSPListNode* pNodeFirst = pUseThisList->GetFirst();
 					CSourcePhrase* pSPFirst = pNodeFirst->GetData();
@@ -17775,7 +17657,7 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 					wxLogDebug(_T("%s::%s(), line=%d, source 1st= %s , source last= %s , listSize= %d , sequNums [%d,%d] pupat= %s , bUnused= %s"),
 						__FILE__,__FUNCTION__,__LINE__, pSPFirst->m_srcPhrase.c_str(), pSPLast->m_srcPhrase.c_str(), nListSize ,
 						pSPFirst->m_nSequNumber , pSPLast->m_nSequNumber , pSPLast->m_punctsPattern.c_str(), bUnusedStr.c_str() );
-
+					*/
 #endif
 					// There is hidden metadata to be restored to the source text which
 					// is to be filtered out. Metadata, if present, has to be restored
@@ -17810,18 +17692,6 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			// chapters or books - the legacy code would output \v 1 followed by newline,
 			// but Paratext has \v 1 followed by space, then the newline - so test for
 			// m_key empty, and if so, add a space to str here and don't trim it off below
-			//
-			// BEW 28Mar23 a strange error can manifestin the use of the << operator in the
-			// if else code blocks 2,3,4 below. I was testing a short file, created it, and
-			// saved to file. Then, if I close the doc and reopen it, I can successfully get
-			// the expected content when doing a USFM export which includes all markers (i.e.
-			// the default situation). But if I don't close and reopen, but do do the Save,
-			// then when I ask for the source text export (and if I had identity adapations, 
-			// and asked for the target text export), either of those returns an empty
-			// file. Testing, it turns out that the "source << str" line misbehaves. Str has
-			// the expected content, but << operator does not transfer the contents of str,
-			// if source was passed in by reference. So I'll try passing in a ptr instead.
-
 			if (pSrcPhrase->m_key.IsEmpty())
 			{
 				str += aSpace; // needs to be a latin space, no ZWSP here
@@ -17830,78 +17700,28 @@ int RebuildSourceText(wxString& srcText, SPList* pUseThisList)
 			// if we return ']' bracket, we don't want a preceding space
 			if (str[0] == _T(']'))
 			{
-				//srcText << str;
-				textFile.AddLine(str);
+				source << str;
 			}
 			else if (!str.IsEmpty() && str[str.Len() - 1] == _T('['))
 			{
 				// in this circumstance we don't want an intervening space
 				// between the [ and what follows it
-				//srcText << str;
-				textFile.AddLine(str);
+				source << str;
 			}
 			else
 			{
 				// Control usually goes thru here
-				//srcText << str;
-				if (!str.IsEmpty())
-				{
-					textFile.AddLine(str);
-#if defined(_DEBUG)
-					wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
-				}
+				source << str;
 			}
 			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
-
-	// When control gets to here, the rebuild is complete. Grab the data from textFile, 
-	// and kill the file. Return the data via srcText parameter. If that fails, we've
-	// more work to do. But first, .Write() has to be called
-	bool bWroteOK = textFile.Write();
-	wxASSERT(bWroteOK);
-	// textFile will be auto-destroyed when it goes out of scope at end of RebuildSourceText
-	// so a doc member wxArrayString needs to preserve the lineData lines, for use externally
-
-	// TODO - the above comment
-	int lineCount = (int)textFile.GetLineCount(); // returns size_t
-
-	// Need a persistent place to store the textFile's wxString lines, before the textFile goes out of scope
-	pApp->m_sourceDataArr.Empty();
-	size_t indexForAdded = 0;
-
-
-	wxString lineData; lineData = wxEmptyString;
-	if (lineCount > 0)
-	{
-		// There is data to grab, use a local wxString for accumulating it in a loop
-		for (lineData = textFile.GetFirstLine(); !textFile.Eof(); lineData = textFile.GetNextLine())
-		{
-			indexForAdded = pApp->m_sourceDataArr.Add(lineData);
-#if defined (_DEBUG)
-			wxLogDebug(_T("RebuildSourceText loop: lineData= %s"), lineData.c_str());
-#endif
-		} // end of for loop
-		// No need to Close(), the textFile will go out of scope and be auto-deleted
-	}
-	else
-	{
-		// Something went wrong, textFile is empty
-		wxASSERT(lineCount > 0);
-		return 0;
-
-		// TODO -- add LogUserAction support where file failures are possible
-	}
-
-	//#endif
+	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
+
 	// update length
-	//int nLen = 0;
-	//nLen = srcText.Length();
-	return 0;
-	//return nLen;
+	return source.Length();
 }
 
 // RebuildText_For_Collaboration() is a wrapper for the RebuildSourceText(),
@@ -17938,12 +17758,12 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	arrCustomBareMkrs.Add(mkr);
 	int nTextLength;
 
-	size_t numLines;
-	numLines = 0;
-	wxString strContent;
-	strContent = wxEmptyString;
-	size_t index;
-	wxString strAccum;
+	//size_t numLines;
+	//numLines = 0;
+	//wxString strContent;
+	//strContent = wxEmptyString;
+	//size_t index;
+	//wxString strAccum;
 
 	switch(exportType)
 	{
@@ -17968,24 +17788,10 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	case sourceTextExport:
 	{
 		nTextLength = RebuildSourceText(usfmText, pList);
-		//nTextLength is 0 now
-		nTextLength = nTextLength;
-		numLines = gpApp->m_sourceDataArr.GetCount();
-		if (numLines > 0)
-		{
-			for (index = 0; index < numLines; index++)
-			{
-				strContent = gpApp->m_sourceDataArr.Item(index);
-				if (!strContent.IsEmpty())
-				{
-					strAccum += strContent;
-				}
-			}
-			usfmText = strAccum;
-		}
 	}
 		break;
 	} // end of switch(exportType)
+
 	if (nTextLength > 0)
 	{
 		// filter out unwanted custom markers, if any are present, and their text

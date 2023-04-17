@@ -2761,7 +2761,6 @@ class CAdapt_ItApp : public wxApp
     /// method.
     wxDocManager* m_pDocManager; // for managing the doc/view // made doc manager public
 								 // so wxGetApp() can access it in the View
-	wxArrayString m_sourceDataArr; // for storing the lines from wxTextFile in RebuildSourceText, see ExportFunctions.cpp
 
     /// The application's m_pConfig member is used to store and retrieve certain settings
     /// and/or information that needs to persist between application sessions. Since it is
@@ -5176,8 +5175,7 @@ public:
 	// & .cpp
 	bool m_bIsPrintPreviewing; //set at the start of OnPreparePrinting()
 	bool m_bFrozenForPrinting; // set in view's PaginateDoc(), clear in ~PrintOptionsDlg()
-
-
+		
 	// Overrides
     bool	OnInit();// wxApp uses non-virtual OnInit() instead of virtual bool InitInstance()
     int		OnExit();// wxApp uses non-virtual OnExit() instead of virtual int ExitInstance()

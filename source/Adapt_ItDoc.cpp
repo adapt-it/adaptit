@@ -9518,27 +9518,6 @@ g:				bIsUnknownMkr = FALSE;
 					 // BEW changed 29Mar23, pass in pointer, not a reference
 					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
-					size_t numLines;
-					numLines = 0;
-					strFilteredStuff.Empty();
-					wxString strContent;
-					strContent = wxEmptyString;
-					size_t index;
-					wxString strAccum;
-					numLines = gpApp->m_sourceDataArr.GetCount();
-					if (numLines > 0)
-					{
-						for (index = 0; index < numLines; index++)
-						{
-							strContent = gpApp->m_sourceDataArr.Item(index);
-							if (!strContent.IsEmpty())
-							{
-								strAccum += strContent;
-							}
-						}
-						strFilteredStuff = strAccum;
-					}
-
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 
 					// BEW 30Sep19 the above RebuildSourceText() will, embedded in it,
@@ -10287,27 +10266,6 @@ g:				bIsUnknownMkr = FALSE;
 					// end of addition done on 9Apr15
 					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
-					size_t numLines;
-					numLines = 0;
-					strFilteredStuff.Empty();
-					wxString strContent;
-					strContent = wxEmptyString;
-					size_t index;
-					strFilteredStuff.Empty();
-					wxString strAccum;
-					numLines = gpApp->m_sourceDataArr.GetCount();
-					if (numLines > 0)
-					{
-						for (index = 0; index < numLines; index++)
-						{
-							strContent = gpApp->m_sourceDataArr.Item(index);
-							if (!strContent.IsEmpty())
-							{
-								strAccum += strContent;
-							}
-						}
-						strFilteredStuff = strAccum;
-					}
 
 					// BEW 30Sep19 the above RebuildSourceText() will, embedded in it,
 					// check for the existence of hidden USFM5 attributes metadata, and
@@ -18568,7 +18526,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s   (next 15 chars)"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		if (pSrcPhrase->m_nSequNumber >= 3)
+		if (pSrcPhrase->m_nSequNumber >= 6)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // I want to know it's value eachnew pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -18737,9 +18695,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		//wxString aDelimiter(*ptr, itemLen); <<-- wrong
 		//wxString aDelimiter = wxString((pSavePtr - 1), 1); // right  // BEW 16Dec22 use preceding char to that at pSavePtr
 		//precWordDelim = aDelimiter; // intermediate location, in case we need to change or reuse later
-		precWordDelim = (wxString)FindWordBreakChar(ptr, pBufStart);
-		pSrcPhrase->SetSrcWordBreak(precWordDelim);
-		//pSavePtr = NULL; // no longer needed
+		if (pSrcPhrase->m_nSequNumber > 0)
+		{
+			// BEW 16Apr23 dont search back for what's not there, only do this when m_nSequNum is greater than zero
+			precWordDelim = (wxString)FindWordBreakChar(ptr, pBufStart);
+			pSrcPhrase->SetSrcWordBreak(precWordDelim);
+		}
 
 		// The person doing PT8 configuring has, in some source text, left the "degree"
 		// (as in temperature) symbol immediately preceding some markers - a pain in the
@@ -19186,6 +19147,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				itemLen = ParseWhiteSpace(ptr); // parse white space following the number
 				AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
 				ptr += itemLen; // point past it
+#if defined (_DEBUG)
+				wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+				if (pSrcPhrase->m_nSequNumber == 6)
+				{
+					int halt_here = 1;
+				}
+#endif
+				// BEW 14Apr23, the contents of tokBuffer will get lost in the continuation
+				// if no verse or chapter marker follows. If it's \s next, then control goes
+				// to LookupSFM() and the code after that makes no use of tokBuffer, and then
+				// what goes into m_marker would be the \s, and control moves on to ParsePreWord()
+				// etc. So I need to check for tokBuffer non-empty here, and if so, then
+				// append to m_markers, clear tokBuffer, and only then can continue be called
+				if (!tokBuffer.IsEmpty())
+				{
+					pSrcPhrase->m_markers += tokBuffer;
+					tokBuffer.Empty();
+				}
 
 				continue; // iterate inner loop to check if another marker follows
 

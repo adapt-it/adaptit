@@ -11564,26 +11564,6 @@ extern bool gbDoingInitialSetup;
 
 		nTextLength = RebuildSourceText(source); // BEW 29Mar23 need to pass 1st param by pointer, not reference
 		wxUnusedVar(nTextLength); // avoid warning
-		size_t numLines;
-		numLines = 0;
-		source.Empty();
-		wxString strContent;
-		strContent = wxEmptyString;
-		size_t index;
-		wxString strAccum;
-		numLines = gpApp->m_sourceDataArr.GetCount();
-		if (numLines > 0)
-		{
-			for (index = 0; index < numLines; index++)
-			{
-				strContent = gpApp->m_sourceDataArr.Item(index);
-				if (!strContent.IsEmpty())
-				{
-					strAccum += strContent;
-				}
-			}
-			source = strAccum;
-		}
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp

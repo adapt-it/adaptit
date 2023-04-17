@@ -12458,7 +12458,16 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 		// BEW 29Oct22 add protection for Get Char(0)
 		if (!s.IsEmpty() && (s.GetChar(0) == _T('\r') || (s.GetChar(0) == _T('\n')) || s.GetChar(0) == _T('\t')) )
 		{
-			output = _T(" ");
+			// BEW 15Apr23 if s is '\n' then the TRUE block is entered, but then only space is returned
+			// unless a test is explicitly made in the TRUE block for newline. Add that code.
+			if (s == _T("\n"))
+			{
+				output = _T("\n");
+			}
+			else
+			{
+				output = _T(" ");
+			}
 			return output;
 		}
 		return s;
@@ -13444,33 +13453,3 @@ int do_upload_local_kbw(void)
 	return rv;
 }
 */
-// BEW added 12Apr23 to help with source text exporting
-wxString AccumulateSourceExportStrings()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxString accum = wxEmptyString;
-	// sanity test
-	if (pApp->m_sourceDataArr.IsEmpty())
-	{
-		return accum; // empty
-	}
-	int numLines;
-	numLines = pApp->m_sourceDataArr.GetCount();
-	// another sanity test
-	if (numLines == 0)
-	{
-		return accum;
-	}
-	wxString strContent;
-	strContent = wxEmptyString;
-	int index;
-	for (index = 0; index < numLines; index++)
-	{
-		strContent = pApp->m_sourceDataArr.Item(index);
-		if (!strContent.IsEmpty())
-		{
-			accum += strContent;
-		}
-	}
-	return accum;
-}
