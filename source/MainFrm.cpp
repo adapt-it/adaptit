@@ -4863,36 +4863,37 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		//if ((bHasAdvanced == TRUE) && !bStationaryBox)
 		if (bHasAdvanced == TRUE)
 		{
-/* #if defined(_DEBUG) && defined(FLAGS)
-			{
-				CAdapt_ItApp* pApp = &wxGetApp();
-				CSourcePhrase* pSrcPhrase = NULL;
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = NULL;
+#if defined(_DEBUG) //&& defined(FLAGS)
+			{	
 				if (pApp->m_pActivePile != NULL)
 				{
 					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-					wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-						(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+					if (pSrcPhrase->m_nSequNumber >= 12)
+					{
+						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, bHasAdvanced= [%d], m_bAutoInsert %d  OnePass() NEXT"),
+							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+							(int)pApp->m_bUserTypedSomething, (int)bHasAdvanced, (int)pApp->m_bAutoInsert);
+					}
 				}
 			}
-#endif */
+#endif
 			// Do the call, but skip this block if the phrasebox has not advanced
 			bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
-
-/* /#if defined(_DEBUG) && defined(FLAGS)
+#if defined (_DEBUG)
+			if (bSuccessfulInsertAndMove)
 			{
-				CAdapt_ItApp* pApp = &wxGetApp();
-				CSourcePhrase* pSrcPhrase = NULL;
-				if (pApp->m_pActivePile != NULL)
+				pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+				if (pSrcPhrase->m_nSequNumber >= 12)
 				{
-					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-					wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-						(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+					wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_targetStr= [%s], m_bAutoInsert %d  OnePass() JUST HAPPENED"),
+						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_targetStr.c_str(),
+						 (int)pApp->m_bAutoInsert);
 				}
 			}
-#endif */
+#endif
 		}
 
 		// don't slow things down unless we need to investigate

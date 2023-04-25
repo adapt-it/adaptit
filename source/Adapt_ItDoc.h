@@ -681,6 +681,7 @@ public:
 										 // is currently populating
 	// Prototypes for helpers in support of USFM3 markup, regarding metadata
 	// which follows bar ( | ) immediately prior to certain endmarkers
+	bool m_bAllowCommaInKB; // BEW add 22Apr23, default FALSE, but set TRUE if comma is in src or tgt word
 	bool m_bWithinMkrAttributeSpan;
 	bool m_bHiddenMetadataDone;
 	bool bSaveWithinAttributesSpanValue; // If editing source text, m_bWithinMkrAttributeSpan

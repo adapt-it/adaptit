@@ -1069,7 +1069,24 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	// StoreText( ) has been ammended for auto-capitalization support (July 2003)
 	if (!gbIsGlossing)
 	{
+#if defined(_DEBUG)
+		{
+			wxLogDebug(_T("%s::%s(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+				__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(), 
+				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str() );
+		}
+#endif
+
+
 		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+
+#if defined(_DEBUG)
+		{
+			wxLogDebug(_T("%s::%s(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+				__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
+				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
+		}
+#endif
 
 		// BEW 14Oct22 If I want detached ] to be treated like a word, so that it goes into the
 		// adapting KB, then I don't what punctuation removed, as it's normally punctuation, as
@@ -1472,13 +1489,22 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	bool bOK;
 	m_bBoxTextByCopyOnly = FALSE; // restore default setting
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
+
+#if defined(_DEBUG)
+	{
+		wxLogDebug(_T("%s::%s(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+			__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
+			pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
+	}
+#endif
+
 	CLayout* pLayout = GetLayout();
 
 #if defined(_DEBUG) && defined(FLAGS)
 	{
 		CAdapt_ItApp* pApp = &wxGetApp();
 		CSourcePhrase* pSrcPhrase = pOldActiveSrcPhrase;
-		wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+		wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
 			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
 			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 	}
@@ -1534,11 +1560,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// regime is in place for this particular sourcephrase instance
 		// in the next call, the final bool flag, bIsTransliterateMode, is default FALSE
 		
-/* #if defined(_DEBUG)
-	wxLogDebug(_T("MoveToNextPile() before DoStore_Normal...(): sn = %d , key = %s , m_targetPhrase = %s , m_targetStr = %s"),
+//* #if defined(_DEBUG)
+	wxLogDebug(_T("MoveToNextPile() before DoStore_Normal...(): sn = %d , key = [%s] , m_targetPhrase = [%s] , m_targetStr = [%s]"),
 		pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str(), 
 		pCurPile->GetSrcPhrase()->m_targetStr.c_str());
-#endif */
+//#endif */
 
 		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
 		if (!bOK)
@@ -1660,9 +1686,9 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, 
+				(int)pApp->m_pTargetBox->m_bRetainBoxContents, (int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
 		}
 #endif
 		// refactored design: we want the old pile's strip to be marked as invalid and the
@@ -1829,7 +1855,9 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
         // initialize the phrase box too, so it doesn't carry the old string to the next
         // pile's cell
         this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase);
-
+#if defined (_DEBUG)
+		wxLogDebug(_T("MoveToNextPile: line %d , m_targetPhrase= [%s]"), __LINE__, pApp->m_targetPhrase.c_str());
+#endif
         // if we merged and moved, we have to update pNewPile, because we have done a
 		// RecalcLayout in the LookAhead() function; it's possible to return from
 		// LookAhead() without having done a recalc of the layout, so the else block
@@ -1913,14 +1941,24 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+				(int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
 		}
 #endif
 
 
 		pLayout->PlaceBox();
+
+#if defined(_DEBUG) && defined(FLAGS)
+		{
+			CAdapt_ItApp* pApp = &wxGetApp();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
+				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
+		}
+#endif
 		
 		// whm 15Dec2022 added. In certain circumstances (especially when the phrasebox is moving
 		// from a location near the right end of a strip, but is followied by one or more piles on
@@ -1965,9 +2003,9 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_targetStr= [%s], m_bAutoInsert %d"),
 				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+				pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
 		}
 #endif
         return TRUE;

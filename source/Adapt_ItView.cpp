@@ -16641,6 +16641,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							  // changes to the former
 	wxChar* pEnd = NULL; // init
 	bool bRemoveUnwantedLastChar = FALSE; // initialise
+
+	wxString strFollPuncts;
+	strFollPuncts = pSrcPhrase->m_follPunct;
+	wxString strFollPunctsConverted;
+	strFollPunctsConverted = wxEmptyString;
+
 #if defined (_DEBUG)
 	{
 		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s , m_markers= %s "),
@@ -17751,7 +17757,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 2)
+								if (pSrcPhrase->m_nSequNumber >= 12)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
@@ -17866,7 +17872,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: Nitty Gritty block, sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 12)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -17885,26 +17891,45 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 12)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
 					}
 #endif
+					//strFollPunctsConverted = _T(")");
+					//wxString bString = wxString(targetStr);
+					//bString << strFollPunctsConverted; // << fails to append
+
+					//strFollPunctsConverted = _T(")");
+					//wxString bString = wxString(_T("5,000")); // getting the value not from outside the function, or its signature, permits << to append
+					//bString << strFollPunctsConverted; // this one works, as was the case in the TRUE block of the test
+
+
+
 					// BEW 24Dec22, added 3rd subtest
 					if (!str.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty() && !bAlreadyHasFollPunct)
 					{
-						follPuncts = pSrcPhrase->m_follPunct; 
+						//wxString strFollPuncts;
+						//strFollPuncts = pSrcPhrase->m_follPunct;
+						//wxString strFollPunctsConverted;
+						
+						//follPuncts = pSrcPhrase->m_follPunct; 
 						// What puncts set? If first char of follPuncts belongs in the pApp->m_strSpacelessSourcePuncts,
 						// the we should do punctuation conversion of the whole of follPuncts to target puncts; otherwise
 						// the need for conversion can be assumed absent
-						wxChar chfirstPunct = follPuncts.GetChar(0); // we can be certain there is at least one
+						wxChar chfirstPunct = strFollPuncts.GetChar(0); // we can be certain there is at least one
 						int anOffset = pApp->m_strSpacelessSourcePuncts.Find(chfirstPunct);
 						if (anOffset >= 0)
 						{
 							// it's src punctuation, so do a conversion. Tgt punctuation may be identical, but
 							// that won't matter; but if there are different tgt punct glyphs, this will catch it
-							follPuncts = GetConvertedPunct(follPuncts);
+							strFollPunctsConverted = GetConvertedPunct(strFollPuncts);
+
+							//strFollPunctsConverted = _T(")");
+							//wxString bString = wxString(_T("5,000")); // getting the value not from outside the function, or its signature, permits << to append
+							//bString << strFollPunctsConverted; // this one works, as was the case in the TRUE block of the test
+
 #if defined (_DEBUG)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -17915,10 +17940,21 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// empty further down, at 17982, which would give m_adaption a final punct - leading to doubling
 							if (pSrcPhrase->m_adaption.IsEmpty())
 							{
-								pSrcPhrase->m_adaption = pSrcPhrase->m_targetStr;
+								pSrcPhrase->m_adaption = targetStr; // pSrcPhrase->m_targetStr;
 							}
 							// Now add the contents of follPuncts
-							pSrcPhrase->m_targetStr += follPuncts;
+							wxString aString = wxString(pSrcPhrase->m_adaption); //_T("5,000"); this literal way worked
+							aString << strFollPunctsConverted; // << doesn't work
+
+							wxString bString = wxString(targetStr);
+							bString << strFollPunctsConverted; // << doesn't work here either
+
+							wxString anotherStr = targetStr;
+							//anotherStr += pSrcPhrase->m_follPunct; // += doesn't work still
+							wxString fpunct = _T(")");
+							anotherStr << fpunct; // << fails to append here too
+
+							pSrcPhrase->m_targetStr << strFollPunctsConverted;
 #if defined (_DEBUG)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -18044,6 +18080,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NittyGrittyBlock:  str = %s , precPuncts= %s"),
 									__LINE__, str.c_str(), precPuncts.c_str());
+							}
+							if (pSrcPhrase->m_nSequNumber >= 12)
+							{
+								int halt_here = 1;
 							}
 #endif
 							// Now add them to m_targetStr
