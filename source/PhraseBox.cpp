@@ -1081,12 +1081,37 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 
 #if defined(_DEBUG)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 12)
 		{
+			int halt_here = 1;
+		}
+#endif
+
+		//pOldActiveSrcPhrase->m_targetStr << pOldActiveSrcPhrase->m_follPunct; // try adding ')' after the function above returns - nope, << doesn't work here either
+		// If there is a problem with initial character, try reversing, and inserting before the first char, then reverse again
+		//wxString reversedStr = MakeReverse(pOldActiveSrcPhrase->m_targetStr);
+		//wxLogDebug(_T("DoStore_Normal...() line %d, reversedStr= [%s]"), __LINE__, reversedStr.c_str());
+		// The above line showed the problem. I expected "(5000" to be reversed as "000,5(" but it didn't. It was ")" only.
+		// Bill's MakeReverse() gets the size_t for the whole string (and doing this was, in MakeTarget...() one larger than expected)
+		// and allocates sufficient space before doing the reversal in a backwards loop. So the actual m_targetStr must be: _T("(5,000<null>)"
+		// and so the loop, working backwards, finds ')' and then a null, and thinks that's all there is. So that's what's happening
+		// in the MakeTargetStringIncludingPunctuation() function itself. Trying to append to <null> won't work, nor will assigning
+		/*
+		reversedStr = pOldActiveSrcPhrase->m_follPunct + reversedStr;
+		wxLogDebug(_T("DoStore_Normal...() line %d, reversedStr= [%s]"), __LINE__, reversedStr.c_str());
+		wxString aTargetStr = MakeReverse(reversedStr);
+		wxLogDebug(_T("DoStore_Normal...() line %d, aTargetStr= [%s]"), __LINE__, aTargetStr.c_str());
+		// Can I assign aTargetStr to pOldActiveSrcPhrase->m_targetStr? It's probably out of scope now
+		pOldActiveSrcPhrase->m_targetStr = aTargetStr;
+		wxLogDebug(_T("DoStore_Normal...() line %d, pOldActiveSrcPhrase->m_targetStr= [%s]"), __LINE__, pOldActiveSrcPhrase->m_targetStr.c_str(), aTargetStr.c_str());
+		*/
+
+#if defined (_DEBUG)		
 			wxLogDebug(_T("%s::%s(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
 				__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
-		}
-#endif
+#endif	
+
 
 		// BEW 14Oct22 If I want detached ] to be treated like a word, so that it goes into the
 		// adapting KB, then I don't what punctuation removed, as it's normally punctuation, as

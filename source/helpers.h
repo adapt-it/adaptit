@@ -644,6 +644,13 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_
 CBString ConvertToUtf8(const wxString& str);
 wxString ConvertToUtf16(CBString& bstr);
 
+// BEW 27Apr23 a helper to remove any embedded or final null or nulls in a wxString. Leaving them
+// in a string can make << += or = appear not to work; the null or nulls are counted in .Length()
+// calculations, and legitimate content after first null becomes invisible in the IDE's Output
+// window. (Hovering over a string and then over the drop down for m_impl will display the string
+// vertically and nulls will show up as 0 in the vertical list display.)
+wxString RemoveNulls(wxString inputStr);
+
 //extern "C" {  // BEW 14Apr23 commented out, as it's never called
 //#ifndef DO_UPLOAD_KBW_H_
 //#define DO_UPLOAD_KBW_H_

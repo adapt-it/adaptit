@@ -13440,6 +13440,37 @@ wxString ConvertToUtf16(CBString& bstr)
 	wxWCharBuffer buf(wxConvUTF8.cMB2WC(bstr.GetBuffer()));
 	return wxString(buf);
 }
+
+// BEW 27Apr23 a helper to remove any embedded or final null or nulls in a wxString. Leaving them
+// in a string can make << += or = appear not to work; the null or nulls are counted in .Length()
+// calculations, and legitimate content after first null becomes invisible in the IDE's Output
+// window. (Hovering over a string and then over the drop down for m_impl will display the string
+// vertically and nulls will show up as 0 in the vertical list display.)
+wxString RemoveNulls(wxString inputStr)
+{
+	if (inputStr.IsEmpty()) return inputStr; // sanity test
+	wxChar chNull = (wxChar)0;  // a null
+	int strLen = inputStr.Length();
+	wxASSERT(strLen > 0);
+	wxChar aChar;
+	wxString newStr = wxEmptyString;  // safe initialisation, newStr doesn't have <null>
+	int index;
+	for (index = 0; index < strLen; index++)
+	{
+		aChar = inputStr[index];
+		if (aChar != chNull)
+		{
+			newStr << aChar;
+		}
+		else
+		{
+			// Found a null, so iterate
+			continue;
+		}
+	}
+	return newStr;
+}
+
 /* BEW 14Apr23 commented out, because it's never called
 int do_upload_local_kbw(void)
 {

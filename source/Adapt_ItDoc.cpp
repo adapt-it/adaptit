@@ -21712,7 +21712,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 
 		} // end of else block for text: if (bEmptyUSFM)
 
-backToVerse:
+//backToVerse:  BEW 27Apr23 commented this out, as the goto for it is only one and in a section of old text now commented out (21,249 Doc.cpp)
 		//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 #if defined (_DEBUG) && !defined(NOLOGS)
 		{
@@ -33170,7 +33170,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& defined(WHERE)
 	{
 		wxString pointsAt = wxString(ptr, 20);
-		if (pSrcPhrase->m_nSequNumber >= 3)
+		if (pSrcPhrase->m_nSequNumber >= 11)
 		{
 			int halt_here = 1;
 		}
@@ -40952,7 +40952,10 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 		return chvsStr;
 	}
 	// OK, can proceed, set the halter characters
-	wxChar chDelim; chDelim = (wxChar)0;
+	wxString chDelim = wxEmptyString;	
+	wxString rangeChar = wxEmptyString;
+	wxString chDelimForRange = wxEmptyString;
+	wxString chARange = wxEmptyString; // intialise
 	wxString firstPart = wxEmptyString;
 	wxChar colon = _T(':');
 	wxChar period = _T('.');
@@ -40962,11 +40965,9 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	wxChar horiz_bar = (wxChar)0x2015;
 	wxChar longHyphen = (wxChar)0x2013;
 	wxString partsSet = _T("abc"); //for things like 2:5a
-	wxChar rangeChar; rangeChar = (wxChar)0; // initialise  (but not to NULL)
 	bool   bIsDigit = FALSE; // intialise
 	bool   bIsRangeChar = FALSE; // initialise
 	bool   bIsABorC = FALSE; // initialise
-	wxChar chDelimForRange; chDelimForRange = (wxChar)0;
 	bool   bExitEarly = FALSE; // initialise
 	wxChar chClosingParen = _T(')'); // to extent functionality, for dealing with, e.g. 5,000) -- dont incude ')' in the parse
 	while ((ptr < pEnd) && (*ptr != colon) && (*ptr != period) && (*ptr != semicolon) && (*ptr != ahyphen)  && (*ptr != horiz_bar) )
@@ -41014,7 +41015,15 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	// Terminators for 2nd part will be whitespace or any punctuation or delimiter or a RangeSet char
 	bool bIsOne = IsOneOf(ptr, spacelessPuncts);
 	bool bIsDelim = IsOneOf(ptr, allowedDelimiters);
+	if (bIsDelim)
+	{
+		chDelim = wxString(*ptr);
+	}
 	bIsRangeChar = IsOneOf(ptr, RangeSet);
+	if (bIsRangeChar)
+	{
+		rangeChar = wxString(*ptr);
+	}
 	bool bExitNow = FALSE;
 	bExitNow = !(bIsOne || bIsDelim || bIsRangeChar);
 	if (bExitNow)
@@ -41024,23 +41033,26 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	else
 	{
 		// Must have found one, get past it
+		/*
 		if (bIsRangeChar)
 		{
-			rangeChar = *ptr;
-			ptr++;
-			chDelim = (wxChar)0;
+			//rangeChar = *ptr;
+			ptr++; // now set above, get past it
 		}
 		else
 		{
-			chDelim = *ptr; // preserve it, for constructing chvsStr later
+			//chDelim = *ptr; // preserve it, for constructing chvsStr later
+			// now set above, so just advance over it
 			ptr++;
 		}
+		*/
+		ptr++;
 	}
 	// ptr should now be pointing at a digit (for the verse number, or start of a verse range), if not a range;
 	// but if rangeChar is not null, then ptr could be at a chap:verse or chap,verse or chap;verse or first digit of a verse
 	wxString thirdPart = wxEmptyString; // initialise
 	wxString fourthPart = wxEmptyString; // initialise
-	if ( (rangeChar != (wxChar)0 ) && bIsRangeChar)
+	if ( bIsRangeChar )
 	{
 		// ptr is past the range character, so what follows could be a chap:verse or chap,verse or 
 		// chap;verse; or more likely - the first digit of a verse. We have to be able to handle
@@ -41089,13 +41101,14 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 					// A ha! We just did a verse number. So construct and return chvsStr; but if bExitEarly is TRUE
 					// then it's becaue ptr is pointing at a closing parenthesis after last digit parsed (e.g. when
 					// parsing "5,000) ) and we don't want chvsStr to include the ')' as part of what to return
+					// (rangeChar is now (BEW 27Apr23) actually a wxString containing just one character - set above)
 					chvsStr = firstPart + rangeChar + thirdPart;
 					return chvsStr;
 				}
 				else
 				{
 					// Sigh. It was a chapter number. Got more work to do. What's the delimiter for the verse number?
-					chDelimForRange = *ptr;
+					chDelimForRange = _T("*ptr"); // BEW 27Apr23 changed to a wxString, to avoid initialising with (wxChar)0
 					ptr++;
 					// Now we are past the delimiter, so ptr should now be pointing at the first digit of the verse number
 					while ((ptr < pEnd) && IsAnsiDigit(*ptr) && (spacelessPuncts.Find(*ptr) == wxNOT_FOUND) && !IsWhiteSpace(ptr))
@@ -41118,7 +41131,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 							break;
 						}
 					}
-					chvsStr = firstPart + rangeChar + thirdPart + wxString(chDelimForRange) + fourthPart;
+					chvsStr = firstPart + rangeChar + thirdPart + chDelimForRange + fourthPart;
 					// Got the full deal. Let this fall thru to return chvsStr at function end
 				} // end of else block for test: 
 
@@ -41164,7 +41177,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 			}
 		}
 		// It's not a verse range, so contruct chvsStr and return it
-		chvsStr = firstPart + chDelim + secondPart;
+		chvsStr = firstPart + chDelim + secondPart; // chDelim is now a wxString
 
 		// We could be at a RangeSet character, such as ahyphen, acomma, or horiz_bar. Check
 		// If so, parse over,  and after that parse for the range end verse; if no range char,
@@ -41172,23 +41185,23 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 		bool bIsRangeChar2 = IsOneOf(ptr, RangeSet);
 		if (bIsRangeChar2)
 		{
-			wxChar chARange; // intialise
 			int offset = RangeSet.Find(*ptr);
 			if (offset == 0)
 			{
-				chARange = ahyphen;
+				chARange = wxString(ahyphen);
 			}
 			else
 			{
 				if (offset == 1)
 				{
-					chARange = acomma;
+					chARange = wxString(acomma);
 				}
 				else
 				{
-					chARange = horiz_bar;
+					chARange = wxString(horiz_bar);
 				}
 			}
+		
 			chvsStr += chARange; // for example, we've now got 1.1-  of 1.1-4
 			ptr++;
 
@@ -41226,7 +41239,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 			}
 			// BEW 1Jan23 addition to the unchanged above stuff. We need to determine if what we just
 			// parsed over was a range-ending verse, or the chapter part of a range-ending chap:verse
-			if (*ptr == chDelim) // assuming the delimiter for first part would also be used in a final chap<delim>verse
+			if (*ptr == chDelim.GetChar(0)) // assuming the delimiter for first part would also be used in a final chap<delim>verse
 			{
 				// It's the chapter part of a final chap:verse type of ending of range
 				chvsStr += chDelim;
