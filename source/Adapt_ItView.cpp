@@ -16674,8 +16674,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	targetStr = RemoveNulls(targetStr);
 	wxString str = wxEmptyString;
 	str = targetStr;
+#if defined (_DEBUG)
 	wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
-
+#endif
 	wxChar* pEnd = NULL; // init
 	bool bRemoveUnwantedLastChar = FALSE; // initialise
 
@@ -16806,8 +16807,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 		}
 #endif
+#if defined (_DEBUG)
 		if (!pSrcPhrase->m_targetStr.IsEmpty())
 			wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 		return;
 		// Note, m_bTypedNewAdaptationInChooseTranslation is reinitialized to FALSE in PlacePhraseBox() 
 		// control exits from it
@@ -16915,8 +16918,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				pSrcPhrase->m_targetStr = pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode;
                 pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode.Empty();
                 pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
+#if defined (_DEBUG)
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
-					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+						__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 				return;
 			}
 			// user must have typed something, so clean up and control can fall thru
@@ -17016,8 +17022,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// the contents of the phrasebox, then run with the contents
 					// of the phrasebox
 					str = boxValue; // it's without any nulls
+#if defined (_DEBUG)
 					if (!boxValue.IsEmpty())
 						wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, boxValue.c_str(), (int)boxValue.Last());
+#endif
 				}
 
 				// Do any needed auto-capitalisation. User may have typed initial
@@ -17066,8 +17074,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// do the change to upper case for the wxChar at [punctLen] index
 						str.SetChar(punctLen, gcharNonSrcUC);
 					}
+#if defined (_DEBUG)
 					if (!str.IsEmpty())
 						wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 				}
 
 				// Build the final contents of str... (if the user typed some
@@ -17082,8 +17092,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					tgtPrecPunct.Empty();
 					tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
 					str = tgtPrecPunct + str;
+#if defined (_DEBUG)
 					if (!str.IsEmpty())
 						wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 				}
 #if defined (_DEBUG)
 				{
@@ -17104,12 +17116,17 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				if (my_tgtLen > strLen)
 				{
 					str = pSrcPhrase->m_targetStr;
+#if defined (_DEBUG)
 					if (!str.IsEmpty())
 						wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 				}
 				pSrcPhrase->m_targetStr = str;
+#if defined (_DEBUG)
 				if (!str.IsEmpty())
-					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), 
+						__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 				if (pSrcPhrase->m_nSrcWords > 1)
 				{
@@ -17134,7 +17151,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					pApp->m_targetPhrase += strEnding; // add the ) or ]
 					targetStr += strEnding; // add it also to what was passed in
 					pApp->m_pTargetBox->SetValue(targetStr); // get the phrasebox agreeing
-					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, targetStr.c_str(), (int)targetStr.Last());
+#if defined (_DEBUG)
+					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+						__LINE__, targetStr.c_str(), (int)targetStr.Last());
+#endif
 				}
 	
 				// Legacy code continues...
@@ -17143,8 +17163,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				wxString strCorresp;	// where we build target punctuation strings (from the
 					// punctuation correspondences pairs) before inserting them into m_targetStr
 				strCorresp.Empty();
+#if defined (_DEBUG)
 				if (!str.IsEmpty())
 					wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 #if defined (_DEBUG)
 				{
 					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -17369,8 +17391,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// get the result, and fix the source phrase accordingly
 							str = dlg.m_tgtPhrase; // remember str could be a phrase, and so
 													//contain one or more spaces
+#if defined (_DEBUG)
 							if (!str.IsEmpty())
-								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), 
+									__LINE__, str.c_str(), (int)str.Last());
+#endif
 							// anything left in the list can be thrown away now
 							gpRemainderList->Clear();
 							gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
@@ -17411,10 +17436,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 															// text punctuation is to be used"
 							// now save state as described above
 							pSrcPhrase->m_lastAdaptionsPattern = nopunctsForSureStr;
+#if defined (_DEBUG)
 							if (!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
 									__LINE__, pSrcPhrase->m_lastAdaptionsPattern.c_str(), (int)pSrcPhrase->m_lastAdaptionsPattern.Last());
-
+#endif
 							// BEW 30Sep19 comment out - this function needs refactoring:  	pSrcPhrase->m_punctsPattern = str; <<-- I've repurposed this
 						} // end of TRUE block for test: if (pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 						else
@@ -17511,8 +17537,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						}
 					}
 					pSrcPhrase->m_targetStr = str;
+#if defined (_DEBUG)
 					if (!str.IsEmpty())
 						wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 #if defined (_DEBUG)
 					{
 						wxLogDebug(_T("MakeTgtStrIncPunc() line %d: NO SRC COPY: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -17576,8 +17604,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							}
 						}
 #endif
+#if defined (_DEBUG)
 						if (!pSrcPhrase->m_targetStr.IsEmpty())
-							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+								__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 						return;
 					} // end of TRUE block for test: if (bEmptyTarget && bSquareBracketOnlyAsPunct)  matched, correct indent
 
@@ -17698,8 +17729,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// be final punctuation the user typed in to replace the stored
 						// punctuation characters in m_follPunct and m_follOuterPunct)
 						wxChar charLast = (wxChar)str.Last();
+#if defined (_DEBUG)
 						if (!str.IsEmpty())
-							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+								__LINE__, str.c_str(), (int)str.Last());
+#endif
 						// check out what the targetStr ending characters imply should
 						// be done. Return TRUE if control should go straight to the
 						// block for adding stored puncts from the pSrcPhrase. Return
@@ -17784,8 +17818,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								wxString strEmpty = wxEmptyString;
 								pSrcPhrase->SetFollowingOuterPunct(strEmpty);
 								pSrcPhrase->m_follPunct = typedFinalPuncts;
+#if defined (_DEBUG)
 								if (!typedFinalPuncts.IsEmpty())
-									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, typedFinalPuncts.c_str(), (int)typedFinalPuncts.Last());
+									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+										__LINE__, typedFinalPuncts.c_str(), (int)typedFinalPuncts.Last());
+#endif
 							}
 						}
 #if defined (_DEBUG)
@@ -17820,8 +17857,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								// have to also do it for str
 								aLength = str.Len();
 								str = str.Left(aLength - 1);
+#if defined (_DEBUG)
 								if (!str.IsEmpty())
-									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), 
+										__LINE__, str.c_str(), (int)str.Last());
+#endif
 								bRemoveUnwantedLastChar = FALSE; // restore default
 							}
 #if defined (_DEBUG)
@@ -17880,8 +17920,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 										// if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 								} // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty())
 								str += tgtFollPunct;
+#if defined (_DEBUG)
 								if (!str.IsEmpty())
-									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+									wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), 
+										__LINE__, str.c_str(), (int)str.Last());
+#endif
 #if defined (_DEBUG)
 								{
 									wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -17905,8 +17948,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							tgtPrecPunct.Empty();
 							tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
 							str = tgtPrecPunct + str;
+#if defined (_DEBUG)
 							if (!str.IsEmpty())
 								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+#endif
 #if defined (_DEBUG)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -17942,8 +17987,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						pSrcPhrase->m_targetStr = str;  // set the best possible value so far, and it may
 								// actually have preceding and/or following punctuation already in place
 								// due to SimplePunctuationRestoration() call near start, above
+#if defined (_DEBUG)
 						if (!str.IsEmpty())
-							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d] BEST SO FAR"), __LINE__, str.c_str(), (int)str.Last());
+							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d] BEST SO FAR"),
+								__LINE__, str.c_str(), (int)str.Last());
+#endif
 					}
 #if defined (_DEBUG)
 					{
@@ -18009,26 +18057,31 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// RemovePunctuation(), if str has no puncts, may return str with a <null> within it, so
 							// protect from null messing wth the operation of << += or = operators
 							//str = RemoveNulls(str);
-
+#if defined (_DEBUG)
 							if (!str.IsEmpty())
 								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
-
+#endif
 							if (pSrcPhrase->m_adaption.IsEmpty())
 							{
 								pSrcPhrase->m_adaption = str;
 							}
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_adaption = [%s] , strAdapt = [%s] , input targetStr= %s "),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str(), str.c_str(), targetStr.c_str());
+#if defined (_DEBUG)
 							if (!str.IsEmpty())
-								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+									__LINE__, str.c_str(), (int)str.Last());
+#endif
 
 							// Now add the contents of follPuncts
 							wxString tgtText = wxEmptyString;
 							tgtText << str; // does this append strAdapt?
 							tgtText << strFollPunctsConverted; // does this append strFollPunctsConverted?
+#if defined (_DEBUG)
 							if (!tgtText.IsEmpty())
-								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]  APPENDING with <<"), __LINE__, tgtText.c_str(), (int)tgtText.Last());
-
+								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]  APPENDING with <<"),
+									__LINE__, tgtText.c_str(), (int)tgtText.Last());
+#endif
 							// also try appending ')' to str directly
 							str << strFollPunctsConverted; // does this work?
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , tgtText = [%s] , strFollPunctsConverted = [%s] , str= [%s]"),
@@ -18038,8 +18091,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							pSrcPhrase->m_targetStr = tgtText;
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_targetStr= [%s], tgtText = [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_targetStr.c_str(), tgtText.c_str());
+#if defined (_DEBUG)
 							if (!pSrcPhrase->m_targetStr.IsEmpty())
-								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+									__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 							//pSrcPhrase->m_targetStr << strFollPunctsConverted;
 #if defined (_DEBUG)
 							{
@@ -18092,9 +18148,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						}
 						// Now add them to m_targetStr
 						pSrcPhrase->m_targetStr += follOuterPuncts;
+#if defined (_DEBUG)
 						if (!pSrcPhrase->m_targetStr.IsEmpty())
 							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
 								__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 					} // end of TRUE block for test: if (!str.IsEmpty() && !follOuterPuncts.IsEmpty() && !bAlreadyHasFollOuterPunct)
 
 #if defined (_DEBUG)
@@ -18117,9 +18175,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					{
 						wxString tgtStr = pSrcPhrase->m_targetStr;
 						pSrcPhrase->m_adaption = tgtStr;
+#if defined (_DEBUG)
 						if (!pSrcPhrase->m_adaption.IsEmpty())
 							wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
 								__LINE__, pSrcPhrase->m_adaption.c_str(), (int)pSrcPhrase->m_adaption.Last());
+#endif
 					}
 #if defined (_DEBUG)
 					{
@@ -18180,8 +18240,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 #endif
 							// Now add them to m_targetStr
 							pSrcPhrase->m_targetStr = precPuncts + pSrcPhrase->m_targetStr;
+#if defined (_DEBUG)
 							if (!pSrcPhrase->m_targetStr.IsEmpty())
-								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+								wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"),
+									__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 #if defined (_DEBUG)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -18492,9 +18555,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
     // m_nCurSequNum_ForPlacementDialog is reset to default -1
 	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 	//pApp->m_nCurSequNum_ForPlacementDialog = 18; 
+#if defined (_DEBUG)
 	if (!pSrcPhrase->m_targetStr.IsEmpty())
 		wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]  AT END"),
 			__LINE__, pSrcPhrase->m_targetStr.c_str(), (int)pSrcPhrase->m_targetStr.Last());
+#endif
 #if defined(_DEBUG)
 	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at end: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s , m_markers = %s"),
 		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str(), pSrcPhrase->m_markers.c_str());

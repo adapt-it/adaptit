@@ -41019,6 +41019,14 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	{
 		chDelim = wxString(*ptr);
 	}
+	else
+	{
+		// bIsDelim might not get set to other an an empty string, if ptr does not point at
+		// one of the delimiters. Bill worried about this (email, "a couple red flags" approx 28Apr23),
+		// so trying to GetChar(0) further below could then crash the app. I think the way forward is
+		// to provide the most commonly occurring delimiter - namelyl ':' here, for safety
+		chDelim = _T(":");
+	}
 	bIsRangeChar = IsOneOf(ptr, RangeSet);
 	if (bIsRangeChar)
 	{

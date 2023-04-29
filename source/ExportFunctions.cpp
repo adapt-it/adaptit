@@ -17394,6 +17394,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
+#if defined(_DEBUG)
+		wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
+			__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
+#endif
+
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
 			// markers placement from a preceding placeholder may be pending but there may
@@ -17409,9 +17414,6 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// association, but if there are some from a left association (ie.
 				// ending-stuff as discussed above), then don't set the flag but instead
 				// append the relevant material directly to source parameter.
-#if defined(_DEBUG)
-				wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
@@ -17432,6 +17434,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// held over until the loop "sees" the next CSourcePhrase instance, it is
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
+#if defined(_DEBUG)
+				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
@@ -17569,11 +17574,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
 #if defined(_DEBUG)
-			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromMergerMakeSstr str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
-
 			source << str;
 			str.Empty();
 		}
@@ -17629,6 +17633,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
+#if defined(_DEBUG)
+			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromSingleMakeSstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
@@ -17679,9 +17686,6 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// (removeAtPunctuation is an enum value, see line 39 of helpers.h)
 			str = DoFwdSlashConsistentChanges(removeAtPunctuation, str);
 			str = FwdSlashtoZWSP(str);
-#if defined(_DEBUG)
-			wxLogDebug(_T("ExportFunctions RebuildSourceText: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
 
 			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
 			// the caller, we should not risk clobbering a space after the verse of
@@ -17712,6 +17716,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			{
 				// Control usually goes thru here
 				source << str;
+#if defined(_DEBUG)
+				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 			}
 			str.Empty();
 		}
@@ -17719,6 +17726,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
+#if defined(_DEBUG)
+	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, source.Length(), source.c_str());
+#endif
 
 	// update length
 	return source.Length();
@@ -18932,6 +18942,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
 				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE);
+#if defined(_DEBUG)
+				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+#endif
 
 				// BEW 30Sep19 Single CSourcePhrases of all kinds can have hidden USFM3
 				// attributes metadata stored on them (in the m_punctsPattern member).
@@ -19037,6 +19050,11 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
 	target = FwdSlashtoZWSP(target);
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("Rebuild Tgt: line %d, textLen = %d , target= [%s]"), __LINE__, textLen, target.c_str());
+#endif
+
 //#endif
 
     // whm 4Mar2021 commented out to reduce debug console output during collaboration
