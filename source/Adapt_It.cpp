@@ -24270,8 +24270,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
     m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
-    // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11)
-    m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
+    m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
@@ -24307,9 +24307,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// these two copied from global space in Adapt_ItView.cpp, and made into app members here
 	//
-	m_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup ");
+	m_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup \\fk "); // BEW 1May23 added \fk
 	// and the end marker forms
-	m_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn*  \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* ");
+	m_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn*  \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\fk* ");
 
 
 	// BEW 22Apr20, following fast access strings are for setting TextType values

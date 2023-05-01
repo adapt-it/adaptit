@@ -34412,6 +34412,11 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								if (offset >= 0)
 								{
 									// \em* is in this marker set, as are lots of other inline binding ones
+									// BEW 1May23 added \fk and \fk* to the m_charFormatMkrs and m_charFormatEndMkrs sets
+									// Note, for storing on pSrcPhrase, we use m_inlineBindingMarkers, and 
+									// m_inlineBindingEndMarkers, don't get confused by there being a fast access
+									// string called m_inlineBindingMarkers in Adapt_It.cpp, because we make no use
+									// of the latter in Adapt It so far.
 									wxString strBinding = pSrcPhrase->GetInlineBindingEndMarkers(); // probably empty
 									strBinding += wholeMkr;
 									pSrcPhrase->SetInlineBindingEndMarkers(strBinding);
