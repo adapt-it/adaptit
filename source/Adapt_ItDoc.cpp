@@ -34018,7 +34018,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 25);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 12)
+						if (pSrcPhrase->m_nSequNumber >= 115)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -34066,12 +34066,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							// still in our code somewhere, so no more to do here, except return len value
 							return len;
 						}
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 25);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 115)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -34105,12 +34105,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				if ( (*ptr == _T(' ')) && ((*(ptr + 1) == colon) || (*(ptr + 1) == semiColon) || (*(ptr + 1) == period )) 
 					&& (IsWhiteSpace(ptr + 2) || (*(ptr + 2) == gSFescapechar)) )
 				{
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 					{
 						wxString pointsAt = wxString(ptr, 25);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 115)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -37240,14 +37240,14 @@ parenth:
 		// BEW 22Sep22 wordBuilders stuff is not relevant to attributes caching, so skip these when appropriate
 		if (!m_bWithinMkrAttributeSpan)
 		{
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 			{
 				wxString pointsAt = wxString(ptr, 15);
 				wxString followingPuncts = pSrcPhrase->m_follPunct;
 				wxString precedingPuncts = pSrcPhrase->m_precPunct;
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
 					__LINE__, pSrcPhrase->m_nSequNumber , pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 3)
+				if (pSrcPhrase->m_nSequNumber >= 115)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -41060,6 +41060,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	// but if rangeChar is not null, then ptr could be at a chap:verse or chap,verse or chap;verse or first digit of a verse
 	wxString thirdPart = wxEmptyString; // initialise
 	wxString fourthPart = wxEmptyString; // initialise
+	bool bIsAPunct = FALSE; // initialise
 	if ( bIsRangeChar )
 	{
 		// ptr is past the range character, so what follows could be a chap:verse or chap,verse or 
@@ -41080,6 +41081,16 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 				// catering for, because it's what we don't think will happen, that sooner or later bites us.
 				while ((ptr < pEnd) && (*ptr != colon) && (*ptr != period) && (*ptr != semicolon) && (*ptr != ahyphen) && !IsWhiteSpace(ptr) && (*ptr != horiz_bar))
 				{
+					// BEW 1May23 control may get here after parsing "5-7," as far as the comma, but the loop test
+					// allows the comma to be parsed over - and we want to avoid that. The comma, or other ending 
+					// punctuation, if followed by a space, we want to return that chvsStr string only up to, but
+					// not including, the comma or other punct. So a test for punct followed by whitespace needs
+					// to be done here (to break from the loop) and after the loop exits as well.
+					bIsAPunct = IsOneOf(ptr, spacelessPuncts);
+					if (bIsAPunct && IsWhiteSpace(ptr + 1))
+					{
+						break;
+					}
 					bIsDigit = IsAnsiDigit(*ptr);
 					bIsABorC = IsOneOf(ptr, partsSet);
 					if (*ptr == chClosingParen)
@@ -41104,7 +41115,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 				}
 				// What did we just parse? If it was a verse, then the loop exited because of whitespace encountere
 				// so check for that
-				if (IsWhiteSpace(ptr) || bExitEarly)
+				if (IsWhiteSpace(ptr) || bExitEarly || (bIsAPunct && IsWhiteSpace(ptr + 1)) )
 				{
 					// A ha! We just did a verse number. So construct and return chvsStr; but if bExitEarly is TRUE
 					// then it's becaue ptr is pointing at a closing parenthesis after last digit parsed (e.g. when
@@ -41116,7 +41127,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 				else
 				{
 					// Sigh. It was a chapter number. Got more work to do. What's the delimiter for the verse number?
-					chDelimForRange = _T("*ptr"); // BEW 27Apr23 changed to a wxString, to avoid initialising with (wxChar)0
+					chDelimForRange = *ptr; // BEW 27Apr23 changed to a wxString, to avoid initialising with (wxChar)0
 					ptr++;
 					// Now we are past the delimiter, so ptr should now be pointing at the first digit of the verse number
 					while ((ptr < pEnd) && IsAnsiDigit(*ptr) && (spacelessPuncts.Find(*ptr) == wxNOT_FOUND) && !IsWhiteSpace(ptr))
