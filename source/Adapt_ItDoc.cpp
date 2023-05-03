@@ -34018,7 +34018,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 25);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 115)
+						if (pSrcPhrase->m_nSequNumber >= 11)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -34153,7 +34153,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					return len;
 				}
 
-				// BEW 1Jan23 is pSrcPhrase within an unfiltered inline span, such as for \f to \f* ?
+				// BEW 1Jan23 is pSrcPhrase within an unfiltered inline span, such as for \f to \f*
 				// This current pSrcPhrase might be the last in such a span. If it is, ptr will be
 				// pointing at, say, \f*; or if there is a nested endmarker, to something like \fq*\f*
 				// The colour / TextType propagation code following ParseWord(), when the next pSrcPhrase
@@ -34161,38 +34161,19 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				// If not stored, IsTextTypeChangingEndMarker(pLastSrcPhrase) will return FALSE, and that in turn
 				// will keep the red colour persisting (for perhaps hundreds os subsequent inspired text words).
 				// Check for relevant endMkrs - grab them, and if a inline one is last, like \f*, store them;
-				// we do it here because following puncts will have been collected already
+				// we do it here because immediately following puncts will have been collected already
+				bool bParsedEndMaterial;
+				bParsedEndMaterial = FALSE; // initialise
 				if (m_bIsWithinUnfilteredInlineSpan == TRUE)
 				{
 					if (*ptr == gSFescapechar)
 					{
 						// A marker follows; parse them if they are endMkrs, their width will add to len value.
-						// consider only those which would store in m_endMarkers (not inline binding, nor inline non-binding)
-						wxString wholeMkr;
-						wholeMkr = GetWholeMarker(ptr);
-						bool bIsEndMkr;
-						bIsEndMkr = IsEndMarker(ptr, pEnd);
-						int mkrLen;
-
-						while (bIsEndMkr)
-						{
-							mkrLen = wholeMkr.Len();
-							wxString strEndMkrs = pSrcPhrase->GetEndMarkers();
-							strEndMkrs += wholeMkr;
-							pSrcPhrase->SetEndMarkers(strEndMkrs);
-
-							len += mkrLen;
-							ptr += mkrLen; // point at the next, if there is a next
-
-							// prepare for next iteration
-							bIsEndMkr = IsEndMarker(ptr, pEnd);
-							if (!bIsEndMkr)
-							{
-								// Not an endMkr, so break out
-								break;
-							}
-							wholeMkr = GetWholeMarker(ptr);
-						}
+						// consider that the endMkr may be inline binding, normal, or even inline non-binding.
+						// There may be more than one endmarker to deal with, and there could be intervening
+						// punctuation, so refactor here - and a similar block follows which also needs same
+						// treatment
+						; // BEW 2May23, nothing to do here, code further down is sufficient
 					}
 				}
 				// BEW 9Jan23, when the beginMkr was something like \rq, we need a block with a while loop
@@ -34208,7 +34189,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				augEndMkr = wxEmptyString; // init
 				if (*ptr == gSFescapechar)
 				{
-					// BEW 23Mar23, refactor, augEndMkr here is needed for the test at 33710,
+					// BEW 23Mar23, refactor, augEndMkr here is needed for the test later,
 					aWholeMkr = GetWholeMarker(ptr);
 					if (IsEndMarker(ptr, pEnd))
 					{
@@ -34218,48 +34199,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				if (*ptr == gSFescapechar && m_bIsWithinUnfilteredInlineSpan == FALSE && !augEndMkr.IsEmpty() && gpApp->m_RedEndMarkers.Find(augEndMkr) != wxNOT_FOUND)
 				{
 					// A marker follows; parse them if they are endMkrs, their width will add to len value.
-					// consider only those which would store in m_endMarkers (not inline binding, nor inline non-binding)
 					wxString wholeMkr;
 					wholeMkr = GetWholeMarker(ptr);
 					bool bIsEndMkr;
 					bIsEndMkr = IsEndMarker(ptr, pEnd);
 					int mkrLen;
-
-					while (bIsEndMkr)
-					{
-						mkrLen = wholeMkr.Len();
-						wxString strEndMkrs = pSrcPhrase->GetEndMarkers();
-						strEndMkrs += wholeMkr;
-						pSrcPhrase->SetEndMarkers(strEndMkrs);
-
-						len += mkrLen;
-						ptr += mkrLen; // point at the next, if there is a next
-
-						// prepare for next iteration
-						bIsEndMkr = IsEndMarker(ptr, pEnd);
-						if (!bIsEndMkr)
-						{
-							// Not an endMkr, so break out
-							break;
-						}
-						wholeMkr = GetWholeMarker(ptr);
-					}	
 				} // end of TRUE block for test: 
 				  // if (*ptr == gSFescapechar && m_bIsWithinUnfilteredInlineSpan == FALSE && !augEndMkr.IsEmpty() 
 				  // && gpApp->m_RedEndMarkers.Find(augEndmkr != wx_NOT_FOUND)
-
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
-				{
-					wxString pointsAt = wxString(ptr, 25);
-					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
-						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
-					{
-						int halt_here = 1; wxUnusedVar(halt_here);
-					}
-				}
-#endif
-				//wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 				// BEW 28Nov22 For data like ibaib|ibaib where the bar followed by same word is a markup error
 				// (it does absolutely nothing useful) we want to remove the "|ibaib" part to "heal" the input
@@ -34374,6 +34321,17 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						myMkrLen = myMkr.Length();
 						if (IsEndMarker(ptr, pEnd))
 						{
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+							{
+								wxString pointsAt = wxString(ptr, 25);
+								wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 11)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here);
+								}
+							}
+#endif
 							// It's an endmkr. It might be an inlineBinding mkr, or normal non-inline one, or 
 							// an inlineNonbinding mkr - each has a different storage
 							pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload

@@ -651,6 +651,9 @@ wxString ConvertToUtf16(CBString& bstr);
 // vertically and nulls will show up as 0 in the vertical list display.)
 wxString RemoveNulls(wxString inputStr);
 
+// BEW 2May23 created. No need for it, existing code handles it
+//bool ParseWordEndMkrsAndPuncts(CSourcePhrase* pSrcPhrase, wxChar* pChar, wxChar* pEnd, int& len, wxString spacelessPuncts);
+
 //extern "C" {  // BEW 14Apr23 commented out, as it's never called
 //#ifndef DO_UPLOAD_KBW_H_
 //#define DO_UPLOAD_KBW_H_

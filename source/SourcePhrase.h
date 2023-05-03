@@ -132,7 +132,7 @@ public:
 									// from a different project to a different target text, etc
 	// for docVersion 6, added the next 4 strings
 	wxString		m_lastAdaptionsPattern; // the value within m_adaptions at the time of the last placement dlg
-	wxString		m_tgtMkrPattern; // remember where Place Medial Markers placed any markers, for tgt text export
+	wxString		m_tgtMkrPattern; // remember where PlaceInternalMarkers placed any markers, for tgt text export
 	wxString		m_glossMkrPattern; // remember where Place Medial Markers placed any markers, for glossing export
 	wxString		m_punctsPattern; // repurposed for later versions 6.x.y to hold cached bar-initial hidden text data from USFM3 markup
 

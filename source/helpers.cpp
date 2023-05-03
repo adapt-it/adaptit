@@ -47,6 +47,8 @@
 #include <wx/fileconf.h> // for wxFileConfig
 #include <wx/display.h> // for multiple monitor metrics,
 						// used for dialog relocation away from active pile
+#include <wx/string.h>
+
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
@@ -13471,6 +13473,185 @@ wxString RemoveNulls(wxString inputStr)
 	return newStr;
 }
 
+// BEW 2May23 created. But no need for this, existing code handles complex endmkr and puncts mixed
+/* leave it here for a while, in case bits of its code are of use sometime soon
+bool ParseWordEndMkrsAndPuncts(CSourcePhrase* pSrcPhrase, wxChar* pChar, wxChar* pEnd, int& len, wxString spacelessPuncts)
+{
+	// sanity tests; the caller already knows if the spacelessPuncts string passed in is for source puncts or target puncts
+	if (pSrcPhrase == NULL) { return FALSE; }
+	if (spacelessPuncts.IsEmpty()) { return FALSE; }
+	if (pChar >= pEnd) { return FALSE; }
+	wxChar chSpace = _T(' ');
+	if (*pChar == chSpace)
+	{
+		// Space after a parsed word needs to be considered to be the space which ends off that word's parse,
+		// and the space is to be the space before the next pSrcPhrase to be parsed
+		return FALSE;
+	}
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+
+	wxChar gSFescapechar = _T('\\');
+	if (*pChar != gSFescapechar)
+	{
+		// This function, if called, must be because the caller has determined that after the parsed word
+		// caller's ptr is pointing at a backslash
+		return FALSE;
+	}
+	// end of sanity checks
+	wxChar* ptr = pChar;
+	int itemLen = 0; // compute lengths internally using itemLen, to not interfere with caller's len till we are done here
+	wxString key = pSrcPhrase->m_key; // m_key cannot be legally empty
+	wxASSERT(!key.IsEmpty());
+	// Don't leave m_srcPhrase empty, initialise it to key's value, to which we will add following puncts when/if found
+	if (pSrcPhrase->m_srcPhrase.IsEmpty())
+	{
+		pSrcPhrase->m_srcPhrase = key;
+	}
+	else
+	{
+		// In case its not empty, append
+		pSrcPhrase->m_srcPhrase << key;
+	}
+	wxString curEndMkrs; wxString myMkr; int myMkrLen;
+	bool bStoredEndMkr; wxString curOuterPuncts;
+	bStoredEndMkr = FALSE; // initialise
+	bool bStoredBindingEndMkr;
+	bStoredBindingEndMkr = FALSE; // initialise
+	bool bStoredNonbindingEndMkr;
+	bStoredNonbindingEndMkr = FALSE;
+	USFMAnalysis* pUsfmAnalysis;
+	pUsfmAnalysis = NULL; // more initialisations...
+	wxString tagOnly = wxEmptyString;
+	wxString baseOfEndMkr = wxEmptyString;
+	wxString bareMkr = wxEmptyString;
+	wxString wholeMkr = wxEmptyString;
+	wxString wholeMkrPlusSpace = wxEmptyString;
+	bool bIsNestedMkr = FALSE;
+	bool bIsRedEndMkr = FALSE;
+
+	while (*ptr == gSFescapechar)
+	{
+		if (*ptr == gSFescapechar)
+		{
+			myMkr = pDoc->GetWholeMarker(ptr);
+			myMkrLen = myMkr.Length();
+			if (pDoc->IsEndMarker(ptr, pEnd))
+			{
+				pUsfmAnalysis = pDoc->LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
+				wxASSERT(pUsfmAnalysis != NULL); // not an unknown marker
+				bareMkr = wxEmptyString;
+				if (baseOfEndMkr.IsEmpty())
+				{
+					// It's not an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+				}
+				bareMkr += pUsfmAnalysis->marker; // if marker is em, result is either +em or em
+				bareMkr += _T('*'); // now it's eiher +em* or em*
+				wholeMkr = gSFescapechar + bareMkr; // now it's  \em*, hence it's reconstructed
+				wholeMkrPlusSpace = wholeMkr + chSpace; // this string augments it to "\\em* "
+								// which is suitable for fast-access string lookups
+				if (pUsfmAnalysis->inLine == FALSE)
+				{
+					// must be an endMkr to be stored in m_endMarkers
+					curEndMkrs = pSrcPhrase->GetEndMarkers(); // could be empty
+					curEndMkrs += wholeMkr;
+					pSrcPhrase->SetEndMarkers(curEndMkrs);
+					bStoredEndMkr = TRUE;
+					int wholeMkrLen = wholeMkr.Length();
+					itemLen += wholeMkrLen;
+					ptr += wholeMkrLen;
+				}
+				else
+				{
+					// inLine is TRUE, so check for within m_RedEndMarkers or inlineBinding, or inlineNonbinding;
+					// those in the m_RedEndMarkers set are in spans, like \f ... \f*, so these will be stored in
+					// pSrcPhrase->m_endMarkers member; the other two options would be for binding ones, or non-binding
+					int offset;
+					offset = pApp->m_RedEndMarkers.Find(wholeMkrPlusSpace);
+					if (offset >= 0)
+					{
+						// store in m_endMarkers also
+						curEndMkrs = pSrcPhrase->GetEndMarkers(); // could be empty
+						curEndMkrs += wholeMkr;
+						pSrcPhrase->SetEndMarkers(curEndMkrs);
+						bIsRedEndMkr = TRUE;
+						int wholeMkrLen = wholeMkr.Length();
+						itemLen += wholeMkrLen;
+						ptr += wholeMkrLen;
+
+						int mkrLen = wholeMkr.Length();
+						itemLen += mkrLen;
+						ptr += mkrLen;
+					} // end of TRUE block for test: if (offset >= 0) -- for m_RedEndMarkers set 
+					else
+					{
+						// must be either binding or non-binding, check out which
+						offset = pApp->m_charFormatEndMkrs.Find(wholeMkrPlusSpace);
+						if (offset >= 0)
+						{
+							wxString strBinding = pSrcPhrase->GetInlineBindingEndMarkers(); // probably empty
+							strBinding += wholeMkr;
+							pSrcPhrase->SetInlineBindingEndMarkers(strBinding);
+							bStoredBindingEndMkr = TRUE;
+						}
+						else
+						{
+							// not in the binding mkrs set, so must be in the nonbinding set
+							offset = gpApp->m_inlineNonbindingEndMarkers.Find(wholeMkrPlusSpace);
+							wxASSERT(offset >= 0);
+							wxString strNonbinding = pSrcPhrase->GetInlineNonbindingEndMarkers();
+							strNonbinding += wholeMkr;
+							pSrcPhrase->SetInlineNonbindingEndMarkers(strNonbinding);
+							bStoredNonbindingEndMkr = TRUE;
+						}
+						int mkrLen = wholeMkr.Length();
+						itemLen += mkrLen;
+						ptr += mkrLen;
+						// Punctuation may follow, so don't return before checking for final puncts
+
+					} // end of else block for test: if (offset >= 0) -- for m_RedEndMarkers set
+
+				} // end of else block for test: if (pUsfmAnalysis->inLine == FALSE)
+				bStoredEndMkr = TRUE;
+
+				len += itemLen;
+				// prepare for another iteration
+				itemLen = 0;
+				itemLen = pDoc->ParseFinalPuncts(ptr, pEnd, spacelessPuncts);
+				if (itemLen > 0)
+				{
+					wxString extraPuncts = wxString(ptr, itemLen);
+					if (!bStoredNonbindingEndMkr)
+					{
+						// Store in m_follPunct when the additional puncts follow either an
+						// inline binding marker, or when the endmarker is not inLine TRUE 
+						pSrcPhrase->m_follPunct += extraPuncts;
+					}
+					else
+					{
+						// Must be an inLine endMarker which is not of binding type, so
+						// store in m_follOuterPunct
+						wxString strOuterPuncts = pSrcPhrase->GetFollowingOuterPunct();
+						strOuterPuncts += extraPuncts;
+						pSrcPhrase->SetFollowingOuterPunct(strOuterPuncts);
+					}
+					pSrcPhrase->m_srcPhrase += extraPuncts;// so user can see it in GUI layout
+					len += itemLen;
+					ptr += itemLen;
+					itemLen = 0;
+				} // end of TRUE block for test: if (itemLen > 0)
+
+			} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd))
+		} // end of TRUE block for test: if (*ptr == gSFescapechar)
+
+	} // end of while loop with test: while (*ptr == gSFescapechar)
+	return TRUE;
+}
+*/
 /* BEW 14Apr23 commented out, because it's never called
 int do_upload_local_kbw(void)
 {
