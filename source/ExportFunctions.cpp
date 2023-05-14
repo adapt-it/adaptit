@@ -17397,6 +17397,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #if defined(_DEBUG)
 		wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
+		if (pSrcPhrase->m_nSequNumber >= 0)
+		{
+			int halt_here = 1;
+		}
 #endif
 
 		if (pSrcPhrase->m_bNullSourcePhrase)
@@ -17631,6 +17635,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			bool bAttach_m_markers = TRUE;
 			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
 			// words in the source text of the free translation section, if any)
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 0)
+			{
+				int halt_here = 1;
+			}
+#endif
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
 #if defined(_DEBUG)
@@ -17691,6 +17701,12 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// the caller, we should not risk clobbering a space after the verse of
 			// a verse marker, so comment next line out
 			//sourceStr.Trim();
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 0)
+			{
+				int halt_here = 1;
+			}
+#endif
 
 			// BEW added 13Jul1 next 3 lines: support Paratext usfm-only contentless
 			// chapters or books - the legacy code would output \v 1 followed by newline,
@@ -17702,7 +17718,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			}
 
 			// if we return ']' bracket, we don't want a preceding space
-			if (str[0] == _T(']'))
+			if (!str.IsEmpty() && str[0] == _T(']'))
 			{
 				source << str;
 			}

@@ -6938,235 +6938,191 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxUnusedVar(bCountInTargetText); // BEW added 22Jun15
 	wxUnusedVar(bDoCount); // BEW added 22Jun15
+	wxUnusedVar(bAttach_m_markers); // 5May23 unreferenced, no longer needed
+	wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed
+	wxUnusedVar(mMarkersStr); // 8May23 no longer needed
+	wxUnusedVar(filteredInfoStr); // 8May23 no longer needed
+	wxUnusedVar(xrefStr); // 8May23 no longer needed
+	bool bEndPunctsModified = FALSE; // init
 
-	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
-	// space symbol ~  ?
-	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
 	wxString Sstr;
-	// Clear next three ready for returning what we find to caller (caller may use any or
-	// all of it, or decline it, but we return it anyway via the signature), the booleans
-	// in the signature control whether the filtered stuff and m_markers stuff is to be
-	// included in the returned string or not.
-	xrefStr.Empty();
-	filteredInfoStr.Empty();
-	mMarkersStr.Empty();
-
-    // BEW 22Jun15, at most, markersPrefix might be used to store begin-markers for
-	// unfiltered data, but nothing else (and definitely no filtered information)
-	wxString markersPrefix; markersPrefix.Empty();
-
-	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
-
 	wxString aSpace = _T(" ");
-	wxString markersStr;
-	wxString endMarkersStr;
-	// BEW 22Jun15, the next four are retained because they occur in function signatures,
-	// but if the functions get called, any filtered information content returned in these
-	// will be emptied before it can be used further down in this function
-	wxString freeTransStr;
-	wxString noteStr;
-	wxString collBackTransStr;
-	wxString filteredInfoStr2;
+	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix it at end
 
-	// empty the scratch strings (ensures each starts of empty)
-	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
-									collBackTransStr, filteredInfoStr2);
-	// get the other string information we want, putting it in the scratch strings
-	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
-					freeTransStr, noteStr, collBackTransStr,filteredInfoStr2);
+	//mMarkersStr = markersStr; // unilaterally returned to caller, in case it wants it
+	//CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
+
+	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
+
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 0)
 	{
-		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
-		// data should be in the export
-		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
+		int halt_here = 1;
 	}
-	// BEW 22Jun15 there is now no need to call either of the next two functions
-	/*
-	// remove any filter bracketing markers if filteredInfoStr2 has content
-	if (!filteredInfoStr2.IsEmpty())
-	{
-		filteredInfoStr2 = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr2);
-
-		// separate out any cross reference information - it must be placed following
-		// information in m_markers, if the caller wants it; other filtered info is to be
-		// placed preceding m_markers, if the caller wants it
-		SeparateOutCrossRefInfo(filteredInfoStr2, xrefStr, filteredInfoStr);
-	}
-	*/
-	mMarkersStr = markersStr; // unilaterally returned to caller, in case it wants it
-
-	// BEW 22Jun15, the following does not need to be called
-	/*
-	if (bAttachFilteredInfo)
-	{
-
-		// for the one and only CSourcePhrase, we store any filtered info within the prefix
-		// string, and any content in m_markers, if present, must be put at the start
-		// of Sstr if filtered info is xref info (which comes after m_markers), but if there
-		// is other filtered info, it precedes m_markers info; remove LHS whitespace when done
-		markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
-							pSrcPhrases, filteredInfoStr, collBackTransStr,
-							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
-								// and xrefStr are handled in a separate function, later below
-
-	} // end of TRUE block for test: if (bAttachFilteredInfo)
-	else
-	{
-		// caller does not want filtered information in the returned source text string,
-		// but that still leaves m_markers content, if the caller wants it - do it below
-		;
-	}
-	*/
-
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
-	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
-
-    // BEW 11Oct10, for ~ conjoining, we assume that between the two conjoined words will
-    // only be ~ plus or minus following punctuation on the first, plus or minus preceding
-    // punctuation on the second; but we also allow inline binding markers on either word.
-    // For pair-initial and pair final locations, we assume that there can be the full
-    // complement of punctuation and markers also, and we'll allow an inline binding marker
-    // / endmarker provided that the first word has a beginmarker, and the second word has
-    // an endmarker (but not necessarily a matching pair).
-	// The task now, whether for conjoined pairs or a normal single source text word, is to
-	// build up a srcStr which has (1) punctuation (2) inline binding mrk & endmkr if
-	// present, and the key (the building is more complex for a conjoined pair, but is
-	// still determinate so no user help is needed in this step). After we have srcStr, we
-	// can then proceed to test for and add other markers and any m_follOuterPunct content.
-	wxString theSymbol = _T("~");
-	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
-	wxString srcStr = pSP->m_key;
+#endif
 	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
 	// but m_srcPhrase will be _T("\\"), we want to keep the backslash in the exported
 	// source text, so test and set srcStr to it
-	if (pSP->m_key.IsEmpty() && pSP->m_srcPhrase == _T("\\"))
+	if (pSingleSrcPhrase->m_key.IsEmpty() && pSingleSrcPhrase->m_srcPhrase == _T("\\"))
 	{
 		srcStr = _T("\\");
-		if (!pSP->m_markers.IsEmpty())
+		if (!pSingleSrcPhrase->m_markers.IsEmpty())
 		{
-			srcStr = pSP->m_markers + srcStr;
+			srcStr = pSingleSrcPhrase->m_markers + srcStr;
 		}
 		Sstr = srcStr;
 		return Sstr;
 	}
+// 5May23 new code goes here
+	wxString extras = wxEmptyString;
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	if (bIsFixedSpaceConjoined)
+	// BEW 10May23, pSrcPhrase (docVersion == 10) has a new wxString, m_oldKey which stores
+	// the key parsed in the doc ParseWords() call. m_srcSinglePattern has the m_key value at that
+	// time. If a src text edit is later done - making the m_key value different, or PT source text project
+	// has been user-edited to change the m_key spelling, then we don't want the m_oldKey value to
+	// be constant; instead since m_key may be different, we need to compare the new value with what's
+	// in m_oldKey, and if different, use the new value - and make the appropriate value changes within
+	// pSrcPhrase->m_srcSinglePattern and m_oldKey, to comply with the new value as well. Do it here, so
+	// that the key is up-to-date before we start examining puncts and markers which are before or after it.
+	wxString currSrcSinglePattern = pSingleSrcPhrase->m_srcSinglePattern;
+	wxString currKey = pSingleSrcPhrase->m_oldKey;
+	wxString newKey = pSingleSrcPhrase->m_key;
+	wxString newSrcSinglePattern = wxEmptyString;
+	if (newKey != currKey)
 	{
-		CSourcePhrase* pWord1;
-		CSourcePhrase* pWord2;
-		wxString wrd1;
-		wxString wrd2;
-		int offset = srcStr.Find(theSymbol);
-		wxASSERT(offset != wxNOT_FOUND);
-		wrd1 = srcStr.Left(offset);
-		wrd2 = srcStr.Mid(offset + 1);
-		SPList* pSrcPhrases = pSP->m_pSavedWords;
-		SPList::Node* posFirst = pSrcPhrases->GetFirst();
-		SPList::Node* posLast = pSrcPhrases->GetLast();
-		pWord1 = posFirst->GetData();
-		pWord2 = posLast->GetData();
-		// what comes nearest the word is preceding and following inline binding marker
-		// and endmarker, if they exist here
-		if (!pWord1->GetInlineBindingMarkers().IsEmpty())
-		{
-			wrd1 = pWord1->GetInlineBindingMarkers() + wrd1;
-		}
-		if (!pWord1->GetInlineBindingEndMarkers().IsEmpty())
-		{
-			wrd1 += pWord1->GetInlineBindingEndMarkers();
-		}
-		if (!pWord1->m_follPunct.IsEmpty())
-		{
-			wrd1 += pWord1->m_follPunct;
-		}
-		// what comes nearest the word2 is preceding and following inline binding marker
-		// and endmarker, if they exist here
-		if (!pWord2->GetInlineBindingMarkers().IsEmpty())
-		{
-			wrd2 = pWord2->GetInlineBindingMarkers() + wrd2;
-		}
-		if (!pWord2->GetInlineBindingEndMarkers().IsEmpty())
-		{
-			wrd2 += pWord2->GetInlineBindingEndMarkers();
-		}
-		if (!pWord2->m_precPunct.IsEmpty())
-		{
-			wrd2 = pWord2->m_precPunct + wrd2;
-		}
-		// form the composite, after making sure no spurious spaces are in the substrings
-		wrd1.Trim(); // trim white space from the end of wrd1
-		wrd2.Trim(FALSE); // trim white space from the start of wrd2
-		srcStr = wrd1 + theSymbol + wrd2;
+		// There has been a value change to the m_key member, do the updating required
+		int oldKeyLen = currKey.Length();
+		wxString rightBit = currSrcSinglePattern.Mid(oldKeyLen); // keep rightBit (may be empty), chuck old key
+		newSrcSinglePattern = newKey + rightBit;
+		pSingleSrcPhrase->m_srcSinglePattern = newSrcSinglePattern; // it's now updated
+		pSingleSrcPhrase->m_oldKey = newKey; // it's now updated
+	}
+
+	// FromSingleMakeSstr accesses the new member in CSourcePhrase, m_srcSinglePattern, 
+	// not the other four new ones; the one to read for the source pattern is the 2nd param of next call
+	extras = pDoc->GetPostwordExtras(pSingleSrcPhrase, pSingleSrcPhrase->m_srcSinglePattern);
+	extras = pDoc->RemoveEndMkrsFromExtras(extras);
+	bool bIsOK = FALSE; // init
+	int extrasLen = -1; // init - if bAllMated is TRUE, extrasLen should be zero, and residue empty
+	wxString residue = wxEmptyString; // init
+	// Next call will return TRUE if (a) extras was empty, so m_srcSinglePattern suffices; or (b) there
+	// were one or more final puncts (possibly mixed with endmarkers), and matching those in pSrcPhrase
+	// successfully with those in extras, with no residue left over, happens - in which case
+	// m_srcSinglePattern suffices then also
+	bIsOK = pDoc->Qm_srcPhrasePunctsPresentAndNoResidue(pSingleSrcPhrase, extras, extrasLen, residue, bEndPunctsModified); // endMkrsOnly);
+	// For option (b) in comment above, the matching algorithm removes each matched up char pair (it
+	// handles ">>" as a special case), reducing extras to empty, or to just one or more whitespace chars
+	// - which we skip over as they are not puncts, so if extrasLen gets reduced to 0 then matchups succeeded
+	if (bIsOK && extrasLen == 0 && residue.IsEmpty())
+	{
+		// The contents of m_srcSinglePattern are the correct post-word mix of puncts and endmarkers, or,
+		// there were no word-final puncts (but endMkrs may have been squirreled away on pSingleSrcPhrase)
+		// and if so, they will be there in m_srcSinglePattern anyway 
+		// (bEndPunctsModified stays FALSE when control has entered this block)
+		srcStr = pSingleSrcPhrase->m_srcSinglePattern;
 	}
 	else
 	{
-		// it's a normal single CSourcePhrase instance
-		if (!pSP->GetInlineBindingMarkers().IsEmpty())
+		// Handle FALSE returned. 
+		if (bEndPunctsModified)
 		{
-			srcStr = pSP->GetInlineBindingMarkers() + srcStr;
+			// Put here an algorithm which can handle punctuation changes. There are only two ways for the
+			// user to be able to change source text puncts. 
+			// (1) Make the appropriate source text words pSrcPhrase be selected, or at active location,
+			// and Select the option "Edit Source Text" - the user can then type a different word, or different
+			// puncts, or both in the dialog that pops up. (Markers won't be seen, and should NOT be manually
+			// typed in the dialog, they are inviolate constant substrings in the doc's USFM structure).
+			// Collaboration does not have to be active to do this, in fact, collaboration suppresses this option
+			// and requires changes be made instead in the source text in Paratext (or Bibledit).
+			// (2) In a collaboration, the user can enter the source text project in Paratext (or Bibledit)
+			// and there type a different word or different punctuations or both. The collaboration will call
+			// OnSingleMakeTstr() which internally calls OnSingleMakeSstr() which will cause new values (if
+			// changed) be put into m_follPunct and perhaps also into m_inlineBindingEndMarkers and/or into
+			// m_inlineNonbindingEndMarkers (though puncts after markers like \wj* etc are very unlikely)
+
+
+			// TODO - a function which matches by positions, since equality tests won't work
+
+
+
 		}
-		if (!pSP->GetInlineBindingEndMarkers().IsEmpty())
+		else
 		{
-			srcStr += pSP->GetInlineBindingEndMarkers();
+			// If no manual puncts changed, then what's gone wrong could be anything, but most likely there
+			// is a residue which is not empty - such as when these is extra puncts were added. So just return
+			// m_srcSinglePattern 'as is' with any residue appended - could fluke a correct result
+			srcStr = pSingleSrcPhrase->m_srcSinglePattern; 
+			if (!residue.IsEmpty())
+			{
+				srcStr << residue;
+			}
 		}
-	}
-    // the punctuation situation at either end is in common regardless of which block was
-    // processed above
-	if (!pSP->m_precPunct.IsEmpty())
-	{
-		srcStr = pSP->m_precPunct + srcStr;
-	}
-	if (!pSP->m_follPunct.IsEmpty())
-	{
-		srcStr += pSP->m_follPunct;
-	}
-	// we have now got the srcStr base that we need, now do the rest - which is the same
-	// whether we have a word pair ~ conjoined or not
-	Sstr = srcStr;
-
-	// check for inline non-binding marker, it follows \v etc, and so comes next as we
-	// work outwards in a left direction
-	if (!pSP->GetInlineNonbindingMarkers().IsEmpty())
-	{
-		Sstr = pSP->GetInlineNonbindingMarkers() + Sstr;
-	}
-
-	// BEW 22Jun15, now precede what we have with any beginmarkers and associated data
-	// from m_markers, then put that content after the markersStr (ie. m_markers) content
-	// -- append this stuff to markersPrefix and then we can prefix the latter to Sstr;
-	// This function call no longer returns any filtered information
-	markersPrefix = GetUnfilteredCrossRefsAndMMarkers(markersPrefix, markersStr, xrefStr,
-												bAttachFilteredInfo, bAttach_m_markers);
-
-    // any endmarkers on pSingleSrcPhrase are not "medial", and can be added
-    // automatically too
-	if (!endMarkersStr.IsEmpty())
-	{
-		Sstr << endMarkersStr;
-	}
-
-	// there might be content in m_follOuterPunct, append it next
-	if (!pSP->GetFollowingOuterPunct().IsEmpty())
-	{
-		Sstr += pSP->GetFollowingOuterPunct();
-	}
-
-	// finally, there could be an inline non-binding endmarker, like \wj* (words of Jesus)
-	if (!pSP->GetInlineNonbindingEndMarkers().IsEmpty())
-	{
-		Sstr += pSP->GetInlineNonbindingEndMarkers();
-	}
+	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 
     // now add the prefix string material if it is not empty
-	if (!markersPrefix.IsEmpty())
+	wxString prefixStr = wxEmptyString;
+	if (!bEndPunctsModified)
 	{
-		markersPrefix.Trim();
-		markersPrefix << aSpace; // ensure a final space
-		Sstr = markersPrefix + Sstr;
+		if (!markersStr.IsEmpty())
+		{
+			// prefix it, it may have markers like \s, \s1, \p, \v etc
+			prefixStr = markersStr;
+		}
+		// Next, there could be inline nonbinding beginMkr like \wj
+		wxString strNonbinding = pSingleSrcPhrase->GetInlineNonbindingMarkers();
+		if (!strNonbinding.IsEmpty())
+		{
+			prefixStr << strNonbinding;
+		}
+		// Next, sometimes there may even be character formatting beginMkr(s)
+		wxString strBinding = pSingleSrcPhrase->GetInlineBindingMarkers();
+		if (!strBinding.IsEmpty())
+		{
+			prefixStr << strBinding;
+		}
+		// Now whatever we have, (could be empty) prefix to srcStr
+		if (!prefixStr.IsEmpty())
+		{
+			srcStr = prefixStr + srcStr;
+		}
+	} // end of TRUE block for test: if (!bEndPuntsModified)
+	else
+	{
+
+
+
+
+
+
+
+// TODO if needed when end puncts were modified
+
+	} // end of else block for test: if (!bEndPuntsModified)
+
+	/*
+	pSingleSrcPhrase->m_srcPhrase = pSingleSrcPhrase->m_srcSinglePattern; // that's the word plus what follows
+
+	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+	{
+		pSingleSrcPhrase->m_srcPhrase = pSingleSrcPhrase->m_precPunct + pSingleSrcPhrase->m_srcPhrase;
 	}
-	Sstr.Trim(FALSE);
-	Sstr.Trim(); // don't return it with a final space, leave that to the caller
+	if (!markersStr.IsEmpty())
+	{
+		markersStr.Trim();
+		markersStr << aSpace; // ensure a final space
+		pSingleSrcPhrase->m_srcPhrase = markersStr + pSingleSrcPhrase->m_srcPhrase;
+	}
+	*/
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 0)
+	{
+		int halt_here = 1;
+	}
+#endif
+
+	Sstr = srcStr;
+	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
 }
 

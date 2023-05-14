@@ -358,6 +358,24 @@ public:
 											// to the current doc's directory across the writing of
 											// the project configuration file to the project's directory
 	int				GetCurrentDocVersion();
+
+	// **** functions involved in removing the need for having placement dialogs, DOCUMENT_VERSION 10 ********
+
+	wxString        MakeWordAndExtras(wxChar* ptr, int itemLen); // BEW added 3May23
+	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr); // BEW added 4May23 -- removes m_key, returns the rest
+	wxString		RemoveEndMkrsFromExtras(wxString extras); // BEW added 4May23
+	bool			Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhrase, wxString extras, 
+					int& extrasLen, wxString& residue, bool& bEndPunctsModified); // BEW added 4May23 'Q' in the name means "Query"
+	bool			UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bTokenizingTargetText = FALSE); // BEW added 10May23
+							// for updating m_srcSinglePattern when puncts have changes
+	bool			CreateOldSrcBitsArr(wxString& srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
+							wxArrayString& oldSrcConsecutivesArr, wxString& spacelessPuncts);
+
+
+
+
+	// **** end of functions for not having placement dialogs *******
+
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs

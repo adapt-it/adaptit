@@ -654,6 +654,13 @@ const char xml_srcwdbrk[] = "swbk"; // m_srcWordBreak (a wxString in CSourcePhra
 /// Attribute name used in Adapt It XML documents
 const char xml_tgtwdbrk[] = "twbk"; // for target wordbreak, in a retranslation
 
+// BEW 4May23 add the 5 extra ones for assisting in removal of Placement dialogs
+const char xml_ssp[] = "ssp";  // m_srcSinglePattern
+const char xml_tsp[] = "tsp";  // m_tgtSinglePattern
+const char xml_gsp[] = "gsp";  // m_glossSinglePattern
+const char xml_smp[] = "smp";  // m_srcMergerPattern
+const char xml_tmp[] = "tmp";  // m_tgtMergerPattern
+const char xml_okey[] = "okey";  // m_oldKey
 
 // entity names (utf-8) for the ZWSP etc special space word-breaking delimiters
 const char xml_nbsp[] =         "&#x00A0;"; // standard Non-Breaking SPace

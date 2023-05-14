@@ -4199,10 +4199,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
-//#if !defined(USE_ LEGACY_ PARSER)
-					// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 					gpEmbeddedSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
-//#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
@@ -4263,6 +4260,31 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 							gpEmbeddedSrcPhrase->m_bHasInternalPunct = FALSE;
 						}
 					} // end of else block for test: if (strAttrValue.IsEmpty())
+				}
+				// BEW 4May23 add the blocks for support of the new " ...Pattern" strings in CSourcePhrase
+				else if (gnDocVersion >= 10 && attrName == xml_ssp)
+				{
+					gpEmbeddedSrcPhrase->m_srcSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_tsp)
+				{
+					gpEmbeddedSrcPhrase->m_tgtSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_gsp)
+				{
+					gpEmbeddedSrcPhrase->m_glossSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_smp)
+				{
+					gpEmbeddedSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_tmp)
+				{
+					gpEmbeddedSrcPhrase->m_tgtMergerPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_okey)
+				{
+					gpEmbeddedSrcPhrase->m_oldKey = gpApp->Convert8to16(attrValue);
 				}
 				else
 				{
@@ -4412,10 +4434,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
-//#if !defined(USE_ LEGACY_ PARSER)
-					// BEW 1Nov22 unsure if this next bit is relevant to the legacy parser
 					gpSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
-//#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
@@ -4481,6 +4500,31 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 					} // end of else block for test: if (strAttrValue.IsEmpty())
 					
 				} // end of TRUE block for test: if (gnDocVersion >= 6 && attrName == xml_pupat)
+				// BEW 4May23 add the blocks for support of the new " ...Pattern" strings in CSourcePhrase
+				else if (gnDocVersion >= 10 && attrName == xml_ssp)
+				{
+					gpSrcPhrase->m_srcSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_tsp)
+				{
+					gpSrcPhrase->m_tgtSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_gsp)
+				{
+					gpSrcPhrase->m_glossSinglePattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_smp)
+				{
+					gpSrcPhrase->m_srcMergerPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_tmp)
+				{
+					gpSrcPhrase->m_tgtMergerPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_okey)
+				{
+					gpSrcPhrase->m_oldKey = gpApp->Convert8to16(attrValue);
+				}
 				else
 				{
 					// unknown attribute

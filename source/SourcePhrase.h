@@ -359,6 +359,18 @@ public:
 	void     InsertCachedAttributesMetadata(wxString metadata);
 	wxString ExtractCachedAttributesMetadata();
 
+	// BEW 4May23 Six public storage strings needed for preserving the pre-parsed structure
+	// of "following" material (i.e. after a parsed word) when what follows is anything from
+	// an empty string to a complex mix of endmarkers and punctuation characters: for
+	// source text, target text, glosses text, and possibly source text merger, and
+	// target text merger. These were added for doc VERSION_NUMBER set to 10
+	wxString m_srcSinglePattern;
+	wxString m_tgtSinglePattern;
+	wxString m_glossSinglePattern;
+	wxString m_srcMergerPattern;
+	wxString m_tgtMergerPattern;
+	wxString m_oldKey; // actually added on 10May23 to support changes of m_key value in rebuilding src
+
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to 

@@ -325,6 +325,14 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_tgtWordBreak = sp.m_tgtWordBreak;
 	// BEW 30Sep19 moved here from docVersion6 aboc=ve
 	m_punctsPattern = sp.m_punctsPattern;
+
+	// BEW 10May23 for docVersion 10
+	m_srcSinglePattern = sp.m_srcSinglePattern;
+	m_tgtSinglePattern = sp.m_tgtSinglePattern;
+	m_glossSinglePattern = sp.m_glossSinglePattern;
+	m_srcMergerPattern = sp.m_srcMergerPattern;
+	m_tgtMergerPattern = sp.m_tgtMergerPattern;
+	m_oldKey = sp.m_oldKey;
 }
 
 // BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
@@ -468,6 +476,13 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	// BEW 30Sep19 moved here from docVersion6 group above
 	m_punctsPattern = sp.m_punctsPattern;
 
+	// BEW 10May23 for docVersion 10
+	m_srcSinglePattern = sp.m_srcSinglePattern;
+	m_tgtSinglePattern = sp.m_tgtSinglePattern;
+	m_glossSinglePattern = sp.m_glossSinglePattern;
+	m_srcMergerPattern = sp.m_srcMergerPattern;
+	m_tgtMergerPattern = sp.m_tgtMergerPattern;
+	m_oldKey = sp.m_oldKey;
 	return *this;
 }
 
@@ -1313,8 +1328,101 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			}
 		}
 
-		// eleventh line -- 2 attributes each is possibly absent
-		// Supporting new docVersion9 storage strings (skip this block if docVersion is < 9):
+		// eleventh line -- 5 attributes 2 to 4 likely to be used, maybe none might be used
+		// Supporting new docVersion 10 storage strings (skip this block if docVersion is 9 or less):
+		// 	m_srcSinglePattern, m_tgtSinglePattern, m_glossSinglePattern, m_srcMergerPattern, m_tgtMergerPattern
+		if ((docVersion >= 10) &&
+			(!m_srcSinglePattern.IsEmpty() || !m_tgtSinglePattern.IsEmpty() || !m_glossSinglePattern.IsEmpty() ||
+				!m_srcMergerPattern.IsEmpty() || !m_tgtMergerPattern.IsEmpty() || !m_oldKey.IsEmpty())
+			)
+		{
+			// there is something in this group, so form the needed line
+			bstr += "\r\n"; // EOL chars may need to be changed under Linux and Mac
+			bool bStarted = FALSE; // init
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			// first string in the 11th line, for  src single pattern
+			if (!m_srcSinglePattern.IsEmpty())
+			{
+				bstr += "ssp=\"";
+				btemp = gpApp->Convert16to8(m_srcSinglePattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_srcSinglePattern string
+				bstr += "\""; // add closing straight doublequote
+				bStarted = TRUE;
+			}
+			// second string in the 11th line, for  target single pattern
+			if (!m_tgtSinglePattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " tsp=\"";
+				else
+					bstr += "tsp=\"";
+				btemp = gpApp->Convert16to8(m_tgtSinglePattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_tgtSinglePattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// third string in 11th line
+			if (!m_glossSinglePattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " gsp=\"";
+				else
+					bstr += "gsp=\"";
+				btemp = gpApp->Convert16to8(m_glossSinglePattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_glossSinglePattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// fourth string in 11th line... for src merger pattern
+			if (!m_srcMergerPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " smp=\"";
+				else
+					bstr += "smp=\"";
+				btemp = gpApp->Convert16to8(m_srcMergerPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_srcMergerPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// fifth string in 11th line... for tgt merger pattern
+			if (!m_tgtMergerPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " tmp=\"";
+				else
+					bstr += "tmp=\"";
+				btemp = gpApp->Convert16to8(m_tgtMergerPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_tgtMergerPattern string
+				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// sixth string in 11th line... for m_oldKey storage
+			if (!m_oldKey.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " okey=\"";
+				else
+					bstr += "okey=\"";
+				btemp = gpApp->Convert16to8(m_oldKey);
+				InsertEntities(btemp);
+				bstr += btemp; // store m_oldKey string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+
+		}
+
+		// twelfth line -- 2 attributes each is possibly absent
+		// Supporting docVersion9 or higher storage strings (skip this block if docVersion is < 9):
 		// 	m_srcWordBreak, a wxString, and m_tgtWordBreak, a wxString
 		if ((docVersion >= 9) &&
 			(!m_srcWordBreak.IsEmpty() || !m_tgtWordBreak.IsEmpty())
