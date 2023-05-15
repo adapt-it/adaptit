@@ -9056,7 +9056,14 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
     m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE, TRUE);
     // GDLC 9Jul12 Last parameter removed for 2.9.x
 #else
-    m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE);
+    // whm 15May2023 modified the wxLocale() construction parameters to use the default
+    // ones for 3rd and 4th parameter by leaving them out. The 3rd defaults to wxEmptyString,
+    // and the 4th defaults to TRUE anyway. After wxWidgets-3.1.5, the library doesn't work
+    // as it previous did by having _T("C") as a third parameter, but instead the constructor
+    // in later versions of wxWidgets will only create the new locale for English/en and ignore
+    // any other choice such as Tok Pisin/tpi, or Spanish/es.
+    //m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE);
+    m_pLocale = new wxLocale(longLangName, shortLangName);
 #endif
     if (!pathPrefix.IsEmpty())
         m_pLocale->AddCatalogLookupPathPrefix(pathPrefix);
@@ -9229,8 +9236,8 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
             bAlreadyAssigned = TRUE;
             int pos;
             pos = keyArray[ct].Find(_T(':'));
-            wxASSERT(pos > 0 && pos <= 3); // the language code number should
-                                           // represented as a three letter string between 231 and 255
+            wxASSERT(pos > 0 && pos <= 3); // whm 15May2023 the language code number should be represented as a three letter 
+                                            // string between 231 and 880 ??? wxLANGUAGE_USER_DEFINED is now 879 - will assert if pos > 3
             wxString codeStr = keyArray[ct].Left(pos);
             nCodeAssigned = wxAtoi(codeStr);
             // Update the path part (it may have been changed by the user).
@@ -9273,7 +9280,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
             wxString highestCodeStr = foundCodesArray[nCount - 1];
             nCodeAssigned = wxAtoi(highestCodeStr) + 1; // get the next number beyond the
                                                         // value for highestCodeStr
-                                                        //nCodeAssigned = wxLANGUAGE_USER_DEFINED + 1 + nKeys; // should be 240
+                                                        //nCodeAssigned = wxLANGUAGE_USER_DEFINED + 1 + nKeys;
         }
         else if (bKeysPresent)
         {
@@ -9290,7 +9297,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
             nCodeAssigned = wxLANGUAGE_USER_DEFINED + 1;
         }
     }
-    wxASSERT(nCodeAssigned >= wxLANGUAGE_USER_DEFINED + 1 && nCodeAssigned <= 255);
+    wxASSERT(nCodeAssigned >= wxLANGUAGE_USER_DEFINED + 1); // whm 15May2023 removed the restriction's upper range of 255. Removed: && nCodeAssigned <= 255);
     wxLangCode = nCodeAssigned;
 
     // Assign this language, but only if it has not already been assigned.
