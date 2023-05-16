@@ -16675,7 +16675,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	wxString str = wxEmptyString;
 	str = targetStr;
 #if defined (_DEBUG)
-	wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+	if (!str.IsEmpty())
+	{
+		wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+	}
 #endif
 	wxChar* pEnd = NULL; // init
 	bool bRemoveUnwantedLastChar = FALSE; // initialise

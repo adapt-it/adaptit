@@ -7043,7 +7043,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 
 
 			// TODO - a function which matches by positions, since equality tests won't work
-
+			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
+			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, bTokenizingTargetText);
 
 
 		}

@@ -368,7 +368,7 @@ public:
 					int& extrasLen, wxString& residue, bool& bEndPunctsModified); // BEW added 4May23 'Q' in the name means "Query"
 	bool			UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bTokenizingTargetText = FALSE); // BEW added 10May23
 							// for updating m_srcSinglePattern when puncts have changes
-	bool			CreateOldSrcBitsArr(wxString& srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
+	bool			CreateOldSrcBitsArr(wxString srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
 							wxArrayString& oldSrcConsecutivesArr, wxString& spacelessPuncts);
 
 

@@ -9290,7 +9290,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
             nCodeAssigned = wxLANGUAGE_USER_DEFINED + 1;
         }
     }
-    wxASSERT(nCodeAssigned >= wxLANGUAGE_USER_DEFINED + 1 && nCodeAssigned <= 255);
+    wxASSERT(nCodeAssigned >= wxLANGUAGE_USER_DEFINED + 1); //&& nCodeAssigned <= 255); // BEW changed as per Bill's recommendation, email 5:56am 16/05/23
     wxLangCode = nCodeAssigned;
 
     // Assign this language, but only if it has not already been assigned.

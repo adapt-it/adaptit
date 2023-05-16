@@ -41821,17 +41821,16 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	}
 	wxString srcSinglePat = pSrcPhrase->m_srcSinglePattern;
 	wxASSERT(!srcSinglePat.IsEmpty());
+	wxString srcNewSinglePath = wxEmptyString; // init
 	// Make an updated m_srcSinglePattern string, when the puncts have been altered somewhere by user edits
-	// Word with srcSinglePat so that when our algorithm finishes, we can replace pSrcPhrase->m_srcSinglePattern
-	// with our new version, srcSinglePat
+	// Work with srcSinglePat so that when our algorithm finishes, we can replace pSrcPhrase->m_srcSinglePattern
+	// with our new version, srcNewSinglePat
 	wxString dblWedge = _T(">>"); // treat this as a logical single character, as it may be altered to be closing 
-								  // double chevron, or ”, or even "
+								  // double chevron, or ”, or even " - those being single characters
+	// Create a processing buffer, so we can iterate over it in a loop using a character pointer, with defined end
 	const wxChar* pBuffer = srcSinglePat.GetData();
-	int itemLen = 0;
-	wxChar* ptr = (wxChar*)pBuffer;		 // ptr is not constant, point to start of text
-	wxChar* pBufStart = ptr;	 // preserve start address for use in testing for buffer beginning
-
-	// Where is the the end?
+	wxChar* ptr = (wxChar*)pBuffer;	// ptr is not constant, point to start of text
+	wxChar* pBufStart = ptr;        // preserve start address for use in testing for buffer beginning
 	int length = srcSinglePat.Length();
 	wxChar* pEnd = (wxChar*)(ptr + length);
 
@@ -41847,7 +41846,10 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	// My algorithm doesn't insist on using wxArrayStrings, but storing puncts (and any
 	// immediately preceding whitespace) in these allows me to make programmatic checks
 	// if I want. The alternative would be to work from left to right, building substrings
-	// and using them to compose the rebuilt srcSinglePat bit by bit. I'll go the array way for now
+	// and using them to compose the rebuilt srcNewSinglePat bit by bit. I'll go the array way for now
+	// At this point, pSrcPhrase is still the old one, where m_srcSinglePattern is stored, and as yet unchanged
+	// by any user punctuation edits (in either Edit Source Text, or edited src in PT's source project, or Bibledit's)
+
 	int offset = wxNOT_FOUND; // I'll make a lot of use of .Find(something);
 	bool bOuterPunctHasContent = FALSE;
 	wxString strFollPuncts = pSrcPhrase->m_follPunct; // check if m_follOuterPunct has any ending puncts
@@ -41855,7 +41857,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	strOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
 	if (!strOuterPunct.IsEmpty())
 	{
-		// Keeping m_follOuterPunct content separate from m_follPunct probably will help accuracy
+		// Keeping m_follOuterPunct content separate from m_follPunct may help accuracy of our algorithm
 		bOuterPunctHasContent = TRUE; 
 	}
 	// Check if there are any ">>" in strFollPuncts or in strOuterPunct
@@ -41870,6 +41872,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 		dblOffset_Foll = offset; // preserve where the ">>" is located in m_follPunct
 	}
 	offset = wxNOT_FOUND; // re-initialise
+
 	int dblOffset_Outer = -1;
 	if (bOuterPunctHasContent)
 	{
@@ -41881,10 +41884,14 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 			bHasDblWedges_inOuterFollowing = TRUE;
 		}
 	}
-	// Before commencing the matchup (by position) algorithm, set up wxArrayStrings so store
+	// Before commencing the matchup (by position) algorithm, set up wxArrayStrings to store
 	// punctuation instances, and any whitepace that may precede none, one, many, or all.
 	// If the user likes to set off a final punct with a whitespace (e.g. hairspace) for clarity,
-	// we should not remove that choice by ignoring the white space in the matching
+	// we should not remove that choice by ignoring the white space in the matching. We also want
+	// some additional wxArrayStrings to enable determining when any additional punct may have
+	// been added. User's removal of a punct is a possibility - the algorithm for that is now yet
+	// worked out. <<- do later, tackle adding one, first
+
 	wxArrayString follPunctsArr; follPunctsArr.Empty();
 	wxArrayString outerPunctsArr; outerPunctsArr.Empty();
 	// Now the one for matching up with
@@ -41897,7 +41904,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 			// in order to find the locations where the matchups should be done
 
 
-	// First, fill follPunctsArr with whatever end puncts are in strFollPuncts
+	// First, fill follPunctsArr with whatever end puncts are in strFollPuncts (no ">>" detected above)
 	if (!bHasDblWedges_inFollowing)
 	{
 		// loop thru m_follPunct, searching for puncts to put in follPunctsArr; there are no ">>" here, but
@@ -41928,6 +41935,11 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 					}
 				}
 				follPunctsArr.Add(strAccum);
+#if defined(_DEBUG)
+				wxString ptrAt = wxString(ptr, 10);
+				wxLogDebug(_T("UpdateSingleSrcPattern() line %d, sn= %d, m_follPunct= [%s] strAccum= [%s] ptrAt=[%s] <<next10"),
+					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_follPunct.c_str(), strAccum.c_str(), ptrAt.c_str() );
+#endif
 			}
 			// prepare for next iteration
 			strAccum.Empty();
@@ -41962,6 +41974,12 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 							strAccum = charBeforeIt + strAccum;
 						}
 					}
+#if defined(_DEBUG)
+					wxString ptrAt = wxString(ptr, 10);
+					wxLogDebug(_T("UpdateSingleSrcPattern() line %d, sn= %d, outer Punct= [%s] strAccum= [%s] ptrAt=[%s] <<next10"),
+						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->GetFollowingOuterPunct().c_str(), strAccum.c_str(), ptrAt.c_str());
+#endif
+
 					outerPunctsArr.Add(strAccum);
 				}
 				// prepare for next iteration
@@ -42103,8 +42121,13 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	return TRUE;
 }
 
-bool CAdapt_ItDoc::CreateOldSrcBitsArr(wxString& srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
-						wxArrayString& oldSrcConsecutivesArr, wxString& spacelessPuncts)
+// Take the pSrcPhrase stored m_srcSinglePattern stored string, before any changed puncts have a chance to alter its
+// internal punctuation substrings, and cut it up and store the bits in arrays with substring 'old' in their names,
+// so that another function can do similarly with new pSrcPhrase members with possibly changed puncts, so that both
+// sets of arrays can be checked for changes, and copying of new punct values where appropriate, to form an altere
+// m_srcSinglePattern that stays unchanged until such time as user again wants to changes src puncts, and does so
+bool CAdapt_ItDoc::CreateOldSrcBitsArr(wxString srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
+	wxArrayString& oldSrcConsecutivesArr, wxString& spacelessPuncts)
 {
 	if (srcPattern.IsEmpty())
 	{
@@ -42116,18 +42139,172 @@ bool CAdapt_ItDoc::CreateOldSrcBitsArr(wxString& srcPattern, wxArrayString& oldS
 
 	// Make the buffer for parsing thru, from srcPattern passed in
 	const wxChar* pBuffer = srcPattern.GetData();
-	wxChar* ptr = (wxChar*)pBuffer;		 // ptr is not constant, point to start of text
-	wxChar* pBufStart = ptr;	 // preserve start address for use in testing for buffer beginning
-
-	// Where is the the end?
-	int length = srcSinglePat.Length();
+	wxChar* ptr = (wxChar*)pBuffer;	// ptr is not constant, point to start of text
+	wxChar* pBufStart = ptr;        // preserve start address for use in testing for buffer beginning
+	int length = srcPattern.Length();
 	wxChar* pEnd = (wxChar*)(ptr + length);
+	int index = 0; // init
+	// In the old pattern, puncts and markers are visible in their correct places in the pattern. 
+#if defined (_DEBUG)
+	wxLogDebug(_T("CreateOldSrcBitsArr(), Doc.cpp line= %d ,START array filling: old srcPattern= [%s]"), __LINE__, srcPattern.c_str());
+#endif
+	// Find first punct, and subsequent, filling arrays with values. srcPattern could contain ">>" - beware
+	wxChar aChar;
+	wxChar* pCurrLocn; // use this to preserve where ptr got to when a closing punct was found
+	wxChar* pKickOffLocn; // where to start the scanning when current found punct's substring is appended to OldSrcBitsArr
+					   // (our loop does not remove wxChars as we scan)
+	int offset = wxNOT_FOUND; // init
+	wxString accum = wxEmptyString; // init
+	wxChar chWedge = _T('>'); // two consecutive is a logical single character - if one found then check ptr + 1
+	wxChar follChar;
+	wxChar prevChar;
+	wxString subStr;
+	pKickOffLocn = pBufStart;
+	bool bAsteriskLast = FALSE; // init
+	wxChar chAsterisk = _T('*');
+	wxChar chConsec;
+	wxString accumConsecutives;
 
+	while (ptr < pEnd)
+	{
+		wxChar aChar = *ptr;
+		offset = spacelessPuncts.Find(aChar);
+		if (offset == wxNOT_FOUND)
+		{
+			// aChar does not contain a punctuation character, keep iterating till we find one, or get to pEnd
+			pCurrLocn = ptr;
+			ptr++;
+		}
+		else
+		{
+			// we found a punctuation character - check for whitespace immediately preceding, store the substring
+			// parsed over so far, in oldSrcBitsArr
+			pCurrLocn = ptr;
 
+			// Deal with potential for ">>" first, and it may have a whitespace preceding it, and check if * is preceding too
+			if (aChar == chWedge)
+			{
+				if (ptr < pEnd)
+				{
+					// Found '>', is there another following
+					follChar = *(ptr + 1);
+					if (follChar == chWedge)
+					{
+						// We've come to a ">>" closing pair of wedges
 
+						// First, check for a preceding whitespace at ptr - 1, to include in strAccum
+						if (ptr > pBufStart)
+						{
+							prevChar = *(ptr - 1); 
+							bool bIsWhite = IsWhiteSpace(ptr - 1);
 
+							/* 
+							//not the place to do this stuff, get all the bits in oldSrcBitsArr, and analyse later, when that's 
+							// done & we have something to compare with
+							bAsteriskLast = (chAsterisk == *(ptr - 1));
+							if (bAsteriskLast)
+							{
+								wxChar* pAux = ptr; // protect ptr loc'n
+								// Use pAux to check for consecutives, because entry to this block only happens when
+								// ptr has come to the location following either <punct> or <whitespace + punct>, and
+								// therefore there may be consecutive puncts here to be recorded in:
+								// oldSrcConsecutivesArr at index stored in oldIndicesSrcConsecutivesArr.  For consecutives,
+								// there would need to be at least two at pAux. Check this out, and then loop for any more
+								// at pAux >= 2
+								int offset2 = wxNOT_FOUND; // init
+								if (pAux < (pEnd - 2))
+								{
+									// space exists for checking for 2 consecutives - this one at pAux + 1, and another
+									// at pAux + 2
+									chConsec = *pAux;
+									offset2 = spacelessPuncts.Find(chConsec);
+									if (offset2 != wxNOT_FOUND)
+									{
+										// we have found an end punct, deal with it and another one to make a consecutive second
+										accumConsecutives << chConsec;
+										// Now need another following, which would be the first or only consecutive punct at this loc'n
+										chConsec = *(pAux + 1);
+										offset2 = spacelessPuncts.Find(chConsec);
+										if (offset2 != wxNOT_FOUND)
+										{
+											// there are at least two puncts in a row. We assume consecutives will not have preceding
+											// whitespace (would be pretty rare for that to happen, so don't support it - at least for now)
+											accumConsecutives << chConsec; // that's two
 
+											// Three consecutive spaces, at post-endmarker location? Pretty unlikely, but try for a
+											// third, just in case; skip if not enough room
+											if (pAux < (pEnd - 3))
+											{
+												chConsec = *(pAux + 2);
+												offset2 = spacelessPuncts.Find(chConsec);
+												if (offset2 != wxNOT_FOUND)
+												{
+													// There's a third consecutive punct
+													accumConsecutives << chConsec; // that's three - enough for after one endMkr
+												}
+											} // end of TRUE block for test: if (pAux < (pEnd - 3))
+										} // // end of TRUE block for 1st consecutive test: if (offset2 != wxNOT_FOUND)
+									} // end of TRUE block for test: if (offset2 != wxNOT_FOUND) - first of a potential consec pair or more
+									else
+									{
+										// There is no punctuation character at pAux, do nothing here
+										;
 
+									} // end of else block for test: if (offset2 != wxNOT_FOUND)
+
+								} // end of TRUE block for test: if (pAux < (pEnd - 2))
+								else
+								{
+									// There are not two or more post-endMkr punctuation chars in sequence
+									// but there is a single one - handle it
+
+								} // end of else block for test: if (pAux < (pEnd - 2))
+
+							} // end of TRUE block for test: if (bAsteriskLast)
+*/
+							if (bIsWhite)
+							{
+								// Keep the whitespace with the ">>" pair, preceding the pair
+								accum = prevChar;
+								accum << chWedge;
+								accum << follChar;
+								ptr++; // get ptr poining past the first '>'
+							}
+							else
+							{
+								// There is no whitespace preceding the ">>"
+								accum = chWedge;
+								accum << follChar;
+							}
+							ptr++;
+							// advance ptr past the last or only '>'
+
+							// How far have we advanced ptr?
+							int spanLen = (int)(ptr - pKickOffLocn);
+							subStr = wxString(pKickOffLocn, spanLen); // this is what we store in oldSrcBitsArr for this iteration
+							int index_of_Add = oldSrcBitsArr.Add(subStr);
+							wxUnusedVar(index_of_Add);
+#if defined (_DEBUG)
+							wxLogDebug(_T("CreateOldSrcBitsArr(), Doc.cpp line= %d ,array filling: old spanLen= %d , subStr= [%s], index_of_Add= %d "),
+									__LINE__, spanLen, subStr.c_str(), index_of_Add);
+#endif
+							// Prepare for next iteration
+							pKickOffLocn = ptr;  // where we start for next iteration of the loop
+							accum.Empty();
+							pCurrLocn = ptr;
+							subStr.Empty();
+
+						} // end of TRUE block for test: if (ptr > pBufStart)
+
+					} // end of TRUE block for test: if (follChar == chWedge) i.e. ">>" at pt
+
+				} // end of the TRUE block for test: if (ptr < pEnd)
+
+			} // end of TRUE block for test: if (aChar == chWedge)
+
+		} // end of the else block for test: if (offset == wxNOT_FOUND)
+
+	} // end of while loop: while (ptr < pEnd)
 
 	return TRUE;
 }
