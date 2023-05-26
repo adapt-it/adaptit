@@ -16677,6 +16677,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	wxString str = wxEmptyString;
 	str = targetStr;
 #if defined (_DEBUG)
+	// whm 12May2023 added if (!str.IsEmpty()) test surrounding the wxLogDebug() statement below to avoid asserting
+	// when str.Last() is called on an empty str. This assert occurred many times in Mike H's Exodus data.
 	if (!str.IsEmpty())
 	{
 		wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
