@@ -362,20 +362,22 @@ public:
 	// **** functions involved in removing the need for having placement dialogs, DOCUMENT_VERSION 10 ********
 
 	wxString        MakeWordAndExtras(wxChar* ptr, int itemLen); // BEW added 3May23
-	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr); // BEW added 4May23 -- removes m_key, returns the rest
+					// BEW added 4May23 -- GetPostwordExtras removes m_key, returns the rest
+	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr);
+
 	wxString		RemoveEndMkrsFromExtras(wxString extras); // BEW added 4May23
 	bool			Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhrase, wxString extras, 
 					int& extrasLen, wxString& residue, bool& bEndPunctsModified); // BEW added 4May23 'Q' in the name means "Query"
 	bool			UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bTokenizingTargetText = FALSE); // BEW added 10May23
 							// for updating m_srcSinglePattern when puncts have changes
-	bool			CreateOldSrcBitsArr(wxString srcPattern, wxArrayString& oldSrcBitsArr, wxArrayInt& oldIndicesSrcConsecutivesArr,
-							wxArrayString& oldSrcConsecutivesArr, wxString& spacelessPuncts);
-
+	bool			CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString& oldSrcBitsArr, wxString& spacelessPuncts);
+	bool			m_bTstrFromMergerCalled; // BEW 19May23 added. So FromSingleMakeTstr() will know where to store its result
 
 
 
 	// **** end of functions for not having placement dialogs *******
 
+	bool			IsInitialPunctPlusWhite(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, wxString& strReturn); // BEW 22May23 added
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs

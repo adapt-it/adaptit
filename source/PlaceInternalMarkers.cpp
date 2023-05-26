@@ -137,6 +137,9 @@ void CPlaceInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return; // whm added
 	}
+#if defined(_DEBUG)
+	wxLogDebug(_T("PlaceInternalPunct:OnButtonPlace START line %d"), __LINE__);
+#endif
 
 	int nSel;
 	nSel = pListBox->GetSelection();

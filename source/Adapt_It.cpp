@@ -64271,36 +64271,73 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 	return FALSE;
 }
 
+wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
+{
+    wxString converted;
+    wxChar first = strPunctIn.GetChar(0);
+    bool bIsWhite = GetDocument()->IsWhiteSpace(&first);
+    if (bIsWhite)
+    {
+        wxString strRemainder = strPunctIn.Mid(1);
+        converted = GetConvertedPunct(strRemainder);
+        if (!converted.IsEmpty())
+        {
+            converted = first + converted;
+        }
+    }
+    return converted;
+}
+
 // BEW added 17May18 returns the adaptation string with saved punctuation restored,
 // for setting m_targetStr
 // BEW 23Dec22 removed endingStr as this function is only called for endingStr empty
 // and instead, I will make a new function GetManuallyAddedPrecPuncts(pApp->m_targetPhrase)
 // to handle user-typed preceding puncts in the m_pPhraseBox, for use in MakeTargetString_IncludingPunctuation()
 //wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, wxString endingStr)
-wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
+//
+// BEW 25May23 added 2nd param, defaulting to FALSE, set it TRUE internally if m_precPunct contents 
+// are handled; and send its value back to caller ( pView->MakeTargetStringIncludingPunctuation() ) 
+// so that the bool TRUE value can be used in the caller to suppress existing code from doubling 
+// the preceding punctuation.
+wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts)
 {
-	wxString str = wxEmptyString;
-	if (pSrcPhrase == NULL)
-	{
-		wxASSERT(pSrcPhrase != NULL);
-		return str;
-	}
-	if (pSrcPhrase->m_adaption.IsEmpty())
-	{
-		return str;
-	}
+    // BEW 25May23, bHandledPrecPuncts is default FALSE on entry, if we set it TRUE herein, that value
+    // is returned for the caller to use
+    wxString str = wxEmptyString;
+    if (pSrcPhrase == NULL)
+    {
+        wxASSERT(pSrcPhrase != NULL);
+        return str;
+    }
+    if (pSrcPhrase->m_adaption.IsEmpty())
+    {
+        // BEW 24May23, don't return if m_adaption is still empty, use pSrcPhrase's m_key as
+        // a starting point, so that control can get past the early returns to check out the
+        // punctuations further down. m_key won't be empty.
+        //return str;
+        pSrcPhrase->m_adaption = pSrcPhrase->m_key;
+        wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
+    }
 #if defined (_DEBUG)
     wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSP->m_srcPhrase= %s pSP->m_adaption= %s"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_adaption.c_str());
 
 #endif
-	str = pSrcPhrase->m_adaption; // Note: the punctuation-less ** adaptation ** (not the source text's m_key)
+    str = pSrcPhrase->m_adaption; 
     bool bNoFinalPuncts = TRUE; // init
     bool bNoPrecPuncts = TRUE; // init
     // BEW 6Feb23, Top half of this function checks what's on m_adaption, which is likely to have no puncts,
     // so it will initialise bNoFinalPuncts to TRUE, and bNoPrecPuncts to TRUE. The lower half then checks
     // if pSrcPhrase has stored puncts in m_precPunt, m_follPunct, or m_follOuterPunt; and depending on the
     // result of those tests, preceding and/or following puncts will be added
+#if defined (_DEBUG)
+    {
+        if (pSrcPhrase->m_nSequNumber >= 12 && !pSrcPhrase->m_precPunct.IsEmpty())
+        {
+            int halt_here = 1;
+        }
+    }
+#endif
     if (!str.IsEmpty())
     {
         wxChar chLast = str.Last();
@@ -64309,25 +64346,97 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
             bNoFinalPuncts = FALSE;
         }
     }
-    // Now check for user-typed previous puncts
+    // Now check if there are any user-typed preceding puncts to deal with, in str
     if (!str.IsEmpty())
     {
         wxChar chFirst = str.GetChar(0);
         if (m_strSpacelessTargetPuncts.Find(chFirst) >= 0)
         {
-            bNoPrecPuncts = FALSE;
+            bNoPrecPuncts = FALSE; // there's some to be dealt with (in the caller)
         }
     }
-    // get any from pSrcPhrase's main three punctuation storage members, if non-empty
-    if (!pSrcPhrase->m_precPunct.IsEmpty() ) // && !bNoPrecPuncts) 
+    // also check for any from pSrcPhrase's m_precPunct member to be dealt with here; 
+    // there might be a detached punct, detached by a following nonbreaking space (nbsp)
+    // before the word, e.g. or by a normal Latin/English space, or hairspace etc
+    if (!pSrcPhrase->m_precPunct.IsEmpty()) 
     {
-        wxString precPunct_pSP = GetConvertedPunct(pSrcPhrase->m_precPunct);
-        str = precPunct_pSP + str;
+        wxString precPunct = pSrcPhrase->m_precPunct;
+        int precPunctLen = precPunct.Length();
+        if (precPunctLen > 1)
+        {
+            // there may be more than one, or there may be the sequence "<punct><nbsp>"
+            // and if the latter, the <nbsp> character does not play well with
+            // GetConvertedPunct(), so we need a little 'smart' function hack round this problem
+
+            // replace the following with a function
+            // is there a whitespace at the end of m_precPunct?
+            wxChar chLast = precPunct.GetChar(precPunctLen - 1);
+            bool bIsWhite = GetDocument()->IsWhiteSpace(&chLast);
+            if (bIsWhite)
+            {
+                // There is a whitespace at end of pSrcPhrase->m_precPunct. IsWhiteSpace() handles
+                // English space, nbsp, hairspace and many other widths of space
+                wxString strLeft = precPunct.Left(precPunctLen - 1); // everything before the final whitespace
+                // We can call GetConvertedPunct() now, as the whitespace that would mess it up is absent
+                wxString converted = GetConvertedPunct(strLeft);
+                // Now put the pieces back together
+                if (!converted.IsEmpty())
+                {
+                    precPunct = converted;
+                    precPunct << chLast;
+                    bHandledPrecPuncts = TRUE; // the value for the caller to grab
+                }
+
+            } // end of TRUE block for test: if (bIsWhite)
+            else
+            {
+                // At the end of pSrcPhrase->m_precPunct there is something other than a whitespace
+                precPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
+            }
+
+        } // end of TRUE block for test: if (precPunctLen > 1)
+        str = precPunct + str;
+    } // end of TRUE block for test: if (!pSrcPhrase->m_precPunct.IsEmpty())
+#if defined (_DEBUG)
+    {
+        if (pSrcPhrase->m_nSequNumber >= 12 && !pSrcPhrase->m_follPunct.IsEmpty())
+        {
+            int halt_here = 1;
+        }
     }
+#endif
     if (!pSrcPhrase->m_follPunct.IsEmpty() ) // && !bNoFinalPuncts)
     {
-        wxString follPunct_pSP = GetConvertedPunct(pSrcPhrase->m_follPunct);
-        str += follPunct_pSP;
+        // BEW 24May23 some data markups may make a point of detaching punctuation from
+        // text by a whitespace character (eg. non-breaking space, nbsp, = U+00A0)
+        // GetConvertedPunct() does not work well when the punct to be converted is
+        // preceded by a whitespace character - so check here, and remove and store
+        // the whitespace temporarily, and submit the punct char following to the
+        //GetConvertedPunct() function, then put the whitespace back in position
+        wxString follPunct = pSrcPhrase->m_follPunct;
+        int follPunctLen = follPunct.Length();
+        if (follPunctLen > 1)
+        {
+            follPunct = CAdapt_ItApp::SmartTgtConvert(follPunct);
+            /* replace what's here with SmartTgtConvert() above
+            wxChar first = follPunct.GetChar(0);
+            bool bIsWhite = GetDocument()->IsWhiteSpace(&first);
+            if (bIsWhite)
+            {
+                wxString strRemainder = follPunct.Mid(1);
+                wxString converted = GetConvertedPunct(strRemainder);
+                if (!converted.IsEmpty())
+                {
+                    follPunct = first + converted;
+                }
+            }
+            */
+        }
+        else
+        {
+            wxString follPunct = GetConvertedPunct(follPunct);
+        }
+        str += follPunct;
     }
     if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() ) // && !bNoFinalPuncts)
     {

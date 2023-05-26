@@ -598,8 +598,8 @@ void NormalizeState();
 // placement is present; mostly endmarkers are all that are involved, but not necessarily so;
 // any remaining will require the Placement... dialog to be shown for the user to place those
 // manually. It should be possible to handle over 90% automatically
-wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase, 
-							  wxArrayString* arrMkrsPtr);
+wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pSingleSrcPhrase, 
+							  wxArrayString* arrMkrsPtr, bool& bIsAmbiguousForEndmarkerPlacement);
 
 // BEW 24Oct14, a helper for testing a marker, or its base tag, for presence of the +
 // character following the backslash or at start of base tab if that is what was passed in,

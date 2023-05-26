@@ -4242,12 +4242,12 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 
 // Warn the user if there is a comma in pSrcPhrase->m_key, or tgtPhrase, that
 // should NOT go into the KB  (but allow strings like "5,000" }
-bool CKB::DisallowCommaInKB(CSourcePhrase* pSrcPhrase, wxString tgtPhrase)
+bool CKB::DisallowCommaInKB(wxString key, wxString tgtPhrase)
 {
 	// Warn user
 	wxString msg = _T("Warning: A comma ( , ) was found in either the source text ( %s ),\nor the target text ( %s ).\nThis is illegal. The entry will not be stored in the Knowledge Base\nYou should delete the comma from the document now, if possible.\n");
 	wxString title = _T("Disallow commas in source or target text");
-	msg = msg.Format(msg, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str());
+	msg = msg.Format(msg, key.c_str(), tgtPhrase.c_str());
 	wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 	return TRUE;
 }
@@ -4304,85 +4304,93 @@ bool CKB::DisallowCommaInKB(CSourcePhrase* pSrcPhrase, wxString tgtPhrase)
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	bool bDidKbserver = FALSE;
-	// Disallow the saving if there is a comma in either src or tgt. If there was, then
-	// a message box will have been seen already warning the user that the entry is going
-	// to be ignored - that is, not saved to the KB.
+	// Disallow the saving if there is a comma in either src or tgt - except when the comma is
+	// preceded by a digit. In the latter case, we assume the context is number parsing, because in
+	// some languages comma is a valid parts-separator
+	bool bSrcCommaRemoved = TRUE; // init
+	bool bTgtCommaRemoved = TRUE; // init
 	wxString comma = _T(",");
 	wxString kkey = pSrcPhrase->m_key;
+	wxString saveKey = kkey;
+	wxString saveTgtPhrase = tgtPhrase;
 	int offset = wxNOT_FOUND;
 	int tgtOffset = wxNOT_FOUND;
-	bool bDisallow = FALSE; // intialise
+	bool bDisallow = FALSE; // intialise, to allowing the StoreText() call to go ahead an store to the KB
 	wxChar chBefore;
-	wxChar chAfter;
+	// BEW 23May23 we will use view's RemovePunctuation, so need the next 3
+	CAdapt_ItApp* pApp = gpApp;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItView* pView = pApp->GetView();
 
 	// Numbers, like in Nyindrou:  (5,000) [as in John] should be allowed to contribute 5,000 as
 	// src or tgt to the KB - because removing the comma(s) makes it harder for the user to understand
 	// the number. So a simple check would be: if there is a digit preceding the comma, and one
 	// following it, then its a number. If so, allow it into the KB, and keep bDisallow FALSE so 
 	// that StoreText() will continue with getting the entry into the KB. (Punctuation, such as a comma,
-	// will have been removed from m_key at start or end, so we can rely on what we are testing being
-	// alphanumeric)
+	// may not have been removed from m_key, so we need to check m_key first.
+
+	bool bKeyIsNumber_Before = FALSE; // init
 	offset = kkey.Find(comma);
-	tgtOffset = tgtPhrase.Find(comma);
-	if (offset != wxNOT_FOUND || tgtOffset != wxNOT_FOUND)
+	if (offset != wxNOT_FOUND) //|| tgtOffset != wxNOT_FOUND)
 	{
-		// Control comes to this block if m_key has a comma, or if tgtPhrase has one (or if both have one)
-		bool bKeyIsNumber_Before = FALSE; // init
-		bool bKeyIsNumber_After = FALSE; // init
-		bool bTgtIsNumber_Before = FALSE; // init
-		bool bTgtIsNumber_After = FALSE; // init
+		// Control comes to this block if m_key has a comma
 
-		if (offset != wxNOT_FOUND)
+		// A comma was found in pSrcPhrase->m_key, so check if a digit precedes 
+		int nPrecedingOffset = offset - 1;
+		//int nFollowingOffset = offset + 1;
+
+		chBefore = kkey.GetChar(nPrecedingOffset);
+		bKeyIsNumber_Before = wxIsdigit(chBefore);
+
+		// BEW added 23May23
+		if (bKeyIsNumber_Before == FALSE)
 		{
-			// A comma was found in pSrcPhrase->m_key, so check if a digit precedes and one follows
-			int nPrecedingOffset = offset - 1;
-			int nFollowingOffset = offset + 1;
+			//bDisallow = TRUE; 
+			// TODO - turn this block into code to remove initial & final puncts; can View's RemovePunctuation() do it? yes.
 
-			chBefore = kkey.GetChar(nPrecedingOffset);
-			bKeyIsNumber_Before = wxIsdigit(chBefore);
-			chAfter = kkey.GetChar(nFollowingOffset);
-			bKeyIsNumber_After = wxIsdigit(chAfter);			
+			// Working with m_key first, we need to call RemovePunctuation() with nIndex = 0 to select src puncts
+			pView->RemovePunctuation(pDoc, &kkey, 0);
+			bSrcCommaRemoved = TRUE; // when this and the one for tgt are TRUE, then we know bDisallow should stay FALSE
+#if defined (_DEBUG)
+			wxLogDebug(_T("StoreText line %d , after RemovePunctuation, kkey= [%s] , bSrcCommaRemoved = %d"),
+				__LINE__, kkey.c_str(), bSrcCommaRemoved);
+#endif
 		}
 
-		// Check out tgtPhrase for presence of a comma
-		if (tgtOffset != wxNOT_FOUND)
+	} // end of TRUE block for test:if (offset != wxNOT_FOUND)
+
+	bool bTgtIsNumber_Before = FALSE; // init
+	tgtOffset = tgtPhrase.Find(comma);
+	if (tgtOffset != wxNOT_FOUND)
+	{
+		// A comma was found in tgtPhrase, so check if a digit precedes 
+		int nPrecedingOffset = tgtOffset - 1;
+		chBefore = tgtPhrase.GetChar(nPrecedingOffset);
+		bTgtIsNumber_Before = wxIsdigit(chBefore);
+		if (bTgtIsNumber_Before == FALSE)
 		{
-			// There is a comma in tgtPhrase
-			int nTgtPrecedingOffset = tgtOffset - 1;
-			int nTgtFollowingOffset = tgtOffset + 1;
-
-			chBefore = tgtPhrase.GetChar(nTgtPrecedingOffset);
-			bTgtIsNumber_Before = wxIsdigit(chBefore);
-			chAfter = tgtPhrase.GetChar(nTgtFollowingOffset);
-			bTgtIsNumber_After = wxIsdigit(chAfter);
+			// The tgtPhrase does not have a digit immediately before the comma, so this
+			// target phrase is not one to allow into the KB as part if a number string,
+			// and so to get the adaption into the KB requires removal of punctuation
+			pView->RemovePunctuation(pDoc, &tgtPhrase, 1); // 1 means "use target punctuation set"
+			bTgtCommaRemoved = TRUE; // when TRUE, we know that bDisallow should stay FALSE
+#if defined (_DEBUG)
+			wxLogDebug(_T("StoreText line %d , after RemovePunctuation, tgtPhrase= [%s] , bTgtCommaRemoved = %d"),
+				__LINE__, tgtPhrase.c_str(), bTgtCommaRemoved);
+#endif
 		}
-
-		// Now do the logic based on the four booleans. A number with comma in it must have
-		// both the 'before' and 'after characters be digits. It's not a number if that is
-		// not the case, and bDisallow should then be set true, and warning be given to user.
-		bool bKeyIsANumber = bKeyIsNumber_Before && bKeyIsNumber_After;
-		bool bTgtIsANumber = bTgtIsNumber_Before && bTgtIsNumber_After;
-		// If both are true, the the number is to  be allowed into the KB. Else reject it and warn
-		// the user, setting bDisallow to TRUE (which is done in the call of DisallowCommaInKB() )
-		if (bKeyIsANumber && bTgtIsANumber)
-		{
-			// redundanly set bDisallow to FALSE (keeps the logic clear)
-
-			bDisallow = FALSE;
-		}
-		else
-		{
-			if (tgtPhrase.IsEmpty())
-			{
-				// When tgtPhrase has nothing in it, we allow empty tgt to be stored in KB. And
-				// of course bTgtIsANumber will be false - but we needed to be more specific as
-				// there is more than one way bTgtIsNumber can be false. So test for tgtPhrase empty
-				return FALSE; // allow storage to happen
-
-			}
-			// Otherwise, it's not a number, so is something which should not have a comma
-			bDisallow = DisallowCommaInKB(pSrcPhrase, tgtPhrase); // warns user, then returns TRUE
-		}
+	}
+	if (bTgtIsNumber_Before == TRUE && bKeyIsNumber_Before == TRUE)
+	{
+		bDisallow = FALSE; // let the entry go into the KB, with the comma
+	}
+	if (!bTgtCommaRemoved || !bSrcCommaRemoved)
+	{
+		bDisallow = TRUE;
+		// Give the user a message box explaining the comma is not allowed in a KB entry
+		wxString key = pSrcPhrase->m_key;
+		bool bIsDisallowed = DisallowCommaInKB(key, saveTgtPhrase); wxUnusedVar(bIsDisallowed);
+		return TRUE;
 	}
 	if (bDisallow == TRUE)
 	{
@@ -5609,12 +5617,13 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	wxString kkey = pSrcPhrase->m_key;
 	int offset = wxNOT_FOUND;
 	int tgtOffset = wxNOT_FOUND;
+	wxString saveKey = pSrcPhrase->m_key;
 	offset = kkey.Find(comma);
 	tgtOffset = tgtPhrase.Find(comma);
 	bool bDisallow = FALSE; // intialise
 	if (tgtOffset != wxNOT_FOUND || offset != wxNOT_FOUND)
 	{
-		bDisallow = DisallowCommaInKB(pSrcPhrase, tgtPhrase); // warms user, then returns TRUE
+		bDisallow = DisallowCommaInKB(saveKey, tgtPhrase); // warms user, then returns TRUE
 	}
 	if (bDisallow == TRUE)
 	{

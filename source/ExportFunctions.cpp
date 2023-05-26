@@ -17635,18 +17635,30 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			bool bAttach_m_markers = TRUE;
 			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
 			// words in the source text of the free translation section, if any)
+			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 0)
+			if (pSrcPhrase->m_nSequNumber >= 13)
 			{
 				int halt_here = 1;
 			}
 #endif
+
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
 #if defined(_DEBUG)
 			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromSingleMakeSstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
+/* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
+			wxString spacelessPuncts; // make the string for sourceLang
+			spacelessPuncts = MakeSpacelessPunctsString(gpApp, sourceLang); // sourceLang is enum value 0, targetLan is 1
 
+			// BEW 16May23, trial CreateOldSrcBitsArr() here, and check the logging
+			wxString srcPattern = pSrcPhrase->m_srcSinglePattern;
+
+			wxArrayString oldSrcBitsArr;
+
+			bool bBitsDoneOK = gpApp->GetDocument()->CreateOldSrcBitsArr(pSrcPhrase, oldSrcBitsArr, spacelessPuncts);
+*/
 			// BEW 30Sep19 Hidden USFM3 atributes metadata could be here. If Filtering
 			// and not collaborating and clipboard adapt mode is not currently turned
 			// on, then check for hidden metadata - if present, pSrcPhrase->m_bUnused 
@@ -17654,7 +17666,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// start with a bar (|) and end with an endmarker of form \mkr*). Do the 
 			// tests and unhide before the filtering is finished - it will lengthen
 			// the string which is to be filtered out.
-			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
 			bool IsCurrentlyFiltering = pDoc->m_bCurrentlyFiltering;
 			if (IsCurrentlyFiltering)
 			{
@@ -18871,10 +18883,10 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-//		if (pSrcPhrase->m_nSequNumber == 10488 || pSrcPhrase->m_nSequNumber == 10511) // in 10:43 John TPU tgt text, Sima; 10490 is last sent
-//		{
-//			int break_point = 1;
-//		}
+		if (pSrcPhrase->m_nSequNumber >= 11) 
+		{
+			int break_point = 1;
+		}
 #endif
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
 		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
@@ -18935,6 +18947,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// this pSrcPhrase stores a merger; first TRUE is bDoCount (of words
 				// in the free translation section, if any such section), and second TRUE
 				// is bCountInTargetText
+				gpApp->GetDocument()->m_bTstrFromMergerCalled = FALSE; // init, next call
+									// can set it TRUE for use at end of FromSingleMakeTstr()
 				str = FromMergerMakeTstr(pSrcPhrase, str, TRUE, TRUE);
 
 				// BEW 30Sep19 Mergers are forbidden to store USFM3 attributes metadata,

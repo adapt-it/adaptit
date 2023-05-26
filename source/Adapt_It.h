@@ -5269,6 +5269,7 @@ public:
 	void OnEditChangeUsername(wxCommandEvent& WXUNUSED(event)); // BEW added 30May13
 	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
 	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
+	wxString SmartTgtConvert(wxString strPunctIn);
 
 protected:
 
@@ -5732,7 +5733,8 @@ public:
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
-	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase); // , wxString endingStr); // BEW added 17May18, 23Dec22 removed 2nd arg, only called for 2nd arg empty
+
+	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts); // BEW 25May23 added  2nd param, 
 				
 	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15

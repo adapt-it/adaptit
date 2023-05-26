@@ -2175,7 +2175,9 @@ int	CountSpaces(wxChar* pChar, wxChar* pEnd)
 {
 	wxChar hairspace = (wxChar)0x200A;
 	int counter = 0; wxChar* ptr = pChar;
-	while ((ptr < pEnd) && ((*ptr == _T(' ')) || (*ptr == hairspace)) )
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//while ((ptr < pEnd) && ((*ptr == _T(' ')) || (*ptr == hairspace)) ) BEW 26May23 removed, not broad enough
+	while ((ptr < pEnd) && pDoc->IsWhiteSpace(ptr))
 	{
 		ptr++;
 		counter++;
@@ -4301,6 +4303,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	bool bHasInternalMarkers = FALSE;
 	bool bFirst = TRUE;
 	bool bLast = FALSE;
+	bool bIsAmbiguousForEndmarkerPlacement = FALSE; // BEW 20May23 added, so AutoPlace...() will compile & link ok
 	//bool bNonFinalEndmarkers = FALSE;
 
 	// Add the word delimiter
@@ -4952,7 +4955,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
-			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pMergedSrcPhrase, &markersToPlaceArray);
+			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pMergedSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW added bool 20May23
 
 			if (!markersToPlaceArray.IsEmpty())
 			{
@@ -4980,6 +4983,10 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 
 					// get the post-placement resulting string
 					Tstr = dlg.GetPostPlacementString();
+#if defined (_DEBUG)
+					wxLogDebug(_T("FromMergerMakeTstr() in helpers.cpp line %d, sequNum = %d, GetPostPlacementString returned [%s]"),
+						__LINE__, Tstr.c_str());
+#endif
 				}
 			}
 			// remove initial and final whitespace
@@ -5026,7 +5033,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 
 	// BEW 21Jul14, don't add space after, use PutSrcWOrdBreak() before, at top
 	//Tstr << aSpace; // have a final space
-
+	// BEW 19May23 new doc boolean, so that FromSingleMakeTstr() will know where to store its result
+	if (!pMergedSrcPhrase->m_tgtMkrPattern.IsEmpty())
+	{
+		pDoc->m_bTstrFromMergerCalled = TRUE;
+	}
 	markersToPlaceArray.Clear();
 	return Tstr;
 }
@@ -5044,14 +5055,66 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 // to be shown for the user to place those manually. It should be possible to auto-place
 // at lots of the places in the document which otherwise would ask for manual placement
 // The function supports the UsfmOnly versus PngOnly difference in marker sets.
-wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase,
-							  wxArrayString* arrMkrsPtr)
+wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pSingleSrcPhrase,
+	wxArrayString* arrMkrsPtr, bool& bIsAmbiguousForEndmarkerPlacement)
 {
+	wxString aSpace = _T(" ");
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("helpers.cpp AutoPlaceSomeMarkers() START line %d, TheStr= [%s] , Sstr= [%s] , sequNum = %d, arrMkrsPtr count = %d"),   
+			__LINE__, TheStr.c_str(), Sstr.c_str(), pSingleSrcPhrase->m_nSequNumber, arrMkrsPtr->GetCount());
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 	if (arrMkrsPtr->IsEmpty())
-		return TheStr;
-	size_t count = Sstr.Len(); // just to avoid a compiler warning, this incarnation of this
-							   // function does not use Sstr; but we'll reuse count below
-	wxChar aSpace = _T(' ');
+	{
+		wxLogDebug(_T("helpers.cpp AutoPlaceSomeMarkers() line %d, NO MARKERS TO BE PLACED: returning TheStr= [%s] , Sstr= [%s] , sequNum = %d"),
+			__LINE__, TheStr.c_str(), Sstr.c_str(), pSingleSrcPhrase->m_nSequNumber);
+		return TheStr; // there are no markers to place, so TheStr is correct "as is"
+	}
+	else
+	{
+		bool bIsAmbiguous = bIsAmbiguousForEndmarkerPlacement; // reset to FALSE, if we can avoid need of Placement dlg
+		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+		wxString spacelessPunctsForTgt = MakeSpacelessPunctsString(gpApp, targetLang);
+		wxString spacelessPunctsForSrc = MakeSpacelessPunctsString(gpApp, sourceLang); // needed for creating the 'old ones' array
+		wxArrayString oldSrcBitsArr;
+
+		bool bCreatedArrayOK = pDoc->CreateOldSrcBitsArr(pSingleSrcPhrase, oldSrcBitsArr, spacelessPunctsForSrc);
+		if (bCreatedArrayOK)
+		{
+			// The 'old bits' array got created okay, these have the substring with src puncts, from what's
+			// in pSrcPhrase->m_srcSinglePattern ( new CSourcePhase member string, created in docVersion 10)
+
+
+
+			// TODO from pSPhr->m_targetStr, remove everything except the following (tgt text) puncts. Then try matching
+			// and transferring values. There may be white spaces stored within too. Check for same number of puncts.
+			// If puncts inventory in pSPhr->m_targetStr is fewer or more, must use Placement dlg to get it right. If the
+			// inventories are the same, we can do what's needed here, and set bIsAmbiguousForEndmarkerPlacement back to
+			// FALSE, and return from here. Then Placement dlg will be skipped.
+
+
+
+
+
+
+
+
+
+
+
+
+		} // end of TRUE block for test: if (bCreatedArrayOK)
+	}
+
+	// BEW 20/May23, legacy (docVersion 6 & later) follows - will show placement dlg if 
+	// we cannot auto-fix above (fewer or more puncts, must cause this block to be entered)
+	wxASSERT(bIsAmbiguousForEndmarkerPlacement == TRUE);
+	size_t count = Sstr.Len(); 
 	if (gpApp->gCurrentSfmSet == PngOnly)
 	{
 		// Png sfm set has only one endmarker - either \fe or \F, either means 'end footnote'
@@ -5123,17 +5186,26 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMe
 		wxString fEndMkr = _T("\\f*");
 		wxString xEndMkr = _T("\\x*");
 		wxString feEndMkr = _T("\\fe*");
-		if (count == 1 && pMergedSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		//if (count == 1 && pMergedSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		if (count >= 1 && pSingleSrcPhrase->GetFollowingOuterPunct().IsEmpty()) // BEW 18May23 allow entry here if 1 or more to place
 		{
-			// We've only got one marker to deal with, it should only be an endmarker; we can
-			// place it automatically after everything only provided there is nothing stored in
-			// the m_follOuterPunct member of the merged CSourcePhrase instance.
+			// We've new got one or more endMkrs to deal with, here is where to refactor for
+			// getting the placement dialog to show only when new auto-fix code has to handle
+			// fewer or more ending puncts than are present in the Sstr passed in
+
+
+
+
+
+
+
+			// TODO
 			wxString aMarker = arrMkrsPtr->Item(0);
 			// Trim any whitespace off its end (a beginmarker can be expected to have a terminating
 			// space stored with it, an endmarker should be stored without a final space, but we'll
 			// place safe just in case that's not so
 			aMarker.Trim();
-			if (aMarker == fEndMkr || aMarker == xEndMkr || aMarker == feEndMkr)
+			if (count == 1 && (aMarker == fEndMkr || aMarker == xEndMkr || aMarker == feEndMkr) )
 			{
 				// Just append to whatever TheStr has at its end
 				TheStr += aMarker;
@@ -5155,8 +5227,8 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMe
 				if (bIsEndmarker)
 				{
 					int offset = wxNOT_FOUND;
-					wxString addSpace = aMarker + aSpace; // for the search string
-					offset = gpApp->m_inlineNonbindingEndMarkers.Find(addSpace);
+					wxString addSpaceToEndMkr = aMarker + aSpace; // for the search string
+					offset = gpApp->m_inlineNonbindingEndMarkers.Find(addSpaceToEndMkr);
 					if (offset != wxNOT_FOUND)
 					{
 						// It's an inline non-binding endmarker (e.g. \wj* for wordsOfJesus) or
@@ -5236,7 +5308,10 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	bool bHasInternalMarkers = pMergedSrcPhrase->m_bHasInternalMarkers;
 	bool bFirst = TRUE;
 	bool bNonFinalEndmarkers = FALSE;
-	//bool bHasFilteredMaterial = FALSE; // set but not used
+	bool bIsAmbiguousForEndmarkerPlacement = FALSE; // BEW 20May23 was not needed here, but because of
+		// my docVersion 10 refactorings, this bool will be in signature of AutoPlaceSomeEndMarkers()
+		// and AutoPlace..() is called herein, so need it to avoid link failure
+	
 	wxString tempStr;
 
 	// store here any string of filtered information stored on pMergedSrcPhrase (in
@@ -5477,7 +5552,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 			// with, it is likely to be \f*, \x* or \fe* & probably is the only one, if any
 			// remain, then show the dialog instead; Sstr is not needed internally yet, but
 			// one day may be
-			Gstr = AutoPlaceSomeMarkers(Gstr, Sstr, pMergedSrcPhrase, &arrTemp);
+			Gstr = AutoPlaceSomeMarkers(Gstr, Sstr, pMergedSrcPhrase, &arrTemp, bIsAmbiguousForEndmarkerPlacement); // BEW 20May23 added bool
 
 			if (!arrTemp.IsEmpty())
 			{
@@ -5488,6 +5563,10 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 
 				// get the post-placement resulting string
 				Gstr = dlg.GetPostPlacementString();
+#if defined (_DEBUG)
+				wxLogDebug(_T("FromMergerMakeGstr() in helpers.cpp line %d, sequNum = %d, GetPostPlacementString returned [%s]"),
+					__LINE__, Gstr.c_str());
+#endif
 
                 // as of version 6.2.0, we store the result whenever produced, so that the
                 // placement dialog isn't opened again (unless the user puts phrase box at
@@ -5961,7 +6040,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	bool bHasOuterFollPunct = FALSE;
 	bool bIsAmbiguousForEndmarkerPlacement = FALSE;
-
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() START line %d, m_srcPhrase= [%s] , m_targetStr= [%s] , sequNum = %d, Tstr= [%s]"),
+			__LINE__, pSingleSrcPhrase->m_srcPhrase.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), pSingleSrcPhrase->m_nSequNumber, Tstr.c_str() );
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
 	// space symbol ~
 	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
@@ -6154,6 +6242,17 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				tgtBaseStr = MakeReverse(tgtBaseStr);
 			}
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
+
 		// initialPuncts, tgtBaseStr, finalPuncts now hold the desired substrings ready for us
 		// to add markers. First, determine if we are going to need the placement dialog
 		if (!pSP->GetFollowingOuterPunct().IsEmpty())
@@ -6265,6 +6364,15 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// check for m_tgtMkrPattern having content; if it does, use that for the Tstr
 		// value (before markersPrefix's contents get added), and so refrain from showing
 		// the placement dialog; but if the string is empty, then show the dialog
+#if defined (_DEBUG)
+		{
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+		}
+#endif
+
 		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
 			wxString xrefStr;
@@ -6276,14 +6384,22 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE); // need Sstr
 					// for the dialog; and we pass it to AutoPlaceSomeMarkers(), but the latter
 					// currently does not use it internally (one day, it might)
+#if defined (_DEBUG)
+			{
+				if (pSingleSrcPhrase->m_nSequNumber >= 11)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
+			}
+#endif
 
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
-			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray);
+			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW 20May2 added bool
 #if defined (_DEBUG)
 			{
-				if (pSingleSrcPhrase->m_nSequNumber == 408)
+				if (pSingleSrcPhrase->m_nSequNumber >= 11)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -6306,55 +6422,26 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// endmarkers removed, and the placement list showing the markers for placement, and the user does the
 			// placements in the normal way, and clicks OK. (In either scenario, the workaround of coping from the
 			// top box, and pasting into the bottom one, is still available.)
-			bool bDoDialogAnyway = FALSE;
-			wxString tempAdaptStr = wxEmptyString;
 			bool bEmptyOrPunctsOnly = IsEmptyOrPunctuationOnly(Tstr, gpApp->m_punctuation[1]);
 			if (bEmptyOrPunctsOnly && (gpApp->m_bCopySource == FALSE))
 			{
 				bIsAmbiguousForEndmarkerPlacement = FALSE;
 				markersToPlaceArray.Empty();
-				tempAdaptStr = Sstr; // This gives Paratext the markers, but the onus is on the user 
-									 // to edit the text - it's source text, but markers are editable too
-				Tstr = tempAdaptStr;
+				Tstr.Empty();
 			}
-			else
-			{
-				// There's some non-punctuation, so show Sstr, but first remove any markers from it - so that the
-				// user can do a normal placement using click in right location and hit Place button
-				tempAdaptStr = Sstr;
-				// Now remove markers (beginMkrs too if any are present). But check first that there is at least
-				// one marker for placement in markersToPlaceArray
-				if (!markersToPlaceArray.IsEmpty())
-				{
-					// get the one or more markers, and find them in tempAdaptStr and remove them
-					// to facilitate manual placement in the dialog
-					int numMkrs = markersToPlaceArray.GetCount();
-					wxString aMkr = wxEmptyString; // initialise
-					int i = 0;
-					for (i = 0; i < numMkrs; i++)
-					{
-						aMkr = markersToPlaceArray.Item((size_t)i);
-						wxASSERT(!aMkr.IsEmpty());
-						// Remove it from tempAdaptStr
-						int offset = -1;
-						offset = tempAdaptStr.Find(aMkr);
-						int length = aMkr.Len();
-						tempAdaptStr = tempAdaptStr.Remove((size_t)offset, (size_t)length);
-					}
-					Tstr = tempAdaptStr; // This Tstr value now goes to the Placement dialog, user can
-										 // edit text, or marker(s), or their position, whatever, then click OK
-				}
-				else
-				{
-					// It's empty, so let Tstr stand, as is
-					bDoDialogAnyway = FALSE;
-				}
-			}
+
 			// BEW 28Oct22 tested both options above, for app->m_bCopySource TRUE, and then FALSE. They work, and the
 			// user is spared the connundrum of not having a valid Placement dialog with editable lower box and the
 			// list with one or more markers to place.
-
-			if (!markersToPlaceArray.IsEmpty() || bDoDialogAnyway)
+#if defined (_DEBUG)
+			{
+				if (pSingleSrcPhrase->m_nSequNumber >= 11)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
+			}
+#endif
+			if (!markersToPlaceArray.IsEmpty() && !Tstr.IsEmpty())
 			{
 				// There's something the user needs to deal with manually
 
@@ -6371,6 +6458,10 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 
 				// get the post-placement resulting string
 				Tstr = dlg.GetPostPlacementString();
+#if defined (_DEBUG)
+				wxLogDebug(_T("FromSingleMakeTstr() in helpers.cpp line %d, sequNum = %d, GetPostPlacementString returned [%s]"),
+					__LINE__, pSingleSrcPhrase->m_nSequNumber, Tstr.c_str());
+#endif
 			}
 			// as of version  6.2.0, we store the result whenever produced, so that
 			// the placement dialog isn't opened again (unless the user puts phrase
@@ -6383,8 +6474,6 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// these before saving
 			Tstr = Tstr.Trim(FALSE);
 			Tstr = Tstr.Trim();
-			pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
-
 			// make sure the doc is dirty, so the user will be prompted to save it -
 			// we don't want this setting to get lost unnecessarily
 			pDoc->Modify(TRUE);
@@ -6394,11 +6483,34 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		{
 			// it's non-empty, so use it as Tstr's value (first ensure there is no
 			// preceding or final whitespace)
+#if defined (_DEBUG)
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+#endif
 			wxString str = pSingleSrcPhrase->m_tgtMkrPattern;
 			str.Trim(FALSE);
 			str.Trim();
 			Tstr = str;
 		}
+		if (pDoc->m_bTstrFromMergerCalled)
+		{
+			// BEW 19May23 There was a prior call of FromMergerMakeTstr() at this current
+			// location, so because a Tstr value was obtained from that call, it is to 
+			// be stored in m_tgtMkrPatter - as of docVersion 6 and higher.
+			pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
+		}
+		else
+		{
+			// There was no prior successful call of FromMergerMakeTstr(), but since 
+			// Tstr is also constructed similarly here in FromSingleMakeTstr(), docVersion 10
+			// will store it here in the new member of CSourcePhrase: m_tgtSinglePattern
+			pSingleSrcPhrase->m_tgtSinglePattern = Tstr;
+		}
+		// As pSrcPhrase is now likely to be moved to a new location, set the bool to default FALSE
+		// (it's also defaulted to FALSE prior to a call of FromMergerMakeTstr() )
+		pDoc->m_bTstrFromMergerCalled = FALSE;
 	}
 
     // now add the prefix string material if it is not empty
@@ -6414,6 +6526,15 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	Tstr.Trim(FALSE);
 	Tstr.Trim();
 	// don't have a final space, the caller will add one if it is needed
+#if defined (_DEBUG)
+	{
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1; wxUnusedVar(halt_here);
+		}
+	}
+#endif
+
 	return Tstr;
 }
 
@@ -7027,7 +7148,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		// Handle FALSE returned. 
 		if (bEndPunctsModified)
 		{
-			// Put here an algorithm which can handle punctuation changes. There are only two ways for the
+			// Put here an algorithm which can handle punctuation changes. There are only three? ways for the
 			// user to be able to change source text puncts. 
 			// (1) Make the appropriate source text words pSrcPhrase be selected, or at active location,
 			// and Select the option "Edit Source Text" - the user can then type a different word, or different
@@ -7039,7 +7160,14 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			// and there type a different word or different punctuations or both. The collaboration will call
 			// OnSingleMakeTstr() which internally calls OnSingleMakeSstr() which will cause new values (if
 			// changed) be put into m_follPunct and perhaps also into m_inlineBindingEndMarkers and/or into
-			// m_inlineNonbindingEndMarkers (though puncts after markers like \wj* etc are very unlikely)
+			// m_inlineNonbindingEndMarkers (though puncts after markers like \wj* etc are very unlikely).
+			// If the number of puncts has not changed, then we can use the new set without a Placement dlg,
+			// but if the inventory is fewer or more, the only way to be sure of accuracy is to do Placement dlg.
+			// (3) If the user, in the phrasebox, manually adds end puncts which differ at least in 1 place
+			// from those in pSrcPhrase->m_srcSinglePattern (at same sequ num). Doing that should also then
+			// result in view's MakeTargetStringIncludingPuctuation() using the changed punc(s), and that
+			// function contains a Placement dialog which we'd need to call if the inventory of ending punctuations
+			// differs from those in m_srcSinglePattern (at same sequNum)
 
 
 			// TODO - a function which matches by positions, since equality tests won't work
