@@ -42331,8 +42331,9 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	}
 #if defined (_DEBUG)
 	{
-		wxLogDebug(_T("UpdateSingleSrcPattern() START line %d, sn= %d, bTokenizingTargetText= %d, srcSinglePat= [%s], length= %d, srcNewSinglePat= [%d]"),
-			pSrcPhrase->m_nSequNumber, (int)bTokenizingTargetText, srcSinglePat.c_str(), length, srcNewSinglePat.c_str());
+		// whm 27May2023 corrected to prevent crash, needed to add __LINE__ as first parameter in parameter list, and change last %d to %s
+		wxLogDebug(_T("UpdateSingleSrcPattern() START line %d, sn= %d, bTokenizingTargetText= %d, srcSinglePat= [%s], length= %d, srcNewSinglePat= [%s]"),
+			__LINE__, pSrcPhrase->m_nSequNumber, (int)bTokenizingTargetText, srcSinglePat.c_str(), length, srcNewSinglePat.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 11)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
