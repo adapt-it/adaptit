@@ -1218,6 +1218,17 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// make (for version 3) the chapter&verse information come first
 			if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
 			{
+#if defined (_DEBUG)
+				{
+					wxString verse17 = _T("17");
+					int offset = -1;
+					offset = m_pSrcPhrase->m_chapterVerse.Find(verse17);
+					if (offset >= 0)
+					{
+						int halt_here = 1;
+					}
+				}
+#endif
 				str = m_pSrcPhrase->m_chapterVerse;
 
 				// spurious bug: bogus wxString buffer overrun chars (anything for 20 to 60
@@ -1276,9 +1287,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// now append anything which is in the m_inform member; there may not have been
 			// a chapter and/or verse number already placed in str, so allow for this
 			// possibility
-			// BEW 10Jul21 m_inform never has chapter:verse info in it, so when displaying
-			// for gbShowTargetOnly = TRUE, m_inform information is just a distraction for 
-			// the read-and-check process, so refrain from including it when that bool is TRUE
+			// BEW approx 16Jul21, I refactored the src-text-hidden modality so
+			// that the GUI would display chapter and verse info in the whiteboard, since reading
+			// through is more useful if the user can keep track of which chapter and verse he is
+			// in, without having to return to normal 2-line strips mode.
 			if (!gbShowTargetOnly)
 			{
 				if (!m_pSrcPhrase->m_inform.IsEmpty())

@@ -256,6 +256,7 @@ protected:
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
+	wxString		GetLastEndMarker(wxString endMkrs); //BEW added 31May23 for use in propagation code (in TokenizeText)
 
 	// BEW 30May17 next two for supporting inLine markers within a inLine span, such as a
 	// \xt marker within an unfiltered \f ... \f* span
@@ -270,6 +271,7 @@ public:
 	// public because USFM3Support.cpp uses it too (BEW 3Sep19)
 	bool			m_bTokenizingTargetText; // set by fourth parameter of a TokenizeText() call (IsInWordProper() uses it)
 	bool			m_bWmkrAndHasBar; // BEW 12Sep22 added, to save value returned by IsWmkrWithBar(wxChar* ptr), used with caching some USFM 3 stuff
+
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
 		wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr,
@@ -291,9 +293,9 @@ public:
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
 	void			PutPhraseBoxAtDocEnd();
 	bool			ReOpenDocument(CAdapt_ItApp* pApp,
-		wxString savedWorkFolderPath,			// for setting current working directory
-		wxString curOutputPath,					// includes filename
-		wxString curOutputFilename,				// to help get window Title remade
+	wxString        savedWorkFolderPath,			// for setting current working directory
+	wxString        curOutputPath,					// includes filename
+	wxString        curOutputFilename,				// to help get window Title remade
 //      int		 curSequNum, // for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
 bool	 savedBookmodeFlag,				// for ensuring correct mode
 bool	 savedDisableBookmodeFlag,		// ditto
@@ -365,6 +367,12 @@ public:
 					// BEW added 4May23 -- GetPostwordExtras removes m_key, returns the rest
 	wxString		GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr);
 
+					// BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
+					// whitespace(s), and getting to the puncts may require parsing first over one or more inlineBindingEndMarkers
+	wxChar*			ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
+	bool			IsGenuineFollPunct(wxChar chPunct); // BEW 7Jun23 created, for use in ParsePostWordPuncts() in ParseWord()
+	void			CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, int& nBad); // BEW 7Jun23 created, for use in ParsePostWordPuncts()
+
 	wxString		RemoveEndMkrsFromExtras(wxString extras); // BEW added 4May23
 	bool			Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhrase, wxString extras, 
 					int& extrasLen, wxString& residue, bool& bEndPunctsModified); // BEW added 4May23 'Q' in the name means "Query"
@@ -372,7 +380,7 @@ public:
 							// for updating m_srcSinglePattern when puncts have changes
 	bool			CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString& oldSrcBitsArr, wxString& spacelessPuncts);
 	bool			m_bTstrFromMergerCalled; // BEW 19May23 added. So FromSingleMakeTstr() will know where to store its result
-
+	bool			IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEnd);
 
 
 	// **** end of functions for not having placement dialogs *******
@@ -489,9 +497,15 @@ public:
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
 	void			TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase);
 	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
-	wxString& spacelessPuncts, int len, bool& bExitOnReturn,
-	bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
+							wxString& spacelessPuncts, int len, bool& bExitOnReturn,
+							bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
+
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
+	// *********  NOTE ***** BEW 3Jun23 if I get a message, errorC2248: cannot access private member declared in class
+	// *********  regarding operator= , when using ParseFinalPuncts() , it's because I was assuming that the function
+	// *********  ParseFinaPuncts() returns a wxString, when it actually returns an int!!!!! Duh! Homer brain struck again
+	// *********  I've done this a sufficient number of times, and found the explanations opaque, I need a note somewhere.
+						// getting an error message that ParseFinalPuncts() is a private member of wxString
 	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
 						wxString& inlineNonBindingEndMkrs, int len,
 						bool& bInlineBindingEndMkrFound, bool& bInlineNonbindingEndMkrFound,

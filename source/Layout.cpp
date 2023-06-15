@@ -1215,9 +1215,9 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+//			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+//				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+//				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 		}
 #endif
 
@@ -1391,7 +1391,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		extentAmountRemaining -= slopPixels;
 		theNextTabPixelPoint += slopPixels;
 	}
-
+/* BEW 31May23  commented out, it just adds a lot of noise to the logging for other things, Bill now has this stuff sorted I think
 #if defined (_DEBUG)
 	wxString msg = _T("Tab stops:");
 	int totNumTabs = (int)m_pApp->m_pTargetBox->arrayTabPositionsInPixels.GetCount();
@@ -1411,7 +1411,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	}
 	wxLogDebug(msg);
 #endif
-
+*/
 	// whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
 	// to highlight a different item in the dropdown list before pressing Enter/Tab to leave the
 	// current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it

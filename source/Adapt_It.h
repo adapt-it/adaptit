@@ -2412,6 +2412,11 @@ class CAdapt_ItApp : public wxApp
 	wxString execPath; // the "executablePath" with the executable app at end removed
 	//wxString GetDistFolder(); // ending in the path separator
 
+	// BEW added 3Jun23
+	bool    bSkipOverParseAWord;
+	wxChar* pSavePtr_forSkip;
+	int		nSaveLen_forSkip;
+
 	//int system_hidden(const char* cmdArgs); // for suppressing showing of CMD window with system() is called
 //	extern "C"
 //	{
@@ -4907,6 +4912,8 @@ public:
 	wxString m_CrossReferenceMarkers;
 	wxString m_inlineNonbindingEndMarkers;
 	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
+	wxString m_inlineBindingEndMarkers; // BEW 31May23, added - it's silly to not have matching endmarkers
+					// that can be looked up in a fast-access string. Helps in propagation code.
 	wxString m_usfmIndicatorMarkers; // some common beginmarkers found only in USFM
 	wxString m_pngIndicatorMarkers; // some common beginmarkers found only in PNG SFM 1998 set
 	// the following makes GetWholeMarker() (the one in doc class, and the other in helpers.cpp)
@@ -4939,6 +4946,7 @@ public:
 	wxString FindLastBeginMkr(wxString beginMkrs, int offset); // BEW 22Apr20
 	wxString m_verseTypeMkrs;
 	wxString m_verseTypeEndMkrs;
+	wxString m_listTypeMkrs; // BEW 14Jun23 added
 	wxString m_poetryTypeMkrs;
 	wxString m_poetryTypeEndMkrs;
 	wxString m_sectionHeadMkrs;

@@ -24278,7 +24278,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
-    m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+
+    m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    // BEW 31May23, before this date, checking for the matching end marker was done as a hack, better to have the above set as its own set of ending ones
+    m_inlineBindingEndMarkers = _T("\\add* \\bk*  \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    
+    //OLDm_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup \\nd \\+nd "); // BEW 1May23 added \fk , on 30May moved it to m_RedBeginMarkers
+    // and the end marker forms
+    //OLDm_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn* \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\nd* \\+nd* ");
+
+    // BEW 5Jun23 these two are just renamed m_inlineBindingMarkers and m_inlineBindingEndMarkers, because the charFormat versions lacked several, especially embedded ones
+    m_charFormatMkrs = _T("\\add \\bk  \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\fk \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\pb \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    m_charFormatEndMkrs = _T("\\add* \\bk*  \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
@@ -24298,30 +24310,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the span embedded sets, binding set (and add binding endMkrs), and most from non-binding.
 	// Hmmm. An Ignore set (very large) is not needed - as anything not in the Red sets, or the
 	// single Blue set, does NOT change the text type.
-	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr  ");
+	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\fig \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr \\fe \\fr \\fv \\ft \\fdc \\fm \\fk \\fq \\fqa \\fl \\fw \\fp \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc \\xr ");
 
-	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\fig* \\esbe \\cat* ");
-
+	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\fig* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
+    
 	m_BlueBeginMarkers = _T("\\c \\v \\m \\ca \\va \\vp \\sls \\qt \\wj \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
 
 	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\qt* \\wj* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
 
-	m_EmbeddedIgnoreMarkers = _T("\\fe \\fr \\fq \\fqa \\fk \\fl \\fw \\fp \\fv \\ft \\fdc \\fm \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc ");
-
-	m_EmbeddedIgnoreEndMarkers = _T("\\fv* \\ft* \\fdc* \\fm* \\xop* \\xot* \\xnt* \\xdc* "); // included \ft* deliberately
+    // BEW 29May23 some of these next markers are rare, but would be stored in m_markers if present in the input source text
+	m_EmbeddedIgnoreMarkers = _T("\\fe \\fr \\fq \\fqa \\fk \\fl \\fw \\fp \\fv \\ft \\fdc \\fm \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc "); // never called
+    // BEW 29May23 some of these endmarkers may never occur - such as \fw*, etc - but are included just in case
+    // Propagation code will use this set to determine that any of these do not change the textType nor the text colour
+	m_EmbeddedIgnoreEndMarkers = _T("\\fv* \\ft* \\fr* \\fqa* \\fq* \\fdc* \\fm* \\xop* \\xot* \\xnt* \\xdc* \\fw* ");  
 
 	m_bTextTypeChangePending = FALSE; // initialise
-
-	// these two copied from global space in Adapt_ItView.cpp, and made into app members here
-	//
-	m_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup \\fk "); // BEW 1May23 added \fk
-	// and the end marker forms
-	m_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn*  \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\fk* ");
 
 
 	// BEW 22Apr20, following fast access strings are for setting TextType values
 	m_verseTypeMkrs = _T("\\c \\v \\m \\va \\vp \\ca \\cl \\cp \\cd \\lh \\li1 \\li2 \\li3 \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
 	m_verseTypeEndMkrs = _T("\\wj* \\tl* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
+    m_listTypeMkrs = _T("\\lh \\li1 \\li2 \\li3 \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 ");  // BEW 14Jun23 added, only need beginMkrs
 	m_poetryTypeMkrs = _T("\\q \\qt \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd ");
 	m_poetryTypeEndMkrs = _T("\\qt* \\qs* \\qac* ");
 	m_sectionHeadMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 ");
@@ -64308,6 +64317,14 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 // the preceding punctuation.
 wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts)
 {
+#if defined (_DEBUG)
+    wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_key= [%s] pSP->m_adaption= [%s]"),
+        __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
+    if (pSrcPhrase->m_nSequNumber >= 1)
+    {
+        int halt_here; wxUnusedVar(halt_here);
+    }
+#endif
     // BEW 25May23, bHandledPrecPuncts is default FALSE on entry, if we set it TRUE herein, that value
     // is returned for the caller to use
     wxString str = wxEmptyString;
@@ -64326,7 +64343,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
     }
 #if defined (_DEBUG)
-    wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSP->m_srcPhrase= %s pSP->m_adaption= %s"),
+    wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_srcPhrase= %s pSrcPhrase->m_adaption= %s"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_adaption.c_str());
 
 #endif
@@ -64412,6 +64429,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         }
     }
 #endif
+    wxString follPunct = wxEmptyString; // init
     if (!pSrcPhrase->m_follPunct.IsEmpty() ) // && !bNoFinalPuncts)
     {
         // BEW 24May23 some data markups may make a point of detaching punctuation from
@@ -64420,7 +64438,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         // preceded by a whitespace character - so check here, and remove and store
         // the whitespace temporarily, and submit the punct char following to the
         //GetConvertedPunct() function, then put the whitespace back in position
-        wxString follPunct = pSrcPhrase->m_follPunct;
+        follPunct = pSrcPhrase->m_follPunct;
         int follPunctLen = follPunct.Length();
         if (follPunctLen > 1)
         {
@@ -64441,9 +64459,18 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         }
         else
         {
-            wxString follPunct = GetConvertedPunct(follPunct);
+            follPunct = GetConvertedPunct(follPunct);
         }
         str += follPunct;
+        /* Hopefully this hack won't be needed
+        // BEW 29May23, if the conversion did not happen, and follPunct is still empty
+        // but pSrcPhrase->m_follPunct is not empty, then just append the latter to
+        // str
+        if (follPunct.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty())
+        {
+            str += pSrcPhrase->m_follPunct;
+        }
+        */
     }
     if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() ) // && !bNoFinalPuncts)
     {
