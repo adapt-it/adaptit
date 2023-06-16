@@ -21223,6 +21223,8 @@ parsing:
 			pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText);
 
 #if defined (_DEBUG)
+			wxChar* auxPtr = ptr + itemLen;
+			wxLogDebug(_T("ITEMLEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, itemLen, wxString(auxPtr, 20).c_str());
 			// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 			//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
@@ -21340,8 +21342,13 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 #endif
 				}
 			} // end of TRUE block for test: if (itemLen > 0 && bTokenizingTargetText == FALSE)
+wxLogDebug(_T("After ParseWord: ITEMLEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]  Before ptr update"), __LINE__, itemLen, wxString(ptr, 20).c_str());
 
 			ptr += itemLen; // advance ptr over what we parsed
+
+wxLogDebug(_T("After ParseWord: ITEMLEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]  After ptr update"), __LINE__, 0, wxString(ptr, 20).c_str());
+
+
 #if defined (_DEBUG) && !defined(NOLOGS)
 			wxString ptrPointsAt = wxString(ptr, 15);
 			wxLogDebug(_T("%s::%s(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __FILE__, __FUNCTION__, __LINE__,
@@ -34895,13 +34902,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							}
 						}
 #endif	
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str() );
 						// set m_key and m_srcPhrase
 						int strWordLen = strWord.Length();
 						pSrcPhrase->m_key = strWord;
 						pSrcPhrase->m_srcPhrase = strWord;
 						ptr += strWordLen;
 						len += strWordLen;
-
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 						bFromDigitsUpdatedPtr = TRUE; // suppress doubling the ptr and len advance at 34902 approx
 
 						// BEW 29May23, after a chapter/verse number in a footnote, there may be an
@@ -34946,7 +34954,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										// We parsed and stored an endMkr, so update ptr and len for its width as well
 										ptr += wholeMkrLen;
 										len += wholeMkrLen;
-
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 										wxChar* pSavePtr = ptr; // preserve, as ptr may turn out to be pointing at location for returning
 										// len is uptodate here too, next section of code will not increase it unless we determine its
 										// part of detached following punctuation. So far, there are no final puncts to add to m_follPunct
@@ -34974,6 +34982,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 											whitesLen = strWhites.Length();
 											// set pAux to point at what follows the whitespace(s)
 											pAux += whitesLen; // pAux now points at whatever follows the whites
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, whitesLen, wxString(pAux, 20).c_str());
 										}
 										else
 										{
@@ -35013,6 +35022,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 												// the whitespace is where pSavePtr points; and len is uptodate there;
 												// and m_key and m_srcPhrase are uptodate there too
 												bFromDigitsUpdatedPtr = FALSE; // restore default
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(pAux, 20).c_str());
 												return len;
 											}
 											else
@@ -35020,17 +35030,21 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 												// The parsed puncts are final ones, if belonging to spacelessPuncts, but
 												// but exotic puncts may, or may not, be final ones. So here we'll implement
 												// out conditions for "detached". By definition, "detached" means "not abutting
-												// the word"; and there's only one whitespace, and only one following punct,
-												// and whitespace must follow it - after pointing ptr at that white is where we return
-												if (!bFinalPunctsAbbutWordIfPresent && (whitesLen == 1) && (follPunctsLen == 1) )
+												// the word"; and normally there's only one whitespace, but allow for more,
+												// and only one following punct after the white(s); and whitespace must follow 
+												// the punct - and after pointing ptr at that post-punct white is where we return
+												if (!bFinalPunctsAbbutWordIfPresent && (whitesLen >= 1) && (follPunctsLen == 1) )
 												{
 													// update pSrcPhrase and len before returning
 													pSrcPhrase->m_srcPhrase << strWhites;
 													pSrcPhrase->m_srcPhrase << strFollPuncts;
 													pSrcPhrase->m_follPunct << strWhites;
 													pSrcPhrase->m_follPunct << strFollPuncts;
-													len += 2; // one whitespace and one final punct
-													ptr = pSavePtr + 2;
+													len += whitesLen; // however many whitespace and one final punct
+													ptr = pSavePtr + whitesLen;
+													len += follPunctsLen;
+													ptr += follPunctsLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 													bFromDigitsUpdatedPtr = FALSE; // restore default
 													return len; // don't test for whitespace following, assume this is right place to return
 												}
@@ -35045,12 +35059,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 													pSrcPhrase->m_follPunct << strFollPuncts;
 													len += 3; // one whitespace and two final puncts, probably ">>"
 													ptr = pSavePtr + 3;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 													bFromDigitsUpdatedPtr = FALSE; // restore default
 													return len; // don't test for whitespace following, assume this is right place to return
 												}
 											} // end of else block for test: if (offset3 != wxNOT_FOUND) -- puncts probably final type
 
 										} // end of TRUE block for test: if (offset2 != wxNOT_FOUND) -- found puncts
+
 										if (bFinalPunctsAbbutWordIfPresent && (whitesLen == 0) )
 										{
 											// Deal with them; these no preceding whitespace, and after the puncts, we
@@ -35074,6 +35090,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 													// the whitespace is where pSavePtr points; and len is uptodate there;
 													// and m_key and m_srcPhrase are uptodate there too
 													bFromDigitsUpdatedPtr = FALSE; // restore default
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(pAux, 20).c_str());
 													return len;
 												}
 												else
@@ -35089,6 +35106,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 														pSrcPhrase->m_follPunct << strFollPuncts;
 														len += 1; // one whitespace and one final punct
 														ptr = pSavePtr + 1;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 														bFromDigitsUpdatedPtr = FALSE; // restore default
 														return len; // don't test for whitespace following, assume this is right place to return
 													}
@@ -35102,6 +35120,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 															pSrcPhrase->m_follPunct << strFollPuncts;
 															len += 2; // no whitespace but two closingwedges, i.e. ">>"
 															ptr = pSavePtr + 2;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 															bFromDigitsUpdatedPtr = FALSE; // restore default
 															return len; // don't test for whitespace following, assume this is right place to return
 														}
@@ -35117,6 +35136,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 										if (ptr < pEnd && (*ptr == _T(' ') || *ptr == _T('\n') ) ) // BEW 14Jun23 added OR plus test for newline
 										{
 											bFromDigitsUpdatedPtr = FALSE; // restore default
+		wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 											return len;
 										}
 										// If we didn't return, then goto the else block below. But we want to jump to
@@ -35148,7 +35168,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							// Move past it
 							len += 1;
 							ptr += 1;
-
+	wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 							// Now locate this pSrcPhrase in the m_pSourcePhrases list, and use view's
 							// GetChapterAndVerse(CSourcePhrase* pSourcePhrase_lastCompeted) which returns
 							// a ch:vs wxString, to search for which chapter and verse the current instance
@@ -35188,6 +35208,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								pSrcPhrase->m_precPunct << strReturn;
 								ptr += strReturnLen;  // could be << followed by space; otherwise of length 2
 								len += strReturnLen;
+	wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 								wxASSERT(ptr < pEnd);
 							}
 						}
@@ -35215,6 +35236,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// when augmenting here is needed.
 					len += strWordLen;
 					ptr += strWordLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 				}
 				else
 				{
@@ -35241,6 +35263,7 @@ elseBlock:
 					// values set already, also m_markers and m_endMarkers if there were preceding or following mkrs)
 					ptr = pApp->pSavePtr_forSkip;
 					len = pApp->nSaveLen_forSkip;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 					// now clear these CAdapt_ItDoc members to initialisation values, to be available for another pSrcPhrase
 					// to use if needed
 					pApp->bSkipOverParseAWord = FALSE;
@@ -35273,7 +35296,7 @@ elseBlock:
 #endif
 				ptr = ParsePostWordPuncts(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
 				len += itemLen;
-
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 				{
@@ -35551,6 +35574,7 @@ elseBlock:
 								int wholeMkrLen = myEndMkr.Length();
 								len += wholeMkrLen;
 								ptr += wholeMkrLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 								// an unknown marker will have no AI-USFM presence, so control should come into this block for such
 							}
 							else
@@ -35584,6 +35608,7 @@ elseBlock:
 									int mkrLen = myEndMkr.Length();
 									len += mkrLen;
 									ptr += mkrLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 								}
 								else
 								{
@@ -35625,6 +35650,7 @@ elseBlock:
 									int mkrLen = myEndMkr.Length();
 									len += mkrLen;
 									ptr += mkrLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 									// Punctuation may follow, so don't return before checking for final puncts
 								} // end of else block for test: if (offset >= 0)
 							} // end of else block for test: if (pUsfmAnalysis->inLine == FALSE) i.e. it's inLine
@@ -35655,6 +35681,7 @@ elseBlock:
 								int endingPunctsLen = endingPuncts.Length();
 								ptr += endingPunctsLen;
 								len += endingPunctsLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 							}
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 							{
@@ -35790,6 +35817,7 @@ elseBlock:
 										// refactorings for deling with complex markups as in Steve White's 46-MATfuh.SFM data
 										if (bIsDetachedPunct && (*ptr == _T('\n')) ) // || IsWhiteSpace(ptr)))
 										{
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 											return len;
 										}
 									} // end of TRUE block for test: if (bWhiteFollows)
@@ -35865,7 +35893,7 @@ elseBlock:
 						} // end of else block for test: if (pSrcPhrase->m_precPunct.IsEmpty())
 						ptr += itemLen;
 						len += itemLen;
-
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 4);
@@ -35881,8 +35909,7 @@ elseBlock:
 						// ptr now points at a space (otherwise, more tests may apply below)
 						if (bStoredEndMkr && (finalPuncts == _T(">>")) && (*ptr == _T(' ')) )
 						{
-//wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
-							// space follows ">>" pair, so return len
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 							return len;
 						}
 
@@ -35934,6 +35961,7 @@ elseBlock:
 						pSrcPhrase->m_srcPhrase += strExtra2;
 						len += 2;
 						ptr += 2; // this line unneeded, but it documents the advance of ptr past 2 wxChars
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 						// no augmenting of m_key is to be done here
 //wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
 						return len;
@@ -35951,7 +35979,7 @@ elseBlock:
 						}
 						len += 2;
 						ptr += 2; 
-//wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 						return len;
 					}
 
@@ -35981,7 +36009,7 @@ elseBlock:
 					bIsABeginningMarker = FALSE;
 					if (bIsBeginMkr)
 					{
-//wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 						// BeginMkrs get dealt with in TorkenizeText, so return len
 						return len;
 					}
@@ -35995,7 +36023,7 @@ elseBlock:
 						bIsABeginningMarker = IsBeginMarker(ptr + 1, pEnd, wholeMkr, bIsEndMkr);
 						if (*ptr == space && bIsABeginningMarker)
 						{
-//wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 							// return len now
 							return len;
 						}
@@ -36026,7 +36054,7 @@ elseBlock:
 							{
 								// There are 1 or more whites at end of srctext parsed in
 								len += numWhiteSpaces;
-//wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(pAux, 20).c_str());
 								return len;
 							}
 						}
@@ -36091,6 +36119,7 @@ elseBlock:
 									// at [sp]>>\n\\s and so there's an extra space parsed over, then below,
 									// at 34133, ParseFinalPuncts would then parse the ">>" substring
 									len += nSpacesCount; // keep len in sync with newLen above
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s] Correct??"), __LINE__, newLen, wxString((ptr +  nSpacesCount), 20).c_str());
 								}
 //wxLogDebug(_T("Log Line = %d"), __LINE__);
 								// check for puncts at pAux
@@ -36101,7 +36130,7 @@ elseBlock:
 								// protective check wrapper for the ParseFinalPuncts() call here
 								if (IsOpeningQuote(pAux) || (*pAux == (wxChar)0x0060) )
 								{
-//wxLogDebug(_T("Log Line = %d"), __LINE__);
+									wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(pAux, 20).c_str());
 									return len;
 								}
 								itemLen = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);
@@ -36129,6 +36158,7 @@ elseBlock:
 										int nLenFromPtr = nSpacesCount + nHowMany;
 										len += nLenFromPtr;
 										ptr += nLenFromPtr;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 										pSrcPhrase->m_follPunct << extraSpaces;
 										pSrcPhrase->m_follPunct << morePuncts;
 										pSrcPhrase->m_srcPhrase << extraSpaces;
@@ -36139,6 +36169,7 @@ elseBlock:
 									{
 										ptr += nHowMany;
 										len += nHowMany;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 										pSrcPhrase->m_follPunct << morePuncts;
 										pSrcPhrase->m_srcPhrase << morePuncts;
 
@@ -36152,7 +36183,7 @@ elseBlock:
 								// a newline, then our code further below must be allowed its chance
 								if ( bIsDetachedPunct && (*ptr == _T('\n')) ) //|| IsWhiteSpace(ptr)) ) 
 								{
-//wxLogDebug(_T("Log Line = %d  RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 									return len;
 								}
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
@@ -36241,6 +36272,7 @@ elseBlock:
 												ptr += wholeMkrLen; // ptr now points where pAux points
 												if (bWhiteAfterEndMkr || bIsANewline || bIsABeginMkr)
 												{
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 													return len;
 												}
 											}
@@ -36257,6 +36289,7 @@ elseBlock:
 												ptr += wholeMkrLen; // ptr now points where pAux points
 												if (bWhiteAfterEndMkr || bIsANewline || bIsABeginMkr)
 												{
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 													return len;
 												}
 											}
@@ -36274,6 +36307,7 @@ elseBlock:
 												ptr += wholeMkrLen;	// ptr now points where pAux points
 												if (bWhiteAfterEndMkr || bIsANewline || bIsABeginMkr)
 												{
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 													return len;
 												}
 											}
@@ -36308,13 +36342,15 @@ elseBlock:
 												pSrcPhrase->m_follPunct << strPuncts;
 												pSrcPhrase->m_srcPhrase << strPuncts;
 												len += numPuncts;
+												ptr = pAux + numPuncts; // BEW 16Jun23 added
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 //wxLogDebug(_T("Log Line = %d RETURN"), __LINE__);
 												return len;
 											}
 											else
 											{
 												// No final puncts at pAux
-//wxLogDebug(_T("Log Line = %d  else RETURN"), __LINE__);
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(pAux, 20).c_str());
 												return len;
 											}
 										} // end of TRUE block for test: if (bWhiteAfterEndMkr)
@@ -36339,6 +36375,7 @@ elseBlock:
 						bool bIsBeginMkr = ( (*ptr == gSFescapechar) && !IsEndMarker(ptr, pEnd)) ? TRUE : FALSE;
 						if (bIsBeginMkr)
 						{
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 							return len;
 						}
 
@@ -36468,6 +36505,7 @@ elseBlock:
 										itemLen = (int)(pGapEnd - pGapStart);
 										len += itemLen + mkrLen;
 										ptr += itemLen + mkrLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 										itemLen = 0;
 
 										// Are there following puncts, parse these too
@@ -36479,6 +36517,7 @@ elseBlock:
 											pSrcPhrase->m_srcPhrase += extraPuncts;// so user can see it in GUI layout
 											len += itemLen;
 											ptr += itemLen;
+wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 											itemLen = 0;
 										}
 											
