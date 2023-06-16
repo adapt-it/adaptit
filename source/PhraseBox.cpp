@@ -1505,8 +1505,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     pApp->m_bMovingToDifferentPile = TRUE;
-	wxLogDebug(_T("\n ****\nMoveToNextPile line %d, sequNum %d , pCurPile= %d , m_key= [%s]"),
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, (int)pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
+	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
+	// when trying to cast a pointer to an int.
+	wxLogDebug(_T("\n ****\nMoveToNextPile line %d, sequNum %d , pCurPile= %p , m_key= [%s]"),
+		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
 #if defined(_DEBUG)
 	{
 		//CSourcePhrase* pCurSP = pCurPile->GetSrcPhrase();
@@ -1563,8 +1566,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 	}
 #endif
-	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %d , m_key= [%s]"), 
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, (int)pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
+	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
+	// when trying to cast a pointer to an int.
+	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
+		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
 
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
 	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
@@ -1630,8 +1636,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #endif
 		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
 
-		wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %d , m_key= [%s]"),
-			__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, (int)pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+		// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
+		// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
+		// when trying to cast a pointer to an int.
+		wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
+			__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
 
 		if (!bOK)
 		{
@@ -1642,8 +1651,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			return FALSE; // can't move until a valid adaption (which could be null) is supplied
 		}
 	}
-	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %d , m_key= [%s]"),
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, (int)pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
+	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
+	// when trying to cast a pointer to an int.
+	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
+		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
 
 	// since we are moving, make sure the default m_bSaveToKB value is set
 	pApp->m_bSaveToKB = TRUE;
@@ -1672,8 +1684,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	pNewPile = pView->GetNextEmptyPile(pCurPile);
 	//pNewPile = pView->GetNextPile(pCurPile);
 
-	wxLogDebug(_T("MoveToNextPile line %d, NEW pNewPile: sequNum %d , pilePtr= %d , m_key= [%s]"),
-		__LINE__, pNewPile->GetSrcPhrase()->m_nSequNumber, (int)pNewPile, pNewPile->GetSrcPhrase()->m_key.c_str());
+	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
+	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
+	// when trying to cast a pointer to an int.
+	wxLogDebug(_T("MoveToNextPile line %d, NEW pNewPile: sequNum %d , pilePtr= %p , m_key= [%s]"),
+		__LINE__, pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile, pNewPile->GetSrcPhrase()->m_key.c_str());
 
 
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
