@@ -21223,7 +21223,10 @@ parsing:
 			pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText);
 
 #if defined (_DEBUG)
-			wxChar* auxPtr = ptr + itemLen;
+			// whm 16Jun2023 separated the declaration of wxChar* auxPtr from its assignment/initialization below, to 
+			// resolve compiler error from GCC: "jump to label 'finishup'...crosses initialization of wxChar* auxPtr"
+			wxChar* auxPtr;
+			ptr = ptr + itemLen;
 			wxLogDebug(_T("ITEMLEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, itemLen, wxString(auxPtr, 20).c_str());
 			// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 			//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
