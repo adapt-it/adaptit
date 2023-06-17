@@ -18583,12 +18583,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		bParsedNewlineBeforeVerseMarker = FALSE; // initialise
 
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 		wxString pointsAt = wxString(ptr, 20);
 		wxLogDebug(_T("TokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s   (next 15 chars)"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		if (pSrcPhrase->m_nSequNumber >= 2)
+		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -22774,6 +22774,193 @@ bool CAdapt_ItDoc::IsGenuineFollPunct(wxChar chPunct)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+// Return -1 if unable to parse to the next whitespace
+int CAdapt_ItDoc::ScanToWhiteSpace(wxChar* pChar, wxChar* pEnd)
+{
+	if (pChar > (pEnd - 1))
+	{
+		return -1;
+	}
+	int charCount = 0;
+	wxChar* ptr = pChar;
+	while (ptr < (pEnd - 1) && !IsWhiteSpace(ptr)) // (pEnd -1) to allow for a terminating whitespace to exist
+	{
+		ptr++;
+		charCount++;
+	}
+	return charCount;
+}
+
+// BEW added 16Jun23 for parsing data like 02/26/01 or 02/26/2001, or 2010/05/24 etc.
+// If parsed successfully, returns the length of the date string. Any error or inconsistency,
+// return -1. The date must not include an internal whitespace, return -1 if it does. We
+// parse for at least two separators, which must be the same - eg, / and / , or : and : ,
+// or - and - (hyphens); and the string must start and end with a digit. First character,
+// a digit, must be what pChar points at.
+int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd)
+{
+	wxChar* ptr = pChar;
+	wxString strDate = wxEmptyString; // init
+	wxString legal_separators = _T("/:-");
+	int offset = wxNOT_FOUND; // init
+	wxString theSeparator = wxEmptyString; // init
+	int separatorCount = 0; // init
+	int nSaveOriginalLength = 0; // init
+
+	int dateSpanLen = 0;
+	wxChar aChar;
+	int charCount = 0;
+	//int maxLen = 10; // 2 for days, 2 for months, 4 for year, 2 for separators = 10
+	//int minLen = 6;  // 1 for days, 1 for months, 2 for year, 2 for separator = 6
+	if (IsAnsiDigit(*pChar))
+	{
+		// Starts with a digit
+		dateSpanLen = ScanToWhiteSpace(pChar, pEnd);
+		strDate = wxString(pChar, dateSpanLen);
+		nSaveOriginalLength = dateSpanLen; // needed at end
+
+		// Check the date is well-formed as far as length is concerned
+		//if (dateSpanLen < minLen || dateSpanLen > maxLen)
+		if (dateSpanLen < 6 || dateSpanLen > 10)
+		{
+			// date format is too short or too long
+			return -1;
+		}
+		int index;
+		// Loop until we come to the first separator, then exit after determining what
+		// the separator is. If it's not legal, then return -1. (We have 3 fields to deal
+		// with, so we will use 3 loops to traverse them all, shortening strDate and dateSpanLen
+		// after each field is handled)
+		
+		// First loop
+		for (index = 0; index < dateSpanLen && separatorCount == 0; index++)
+		{
+			// We are in the first field of the date
+			aChar = strDate.GetChar(index);
+			// What is aChar? Either Ansi character, or theSeparator, or if neither, it's a malformed
+			// date so return -1
+			if (IsAnsiDigit(aChar))
+			{
+				charCount++;
+			}
+			else
+			{
+				// Not a digit, so might be theSeparator character, or the date is malformed
+				offset = legal_separators.Find(aChar);
+				if (offset >= 0)
+				{
+					// It's a legal separator, so set theSeparator etc
+					theSeparator = aChar;
+					charCount++;
+					separatorCount = 1;
+					break; // this first loop is finished
+				}
+				else
+				{
+					// Not a legal separator, so is a malformed date, return -1
+					return -1;
+				}
+			}
+		} // end of first loop, with test: for (index = 0; index < dateSpanLen && separatorCount == 0; index++)
+
+		// Prepare for the middle loop - for the month - whether year is first or last. This is field 2
+		strDate = strDate.Mid(charCount);
+		dateSpanLen = strDate.Length();
+		index = 0;
+		charCount = 0;
+
+		// Second loop
+		for (index = 0; index < dateSpanLen && separatorCount == 1; index++)
+		{
+			// We are in the 2nd field of the date
+			aChar = strDate.GetChar(index);
+			// What is aChar? Either Ansi character, or theSeparator, or if neither, it's a malformed
+			// date so return -1
+			if (IsAnsiDigit(aChar))
+			{
+				charCount++;
+			}
+			else
+			{
+				// Not a digit, so might be theSeparator character, or the date is malformed
+				if (aChar == theSeparator)
+				{
+					// It's the same and legal separator, so this 2nd loop is finished & valid
+					// provided charCount is not more than 3, if so, it's malformed
+					charCount++;
+					if (charCount > 3)
+					{
+						// Can't have a month (English format) or day (American format) of 
+						// 4 or more chars (including the separator)
+						return -1;
+					}
+					separatorCount++; // now equals 2
+					break; // this 2nd loop is finished, successfully
+				}
+				else
+				{
+					// Notthe same separator, so is a malformed date, return -1
+					return -1;
+				}
+			}
+		} // end of the second loop for test: for (index = 0; index < dateSpanLen && separatorCount == 1; index++)
+
+		// Prepare for the 3rd and final loop
+		wxChar lastChar; // set this for each iteration, so when we exit we can verify that it's an ANSI digit
+		strDate = strDate.Mid(charCount);
+		dateSpanLen = strDate.Length();
+		index = 0;
+		charCount = 0;
+		offset = strDate.Find(theSeparator);
+		if (offset >= 0)
+		{
+			// Error, there can't be 3 or more separators in a valid date
+			return -1;
+		}
+
+		// Third loop
+		for (index = 0; index < dateSpanLen && separatorCount == 2; index++)
+		{
+			// We are in the last (3rd) field of the date
+			aChar = strDate.GetChar(index);
+			// What is aChar? Either Ansi character, or theSeparator, or if neither, it's a malformed
+			// date so return -1
+			if (IsAnsiDigit(aChar))
+			{
+				charCount++;
+				lastChar = aChar;
+			}
+			else
+			{
+				// Not a digit, so must be whitespace, or the date is malformed
+				if (IsWhiteSpace(&aChar))
+				{
+					// It's the same and legal separator, so this 2nd loop is finished & valid
+					// provided charCount is 1 or 2, if more, it's malformed
+					break; // this 2nd loop is finished, successfully
+				}
+				else
+				{
+					// Not a whitespace character, so is a malformed date, return -1
+					return -1;
+				}
+			}
+		} // end of the third loop, for test: for (index = 0; index < dateSpanLen && separatorCount == 2; index++)
+		// Check that the lastChar is an Ansi digit, if not, the date is malformed
+		if (!IsAnsiDigit(lastChar))
+		{
+			return -1;
+		}
+		dateSpanLen = nSaveOriginalLength;
+	} // end of TRUE block for test: if (IsAnsiDigit(*pChar))
+	else
+	{ 
+		//pChar does not point at a digit, return -1
+		return -1;
+	}
+	return dateSpanLen;
 }
 
 // BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
@@ -34873,12 +35060,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// Now it's safe to call ParseAWord()
 //					wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 					{
 						wxString pointsAt = wxString(ptr, 4);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 0)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -34890,7 +35077,21 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// bits as units. 
 					if (IsAnsiDigit(*ptr))
 					{
-						strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
+						// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
+						// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
+						int dateLen;
+						dateLen = ParseDate(ptr, pEnd); // if error, returns -1, okay if dateLen is +ve
+						bool bValidDate;
+						bValidDate = dateLen > 0 ? TRUE : FALSE;
+						if (bValidDate)
+						{
+							strWord = wxString(ptr, dateLen);
+						}
+						else
+						{
+							// Call this instead
+							strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
+						}
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 12);

@@ -372,6 +372,8 @@ public:
 	wxChar*			ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts);
 	bool			IsGenuineFollPunct(wxChar chPunct); // BEW 7Jun23 created, for use in ParsePostWordPuncts() in ParseWord()
 	void			CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, int& nBad); // BEW 7Jun23 created, for use in ParsePostWordPuncts()
+	int				ParseDate(wxChar* pChar, wxChar* pEnd); // BEW added 16Jun23 for parsing data like 02/26/01 or 02/26/2001, or 2010/05/24 etc.
+	int				ScanToWhiteSpace(wxChar* pChar, wxChar* pEnd); // BEW 16Jun23 added, for use in ParseDate
 
 	wxString		RemoveEndMkrsFromExtras(wxString extras); // BEW added 4May23
 	bool			Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhrase, wxString extras, 
