@@ -24274,14 +24274,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 11Oct10, we need this fast-access string for improving punctuation support when
     // inline markers are in the immediate context (since endmarkers for inline markers
     // should be handled within ParseWord(), we'll have two strings
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
-    m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\fig* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
+    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
     m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     // BEW 31May23, before this date, checking for the matching end marker was done as a hack, better to have the above set as its own set of ending ones
-    m_inlineBindingEndMarkers = _T("\\add* \\bk*  \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    m_inlineBindingEndMarkers = _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
     
     //OLDm_charFormatMkrs = _T("\\qac \\qs \\nd \\tl \\dc \\bk \\pn \\k \\no \\bd \\it \\bdit \\em \\sc \\png \\addpn \\sup \\nd \\+nd "); // BEW 1May23 added \fk , on 30May moved it to m_RedBeginMarkers
     // and the end marker forms
@@ -24314,9 +24314,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\fig* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
     
-	m_BlueBeginMarkers = _T("\\c \\v \\m \\ca \\va \\vp \\sls \\qt \\wj \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
+	m_BlueBeginMarkers = _T("\\c \\v \\m \\ca \\va \\vp \\sls \\wj \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
 
-	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\qt* \\wj* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
+	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\wj* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
 
     // BEW 29May23 some of these next markers are rare, but would be stored in m_markers if present in the input source text
 	m_EmbeddedIgnoreMarkers = _T("\\fe \\fr \\fq \\fqa \\fk \\fl \\fw \\fp \\fv \\ft \\fdc \\fm \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc "); // never called
@@ -24332,7 +24332,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_verseTypeEndMkrs = _T("\\wj* \\tl* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
     m_listTypeMkrs = _T("\\lh \\li1 \\li2 \\li3 \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 ");  // BEW 14Jun23 added, only need beginMkrs
 	m_poetryTypeMkrs = _T("\\q \\qt \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd ");
-	m_poetryTypeEndMkrs = _T("\\qt* \\qs* \\qac* ");
+	m_poetryTypeEndMkrs = _T("\\qs* \\qac* ");
 	m_sectionHeadMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 ");
 	m_mainTitleMkrs = _T("\\imt \\imt1 ");
 	m_secondaryTitleMkrs = _T("\\imt2 \\imt3 \\imt4 ");
