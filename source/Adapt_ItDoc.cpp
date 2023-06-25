@@ -412,6 +412,7 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_strSpace = _T(" ");
 	m_asterisk = _T('*');
 	m_barChar = _T('|');
+	m_strInitialPuncts = wxString::FromUTF8("“‘\"[(<{«¿¡—");
 
 	// WX Note: Nearly all Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
@@ -16966,6 +16967,22 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 	wxString aMkr = wxEmptyString;
 	bool bIsInlineBeginMkr = FALSE;
 
+	// BEW 24Jun23, control getting to this point with bIsInlineNonbindingMkr TRUE is not much tested
+	// because few are the markers of that set; \sls or \+sls use used much in some docs, where a second
+	// language of the OT is used in the NT (somtimes in footnote, but can be elsewhere). Earlier, these
+	// begin markers will have been lookedup, and stored in m_inlineNonbindingMarkers of pSrcPhrase. ptr
+	// will have been moved on, and no longer points at the marker. The test:if (bIsInlineNonbindingMkr)
+	// is TRUE, the legacy block at 16998 will be entered, LookupUSFM() called at a non-mkr location, and
+	// would crasth the app. So a bit of preventive code is needed here.
+	if (bIsInlineNonbindingMkr)
+	{
+		// check ptr is pointing at the backslash of a marker, if not, reset the boolean to FALSE
+		if (*pChar != gSFescapechar)
+		{
+			bIsInlineNonbindingMkr = FALSE;
+		}
+	}
+
 	if (bIsInlineNonbindingMkr)
 	{
 		// BEW 30Sep19 bleed out the \fig special case
@@ -17037,7 +17054,13 @@ int CAdapt_ItDoc::ParsePreWord(wxChar* pChar,
 			// or not the marker content is to be filtered out, and inform and navigationText are empty.
 			// The app's Preferences.. Filtering & USFM page shows the setting for \jmp
 			gpApp->m_bIsEmbeddedJmpMkr = FALSE; // initialize
-
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 6)
+			{
+				int halt_here = 1;
+				wxUnusedVar(halt_here);
+			}
+#endif
 			pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
 			// In the release version, force a document creation error, and hence a halt with a warning
@@ -18588,7 +18611,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("TokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s   (next 15 chars)"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 7)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -18794,6 +18817,41 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// If found, skip it
 			ptr++;
 		}
+#if defined (_DEBUG) //&& !defined(NOLOGS) // && defined (LOGMKRS)
+		wxString mypointsAt = wxString(ptr, 15);
+		wxLogDebug(_T("\nTokText line %d pointsAt= %s in TokenizeText(), sn= %d , bWithinAttrSpan= %d"),
+			__LINE__, mypointsAt.c_str(), pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
+		if (pSrcPhrase->m_nSequNumber >= 2)
+		{
+			int halt_here = 1;
+		}
+#endif
+
+		// 25Jun23 Handle  ".... pe. (“Kokata ...." here, otherwise, ParsePreWord will swallow
+		// '(', leaving ParseWord() to handle “Kokata -- to an inevitable fail because a preceding
+		// punct will halt ParseAWord() - and ptr will not advance (it asserts in _DEBUG mode)
+		// resulting in an infinite loop till crash. So here, handled the (“ pair, parsing over etc
+		bool b2ndIsPunct;
+		b2ndIsPunct = FALSE; // init
+		b2ndIsPunct = IsPunctuation(ptr + 1);
+		if (*ptr == _T('(') && b2ndIsPunct)
+		{
+			// Okay, but not just any punct. It needs to be a beginning punct
+			int offset = -1;
+			offset = m_strInitialPuncts.Find(*(ptr + 1));
+			if (offset >= 0)
+			{
+				// It's a beginning punct, so we must parse over it so ParseAWord won't choke
+				wxChar* pAux = (ptr + 1);
+				wxChar chAtAux = *pAux; // which begin-punct in “‘\"[(<{«¿¡—  is being pointed at
+				pSrcPhrase->m_precPunct << _T('(');
+				pSrcPhrase->m_precPunct << chAtAux;
+				// at this point, m_key and m_srcPhrase should still be empty; values will be
+				// added in ParseWord() and m_precPunct used there to prefix to m_srcPhrase
+				ptr += 2; // advance ptr to point past the "(“" 2-char substring
+				itemLen = 0;
+			}
+		}
 
 		// BEW 7Oct22 we need to support [ bracket here in TokenizeText() because
 		// that function deals with all the pre-word material, including open bracket, [
@@ -18811,14 +18869,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// we've come to an opening bracket, [
 			wxChar chOpenBracket = *ptr; // temp store the [ character
 
-#if defined (_DEBUG) && !defined(NOLOGS) // && defined (LOGMKRS)
-			if (pSrcPhrase->m_nSequNumber >= 0 && pSrcPhrase->m_nSequNumber <= 7)
-			{
-				int halt_here = 1;
-			}
-			wxLogDebug(_T("\n%s::%s() line %d pointing at [ in TokenizeText(), sn= %d , bWithinAttrSpan= %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
-#endif
+
 			// BEW 6Oct22, refactoring, so that we don't have an isolate [ on a pile, unless
 			// there is at least one space following it (we ignore extras if present, they are
 			// of no value to the document parsing)
@@ -19199,11 +19250,76 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// We have found a beginMkr, but it is not \v (could be \li1 or \q1 or \p etc)
 								tokBuffer += aWholeMkr;
 								ptr += awholemkrlen;
-								nWhiteLen = ParseWhiteSpace(ptr);
-								strWhites = wxString(ptr, nWhiteLen);
-								tokBuffer += strWhites;
-								ptr += nWhiteLen;
-							}
+#if defined (_DEBUG)
+								{
+									wxString strPointAt = wxString(ptr, 15);
+									wxLogDebug(_T("TokTxt() line  %d , indentLevel 7 , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] , 2ndLookup wholeMkr=[%s]"),
+										__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str(), aWholeMkr.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 6) // for verse 1
+									{
+										int halt_here = 1;
+									}
+								}
+#endif
+								// BEW 23Jun23, ptr will now be pointing at the whitespace (space or newline) after aWholeMkr, 
+								// (ptr + 1) could be the start of: \v number text, or could be a '[' bracked followed by text.
+								// The \v next scenario is most likely, so handle first. If not \v, then try the '[' option.
+								wxChar* auxPtr = ptr;
+								wxChar chAtAuxPtr = *auxPtr;
+								if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n')) &&
+									*(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+								{
+									// A verse marker follows either space or newline; so put the whitespace 
+									// into tokBuffer and update ptr, and 
+									nWhiteLen = ParseWhiteSpace(ptr);
+									strWhites = wxString(ptr, nWhiteLen);
+									tokBuffer += strWhites;
+									ptr += nWhiteLen;
+									// if (IsVerseMarker(ptr, nMkrLen)) below will parse further
+								}
+								else
+								{
+
+									// E.g Control may get here in the following scenarios; ptr was pointing at:
+									//    \p \v verseNum <text>  or  \p <newline> \v verseNum <text> -- handled in TRUE block above
+									//    \p [Aepo e'i remẽ, e'i.  etc ....]  -- handle here
+									// Prior to this refactor, the closing ]  showed up in the layout, the [ got lost
+									wxChar* pAux = ptr;
+									wxChar chSecond = *(pAux + 1);
+									wxChar chThird = *(pAux + 2);
+									int anoffset = wxNOT_FOUND;
+									int anItemLen; anItemLen = 0;
+									anoffset = spacelessPuncts.Find(chThird);
+									if ((chSecond == _T('[') || chSecond == _T('(')) && !IsWhiteSpace(pAux + 2) && anoffset == wxNOT_FOUND && chThird != gSFescapechar)
+									{
+										wxString whichWhite = *ptr; // could  be space or newline
+										wxString strExtras = whichWhite + chSecond; // we parse only past the '[' or '('
+										if (!tokBuffer.IsEmpty())
+										{
+											tokBuffer << whichWhite;
+											pSrcPhrase->m_markers += tokBuffer; // make sure any content is not lost
+											tokBuffer.Empty();
+										}
+										// We want to store the [ or ( as preceding punctuation, so that ParseWord() can
+										// later pull it out and show it preceding the word which follows
+										pSrcPhrase->m_precPunct << chSecond;
+										// update ptr, since we've parsed over a white and a [
+										anItemLen += 2;
+										ptr += anItemLen;
+										break; // from the inner loop, to hasten getting to ParseWord()
+									}
+									else
+									{
+										// Add the whitespace(s) to tokBuffer,  and update ptr to point past the whites,
+										// staying in the inner loop
+										nWhiteLen = ParseWhiteSpace(ptr);
+										strWhites = wxString(ptr, nWhiteLen);
+										tokBuffer += strWhites;
+										ptr += nWhiteLen;
+									}
+
+								}
+							} // end of TRUE block for test: if (offset == wxNOT_FOUND)
 							else
 							{
 								// we have found a \v marker
@@ -19393,27 +19509,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// the lookup and used, likewise, if its an endmarker, * will be removed
 					// as well. However, we should only be encountering legacy content
 					// begin-markers here in TokenizeText()
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+					wxString strPointAt = wxString(ptr, 15);
+					wxLogDebug(_T("TokTxt() line  %d , indentLevel 4 , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] else block, call LookupSFM"),
+						__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 5)
+					{
+						int halt_here = 1;
+					}
+#endif
 					// BEW 30Sep19 the lookup now returns a pUsfmAnalysis modified for
 					// the ptr being at a \fig marker: modifications are:
 					// 'special' set to TRUE, 'bdryOnLast' set TRUE, 'inform' set TRUE,
 					// and navigationText set to _T("illustration")
 					pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-#if defined (_DEBUG) //&& !defined(NOLOGS)
-					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
-//					wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
-					if (pSrcPhrase->m_nSequNumber >= 6)
-					{
-						int halt_here = 1;
-					}
-#endif
-#if defined (_DEBUG)
-					{
-						wxString strPointAt = wxString(ptr, 15);
-						wxLogDebug(_T("TokTxt() line  %d , indentLevel 4 , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] else block, call LookupSFM"),
-							__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str());
-					}
-#endif
-
 //					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
 					// whm revised this block 11Feb05 to support USFM and SFM Filtering. When
@@ -19472,8 +19581,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str(), wholeMkr.c_str());
 					}
 #endif
-
-					// BEW 17Apr23 Nyindrou Luke 24:39-40 has a '[' after the end of berse 39's text,
+					// BEW 17Apr23 Nyindrou Luke 24:39-40 has a '[' after the end of verse 39's text,
 					// and before the line which starts \v 40. What occurs there is \p<space>[\n\v 40 Eme..."
 					// The sequence beginMkr<space[\n\v does not currently parse, so we want to handle a
 					// beginMkr followed by space followed by [ followed by newline and then a gSFescapechar,
@@ -19524,7 +19632,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// if (nPunctsSpan > 0) TRUE block below, count any whitespaces after ptr is updated, and 
 							// append them too
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1;
 							}
@@ -19551,7 +19659,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pSavedPtr = ptr; // if no entry to above block, this won't have moved in value
 #if defined (_DEBUG)
 						{
-							if (pSrcPhrase->m_nSequNumber >= 6) // for verse 1
+							if (pSrcPhrase->m_nSequNumber >= 2) // for verse 1
 							{
 								int halt_here = 1;
 							}
@@ -19579,7 +19687,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 15);
 						wxLogDebug(_T("TokTxt() line  %d , indentLevel 7 , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] , 2ndLookup wholeMkr=[%s]"),
 							__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str(), wholeMkr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 6) // for verse 1
+						if (pSrcPhrase->m_nSequNumber >= 2) // for verse 1
 						{
 							int halt_here = 1;
 						}
@@ -19609,7 +19717,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											pSrcPhrase->m_key = _T("[");
 											pSrcPhrase->m_srcPhrase = _T("[");
 											anItemLen += 2;
-											// don't put [ in pSrcPhase->m_follPunct, as we'd cause doubling of [
+											// don't put [ in pSrcPhase->m_follPunct or m_precPunct, as we'd cause doubling of [
 											ptr += anItemLen;
 											bContinueTwice = TRUE;
 											if (*(pAux + 2) == gSFescapechar)
@@ -21274,7 +21382,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 		//	__LINE__, itemLen, (wxString(ptr, 12)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
 #endif
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 11)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -22769,11 +22877,8 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 }
 bool CAdapt_ItDoc::IsGenuineFollPunct(wxChar chPunct)
 {
-	wxString strInitialPuncts = _T("“‘\"[(<{«¿¡—");
 	int offset = wxNOT_FOUND;
-#if defined (_DEBUG)
-	wxASSERT(strInitialPuncts.Length() == 20);
-#endif
+	offset = m_strInitialPuncts.Find(chPunct);
 	if (offset == wxNOT_FOUND)
 	{
 		return TRUE;
@@ -23082,13 +23187,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 		} // end of else block for test: if (offset == wxNOT_FOUND)
 
 	} // end of TRUE block for test: if (*ptr = gSFescapeChar)
-#if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 7)
-	{
-		int halt_here = 1;
-		wxUnusedVar(halt_here);
-	}
-#endif
+
 	// Now ptr points at one of these options (longest first, shortest last):
 	// 1. One or more substrings of type: space + punct(s)
 	// 2. A mix of undetached puncts and substrings of type: space + punct(s)
@@ -23096,10 +23195,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 	//    m_precPunct on next pSrcPhrase)
 	// 4. A whitespace (or newline, or gSfescapechar) preceding which, ptr should be returned to ParseWord(), 
 	//    for the caller to initiate returning len to start off a new pSrcPhrase
-	wxString strInitialPuncts = _T("“‘\"[(<{«¿¡—");
-#if defined (_DEBUG)
-	wxASSERT(strInitialPuncts.Length() == 20);
-#endif
+
 	// Start with 1. above
 	int numSpaces;
 	int numEndPuncts;
@@ -23152,14 +23248,47 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 					// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
 					// at this iteration; so do the stores and updates and continue looping - a detached punct
 					// may follow - keep looping until ptr does not advance
+#if defined (_DEBUG)
+					if (pSrcPhrase->m_nSequNumber >= 1)
+					{
+						int halt_here = 1;
+						wxUnusedVar(halt_here);
+					}
+#endif
+
 					pSrcPhrase->m_follPunct += strEndPuncts;
 					pSrcPhrase->m_srcPhrase += strEndPuncts;
-					bIterateAgain = TRUE; // ensure we iterate this inner loop
+					//bIterateAgain = TRUE; // ensure we iterate this inner loop
 					itemSpan = numEndPuncts;
 					itemLenAccum += itemSpan; // we are not exiting the function, so keep accumulating itemSpans
 					pAux += itemSpan;					
 					ptr = pAux; // prepare for next iteration, as we set pAux to ptr at start of each iteration,
 								// and itemSpan reset to 0 there too
+					// BEW 22Jun23 if what followed the word, and the just parsed following punct(s), is whitespace
+					// following by punctuation which is in strInitialPuncts - and therefore is beginning punct for
+					// the next pSrcPhrase, determine if ptr is pointing at a whitespace, and (ptr + 1) points at
+					// something in strInitialPuncts, or something not a punct char.
+					// If so, break from the loop without advancing ptr, and ptr will be immediately returned
+					{ // scoping block
+						int myOffset = wxNOT_FOUND;
+						wxChar* pNext = (ptr + 1); // what's pNext pointing at?
+						wxChar chAtNext = *pNext;
+						myOffset = m_strInitialPuncts.Find(chAtNext);
+						bool bNextIsPunct = IsPunctuation(pNext); // 2nd param bIsSource is default TRUE
+						// 1st subtest TRUE if pNext belongs on next pSrcPhrase, 2nd TRUE if pNext is something other 
+						// than punctuation - such as the first char of the next word to be parsed
+						if (myOffset >= 0 || !bNextIsPunct) 
+						{
+							// if either is true, we are done parsing post word puncts
+							bIterateAgain = FALSE;
+							itemLen = itemLenAccum;
+							break; // from the loop
+						}
+						else
+						{
+							bIterateAgain = TRUE; // keep looping
+						}
+					}
 				} // end of TRUE block for test: if (numEndPuncts == numGoodOnes)
 				else
 				{
@@ -23302,11 +23431,6 @@ void CAdapt_ItDoc::CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, i
 	nBad = 0;
 	int index;
 	int numEndPuncts = strEndPuncts.Length();
-	wxString strInitialPuncts = _T("“‘\"[(<{«¿¡—");
-	//int initLen = strInitialPuncts.Length(); this returned a length of 20
-#if defined (_DEBUG)
-	wxASSERT(strInitialPuncts.Length() == 20);
-#endif
 	for (index = 0; index < numEndPuncts; index++)
 	{
 		wxChar chIter = strEndPuncts.GetChar(index);
@@ -35138,7 +35262,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 4);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 0)
+						if (pSrcPhrase->m_nSequNumber >= 1122)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -35148,7 +35272,22 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// our parser were allowed to parse such things, we'd get a mess: 4:17 would end up as two piles, first with
 					// "4::" and the second with "17"  and a range would be worse! So I've made a function to treat these data
 					// bits as units. 
-					if (IsAnsiDigit(*ptr))
+					// BEW 22Jun23 beware, book abbrevions like 3John, 2Sa. 1Cor, etc all begin with a digit, but must be
+					// parsed with ParseAWord(), so need to add to the test here to suppress entry when (ptr + 1) is neither
+					// punctuation, whitespace, not a digit
+					bool bNextIsPunct; bool bNextIsWhite; bool bNextIsDigit;
+					bNextIsPunct = FALSE; bNextIsWhite = FALSE; bNextIsDigit = FALSE; // initialisations
+					wxChar* pNext = (ptr + 1);
+					int myOffset = wxNOT_FOUND; // init
+					myOffset = spacelessPuncts.Find(*pNext);
+					bNextIsPunct = myOffset >= 0 ? TRUE : FALSE;
+					bNextIsWhite = IsWhiteSpace(pNext);
+					bNextIsDigit = IsAnsiDigit(*pNext);
+					// If all three booleans are FALSE, then pNext is pointing at alphabetic src data - use ParseAWord() to parse here
+					bool bSuppressEntry;
+					bSuppressEntry = !bNextIsDigit && !bNextIsWhite && !bNextIsDigit;
+
+					if (IsAnsiDigit(*ptr) && !bSuppressEntry)
 					{
 						// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
 						// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
@@ -35287,12 +35426,8 @@ wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__
 											// However, if there's no intervening space, so that the following
 											// punct(s) abutt the word proper, then we'll allow more than one
 											// to follow.
-											wxString strInitialPuncts = _T("“‘\"[(<{«¿¡—");
-#if defined (_DEBUG)
-											wxASSERT(strInitialPuncts.Length() == 20);
-#endif
 											int offset3 = wxNOT_FOUND;
-											offset3 = strInitialPuncts.Find(chNext);
+											offset3 = m_strInitialPuncts.Find(chNext);
 											if (offset3 != wxNOT_FOUND)
 											{
 												// chNext is actually a beginning punctuation character, so return here;
@@ -35358,12 +35493,8 @@ wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__
 												follPunctsLen = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);
 												strFollPuncts = wxString(pAux, follPunctsLen);
 
-												wxString strInitialPuncts = _T("“‘\"[(<{«¿¡—");
-#if defined (_DEBUG)
-												wxASSERT(strInitialPuncts.Length() == 20);
-#endif
 												int offset3 = wxNOT_FOUND;
-												offset3 = strInitialPuncts.Find(chNext);
+												offset3 = m_strInitialPuncts.Find(chNext);
 												if (offset3 != wxNOT_FOUND)
 												{
 													// chNext is actually a beginning punctuation character, so return here;
@@ -35499,7 +35630,7 @@ wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__
 							wxString pointsAt = wxString(ptr, 15);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 7)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -35579,13 +35710,30 @@ wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= %s , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, 
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 7)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						// Check m_bVerse is TRUEat this location, so CPile::DrawNavTextAndIcons(wxDC* pDC) will set m_inform at a \v pSrcPhrase
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
+				// BEW 23Jun23 added test, so that before calling ParsePostWordPuncts in the situation where
+				// ptr points at whitespace after setting up the m_key and m_srcPhrase values by code above
+				// this point, and after the whitespace is a character which is a preceding punctuation for the
+				// next pSrcPhrase, then the start of the whitespace is the right place to force the new pSrcPhrase
+				// by returning len here. This will fix the following problem. Input src text:  Sakaria “aju”
+				// And if ParsePostWordPuncts() gets to work on that pair, we end up with two pSrcPhrases as follows:
+				//  Sakaria““ aju”   which is quite wrong.
+				wxChar* pNext; wxChar chNext; int anoffset;
+				pNext = (ptr + 1); chNext = *pNext; anoffset = wxNOT_FOUND;
+				anoffset = m_strInitialPuncts.Find(chNext);
+				if (ptr < pEnd && IsWhiteSpace(ptr) && anoffset >= 0)
+				{
+					// Then at the start of the whitespace which ptr points at, is where TokText should begin
+					// the next pSrcPhrase
+					return len;
+				}
+
 				ptr = ParsePostWordPuncts(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
 				len += itemLen;
 wxLogDebug(_T("LEN+PTR line %d , RefLen 13: len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
@@ -43036,8 +43184,16 @@ bool CAdapt_ItDoc::IsDetachedWJtype_endMkr_Ahead(wxChar* pChar, wxChar* pEnd, in
 	return bIsAhead;
 }
 
-// BEW 25Oct22 pChar should be a digit, parse over things like 4:17, or 5:4-9. but
+// BEW 25Oct22 pChar should be a digit, parse over things like 4:17, or 5:4-9. but perhaps
 // do not include the final . of 5:4-9.  (Use primarily in footnotes in the input text)
+// BEW 22Jun23 need to allow for more complexity after the chapVerse parse, which needs to be
+// included in the parse. In 43LUKCuc.SFM from Franscisco there is, within a \x ... \x* span
+// (I have to parse it, even if it is default filtered out) the following source data sequence:
+// \xo 1.32-33 \xt 2Sa. 7.12-13,16; Isa. 9.7\x*
+// All of that is handleable with present code, except the ",16;" substring after 7.12-13
+// So I'll have to include some code at the end of ParseChVerseUnchanged to detect when a punct
+// followed by more digits occurs, and when detected, parse the substring until end of the extra
+// digits, and then finish off any subsequent puncts finish at a whitespace. Here goes...
 wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd)
 {
 	wxChar* ptr = pChar;
@@ -43393,6 +43549,39 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 		} // end of TRUE block for test: if (bIsRangeChar2)
 
 	} // end of else block for test: if (bIsRangeChar)
+	// BEW 22Jun23 extra code for an additional digit substring separated from chvsStr by a punctuation char
+	// First, the test:
+	wxString strExtra = wxEmptyString;
+	bool bNextIsPunct = FALSE; // init
+	int offset = wxNOT_FOUND; // init
+	wxChar aChar = *ptr; // is aChar a punctuation character?
+	offset = spacelessPuncts.Find(aChar);
+	bNextIsPunct = offset >= 0 ? TRUE : FALSE;
+	if (ptr < (pEnd - 4) && bNextIsPunct && IsAnsiDigit(*(ptr + 2)))
+	{
+		// There is extra material to parse and append to the chvrStr value. This is a very rare situation,
+		// and probably it is enough just to find a following whitespace, measure the span, create strExtra
+		// and append it.
+		wxChar* pAux = ptr;
+		wxChar spaceChar = _T(' ');
+		int counter = 0;
+		while (*pAux != spaceChar)
+		{
+			pAux++;
+			counter++;
+		}
+		strExtra = wxString(ptr, counter);
+		
+		// Puncts parsed over by the above do not get stored separately in pSrcPhrase puncts storage,
+		// they are a part of the chvsStr, and if the user wanted to change them, a reparse of the source
+		// document would be necessary
+		if (!strExtra.IsEmpty())
+		{
+			chvsStr << strExtra;
+			// update ptr 
+			ptr += counter;
+		}
+	} // end of the TRUE block for test: if (ptr < (pEnd - 4) && bNextIsPunct && IsAnsiDigit(*(ptr + 2)))
 
 	return chvsStr;
 }
