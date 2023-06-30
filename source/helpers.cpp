@@ -7076,7 +7076,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 0)
+	if (pSingleSrcPhrase->m_nSequNumber >= 11)
 	{
 		int halt_here = 1;
 	}

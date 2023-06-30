@@ -273,6 +273,7 @@ public:
 	bool			m_bWmkrAndHasBar; // BEW 12Sep22 added, to save value returned by IsWmkrWithBar(wxChar* ptr), used with caching some USFM 3 stuff
 	wxString		m_strInitialPuncts; // BEW 23Jun23 a set of 11 pre-word punctuation chars, taken from spacelessPuncts to
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
+	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
