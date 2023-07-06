@@ -468,7 +468,7 @@ public:
 	bool&           bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
 	bool			IsEndMarker(wxChar* pChar, wxChar* pEnd);
 	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
-	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
+	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase, wxString& typeChangingEndMkr); // BEW 3Jul23 added 2nd arg
 	wxChar			FindWordBreakChar(wxChar* ptr, wxChar* pBufStart);
 	bool			IsInLineMarker(wxChar* pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar* pChar, wxChar* pEnd); // whm added 10Feb05
