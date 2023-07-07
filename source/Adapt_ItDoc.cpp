@@ -44008,6 +44008,9 @@ wxString CAdapt_ItDoc::GetLastBeginMkr(wxString mkrs)
 			return wxEmptyString;
 		}
 	}
+	// whm 6Jul2023 GCC has warning flag that in this function "control reaches end of non-void function" so
+	// I'm adding a return wxEmptyString statement here at end of function.
+	return wxEmptyString;
 }
 
 // BEW 5Dec22 I want a quick way, for use in ParseWord() when checking out post-word punctuation,
