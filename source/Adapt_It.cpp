@@ -24314,9 +24314,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
     
-	m_BlueBeginMarkers = _T("\\v \\m \\ca \\va \\vp \\sls \\wj \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
+	m_BlueBeginMarkers = _T("\\v \\m \\ca \\va \\vp \\sls \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
 
-	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\wj* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
+	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
 
     // BEW 29May23 some of these next markers are rare, but would be stored in m_markers if present in the input source text
 	m_EmbeddedIgnoreMarkers = _T("\\fe \\fr \\fq \\fqa \\fk \\fl \\fw \\fp \\fv \\ft \\fdc \\fm \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc "); // never called
