@@ -972,6 +972,18 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		bstr += btemp; // add flags string
 		bstr += "\" sn=\"";
 		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+
+#if defined (_DEBUG)
+		// whm 7Jul2023 testing
+		if (m_nSequNumber == 88)
+		{
+			int haltHere;
+			haltHere = -1;
+			haltHere = haltHere;
+		}
+		// whm 7Jul2023 testing
+#endif
+
 		tempStr << m_nSequNumber;
 		numStr = gpApp->Convert16to8(tempStr);
 		bstr += numStr; // add m_nSequNumber string

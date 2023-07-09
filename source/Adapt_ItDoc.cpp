@@ -18599,6 +18599,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString pointsAt = wxString(ptr, 20);
 		wxLogDebug(_T("\n\nTokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
+
+		// whm 7Jul2023 testing
+		if (pSrcPhrase->m_nSequNumber == 88)
+		{
+			int haltHere = -1;
+			haltHere = haltHere;
+		}
+		// whm 7Jul2023 testing
+
 		if (pSrcPhrase->m_nSequNumber >= 15)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
@@ -37590,7 +37599,21 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 						// It's not an endMkr, so must be a beginMkr, so return len to TokenizeText()
 						// BEW 5Jan22 if ptr points at not space, but newline, that should be good reason
 						// to return len here too
-						if (*ptr == _T(' ') || *ptr == _T('\n'))
+						// whm 7Jul2023 detected faulty logic in commented out if test below. The end-of-line
+						// sequence for the Windows platform is \r\n and not simply \n. Hence the original test
+						// below that only tests for \n will not adequately test of an EOL sequent on Windows.
+						// In the Nyindrou Matthew SFM input file the line endings regularly have \r\n, and the
+						// original test didn't return len at this point in code execution when parsing reaches
+						// an EOL. This later causes some extraneous characters and final punctuation to be 
+						// embedded within the xml document. For example, at sn 88 in the Nyindrou matthew SFM
+						// input file the ptr is pointing at "\r\n..." following the parsed word "kandrah."
+						// By adding the \r to the test below the ParseWord() function returns with a length of
+						// 8 here below, rather than continuing on to about line 39740 where a wxString named 
+						// theWord is created at the pointer with length1 of 10 which ends up making the m_srcPhrase
+						// member become "kandrah.\r\n" and later it becomes "kandrah.\r\n." instead of what it
+						// should be "kandrah."
+						//if (*ptr == _T(' ') || *ptr == _T('\n'))
+						if (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r'))
 						{
 							return len;
 						}
