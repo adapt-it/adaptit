@@ -19870,7 +19870,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 15);
 						wxLogDebug(_T("TokTxt() line  %d , indentLevel 4 , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] , On to ParsePreWord"),
 							__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 6) // for verse 1
+						if (pSrcPhrase->m_nSequNumber >= 2) // for verse 1
 						{
 							int halt_here = 1;
 						}
@@ -21519,7 +21519,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 			wxLogDebug(_T("\nTokText() AFTER PARSEWORD, line %d : sequNum = %d , itemLen= %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_markers=%s"),
 				__LINE__,(int)pSrcPhrase->m_nSequNumber, itemLen, (int)pSrcPhrase->m_bSpecialText, 
 				(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 13)
+			if (pSrcPhrase->m_nSequNumber >= 11)
 			{
 				int halt_here = 1;
 			}
@@ -21571,10 +21571,13 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					// is needed in the rebuild. Today I added support for pSrcPhrase->m_oldKey to the document's xml. 
 					// So here I need to store pSrcPhrase->m_key in pSrcPhrase->m_oldKey
 					pSrcPhrase->m_oldKey = pSrcPhrase->m_key;
-
 #if defined (_DEBUG)
-//					wxLogDebug(_T("TokenizeText(), line %d : Not Merger: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d"),
-//						__LINE__, strWordAndExtras.c_str(), aSequNum, (int)bTokenizingTargetText);
+					wxLogDebug(_T("TokenizeText(), line %d : Not Merger: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d , m_oldKey= [%s]"),
+						__LINE__, strWordAndExtras.c_str(), aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 11)
+					{
+						int halt_here = 1;
+					}
 #endif
 				}
 			} // end of TRUE block for test: if (itemLen > 0 && bTokenizingTargetText == FALSE)
@@ -23314,7 +23317,7 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 
 // BEW 7Jun23 created next, for parsing final puncts, which may be all or some detached by preceding
 // whitespace(s), and getting to the puncts may require parsing first over one or more inlineBindingEndMarkers
-wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts)
+wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd, CSourcePhrase* pSrcPhrase, int& itemLen, wxString spacelessPuncts)
 {
 	// pChar comes in, pointing at the first wxChar following whatever ParseAWord() parsed over, and the caller will have
 	// a len value which is not zero. We parse over binding endMkr if present, then over puncts (detached or not) - and there
@@ -23359,19 +23362,13 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 	// 3. Punctuation character(s) - may be more than one in sequence, but usually one; or the same but following the endMkr of 2.
 	if (*ptr == gSFescapechar)
 	{
-		// the marker at ptr has to be only an endMkr, belonging to the m_charFormatEndMkrs set. It we can't find it there, return
-		// ptr without having moved, and itemLen 0
+		// the marker at ptr may be an endMkr, belonging to the m_charFormatEndMkrs set. 
 		wholeMkr = GetWholeMarker(ptr);
 		wxASSERT(!wholeMkr.IsEmpty());
 		augWholeMkr = wholeMkr + space;
 		offset = pApp->m_charFormatEndMkrs.Find(augWholeMkr);
-		if (offset == wxNOT_FOUND)
-		{
-			// it's not an inline binding end marker, so the caller will need to handle it
-			itemLen = 0;
-			return ptr; // no movement has taken place
-		}
-		else
+		//if (offset == wxNOT_FOUND)
+		if (offset >= 0)
 		{
 			// It's an inline binding end marker, so parse over it, and store in the pSrcPhrase->m_inlineBindingEndMarkers
 			mkrLen = wholeMkr.Length();
@@ -23381,16 +23378,25 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 			itemSpan = mkrLen;
 			itemLenAccum += itemSpan;
 			ptr += itemSpan; // ptr has advanced
-		} // end of else block for test: if (offset == wxNOT_FOUND)
-
+		}
 	} // end of TRUE block for test: if (*ptr = gSFescapeChar)
+#if defined (_DEBUG) //&& !defined(NOLOGS) // && defined (LOGMKRS)
+	wxString mypointsAt = wxString(ptr, 15);
+	wxLogDebug(_T("ParsePostWordPunctsAndEndMkrs line %d pointsAt= %s in TokenizeText(), sn= %d , before do loop"),
+		__LINE__, mypointsAt.c_str(), pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
+	if (pSrcPhrase->m_nSequNumber >= 2)
+	{
+		int halt_here = 1;
+	}
+#endif
 
 	// Now ptr points at one of these options (longest first, shortest last):
 	// 1. One or more substrings of type: space + punct(s)
 	// 2. A mix of undetached puncts and substrings of type: space + punct(s)
 	// 3. No whitespace(s) but post-word punctuation (but not including any pre-word begining puncts for 
 	//    m_precPunct on next pSrcPhrase)
-	// 4. A whitespace (or newline, or gSfescapechar) preceding which, ptr should be returned to ParseWord(), 
+	// 4. No whitespace(s), but another post-word endMkr
+	// 5. A whitespace (or newline, or gSfescapechar) preceding which, ptr should be returned to ParseWord(), 
 	//    for the caller to initiate returning len to start off a new pSrcPhrase
 
 	// Start with 1. above
@@ -23410,208 +23416,264 @@ wxChar* CAdapt_ItDoc::ParsePostWordPuncts(wxChar* pChar, wxChar* pEnd, CSourcePh
 		pAux = ptr;  // use pAux for parsing over one or more following puncts; do all options for each iteration
 		itemSpan = 0; // init to zero at each iteration
 
-		numSpaces = CountWhitesSpan(pAux, pEnd);
-		strEndSpaces = wxString(pAux, numSpaces); // empty if numSpaces is 0
-		if (numSpaces == 0)
+		// BEW 8Jul23 following a parsed endMkr, item 4 above is the possibility that another endMkr follows
+		// immediately, there could be more than one, so check for ptr pointing at gSFescapechar, and if that
+		// is an endMkr, parse over, update ptr, store it in m_endMarkers, update itemSpan for this iteration
+		// add to itemLenAccum, set bIterateAgain TRUE
+		if (*pAux == gSFescapechar)
 		{
-			// No spaces parsed over, so pAux remains at ptr so far, for this iteration,
-			// and if there is a final punct at pAux (or more than one punct), they are
-			// genuine following ones, provided it or each does not belong to strInitialPuncts
-			numEndPuncts = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);  // a span of puncts, or none
-			strEndPuncts = wxString(pAux, numEndPuncts); // a string, will be empty if pAux is not at a punct
-			if (numEndPuncts == 0)
+			// First try for another inline binding endMkr
+			wholeMkr = GetWholeMarker(pAux);
+			wxASSERT(!wholeMkr.IsEmpty());
+			augWholeMkr = wholeMkr + space;
+			offset = pApp->m_charFormatEndMkrs.Find(augWholeMkr);
+			if (offset >= 0)
 			{
-				// If zero whites and zero puncts, we have a word which either has only a
-				// m_charFormatMarker we've already parsed and stored on pSrcPhrase, or no
-				// inline binding endMkr, so a word with no ending punctuation. So we have
-				// enough information to exit the do loop here - beware, it may not be the
-				// first iteration
-				itemLen = itemLenAccum;
-				ptr = pChar + itemLen;
-				return ptr;
-			} // end of TRUE block for test: if (numEndPuncts == 0)
+				// It's an inline binding end marker, so parse over it, and store in
+				// pSrcPhrase->m_inlineBindingEndMarkers
+				mkrLen = wholeMkr.Length();
+				wxString strBinds = pSrcPhrase->GetInlineBindingEndMarkers();
+				strBinds << wholeMkr;
+				pSrcPhrase->SetInlineBindingEndMarkers(strBinds);
+				itemSpan = mkrLen;
+				pAux += itemSpan;
+				ptr += itemSpan; // ptr has advanced
+				itemLenAccum += itemSpan;
+				bIterateAgain = TRUE;
+			}
 			else
 			{
-				// numEndPuncts is 1 or more. So get them (they are not detached; e.g. Iisa, 
-				// where the comma punct follows a name for Jesus), and check that begin puncts
-				// for next pSrcPhrase are counted, so we can adjust numEndPunct and strEndPuncts
-				// to only have genuine word-following final puncts. (They may all be rejected as
-				// non-genuine, return ptr unmoved in this iteration, beware, previous iterations
-				// may have parsed puncts, stored on pSrcPhrase, and accumulated itemSpan into
-				// itemLenAccum, so use the latter for returning a value to itemLen.)
-				CountGoodAndBadEndPuncts(strEndPuncts, numGoodOnes, numBadOnes); // for this iteration
-				if (numEndPuncts == numGoodOnes)
+				// offset returned wxNOT_FOUND, so (ptr and) pAux while pointing at a marker,
+				// it may be of a different type - of the inline non-binding type, like \wj*
+				wholeMkr = GetWholeMarker(pAux);
+				wxASSERT(!wholeMkr.IsEmpty());
+				augWholeMkr = wholeMkr + space;
+				offset = pApp->m_inlineNonbindingEndMarkers.Find(augWholeMkr);
+				if (offset >= 0)
 				{
-					// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
-					// at this iteration; so do the stores and updates and continue looping - a detached punct
-					// may follow - keep looping until ptr does not advance
-#if defined (_DEBUG)
-					if (pSrcPhrase->m_nSequNumber >= 1)
-					{
-						int halt_here = 1;
-						wxUnusedVar(halt_here);
-					}
-#endif
+					// blue end markers fast access set includes \wj* and 13 others
+					mkrLen = wholeMkr.Length();
+					wxString strNonbinding = pSrcPhrase->GetInlineNonbindingEndMarkers();
+					strNonbinding << wholeMkr;
+					pSrcPhrase->SetInlineNonbindingEndMarkers(strNonbinding);
+					itemSpan = mkrLen;
+					pAux += itemSpan;
+					ptr += itemSpan; // ptr has advanced
+					itemLenAccum += itemSpan;
+					bIterateAgain = TRUE;
+					// That should be enough. Markers for m_markers and m_endMarkers will
+					// be handled further down in the parser
 
-					pSrcPhrase->m_follPunct += strEndPuncts;
-					pSrcPhrase->m_srcPhrase += strEndPuncts;
-					//bIterateAgain = TRUE; // ensure we iterate this inner loop
-					itemSpan = numEndPuncts;
-					itemLenAccum += itemSpan; // we are not exiting the function, so keep accumulating itemSpans
-					pAux += itemSpan;					
-					ptr = pAux; // prepare for next iteration, as we set pAux to ptr at start of each iteration,
-								// and itemSpan reset to 0 there too
-					// BEW 22Jun23 if what followed the word, and the just parsed following punct(s), is whitespace
-					// following by punctuation which is in strInitialPuncts - and therefore is beginning punct for
-					// the next pSrcPhrase, determine if ptr is pointing at a whitespace, and (ptr + 1) points at
-					// something in strInitialPuncts, or something not a punct char.
-					// If so, break from the loop without advancing ptr, and ptr will be immediately returned
-					{ // scoping block
-						int myOffset = wxNOT_FOUND;
-						wxChar* pNext = (ptr + 1); // what's pNext pointing at?
-						wxChar chAtNext = *pNext;
-						myOffset = m_strInitialPuncts.Find(chAtNext);
-						bool bNextIsPunct = IsPunctuation(pNext); // 2nd param bIsSource is default TRUE
-						// 1st subtest TRUE if pNext belongs on next pSrcPhrase, 2nd TRUE if pNext is something other 
-						// than punctuation - such as the first char of the next word to be parsed
-						if (myOffset >= 0 || !bNextIsPunct) 
-						{
-							// if either is true, we are done parsing post word puncts
-							bIterateAgain = FALSE;
-							itemLen = itemLenAccum;
-							break; // from the loop
-						}
-						else
-						{
-							bIterateAgain = TRUE; // keep looping
-						}
-					}
-				} // end of TRUE block for test: if (numEndPuncts == numGoodOnes)
-				else
-				{
-					// There must have been at least one bad one, or maybe all were bad because all were actually
-					// pre-word begin puncts belonging to the next pSrcPhrase. Handle these two possibilities.
-					// The more draconian one first...
-					if (numEndPuncts == numBadOnes)
-					{
-						// All belong on the next pSrcPhrase, so we can't advance pAux or ptr here, and so
-						// there's no puncts to store in m_follPunct. In fact, we can return here, with
-						// ptr unmoved from pAux, at this iteration (earlier iterations may have stored
-						// something, but not this one)
-						itemSpan = 0;
-						itemLen = itemLenAccum; // no increase in itemLenAccum
-						ptr = pChar + itemLen;
-						bIterateAgain = FALSE; // break out of the loop
-					} // end of TRUE block for test: if (numEndPuncts == numBadOnes)
-					else
-					{
-						// There are fewer bad ones than indicated by numEndPuncts. But a bad one must
-						// cause the function, ParsePostWordPuncts(), to exit - because what's at pAux
-						// + good ones, belongs on the next pSrcPhrase. So keep any good ones, because 
-						// those must be stored in pSrcPhrase m_follPunct, and be appended to m_srcPhrase
-						// as well, and itemLenAccum will set the itemLen value for returning, and also
-						// enable setting the ptr value for returning too. Do those things here.
-						itemSpan = numGoodOnes;
-						itemLenAccum += itemSpan;
-						strEndPuncts = wxString(pAux, itemSpan);
-						pSrcPhrase->m_follPunct << strEndPuncts; 
-						pSrcPhrase->m_srcPhrase << strEndPuncts;
-						itemLen = itemLenAccum;
-						ptr = pChar + itemLen;
-						bIterateAgain = FALSE; // break out of the loop
-					} // end of else block for test: if (numEndPuncts == numBadOnes)
-				
-				} // end of else block for test: if (numEndPuncts == numGoodOnes)
+				} // end of TRUE block for test: if (*pAux == gSFescapechar) -- inner
 			}
-		} // end of TRUE block for test: if (numSpaces == 0)
+		} // end of TRUE block for test: if (*pAux == gSFescapechar)
 		else
 		{
-			// numSpaces is not zero. Something stopped the parse - might be a punctuation character,
-			// but could be a number of other things. Keep looping only provided we parsed over at least
-			// one punct from spacelessPuncts which is NOT in strInitialPuncts
-			wxChar* pSavePAux = pAux; // because if we don't restore the current position after
-					// ParseFinalPuncts() has completed, pAux will point AFTER the whitespace of
-					// a second iteration, thereby if the next punct is after the space of <space><punct>,
-					// pAux would be pointing at the <punct> rather than <space><punct>, giving a mis-parse.
-			pAux += numSpaces; // advance pAux to point at whatever follows the spaces.
-			// Don't set itemSpan, or accumulate into itemLenAccum, until we know there are
-			// puncts to parse over and we've done so, and got their length.
-			// We won't know if we have detached puncts until we parse for them next, and take care,
-			// because it's conceivable that we may parse over begining puncts belonging to the next
-			// pSrcPhrase's m_precPunct member, so we have to check in strInitialPuncts too
-			numEndPuncts = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);  // a span of puncts, or none
-			strEndPuncts = wxString(pAux, numEndPuncts); // strEndPuncts, at this iteration, will be 
-														 // empty if pAux was not at a known punct
-			// Gotta restore pAux to its saved position (see explanation at pSavePAux above)
-			pAux = pSavePAux;
-
-			if (numEndPuncts == 0)
+			// pAux does not point at gSFescapechar
+			numSpaces = CountWhitesSpan(pAux, pEnd);
+			strEndSpaces = wxString(pAux, numSpaces); // empty if numSpaces is 0
+			if (numSpaces == 0)
 			{
-				// ParseFinalPuncts() stopped parsing before detecting any puncts from spacelessPuncts to
-				// parse over, at this iteration. (Beware, earlier iterations may have parsed, stored on
-				// pSrcPhrase, and augmented itemLenAccum, etc.)
-				// So ignore the spaces parsed over, ptr should be returned unchanged in value
-				itemLen = itemLenAccum;
-				ptr = pChar + itemLen;
-				return ptr;
-			}
-			else
-			{
-				// parsed one or more puncts from spacelessPuncts... find out how many were good ones
-				CountGoodAndBadEndPuncts(strEndPuncts, numGoodOnes, numBadOnes); // for this iteration
-				if (numEndPuncts == numGoodOnes)
+				// No spaces parsed over, so pAux remains at ptr so far, for this iteration,
+				// and if there is a final punct at pAux (or more than one punct), they are
+				// genuine following ones, provided it or each does not belong to strInitialPuncts
+				numEndPuncts = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);  // a span of puncts, or none
+				strEndPuncts = wxString(pAux, numEndPuncts); // a string, will be empty if pAux is not at a punct
+				if (numEndPuncts == 0)
 				{
-					// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
-					// at this iteration; so do the stores and updates and continue looping - a detached punct
-					// may follow - keep looping until ptr does not advance
-					pSrcPhrase->m_follPunct += strEndSpaces + strEndPuncts;
-					pSrcPhrase->m_srcPhrase += strEndSpaces + strEndPuncts;
-					itemSpan = numSpaces + numEndPuncts;
-					itemLenAccum += itemSpan; // we are not exiting the function, so keep accumulating itemSpans
-					pAux += itemSpan;
-					ptr = pAux; // prepare for next iteration, as we set pAux to ptr at start of each iteration,
-								// and itemSpan reset to 0 there too
-					bIterateAgain = TRUE; // ensure we iterate this inner loop
-				} // end of TRUE block for test: if (numEndPuncts == numGoodOnes)
+					// If zero whites and zero puncts, we have a word which either has only a
+					// m_charFormatMarker we've already parsed and stored on pSrcPhrase, or no
+					// inline binding endMkr, so a word with no ending punctuation. So we have
+					// enough information to exit the do loop here - beware, it may not be the
+					// first iteration
+					itemLen = itemLenAccum;
+					ptr = pChar + itemLen;
+					return ptr;
+				} // end of TRUE block for test: if (numEndPuncts == 0)
 				else
 				{
-					// There must have been at least one bad one, or maybe all were bad because all were actually
-					// pre-word begin puncts belonging to the next pSrcPhrase. Handle these two possibilities.
-					// The more draconian one first...
-					if (numEndPuncts == numBadOnes)
+					// numEndPuncts is 1 or more. So get them (they are not detached; e.g. Iisa, 
+					// where the comma punct follows a name for Jesus), and check that begin puncts
+					// for next pSrcPhrase are counted, so we can adjust numEndPunct and strEndPuncts
+					// to only have genuine word-following final puncts. (They may all be rejected as
+					// non-genuine, return ptr unmoved in this iteration, beware, previous iterations
+					// may have parsed puncts, stored on pSrcPhrase, and accumulated itemSpan into
+					// itemLenAccum, so use the latter for returning a value to itemLen.)
+					CountGoodAndBadEndPuncts(strEndPuncts, numGoodOnes, numBadOnes); // for this iteration
+					if (numEndPuncts == numGoodOnes)
 					{
-						// All belong on the next pSrcPhrase, so we can't advance pAux or ptr here, and so
-						// there's no puncts to store in m_follPunct. In fact, we can return here, with
-						// ptr unmoved from pAux, at this iteration (earlier iterations may have stored
-						// something, but not this one)
-						itemSpan = 0;
-						itemLen = itemLenAccum; // no increase in itemLenAccum
-						ptr = pChar + itemLen; // spaces parsed over in this iteration are ignored
-						bIterateAgain = FALSE; // break out of the loop
-					} // end of TRUE block for test: if (numEndPuncts == numBadOnes)
+						// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
+						// at this iteration; so do the stores and updates and continue looping - a detached punct
+						// may follow - keep looping until ptr does not advance
+#if defined (_DEBUG)
+						if (pSrcPhrase->m_nSequNumber >= 2)
+						{
+							int halt_here = 1;
+							wxUnusedVar(halt_here);
+						}
+#endif
+
+						pSrcPhrase->m_follPunct += strEndPuncts;
+						pSrcPhrase->m_srcPhrase += strEndPuncts;
+						//bIterateAgain = TRUE; // ensure we iterate this inner loop
+						itemSpan = numEndPuncts;
+						itemLenAccum += itemSpan; // we are not exiting the function, so keep accumulating itemSpans
+						pAux += itemSpan;
+						ptr = pAux; // prepare for next iteration, as we set pAux to ptr at start of each iteration,
+									// and itemSpan reset to 0 there too
+						// BEW 22Jun23 if what followed the word, and the just parsed following punct(s), is whitespace
+						// following by punctuation which is in strInitialPuncts - and therefore is beginning punct for
+						// the next pSrcPhrase, determine if ptr is pointing at a whitespace, and (ptr + 1) points at
+						// something in strInitialPuncts, or something not a punct char.
+						// If so, break from the loop without advancing ptr, and ptr will be immediately returned
+						{ // scoping block
+							int myOffset = wxNOT_FOUND;
+							wxChar* pNext = (ptr + 1); // what's pNext pointing at?
+							wxChar chAtNext = *pNext;
+							myOffset = m_strInitialPuncts.Find(chAtNext);
+							bool bNextIsPunct = IsPunctuation(pNext); // 2nd param bIsSource is default TRUE
+							// 1st subtest TRUE if pNext belongs on next pSrcPhrase, 2nd TRUE if pNext is something other 
+							// than punctuation - such as the first char of the next word to be parsed
+							if (myOffset >= 0 || !bNextIsPunct)
+							{
+								// if either is true, we are done parsing post word puncts
+								bIterateAgain = FALSE;
+								itemLen = itemLenAccum;
+								break; // from the loop
+							}
+							else
+							{
+								bIterateAgain = TRUE; // keep looping
+							}
+						}
+					} // end of TRUE block for test: if (numEndPuncts == numGoodOnes)
 					else
 					{
-						// There are fewer bad ones than indicated by numEndPuncts. But a bad one must
-						// cause the function, ParsePostWordPuncts(), to exit - because what's at pAux
-						// + the good ones, belongs on the next pSrcPhrase. So we keep any good ones, 
-						// because those must be stored in pSrcPhrase m_follPunct, and be appended to
-						// m_srcPhrase as well, and itemLenAccum will set the itemLen value to return,
-						// and also enable setting the ptr value for returning. Do those things here.
-						itemSpan = numSpaces + numGoodOnes;
-						itemLenAccum += itemSpan;
-						strEndPuncts = wxString(pAux, itemSpan);
-						pSrcPhrase->m_follPunct << strEndPuncts;
-						pSrcPhrase->m_srcPhrase << strEndPuncts;
-						itemLen = itemLenAccum;
-						ptr = pChar + itemLen;
-						bIterateAgain = FALSE; // break out of the loop
-					} // end of else block for test: if (numEndPuncts == numBadOnes)
+						// There must have been at least one bad one, or maybe all were bad because all were actually
+						// pre-word begin puncts belonging to the next pSrcPhrase. Handle these two possibilities.
+						// The more draconian one first...
+						if (numEndPuncts == numBadOnes)
+						{
+							// All belong on the next pSrcPhrase, so we can't advance pAux or ptr here, and so
+							// there's no puncts to store in m_follPunct. In fact, we can return here, with
+							// ptr unmoved from pAux, at this iteration (earlier iterations may have stored
+							// something, but not this one)
+							itemSpan = 0;
+							itemLen = itemLenAccum; // no increase in itemLenAccum
+							ptr = pChar + itemLen;
+							bIterateAgain = FALSE; // break out of the loop
+						} // end of TRUE block for test: if (numEndPuncts == numBadOnes)
+						else
+						{
+							// There are fewer bad ones than indicated by numEndPuncts. But a bad one must
+							// cause the function, ParsePostWordPuncts(), to exit - because what's at pAux
+							// + good ones, belongs on the next pSrcPhrase. So keep any good ones, because 
+							// those must be stored in pSrcPhrase m_follPunct, and be appended to m_srcPhrase
+							// as well, and itemLenAccum will set the itemLen value for returning, and also
+							// enable setting the ptr value for returning too. Do those things here.
+							itemSpan = numGoodOnes;
+							itemLenAccum += itemSpan;
+							strEndPuncts = wxString(pAux, itemSpan);
+							pSrcPhrase->m_follPunct << strEndPuncts;
+							pSrcPhrase->m_srcPhrase << strEndPuncts;
+							itemLen = itemLenAccum;
+							ptr = pChar + itemLen;
+							bIterateAgain = FALSE; // break out of the loop
+						} // end of else block for test: if (numEndPuncts == numBadOnes)
 
-				} // end of else block for test: if (numEndPuncts == numGoodOnes)
+					} // end of else block for test: if (numEndPuncts == numGoodOnes)
+				}
+			} // end of TRUE block for test: if (numSpaces == 0)
+			else
+			{
+				// numSpaces is not zero. Something stopped the parse - might be a punctuation character,
+				// but could be a number of other things. Keep looping only provided we parsed over at least
+				// one punct from spacelessPuncts which is NOT in strInitialPuncts
+				wxChar* pSavePAux = pAux; // because if we don't restore the current position after
+						// ParseFinalPuncts() has completed, pAux will point AFTER the whitespace of
+						// a second iteration, thereby if the next punct is after the space of <space><punct>,
+						// pAux would be pointing at the <punct> rather than <space><punct>, giving a mis-parse.
+				pAux += numSpaces; // advance pAux to point at whatever follows the spaces.
+				// Don't set itemSpan, or accumulate into itemLenAccum, until we know there are
+				// puncts to parse over and we've done so, and got their length.
+				// We won't know if we have detached puncts until we parse for them next, and take care,
+				// because it's conceivable that we may parse over begining puncts belonging to the next
+				// pSrcPhrase's m_precPunct member, so we have to check in strInitialPuncts too
+				numEndPuncts = ParseFinalPuncts(pAux, pEnd, spacelessPuncts);  // a span of puncts, or none
+				strEndPuncts = wxString(pAux, numEndPuncts); // strEndPuncts, at this iteration, will be 
+															 // empty if pAux was not at a known punct
+				// Gotta restore pAux to its saved position (see explanation at pSavePAux above)
+				pAux = pSavePAux;
 
-			} // end of else block for test: if (numEndPuncts == 0)
+				if (numEndPuncts == 0)
+				{
+					// ParseFinalPuncts() stopped parsing before detecting any puncts from spacelessPuncts to
+					// parse over, at this iteration. (Beware, earlier iterations may have parsed, stored on
+					// pSrcPhrase, and augmented itemLenAccum, etc.)
+					// So ignore the spaces parsed over, ptr should be returned unchanged in value
+					itemLen = itemLenAccum;
+					ptr = pChar + itemLen;
+					return ptr;
+				}
+				else
+				{
+					// parsed one or more puncts from spacelessPuncts... find out how many were good ones
+					CountGoodAndBadEndPuncts(strEndPuncts, numGoodOnes, numBadOnes); // for this iteration
+					if (numEndPuncts == numGoodOnes)
+					{
+						// All of the puncts parsed over, are genuine following puncts, for storing in m_follPunct
+						// at this iteration; so do the stores and updates and continue looping - a detached punct
+						// may follow - keep looping until ptr does not advance
+						pSrcPhrase->m_follPunct += strEndSpaces + strEndPuncts;
+						pSrcPhrase->m_srcPhrase += strEndSpaces + strEndPuncts;
+						itemSpan = numSpaces + numEndPuncts;
+						itemLenAccum += itemSpan; // we are not exiting the function, so keep accumulating itemSpans
+						pAux += itemSpan;
+						ptr = pAux; // prepare for next iteration, as we set pAux to ptr at start of each iteration,
+									// and itemSpan reset to 0 there too
+						bIterateAgain = TRUE; // ensure we iterate this inner loop
+					} // end of TRUE block for test: if (numEndPuncts == numGoodOnes)
+					else
+					{
+						// There must have been at least one bad one, or maybe all were bad because all were actually
+						// pre-word begin puncts belonging to the next pSrcPhrase. Handle these two possibilities.
+						// The more draconian one first...
+						if (numEndPuncts == numBadOnes)
+						{
+							// All belong on the next pSrcPhrase, so we can't advance pAux or ptr here, and so
+							// there's no puncts to store in m_follPunct. In fact, we can return here, with
+							// ptr unmoved from pAux, at this iteration (earlier iterations may have stored
+							// something, but not this one)
+							itemSpan = 0;
+							itemLen = itemLenAccum; // no increase in itemLenAccum
+							ptr = pChar + itemLen; // spaces parsed over in this iteration are ignored
+							bIterateAgain = FALSE; // break out of the loop
+						} // end of TRUE block for test: if (numEndPuncts == numBadOnes)
+						else
+						{
+							// There are fewer bad ones than indicated by numEndPuncts. But a bad one must
+							// cause the function, ParsePostWordPuncts(), to exit - because what's at pAux
+							// + the good ones, belongs on the next pSrcPhrase. So we keep any good ones, 
+							// because those must be stored in pSrcPhrase m_follPunct, and be appended to
+							// m_srcPhrase as well, and itemLenAccum will set the itemLen value to return,
+							// and also enable setting the ptr value for returning. Do those things here.
+							itemSpan = numSpaces + numGoodOnes;
+							itemLenAccum += itemSpan;
+							strEndPuncts = wxString(pAux, itemSpan);
+							pSrcPhrase->m_follPunct << strEndPuncts;
+							pSrcPhrase->m_srcPhrase << strEndPuncts;
+							itemLen = itemLenAccum;
+							ptr = pChar + itemLen;
+							bIterateAgain = FALSE; // break out of the loop
+						} // end of else block for test: if (numEndPuncts == numBadOnes)
 
-		} // end of the else block for test: if (numSpaces == 0) -- i.e. there are spaces parsed over
+					} // end of else block for test: if (numEndPuncts == numGoodOnes)
+
+				} // end of else block for test: if (numEndPuncts == 0)
+
+			} // end of the else block for test: if (numSpaces == 0) -- i.e. there are spaces parsed over
+
+		} // end of else block for test: if (*pAux == gSFescapechar)
 
 	} while (bIterateAgain);
 	return ptr;
@@ -35855,7 +35917,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 							wxString pointsAt = wxString(ptr, 15);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 7)
+							if (pSrcPhrase->m_nSequNumber >= 2)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -35935,7 +35997,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= %s , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, 
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 11)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						// Check m_bVerse is TRUEat this location, so CPile::DrawNavTextAndIcons(wxDC* pDC) will set m_inform at a \v pSrcPhrase
 						int halt_here = 1; wxUnusedVar(halt_here);
@@ -35962,7 +36024,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					return len;
 				}
 
-				ptr = ParsePostWordPuncts(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
+				ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
 				len += itemLen;
 wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
 
@@ -35972,7 +36034,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len,
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 11)
+					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -44424,7 +44486,8 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 
 	int offset = wxNOT_FOUND; // I'll make a lot of use of .Find(something);
 	bool bOuterPunctHasContent = FALSE;
-	wxString strFollPuncts = pSrcPhrase->m_follPunct; // check if m_follOuterPunct has any ending puncts
+	wxString strFollPuncts = pSrcPhrase->m_follPunct; 
+	// check if m_follOuterPunct has any ending puncts
 	wxString strOuterPunct = wxEmptyString;
 	strOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
 	if (!strOuterPunct.IsEmpty())
@@ -44461,7 +44524,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	// If the user likes to set off a final punct with a whitespace (e.g. hairspace) for clarity,
 	// we should not remove that choice by ignoring the white space in the matching. We also want
 	// some additional wxArrayStrings to enable determining when any additional punct may have
-	// been added. User's removal of a punct is a possibility - the algorithm for that is now yet
+	// been added. User's removal of a punct is a possibility - the algorithm for that is not yet
 	// worked out. <<- do later, tackle adding one, first
 
 	wxArrayString follPunctsArr; follPunctsArr.Empty();
@@ -44696,7 +44759,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 
 	// Then do the matchups, with the help of the arrays' contents
 
-	// Then replace the old value of strSinglePattern with the newly computed value, to be returned to the caller
+	// Then replace the old value of m_srcSinglePattern with the newly computed value, to be returned to the caller
 
 	return TRUE;
 }

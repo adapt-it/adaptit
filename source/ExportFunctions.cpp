@@ -17637,7 +17637,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 13)
+			if (pSrcPhrase->m_nSequNumber >= 11)
 			{
 				int halt_here = 1;
 			}

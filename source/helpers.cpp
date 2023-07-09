@@ -7145,7 +7145,11 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	}
 	else
 	{
-		// Handle FALSE returned. 
+		// When if (bIsOK && extrasLen == 0 && residue.IsEmpty()) is FALSE... then matching by string equality
+		// for puncts in matching positions failed to reduce the residue to empty. Matchup failure(s) will
+		// cause bEndPunctsModified to be TRUE. That's not a problem if the before and after count of puncts
+		// to be matched up is the same - we can programmatically make likely correct substitutions by
+		// position using the function UpdateSingleSrcPattern() below.
 		if (bEndPunctsModified)
 		{
 			// Put here an algorithm which can handle punctuation changes. There are only three? ways for the
@@ -7170,7 +7174,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			// differs from those in m_srcSinglePattern (at same sequNum)
 
 
-			// TODO - a function which matches by positions, since equality tests won't work
+			// This is a function which matches by positions, since equality tests won't work
 			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
 			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, bTokenizingTargetText);
 
@@ -7179,8 +7183,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		else
 		{
 			// If no manual puncts changed, then what's gone wrong could be anything, but most likely there
-			// is a residue which is not empty - such as when these is extra puncts were added. So just return
-			// m_srcSinglePattern 'as is' with any residue appended - could fluke a correct result
+			// is a residue which is not empty - such as when there are extra puncts added. So just return
+			// m_srcSinglePattern 'as is' with any residual puncts appended - could fluke a correct result
 			srcStr = pSingleSrcPhrase->m_srcSinglePattern; 
 			if (!residue.IsEmpty())
 			{
