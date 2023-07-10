@@ -975,7 +975,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 
 #if defined (_DEBUG)
 		// whm 7Jul2023 testing
-		if (m_nSequNumber == 88)
+		if (m_nSequNumber == 89)
 		{
 			int haltHere;
 			haltHere = -1;
