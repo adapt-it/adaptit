@@ -18602,7 +18602,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 88)
+		if (pSrcPhrase->m_nSequNumber == 89)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -22263,7 +22263,7 @@ wxLogDebug(_T("After ParseWord: ITEMLEN+PTR line %d , len %d , 20 at ptr= [%s]  
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d  BEFORE \"end fn\" Block, bIsChanger = %d"), 
-								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)bIsChanger); // whm 10Jul2023 added last param (int)bIsChanger)
 							if (pSrcPhrase->m_nSequNumber >= 12)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);

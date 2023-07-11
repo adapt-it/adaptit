@@ -10975,6 +10975,15 @@ extern bool gbDoingInitialSetup;
 				// whm 13Apr2020 added - set the App's m_curOutputPath too from here
 				pApp->m_curOutputPath = docPath;
 
+				// whm 10Jul2023 added. The pApp->m_bParsingSource needs to be set TRUE here when
+				// creating a document under collaboration - just at it is set TRUE in non-collab
+				// doc creation in OnNewDocument(). BEW has used the App's m_bParsingSource flag
+				// to determine different pathways through TokenizeText, ParsePreWord(), and ParseWord().
+				// Until this mod date m_bParseingSource was FALSE at this point when collab mode is
+				// active, and that resulted in different pathways through the parsing functions and
+				// consequently different (sometimes erroneous) results in the doc's xml document.
+				pApp->m_bParsingSource = TRUE;
+
 				// whm 13Apr2020 moved the code block below here from OpenDocWithMerger. 
 				// This OK_btn_delayedHandler_GetSourceTextFromEditor() function is a good place
 				// to write the first document creation/opening log line that includes the output
