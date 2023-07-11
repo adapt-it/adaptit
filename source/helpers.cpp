@@ -7065,6 +7065,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxUnusedVar(filteredInfoStr); // 8May23 no longer needed
 	wxUnusedVar(xrefStr); // 8May23 no longer needed
 	bool bEndPunctsModified = FALSE; // init
+	wxString pattern; pattern = wxEmptyString; // init
 
 	wxString Sstr;
 	wxString aSpace = _T(" ");
@@ -7096,6 +7097,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	}
 // 5May23 new code goes here
 	wxString extras = wxEmptyString;
+	wxString strSaveExtras;
+	strSaveExtras = wxEmptyString; // init
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	// BEW 10May23, pSrcPhrase (docVersion == 10) has a new wxString, m_oldKey which stores
@@ -7123,6 +7126,12 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	// FromSingleMakeSstr accesses the new member in CSourcePhrase, m_srcSinglePattern, 
 	// not the other four new ones; the one to read for the source pattern is the 2nd param of next call
 	extras = pDoc->GetPostwordExtras(pSingleSrcPhrase, pSingleSrcPhrase->m_srcSinglePattern);
+
+	// BEW added 10Jul23  so we can convert extras into an analysable pattern
+	strSaveExtras = extras; // after the GetPostwordExtras() call, extras does not have the initial m_key info
+			// but it will have whatever else follows, be it puncts, markers, or whitespaces, in their occurrence 
+			//order; so strSaveExtras is what is to be used for converting into a pattern for analysis/comparisons
+
 	extras = pDoc->RemoveEndMkrsFromExtras(extras);
 	bool bIsOK = FALSE; // init
 	int extrasLen = -1; // init - if bAllMated is TRUE, extrasLen should be zero, and residue empty
@@ -7145,6 +7154,9 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	}
 	else
 	{
+		// BEW 10Jul23 put the function for converting extras string into a pattern, here
+		pattern = ConvertExtrasToPattern(strSaveExtras);
+
 		// When if (bIsOK && extrasLen == 0 && residue.IsEmpty()) is FALSE... then matching by string equality
 		// for puncts in matching positions failed to reduce the residue to empty. Matchup failure(s) will
 		// cause bEndPunctsModified to be TRUE. That's not a problem if the before and after count of puncts
@@ -7170,8 +7182,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			// (3) If the user, in the phrasebox, manually adds end puncts which differ at least in 1 place
 			// from those in pSrcPhrase->m_srcSinglePattern (at same sequ num). Doing that should also then
 			// result in view's MakeTargetStringIncludingPuctuation() using the changed punc(s), and that
-			// function contains a Placement dialog which we'd need to call if the inventory of ending punctuations
-			// differs from those in m_srcSinglePattern (at same sequNum)
+			// function contains a Placement dialog which we may need to call if the inventory of ending
+			// punctuations differs from those in m_srcSinglePattern (at same sequNum)
 
 
 			// This is a function which matches by positions, since equality tests won't work
@@ -7257,6 +7269,34 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	Sstr = srcStr;
 	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
+}
+
+wxString ConvertExtrasToPattern(wxString extras) // BEW 10Jul23 added
+{
+	if (extras.IsEmpty())
+	{
+		return extras;
+	}
+
+
+
+
+
+
+
+
+
+
+	wxString pattern; pattern = wxEmptyString; // init
+
+
+
+
+
+
+
+
+	return pattern;
 }
 
 /// return      The recomposed end of the source text string, including punctuation and markers,

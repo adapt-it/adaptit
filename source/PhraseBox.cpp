@@ -9139,6 +9139,12 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	KB_Entry rsEntry;
 	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
 	pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
+
+	// BEW 11Jul23, protect against calling this when m_pActivePile is NULL
+	if (pApp->m_pActivePile == NULL)
+	{
+		return FALSE;
+	}
 	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 
 	if (gbIsGlossing)
