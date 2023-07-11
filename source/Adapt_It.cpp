@@ -24288,8 +24288,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //OLDm_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn* \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\nd* \\+nd* ");
 
     // BEW 5Jun23 these two are just renamed m_inlineBindingMarkers and m_inlineBindingEndMarkers, because the charFormat versions lacked several, especially embedded ones
-    m_charFormatMkrs = _T("\\add \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\pb \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
-    m_charFormatEndMkrs = _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    m_charFormatMkrs = _T("\\add \\fk \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\pb \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    m_charFormatEndMkrs = _T("\\add* \\fk* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
 
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the

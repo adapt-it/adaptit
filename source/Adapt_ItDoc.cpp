@@ -18609,7 +18609,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 		// whm 7Jul2023 testing
 
-		if (pSrcPhrase->m_nSequNumber >= 15)
+		if (pSrcPhrase->m_nSequNumber >= 9)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -23426,7 +23426,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	wxString mypointsAt = wxString(ptr, 15);
 	wxLogDebug(_T("ParsePostWordPunctsAndEndMkrs line %d pointsAt= %s in TokenizeText(), sn= %d , before do loop"),
 		__LINE__, mypointsAt.c_str(), pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
-	if (pSrcPhrase->m_nSequNumber >= 2)
+	if (pSrcPhrase->m_nSequNumber >= 9)
 	{
 		int halt_here = 1;
 	}
@@ -35959,7 +35959,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 							wxString pointsAt = wxString(ptr, 15);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 9)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -35994,12 +35994,12 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 				{
 					bFromDigitsUpdatedPtr = FALSE; // restore default
 				}
-#if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 				{
-					wxString pointsAt = wxString(ptr, 4);
+					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 9)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -36039,13 +36039,38 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= %s , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, 
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 9)
 					{
 						// Check m_bVerse is TRUEat this location, so CPile::DrawNavTextAndIcons(wxDC* pDC) will set m_inform at a \v pSrcPhrase
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
 				}
 #endif
+				// BEW 11Jul23, added further test. After ParseAWord() has just parsed a word, and len and ptr
+				// have been updated so that ptr points at what immediately follows, it could be a beginMkr.
+				// For example, this kind of data: ....oro loke\f (2:1) Iri aloh.....
+				// TotenizeText()'s code prior to ParsePreWord followed by ParseWord() does not parse over
+				// a word,  such as "loke" - that job belongs to ParseWord(). And \f , a beginMkr, must not be 
+				// left unparsed so as to induce a serious parsing error in following code, because following 
+				// code is designed to parse post-word puncts, endMkrs, whitespaces. What then: since TokText
+				// can't handle the loke, and ParseWord() will choke if \f is attempted for storage on the same
+				// pSrcPhrase that is for "loke" in m_key, we have to return the updated len value immediately
+				// so that the "\f..." information gets dealt with by a new pSrcPhrase instance. Do here.
+				if (*ptr == gSFescapechar)
+				{
+					bool bIsBeginMkr;
+					bIsBeginMkr = FALSE; // init
+					wxString wholeMkr; // returned by reference
+					bool bIsEndMkr; // returned by reference
+					bIsBeginMkr = IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr);
+					if (ptr < pEnd && !wholeMkr.IsEmpty() && bIsBeginMkr && !bIsEndMkr)
+					{
+						// Control is at a location where after the word, a beginMkr is present
+						// (the next pSrcPhrase must deal with it, not here now)
+						return len;
+					}
+				} // end of TRUE block for test: if (*ptr == gSFescapechar)
+				 
 				// BEW 23Jun23 added test, so that before calling ParsePostWordPuncts in the situation where
 				// ptr points at whitespace after setting up the m_key and m_srcPhrase values by code above
 				// this point, and after the whitespace is a character which is a preceding punctuation for the
