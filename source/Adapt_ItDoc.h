@@ -51,6 +51,8 @@ wxString    MakeUNNNN(wxString& chStr);
 /// a list of pointers to AutoFixRecord objects
 WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
 WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp file
+// BEW added 11Jul23
+//WX_DECLARE_LIST(CSourcePhrase*, mySPList); // definition in .cpp file at 141
 
 // for debugging, uncomment out to turn on the debugging displays (they are very helpful)
 //#define CONSCHK
@@ -387,7 +389,7 @@ public:
 	bool			CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString& oldSrcBitsArr, wxString& spacelessPuncts);
 	bool			m_bTstrFromMergerCalled; // BEW 19May23 added. So FromSingleMakeTstr() will know where to store its result
 	bool			IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEnd);
-
+	wxString		GetAccumulatedKeys(SPList* pList, int indexFirst, int indexLast); // BEW added 11Jul23 for use inParsePostWordPunctsAndEndMkrs()
 
 	// **** end of functions for not having placement dialogs *******
 

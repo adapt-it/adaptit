@@ -137,6 +137,9 @@ const char* tellenc(const char* const buffer, const size_t len);
 WX_DEFINE_LIST(AFList);
 WX_DEFINE_LIST(AFGList);
 
+// BEW 11Jul23 added
+//WX_DEFINE_LIST(mySPList);
+
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
 
@@ -23507,7 +23510,112 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					// be handled further down in the parser
 
 				} // end of TRUE block for test: if (*pAux == gSFescapechar) -- inner
-			}
+				else // BEW added 11Jul23, to prevent infinite loop if the endMkr is unknown
+				{
+					bool bIsAnEndMkr;
+					bIsAnEndMkr = FALSE; // initialize
+					int myOffset; myOffset = wxNOT_FOUND; // init
+					myOffset = wholeMkr.Find(wxString(_T('*')));
+					wxString wholeEndMkr;
+					wxString strBefore;
+					wxString strAfter;
+					if (myOffset != wxNOT_FOUND)
+					{
+						// The whole mkr contains *, so is an endmarker -- this is
+						// a parsing error because the endmarker should have been
+						// included in the parse done by ParseWord() for the previous
+						// CSourcePhrase instance, because it's ParseWord which handles
+						// post-word endmarkers
+						wholeEndMkr = wholeMkr;
+						bIsAnEndMkr = TRUE;
+					}
+					wxString strApproxLocation;
+					strApproxLocation = wxEmptyString; // init
+					int curSN = pSrcPhrase->m_nSequNumber;
+					CAdapt_ItView* pView;
+					pView = gpApp->GetView();
+					CPile* pCurPile;
+					pCurPile = pView->GetPile(curSN);
+					if (pCurPile != NULL)
+					{
+						CSourcePhrase* pCurSrcPhrase;
+						pCurSrcPhrase = pCurPile->GetSrcPhrase();
+						if (pCurSrcPhrase != NULL)
+						{
+							wxString curKey;
+							curKey = pCurSrcPhrase->m_key;
+							// BEW15Dec22 try to provide an approximate src string for the error - 30 chars
+							// either side of the ptr value, or less if near start of end of input source text
+							CSourcePhrase* pSPLocBefore; // go back 5 pSrcPhases, or to the sn = 0 one
+							CSourcePhrase* pSPLocAfter; // go forward 5 pSrcPhases, or to the sn = MAXINDEX one
+							CPile* pLocBefore_Pile;
+							CPile* pLocAfter_Pile;
+							int maxIndex; maxIndex = gpApp->GetMaxIndex();
+							int snLocBefore; snLocBefore = curSN; // initialise
+							int snLocAfter; snLocAfter = curSN; // initialise
+							int snLocAfterEnd; snLocAfterEnd = curSN; // initialise
+							snLocBefore -= 5;
+							snLocAfter += 1; // starting at next after curSN
+							snLocAfterEnd = snLocAfter + 5;
+							if (snLocBefore > 0)
+							{
+								// At least 5 previous pSrcPhrase instances are available
+								pLocBefore_Pile =  pView->GetPile(snLocBefore);
+								wxASSERT(pLocBefore_Pile != NULL); // change later into an if/else test ********
+							}
+							else
+							{
+								// Too close to start of doc to fit 5, so start at sn = 0 pile
+								pLocBefore_Pile = pView->GetPile(0);
+								wxASSERT(pLocBefore_Pile != NULL);
+							}
+							pSPLocBefore = pLocBefore_Pile->GetSrcPhrase();
+							// while loop in GetAccumulatedKeys() finishes one short of curSN
+							strBefore = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocBefore, curSN); 
+
+							// Next, similar calulations to  get strAfter set, starting from curSN + 1
+							pLocAfter_Pile = pView->GetPile(snLocAfter);
+							wxASSERT(pLocAfter_Pile != NULL);
+							pSPLocAfter = pLocAfter_Pile->GetSrcPhrase();
+							if (snLocAfterEnd < maxIndex)
+							{
+								// There is enough room for 5 piles following curSN  to be accessed
+								strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, snLocAfterEnd);
+							}
+							else
+							{
+								// Not enough room to access five, so access to maxIndex
+								strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, maxIndex);
+							}
+							wxString space; space = _T(" ");
+							strApproxLocation = strBefore;
+							strApproxLocation << curKey;
+							strApproxLocation << space;
+							strApproxLocation << strAfter;
+
+							// We must not lose the unknown endMkr, append it in pSrcPhrase's m_endMarkers, update ptr and
+							// itemLenAccum (that advances ptr, which prevents infinite looping, and break from the loop
+							int theMkrLen; theMkrLen = wholeEndMkr.Length();
+							wxString m_endmkrs; m_endmkrs = pSrcPhrase->GetEndMarkers();
+							m_endmkrs << wholeEndMkr;
+							pSrcPhrase->SetEndMarkers(m_endmkrs);
+							ptr += theMkrLen;
+							itemLenAccum += theMkrLen;
+
+							wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s\n near middle of span: %s \n Correct the end-marker in the source text file, then re-load the source text.");
+							msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
+							wxString title = _T("Warning: Unexpected End Marker");
+
+							wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+							pApp->LogUserAction(msg);
+							bIterateAgain = FALSE;
+						} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
+
+					} // end of TRUE block for test: if (pPile != NULL)
+					bIterateAgain = FALSE;
+				} // end of else block for test: if (offset >= 0)
+			} // end of else block for more outer test: if (offset >= 0)
+
 		} // end of TRUE block for test: if (*pAux == gSFescapechar)
 		else
 		{
@@ -36005,7 +36113,20 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					}
 				}
 #endif
-
+/* 
+// BEW 12Jul23 testing GetAccumulatedKeys(), since it only is used if there is an unknown marker; used
+// unittest: __nyindrou_MAT_chs_1_and_2.txt, and this test produced: [tubu Jises Krais nadu Debit ]  from 1:1
+#if defined (_DEBUG)
+				{
+					if (pSrcPhrase->m_nSequNumber == 560)
+					{
+						wxString str;
+						str = GetAccumulatedKeys(pApp->m_pSourcePhrases, 560, 565);
+						wxLogDebug(_T("GetAccumulatedKeys() line %d , str= [%s]"), __LINE__, str.c_str());
+					}
+				}
+#endif
+*/
 elseBlock:
 				if ((pApp->bSkipOverParseAWord == TRUE) && (pApp->pSavePtr_forSkip != NULL))
 				{
@@ -36182,7 +36303,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 							// Loop over every endMkr possible here, and when done, if space or newline follows then
 							// here is the place to update len and ptr and return len to the caller when done here
 							offset = gpApp->m_RedEndMarkers.Find(augEndMkr);
-							if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND); // != -1 if Find() found a red one
+							if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND) // != -1 if Find() found a red one
 							{
 								// Control enters here only when an augmented endMkr of the Red set has been parsed,
 								// and the loop iterates so long as subsequent endmarkers belong to the Red endMkrs set
@@ -45099,6 +45220,46 @@ bool CAdapt_ItDoc::IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEn
 	// If no match of wholeMkr to any of the above fast-access strings, then it's probably blue - like \v etc
 	// Yep, the above is what we need to get chapNum:verseNum shown in m_inform when list begin mkrs precede \v
 	return FALSE;
+}
+
+// BEW added 11Jul23 for use inParsePostWordPunctsAndEndMkrs(), return the string of consecutive
+// m_key values, space-separated, from the pSrcPhrase at indexFirst, and ending at indexLast
+wxString CAdapt_ItDoc::GetAccumulatedKeys(SPList* pList, int indexFirst, int indexLast)
+{
+	// nHowMany ??
+	int nHowMany = indexLast - indexFirst + 1; // e.g. 3,4,5,6,7 is 5; 7-3 = 4, so +1 makes 5
+	wxUnusedVar(nHowMany);
+	wxString strAccumulated;
+	strAccumulated = wxEmptyString;
+	int index;
+	index = indexFirst;
+	SPList::Node* pos = pList->Item(index);
+
+	CSourcePhrase* pSP;
+	wxString key;
+	pSP = (CSourcePhrase*)pos->GetData();
+	key = pSP->m_key;
+	wxChar chSpace;
+	chSpace = _T(' ');
+	strAccumulated << key;
+	strAccumulated << chSpace;
+
+	pos = pos->GetNext();
+	index++;
+
+	while (index < indexLast)
+	{
+		pSP = (CSourcePhrase*)pos->GetData();
+		key = pSP->m_key;
+		wxChar chSpace;
+		chSpace = _T(' ');
+		strAccumulated << key;
+		strAccumulated << chSpace;
+
+		index++;
+		pos = pList->Item(index);
+	}
+	return strAccumulated;
 }
 
 /*  BEW 19Nov22 I don't think I need this - deprecate - we handle instead in ParseWord()
