@@ -7077,7 +7077,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 11)
+	if (pSingleSrcPhrase->m_nSequNumber >= 5)
 	{
 		int halt_here = 1;
 	}
@@ -7144,18 +7144,25 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	// For option (b) in comment above, the matching algorithm removes each matched up char pair (it
 	// handles ">>" as a special case), reducing extras to empty, or to just one or more whitespace chars
 	// - which we skip over as they are not puncts, so if extrasLen gets reduced to 0 then matchups succeeded
+	
+	// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, if so, start of srcStr
+	// with that value
+	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+	{
+		srcStr = pSingleSrcPhrase->m_precPunct;
+	}
 	if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 	{
 		// The contents of m_srcSinglePattern are the correct post-word mix of puncts and endmarkers, or,
 		// there were no word-final puncts (but endMkrs may have been squirreled away on pSingleSrcPhrase)
 		// and if so, they will be there in m_srcSinglePattern anyway 
 		// (bEndPunctsModified stays FALSE when control has entered this block)
-		srcStr = pSingleSrcPhrase->m_srcSinglePattern;
+		srcStr += pSingleSrcPhrase->m_srcSinglePattern;
 	}
 	else
 	{
 		// BEW 10Jul23 put the function for converting extras string into a pattern, here
-		pattern = ConvertExtrasToPattern(strSaveExtras);
+		pattern = ConvertExtrasToPattern(strSaveExtras, pSingleSrcPhrase);
 
 		// When if (bIsOK && extrasLen == 0 && residue.IsEmpty()) is FALSE... then matching by string equality
 		// for puncts in matching positions failed to reduce the residue to empty. Matchup failure(s) will
@@ -7202,6 +7209,12 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			{
 				srcStr << residue;
 			}
+		}
+		// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, 
+		//if so, insert that value ahead of whatever srcStr currently is
+		if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+		{
+			srcStr = pSingleSrcPhrase->m_precPunct + srcStr;
 		}
 	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 
@@ -7271,24 +7284,41 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	return Sstr;
 }
 
-wxString ConvertExtrasToPattern(wxString extras) // BEW 10Jul23 added
+// BEW 10Jul23 added. Analysis for coping with manual punctuation changes, to reduce 
+// incidence of Placement dialogs appearing. Markers and puncts, whitespace too are
+// given symbols - left to right, according to the order of these in extras string
+// passed in. Extras string lacks the initial m_key string, but retains the rest.
+// Pass in the current CSourcePhrase pointer, as we need to check it's marker storages
+// for each endMkr encountered in traversing over the extras span
+wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP) 
 {
 	if (extras.IsEmpty())
 	{
 		return extras;
 	}
-
-
-
-
-
-
-
-
-
-
+	// Markers are of 3 kinds, and are constant in form, and so form "islands" within
+	// which other things are in their context. Markers are uppercase: B for any inline
+	// binding endMkrs, E for any that would belong in m_endMarkers, N for any that would
+	// belong in inline non-binding endMkrs storage.
+	// Whitespace is represented by w. A punctuation char, by p.
+	// A rule: each of B, E, and N are to function like boundaries, we do not allow
+	// transfer of puncts or whites across any of these three symbols. This rule allows
+	// us to provide a likely robust final string of markers, puncts, and whites, not
+	// just when the puncts count does not change, but also when it does - whether more
+	// or fewer.
+	// Processing makes use of IsWhiteSpace(wxChar* ), and IsPunctuation(wxChar*, bParsingSrcText = TRUE)
+	// An example, from my unittest: __test_placement_removal.txt, at sequNum 11: 
+	// extras is: \em*;\f*?”\wj* and ConvertExtrasToPattern() should convert that and return  BpEppN
 	wxString pattern; pattern = wxEmptyString; // init
-
+	wxString endMkrsRemoved;
+	endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);
+#if defined (_DEBUG)
+	if (pSP->m_nSequNumber == 11)
+	{
+		wxLogDebug(_T("ConvertExtrasToPatter() line %d , endMkrsRemoved= [%s]"), __LINE__, endMkrsRemoved.c_str());
+		int halt_here = 1;
+	}
+#endif
 
 
 
@@ -7297,6 +7327,136 @@ wxString ConvertExtrasToPattern(wxString extras) // BEW 10Jul23 added
 
 
 	return pattern;
+}
+
+// BEW 12Jul23 added
+wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
+{
+	if (extras.IsEmpty())
+	{
+		return wxEmptyString;
+	}
+	int extrasLen = extras.Length();
+	int offset = wxNOT_FOUND; // init
+	int offset2 = wxNOT_FOUND; // init
+	int offset3 = wxNOT_FOUND; // init  (use both offset2 and offset 3 when testing both red and blue fast-access strings)
+	wxChar backslash = _T('\\');
+	wxString strResult = wxEmptyString; // init
+	strResult = extras;  // LHS will change (shorten)with each endMkr converted to one of B, E or N
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	wxString wholeMkr = wxEmptyString;
+	wxString charFormatEMkrs = pApp->m_charFormatEndMkrs;
+	wxString blueEMkrs = pApp->m_BlueEndMarkers;
+	wxString redEMkrs = pApp->m_RedEndMarkers;
+	wxString nonBindingEMkrs = pApp->m_inlineNonbindingEndMarkers;
+	wxChar chB = _T('B');
+	wxChar chE = _T('E');
+	wxChar chN = _T('N');
+	// any from charFormatEMkrs should be in pSP->m_inlineBindingEndMarkers;
+	// any from blueEMkrs or redEMkrs should be in pSP->m_endMarkers
+	// any from nonBindingEMkrs should be in pSP->m_inlineNonbindingEndMarkers;
+	// all of these require use of accessors to get and set
+
+	wxString emkr = wxEmptyString; // init
+	wxString augEmkr = wxEmptyString; // init
+	wxString strAccum = wxEmptyString; // accumulate finished parts herein
+	int emkrLen = 0; // init
+	offset = strResult.Find(backslash);
+
+	while (offset >= 0)
+	{
+		if (offset == 0)
+		{
+			// strResult starts with an endMkr
+			emkr = pDoc->GetWholeMarker(strResult);
+			augEmkr = emkr + _T(' '); // for the lookups in the fast-access strings
+			emkrLen = emkr.Length();
+			// What emkr kind is it?
+			offset2 = charFormatEMkrs.Find(augEmkr);
+			if (offset2 >= 0)
+			{
+				// It's a B endmkr
+				strAccum << chB;
+				// Get ready for next iteration
+				strResult = strResult.Mid(emkrLen);
+				offset = strResult.Find(backslash); // this is where the next endMkr is, in the shortened strResult
+				emkr.Empty();
+				emkrLen = 0;
+			}
+			else
+			{
+				// augEmkr did not belong to the inline Binding endmkr set, check red or blue fast-access strings
+				offset2 = redEMkrs.Find(augEmkr);
+				offset3 = blueEMkrs.Find(augEmkr);
+				if (offset2 >= 0 || offset3 >= 0)
+				{
+					// It's an E endMkr
+					if (offset2 >= 0)
+					{
+						// It's one of the Red or Blue endMkrs - its length applies to both
+						strAccum << chE;
+						// Get ready for next iteration
+						strResult = strResult.Mid(emkrLen);
+						offset = strResult.Find(backslash); // this is where the next endMkr is, in the shortened strResult
+						emkr.Empty();
+						emkrLen = 0;
+					}
+					else
+					{
+						// The only possibility is that it's one of the inline Nonbinding endMkrs. Check
+						offset2 = nonBindingEMkrs.Find(augEmkr);
+						wxASSERT(offset2 >= 0); // I hope I don't have to deal with wxNOT_FOUND (an unknown 
+												// endMkr would be in m_endMarkers, and would not be found
+												// in the above block, and trip the assert here
+						if (offset2 >= 0)
+						{
+							strAccum << chN;
+							// Get ready for next iteration
+							strResult = strResult.Mid(emkrLen);
+							offset = strResult.Find(backslash); // this is where the next endMkr is, in the shortened strResult
+							emkr.Empty();
+							emkrLen = 0;
+						}
+					} // end of else block for test: if (offset2 >= 0 || offset3 >= 0)
+				}
+
+			} // end of else block for test: if (offset2 >= 0) - testing for B
+			wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s]"),
+							__LINE__, strResult.c_str(), offset, strAccum.c_str());
+		}
+		else
+		{
+			// strResult does not begin with an endMkr (a later iteration may have B at start, for instance)
+			offset = strResult.Find(backslash);
+			if (offset >= 0)
+			{
+				// There is another backslash to be handled on next iteration
+				wxString strLeft = strResult.Left(offset); // grab everything up to where the endMkr is
+				strAccum << strLeft; // accumulate what was grabbed
+				wxString strResult = strResult.Mid(offset); // shortened strResult has an endMkr at beginning
+				// Get ready for next iteration
+				strResult = strResult.Mid(emkrLen);
+				offset = strResult.Find(backslash); // this is where the next endMkr is, in the shortened strResult
+				emkr.Empty();
+				emkrLen = 0;
+				wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s]"),
+					__LINE__, strResult.c_str(), offset, strAccum.c_str());
+
+			}
+			else
+			{
+				// There is no endMkr in what's left, so accumulate the remainder and exit the loop
+				strAccum << strResult;
+				offset = wxNOT_FOUND; // causes loop exit
+			}
+		}
+
+	} // end of while loop
+	wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s]"),
+		__LINE__, strResult.c_str(), offset, strAccum.c_str());
+
+	return strResult;
 }
 
 /// return      The recomposed end of the source text string, including punctuation and markers,

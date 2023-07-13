@@ -600,7 +600,8 @@ void NormalizeState();
 // manually. It should be possible to handle over 90% automatically
 wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pSingleSrcPhrase, 
 							  wxArrayString* arrMkrsPtr, bool& bIsAmbiguousForEndmarkerPlacement);
-wxString ConvertExtrasToPattern(wxString extras); // BEW 10Jul23 added
+wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP); // BEW 10Jul23 added
+wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP); // BEW 12Jul23 added
 
 // BEW 24Oct14, a helper for testing a marker, or its base tag, for presence of the +
 // character following the backslash or at start of base tab if that is what was passed in,
