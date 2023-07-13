@@ -18605,7 +18605,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 89)
+		if (pSrcPhrase->m_nSequNumber == 1014)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
