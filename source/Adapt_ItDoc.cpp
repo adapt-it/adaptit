@@ -18803,7 +18803,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// allows the abutting to take place, and with the help of bContinueTwice TRUE, to force the [ to be on its own pSrcPhrase
 			// in m_key and m_srcPhrase. (The matching ], much later, will be handled by ParseWord() as simple following punctuation.)
 
-			precWordDelim = (wxString)FindWordBreakChar(ptr, pBufStart);
+			precWordDelim = FindWordBreakChar(ptr, pBufStart);
 			pSrcPhrase->SetSrcWordBreak(precWordDelim);
 		}
 		else
@@ -22748,43 +22748,43 @@ wxLogDebug(_T("After ParseWord: ITEMLEN+PTR line %d , len %d , 20 at ptr= [%s]  
 	return pList->GetCount();
 }
 
-wxChar CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
+wxString CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 {
-	// whm 26Jan2023 note: The assignment of a wxChar to NULL in the first line of code below
-	// generates a warning from gcc "warning: converting to non-pointer type 'wxChar' {aka 'wchar_t'} from NULL"
-	// What this does it make the chReturn wxChar become '\0' whenever it is not assigned to a whitespace character or
-	// sequence. The value of '\0' happens to work out OK here since '\0' will convert to an empty wxString when 
-	// the caller of FindWordBreakChar() assigns its returned value to the source phrase's m_srcWordBreak (a wxString).
-	wxChar chReturn = NULL; // initialise
-#if defined(_DEBUG)
-	wxChar* pSpann = NULL; pSpann = ptr; 
-	wxString mySpan; 
-	if (ptr < (pBufStart + 4))
-	{
-		// BEW 22Mar23, try not to return a NULL. pBuffStart is a small local span, typically starting with
-		// a begin mkr. So what we want to return is the first whitespace earlier than pBuffStart, which is
-		// where ptr starts of pointing at as well.
+	//wxChar chReturn = NULL; // initialise
+	wxString strReturn; strReturn = wxEmptyString; // initialize to a "safe" value
+//#if defined(_DEBUG)
+	wxChar* pSpann; pSpann = ptr; 
+	wxString mySpan;
+	mySpan = wxEmptyString; // init
+	//if (ptr < (pBufStart + 4))
+	//{
+		// BEW 22Mar23, MUST not return a NULL. pBufStart is a small local span, typically starting with
+		// a begin mkr. So what we want to return is the first whitespace earlier than pBufStart, which is
+		// where ptr starts off pointing at as well.
+		// BEW 13JUL23 the code can currently insert NULL when these no whitespace to grab, so probably the
+		// best thing to do is to remove NULL from the function, turn chReturn into strReturn and initialise
+		// it to empty string, and handle initial values of other values similarly
 		wxChar* pTemp = ptr; // don't corrupt ptr value
 		wxChar chLast1 = *(pTemp - 1);
 		bool bIsWhitespace = FALSE;
 		bIsWhitespace = IsWhiteSpace(pTemp - 1);
 		if (bIsWhitespace)
 		{
-			return chLast1;
+			return (wxString)chLast1;
 		}
 		else
 		{
 			mySpan = wxEmptyString;
-			chReturn = NULL;
-			return chReturn;
+			return strReturn;
 		}
-	}
-	else
-	{
-		mySpan = wxString((pSpann - 4), 7);
-	}
+	//}
+	//else
+	//{
+	//	mySpan = wxString((pSpann - 4), 7);
+	//}
 //	wxLogDebug(_T("Doc:FindWordBreakChar Line %d: 7 CHAR SPAN: mySpan=%s  *******************************************************************"), __LINE__,mySpan.c_str());
-#endif
+//#endif
+	/* BEW 13Jul23 don't want this
 	if (ptr > (pBufStart + 4))
 	{
 		wxChar* p = ptr;
@@ -22800,6 +22800,7 @@ wxChar CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 		} while ((p > pBufStart) && !IsWhiteSpace(p));
 	}
 	return chReturn;
+	*/
 }
 
 // return TRUE if we have an empty CSourcePhrase which has a verse marker and verse number (actually,
@@ -44473,11 +44474,14 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 	// characters, so we don't here need to check that what we are dealing with are indeed punctuation chars
 	residue = wxEmptyString; // init
 	//endMkrsOnly = wxEmptyString; // init
+	wxString threeWedgesAndSpace = _T(">> >"); // This sequence occurs in Nyindrou Matthew source text, support it
 	wxString twoWedges = _T(">>"); // ending puncts which area not single characters need to be checked first
 	bEndPunctsModified = FALSE; // init
 	wxASSERT(pSrcPhrase != NULL);
 #if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 2)
+	wxLogDebug(_T("%s() line %d , Starting... sequNum = %d , extras=[%s] , pSrcPhrase m_srcPhrase=[%s]"),
+		__FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber , extras.c_str(), pSrcPhrase->m_srcPhrase.c_str());
+	if (pSrcPhrase->m_nSequNumber >= 7)
 	{
 		int halt_here = 1;
 	}
@@ -44512,30 +44516,55 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		int strExtrasLen = strExtras.Length();
 		int allPunctsLen = allPuncts.Length(); // can't be guaranteed that these two lengths are equal
 
-		// bleed out ending puncts which are not a single character; >> is the only such in out default puncts set
-		offset = strExtras.Find(twoWedges);
+		// Bleed out ending puncts which are not a single character; >> is the only such in our default puncts set;
+		// BEW 13Jul23, however, there is a rare longer substring which must be checked for first, ">> >"
+		offset = strExtras.Find(threeWedgesAndSpace);
 		if (offset != wxNOT_FOUND)
 		{
-			// strExtras contains ">>" somewhere; check if allPuncts has the same string; if not, add it to residue
-			// and return FALSE, because an exhaustive set of matches cannot be had with the algorithm herein
-			allOffset = allPuncts.Find(twoWedges);
+			// ">> >" occurs - and should be, therefore, in both extras and m_srcPhrase->m_srcPhrase
+			allOffset = allPuncts.Find(threeWedgesAndSpace);
 			if (allOffset != wxNOT_FOUND)
 			{
-				// ">>" is also present in allPuncts somewhere. That's a match up, so remove >> from both allPuncts
-				// and strExtras; shortening both strings so we can loop over the single chars that remain
-				allPuncts.Remove(allOffset, 2);
-				strExtras.Remove(offset, 2);
-			} // end of TRUE block for inner test: if (allOffset != wxNOT_FOUND)
+				// ">> >" is also present in allPuncts somewhere. That's a match up, so remove ">> >" from both
+				// allPuncts and strExtras; shortening both strings so we can loop over the single chars that remain
+				allPuncts.Remove(allOffset, 4);
+				strExtras.Remove(offset, 4);
+			}
 			else
 			{
-				// we need a more sophisticated algorithm; >> is not present within allPuncts string
-				residue << twoWedges;
+				// no match, so we need a more sophisticated algorithm; ">> >" is not present within allPuncts string
+				residue << threeWedgesAndSpace;
 				extrasLen = strExtrasLen;
 				bEndPunctsModified = TRUE;
 				return FALSE;
 			}
-		} // end of TRUE block for outer test: if (offset != wxNOT_FOUND)
-
+		}
+		else
+		{
+			// Try two wedges and no following detached additional wedge
+			offset = strExtras.Find(twoWedges);
+			if (offset != wxNOT_FOUND)
+			{
+				// strExtras contains ">>" somewhere; check if allPuncts has the same string; if not, add it to residue
+				// and return FALSE, because an exhaustive set of matches cannot be had with the algorithm herein
+				allOffset = allPuncts.Find(twoWedges);
+				if (allOffset != wxNOT_FOUND)
+				{
+					// ">>" is also present in allPuncts somewhere. That's a match up, so remove >> from both allPuncts
+					// and strExtras; shortening both strings so we can loop over the single chars that remain
+					allPuncts.Remove(allOffset, 2);
+					strExtras.Remove(offset, 2);
+				} // end of TRUE block for inner test: if (allOffset != wxNOT_FOUND)
+				else
+				{
+					// we need a more sophisticated algorithm; >> is not present within allPuncts string
+					residue << twoWedges;
+					extrasLen = strExtrasLen;
+					bEndPunctsModified = TRUE;
+					return FALSE;
+				}
+			} // end of TRUE block for outer test: if (offset != wxNOT_FOUND)
+		}
 		// base our by-characters loop on what's in the copy of extras string, possibly shortened by removal of >> above
 		wxChar space = _T(' ');
 		wxChar aChar;
@@ -44547,7 +44576,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		// is nothing left (or only spaces left - we'll get rid of those by doing Trim() when done )
 		// .Find() works correctly whether passing in wxChar or wxString for the search
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 2 )
+		if (pSrcPhrase->m_nSequNumber >= 7 )
 		{
 			int halt_here = 1;
 		}
