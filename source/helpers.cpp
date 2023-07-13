@@ -7127,10 +7127,10 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			//order; so strSaveExtras is what is to be used for converting into a pattern for analysis/comparisons
 	// TEST
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 11)
+	if (pSingleSrcPhrase->m_nSequNumber >= 2)
 	{
 		int halt_here = 1;
-		wxString endMkrsRemoved;
+		wxString endMkrsRemoved; endMkrsRemoved = wxEmptyString;
 		endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSingleSrcPhrase);
 	}
 #endif
@@ -7315,11 +7315,18 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 	// Processing makes use of IsWhiteSpace(wxChar* ), and IsPunctuation(wxChar*, bParsingSrcText = TRUE)
 	// An example, from my unittest: __test_placement_removal.txt, at sequNum 11: 
 	// extras is: \em*;\f*?”\wj* and ConvertExtrasToPattern() should convert that and return  BpEppN
+#if defined (_DEBUG)
+	if (pSP->m_nSequNumber == 2)
+	{
+		int halt_here = 1;
+	}
+#endif
+
 	wxString pattern; pattern = wxEmptyString; // init
 	wxString endMkrsRemoved;
 	endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);
 #if defined (_DEBUG)
-	if (pSP->m_nSequNumber == 11)
+	if (pSP->m_nSequNumber == 2)
 	{
 		wxLogDebug(_T("ConvertExtrasToPatter() line %d , endMkrsRemoved= [%s]"), __LINE__, endMkrsRemoved.c_str());
 		int halt_here = 1;
@@ -7363,7 +7370,12 @@ wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 	// any from blueEMkrs or redEMkrs should be in pSP->m_endMarkers
 	// any from nonBindingEMkrs should be in pSP->m_inlineNonbindingEndMarkers;
 	// all of these require use of accessors to get and set
-
+#if defined (_DEBUG)
+	if (pSP->m_nSequNumber == 2)
+	{
+		int halt_here = 1;
+	}
+#endif
 	wxString emkr = wxEmptyString; // init
 	wxString augEmkr = wxEmptyString; // init
 	wxString strAccum = wxEmptyString; // accumulate finished parts herein
