@@ -7076,12 +7076,6 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
-#if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 5)
-	{
-		int halt_here = 1;
-	}
-#endif
 	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
 	// but m_srcPhrase will be _T("\\"), we want to keep the backslash in the exported
 	// source text, so test and set srcStr to it
@@ -7131,6 +7125,18 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	strSaveExtras = extras; // after the GetPostwordExtras() call, extras does not have the initial m_key info
 			// but it will have whatever else follows, be it puncts, markers, or whitespaces, in their occurrence 
 			//order; so strSaveExtras is what is to be used for converting into a pattern for analysis/comparisons
+	// TEST
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 11)
+	{
+		int halt_here = 1;
+		wxString endMkrsRemoved;
+		endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSingleSrcPhrase);
+	}
+#endif
+	// end of TEST
+
+
 
 	extras = pDoc->RemoveEndMkrsFromExtras(extras);
 	bool bIsOK = FALSE; // init
