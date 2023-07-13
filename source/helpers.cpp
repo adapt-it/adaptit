@@ -7440,7 +7440,10 @@ wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 				// There is another backslash to be handled on next iteration
 				wxString strLeft = strResult.Left(offset); // grab everything up to where the endMkr is
 				strAccum << strLeft; // accumulate what was grabbed
-				wxString strResult = strResult.Mid(offset); // shortened strResult has an endMkr at beginning
+				// whm 13Jul2023 removed wxString declaration from strResult below otherwise the statement  
+				// doesn't make sense and causes an exception/crash. strResult is declared as wxString above.
+				//wxString strResult = strResult.Mid(offset); // shortened strResult has an endMkr at beginning
+				strResult = strResult.Mid(offset); // shortened strResult has an endMkr at beginning
 				// Get ready for next iteration
 				strResult = strResult.Mid(emkrLen);
 				offset = strResult.Find(backslash); // this is where the next endMkr is, in the shortened strResult
