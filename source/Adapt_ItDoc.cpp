@@ -36223,7 +36223,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len,
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 11)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -36286,7 +36286,12 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 						// has been set TRUE at the pSrcPhrase which contains the \f beginMkr. So don't loop
 						// if the boolean is false.
 						// The pertinent fast-access string for the loop below is pApp->m_RedEndMarkers
+						// BEW 13Jul23 I say below, "Loop over every endMkr possible" - so I can't confine
+						// the testing to just red endMkrs. I have to include blue end mkrs, and also
+						// inline non-binding endMkrs too. If none of these supply a match, then break happens
+						
 						int offset; offset = wxNOT_FOUND; // init
+// LOOP BEGINS
 						while (bIsOneEndMkr == TRUE)
 						{
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
@@ -36301,12 +36306,17 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 								}
 							}
 #endif
+							// BEW13Jul23 gotta re-initialise bIsOneEndMkr to FALSE at the start of each iteration,
+							// otherwise finding the same endMkr will go on endlessly
+							bIsOneEndMkr = FALSE;
+
 							// Loop over every endMkr possible here, and when done, if space or newline follows then
 							// here is the place to update len and ptr and return len to the caller when done here
+							// if (!augEndMkr.IsEmpty() && gpApp->m_RedEndMarkers.Find(augEndMkr) != wxNOT_FOUND)
 							offset = gpApp->m_RedEndMarkers.Find(augEndMkr);
 							if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND) // != -1 if Find() found a red one
 							{
-								// Control enters here only when an augmented endMkr of the Red set has been parsed,
+								// Control enters here only when an augmented endMkr of the Red set has been found,
 								// and the loop iterates so long as subsequent endmarkers belong to the Red endMkrs set
 								// and get parsed herein
 								mkrLen = aWholeMkr.Length(); // need the value so we can update len and ptr per iteration
@@ -36401,8 +36411,187 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 								// Ready now for iterating loop
 
 							} // end of TRUE block for test: if (!augEndMkr.IsEmpty() && gpApp->m_RedEndMarkers.Find(augEndMkr) != wxNOT_FOUND)
-						} // end of while loop: while ( bIsAnEndMkr)
+							else
+							{
+								// Not an endMkr from the Red set. Try non-binding set 
+								offset = gpApp->m_inlineNonbindingEndMarkers.Find(augEndMkr);
+								if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND)
+								{
+									// It's one of the markers in the inline nonbinding markers set
+									mkrLen = aWholeMkr.Length();
+									wxString nonbindingEndMkrs;
+									nonbindingEndMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+									nonbindingEndMkrs << aWholeMkr;
+									pSrcPhrase->SetInlineNonbindingEndMarkers(nonbindingEndMkrs);
 
+									// Update ptr and len
+									len += mkrLen;
+									ptr += mkrLen;
+
+									// Prepare for next iteration
+									if (*ptr != gSFescapechar)
+									{
+										// another mkr (endMkr or beginMkr) does not immediately follow. Don't break
+										// from the loop here, because need a check for sloppy markup between suceessive
+										// endMkrs. This happens in Nyindrou MAT data, at chapter 10: 4 where there is the
+										// sequence:   "ta Rom.\fk*<space>\f*<space> ma Judas Iskariyot, ndramak"...
+										// So put a test here, for a latin space followed by a further endMkr, if so,
+										// then parse over the <space>, don't save the space in pSrcPhrase, and iterate 
+										// the the loop. This "heals" the sloppy markup (i.e. removes the inter-endMkr space)
+										// Beware: after whitespace there may be a beginMkr for next pSrcPhase, or begin-punct
+										// on the next word; so I have to here verify that if after whitespace there is a
+										// backslash, it's an endMkr for the current pSrcPhrase.
+										itemLen = 0;
+										itemLen = ParseWhiteSpace(ptr);
+										wxChar* pAux;
+										bool bAnotherEndMkr;
+										bAnotherEndMkr = FALSE; // init
+										bool bAnotherBackslash;
+										bAnotherBackslash = FALSE; // init
+										// If there is no whitespace ( space or newline) at ptr, and no backslash at ptr
+										// then there may be punctuation between the markers. Check it out
+										if (itemLen == 0)
+										{
+											// Handle any between-endMkrs puncts, here
+											int punctsLen;
+											punctsLen = ParseFinalPuncts(ptr, pEnd, spacelessPuncts);
+											if (punctsLen > 0)
+											{
+												// There is at least one punct character at ptr
+												wxString strPuncts;
+												strPuncts = wxString(ptr, punctsLen);
+												pSrcPhrase->m_follPunct << strPuncts;
+												pSrcPhrase->m_srcPhrase << strPuncts;
+												ptr += punctsLen;
+												len += punctsLen;
+											}
+										} // end of TRUE block for test: if (itemLen == 0)
+										else
+										{
+											// itemLen > 0. So there is some white space ptr, investigate further
+											pAux = (ptr + itemLen);
+											// The only option that would keep control within the loop, is that
+											// at pAux is an endMkr. Otherwise, break out
+											bAnotherBackslash = *pAux == gSFescapechar;
+											bAnotherEndMkr = IsEndMarker(pAux, pEnd);
+											if (bAnotherBackslash && bAnotherEndMkr)
+											{
+												ptr += itemLen;
+												len += itemLen;
+												itemLen = 0;
+											}
+											else
+											{
+												// Not an endMkr or not a backslash, so break out
+												mkrLen = 0;
+												break;
+											} // end of else block for test: if (bAnotherBackslash && bAnotherEndMkr)
+
+										} // end of else block for test: if (itemLen == 0)
+									}
+									offset = wxNOT_FOUND;
+									mkrLen = 0; // init
+									aWholeMkr = wxEmptyString; // init
+									augEndMkr = wxEmptyString; // init
+									aWholeMkr = GetWholeMarker(ptr);
+									if (aWholeMkr.IsEmpty())
+									{
+										break;
+									}
+									bIsOneEndMkr = IsEndMarker(ptr, pEnd);
+									if (bIsOneEndMkr)
+									{
+										augEndMkr = aWholeMkr + _T(' ');
+									}
+									// Ready now for iterating loop
+
+								} // end of the TRUE block for test: if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND) - for inline nonbinding
+								else
+								{
+									// Test for one other possibility, blue end marker
+									offset = gpApp->m_BlueEndMarkers.Find(augEndMkr);
+									if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND)
+									{
+										// It's one of the markers in the blue end markers set
+										mkrLen = aWholeMkr.Length();
+										wxString endMkrs;
+										endMkrs = pSrcPhrase->GetEndMarkers();
+										endMkrs << aWholeMkr;
+										pSrcPhrase->SetEndMarkers(endMkrs);
+
+										// Update ptr and len
+										len += mkrLen;
+										ptr += mkrLen;
+
+										// Prepare for next iteration
+										if (*ptr != gSFescapechar)
+										{
+											itemLen = 0;
+											itemLen = ParseWhiteSpace(ptr);
+											wxChar* pAux;
+											bool bAnotherEndMkr;
+											bAnotherEndMkr = FALSE; // init
+											bool bAnotherBackslash;
+											bAnotherBackslash = FALSE; // init
+											if (itemLen == 0)
+											{
+												// Handle any between-endMkrs puncts, here
+												int punctsLen;
+												punctsLen = ParseFinalPuncts(ptr, pEnd, spacelessPuncts);
+												if (punctsLen > 0)
+												{
+													// There is at least one punct character at ptr
+													wxString strPuncts;
+													strPuncts = wxString(ptr, punctsLen);
+													pSrcPhrase->m_follPunct << strPuncts;
+													pSrcPhrase->m_srcPhrase << strPuncts;
+													ptr += punctsLen;
+													len += punctsLen;
+												}
+											} // end of TRUE block for test: if (itemLen == 0)
+											else
+											{
+												// itemLen > 0. So there is some white space ptr, investigate further
+												pAux = (ptr + itemLen);
+												// The only option that would keep control within the loop, is that
+												// at pAux is an endMkr. Otherwise, break out
+												bAnotherBackslash = *pAux == gSFescapechar;
+												bAnotherEndMkr = IsEndMarker(pAux, pEnd);
+												if (bAnotherBackslash && bAnotherEndMkr)
+												{
+													ptr += itemLen;
+													len += itemLen;
+													itemLen = 0;
+												}
+												else
+												{
+													// Not an endMkr or not a backslash, so break out
+													mkrLen = 0;
+													break;
+												} // end of else block for test: if (bAnotherBackslash && bAnotherEndMkr)
+
+											} // end of else block for test: if (itemLen == 0)
+										}
+										offset = wxNOT_FOUND;
+										mkrLen = 0; // init
+										aWholeMkr = wxEmptyString; // init
+										augEndMkr = wxEmptyString; // init
+										aWholeMkr = GetWholeMarker(ptr);
+										if (aWholeMkr.IsEmpty())
+										{
+											break;
+										}
+										bIsOneEndMkr = IsEndMarker(ptr, pEnd);
+										if (bIsOneEndMkr)
+										{
+											augEndMkr = aWholeMkr + _T(' ');
+										}
+										// Ready now for iterating loop
+									} // end of the else block for test: if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND) - for blue endMkrs
+								} // end of else block for test: if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND)
+							} // end of else block for test: if (!augEndMkr.IsEmpty() && offset != wxNOT_FOUND)
+						} // end of while loop: while ( bIsAnEndMkr)
+// LOOP END
 					} // end of TRUE block for test: if (m_bIsWithinUnfilteredInlineSpan)
 
 					// what here? At loop end or control broke from the loop before it ended.
