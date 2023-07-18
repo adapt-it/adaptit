@@ -23383,16 +23383,20 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	// isolated asterisk will be seen but carry no meaning, it would be in the GUI as a pSrcPhrase, & prevent an app infinite loop
 	if (pSrcPhrase->m_key.IsEmpty())
 	{
-		pSrcPhrase->m_key << _T('*');
-		pSrcPhrase->m_srcPhrase << _T('*');
-		ptr++;
-		itemLen = 1;
+		// BEW 18Jul23, putting * was not a good idea to Bill, nor to me. Perhaps do something meaningful instead, like
+		// <empty-key> ( length 11 ) as m_key and m_srcPhrase, which still protects from an infinite loop
+		pSrcPhrase->m_key << _T("<empty-key>");
+		pSrcPhrase->m_srcPhrase << _T("<empty-key>");
+		ptr += 11;
+		itemLen = 11;
 		return ptr;
 	}
 	//wxASSERT(!pSrcPhrase->m_key.IsEmpty());
 	int offset = wxNOT_FOUND; // init
 	wxString wholeMkr = wxEmptyString;
 	wxString augWholeMkr = wxEmptyString;
+	int numEndPuncts; numEndPuncts = 0; // init
+	wxString strEndPuncts; strEndPuncts = wxEmptyString; // init
 	
 	int itemSpan = 0; // this is an item length valid only for the current iteration, the loop may iterate several times, and
 					  // each time set a new itemItemSpan when parsed data is stored in pSrcPhrase; but we need to accumulate
@@ -23407,6 +23411,12 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 	// 2. An endmkr belonging to m_charFormatEndMkrs fast-access string. Inline binding end markers 'bind', so we can assumme
 	//    there is no punctuation before it, but there may be after it - either attached, or detached by whitespace
 	// 3. Punctuation character(s) - may be more than one in sequence, but usually one; or the same but following the endMkr of 2.
+#if defined (_DEBUG)
+	if (pSrcPhrase->m_nSequNumber >= 8)
+	{
+		int halt_here = 1;
+	}
+#endif
 	if (*ptr == gSFescapechar)
 	{
 		// the marker at ptr may be an endMkr, belonging to the m_charFormatEndMkrs set. 
@@ -23425,13 +23435,56 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 			itemSpan = mkrLen;
 			itemLenAccum += itemSpan;
 			ptr += itemSpan; // ptr has advanced
+			itemLen += itemSpan;
 		}
 	} // end of TRUE block for test: if (*ptr = gSFescapeChar)
+	else
+	{
+		// BEW 18Jul23, not having this else block earlier was a source of error when
+		// the input source data at this current pSrcPhrase was ptr pointing at ",\\it*\n....".
+		// The do loop below expects ptr to point at backslash, but unparsed comma prevents that,
+		// so the do loop below skips where the \it* marker would get correctly parsed, and control
+		// enters the else block, where comma does get parsed, but a bad test of pNext (I'll fix
+		// this now too) causes a break from the do loop, and \it* is left unparsed - so that the
+		// next pSrcPhrase sees it as an unknown endMkr and puts up an error message telling the
+		// user what marker it is and presenting it in a context of surrounding words. So here,
+		// I need to parse over the punct, to get to the endMkr
+		numEndPuncts = ParseFinalPuncts(ptr, pEnd, spacelessPuncts);  // a span of puncts, or none
+		if (numEndPuncts > 0)
+		{
+			// Parsed one or more puncts, deal with them, update ptr, augment itemSpan, & itemLenAccum
+			strEndPuncts = wxString(ptr, numEndPuncts); // will be empty if ptr is not at a punct
+			pSrcPhrase->m_follPunct << strEndPuncts;
+			pSrcPhrase->m_srcPhrase << strEndPuncts;
+			itemSpan += numEndPuncts;
+			itemLenAccum += itemSpan;
+			ptr += itemSpan; // ptr has advanced, so for data like ",\\it*" ptr now points at the \it* endMkr
+				// and so the do loop below will correctly pick up the \it* marker and process it right. But
+				// if a beginMkr (e.g. \f ) is at ptr, then that belongs on the next pSrcPhrase - so check
+				// and if so, force return here after doing necessary updates
+			itemLen += itemSpan;
+
+			/* Remove this stuff, best idea is to hand over now to the do loop
+			wxString wholeMkr; wholeMkr = wxEmptyString;
+			bool bIsEndMkr; bIsEndMkr = FALSE; // init
+			bool bIsBeginMkr; bIsBeginMkr = FALSE; // init
+			bIsBeginMkr = IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr);
+			if (*ptr == gSFescapechar && bIsBeginMkr)
+			{
+				// If TRUE, then the beginMkr at ptr belongs on the next pSrcPhrase, so return itemLen in
+				// signature, and ptr value 
+				itemLen = itemLenAccum;
+				return ptr;
+			}
+			*/
+		} // end of TRUE block for test: if (numEndPuncts > 0)
+	} // end of the else block for test: if (*ptr == gSFescapechar)
+
 #if defined (_DEBUG) //&& !defined(NOLOGS) // && defined (LOGMKRS)
-	wxString mypointsAt = wxString(ptr, 15);
+	wxString mypointsAt = wxString(ptr, 16);
 	wxLogDebug(_T("ParsePostWordPunctsAndEndMkrs line %d pointsAt= %s in TokenizeText(), sn= %d , before do loop"),
 		__LINE__, mypointsAt.c_str(), pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
-	if (pSrcPhrase->m_nSequNumber >= 9)
+	if (pSrcPhrase->m_nSequNumber >= 8)
 	{
 		int halt_here = 1;
 	}
@@ -23448,16 +23501,14 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 
 	// Start with 1. above
 	int numSpaces;
-	int numEndPuncts;
 	wxString strEndSpaces;
-	wxString strEndPuncts;
 	int numGoodOnes = 0;
 	int numBadOnes = 0;
 	wxChar* pAux;
 
 	pAux = ptr;  // use pAux for parsing over one or more following puncts; do all options for each iteration
 	bool bIterateAgain = TRUE;
-	do 
+	while (bIterateAgain)
 	{
 		// pAux and itemSpan apply only to the current iteration, they are reset to ptr and 0 at every new iteration
 		pAux = ptr;  // use pAux for parsing over one or more following puncts; do all options for each iteration
@@ -23469,7 +23520,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		// add to itemLenAccum, set bIterateAgain TRUE
 		if (*pAux == gSFescapechar)
 		{
-			// First try for another inline binding endMkr
+			// First try for an inline binding endMkr
 			wholeMkr = GetWholeMarker(pAux);
 			wxASSERT(!wholeMkr.IsEmpty());
 			augWholeMkr = wholeMkr + space;
@@ -23508,114 +23559,131 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					ptr += itemSpan; // ptr has advanced
 					itemLenAccum += itemSpan;
 					bIterateAgain = TRUE;
-					// That should be enough. Markers for m_markers and m_endMarkers will
-					// be handled further down in the parser
-
 				} // end of TRUE block for test: if (*pAux == gSFescapechar) -- inner
-				else // BEW added 11Jul23, to prevent infinite loop if the endMkr is unknown
+				else
 				{
-					bool bIsAnEndMkr;
-					bIsAnEndMkr = FALSE; // initialize
-					int myOffset; myOffset = wxNOT_FOUND; // init
-					myOffset = wholeMkr.Find(wxString(_T('*')));
-					wxString wholeEndMkr;
-					wxString strBefore;
-					wxString strAfter;
-					if (myOffset != wxNOT_FOUND)
+					// Quite possibly pAux is pointing at a beginMkr. We must deal with that
+					// if so, otherwise control will enter the block for showing the user
+					// a message dialog saying the marker is unknown - and then the next
+					// pSrcPhrase will fail if it is asked to handle a beginMkr
+					bool bIsEndMkr; bIsEndMkr = FALSE; // init
+					wxString nextWholeMkr; nextWholeMkr = wxEmptyString; // init
+					bool bIsBeginMkr; bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
+					if (pAux < pEnd && bIsBeginMkr )
 					{
-						// The whole mkr contains *, so is an endmarker -- this is
-						// a parsing error because the endmarker should have been
-						// included in the parse done by ParseWord() for the previous
-						// CSourcePhrase instance, because it's ParseWord which handles
-						// post-word endmarkers
-						wholeEndMkr = wholeMkr;
-						bIsAnEndMkr = TRUE;
-					}
-					wxString strApproxLocation;
-					strApproxLocation = wxEmptyString; // init
-					int curSN = pSrcPhrase->m_nSequNumber;
-					CAdapt_ItView* pView;
-					pView = gpApp->GetView();
-					CPile* pCurPile;
-					pCurPile = pView->GetPile(curSN);
-					if (pCurPile != NULL)
+						// Must exit the loop immediately, beginMkrs belong on the next pSrcPhrase
+						ptr = pAux;
+						itemLen = itemLenAccum;
+						bIterateAgain = FALSE;
+					} // end of TRUE block for test: if (pAux < pEnd && bIsBeginMkr )
+					else
 					{
-						CSourcePhrase* pCurSrcPhrase;
-						pCurSrcPhrase = pCurPile->GetSrcPhrase();
-						if (pCurSrcPhrase != NULL)
+						bool bIsAnEndMkr;
+						bIsAnEndMkr = FALSE; // initialize
+						int myOffset; myOffset = wxNOT_FOUND; // init
+						myOffset = wholeMkr.Find(wxString(_T('*')));
+						wxString wholeEndMkr;
+						wxString strBefore;
+						wxString strAfter;
+						if (myOffset != wxNOT_FOUND)
 						{
-							wxString curKey;
-							curKey = pCurSrcPhrase->m_key;
-							// BEW15Dec22 try to provide an approximate src string for the error - 30 chars
-							// either side of the ptr value, or less if near start of end of input source text
-							CSourcePhrase* pSPLocBefore; // go back 5 pSrcPhases, or to the sn = 0 one
-							CSourcePhrase* pSPLocAfter; // go forward 5 pSrcPhases, or to the sn = MAXINDEX one
-							CPile* pLocBefore_Pile;
-							CPile* pLocAfter_Pile;
-							int maxIndex; maxIndex = gpApp->GetMaxIndex();
-							int snLocBefore; snLocBefore = curSN; // initialise
-							int snLocAfter; snLocAfter = curSN; // initialise
-							int snLocAfterEnd; snLocAfterEnd = curSN; // initialise
-							snLocBefore -= 5;
-							snLocAfter += 1; // starting at next after curSN
-							snLocAfterEnd = snLocAfter + 5;
-							if (snLocBefore > 0)
+							// The whole mkr contains *, so is an endmarker -- this is
+							// a parsing error because the endmarker should have been
+							// included in the parse done by ParseWord() for the previous
+							// CSourcePhrase instance, because it's ParseWord which handles
+							// post-word endmarkers
+							wholeEndMkr = wholeMkr;
+							bIsAnEndMkr = TRUE;
+						}
+						wxString strApproxLocation;
+						strApproxLocation = wxEmptyString; // init
+						int curSN = pSrcPhrase->m_nSequNumber;
+						CAdapt_ItView* pView;
+						pView = gpApp->GetView();
+						CPile* pCurPile;
+						pCurPile = pView->GetPile(curSN);
+						if (pCurPile != NULL)
+						{
+							CSourcePhrase* pCurSrcPhrase;
+							pCurSrcPhrase = pCurPile->GetSrcPhrase();
+							if (pCurSrcPhrase != NULL)
 							{
-								// At least 5 previous pSrcPhrase instances are available
-								pLocBefore_Pile =  pView->GetPile(snLocBefore);
-								wxASSERT(pLocBefore_Pile != NULL); // change later into an if/else test ********
-							}
-							else
-							{
-								// Too close to start of doc to fit 5, so start at sn = 0 pile
-								pLocBefore_Pile = pView->GetPile(0);
-								wxASSERT(pLocBefore_Pile != NULL);
-							}
-							pSPLocBefore = pLocBefore_Pile->GetSrcPhrase();
-							// while loop in GetAccumulatedKeys() finishes one short of curSN
-							strBefore = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocBefore, curSN); 
+								wxString curKey;
+								curKey = pCurSrcPhrase->m_key;
+								// BEW15Dec22 try to provide an approximate src string for the error - 30 chars
+								// either side of the ptr value, or less if near start of end of input source text
+								CSourcePhrase* pSPLocBefore; // go back 5 pSrcPhases, or to the sn = 0 one
+								CSourcePhrase* pSPLocAfter; // go forward 5 pSrcPhases, or to the sn = MAXINDEX one
+								CPile* pLocBefore_Pile;
+								CPile* pLocAfter_Pile;
+								int maxIndex; maxIndex = gpApp->GetMaxIndex();
+								int snLocBefore; snLocBefore = curSN; // initialise
+								int snLocAfter; snLocAfter = curSN; // initialise
+								int snLocAfterEnd; snLocAfterEnd = curSN; // initialise
+								snLocBefore -= 5;
+								snLocAfter += 1; // starting at next after curSN
+								snLocAfterEnd = snLocAfter + 5;
+								if (snLocBefore > 0)
+								{
+									// At least 5 previous pSrcPhrase instances are available
+									pLocBefore_Pile = pView->GetPile(snLocBefore);
+									wxASSERT(pLocBefore_Pile != NULL); // change later into an if/else test ********
+								}
+								else
+								{
+									// Too close to start of doc to fit 5, so start at sn = 0 pile
+									pLocBefore_Pile = pView->GetPile(0);
+									wxASSERT(pLocBefore_Pile != NULL);
+								}
+								pSPLocBefore = pLocBefore_Pile->GetSrcPhrase();
+								// while loop in GetAccumulatedKeys() finishes one short of curSN
+								strBefore = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocBefore, curSN);
 
-							// Next, similar calulations to  get strAfter set, starting from curSN + 1
-							pLocAfter_Pile = pView->GetPile(snLocAfter);
-							wxASSERT(pLocAfter_Pile != NULL);
-							pSPLocAfter = pLocAfter_Pile->GetSrcPhrase();
-							if (snLocAfterEnd < maxIndex)
-							{
-								// There is enough room for 5 piles following curSN  to be accessed
-								strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, snLocAfterEnd);
-							}
-							else
-							{
-								// Not enough room to access five, so access to maxIndex
-								strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, maxIndex);
-							}
-							wxString space; space = _T(" ");
-							strApproxLocation = strBefore;
-							strApproxLocation << curKey;
-							strApproxLocation << space;
-							strApproxLocation << strAfter;
+								// Next, similar calulations to  get strAfter set, starting from curSN + 1
+								pLocAfter_Pile = pView->GetPile(snLocAfter);
+								wxASSERT(pLocAfter_Pile != NULL);
+								pSPLocAfter = pLocAfter_Pile->GetSrcPhrase();
+								if (snLocAfterEnd < maxIndex)
+								{
+									// There is enough room for 5 piles following curSN  to be accessed
+									strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, snLocAfterEnd);
+								}
+								else
+								{
+									// Not enough room to access five, so access to maxIndex
+									strAfter = GetAccumulatedKeys(pApp->m_pSourcePhrases, snLocAfter, maxIndex);
+								}
+								wxString space; space = _T(" ");
+								strApproxLocation = strBefore;
+								strApproxLocation << curKey;
+								strApproxLocation << space;
+								strApproxLocation << strAfter;
 
-							// We must not lose the unknown endMkr, append it in pSrcPhrase's m_endMarkers, update ptr and
-							// itemLenAccum (that advances ptr, which prevents infinite looping, and break from the loop
-							int theMkrLen; theMkrLen = wholeEndMkr.Length();
-							wxString m_endmkrs; m_endmkrs = pSrcPhrase->GetEndMarkers();
-							m_endmkrs << wholeEndMkr;
-							pSrcPhrase->SetEndMarkers(m_endmkrs);
-							ptr += theMkrLen;
-							itemLenAccum += theMkrLen;
+								// We must not lose the unknown endMkr, append it in pSrcPhrase's m_endMarkers, update ptr and
+								// itemLenAccum (that advances ptr, which prevents infinite looping, and break from the loop
+								int theMkrLen; theMkrLen = wholeEndMkr.Length();
+								wxString m_endmkrs; m_endmkrs = pSrcPhrase->GetEndMarkers();
+								m_endmkrs << wholeEndMkr;
+								pSrcPhrase->SetEndMarkers(m_endmkrs);
+								ptr += theMkrLen;
+								itemLenAccum += theMkrLen;
+								itemLen += theMkrLen; // returned by signature, keep ptr and what's parsed over, in sync
 
-							wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s\n near middle of span: %s \n Correct the end-marker in the source text file, then re-load the source text.");
-							msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
-							wxString title = _T("Warning: Unexpected End Marker");
+								wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s\n near middle of span: %s \n Correct the end-marker in the source text file, then re-load the source text.");
+								msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
+								wxString title = _T("Warning: Unexpected End Marker");
 
-							wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-							pApp->LogUserAction(msg);
-							bIterateAgain = FALSE;
-						} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
+								wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+								pApp->LogUserAction(msg);
+								bIterateAgain = FALSE;
+							} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
 
-					} // end of TRUE block for test: if (pPile != NULL)
-					bIterateAgain = FALSE;
+						} // end of TRUE block for test: if (pPile != NULL)
+						bIterateAgain = FALSE;
+
+					} // end of else block for test: if (pAux < pEnd && bIsBeginMkr )
 				} // end of else block for test: if (offset >= 0)
+
 			} // end of else block for more outer test: if (offset >= 0)
 
 		} // end of TRUE block for test: if (*pAux == gSFescapechar)
@@ -23680,15 +23748,30 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 						// If so, break from the loop without advancing ptr, and ptr will be immediately returned
 						{ // scoping block
 							int myOffset = wxNOT_FOUND;
+							// BEW 18Jul23 add check for bEndMkrAtPtr being TRUE. We need to know so as to protect
+							// from the do loop being exited from early (i.e. wrongly), leaving an 'unknown endMkr'
+							// for the next pSrcPhrase to choke on
+							bool bEndMkrAtPtr; bEndMkrAtPtr = FALSE; // init
+							if (*ptr == gSFescapechar && IsEndMarker(ptr, pEnd))
+							{
+								bEndMkrAtPtr = TRUE;
+							}
+							// ptr points at an endMkr, an unprotected access done by pNext would grab the first
+							// character after the backslash of the endMkr - which could be any ascii letter - that
+							// must be prevented, otherwise control could break from the do loop, and the endMkr
+							// not get parsed. Gotta protect from that.  bEndMkrAtPtr set TRUE does the protection.
 							wxChar* pNext = (ptr + 1); // what's pNext pointing at?
 							wxChar chAtNext = *pNext;
 							myOffset = m_strInitialPuncts.Find(chAtNext);
 							bool bNextIsPunct = IsPunctuation(pNext); // 2nd param bIsSource is default TRUE
 							// 1st subtest TRUE if pNext belongs on next pSrcPhrase, 2nd TRUE if pNext is something other 
-							// than punctuation - such as the first char of the next word to be parsed
-							if (myOffset >= 0 || !bNextIsPunct)
+							// than punctuation - such as the first char of the next word to be parsed, or wrongly, the
+							// character after the backslash of an endMkr - horrors, if we don't protect from that!
+							if (!bEndMkrAtPtr && (myOffset >= 0 || !bNextIsPunct) )
 							{
-								// if either is true, we are done parsing post word puncts
+								// if not an endMkr at ptr, AND either of the next two is true, 
+								// we are done parsing post word puncts, so break from the do loop, and return
+								// what's been spanned via the itemLen of the signature
 								bIterateAgain = FALSE;
 								itemLen = itemLenAccum;
 								break; // from the loop
@@ -23827,7 +23910,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 
 		} // end of else block for test: if (*pAux == gSFescapechar)
 
-	} while (bIterateAgain);
+	} // end of the while loop
 	return ptr;
 }
 
@@ -35129,7 +35212,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& defined(WHERE)
 			{
 				wxString pointsAt = wxString(ptr, 20);
-				if (pSrcPhrase->m_nSequNumber >= 7)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1;
 				}
@@ -35234,7 +35317,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& defined(WHERE)
 			{
 				wxString pointsAt = wxString(ptr, 20);
-				if (pSrcPhrase->m_nSequNumber >= 6)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1;
 				}
@@ -35342,14 +35425,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		else
 		{
 			// a conjoining ~ was not found ahead
-#if defined (_DEBUG) && defined(WHERE) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& defined(WHERE) && !defined(NOLOGS)
 			{
-				wxString pointsAt = wxString(ptr, 15);
+				wxString pointsAt = wxString(ptr, 16);
 				wxString followingPuncts = pSrcPhrase->m_follPunct;
 				wxString precedingPuncts = pSrcPhrase->m_precPunct;
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , follPuncts = %s , pSrcPhase->m_precPunct = %s : ptr->%s"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 3)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -35481,12 +35564,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			} // end of else block for test: if (m_bWithinMkrAttributeSpan == TRUE)
 			*/
 
-#if defined (_DEBUG)  && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG)  //&& !defined(NOLOGS) //&& defined(WHERE)
 			{
 				wxString pointsAt = wxString(ptr, 20);
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , ptr->%s"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 2)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -36383,11 +36466,33 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					// the next pSrcPhrase
 					return len;
 				}
-
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+				{
+					wxString pointsAt = wxString(ptr, 16);
+					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , m_markers=[%s] , ptr->%s"),
+						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len,
+						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 8)
+					{
+						int halt_here = 1; wxUnusedVar(halt_here);
+					}
+				}
+#endif
 				ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pSrcPhrase, itemLen, spacelessPuncts);
 				len += itemLen;
 wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxString(ptr, 20).c_str());
-
+				{
+					// BEW 18Jul23, it's possible that the returned ptr is pointing at a beginMkr, like \f for instance.
+					// Check this out, and return len immediately; otherwise we risk presenting the beginMkr to ParseAWord()
+					// and it would immediately assert.
+					wxString wholeMkr; wholeMkr = wxEmptyString; // init
+					bool bIsEndMkr; bIsEndMkr = FALSE; 
+					itemLen = 0;
+					if (ptr < pEnd && IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr) && !bIsEndMkr)
+					{
+						return len;
+					}
+				}
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 				{
 					wxString pointsAt = wxString(ptr, 16);
