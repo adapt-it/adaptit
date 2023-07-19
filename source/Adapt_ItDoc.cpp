@@ -18594,7 +18594,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber >= 6)
+		if (pSrcPhrase->m_nSequNumber >= 25732)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -23537,6 +23537,16 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 				pAux += itemSpan;
 				ptr += itemSpan; // ptr has advanced
 				itemLenAccum += itemSpan;
+				// whm 19Jul2023 added. The itemLenAccum value is here being updated, but the function's
+				// ref parameter itemLen doesn't get updated below for the parsing of a \fk* end marker
+				// within the 41MATNYNT.SFM input file. This ultimately results in the item len back in
+				// TokenizeText() having a value of 6 instead of 10 when ptr points at "ai.\\fk*\\f*\n..."
+				// which taking 6 chars results in "ai.\\fk" instead of "ai.\\fk*\\f*". That situation
+				// results in an extraneous source phrase created that just contains an asterisk m_key.
+				// and going through more loops that eventually result in the footnote end marker \f*
+				// being duplicated and stored in the source phrase that follows the extraneous asterisk
+				// one.
+				itemLen = itemLenAccum;
 				bIterateAgain = TRUE;
 			}
 			else
@@ -23778,6 +23788,16 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 							}
 							else
 							{
+								// whm 19Jul2023 added the next line to update the value of the reference parameter
+								// itemLen here from itemLenAccum. Otherwise the itemLen value was not correct for
+								// the parsing of 41MATNYNT.SFM at sn=1055 where ptr at this point was pointing at
+								// a footnote end marker. This results in the following issue: After the function 
+								// ParsePostWordPunctsAndMkrs() returns, the itemLen passed in the function's
+								// reference parameter not being updated, resulting in the ptr value back in the
+								// caller to point at the asterisk of the footnote end marker rather than just past
+								// that asterisk.
+								itemLen = itemLenAccum;
+
 								bIterateAgain = TRUE; // keep looping
 							}
 						}
