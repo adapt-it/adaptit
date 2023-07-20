@@ -24274,8 +24274,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 11Oct10, we need this fast-access string for improving punctuation support when
     // inline markers are in the immediate context (since endmarkers for inline markers
     // should be handled within ParseWord(), we'll have two strings
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\fig* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
-    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
+    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
