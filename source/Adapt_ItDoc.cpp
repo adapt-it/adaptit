@@ -20602,13 +20602,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							gpApp->m_bMkr_x_NotFiltered = TRUE;
 						}
 					}
-					// whm moved declarations and initializations (to FALSE) here before the goto isnull 
-					// block below - otherwise GCC errors on "jump to label..."
+					// whm 22Jul2023 separated declaration below from assignment making two lines
+					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bCanFilterIt"
 					// Initialise these bools to FALSE
-					bool bCanFilterIt = FALSE;
-					bool bFilteringIsWanted = FALSE;
+					bool bCanFilterIt;
+					bCanFilterIt = FALSE;
+					// whm 22Jul2023 separated declaration below from assignment making two lines
+					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bFilteringIsWanted"
+					// Initialise these bools to FALSE
+					bool bFilteringIsWanted;
+					bFilteringIsWanted = FALSE;
 					wxUnusedVar(bFilteringIsWanted);
-					bool bInUnfilteredInlineSpan = FALSE;
+					// whm 22Jul2023 separated declaration below from assignment making two lines
+					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bInUnfileterdInlineSpan"
+					bool bInUnfilteredInlineSpan;
+					bInUnfilteredInlineSpan = FALSE;
 
 					// Might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
 					// test and jump to further down -- so that \yy ends up in m_markers, and
