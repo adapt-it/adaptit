@@ -21862,7 +21862,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					pSrcPhrase->m_oldKey = pSrcPhrase->m_key;
 #if defined (_DEBUG)
 					wxLogDebug(_T("TokenizeText(), line %d : Not Merger: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d , m_oldKey= [%s]"),
-						__LINE__, strWordAndExtras.c_str(), aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
+						__LINE__, strWordAndExtras.c_str(), (int)aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 11)
 					{
 						int halt_here = 1;
