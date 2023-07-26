@@ -3491,10 +3491,14 @@ wxBell();
 #if defined(_DEBUG) && defined(FLAGS)
 					{
 						CAdapt_ItApp* pApp = &wxGetApp();
-						CSourcePhrase* pSrcPhrase = pOldActivePile->GetSrcPhrase();
-						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-							(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+						// whm 25Jul2023 added test to protect against attempting to access/dereference pOldActivePile when it is NULL
+						if (pOldActivePile != NULL)
+						{
+							CSourcePhrase* pSrcPhrase = pOldActivePile->GetSrcPhrase();
+							wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+								__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+								(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+						}
 					}
 #endif
 				} // end block for test !pApp->m_targetPhrase.IsEmpty()
