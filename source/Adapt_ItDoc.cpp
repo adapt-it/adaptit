@@ -8124,34 +8124,25 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				//     for setting pLastSrcPhrase at appox line 7802 (now deprecated), and approx 
 				//     line 8480 for dealing with a merger
 			}
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 			wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
 			if (!filteredInfo.IsEmpty())
 			{
-				wxLogDebug(_T("Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s ,  m_filteredInfo: %s"),
+				wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s ,  m_filteredInfo: %s"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), filteredInfo.c_str());
 			}
 			else
 			{
-				wxLogDebug(_T("Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
+				wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+			}
+			if (pSrcPhrase->m_nSequNumber >= 4)
+			{
+				int halt_here = 1;
 			}
 #endif
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
-
-			/* BEW 30Sep19 I think this is no longer needed
-			if (prevPos != NULL)
-			{
-				pLastSrcPhrase = prevPos->GetData(); // insert after this, ie. preceding pSrcPhrase
-				wxASSERT(pLastSrcPhrase);
-			}
-			else
-			{
-				// we were at the start of the document, so there is no previous instance
-				pLastSrcPhrase = NULL;
-			}
-			*/
 
 			offset = 0;
 			offsetNextSection = 0; // points to next char beyond a moved section or unfiltered section
@@ -8277,9 +8268,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						wxASSERT(end > start);
 						wxString extractedStr = pSrcPhrase->GetFilteredInfo().Mid(offset, end - start);
 
-#if defined (_DEBUG)  && !defined(NOLOGS)
-						wxLogDebug(_T("%s::%s(), line %d , Unfiltering; just now extractedStr= %s"),
-							__FILE__, __FUNCTION__, __LINE__, extractedStr.c_str());
+#if defined (_DEBUG)  //&& !defined(NOLOGS)
+						wxLogDebug(_T("ReconstituteAfterFilteringChange(), line %d , Unfiltering; just now extractedStr= %s"),
+							__LINE__, extractedStr.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 4)
+						{
+							int halt_here = 1;
+						}
 #endif
 
 						extractedStr = RemoveAnyFilterBracketsFromString(extractedStr); // we'll tokenize LHSide
@@ -13974,6 +13969,23 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 	return len;
 }
 
+// BEW 25Jul23 added. It seems weird to use ParseFinalPuncts on a, say, reversed string
+// with final punct before reversing. But ParseFinalPuncts returns correct length, parsing
+// left to right, so I made ParsePuncts() to look more normal to someone maintaining AI
+// One thing I added, and it's what messed with ParseAWord(), is that AI normally does not
+// contain straight single quote ( '\'' ) as a punctuation character (it's often a glottal
+// stop in many languages), so here, before ParseFinalPuncts is called, I'll add single
+// straight to a temporary copy of spacelessPuncts.
+int CAdapt_ItDoc::ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
+{
+	wxString punctsSet;
+	punctsSet = spacelessPuncts;
+	punctsSet << _T('\'');
+	int parsedPunctsLen;
+	parsedPunctsLen = ParseFinalPuncts(pChar, pEnd, punctsSet);
+	return parsedPunctsLen;
+}
+
 // BEW 29May23 if I'm to support data like  "laughter"\\f*... etc, where these puncts,
 // or the ' punct, bracket a word intended to be considered by the reader has a meaning
 // for what precedes, then I have to allow " or 1 to be considered by Adapt It as legit
@@ -18565,6 +18577,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bEmptySWBK; // set true when no backwards search for a src word break character is wanted
 	bEmptySWBK = FALSE; // initialise
 	wxString ptrPointsAt;
+	bool bKeepAttrPtrFromAdvancing;
+	bKeepAttrPtrFromAdvancing = FALSE; // init
 
 	// the parsing loop commences...
 	while (ptr < pEnd)
@@ -19773,7 +19787,18 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
 					// that ptr does not advance until control reaches the filtering code lower down
 					bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != -1; // and reset after next LookupSFM below
-
+#if defined (_DEBUG)
+					{
+						wxString strPointAt = wxString(ptr, 16);
+						wxLogDebug(_T("TokTxt() line  %d ,  bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] "),
+							__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str());
+					}
+					if (pSrcPhrase->m_nSequNumber >= 4)
+					{
+						int halt_here = 1;
+					}
+#endif
+					wxString whichMkr;
 					if (!m_bWithinMkrAttributeSpan && !bIsUnstructured && !bIsToBeFiltered)
 					{
 						// BEW 21Jul23, moved the attributes support (i.e. bar after beginMkr) to
@@ -19783,17 +19808,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// is gunna be filtered out up to (and including) the matching endMkr
 						bool bHidingNeeded = FALSE;
 						{ // start scoping span
-#if defined (_DEBUG)
-							{
-								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokTxt() line  %d ,  bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] "),
-									__LINE__, (int)bEmptySWBK, (int)bContinueTwice, strPointAt.c_str());
-							}
-							if (pSrcPhrase->m_nSequNumber >= 4)
-							{
-								int halt_here = 1;
-							}
-#endif
 							// BEW 20Jul23, handle \fig as a special case. It's an attribute marker, but maybe intended for
 							// filtering out - and the filtering out code is a long way below
 							int offset;
@@ -19833,6 +19847,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							bHidingNeeded = IsAttributeMarker(ptr);
 							if (bHidingNeeded)
 							{
+
 #if defined (_DEBUG)
 								{
 									wxString strPointAt;
@@ -19857,7 +19872,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										bIsInlineNonbindingMkr = FALSE;
 										bIsCharAttrMkr = TRUE;
 										bFoundOne = TRUE;
-
+										bKeepAttrPtrFromAdvancing = TRUE;
 										// The only charAttributeMkr (i.e an begin-marker) we are considering
 										// here is \fig  There are a few reasons:
 										// (0) must handle before any parsing moves ptr beyond pointing at backslash
@@ -19878,8 +19893,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										wxString aMkr = wxEmptyString;
 										bool bIsCharacterAttrMkr = IsAttributeBeginMarker(ptr, aMkr);
 										bool bIsFigure = (aMkr == _T("\\fig"));
+										whichMkr = aMkr;
 
-										if (bIsCharacterAttrMkr && bIsFigure)
+										if (bIsCharacterAttrMkr && bIsFigure && !bKeepAttrPtrFromAdvancing) // BEW 25Jul23 added 3rd subtest
 										{
 											// Set m_inform and m_bSpecialText, because this marker
 											// is \fig at the beginning of a figure's caption text
@@ -19915,6 +19931,26 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									m_bWithinMkrAttributeSpan = FALSE;
 									m_bHiddenMetadataDone = FALSE;
 								}
+
+								// BEW 16Dec22 need some refactoring here. If IsAttributeBeginMarker() returns
+								// TRUE (e.g for \fig ... \fig* span, or \f ... \f* span, etc), we must not
+								// let the TRUE value be using in the test for entry to the filtering code block
+								// mush below - because allowing such entry, if bar ( | ) is encountered, the
+								// ParseWord()'s ParseAWord() call will assert. Here we just clear the storage,
+								// getting ready for ParseWord to deal with adding to m_punctsPattern (around 37153)
+								bool bItsABeginMarkerForAttributes = IsAttributeBeginMarker(ptr, whichMkr);
+								if (bItsABeginMarkerForAttributes)
+								{
+									// Get rid of any left-over earlier-cached attributes metadata
+									if (m_bWithinMkrAttributeSpan)
+									{
+										ClearAttributeMkrStorage(); // clears, and also sets 
+															// m_bWithinMkrAttributeSpan to FALSE
+										// Need pSrcPhrase to clear the m_punctsPattern string, which is the cache store
+										pSrcPhrase->m_punctsPattern.Empty();
+										pSrcPhrase->m_bUnused = FALSE; // ensures it's bit-flag (22) is 0
+									}
+								} // ParseWord() deals with hiding attributes, at its entry
 
 							} // end of TRUE block for test: if (bHidingNeeded)
 							else
@@ -20471,7 +20507,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// The long hypen is preceding punctuation for the Hosanna pSrcPhrase, and if I don't
 					// take care of it here (it needs to be put into m_precPunct), AI will shove it in
 					// m_follPunct - which constitutes a bogus punctuation movement.
-					if (bIsBeginMkr && !bIsToBeFiltered) // BEW 21Jul23 added 2nd subtest, skip advancing ptr when about to filter
+
+					// BEW 21Jul23 added 2nd subtest, skip advancing ptr when about to filter.
+					// BEW 25Jul23 added 3rd subtest, skip advancing ptr when about to have ParseWord() 
+					// handle saving bar data to pSrcPhrase's m_punctsPattern member
+					if (bIsBeginMkr && !bIsToBeFiltered && !bKeepAttrPtrFromAdvancing) 
 					{
 						// We have a marker pointed at, and it's a beginMkr, typically what follows is space
 						// or newline (e.g. \p\n before a \v marker).  BEW 29Jun23, but there are 3 locations
@@ -20635,7 +20675,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 #endif
 					// BEW 19Jul23 don't goto isnull if filtering (which is further below and 
-					// would be skipped) is wanted. 
+					// would be skipped) is wanted. Alternatively, if bKeepAttrPtrFromAdvancing is TRUE
+					// then we want to get to ParseWord() where the char attributes mkr processing is done,
+					// as quickly as possible - so we'd want to goto the label "parsing" here
 					if (bIsToBeFiltered == FALSE)
 					{
 						// This should only be a test yielding TRUE, when the 
@@ -20643,6 +20685,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						if (pUsfmAnalysis == NULL)
 						{
 							goto isnull;
+						}
+						else if (bKeepAttrPtrFromAdvancing == TRUE)
+						{
+							goto parsing; // this sends control to just preceding ParsePreWord(), and then ParseWord() follows
 						}
 					}
 					// BEW the next bit was added to handle the possibility of a thing like \x type
@@ -21023,12 +21069,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					bInUnfilteredInlineSpan = FALSE;
 				}
 #if defined (_DEBUG)
-				if (pSrcPhrase->m_nSequNumber >= 7)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 					int halt_here = 1;
 				}
-#endif
+#endif 
 				// Outermost test...
 				if (bIsToBeFiltered && bCanFilterIt)
 				{
@@ -21057,7 +21103,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// So we'll code in bleeding order - get the special cases out of the way
 					// first, and the general stuff handled last.
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-					if (pSrcPhrase->m_nSequNumber >= 7)
+					if (pSrcPhrase->m_nSequNumber >= 4)
 					{
 						wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __LINE__, 
 							(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
@@ -21071,35 +21117,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					//wxUnusedVar(whichMkr); // wwhichMkr in the call below is the one checkedd for
 					bool bItsSourceText = !m_bTokenizingTargetText;
 
-					// BEW 16Dec22 need some refactoring here. If IsAttributeBeginMarker() returns
-					// TRUE (e.g for \fig ... \fig* span, or \f ... \f* span, etc), we must not
-					// let the TRUE value be using in the test for entry to the filtering block
-					// a little below - because allowing entry, if bar ( | ) is encountered, the
-					// ParseWord()'s ParseAWord() call will assert. So move the attributes storage
-					// clean call to here, and have the block below just test bItsSourceText				
-					bool bItsABeginMarkerForAttributes = IsAttributeBeginMarker(ptr, whichMkr);
-					if (bItsABeginMarkerForAttributes)
-					{
-						// Get rid of any left-over earlier-cached attributes metadata, since filtering
-						// the marker's span will invalidate the cached stuff anyway, and  we want
-						// the source text attributes to remain in-line within what is being filtered
-						if (m_bWithinMkrAttributeSpan)
-						{
-							ClearAttributeMkrStorage(); // clears, and also sets 
-												// m_bWithinMkrAttributeSpan to FALSE
-							// Need pSrcPhrase to clear the m_punctsPattern string, which is the cache store
-							pSrcPhrase->m_punctsPattern.Empty();
-							pSrcPhrase->m_bUnused = FALSE; // ensures it's bit-flat is 0
-						}
-					} // ParseWord() deals with hiding attributes, at its entry
-
 					// Ready for the filtering code...
 					if (bItsSourceText)
 					{
 						wxString temp = wxEmptyString;
 						itemLen = 0; // initialize
 #if defined (_DEBUG)
-						if (pSrcPhrase->m_nSequNumber >= 7)
+						if (pSrcPhrase->m_nSequNumber >= 4)
 						{
 							int halt_here = 1;
 						}
@@ -21129,7 +21153,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// BEW 16Dec22 move the AddToFilteredInfo() call to here, since strCacheDelayedFilteredContent
 						// has its content now, there is no point in delaying storage till the next
 						// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
-						pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+						// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
+						// pLastSrcPhrase, it should then work better if later the beginMkr is removed from
+						// the gCurrentFilterMarkers list
+						if (pLastSrcPhrase != NULL)
+						{
+							//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+							pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+						}
 						// ptr has to be updated by itemLen characters added; wholeMkr got
 						// removed along with its content; and will be stored to m_filteredInfo
 						ptr += itemLen;
@@ -21717,56 +21748,61 @@ goto parsing;
 
 parsing:
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-			theptrPointsAt = wxString(ptr, 18);
+			theptrPointsAt = wxString(ptr, 16);
 			wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 				 __LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 				pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 6)
+			if (pSrcPhrase->m_nSequNumber >= 4)
 			{
 				int halt_here = 1;
 			}
 #endif
-
-			itemLen = ParsePreWord(ptr, pEnd, pSrcPhrase, spacelessPuncts, pApp->m_inlineNonbindingMarkers,
-			pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText);
+			// BEW 25Jul23 ParsePreWord() causes \fig (a char attribute mkr) - and maybe other begin mkrs
+			// to be parsed over. But members of charAttributeMkrs must not have ptr advance, because
+			// ParseWord(), as its first task, is to check for ptr pointing at gSFescapechar, and if so,
+			// to test for a char attribute beginMkr being at ptr, so that any needed hiding of bar-initial
+			// data can be accomplished, hiding it in pSrcPhrase->m_punctsPattern, then return len. So here,
+			// block any possibility of ptr advancing if bKeepAttrPtrFromAdvancing is TRUE
+			if (!bKeepAttrPtrFromAdvancing)
+			{
+				// skip, if the bool was TRUE
+				itemLen = ParsePreWord(ptr, pEnd, pSrcPhrase, spacelessPuncts, pApp->m_inlineNonbindingMarkers,
+					pApp->m_inlineNonbindingEndMarkers, bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTokenizingTargetText);
 
 #if defined (_DEBUG)
-			// whm 16Jun2023 separated the declaration of wxChar* auxPtr from its assignment/initialization below, to 
-			// resolve compiler error from GCC: "jump to label 'finishup'...crosses initialization of wxChar* auxPtr"
-			wxChar* auxPtr;
-			auxPtr = ptr + itemLen;
-			wxLogDebug(_T("ITEMLEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, itemLen, wxString(auxPtr, 20).c_str());
-			// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
-			//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
+				// whm 16Jun2023 separated the declaration of wxChar* auxPtr from its assignment/initialization below, to 
+				// resolve compiler error from GCC: "jump to label 'finishup'...crosses initialization of wxChar* auxPtr"
+				wxChar* auxPtr;
+				auxPtr = ptr + itemLen;
+				wxLogDebug(_T("ITEMLEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, itemLen, wxString(auxPtr, 20).c_str());
 #endif
-
-			// BEW 15Sep22 if ParsePreWord() actually advanced control's ptr, then before we hand over
-			// further below to ParseWord() to handle the word parsing, final punctuations, and endmarkers
-			// and alse - if control is within a caching span, to complete the storage of cache data when it
-			// has been identified, within ParseWord(), as not cached yet and needs to be, to get that done
-			if (itemLen > 0)
-			{
-				// itemLen is non-zero, advance of ptr needs to be done here, and reset itemLen to 0, so that
-				// ParseWord() will have ptr pointing where it needs to be, at the entry of ParseWord()
-				ptr = ptr + (size_t)itemLen;
-				itemLen = 0; // re-initialize, for ParseWord()
-			}
+				// BEW 15Sep22 if ParsePreWord() actually advanced control's ptr, then before we hand over
+				// further below to ParseWord() to handle the word parsing, final punctuations, and endmarkers
+				// and alse - if control is within a caching span, to complete the storage of cache data when it
+				// has been identified, within ParseWord(), as not cached yet and needs to be, to get that done
+				if (itemLen > 0)
+				{
+					// itemLen is non-zero, advance of ptr needs to be done here, and reset itemLen to 0, so that
+					// ParseWord() will have ptr pointing where it needs to be, at the entry of ParseWord()
+					ptr = ptr + (size_t)itemLen;
+					itemLen = 0; // re-initialize, for ParseWord()
+				}
 #if defined (_DEBUG)
-			{
-				wxString pointsAt;
-				if (ptr + 14 < pEnd)
 				{
-					pointsAt = wxString(ptr, 14);
-					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , pointsAt= [%s]"),
-						__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, pointsAt.c_str());
+					wxString pointsAt;
+					if (ptr + 14 < pEnd)
+					{
+						pointsAt = wxString(ptr, 16);
+						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d , pointsAt= [%s]"),
+							__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, pointsAt.c_str());
+					}
+					if (pSrcPhrase->m_nSequNumber >= 4)
+					{
+						int halt_here = 1;
+					}
 				}
-				if (pSrcPhrase->m_nSequNumber >= 13)
-				{
-					int halt_here = 1;
-				}
-			}
 #endif
-
+			} // end of TRUE block for test: if (!bKeepAttrPtrFromAdvancing)
 		// Below is the Legacy ParseWord().
 		// BEW 1Dec22 the legacy one is superior to my now thrown away ParseWord2() - the latter never got completed.
 		// The Legacy one, now heavily refactored better, can still handle punctuation changing to word-building char, or vise
@@ -21862,7 +21898,7 @@ finishup: // BEW 3Nov22 added, to bypass ParsePreWord() and ParseWord() when doi
 					pSrcPhrase->m_oldKey = pSrcPhrase->m_key;
 #if defined (_DEBUG)
 					wxLogDebug(_T("TokenizeText(), line %d : Not Merger: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d , m_oldKey= [%s]"),
-						__LINE__, strWordAndExtras.c_str(), aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
+						__LINE__, strWordAndExtras.c_str(), (int)aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 11)
 					{
 						int halt_here = 1;
@@ -26287,8 +26323,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 		if (gpApp->m_FilterStatusMap.size() > 0)
 		{
 			// we only unfilter if there is something to unfilter
-			bSuccessful = ReconstituteAfterFilteringChange(pView,
-				gpApp->m_pSourcePhrases, fixesStr);
+			bSuccessful = ReconstituteAfterFilteringChange(pView, gpApp->m_pSourcePhrases, fixesStr);
 			if (!bSuccessful)
 			{
 				// at least one error, so make sure there will be a message given (the
@@ -26324,8 +26359,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 		if (gpApp->m_FilterStatusMap.size() > 0)
 		{
 			// we only filter if there is something to filter
-			bSuccessful = ReconstituteAfterFilteringChange(pView,
-				gpApp->m_pSourcePhrases, fixesStr);
+			bSuccessful = ReconstituteAfterFilteringChange(pView, gpApp->m_pSourcePhrases, fixesStr);
 			if (!bSuccessful)
 			{
 				// at least one error, so make sure there will be a message given (the
@@ -26360,8 +26394,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	{
 		// if called, ReconstituteAfterFilteringChange() sets up the progress window again
 		// and destroys it before returning
-		bool bSuccessful = ReconstituteAfterFilteringChange(pView,
-			gpApp->m_pSourcePhrases, fixesStr);
+		bool bSuccessful = ReconstituteAfterFilteringChange(pView, gpApp->m_pSourcePhrases, fixesStr);
 		if (!bSuccessful)
 		{
 			// at least one error, so make sure there will be a message given (the
@@ -35089,14 +35122,161 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						  // It's value is returned in the signature of the function:
 						  // bool FoundEsbeEndMarker(wxChar* pChar, int& whitespaceLen)
 //	wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 	wxString pointsAt = wxString(ptr, 20);
 	wxLogDebug(_T("ParseWord() START, line %d : sequNum= %d , ptr->%s "), __LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
-	if (pSrcPhrase->m_nSequNumber >= 3)
+	if (pSrcPhrase->m_nSequNumber >= 4)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
 #endif
+	// BEW 28Nov22 For data like ibaib|ibaib where the bar followed by same word is a markup error
+	// (it does absolutely nothing useful) we want to remove the "|ibaib" part to "heal" the input
+	// doc programmatically. I have code for this - but much further down, so more recent code additions
+	// just below cause a misparse. A bar causes ParseAWord() to immediatly exit, so we need the 
+	// bogus bar code moved up to here.
+
+	// BEW 25Jul23 mooved it up from following the ParseAWord() call, as unhandled bar info crashes
+	// ParseAWord(). Do it here as a bleeding functionality, if ptr points at a charAttributeMkr
+	// on entry.
+	wxString theWord2;
+	theWord2 = wxEmptyString;
+	wxChar chBar = _T('|');
+	if (*ptr != gSFescapechar)
+	{
+		// is there a bar, but with a word preceding? Set theWord to whatever precedes the bar
+		theWord2 = ParseAWord(ptr, spacelessPuncts, pEnd);
+		int theWord2Len;
+		theWord2Len = theWord2.Length();
+		wxChar chAfter = *(ptr + theWord2Len); // is it a bar?
+		// if chAfter is indeed a bar, we can check in the else if block for worthless markup 
+		// like abaib|abaib and remove it - thereby healing the doc of that kind of error
+		if (chAfter != chBar)
+		{
+			// unexpected, the only safe thing to do is to let the else if block deal with it,
+			// and we set theWord back to an empty string
+			theWord2.Empty();
+		}
+	}
+	else if (*ptr == gSFescapechar)
+	{
+		int itemLen;
+		itemLen = 0; // init
+		int offset;
+		offset = wxNOT_FOUND; // init
+		wxString theMkr;
+		theMkr = GetWholeMarker(ptr);
+		wxString augTheMkr;
+		augTheMkr = theMkr + _T(' ');
+		bool bIsCharAttributeMkr;
+		bIsCharAttributeMkr = FALSE; // init
+		offset = charAttributeMkrs.Find(augTheMkr); // if found, it's guaranteed to be a beginMkr
+		
+		if (offset >= 0)
+		{
+			// We've a character attribute begin mkr to deal with, to hide the bar-initial data
+			// in pSrcPhrase's m_punctsPattern member, and set repurposed m_bUnused to TRUE
+			itemLen = augTheMkr.Length();
+			len = itemLen;
+			ptr += len; 
+			itemLen = 0;
+			// in case there is more than one space following theMkr, count any extra spaces before
+			// the bar, skip over them to leave ptr pointing at the bar, but increase len by the
+			// number of spaces beyond one.
+			itemLen = CountSpaces(ptr, pEnd);
+			if (itemLen > 0)
+			{
+				len += itemLen;
+				ptr += itemLen;
+			}
+			itemLen = 0;
+			wxASSERT(*ptr == chBar);
+			// Remove any bad markup, such as word|word where 'word' is the same both sides of the bar,
+			// returning so that the bogus markup is parsed over but forgotten.
+			// Then, if bar is followed by some valid character attribute markup, process through to
+			// saving the contents in m_punctsPattern		
+			wxChar* pAux = ptr; // leave ptr pointing at the bar
+			wxChar* pWhitePtr = NULL;
+			wxChar* pBar = ptr; // BEW 6Jan23 need this for hunting to the next mkr
+			// we need to save the post-bar pointer location, for use in the code below. Use pAuxSave
+			wxChar* pAuxSave = ptr;
+			if (pAuxSave < pEnd)
+			{
+				pAuxSave++; // this is the start of the post-bar text
+			}
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+			{
+				wxString pointsAt = wxString(ptr, 16);
+				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , ptr->[%s]"),
+					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 4)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
+			}
+#endif
+			if (*pAux == chBar)
+			{
+
+				// Use pAux in this block, don't what to advance ptr if fixing the above markup error
+				// Advance pAux to the next whitespace, and set pWhitePtr to point at it
+				while ((pAux < pEnd) && !IsWhiteSpace(pAux))
+				{
+					pAux++;
+				}
+				pWhitePtr = pAux; // This is the space after theWord, perhaps - following code determines true or false						
+
+				// make a string of what's between pAux and pWhitePtr
+				wxString afterStr = wxString(pAuxSave, (size_t)(pWhitePtr - pAuxSave));
+				// Now check if afterStr is identical to theWord. If so, we have bogus markup, and
+				// we can now fix it (parsing over the bar and afterStr and ignoring these in
+				// the len value to be returned to TokenizeText()
+				if (afterStr == theWord2)
+				{
+					// It's bogus markup. Fix it.
+					int theWord2Length = theWord2.Length();
+					if (len == 0)
+					{
+						// We've not counted the chars in theWord yet, so do so
+						len = theWord2Length;
+					}
+					wxASSERT(len == theWord2Length);
+					// Get ptr updated to point at pWhitePtr in the input text, and ptr in caller to 
+					// also be beyound the "|ibaib" ( or whatever ), otherwise, returning from ParseWord()
+					// will start a new pSrcPhrase pointing at "|ibaib<space..... which will cause
+					// ParseAWord() to exit empty, and it's wxASSERT to trip (in Release version, a crash)
+					ptr = pWhitePtr;
+					len += (1 + len); // '1' included to get past the bar
+					return len; // go back to TText(), the bogus markup should now be fixed
+				}
+
+				// We are not correcting something like abaib|abaib, so scan to the end of endMkr (if the scan
+				// gets to a beginMkr, return the count, without including the beginMkr width)
+				ptr = pBar;
+				int nScannedWidth = ScanToNextMarker(pBar, pEnd);
+				if (nScannedWidth > 0)
+				{
+					// squirrel the span away in pSrcPhrase->m_punctsPattern, and set m_bUnused = TRUE
+					wxString contents = wxString(pBar, nScannedWidth);
+					len += nScannedWidth;
+					pSrcPhrase->m_punctsPattern = contents;
+					pSrcPhrase->m_bUnused = TRUE;
+					return len;
+				}
+				else
+				{
+					pSrcPhrase->m_punctsPattern.Empty();
+					// don't send len zero to TokenizeText. Since we started by pointing at a bar,
+					// increase len by 1, to give TokenizeText() a chance to advance without a crash
+					len += 1;
+					return len;
+				}
+
+			} // end of TRUE block for test: if (*pAux == chBar)
+
+		} // end of the TRUE block for test: if (offset >= 0)
+	} // end of the TRUE block for test: if (*ptr == gSFescapechar)
+
 
 	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
 	// at the end of the "word" (meaning, and markers and endmarkers, and preceeding and
@@ -35364,7 +35544,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			// have content at a pSrcPhrase which we want to store
 			// cached attributes data on - unless, of course, the source
 			// text at that point only has a single word - in which case
-			// the cached data must be stored in m_punctsPatter, otherwise
+			// the cached data must be stored in m_punctsPattern, otherwise
 			// it would get lost. 
 			// (For mergers with internal punctuation, it will have content 
 			// unrelated to the cached metadata.) Which should win? 
@@ -36382,10 +36562,10 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 						}
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
-							wxString pointsAt = wxString(ptr, 15);
+							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 11)
+							if (pSrcPhrase->m_nSequNumber >= 4)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -36424,7 +36604,34 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 							}
 						}
 #endif
-					}
+						// BEW 25Jul23, a check and possible hack may be required for the returned value of strWord.
+						// Internally, ParseAWord(), in its parsing loop, calls IsWordInternalPunctuation() for each
+						// character parsed. The latter is supposed to return TRUE when one or more puncts are internal
+						// to a word - but the code is flawed, and it's quite possible to get TRUE returned when there
+						// are no word-internal puncts, but just word-final ones. Data such as this: mari.' "<newline>
+						// returns strWord with value:  mari.'  And this is made pSrcPhrase's m_key value. Ouch. Puncts
+						// don't belong on the m_key. Two ways to fix: 1. refactor  IsWordInternalPunctuation() to be
+						// correct in every circumstance. (I can't see any way to do it reliably.) or 2. Reverse strWord
+						// parse over all puncts, get them into a string, get its length, use Mid() to chuck away the
+						// puncts, reverse back to normal order - leaving a valid strWord with no final puncts. 
+						// 2. is what I willl do - here, before any other post-word processing gets a chance to do something
+						// with or to the strWord rescued value.
+						int strWdLength;
+						strWdLength = strWord.Length();
+						const wxChar* p = strWord.GetData();
+						wxChar* pBufBegin = (wxChar*)p; // pBufBegin is not const
+						wxChar* pBufEnd = pBufBegin + strWdLength;
+						strWord = MakeReverse(strWord); // done 'in place'
+						int revPunctsLen;
+						revPunctsLen = 0;
+						revPunctsLen = ParsePuncts(pBufBegin, pBufEnd, spacelessPuncts);
+						if (revPunctsLen > 0)
+						{
+							strWord = strWord.Mid(revPunctsLen);
+						}
+						strWord = MakeReverse(strWord);
+						wxLogDebug(_T("Puncts_in_key_removed, line %d, strWord= [%s]"), __LINE__, strWord.c_str());
+					} // end of else block for test: if (IsAnsiDigit(*ptr))
 
 				} // end of else block for test: if ((*ptr == _T(']')) && IsWhiteSpace((ptr - 1)))
 				theWord = strWord;
@@ -36507,7 +36714,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 				// \f*, the <space> needs to be ignored, and we need to allow ptr + 2 to be whitespace, or gSFescapechar
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 				{
-					wxString pointsAt = wxString(ptr, 15);
+					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= %s , len= %d , m_markers=[%s] , ptr->%s"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, 
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
@@ -36521,6 +36728,60 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					}
 				}
 #endif
+				// BEW 25Jul23, one more test as a favour to Bill'a friend Charles, who has used some
+				// straight quotes, detached, at line end. E.g. a sequence like  word.' " followed by newline.
+				// Our parser, without extra help here, will see the space between ' and " as indicating the
+				// place to close off the current pSrcPhrase. That then leaves "<sp>"<newline> to be parsed
+				// for the next pSrcPhrase, control typically then gets past \p<newline> and then to \v 24
+				// and ParseAWord() chokes at the presentation of a \v marker, asserting. So I'll hack a
+				// solution here. 1. We don't want the space between ' and " to cause next pSrcPhrase create.
+				// 2. We DO want <sp>" to be parsed as belonging to the pSrcPhrase current. Or, <sp>' if word." '<newline>
+				// 3. We will store the <sp>" - adding those two to m_follPunct, update ptr & len by 2.
+				// 4. This is a problem at line end, so the diagnostic test will include CR or LF or CRLF
+				// 5. Then after updating ptr and len, return len to caller
+				{ //scoping block
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+					{
+						wxString pointsAt = wxString(ptr, 16);
+						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , m_srcPhrase= [%s] , len= %d , ptr->%s"),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, pointsAt.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 4)
+						{
+							int halt_here = 1; wxUnusedVar(halt_here);
+						}
+					}
+#endif
+					wxChar* pAux;
+					pAux = ptr;
+					// pAux may be pointing at one or more word-final puncts, get them if present
+					int numberOfPuncts = ParsePuncts(pAux, pEnd, spacelessPuncts);
+					if (numberOfPuncts > 0)
+					{
+						wxString strFinalPuncts;
+						int finalPunctsLen;
+						finalPunctsLen = 0;
+						strFinalPuncts = wxString(pAux, numberOfPuncts);
+						finalPunctsLen = strFinalPuncts.Length();
+						pSrcPhrase->m_follPunct << strFinalPuncts;
+						pSrcPhrase->m_srcPhrase << strFinalPuncts;
+						ptr = pAux;
+						ptr += finalPunctsLen;
+						len += finalPunctsLen;
+						pAux = ptr;
+					}
+					if (pAux < pEnd && *pAux == _T(' ') && (*(pAux + 1) == _T('\"') || *(pAux + 1) == _T('\'')) &&
+						(*(pAux + 2) == _T('\r') || *(pAux + 2) == _T('\n') || (*(pAux + 2) == _T('\r') && *(pAux + 3) == _T('\n'))))
+					{
+						wxString twoOnly;
+						twoOnly = wxString(pAux, 2);
+						pSrcPhrase->m_follPunct << twoOnly;
+						pSrcPhrase->m_srcPhrase << twoOnly;
+						ptr += 2;
+						len += 2;
+						return len;
+					}
+				} // end scoping block
+
 				// BEW 11Jul23, added further test. After ParseAWord() has just parsed a word, and len and ptr
 				// have been updated so that ptr points at what immediately follows, it could be a beginMkr.
 				// For example, this kind of data: ....oro loke\f (2:1) Iri aloh.....
@@ -37145,83 +37406,6 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 					return len;
 
 				} // end of TRUE block for test: if (*ptr == gSFescapechar)
-
-				// BEW 28Nov22 For data like ibaib|ibaib where the bar followed by same word is a markup error
-				// (it does absolutely nothing useful) we want to remove the "|ibaib" part to "heal" the input
-				// doc programmatically. I have code for this - but much further down, so more recent code additions
-				// just below cause a misparse. A bar causes ParseAWord() to immediatly exit, so we need the 
-				// bogus bar code moved up to here.
-				if (*ptr == _T('|'))
-				{
-					// Remove the bad markup, but if bar is followed by some character attribute markup, let
-					// control parse on
-					wxChar chBar = _T('|');
-					wxChar* pAux = ptr; // leave ptr pointing at the bar
-					wxChar* pWhitePtr = NULL;
-					wxChar* pBar = ptr; // BEW 6Jan23 need this for hunting to the next mkr
-					// we need to save the post-bar pointer location, for use in the code below. Use pAuxSave
-					wxChar* pAuxSave = ptr;
-					if (pAuxSave < pEnd)
-					{
-						pAuxSave++; // this is the start of the post-bar text
-					}
-					if (*pAux == chBar)
-					{
-						// Use pAux in this block, don't what to advance ptr if fixing the above markup error
-						// Advance pAux to the next whitespace, and set pWhitePtr to point at it
-						while ((pAux < pEnd) && !IsWhiteSpace(pAux))
-						{
-							pAux++;
-						}
-						pWhitePtr = pAux; // This is the space after theWord, perhaps - following code determines true or false						
-
-						// make a string of what's between pAux and pWhitePtr
-						wxString afterStr = wxString(pAuxSave, (size_t)(pWhitePtr - pAuxSave));
-						// Now check if afterStr is identical to theWord. If so, we have bogus markup, and
-						// we can now fix it (parsing over the bar and afterStr and ignoring these in
-						// the len value to be returned to TokenizeText()
-						if (afterStr == theWord)
-						{
-							// It's bogus markup. Fix it.
-							int theWordLen = theWord.Len();
-							if (len == 0)
-							{
-								// We've not counted the chars in theWord yet, so do so
-								len = theWordLen;
-							}
-							wxASSERT(len == theWordLen);
-							// Get ptr updated to point at pWhitePtr in the input text, and ptr in caller to 
-							// also be beyound the "|ibaib" ( or whatever ), otherwise, returning from ParseWord()
-							// will start a new pSrcPhrase pointing at "|ibaib<space..... which will cause
-							// ParseAWord() to exit empty, and it's wxASSERT to trip (in Release version, a crash)
-							ptr = pWhitePtr;
-							len += (1 + len); // '1' included to get past the bar
-							return len; // go back to TText(), the bogus markup should now be fixed
-						}
-						// Not correcting something like abaib|abaib, so scan to the end of endMkr (if the scan
-						// gets to a beginMkr, return the count, without including the beginMkr width)
-						ptr = pBar;
-						int nScannedWidth = ScanToNextMarker(pBar, pEnd);
-						if (nScannedWidth > 0)
-						{
-							// squirrel the span away in pSrcPhrase->m_punctsPattern, and set m_bUnused = TRUE
-							wxString contents = wxString(pBar, nScannedWidth);
-							len += nScannedWidth;
-							pSrcPhrase->m_punctsPattern = contents;
-							pSrcPhrase->m_bUnused = TRUE;
-							return len;
-						}
-						else
-						{
-							pSrcPhrase->m_punctsPattern.Empty();
-							// don't send len zero to TokenizeText. Since we started by pointing at a bar,
-							// increase len by 1, to give TokenizeText() a chance to advance without a crash
-							len += 1;
-							return len;
-						}
-
-					} // end of TRUE block for test: if (*pAux == chBar)				
-				} // end of the TRUE block for test: if (*ptr == _T('|'))
 				
 				// Give m_srcPhrase it's initial value, and add following puncts for get a value for m_srcPhrase.
 				// (When parsing target text words, the chunks are small - so pEnd is at the end of the word chunk
@@ -39939,49 +40123,91 @@ bool CAdapt_ItDoc::FoundEsbeEndMkr(wxChar* pChar, int& whitespaceLen)
 // not punctuation characters. Sanity check: if pChar is not a punctuation character, return FALSE immediately after entry.
 // BEW 20Dec22 refactor. The 'after' calculation should not be just "not punct"; it needs to be "not punct AND not whitespace"
 // if it's punct or white then it is not "internal" to the word.
-bool CAdapt_ItDoc::IsWordInternalPunctuation(wxChar* ptr, wxString spacelessPunctuation, wxChar* pEnd)
+// BEW 26Jul23 refactored and with name change, because it sometimes gave false positives when parsing word-ending punctuation.
+bool CAdapt_ItDoc::CanParseForward(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd)
 {
+	// Goal: return TRUE if not parsing within word-final puncts; FALSE if parsing within word-final puncts or anything
+	// which indicates parsing further would go beyond the end of the word being parsed by ParseAWord()
+	wxChar* ptr = pChar; // don't change pChar by anything we do here
 	if (ptr > (pEnd - 1)) // ensure that the wxChar after pChar is available
-		return FALSE;
-	int offset;
-	offset = spacelessPunctuation.Find(*ptr); // sanity check
-	if (offset == wxNOT_FOUND)
 	{
-#if defined (_DEBUG)
-
-		wxChar chIn = *ptr; // the closing curly single quote unrecognised by spacelessPunctuation
-		wxString chStr = chIn;
-		wxString strHex = MakeUNNNN_Hex(chStr);
-#endif
-		// The character at ptr is not a punctuation character, so return FALSE
 		return FALSE;
 	}
-	wxChar* pPtrBefore = (ptr - 1);
-	wxChar* pPtrAfter = (ptr + 1);
-	bool bBeforeIsNotPunct = TRUE; // init
-	bool bAfterIsNotPunct = TRUE; // init
-	bool bAfterIsNotWhite = TRUE; // init BEW added 20Dec22
-	// Calc the boolean values
-	offset = spacelessPunctuation.Find(*pPtrBefore);
-	bBeforeIsNotPunct = offset == wxNOT_FOUND ? TRUE : FALSE;
-
-	offset = spacelessPunctuation.Find(*pPtrAfter);
-	bAfterIsNotPunct = offset == wxNOT_FOUND ? TRUE : FALSE;
-
-	bAfterIsNotWhite = !IsWhiteSpace(pPtrAfter);
-	// BEW 20Dec22 added the bAfterIsNotWhite subtest, because following punct OR whitespace
-	// (and IsWhiteSpace() internally now includes test for hairspace U+200A as well) are
-	// sufficient conditions for indicating the punctuation character is not word-internal
-	// BEW 29May23 added last subtest re gSFescapechar, because without that subtest, the following:
-	// "laughter"\f* would cause the " punctuation character to be considered as word-internal, so
-	// that ParseAWord() would parse over it - wrongly including it as part of the word, and putting
-	// the " into the KB as a result (not to mention other possible detrimental-to-parsing messes)
-	if (bBeforeIsNotPunct && (bAfterIsNotPunct && bAfterIsNotWhite && (*pPtrAfter != gSFescapechar)) )
+	// Sanity check first, no point in checking puncts if ptr is not pointing at one
+	int punctsLen;
+	int saveLen;
+	punctsLen = ParsePuncts(ptr, pEnd, spacelessPunctuation); // internally calls ParseFinalPuncts() using a temporary copy
+					// of spacelessPunctuation to which straight-quote (') has been added. This avoids a legacy error.
+	saveLen = punctsLen; // save this value for use later on
+	if (punctsLen == 0)
 	{
+		// The character at pChar is not a punctuation character, so parsing can proceed
 		return TRUE;
 	}
-	// otherwise, must return FALSE
-	return FALSE;
+	else
+	{
+		// The character at pChar is indeed a punctuation character. So it may be word-internal - and we
+		// would then want to continue parsing over it and any other word internal ones, and then we'd want
+		// to return TRUE. But we could be starting to parse into word-final puncts, and we'd therefore
+		// want to halt ParseAWord() from parsing further - lest we end up with m_key having final puncts.
+		// (But I do now have protection code after the ParseAWord() call that fixes such an error - and
+		// it works). Anyway we'd want to return FALSE to get ParseAWord to parse no further for this 
+		// pSrcPhrase's m_key content determination. So in this block we determine which is the case, and
+		// if we can't, play safe at the end by returning FALSE
+
+		// Our first test is to find out what character is at (ptr - 1). If it's part of a word (determined
+		// by checking it's not a punctuation character), we potentially may be dealing with word-internal punctuation
+		wxChar* pPtrBefore = (ptr - 1);
+		punctsLen = ParsePuncts(pPtrBefore, pEnd, spacelessPunctuation);
+		if (punctsLen > 0)
+		{
+			// Unexpected, and it wipes out any possibility of parsing being currently word-internal, because
+			// at (ptr - 1) there should be an alphanumeric character which is word-building, therefore not a punct
+			return FALSE;
+		}
+		// punctsLen must be 0, therefore it's possible still that ParseAWord is parsing word-internal punct(s)
+		// Now we have to check what's AFTER this one or more puncts - so we need to investigate ahead of where
+		// pChar is within the ParseAWord caller. To do this, first get a count of how many puncts are at pChar.
+		// saveLen has that count. Advance ptr to point to whatever follows the potentially word-internal puncts
+		ptr += saveLen;
+		// ptr is now pointing at what is not a known (to AI) punctuation character. What's at this location?
+		// (1) If it's a backslash, halt ParseAWord, we are at a marker ( begin or ending ) and either cannot be
+		// within the word; so return FALSE
+		// (2) It's whitespace (such as space, zwsp, other widths of space, and fixed-space): return FALSE
+		// (3) If it's one of  \r or \n, these likewise need to halt the parse: return FALSE
+		// (4) If it's a bar ( | ), return FALSE
+		// (5) If its pEnd, return FALSE
+		// Else, return TRUE. Remember, these 5 tests are being done at a location ahead of where pChar is in
+		// the caller, ParseAWord(), so although the caller has the same tests, they won't return the same
+		// result and so they can't tell what is the situation ahead of where pChar currently is. CanParseWord()
+		// does that job on ParseAWord()'s behalf
+		if (ptr == pEnd)
+		{
+			return FALSE;
+		}
+		else
+		{
+			if (*ptr == gSFescapechar)
+			{
+				return FALSE; // disallow advance
+			}
+			if (IsWhiteSpace(ptr))
+			{
+				return FALSE;
+			}
+			if (*ptr == _T('\r') || *ptr == _T('\n'))
+			{
+				return FALSE;
+			}
+			if (*ptr == _T('|'))
+			{
+				return FALSE;
+			}
+		} // end of the else block for test: if (ptr == pEnd)
+	} // end of else block for test: if (punctsLen == 0)
+
+	// otherwise, must return TRUE, as probably ptr is within the word being parsed
+	return TRUE;
 }
 
 
@@ -40017,15 +40243,23 @@ wxString CAdapt_ItDoc::ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxCh
 	// when it is word-internal. However, if the user adds ' to the punctuation sets, a word like Prub'e would be
 	// misparsed. So the whole loop's condition set includes a test: IsWordInternalPunctuation(), which will catch the
 	// potential error, and also do the same if some other punctuation character is word-internal ( such as '~' )
-	bool bIsInternalPunct = IsWordInternalPunctuation(ptr, spacelessPuncts, pEnd);
-	while (bNotWhitespace && ((bIsInternalPunct || spacelessPuncts.Find(*ptr) == -1)) && (*ptr != gSFescapechar) && (*ptr != bar) && (*ptr != zwsp) && !(ptr == pEnd))
+	// 
+	// BEW 26Jul23 changed name from IsWordInternalPunctuation (right goal, bad algorithm) to CanParseForward - better
+	// indicates the intent behind the function. The idea is that at each next wxChar which is a punct, this function
+	// must search foward to find where punctuation ends, and then investigate the next character. If it's backslash,
+	// or space, or \r, or \n, then return FALSE because one of those indicates we are not dealing with word-internal
+	// puncts, but rather word-final puncts. My refactoring will better handle that goal. And lack of ' in spacelessPuncts
+	// will be overcome by using ParsePuncts() which internally temporarily adds a straight quote ( ' ) to a copy of
+	// spacelessPuncts, to get a reliable determination of being at a punct, or not.
+	bool bCanProceed = CanParseForward(ptr, spacelessPuncts, pEnd);
+	while (bNotWhitespace && bCanProceed && (*ptr != gSFescapechar) && (*ptr != bar) && (*ptr != zwsp) && !(ptr == pEnd))
 	{
 		// If there was nothing at ptr to cause a break, add *ptr to word and augment ptr
 		word += *ptr;
 		ptr++;
 		// By using IsWhiteSpace(ptr) I get automatic zwsp support
 		bNotWhitespace = !IsWhiteSpace(ptr);
-		bIsInternalPunct = IsWordInternalPunctuation(ptr, spacelessPuncts, pEnd);
+		bCanProceed = CanParseForward(ptr, spacelessPuncts, pEnd);
 	}
 	wxASSERT(!word.IsEmpty());
 	return word;

@@ -449,7 +449,9 @@ public:
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd);
 	//CSourcePhrase*  GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase); // BEW added 13Dec22, and commented out 13Dec22 - it isn't needed yet, but is robust
-	bool			IsWordInternalPunctuation(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 12Dec22 added in order to handle 
+	bool			CanParseForward(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 26Jul23 refactored, because
+						// internally the algorithm gave false positives, especially if ' (straight quote) was not in the punctuation set.
+						// Legacy comment: BEW 12Dec22 added in order to handle 
 						// word-internal punctuation (e.g. ' used for glottal stop) because the old parser used to parse in from both ends, 
 						// but ParseAWord now only parses forwards, and so without this compensating function being in the while loop's set
 						// of tests, an internal punctuation character will cause a misparse that could lead to serious error (or worse)
@@ -509,6 +511,8 @@ public:
 							bool& bHasPrecedingStraightQuote, wxString& additions,	bool bPutInOuterStorage);
 
 	int				ParseFinalPuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 7Nov22 added
+	int				ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 25Jul23 added
+
 	// *********  NOTE ***** BEW 3Jun23 if I get a message, errorC2248: cannot access private member declared in class
 	// *********  regarding operator= , when using ParseFinalPuncts() , it's because I was assuming that the function
 	// *********  ParseFinaPuncts() returns a wxString, when it actually returns an int!!!!! Duh! Homer brain struck again
