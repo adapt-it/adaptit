@@ -1683,13 +1683,18 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
 	pNewPile = pView->GetNextEmptyPile(pCurPile);
 	//pNewPile = pView->GetNextPile(pCurPile);
-
+	// BEW 28Jul23 have to protect, if pNewPile can't be defined (eg if attempting move past doc end),
+	// because NULL can't be dereferenced
+	if (pNewPile == NULL)
+	{
+		return FALSE; // probably got to end of doc
+	}
+		
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
 	wxLogDebug(_T("MoveToNextPile line %d, NEW pNewPile: sequNum %d , pilePtr= %p , m_key= [%s]"),
 		__LINE__, pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile, pNewPile->GetSrcPhrase()->m_key.c_str());
-
 
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
@@ -6249,10 +6254,15 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	}
 	else
 	{
-		#ifdef _FIND_DELAY
-			wxLogDebug(_T("2. Before MoveToNextPile"));
-		#endif
+#ifdef _FIND_DELAY
+		wxLogDebug(_T("2. Before MoveToNextPile"));
+#endif
 		bSuccessful = MoveToNextPile(pApp->m_pActivePile);
+		// BEW 28Jul23, nah, too dangerous - there's "not successful" code blocks below which may be workable
+		//if (!bSuccessful) // BEW added 28Jul23
+		//{
+		//	return FALSE; // retuns to MainFrm.cpp				  
+		//}
 		#ifdef _FIND_DELAY
 			wxLogDebug(_T("3. After MoveToNextPile"));
 		#endif
@@ -7830,7 +7840,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 					this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() line %d: end TRUE  block for if (nRefStrCount == 0)"), _T("PhraseBox.cpp"), __LINE__);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 0)"), _T("PhraseBox.cpp"), __LINE__);
 #endif
 				}
 				else if (nRefStrCount > 0)

@@ -152,6 +152,8 @@ wxMutex s_AutoSaveMutex;
 //#define ERR_DUPLICATE
 //#define FREETRMODE
 
+#define NOLOGS
+
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
 #include "../res/vectorized/document_open_16.cpp"
@@ -24274,8 +24276,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 11Oct10, we need this fast-access string for improving punctuation support when
     // inline markers are in the immediate context (since endmarkers for inline markers
     // should be handled within ParseWord(), we'll have two strings
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
-    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\+fig ");
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* ");
+    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig ");
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
@@ -24314,7 +24316,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
     
-	m_BlueBeginMarkers = _T("\\v \\m \\ca \\va \\vp \\sls \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
+	m_BlueBeginMarkers = _T("\\c \\v \\m \\ca \\va \\vp \\sls \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");
 
 	m_BlueEndMarkers = _T("\\ca* \\va* \\sls* \\tl* \\vp* \\qs* \\qac* \\litl* \\lik* \\liv* \\liv1* \\liv2* \\liv3* ");
 
@@ -64142,7 +64144,7 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 {
 	wxString func = functionName;
 	wxString memberOf = fileName;
-	wxString msg = _T("\nIn function:  %s  of filename:  %s  called at line number: %d");
+	wxString msg = _T("\nMsg1: In function: %s of filename: %s called at line= %d");
 	msg = msg.Format(msg, func.c_str(), memberOf.c_str(), lineNumber);
 	wxLogDebug(msg);
 
@@ -64151,14 +64153,14 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 	wxString value = bAbandonableValue ? _T("TRUE") : _T("FALSE");
 	wxString contents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 	wxString trackingStr = pApp->m_targetPhrase;
-	msg = _T("m_bAbandonable is  %s  , m_pTargetBox contents currently = %s  ,  and  m_targetPhrase is  %s");
+	msg = _T("Msg2: m_bAbandonable= %s , m_pTargetBox curr contents= [%s] , m_targetPhrase= [%s]");
 	msg = msg.Format(msg, value.c_str(), contents.c_str(), trackingStr.c_str());
 	wxLogDebug(msg);
 
 	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 	if (pActiveSrcPhrase != NULL)
 	{
-		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  m_gloss = %s  , sequenceNumber  %d ,  m_bHasKBEntry is  %s");
+		msg = _T("Msg3: Active CSourcePhrase: m_key= [%s] , m_adaption= [%s] ,  m_gloss= [%s] , sequNum= %d , m_bHasKBEntry= %s");
 		value = pActiveSrcPhrase->m_bHasKBEntry ? _T("TRUE") : _T("FALSE");
 		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(),
 					pActiveSrcPhrase->m_gloss.c_str(), pActiveSrcPhrase->m_nSequNumber, value.c_str());
@@ -64189,9 +64191,9 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 					bool bDeleted = pRefStr->GetDeletedFlag();
 					if (!bDeleted)   // uncomment out if these are wanted
 					{
-//						msg = _T("KB-stored translations for key:  %s  , CRefString's m_translation is:  %s");
-//						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
-//						wxLogDebug(msg);
+						msg = _T("Msg4: KB-stored translations for key= [%s] , CRefString's m_translation= [%s]");
+						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
+						wxLogDebug(msg);
 					}
 				}
 			}
@@ -64317,7 +64319,7 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 // the preceding punctuation.
 wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts)
 {
-#if defined (_DEBUG)
+#if defined (_DEBUG) && !defined (NOLOGS)
     wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_key= [%s] pSP->m_adaption= [%s]"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
     if (pSrcPhrase->m_nSequNumber >= 1)
@@ -64342,7 +64344,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         pSrcPhrase->m_adaption = pSrcPhrase->m_key;
         wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
     }
-#if defined (_DEBUG)
+#if defined (_DEBUG) && !defined (NOLOGS)
     wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_srcPhrase= %s pSrcPhrase->m_adaption= %s"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_adaption.c_str());
 

@@ -4937,7 +4937,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			pApp->m_bAutoInsert = FALSE;
 		}
 
-/* #if defined(_DEBUG) && defined(FLAGS)
+		// BEW 28/jul23, when moving forward to pNewPile returns NULL, we've probably reached
+		// unexpected doc end, so perhaps returning here when bSuccessfulInsertAndMove is 
+		// FALSE might be helpful - as the calls further down will certainly fail in this circumstance
+		// ? No, I'm scared, maybe the bool can be false for other scenarios which don't destroy the app, I'll comment it out for a few levels
+		//if (!bSuccessfulInsertAndMove)
+		//{
+		//	return;
+		//}
+		/* #if defined(_DEBUG) && defined(FLAGS)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = NULL;

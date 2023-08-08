@@ -415,6 +415,10 @@ public:
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar* pChar);
 	int				ParseNumber(wxChar* pChar);
+	wxString		ParseNumberInStr(wxString strStartingWithNumber); // BEW 1Aug23, to get a number string without having to use wxChar*
+	wxString		m_firstVerseNum; // BEW added 1Aug23, to enable knowing when a contentless pSrcPhrase is
+								 // to be finished off (i.e. appended to pList*) - when a later pSrcPhrase
+								 // has a verseNum greater than this one. Use ParseNumberInStr(wxString strAtNumberStart) to help decide
 	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
 	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
@@ -438,8 +442,10 @@ public:
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsWmkrWithBar(wxChar* ptr); //BEW added 12Sep22 in support 
 						// of the dual identities of \w .. \w* markers - for Tokenising properly
-	wxString		GetLastBeginMkr(wxString mkrs); // BEW 13Dec22 get the last one in m_markers, as this sets the TextType
-
+	wxString		GetLastBeginMkr(wxString mkrs); // BEW 13Dec22 get the last one in m_markers, but the last one
+						// does not always result in getting the correct TextType; but some places need this so keep it.
+						// However, GetPriorityBeginMkr() -- see next line, should do better job; get \v if present
+	wxString		GetPriorityBeginMkr(wxString mkrs); // BEW 2Aug23 get the priority beginMkr from m_markers, to set the TextType - \v if present
 	void			GetLengthToWhitespace(wxChar* pChar, unsigned int& counter, wxChar* pEnd); // BEW 20Oct22
 	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBraceAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
@@ -447,7 +453,7 @@ public:
 	wxString		ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd); // BEW 25Oct22 pChar should 
 							// be a digit, parse over things like 4:17, or 5:4-9. but do not include the 
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
-	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd);
+	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, bool& bWordNotParsed); // BEW 3Aug23 added bWordNotParsed
 	//CSourcePhrase*  GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase); // BEW added 13Dec22, and commented out 13Dec22 - it isn't needed yet, but is robust
 	bool			CanParseForward(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 26Jul23 refactored, because
 						// internally the algorithm gave false positives, especially if ' (straight quote) was not in the punctuation set.
@@ -455,6 +461,15 @@ public:
 						// word-internal punctuation (e.g. ' used for glottal stop) because the old parser used to parse in from both ends, 
 						// but ParseAWord now only parses forwards, and so without this compensating function being in the while loop's set
 						// of tests, an internal punctuation character will cause a misparse that could lead to serious error (or worse)
+	//bool			SkipParseAWord(wxChar* pChar, wxChar* pEnd); // BEW 26Jul23, if \h in source text which content-less yet, except for markers,
+							// has \h followed by space and then some successive periods (seen in data so far .. or ... and is rare), then
+							// allowing ParseAWord() to parse the periods will, because they are puncts, not advance ptr leading to an assert.
+							// This Skip... function is a hack to get ptr advance safely past the ParseAWord() call. Use after LookupSFM()
+	//int				m_nHowManyPeriods; // Set when SkipParseAWord() has determined how many successive periods there are at the current 
+									   // pSrcPhrase; default is zero. Reset zero at every new pSrcPhrase.
+	//wxString		m_strSkipMkr; // BEW 27Jul23 added, for setting within SkipParseAWord(), stores the beginMkr ParseWord() will want to
+								  // know what it is to store in m_markers, when SkipParseAWord returns TRUE
+	//bool			m_bSkipRequired; // BEW 27Jul23, stores the value returned from SkipParseAWord(), ParseWord will use it
 	bool			IsClosingBracketNext(wxChar* pChar);
 	//bool			IsOpenParenBraceBracketWordInternal(wxChar* pChar, wxChar* pEnd, wxString punctsSet); BEW 19Nov22 I don't think I need this - deprecate
 	bool			m_bClosingBracketIsNext;
