@@ -17755,7 +17755,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 #if defined(_DEBUG)
-	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, source.Length(), source.c_str());
+	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, (int)source.Length(), source.c_str());
 #endif
 
 	// update length
