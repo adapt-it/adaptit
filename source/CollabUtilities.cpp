@@ -6399,7 +6399,13 @@ extern bool gbDoingInitialSetup;
 						postEditVInf, // try to match this (matching its verse string)
 						sourceTextMatchIndex, // where the match happened, if it happened
 						sourceTextVerseArr); // search in this array
-					if (bConfirmedMatch)
+					//if (bConfirmedMatch)
+					// whm 11Aug2023 changed the if test from the form commented out above to the form below. 
+					// The bConfirmedSourceTextMatch flag must surely be what is tested for here and not bConfirmedMatch
+					// which is already know to be true from the outer test above. Also, if the FindAMatchingVerseInf()
+					// function above returns FALSE, the sourceTextMatchIndex will not be correct or will be
+					// undefined as I found it to be when testing Nyindrou Acts ch 2 under collaboration.
+					if (bConfirmedSourceTextMatch)
 					{
 						sourceTextVInf = (VerseInf*)sourceTextVerseArr.Item(sourceTextMatchIndex);
 						sourceTextEnd = sourceTextVInf->indexIntoArray;
