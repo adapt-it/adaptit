@@ -752,7 +752,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 758);
+		m_pApp->LogDropdownState(_T("PlaceBox() entered, after pActivePile set"), _T("Layout.cpp"), __LINE__);
 #endif
 
 
@@ -1052,7 +1052,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		}
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 1066);
+		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), __LINE__);
 #endif
 		//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
@@ -1114,7 +1114,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 			m_pApp->m_pTargetBox->SetModify(FALSE);
 		}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 1128);
+		m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), __LINE__);
 #endif
 		//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
@@ -1215,14 +1215,14 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-//			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-//				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-//				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+			wxLogDebug(_T("PlaceBox(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 		}
 #endif
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
+		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), __LINE__);
 #endif
 	} // end of TRUE block for test: if (!m_bLayoutWithoutVisiblePhraseBox)
 
@@ -1239,6 +1239,15 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 	// method for the refactored phrasebox sizing routines.
 	m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 
+#if defined(_DEBUG) && defined(FLAGS)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxLogDebug(_T("PlaceBox(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
+	}
+#endif
 	// Initialize the following for text-extent-based phrasebox resizing calcs done in 
 	// CPhraseBox::OnPhraseBoxChanged().
 	// 

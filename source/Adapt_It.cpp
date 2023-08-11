@@ -31399,6 +31399,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strQuestions = _T("???"); // BEW added 12Nov22: for use as a m_srcPhrase when there is a \f \fv sequence with no content between; and elsewhere similarly
 
 	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
+
 	return TRUE;
 }
 
@@ -64293,15 +64294,37 @@ wxString  CAdapt_ItApp::SmartTgtConvert(wxString strPunctIn)
 {
     wxString converted;
     wxChar first = strPunctIn.GetChar(0);
+    int strPunctInLen = strPunctIn.Length();
+    wxChar* pEnd = &first + strPunctInLen;
     bool bIsWhite = GetDocument()->IsWhiteSpace(&first);
     if (bIsWhite)
     {
-        wxString strRemainder = strPunctIn.Mid(1);
-        converted = GetConvertedPunct(strRemainder);
+        // BEW 11Aug23 there may be more than one white, so count them
+        // so as to advance over them to get Mid() to where punct(s) begin
+        int nWhites = CountSpaces(&first, pEnd);
+        wxString strRemainder = strPunctIn.Mid(nWhites);
+        if (!strRemainder.IsEmpty())
+        {
+            converted = GetConvertedPunct(strRemainder);
+        }
+        else
+        {
+            // removing whites left nothing, so return wxEmptyString
+            return wxEmptyString;
+        }
         if (!converted.IsEmpty())
         {
+            // BEW 11Aug23 no change here, just a comment. More than one space before the punctuation
+            // is not a good markup choice, just make it a single punct - the first one, to be retained
             converted = first + converted;
         }
+    } // end of TRUE block for test: if (bIsWhite)
+    else
+    {
+        // BEW 11Aug23, before today, there was no else block here. So if pSrcPhrase->m_follPuncts has
+        // no whitespaces, then the converted value returned was an empty string - thereby losing the
+        // contents of pSrcPhrase->m_follPuncts. Ouch. Fix this
+        converted = GetConvertedPunct(strPunctIn);
     }
     return converted;
 }

@@ -4313,6 +4313,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString kkey = pSrcPhrase->m_key;
 	wxString saveKey = kkey;
 	wxString saveTgtPhrase = tgtPhrase;
+
+	// BEW 9Aug23 test, what happens if I give an initial pSrcPhrase->m_targetStr value set by tgtPhrase?
+	//pSrcPhrase->m_targetStr = tgtPhrase; //<<--  it cured Mike's error, \n before tgtPhrase kills retention of the user's 01, 02, additions (but puncts missing yet)
+
 	int offset = wxNOT_FOUND;
 	int tgtOffset = wxNOT_FOUND;
 	bool bDisallow = FALSE; // intialise, to allowing the StoreText() call to go ahead an store to the KB
@@ -7104,7 +7108,7 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 
 			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-            m_pApp->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
+            //m_pApp->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
 												  // dialogs from showing
 			bool bOK = StoreText(pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE =
 													// support storing empty adaptation

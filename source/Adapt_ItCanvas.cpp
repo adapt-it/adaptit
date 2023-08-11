@@ -1356,7 +1356,7 @@ x:					CCell* pCell = 0;
 					// BEW 28Jun18 cache this value for using within PlacePhraseBox() to enable 
 					// recalculating the correct pOldActivePile pointer 
 					pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-					wxLogDebug(_T(" OnLButtonDown() 1263, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+					wxLogDebug(_T(" OnLButtonDown() line %d, setting m_nCacheLeavingLocation, cached sequ num = %d"),__LINE__,
 						pApp->m_nCacheLeavingLocation);
 
 					pApp->m_bLandingBox = TRUE;
@@ -2157,7 +2157,7 @@ x:					CCell* pCell = 0;
 						// BEW 20May16 added 3rd subtest to next line, otherwise it bleeds out
 						// user's choice of manual typing of punctuation in the block further
 						// down
-						wxLogDebug(_T("OnLButtonDown() 2046; after x: label,  m_nCacheLeavingLocation = %d"),
+						wxLogDebug(_T("OnLButtonDown() line %d; after x: label,  m_nCacheLeavingLocation = %d"),__LINE__,
 							pApp->m_nCacheLeavingLocation);
 
 						if (pApp->m_nOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
@@ -2217,7 +2217,7 @@ x:					CCell* pCell = 0;
 								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
 								// pOldActivePile pointer
 								pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-								wxLogDebug(_T(" OnLButtonDown() 2173, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+								wxLogDebug(_T(" OnLButtonDown() line %d, setting m_nCacheLeavingLocation, cached sequ num = %d"),__LINE__,
 									pApp->m_nCacheLeavingLocation);
 
 								pApp->m_bLandingBox = TRUE;

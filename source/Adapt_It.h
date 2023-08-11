@@ -37,7 +37,7 @@
 // m_nSequNumber; and from the KB, the pTU's inventory of CRefString instances'm_translation 
 // string values and the value of each's m_bDeleted  boolflag. And to print the callers name and
 // line number for where LogDropdownState() is being called. Callable only in _DEBUG builds.
-#define _ABANDONABLE
+//#define _ABANDONABLE
 
 //#define AUTHENTICATE_AS_BRUCE
 

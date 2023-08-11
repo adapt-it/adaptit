@@ -1071,8 +1071,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	{
 #if defined(_DEBUG)
 		{
-			wxLogDebug(_T("%s::%s(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
-				__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(), 
+			wxLogDebug(_T("DoStore_NormalOrTransliterateModes(), line %d, sn=%d, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+				__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(), 
 				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str() );
 		}
 #endif
@@ -1088,8 +1088,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		{
 #if defined(_DEBUG)
 			{
-				wxLogDebug(_T("%s::%s(), line %d, KEY OK, call MakeTargetStr..(): sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
-					__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
+				wxLogDebug(_T("DoStore_NormalOrTransliterateModes(), line %d, KEY OK, call MakeTargetStr..(): sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+					__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 					pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
 			}
 #endif
@@ -1100,8 +1100,8 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 			// Must return, but return TRUE else our code gets connyptions & halts; so mimic success
 #if defined(_DEBUG)
 			{
-				wxLogDebug(_T("%s::%s(), line %d, M_KEY EMPTY, return TRUE, No Store done: sn=%d, pOldActiveSrcPhrase: m_key= [%s]"),
-					__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str());
+				wxLogDebug(_T("DoStore_NormalOrTransliterateModes(), line %d, M_KEY EMPTY, return TRUE, No Store done: sn=%d, pOldActiveSrcPhrase: m_key= [%s]"),
+					__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str());
 			}
 #endif
 			return TRUE; // wasFALSE;
@@ -1117,12 +1117,10 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		// in the MakeTargetStringIncludingPunctuation() function itself. Trying to append to <null> won't work, nor will assigning
 
 #if defined (_DEBUG)		
-			wxLogDebug(_T("%s::%s(), line %d, sn=%d, BEGINNING StoreText, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
-				__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
+			wxLogDebug(_T("DoStore_NormalOrTransliterateModes(), line %d, sn=%d, BEGINNING StoreText, pSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+				__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 				pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
 #endif	
-
-
 		// BEW 14Oct22 If I want detached ] to be treated like a word, so that it goes into the
 		// adapting KB, then I don't what punctuation removed, as it's normally punctuation, as
 		// that would generate m_targetPhrase being an empty string - and if that were the case
@@ -1144,6 +1142,10 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	}
 	if (gbIsGlossing)
 	{
+#if defined (_DEBUG)		
+		wxLogDebug(_T("DoStore_NormalOrTransliterateModes(), line %d, sn=%d, GLOSSING StoreText, pSrcPhrase: m_key= [%s], (m_gloss as) m_targetPhrase= [%s]"),
+			__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(), pApp->m_targetPhrase.c_str());
+#endif	
 		// BEW added next line 27Jan09
 		bOK = pApp->m_pGlossingKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 	}
@@ -1158,7 +1160,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		// 'having-final-punct' entry. To fix this, suppress the inside call of 
 		// MakeTargetStringIncludingPunctuation() - by setting the app member,
 		// m_bInhibitMakeTargetStringCall to TRUE
-		pApp->m_bInhibitMakeTargetStringCall = TRUE;
+//BEW 9Aug23		//pApp->m_bInhibitMakeTargetStringCall = TRUE;
 
 		bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 
@@ -1505,21 +1507,21 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     pApp->m_bMovingToDifferentPile = TRUE;
+	CSourcePhrase* pCurSP = pCurPile->GetSrcPhrase();
+	 
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
-	wxLogDebug(_T("\n ****\nMoveToNextPile line %d, sequNum %d , pCurPile= %p , m_key= [%s]"),
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	wxLogDebug(_T("** PhrBox::MoveToNextPile BEGINS line %d, sequNum %d , pCurPile= %p , m_key= [%s] , m_adaption= [%s]"),
+		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurSP->m_key.c_str(), pCurSP->m_adaption.c_str());
 #if defined(_DEBUG)
-	{
-		//CSourcePhrase* pCurSP = pCurPile->GetSrcPhrase();
-		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 2)
+	{	
+		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif
-
 
 	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
 		// is stored ready for user's Esc keypress to restore the pre-guesser
@@ -1539,16 +1541,16 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	bool bOK;
 	m_bBoxTextByCopyOnly = FALSE; // restore default setting
 
-
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
+
 	int nCurrentSequNum = pOldActiveSrcPhrase->m_nSequNumber; 
 	wxUnusedVar(nCurrentSequNum);
 #if defined(_DEBUG)
 	{
-		wxLogDebug(_T("%s::%s(), line %d, sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
-			__FILE__, __FUNCTION__, __LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
+		wxLogDebug(_T("PhrBox::MoveToNextPile(), line %d, sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
+			__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 			pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -1561,21 +1563,26 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	{
 		//CAdapt_ItApp* pApp = &wxGetApp();
 		CSourcePhrase* pSrcPhrase = pOldActiveSrcPhrase;
-		wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-			__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+		wxLogDebug(_T("PhrBox::MoveToNextPile(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
+			__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
 			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 	}
 #endif
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
-	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	wxLogDebug(_T("PhrBox::MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s], m_adaption= [%s]"),
+		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str(), pCurPile->GetSrcPhrase()->m_adaption.c_str());
 
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
 	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
-	wxLogDebug(_T("MoveToNextPile line %d, pApp->m_targetPhrase= [%s]"), __LINE__, pApp->m_targetPhrase.c_str());
+#if defined (_DEBUG)
+	wxString boxContents = wxEmptyString;
+	boxContents = pApp->m_pTargetBox->m_pTextCtrl->GetValue();
+	wxLogDebug(_T("PhrBox::MoveToNextPile line %d, pApp->m_targetPhrase= [%s], boxContents= [%s]"), 
+		__LINE__, pApp->m_targetPhrase.c_str(), boxContents.c_str());
+#endif
 
 	CPile* pNextEmptyPile;
 	CPile* pSaveCurPile = pCurPile; // restore it further below
@@ -1599,6 +1606,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// continue processing below if the phrase box did not land in a retranslation
 	}
 	pCurPile = pSaveCurPile; // restore 
+		// BEW 9Aug23 experiment. The DoStore..() function is losing 01 02 03 added by my manual edits, so
+		// save pOldActiveSrcPhrase and restore after DoStore_Normal...() has returned
+
+
+
 	// if the location we are leaving is a <Not In KB> one, we want to skip the store & fourth
 	// line creation --- as of Dec 18, version 1.4.0, according to Susanna Imrie's
 	// recommendation, I've changed this so it will allow a non-null adaptation to remain at
@@ -1616,7 +1628,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	else
 	{
 #if defined(_DEBUG)
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
 		{
 			int halt_here = 1;
 		}
@@ -1625,23 +1637,37 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// ON, the function will change initial lower to upper as required, whatever punctuation
 		// regime is in place for this particular sourcephrase instance
 		// in the next call, the final bool flag, bIsTransliterateMode, is default FALSE
-		
+
+		// BEW 9Aug23 experiment. The DoStore..() function is losing 01 02 03 added by my manual edits, so
+		// save pOldActiveSrcPhrase and restore after DoStore_Normal...() has returned
+
+		CSourcePhrase* savepOldActiveSrcPhrase = pOldActiveSrcPhrase; // I don't think I need a deep copy
+
 #if defined(_DEBUG)
 		if (pCurPile != NULL)
 		{
-			wxLogDebug(_T("MoveToNextPile() before DoStore_Normal...(): sn = %d , key = [%s] , m_targetPhrase = [%s] , m_targetStr = [%s]"),
+			wxLogDebug(_T("PhrBox::MoveToNextPile() before DoStore_Normal...(): sn = %d , key = [%s] , m_targetPhrase = [%s] , m_targetStr = [%s]"),
 				pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str(),
 				pCurPile->GetSrcPhrase()->m_targetStr.c_str());
 		}
 #endif
+		// BEW 9Aug23 I checked, and the next call's Normal mode handles either adapting mode or glossing mode,
+		// and each returns a bOK value
 		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
 
 		// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 		// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 		// when trying to cast a pointer to an int.
-		wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
-			__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+#if defined (_DEBUG)
+		wxLogDebug(_T("PhrBox::MoveToNextPile line %d, sequNum %d, pilePtr= %p, m_key= [%s], m_adaption= [%s], m_targetStr= [%s], m_gloss= [%s]"),__LINE__, 
+			pOldActiveSrcPhrase->m_nSequNumber, pCurPile, pOldActiveSrcPhrase->m_key.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), 
+			pOldActiveSrcPhrase->m_targetStr.c_str(), pOldActiveSrcPhrase->m_gloss.c_str());
 
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
+		{
+			int halt_here = 1;
+		}
+#endif
 		if (!bOK)
 		{
             // whm added 22Mar2018 for detecting callers of PlaceBox()
@@ -1650,32 +1676,34 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
             DealWithUnsuccessfulStore(pApp, pView, pNextEmptyPile);
 			return FALSE; // can't move until a valid adaption (which could be null) is supplied
 		}
-	}
+	} // end of else block for test: if (!gbIsGlossing && !pOldActiveSrcPhrase->m_bHasKBEntry && pOldActiveSrcPhrase->m_bNotInKB)
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
-	wxLogDebug(_T("MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s]"),
-		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str());
+	wxLogDebug(_T("PhrBox::MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s] , m_adaption= [%s] , m_targeteStr= [%s] , m_gloss= [%s]"),__LINE__, 
+		pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str(), 
+		pCurPile->GetSrcPhrase()->m_adaption.c_str(), pCurPile->GetSrcPhrase()->m_targetStr.c_str(), pCurPile->GetSrcPhrase()->m_gloss.c_str());
 
 	// since we are moving, make sure the default m_bSaveToKB value is set
 	pApp->m_bSaveToKB = TRUE;
 #if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 	{
 		int halt_here = 1;
 	}
 #endif
 
-	// move to next pile's cell which has no adaptation yet
+	// move to next pile's cell which has no adaptation yet (or gloss yet, if glossing)
 	pApp->m_bUserTypedSomething = FALSE; // user has not typed at the new location yet
 	bool bAdaptationAvailable = FALSE;
+	bool bGlossAvailable = FALSE; // BEW 9Aug23 added
 	CPile* pNewPile;
 	// BEW 2Jun23 it's jumping over the "2.4" of sn = 2, and this 'next' call gets "The" at sn = 3.
 	// This suggests that the pCurPile value passed in has advance to the next pile, hmm changing
 	// sn = 2 to not be 2.4, but twofour it worked right - at least with GetNextPile()...
 	//GetNextPile() or if necessary GetImmediateNextPile() and see what happens
 	#if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 	{
 		int halt_here = 1;
 	}
@@ -1693,10 +1721,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
-	wxLogDebug(_T("MoveToNextPile line %d, NEW pNewPile: sequNum %d , pilePtr= %p , m_key= [%s]"),
-		__LINE__, pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile, pNewPile->GetSrcPhrase()->m_key.c_str());
+	wxLogDebug(_T("MoveToNextPile line %d, NEW pNewPile: sequNum %d , pilePtr= %p , m_key= [%s] , m_adaption= [%s] , m_gloss= [%s]"),
+		__LINE__, pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile, pNewPile->GetSrcPhrase()->m_key.c_str(), 
+		pNewPile->GetSrcPhrase()->m_adaption.c_str(), pNewPile->GetSrcPhrase()->m_gloss.c_str());
 
-	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
+	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE (ignore glossing mode for this)
 	wxCommandEvent event;
 	if (!pApp->m_bCopySourcePunctuation)
 	{
@@ -1779,7 +1808,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #endif
 		}
 #if defined(_DEBUG)
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1;
 		}
@@ -1798,22 +1827,21 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 
 #ifdef SHOW_LOOK_AHEAD_BENCHMARKS
-        wxDateTime dt1 = wxDateTime::Now(),
-            dt2 = wxDateTime::UNow();
+//        wxDateTime dt1 = wxDateTime::Now(),
+//           dt2 = wxDateTime::UNow();
 #endif
 #if defined(_DEBUG) && defined(FLAGS)
 		{
 			//CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+			wxLogDebug(_T("MoveToNextPile(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
+				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
 				(int)pApp->m_pTargetBox->m_bRetainBoxContents, (int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
 		}
 #endif
 #if defined(_DEBUG)
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 		{
-
 			int halt_here = 1;
 		}
 #endif
@@ -1832,10 +1860,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #endif
 
 #ifdef SHOW_LOOK_AHEAD_BENCHMARKS
-        dt1 = dt2;
-        dt2 = wxDateTime::UNow();
-        wxLogDebug(_T("In MoveToNextPile() LookAhead() executed in %s ms"),
-            (dt2 - dt1).Format(_T("%l")).c_str());
+//        dt1 = dt2;
+//        dt2 = wxDateTime::UNow();
+//        wxLogDebug(_T("In MoveToNextPile() LookAhead() executed in %s ms"),
+//            (dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
 		pView->RemoveSelection();
@@ -1913,6 +1941,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			else
 			{
 				pApp->m_targetPhrase = m_Translation;
+				// BEW 8Aug23, if m_targetPhrase gets set, then the m_pTargetBox contents
+				// should get the same value - to maintain matching contents with m_targetPhrase value
+				pApp->m_pTargetBox->m_pTextCtrl->SetValue(m_Translation);
+
 				bWantSelect = FALSE;
 			}
 			pSrcPhraseWhat = pNewPile->GetSrcPhrase();  // ******* pSrcPhraseWhat ******* defined here
@@ -1921,7 +1953,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			{
 				wxLogDebug(_T("PhraseBox::MoveToNextPile(), line = %d , After LookAhead(), sequNum = %d  m_Translation:  [%s] , source key:  [%s]"),
 					__LINE__, pSrcPhraseWhat->m_nSequNumber, m_Translation.c_str(), pSrcPhraseWhat->m_key.c_str());
-				if (pSrcPhraseWhat->m_nSequNumber >= 2)
+				if (pSrcPhraseWhat->m_nSequNumber >= 1)
 				{
 					int halt_here;
 				}
@@ -1953,7 +1985,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		{
 			pNewPile = pApp->m_pActivePile;
 #if defined(_DEBUG)
-			if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
+			if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 			{
 				int halt_here = 1;
 			}
@@ -1962,7 +1994,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			// clear all storage of the earlier location's target text
 			m_Translation.Empty();
 			pApp->m_targetPhrase.Empty();
-			// initialize the phrase box too, so it doesn't carry the old string
+			// empty the phrase box too, so it doesn't carry the old string
 			// to the next pile's cell
 			this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 
@@ -2094,17 +2126,18 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 */
 
 		pLayout->PlaceBox();
-/* comment out until Bill needs this again
+//* comment out until Bill needs this again
 #if defined(_DEBUG) && defined(FLAGS)
 		{
 			CAdapt_ItApp* pApp = &wxGetApp();
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d"),
-				__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-				(int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert);
+			wxString boxContents = pApp->m_pTargetBox->m_pTextCtrl->GetValue();
+			wxLogDebug(_T("MoveToNextPile(), line %d, sn=%d, m_key= [%s], m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_targetStr= [%s], m_bAutoInsert %d, boxContents= [%s]"),
+				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+				(int)pApp->m_bUserTypedSomething, pSrcPhrase->m_targetStr.c_str(), (int)pApp->m_bAutoInsert, boxContents.c_str());
 		}
 #endif
-*/		
+//*/		
 		// whm 15Dec2022 added. In certain circumstances (especially when the phrasebox is moving
 		// from a location near the right end of a strip, but is followied by one or more piles on
 		// the same strip), the alignment of piles following the phrasebox gets bunched up and they
@@ -2281,7 +2314,7 @@ c:	bOK = TRUE;
 		}
 		else
 		{
-			pApp->m_bInhibitMakeTargetStringCall = TRUE; // MakeTargetStringIncludingPunctuation is
+// BEW 9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE; // MakeTargetStringIncludingPunctuation is
 					// called above, followed by RemovePunctuation, so we don't need a further 
 					// call of the former within StoreText(), so inhibit it
 			bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
@@ -4452,6 +4485,11 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
                     pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
 													   // suppression only
 				}
+#if defined (_DEBUG)
+				wxLogDebug(_T("PhraseBox.cpp OnChar(), line %d, m_bAbandonable= %d, m_bRetainBoxContents= %d, m_bUserTypedSomething= %d BEFORE MergeWords()"),
+				__LINE__, (int)m_bAbandonable, (int)m_bRetainBoxContents, (int)pApp->m_bUserTypedSomething);
+
+#endif
 			}
 			pView->MergeWords(); // simply calls OnButtonMerge 
 			pApp->m_bMergeSucceeded = TRUE;
@@ -5043,7 +5081,7 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 		pView->MakeTargetStringIncludingPunctuation(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text);
 	}
-	pApp->m_bInhibitMakeTargetStringCall = TRUE;
+//BEW 9Aug23	//pApp->m_bInhibitMakeTargetStringCall = TRUE;
 	if (gbIsGlossing)
 		bOK = pApp->m_pGlossingKB->StoreText(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 	else
@@ -6648,12 +6686,12 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         if (keycode == WXK_TAB) // TAB
         {
         	pApp->m_bUserHitEnterOrTab = TRUE;
-        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key, pApp->m_bUserHitEnterOrTab set TRUE"));
         }
         else if (keycode == WXK_RETURN) // ENTER or RETURN
         {
         	pApp->m_bUserHitEnterOrTab = TRUE;
-        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
+        	wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key, pApp->m_bUserHitEnterOrTab set TRUE"));
         }
         if (pApp->m_bUserDlgOrMessageRequested && pApp->m_bUserHitEnterOrTab)
         {
@@ -6768,10 +6806,13 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
                         pApp->m_bSuppressDefaultAdaptation = TRUE; // the global boolean used for temporary
                                                                    // suppression only
                     }
+#if defined (_DEBUG)
+					wxLogDebug(_T("PhraseBox.cpp OnKeyUp() line %d, m_bRetainBoxContents= %d, m_bAbandonable= %d, pApp->m_bUserTypedSomething= %d , m_bSuppressDefaultAdaptation= %d, BEFORE MergeWords()"), 
+						__LINE__, (int)m_bRetainBoxContents, (int)m_bAbandonable, (int)pApp->m_bUserTypedSomething, (int)pApp->m_bSuppressDefaultAdaptation);
+#endif
                 }
-                pView->MergeWords(); // simply calls OnButtonMerge
-                                     // 
-                                     //
+                pView->MergeWords(); // simply calls OnButtonMerge                                 
+                                     
                 pLayout->m_docEditOperationType = merge_op;
                 pApp->m_bSuppressDefaultAdaptation = FALSE;
 
@@ -6849,6 +6890,10 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         m_bRetainBoxContents = TRUE;
 		event.Skip();
 	}
+	#if defined(_DEBUG)
+		wxLogDebug(_T("OnKeyDown() in OnKeyUp(), line= %d, m_bAbandonable= FALSE, m_bRetainBoxContents= TRUE, m_bUserTypedSomething= TRUE"), __LINE__);
+	#endif
+	
 
 //#if defined(_DEBUG)
 //	wxChar typedChar = (wxChar)event.GetKeyCode();
@@ -8844,7 +8889,9 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	m_bAbandonable = FALSE;
 	pApp->m_bUserTypedSomething = TRUE;
     m_bRetainBoxContents = TRUE;
-    //wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered with flag m_bAbandonable = FALSE"));
+#if defined (_DEBUG)
+    wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered with m_bAbandonable= FALSE, m_bRetainBoxContents= TRUE, m_bUserTypedSomething= TRUE"));
+#endif
 	event.Skip();
     GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
 }
@@ -9147,15 +9194,25 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	pApp->m_bInNormalStore = TRUE;
 	CRefString* pRefStr = NULL;
 	KB_Entry rsEntry;
-	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
-	pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
-
 	// BEW 11Jul23, protect against calling this when m_pActivePile is NULL
 	if (pApp->m_pActivePile == NULL)
 	{
 		return FALSE;
 	}
 	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+
+	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
+	pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("DoStore_ForPlacePhraseBox(), line %d, targetPhrase= [%s], pApp->m_bCopySourcePunctuation= %d, sequNumber= %d"),
+			__LINE__, targetPhrase.c_str(), (int)pApp->m_bCopySourcePunctuation, pActiveSrcPhrase->m_nSequNumber);
+		if (pActiveSrcPhrase->m_nSequNumber >= 0)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 
 	if (gbIsGlossing)
 	{
@@ -9180,7 +9237,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		{
 			pActiveSrcPhrase->m_adaption = wxEmptyString;
 			pActiveSrcPhrase->m_targetStr = wxEmptyString;
-			pApp->m_bInhibitMakeTargetStringCall = TRUE;
+//BEW 9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE;
 
 			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
@@ -9189,6 +9246,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		{
 			// re-express the punctuation
 			wxString copiedTargetPhrase = targetPhrase; // copy, with any punctuation user typed as well
+
 			// targetPhrase now lacks punctuation - so it can be used for storing in the KB
 			pApp->GetView()->RemovePunctuation(pDoc, &targetPhrase, from_target_text);
 
@@ -9204,7 +9262,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			}
 			pActiveSrcPhrase->m_targetStr = wxEmptyString; // start off empty
 
-			pApp->m_bInhibitMakeTargetStringCall = TRUE;
+//BEW9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
