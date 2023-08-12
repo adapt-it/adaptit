@@ -29755,6 +29755,16 @@ void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
 /// project folder, do not permit him to force a source text edit upon the remote
 /// user! (suppress here, and also in the update handler)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// 
+/// whm 12Aug2023 modified to advise the user that the Edit Source Text function cannot
+/// be done when collaboration with external editor is being done. Normally, this 
+/// OnEditSourceText() function would not be called on Windows because the 
+/// Edit > Edit Source Text... menu item is disabled and the accelerator key Ctrl-Q doesn't
+/// work on Windows when the menu item is disabled. However, on Linux, the Ctrl-Q accelerator
+/// key DOES still work even when its Edit > Edit Source Text... menu item is disabled. So,
+/// for Linux users, we'll check at the beginning of this OnEditSourceText() function whether
+/// collaboration is ON, and if so warn the user to edit source text within the PT/Bibledit
+/// editor instead of trying to do so from within Adapt It.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 {
@@ -29762,6 +29772,33 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_bReadOnlyAccess)
 	{
 		::wxBell(); // whm 15Mar12 added wxBell()
+		return;
+	}
+	// whm 12Aug2023 added check for collaboration being ON. If so, warn user and return 
+	// immediately from this function. Collaboration may be on, but probably only within the
+	// Linux version and only if the user types Ctrl-Q accelerator key (accelerator keys still
+	// work on Linux even when the menu item is disabled in the OnUpdateEditSourceText() update
+	// handler. We could make the following test conditionally compiled for __WXGTK__ only, but
+	// the warning and immediate return would apply also to Windows if this OnEditSourceText()
+	// function were ever called on Windows while collaboration is ON, so we'll give the
+	// user the warning and return regardless of platform if collaboration is ON.
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+	{
+		wxString editor;
+		wxString msg;
+		if (pApp->m_bCollaboratingWithParatext)
+		{
+			editor = _T("Paratext");
+			msg = _("Collaboration with Paratext is currently ON. You cannot use Adapt It to edit the source text while collaboration is ON.\n\nIf the source text needs to be edited, close Adapt It, run Paratext and edit the source text using Paratext. Then continue working with the source text within Adapt It.\n\nNote: Any changes you make to the source text externally after Adapt It has created its document will likely cause a conflict when you save your work within Adapt It, and Adapt It will ask you to resolve any conflicts at Save time.");
+		}
+		else
+		{
+			editor = _T("Bibledit");
+			msg = _("Collaboration with Bibledit is currently ON. You cannot use Adapt It to edit the source text while collaboration is ON.\n\nIf the source text needs to be edited, close Adapt It, run Bibledit and edit the source text using Bibledit. Then continue working with the source text within Adapt It.\n\nNote: Any changes you make to the source text externally after Adapt It has created its document will likely cause a conflict when you save your work within Adapt It, and Adapt It will ask you to resolve any conflicts at Save time.");
+		}
+		wxString caption = _("Cannot use Adapt It to edit source text while collaboration is ON");
+		pApp->LogUserAction(msg);
+		wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	if (pApp->m_bClipboardAdaptMode)
