@@ -762,6 +762,15 @@ public:
 	bool IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase); // BEW 8Apr20
 	bool FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSrcPhrase, wxString& beginMkr, int& nBeginSN); // BEW 8Apr20
 	bool FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* pSpanStart_SrcPhrase, wxString matchEndMkr, int& nEndSN);
+
+	// BEW 11Aug23, return TRUEa if pChar points at text string or digits string (but not the digits of a versenumber
+	bool IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxChar*& pNewPtr);
+	bool EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd); // BEW 12Aug23
+	bool ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 12Aug23
+
+
+
+
 protected:
 
 	wxChar* m_ptr;

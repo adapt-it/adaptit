@@ -1680,7 +1680,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// whm 16Jun2023 in the wxLogDebug statement below I removed the (int) cast on pCurPile and changed the 
 	// specifier from %d to %p. %p is the format specifier for a pointer address. GCC generates a compile error
 	// when trying to cast a pointer to an int.
-	wxLogDebug(_T("PhrBox::MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s] , m_adaption= [%s] , m_targeteStr= [%s] , m_gloss= [%s]"),__LINE__, 
+	wxLogDebug(_T("PhrBox::MoveToNextPile line %d, sequNum %d , pilePtr= %p , m_key= [%s] , m_adaption= [%s] , m_targetStr= [%s] , m_gloss= [%s]"),__LINE__, 
 		pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurPile->GetSrcPhrase()->m_key.c_str(), 
 		pCurPile->GetSrcPhrase()->m_adaption.c_str(), pCurPile->GetSrcPhrase()->m_targetStr.c_str(), pCurPile->GetSrcPhrase()->m_gloss.c_str());
 
