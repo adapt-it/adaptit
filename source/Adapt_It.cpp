@@ -2216,7 +2216,7 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("/MENU:"),
-    _T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit &Source Text...\tCtrl-Q\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+    _T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit &Source Text...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),

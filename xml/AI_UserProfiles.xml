@@ -172,7 +172,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_SOURCE_TEXT"
 	itemType="subMenu"
-	itemText="Edit &amp;Source Text...\tCtrl-Q"
+	itemText="Edit &amp;Source Text..."
 	itemDescr="Edit menu"
 	adminCanChange="1"
 	>
