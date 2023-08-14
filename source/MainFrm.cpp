@@ -1467,9 +1467,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
 	// BEW modified 12Jun14, to add one more, Ctrl-5 or Command-5 on Mac, for Adapt Clipboard Text command
 #ifdef __WXMAC__
-    wxAcceleratorEntry entries[38];
+    wxAcceleratorEntry entries[37];
 #else
-    wxAcceleratorEntry entries[36];
+    wxAcceleratorEntry entries[37];
 #endif
 
 #ifdef __WXMAC__
@@ -1514,13 +1514,14 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 #endif
     entries[16].Set(wxACCEL_CTRL, (int) 'V', wxID_PASTE); // standard wxWidgets ID
     entries[17].Set(wxACCEL_SHIFT, WXK_INSERT, wxID_PASTE); // standard wxWidgets ID
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-Q is reserved for Quitting the Application. We'll use Command-Shift-E
-	// as a compromise for Editing the Source text.
-    entries[18].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'E', ID_EDIT_SOURCE_TEXT); // whm checked OK
-#else
-    entries[18].Set(wxACCEL_CTRL, (int) 'Q', ID_EDIT_SOURCE_TEXT); // whm checked OK
-#endif
+//#ifdef __WXMAC__
+	// whm 14Aug2023: Accelerator keys for Edit Source Text... have been removed from all platforms. 
+	// The User now must use the Edit menu's "Edit Source Text..." item for that functionality.
+    //entries[18].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'E', ID_EDIT_SOURCE_TEXT); // whm checked OK
+//#else
+	// whm 14Aug2023 made the Ctrl-Q accelerator key for exiting the application on all platforms.
+    entries[18].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT); // whm checked OK
+//#endif
     entries[19].Set(wxACCEL_ALT, WXK_BACK, wxID_UNDO); // standard wxWidgets ID
     entries[20].Set(wxACCEL_CTRL, (int) 'Z', wxID_UNDO); // standard wxWidgets ID
 #ifdef __WXMAC__
@@ -1556,20 +1557,16 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 #endif
     entries[33].Set(wxACCEL_CTRL, (int) 'K', ID_TOOLS_KB_EDITOR); // whm checked OK
     entries[34].Set(wxACCEL_CTRL, WXK_RETURN, dummyID5); //ID_TRIGGER_NIKB); // CTRL+Enter is Transliterate Mode TODO: check
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
-	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
-	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
+	// whm 14Aug2023 change: Ctrl-Q is reserved for quitting the application on all platforms
 	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT);
-	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
+	// whm Note: On Mac Command-Shift-/ is the usual hot key for getting app help
     entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
-#endif
 	// BEW 12Jun14 added next one, for support of clipboard adapt feature
 #ifdef __WXMAC__
     // BEW Note: On Mac Command-7 does not appear to be reserved, so I'll use it
     entries[37].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
 #else
-    entries[35].Set(wxACCEL_CTRL, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
+    entries[37].Set(wxACCEL_CTRL, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
 #endif
 
 
