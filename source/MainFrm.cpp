@@ -1467,9 +1467,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
 	// BEW modified 12Jun14, to add one more, Ctrl-5 or Command-5 on Mac, for Adapt Clipboard Text command
 #ifdef __WXMAC__
-    wxAcceleratorEntry entries[37];
+    wxAcceleratorEntry entries[38];
 #else
-    wxAcceleratorEntry entries[37];
+    wxAcceleratorEntry entries[38];
 #endif
 
 #ifdef __WXMAC__
