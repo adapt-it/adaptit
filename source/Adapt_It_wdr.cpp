@@ -9935,7 +9935,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->AppendSeparator();
     item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
     item1->AppendSeparator();
-    item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
+    item1->Append( wxID_EXIT, _("E&xit\tCtrl-Q"), _("Quit the application; prompts to save documents") );
     item0->Append( item1, _("&File") );
     
     wxMenu* item2 = new wxMenu;
@@ -9946,7 +9946,7 @@ wxMenuBar *AIMenuBarFunc()
     item2->Append( ID_EDIT_PASTE, _("&Paste\tCtrl-V"), _("Insert Clipboard contents") );
     item2->AppendSeparator();
     item2->Append( ID_GO_TO, _("&Go To...\tCtrl-G"), _("Go to a specific chapter and verse") );
-    item2->Append( ID_EDIT_SOURCE_TEXT, _("Edit &Source Text...\tCtrl-Q"), _("Edit the selected source text") );
+    item2->Append( ID_EDIT_SOURCE_TEXT, _("Edit &Source Text..."), _("Edit the selected source text") );
     item2->Append( ID_EDIT_CONSISTENCY_CHECK, _("Consist&ency Check..."), _("Check all translations with those in the knowledge base for consistency") );
     item2->Append( ID_MENU_CHANGE_USERNAME, _("Change User&name..."), _("Add or change the unique username or the informal username") );
     item2->AppendSeparator();

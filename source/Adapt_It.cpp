@@ -2216,7 +2216,7 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("/MENU:"),
-    _T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit &Source Text...\tCtrl-Q\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+    _T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit &Source Text...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -10720,6 +10720,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 /// Adjustments are also made here for certain modes such as Paratext/Bibledit collaboration.
 /// This function also sets the initial checked/unchecked state of menu items which are
 /// checkable.
+/// whm 14Aug2023 revised to remove Ctrl-Shift-E as accelerator on Mac version for Edit Source Text... 
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum ProgramMenuMode progMenuMode)
 {
@@ -10978,9 +10979,11 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         // On Mac, the hot key command to quit the application is Command-Q and we have set a
         // Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
         // Ctrl-Shift-E for Edit Source Text here.
+        // whm 14Aug2023 modified block below. We no longer have an accelerator key for Edit Source
+        // Text..., so I've removed the "\tCtrl-Shift-E" part of the "Edit Source Text..." label.
         if (pEditMenu->FindItem(ID_EDIT_SOURCE_TEXT) != NULL)
         {
-            pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT, _("Edit Source Text...\tCtrl-Shift-E"));
+            pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT, _("Edit Source Text..."));
         }
 
         // Edit | Move Note Backward
