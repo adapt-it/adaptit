@@ -18641,14 +18641,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber >= 25732)
+		if (pSrcPhrase->m_nSequNumber >= 2)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
 		}
 		// whm 7Jul2023 testing
-
-		if (pSrcPhrase->m_nSequNumber >= 2)
+#endif
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+		if (pSrcPhrase->m_nSequNumber >= 0)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
@@ -19070,22 +19071,145 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// it will always be empty. sn = 0 is different, it helps only there
 		wxString strPointsAt;
 		bool bIsToBeFiltered;
+		// BEW 14Aug23 here is where to declare booleans to use in contentless USFM parsing loop
+		bool bEnterEmptyMkrsLoop;
+		bool bExitEmptyMkrsLoop;
 
 		while (!bEmptySWBK && IsMarker(ptr))
 		{
 
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 			{
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 2)
+				if (pSrcPhrase->m_nSequNumber >= 0)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 			}
 #endif
+			// BEW 14Aug23 here is where the alternate parsing loop should be, for contentless markers.
+			// Control should stay in the alternate loop, creating new pSrcPhrases as in-loop parsing
+			// takes place, and exit the loop only when ptr reaches pEnd, or bool ExitEmptyMkrsLoop
+			// returns TRUE (at a backslash). Entry to the loop only happens at a beginMkr where the
+			// test bool EnterEmptyMkrsLoop returns TRUE.
 
+			// ptr is at a beginMkr, so test for entry and set up the alternate parsing loop
+			bExitEmptyMkrsLoop = FALSE; // init
+			wxString atMkr = wxEmptyString;
+			wxString mkrTag = wxEmptyString;
+			wxString verseMkr = _T("\\v"); wxString strVerseNum = wxEmptyString;
+			wxChar* pAux = NULL; bool bIsEmptyMkr = FALSE; // init
+			int atMkrLen = 0; int verseNumLen = 0;
+			int itemLen = 0;  int nWhitesLen = 0;
+			wxString mkrNumber = wxEmptyString; // init
+			wxString str_m_markers_store = wxEmptyString; // init
+#if defined (_DEBUG)
+			// probably safe to initialise to chapter 1 (may comment out as this code matures)
+			pApp->m_curChapter = _T("1"); 
+			pApp->m_curChapter += _T(':'); // get the "1:" part of "1:verseNum" in m_chapterVerse ready
+#endif
+			bEnterEmptyMkrsLoop = EnterEmptyMkrsLoop(ptr, pEnd);
+			if (bEnterEmptyMkrsLoop)
+			{
+				//CAdapt_ItApp* pApp = &wxGetApp();
+				
+				//while (ptr < pEnd && bEnterEmptyMkrsLoop == TRUE && !bExitEmptyMkrsLoop)
+				while (ptr < pEnd && !bExitEmptyMkrsLoop)
+				{
+					// Any beginMkr may be the last empty one in a contentless span, so the exit command
+					// needs to happen when IsEmptyMkr() is FALSE
+					
+					// The most significant tests are for \v, and then for \c - as these result in
+					// the only information the user sees in the GUI, the m_inform chapter:verse m_inform value
+					atMkr = GetWholeMarker(ptr);
+					atMkrLen = atMkr.Length();
+					mkrTag = atMkr.Mid(1); // remove initial backspace
+					// We don't yet know what marker it is; start with dealing with a \v marker, this will require
+					// stealing code from IsVerseMarker()'s block, 
+					if (atMkr == verseMkr)
+					{
+						pAux = ptr; // protect ptr location
+						itemLen = 0; // accumulate sub-lengths in this
+						pAux += atMkrLen;
+						itemLen += atMkrLen;
+						// Get to the verseNumber
+						nWhitesLen = ParseWhiteSpace(pAux);
+						pAux += nWhitesLen;
+						itemLen += nWhitesLen;  nWhitesLen = 0;
+						// Parse the verseNumber
+						verseNumLen = ParseNumber(pAux);
+						strVerseNum = wxString(pAux, verseNumLen);
+						// Point pAux past the verse number
+						pAux += verseNumLen;
+						itemLen += verseNumLen; // update count for the verseNum 
+						// Calculate the string to be stored in pSrcPhrase->m_markers
+						str_m_markers_store = wxString(ptr, itemLen + 1); // +1 includes the whitespace after verseNum
+
+						// Filling out pSrcPhrase, and calculating m_info, and storing mkr & verseNum
+						// in current pSrcPhrase is about to be done. But pSrcPhrase in the alternate
+						// parsing loop does not yet exist - we've got to create a new one on the heap,
+						// which can be appended to pList
+						sequNumber = pList->GetCount(); // we are working at end of what's been parsed so far
+						pSrcPhrase = new CSourcePhrase; // index number is always 1 less than the count
+														// so count value is sequNum for the new pSrcPhrase
+						pSrcPhrase->m_nSequNumber = sequNumber;
+
+						// Now we are ready to check if the \v marker is empty or not
+						bIsEmptyMkr = IsEmptyMkr(pAux, nWhitesLen); // nWhitesLen will be the span of whites to backslash
+						// bIsEmptyMkr is TRUE if between pAux and the next backslash there is 
+						// only whitespace, eg. newline before backslash or <space>newline before backslash
+						if (bIsEmptyMkr == TRUE)
+						{
+							// Set GUI important values on pSrcPhrase (current)
+							pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // was set to n: form
+							//pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // was set to n: form
+
+							pSrcPhrase->m_chapterVerse += strVerseNum; // append the verse number
+							pSrcPhrase->m_bVerse = TRUE;
+							// don't set m_inform too, causes doubling up
+							pSrcPhrase->m_markers += str_m_markers_store;
+
+							// Advance pAux to point at the backslash that follows
+							pAux += nWhitesLen; // get value returned from IsEmptyMkr(pAux, nWhitesLen) above
+							// itemLen holds the span comprising all the bits parsed
+
+							// ptr has to be pointed there too, for the next beginMkr and its new pSrcPhrase
+							ptr = pAux;
+
+							// Now we must add pSrcPhrase to the pList, m_pSourcePhrases
+							pList->Append(pSrcPhrase);
+							AdjustSequNumbers(0, pList); // ensure correct sequence numbers
+
+						} // end of TRUE block for test: if (bIsEmptyMkr == TRUE)
+						else
+						{
+							// bIsEmptyMkr is FALSE, control should not stay in in the empty
+							// markers parsing loop
+							// Is bExitEmptyMkrsLoop = ExitEmptyMkrsLoop(ptr, pEnd, spacelessPuncts); needed here? maybe not
+							bExitEmptyMkrsLoop = TRUE;
+							bEnterEmptyMkrsLoop = FALSE;
+							break; // leave the loop
+						} // end of else block for test: if (bIsEmptyMkr == TRUE)
+
+					} // end of else block for test: if (atMkr == verseMkr)
+
+
+
+
+
+
+	// TODO handle more mkrs
+					// Does control need to break out of the loop because ptr is not
+					// pointing at an empty beginMkr?
+					//bExitEmptyMkrsLoop = ExitEmptyMkrsLoop(ptr, pEnd, spacelessPuncts); <- Yuk, it sees backslash of next & decides wrong
+
+				} // end of while loop: while (ptr < pEnd)
+
+			} // end of TRUE block for test:  if (bEnterEmptyMkrsLoop)
+
+			// BEW 14Aug23 comment: legacy parsing code for markers having content starts here
 			// Put here chapter mkr test block first, so that pApp->m_curChapter 
 			// can get a value before testing for verse mkr
 			if (IsChapterMarker(ptr))
@@ -44031,6 +44155,7 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	int mkrLen = wholeMkr.Length();
 	bool bEnterLoop = FALSE; // init
 	wxChar period = _T('.');
+	int numberLen = 0; // for parsing over a verse or chapter number if \c or \v
 	// The empty markers could be very many, from the set of blue begin markers, or red begin  markers (but not the
 	// embedded ignore markers like \ft \fr etc - but those will be absent if the beginMkr is contentless)
 	// These are some which may occur: \ide \rem \h \toc1 \toc2 \toc3 \mt1 \c 1 \s1 \p \v 1 \s1 \p \q1 \q2 \q3 etc
@@ -44074,15 +44199,36 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// We've skipped a periods sequence - these can occur in lots of markers, but never in \v content
 	// After ptr, there may be a backslash, or some more whites then a backslash - so count spaces at ptr
 	int numWhites = CountWhitesSpan(ptr, pEnd); // usually returns 0 in this context, but not always
-	ptr += numWhites; 
+	ptr += numWhites;
+	// ptr now points after the marker and its following one (or maybe more) whitespace. We can't make a
+	// decision whether or not to enter the contentless loop, if ptr is pointing at the chapterNum of \c
+	// or verseNum of \v. So we have to determine if wholeMkr is \c or \v, and if either, then get past
+	// the number (ParseNumber() is easiest way) and the following white(s), and then we can test for
+	// presence or not of backslash following - if so, it's contentless and we need to enter the loop.
+	if (wholeMkr == _T("\\v") || wholeMkr == _T("\\c"))
+	{
+		//Get past the number
+		numberLen = ParseNumber(ptr);
+		if (numberLen > 0)
+		{
+			ptr += numberLen;
+		}
+	}
+	numWhites = 0;
+	bool bIsEmptyMkr = IsEmptyMkr(ptr, numWhites);
+
 	// Now we can make our decision to enter the emptyMkrs loop, or have control remain in TokenizeText's
 	// main (and inner) loops. bEnterLoop is currently FALSE
-	if (ptr < pEnd)
+	if (ptr < pEnd && bIsEmptyMkr && numWhites != 0)
 	{
-		if (*ptr == gSFescapechar)
-		{
-			bEnterLoop = TRUE;
-		}
+		ptr += numWhites; // get past the <space> or newline (don't need to, but while developing,
+			// the assert here is a useful check that ptr is now pointing a the backslash of next beginMkr
+		wxASSERT(*ptr == gSFescapechar);
+		//if (*ptr == gSFescapechar)
+		//{
+		//	bEnterLoop = TRUE;
+		//}
+		bEnterLoop = TRUE;
 	}
 	return bEnterLoop;
 }
@@ -44113,6 +44259,7 @@ bool CAdapt_ItDoc::ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString space
 	wxString mkrTag = wholeMkr.Mid(1); // remove backslash
 	int mkrLen = wholeMkr.Length();
 	bool bEnterLoop = FALSE; // init
+	int numberLen = 0;
 	wxChar period = _T('.');
 	ptr += mkrLen + 1; // +1 for an obligatory post-mkr white (either space or newline)
 	// We would expect that users who are in the legacy parsing code, would not retain .. or ...
@@ -44133,18 +44280,45 @@ bool CAdapt_ItDoc::ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString space
 			}
 		}
 	}
-	// After ptr, there may be a backslash, or some more whites then a backslash or not - so count spaces at ptr
+	// After ptr, there may be a backslash, or some more whites then a backslash or not - so count 
+	// spaces at ptr; but \c or \v is special - there will be a number to parse over in order to decide.
 	int numWhites = CountWhitesSpan(ptr, pEnd); // usually returns 0 in this context, but not always
 	ptr += numWhites;
+	// handle \v or \c, if warranted
+	// ptr now points after the marker and its following one (or maybe more) whitespace. We can't make a
+	// decision whether or not to exit the contentless loop, if ptr was pointing at the chapterNum of \c
+	// or verseNum of \v. So we have to determine if wholeMkr is \c or \v, and if either, then get past
+	// the number (ParseNumber() is easiest way) and the following white(s), and then we can test for
+	// presence or not of backslash following - if IsEmptyMkr() is FALSE, then bExitLoop = TRUE, else
+	// stay in the loop for parsing contentless beginMkrs.
+	if (wholeMkr == _T("\\v") || wholeMkr == _T("\\c"))
+	{
+		//Get past the number
+		numberLen = ParseNumber(ptr);
+		if (numberLen > 0)
+		{
+			ptr += numberLen;
+		}
+	}
+	numWhites = 0; // for number of whites after the chapter or verse number
+	bool bIsEmptyMkr = IsEmptyMkr(ptr, numWhites);
+	if (numWhites > 0)
+	{
+		// something stopped the parse of whitespace chars
+		ptr += numWhites; // what's now at ptr - if it's backslash, stay in the loop
+	}
+
 	// Now we can make our decision to exit the emptyMkrs loop, or have control remain in it.
 	// bExitLoop is currently FALSE
 	wxChar chAt = *ptr;
-	if (ptr < pEnd)
+	if ( (ptr < pEnd && *ptr != gSFescapechar && !bIsEmptyMkr) || 
+		 ( (ptr < pEnd && !IsWhiteSpace(ptr)) || (spacelessPuncts.Find(chAt) >= 0)) )
 	{
-		if ((*ptr != gSFescapechar || (spacelessPuncts.Find(chAt) >= 0)) && !IsWhiteSpace(ptr))
-		{
-			bExitLoop = TRUE;
-		}
+		bExitLoop = TRUE;
+		//if ((*ptr != gSFescapechar || (spacelessPuncts.Find(chAt) >= 0)) && !IsWhiteSpace(ptr))
+		//{
+		//	bExitLoop = TRUE;
+		//}
 	}
 	return bExitLoop;
 }
@@ -44300,7 +44474,32 @@ wxString CAdapt_ItDoc::GetAccumulatedKeys(SPList* pList, int indexFirst, int ind
 	}
 	return strAccumulated;
 }
-/* BEW 28Jul23 removed, not a viable solution - I'll eliminate successive puncts as found, in loop at 19443
+
+// BEW 14Aug23, parses over whites at pChar and returns TRUE if backspace follows, and the 
+// length of span up to but not including the backslash; else FALSE and return -1 for nWhitesLen
+// - a backslash must be at least one white further on than pChar
+bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, int& nWhitesLen)
+{
+	wxChar* p = pChar;
+	nWhitesLen = 0;
+	nWhitesLen = ParseWhiteSpace(p);
+	p += nWhitesLen;
+	if (*p == gSFescapechar)
+	{
+		// Yes, it's an empty marker
+		return TRUE;
+	}
+	else
+	{
+		// No, it's not an empty marker, after whitespace(s) there is not the backslash of a beginMkr
+		nWhitesLen = -1;
+	}
+	return FALSE;
+}
+
+/*
+bool CAdapt_ItDoc::SkipParseAWord(wxChar* pChar, wxChar* pEnd)
+// BEW 28Jul23 removed, not a viable solution - I'll eliminate successive puncts as found, in loop at 19443
 // BEW 26Jul23, if \h or some other marker in source text which is content-less yet, except for markers * verse numbers,
 // has \h or some other followed by space and then some successive periods (seen in data so far .. or ... and is rare), then
 // allowing ParseAWord() to parse the periods will, because they are puncts, not advance ptr leading to an assert.

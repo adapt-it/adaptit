@@ -64358,6 +64358,14 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         wxASSERT(pSrcPhrase != NULL);
         return str;
     }
+    // BEW 15Aug23, if control was in a series of contentles markers, there will be no non-empty m_key or m_srcPhrase
+    // or m_adaption or m_targetStr. So the assert at 64370 will crash the app. Remove it, and test for empty, and
+    // if so, return str as empty string.
+    if (pSrcPhrase->m_key.IsEmpty())
+    {
+        return str;
+    }
+
     if (pSrcPhrase->m_adaption.IsEmpty())
     {
         // BEW 24May23, don't return if m_adaption is still empty, use pSrcPhrase's m_key as
@@ -64365,7 +64373,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         // punctuations further down. m_key won't be empty.
         //return str;
         pSrcPhrase->m_adaption = pSrcPhrase->m_key;
-        wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
+        //wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
     }
 #if defined (_DEBUG) && !defined (NOLOGS)
     wxLogDebug(_T("\nSimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_srcPhrase= %s pSrcPhrase->m_adaption= %s"),

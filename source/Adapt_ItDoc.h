@@ -767,6 +767,10 @@ public:
 	bool IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxChar*& pNewPtr);
 	bool EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd); // BEW 12Aug23
 	bool ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 12Aug23
+	bool IsEmptyMkr(wxChar* pChar, int& nWhitesLen); // BEW 14Aug23, parses over whites at pChar and 
+			// returns TRUE if backspace follows, and the length of span up to but not including the
+			// the backslash; else FALSE and return -1 for nWhitesLen - a backslash must be at least
+			// one white further on than pChar
 
 
 

@@ -7293,13 +7293,19 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					// IDS_CLICK_IN_GRAY_ILLEGAL
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(_(
-"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
+					if (pPrevPile->GetSrcPhrase()->GetFreeTrans().IsEmpty())
+					{
+						wxNO_OP;
+					}
+					else
+					{
+						wxMessageBox(_(
+			"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+							_T(""), wxICON_EXCLAMATION | wxOK);
+					}
 					return;
 				}
 			}
-
 
             // If the last pile before the current free trans segment (i.e., now pPrevPile)
             // is the last pile of a previously adjoining free translation segment, we want

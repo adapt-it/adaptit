@@ -1444,10 +1444,18 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(_(
-	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					// BEW 15Aug23 disallow the message if user was adding text to contentless USFM markup
+					if (pCell->GetPile()->GetSrcPhrase()->m_key.IsEmpty())
+					{
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();
+					}
+					else
+					{
+						wxMessageBox(_(
+							"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+							_T(""), wxICON_EXCLAMATION | wxOK);
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					}
                     return;
 				}
 				else
@@ -1469,10 +1477,18 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(_(
-	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					// BEW 15Aug23 disallow the message if user was adding text to contentless USFM markup
+					if (pCell->GetPile()->GetSrcPhrase()->m_gloss.IsEmpty())
+					{
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();
+					}
+					else
+					{
+						wxMessageBox(_(
+							"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+							_T(""), wxICON_EXCLAMATION | wxOK);
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					}
                     return;
 				}
 				else
@@ -1486,8 +1502,7 @@ x:					CCell* pCell = 0;
 #endif
 				}
 			}
-			else if (gEditStep == freeTranslationsStep &&
-						gEditRecord.bFreeTranslationStepEntered)
+			else if (gEditStep == freeTranslationsStep && gEditRecord.bFreeTranslationStepEntered)
 			{
 				if (nClickedSequNum < gEditRecord.nFreeTranslationStep_StartingSequNum ||
 					nClickedSequNum > gEditRecord.nFreeTranslationStep_EndingSequNum)
@@ -1495,10 +1510,17 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
                     // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
                     pApp->m_bUserDlgOrMessageRequested = TRUE;
-                    wxMessageBox(_(
-	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					if (pCell->GetPile()->GetSrcPhrase()->m_gloss.IsEmpty())
+					{
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();
+					}
+					else
+					{
+						wxMessageBox(_(
+							"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+							_T(""), wxICON_EXCLAMATION | wxOK);
+						pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+					}
                     return;
 				}
 				else
