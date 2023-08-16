@@ -766,12 +766,12 @@ public:
 	// BEW 11Aug23, return TRUEa if pChar points at text string or digits string (but not the digits of a versenumber
 	bool IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxChar*& pNewPtr);
 	bool EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd); // BEW 12Aug23
-	bool ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 12Aug23
+	//bool ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 12Aug23
 	bool IsEmptyMkr(wxChar* pChar, int& nWhitesLen); // BEW 14Aug23, parses over whites at pChar and 
 			// returns TRUE if backspace follows, and the length of span up to but not including the
 			// the backslash; else FALSE and return -1 for nWhitesLen - a backslash must be at least
 			// one white further on than pChar
-
+	bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
 
 
 
