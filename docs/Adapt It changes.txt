@@ -17,6 +17,11 @@ Previously the Print Preview was too small especially if the compose box was ope
 text) now works more like the Note Dialog and disappears when the user clicks away from
 the dialog. Any changes made to the text of filtered material are automatically saved
 if they hadn't been saved by explicitly clicking on the dialog's OK button.
+* The Edit Source Text... menu item on the Edit menu no longer has an accelerator key
+but the Edit Source Text... menu item itself still functions, but it is disabled when
+Adapt It is collaborating with Paratext or Bibledit.
+* The Ctrl-Q accelerator (short-cut) key now functions on all platforms to Exit the
+application - the "Save Changes" prompt appears if any changes have not been saved.
 * The parser of input source text has been extensively revised. It's more capable, and
 works well with a greater variety of novel (but correct) USFM markup structures.
 * We do not advise using << >> < or > as indicators of opening and/or closing quotes.
@@ -31,7 +36,7 @@ visually identical to U+02BB; and U+2019 is visually identical to U+02BC.
 or deletes, characters; has been improved. In older versions, this was clunky.
 * In earlier versions, certain errors when parsing in source text, could crash the app.
 Now, Adapt It will put up a message dialog, saying where the data error occurs, and shows
-the input text for about 30 characters either side if where the error lies. You should
+the input text for about 30 characters either side of where the error lies. You should
 take note of the information, and try to fix the relevant part of your input document
 in a word processor, and then retry loading it in to Adapt It. Sometimes you can ignore
 the message, click it away a few times, and parsing from that location will continue -

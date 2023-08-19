@@ -10672,9 +10672,11 @@ CAdapt_ItApp* CAdapt_ItDoc::GetApp()
 /// \param		ptr			-> a pointer to a character being examined/referenced
 /// \param		pBufStart	-> the start of the buffer being examined
 /// \remarks
-/// Called from: the Doc's IsMarker().
+/// Called from: ExportFunctions's IsMarkerRTF().
 /// Determines if the previous character in the buffer is a newline character, providing ptr
 /// is not pointing at the beginning of the buffer (pBufStart).
+/// whm 16Aug2023 No longer used. IsPreCharANewline() was used only in ExportFunctions's 
+/// IsMarkerRTF() but is now commented out.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 {
@@ -10696,8 +10698,23 @@ bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 // span - probably it should, so that at newlines in the input data parsing, we advance
 // ptr over them. Probably safer for ParseWord(). I'll try the change and see if it
 // produces problems.
+// 
+// whm 18Aug2023 modified. BEW's comment above about the function not returning TRUE for
+// *pChar == _T('\n') is not correct at least now as of 18Aug2023. Testing shows that the
+// wxWidgets wxIsspace() function does return TRUE for all common whitespace characters 
+// including TAB '\t', LF '\n', CR '\r', and Space ' ', and does so on all platforms (at 
+// least Windows and Linux).
+// .  
+// As of 18Aug2023, this IsWhiteSpace() function here in the doc now simply calls the 
+// exact same global function that is defined in helpers.cpp. 
+// ***** ALL CHANGES TO WHITE SPACE DETECTING SHOULD NOW BE MADE IN THE VERSION IN helpers.cpp *******
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar* pChar)
 {
+	// ***** ALL CHANGES TO WHITE SPACE DETECTING SHOULD NOW BE MADE IN THE VERSION IN helpers.cpp *******
+	// ***** THIS FUNCTION HERE NOW JUST CALLS THE GLOBAL FUNCTION IsWhiteSpace() IN helpers.cpp   *******
+	// ***** SEE THE return STATEMENT BELOW WHERE THE GLOBAL FUNCTION IN helpers.cpp IS CALLED     *******
+	/*
+	
 	// BEW 30July11 -- the following block also needs to be added to the beginning of the
 	// following similar functions in helpers.cpp: IsWhiteSpace() and
 	// Is_NonEol_WhiteSpace() and has been
@@ -10748,6 +10765,15 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar* pChar)
 #endif
 	}
 	return FALSE;
+	*/
+	// whm 18Aug2023 note: the IsWhiteSpace() function in helpers.cpp is a "global function"
+	// being in global scope (i.e., not part of a class). To avoid a re-entry situation call
+	// here within the CAdapt_ItDoc class we prefix :: on the function call of IsWhiteSpace()
+	// below which forces the call to the global function in helpers.cpp which also takes a
+	// const parameter.
+	const wxChar* pcChar = pChar;
+	return ::IsWhiteSpace(pcChar);
+
 }
 
 
@@ -35814,7 +35840,10 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	m_bWidowedParenth = FALSE; // init
 	wxChar chOpenParenth = _T('(');
 
-	if ((*ptr == aSpace) && (*(ptr + 1) == chOpenParenth) && (*(ptr + 2) == _T('\n')))
+	// whm 18Aug2023 modified following if test to also check for CR at ptr+2 since text coming from Paratext during
+	// collaboration has EOL's as CRLF "\r\n". Testing for '\r' OR '\n' at ptr+2 will test TRUE for either '\n' or "\r\n"
+	// following a chOpenParenth '(' at ptr+1.
+	if ((*ptr == aSpace) && (*(ptr + 1) == chOpenParenth) && ((*(ptr + 2) == _T('\r')) || (*(ptr + 2) == _T('\n'))))
 	{
 		m_bWidowedParenth = TRUE;
 	}
