@@ -352,7 +352,11 @@ void Xhtml::Initialize()
 // exact same function that is defined in helpers.cpp. 
 bool Xhtml::IsWhiteSpace(wxChar& ch)
 {
-	// ***** ALL CHANGES TO WHITE SPACE DETECTING SHOULD NOW BE MADE IN THE VERSION IN helpers.cpp *******
+	// *******************************************************************************************************
+	// ********* ALL CHANGES TO IsWhiteSpace() SHOULD BE MADE TO IsWhiteSpace() DEFINED IN helpers.cpp *******
+	// ********* THIS FUNCTION HERE NOW JUST CALLS THE GLOBAL FUNCTION IsWhiteSpace() IN helpers.cpp   *******
+	// ********* SEE THE return STATEMENT BELOW WHERE THE GLOBAL FUNCTION IN helpers.cpp IS CALLED     *******
+	// *******************************************************************************************************
 	/*
 	// cloned from the one in CAdapt_ItDoc class, so as to be consistent
 	// with the parsers in the rest of the app
@@ -387,8 +391,11 @@ bool Xhtml::IsWhiteSpace(wxChar& ch)
 	// here within the Xhtml class we prefix :: on the function call of IsWhiteSpace()
 	// below which forces the call to the global function in helpers.cpp which also takes a
 	// const parameter.
+	// ********* CALL THE GLOBAL FUNCTION IN helpers.cpp  *******
+	// ********* DO NOT CHANGE THE LINES BELOW ******************
 	const wxChar* pcChar = &ch;
 	return ::IsWhiteSpace(pcChar);
+	// ********* DO NOT CHANGE THE LINES ABOVE ******************
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
