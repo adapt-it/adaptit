@@ -15502,6 +15502,7 @@ int CAdapt_ItDoc::CountWhitesSpan(wxChar* pChar, wxChar* pEnd)
 {
 	int countWhites = 0;
 	wxChar* pAux = pChar; // initialise
+	// \r and \n are each whitespace characters, so for windows build, each gets counted
 	while (IsWhiteSpace(pAux) && (pAux < pEnd))
 	{
 		countWhites++;
@@ -32640,11 +32641,70 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// leave the contentless markers loop, so that legacy parsing code can work to parse the words. The only
 	// thing lacking then is to prevent entry into the contentless markers if wholeMkr is \p; the other
 	// possibilities are catered for already. Same logic for \c marker - it has a chapterNumber, but never
-	// any following parseable words, so it too should not cause entry to the contentless mkrs loop
+	// any following parseable words, so it too should not cause entry to the contentless mkrs loop.
+	// (But when control is already in the loop and either is encountered, each has a dedicated parsing block.)
 	if (wholeMkr == _T("\\p") || wholeMkr == _T("\\c"))
 	{
 		return FALSE;
 	}
+	// BEW 21Aug23, Bill has parsing errors in 41MATNYNT.SFM where an occasional empty \li (or \li1) marker
+	// occurs. He says Paratext ignores them except in its unformatted view, where they then appear. So I
+	// guess I need to prevent entry to the loop when the marker is \li or \li1, and it's empty
+	bool bIsListIndexMkr = FALSE;
+	int liLen = 0;
+	if (wholeMkr == _T("\\li") || wholeMkr == _T("\\li1"))
+	{
+		bIsListIndexMkr = TRUE;
+		if (wholeMkr == _T("\\li1"))
+		{
+			liLen = 4;
+		}
+		else
+		{
+			liLen = 3;
+		}
+	}
+	if (bIsListIndexMkr)
+	{
+		// Is it an empty mkr? Point pAux2 past the marker & find out
+		wxChar* pAux2 = (pChar + liLen);
+		// There will be whitespace after the marker, parse over it - could be space, or \s or \n
+		// or in the window build, \r\n, or the end of line may be preceded by space; so if 
+		// backslash follows the whites, it's empty - and we deny entry to the empty mrks parsing loop
+		int nCountedWhites = 0;
+		nCountedWhites = CountWhitesSpan(pAux2, pEnd);
+		if (nCountedWhites > 0)
+		{
+			pAux2 += nCountedWhites;
+		}
+		// Now test for backslash following. If it does, the list index mkr is empty
+		if (*pAux2 == gSFescapechar)
+		{
+			return FALSE; // disallow entry
+		}
+	}
+	// BEW 21Aug23, the possibility of entering the loop causes a misparse when any \q or \q# beginMkr
+	// which is empty before a following verse marker; so have to tried like listIndex markers above,
+	// and return FALSE to keep from the poetry mkr causing loop entry. All poetry mkrs are length 3 or 4,
+	// except \q is length 2.
+	int poetryMkrLen = 0; // init
+	if ((wholeMkr.GetChar(0) == gSFescapechar) && wholeMkr.GetChar(1) == _T('q'))
+	{
+		poetryMkrLen = wholeMkr.Length();
+		wxChar* pAux2 = (pChar + poetryMkrLen);
+		int nCountedWhites = 0;
+		nCountedWhites = CountWhitesSpan(pAux2, pEnd);
+		if (nCountedWhites > 0)
+		{
+			pAux2 += nCountedWhites;
+		}
+		// Now test for backslash following. If it does, the list index mkr is empty
+		if (*pAux2 == gSFescapechar)
+		{
+			return FALSE; // disallow entry
+		}
+	} // end of TRUE block for test: if ((wholeMkr.GetChar(0) == gSFescapechar) && wholeMkr.GetChar(1) == _T('q'))
+
 	wxString mkrTag = wholeMkr.Mid(1); // remove backslash
 	int mkrLen = wholeMkr.Length();
 	bool bEnterLoop = FALSE; // init
@@ -40531,6 +40591,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 //			pApp->m_curChapter = _T("1"); 
 //			pApp->m_curChapter += _T(':'); // get the "1:" part of "1:verseNum" in m_chapterVerse ready
 //#endif
+
+#if defined (_DEBUG)
+			{
+				wxString ptrAt;
+				ptrAt = wxString(ptr, 20);
+				wxLogDebug(_T("TokText()  BEFORE EMPTY MKRS LOOP ENTRY, line %d, sn= %d, m_markers= [%s], ptr-> [%s] "),
+					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 3)
+				{
+					int halt_here = 1;
+				}
+			}
+#endif
+
 			bEnterEmptyMkrsLoop = EnterEmptyMkrsLoop(ptr, pEnd);
 #if defined (_DEBUG)
 			{
@@ -44637,6 +44711,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									// special = TRUE, is governed by what's in pSrcPhrase's m_markers - and in particular
 									// what's the last marker in m_markers if there is more than one. If m_markers is
 									// empty, then no change of textType and colouring is possible, in that case, skip
+									// BEW added Trim(FALSE) at Bill's suggestion in case m_markers has only a space
+									pSrcPhrase->m_markers.Trim(FALSE);
 									if (!pSrcPhrase->m_markers.IsEmpty())
 									{
 										wxString wholeMkr;
