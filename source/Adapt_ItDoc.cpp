@@ -32643,7 +32643,7 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// possibilities are catered for already. Same logic for \c marker - it has a chapterNumber, but never
 	// any following parseable words, so it too should not cause entry to the contentless mkrs loop.
 	// (But when control is already in the loop and either is encountered, each has a dedicated parsing block.)
-	if (wholeMkr == _T("\\p") || wholeMkr == _T("\\c"))
+	if (wholeMkr == _T("\\p") || wholeMkr == _T("\\c") || wholeMkr == _T("\\m"))
 	{
 		return FALSE;
 	}
