@@ -17585,9 +17585,9 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 
 #if defined (_DEBUG) //&& !defined(NOLOGS) // && defined (LOGMKRS)
 	wxString mypointsAt = wxString(ptr, 16);
-	wxLogDebug(_T("ParsePostWordPunctsAndEndMkrs line %d pointsAt= %s in TokenizeText(), sn= %d , before do loop"),
-		__LINE__, mypointsAt.c_str(), pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
-	if (pSrcPhrase->m_nSequNumber >= 8)
+	wxLogDebug(_T("ParsePostWordPunctsAndEndMkrs(), before its while loop: line %d, sn= %d, in ParseWord() ptr= [%s]"),
+		__LINE__,  pSrcPhrase->m_nSequNumber, mypointsAt.c_str() );
+	if (pSrcPhrase->m_nSequNumber >= 13)
 	{
 		int halt_here = 1;
 	}
@@ -32647,6 +32647,30 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	{
 		return FALSE;
 	}
+	// BEW 21Aug23, some beginMkrs are in the app's gCurentFilterMarkers fast-access set. Control must not
+	// enter the empty mkrs parsing loop if a BeginMkr is to be filtered, because that loop knows nothing
+	// about filtering. E.g. \x is by default, filtered out. And it may have an empty beginMkr in its span.
+	// E.g. in 02EXONYNT.SFM, at 4:3 is the following: \v 3 \x - \xo 4.3 \xt \x* Laban ...
+	// \xt is empty, and would cause entry to the empty mkrs loop and an eventual crash at ParseAWord().
+	// So test for mkrs to be filtered, and if so, return FALSE to keep control in the legacy parsing code
+	bool bIsToBeFiltered = FALSE;
+	bool bCanFilterIt = FALSE;
+	USFMAnalysis* pUsfmAnalysis = NULL; // init
+	wxString bareMkr = wholeMkr.Mid(1); // remove initial backslash
+	int myOffset = -1;
+	myOffset = gpApp->gCurrentFilterMarkers.Find(bareMkr);
+	bIsToBeFiltered = myOffset != -1;
+	pUsfmAnalysis = LookupSFM(bareMkr);
+	if (pUsfmAnalysis != NULL)
+	{
+		bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
+		if (bIsToBeFiltered && bCanFilterIt)
+		{
+			// disallow entry to the empty mkrs parsing loop
+			return FALSE;
+		}
+	}
+
 	// BEW 21Aug23, Bill has parsing errors in 41MATNYNT.SFM where an occasional empty \li (or \li1) marker
 	// occurs. He says Paratext ignores them except in its unformatted view, where they then appear. So I
 	// guess I need to prevent entry to the loop when the marker is \li or \li1, and it's empty
@@ -36323,20 +36347,26 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							len += 1;
 							ptr += 1;
 							// NOLOGS wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __LINE__, pSrcPhrase->m_markers.c_str(), len, wxString(ptr, 20).c_str());
-														// Now locate this pSrcPhrase in the m_pSourcePhrases list, and use view's
-														// GetChapterAndVerse(CSourcePhrase* pSourcePhrase_lastCompeted) which returns
-														// a ch:vs wxString, to search for which chapter and verse the current instance
-														// belongs to, by searching back for a non-empty m_chapterVerse string in an
-														// earlier pSrcPhrase instance. When found, assume the isolate backslash is
-														// a mistyped \v marker for the next verse, i.e. ch:(vs + 1), and display that
-														// in m_inform.
-														// No need!! I tested the above, and the smarts for doing the right thing are
-														// still in our code somewhere, so no more to do here, except return len value
+							// Now locate this pSrcPhrase in the m_pSourcePhrases list, and use view's
+							// GetChapterAndVerse(CSourcePhrase* pSourcePhrase_lastCompeted) which returns
+							// a ch:vs wxString, to search for which chapter and verse the current instance
+							// belongs to, by searching back for a non-empty m_chapterVerse string in an
+							// earlier pSrcPhrase instance. When found, assume the isolate backslash is
+							// a mistyped \v marker for the next verse, i.e. ch:(vs + 1), and display that
+							// in m_inform.
+							// No need!! I tested the above, and the smarts for doing the right thing are
+							// still in our code somewhere, so no more to do here, except return len value
 							bFromDigitsUpdatedPtr = FALSE; // restore default
 							return len;
 						}
-						wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __LINE__, pSrcPhrase->m_markers.c_str(), len, wxString(ptr, 20).c_str());
-
+wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), 
+	__LINE__, pSrcPhrase->m_markers.c_str(), len, wxString(ptr, 20).c_str());
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
+						{
+							int halt_here = 1; wxUnusedVar(halt_here);
+						}
+#endif
 						wxString strReturn;
 						strReturn = wxEmptyString;
 						bool bIsAtPtr = IsInitialPunctPlusWhite(ptr, spacelessPuncts, pEnd, strReturn);
@@ -36360,7 +36390,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr-> [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -36375,7 +36405,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , ptr-> [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 0)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -40598,13 +40628,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptrAt = wxString(ptr, 20);
 				wxLogDebug(_T("TokText()  BEFORE EMPTY MKRS LOOP ENTRY, line %d, sn= %d, m_markers= [%s], ptr-> [%s] "),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 3)
+				if (pSrcPhrase->m_nSequNumber >= 12)
 				{
 					int halt_here = 1;
 				}
 			}
 #endif
-
 			bEnterEmptyMkrsLoop = EnterEmptyMkrsLoop(ptr, pEnd);
 #if defined (_DEBUG)
 			{
@@ -40702,6 +40731,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// markers parsing loop
 							bExitEmptyMkrsLoop = TRUE;
 							bEnterEmptyMkrsLoop = FALSE;
+							ptr += itemLen; // BEW 21Aug23, I forgot to update it, what went into m_markers was itemLen + 1,
+											// so itemLen is how much to increase ptr
 #if defined (_DEBUG)
 							{
 								wxString ptrAt;
@@ -41150,7 +41181,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptrAt = wxString(ptr, 20);
 						wxLogDebug(_T("TokText()  BETWEEN BLOCKS in MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptrAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 15)
 						{
 							int halt_here = 1;
 						}
@@ -41282,21 +41313,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 
 				} // end of while loop: while (ptr < pEnd && !bExitEmptyMkrsLoop)
-				
-			} // end of TRUE block for test:  if (bEnterEmptyMkrsLoop)
-
 #if defined (_DEBUG)
 			{
-				wxString ptrAt;
-				ptrAt = wxString(ptr, 20);
-				wxLogDebug(_T("TokText() EXITED EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptr= [%s]"),
-					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 7)
-				{
-					int halt_here = 1; // What do we do here on?
-				}
+			wxString ptrAt;
+			ptrAt = wxString(ptr, 20);
+			wxLogDebug(_T("TokText() EXITED EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptr= [%s]"),
+				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 12)
+			{
+				int halt_here = 1; // What do we do here on?
+			}
 			}
 #endif
+			} // end of TRUE block for test:  if (bEnterEmptyMkrsLoop)
+
 			// BEW 14Aug23 comment: legacy parsing code for markers having content starts here
 			// Put here chapter mkr test block first, so that pApp->m_curChapter 
 			// can get a value before testing for verse mkr
@@ -41407,12 +41437,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				nWhiteLen = 0;
 				wxString strWhites;
 				strWhites = wxEmptyString;
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 				{
-					wxString strPointAt = wxString(ptr, 2);
+					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
 						__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -41422,7 +41452,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// BEW 1Jul23 The ! before IsRedOrBindingOrNonbindingBeginMkr(ptr, pEnd) subtest is critical.
 				// if not present, this loop is entered and it takes the ptr forward, and the test after the
 				// loop (which tests if ptr is a verse marker) gets skipped - which results in m_chaptVerse
-				// not geting a chancee to be set, for showing in the nav whiteboard area of the GUI
+				// not geting a chance to be set, for showing in the nav whiteboard area of the GUI
 				while (ptr < pEnd && *ptr == gSFescapechar && !IsRedOrBindingOrNonbindingBeginMkr(ptr, pEnd))
 				{
 					bool bIsBeginMkr;
@@ -41431,6 +41461,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString anAugBeginMkr;
 					awholemkrlen = ParseMarker(ptr);
 					aWholeMkr = wxString(ptr, awholemkrlen);
+					anAugBeginMkr = aWholeMkr + _T(' ');
 					bIsBeginMkr = IsBeginMarker(ptr, pEnd, aWholeMkr, bIsEndMkr);
 					if (!bIsBeginMkr)
 					{
@@ -41441,6 +41472,46 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					{
 						int offset;
 						offset = -1;
+
+						// BEW 22Aug23 if a filterable marker, to be filtered, is in aWholeMkr (e.g \x ) after
+						// a \v marker, we need to get control out of this loop here, because following is the
+						// loop for IsVerseMarker(), and \x not being \v, control will then go to the place 
+						// where LookupSFM() is done - it will then be recognised as filterable and is for filtering
+						// and the filtering will get done. If we don't break here, the \x will get swallowed by
+						// ParsePreWord() which works to prevent a beginMkr (e.g. \x ) from being passed along to
+						// ParseWord() to cause a crash at ParseAWord(). So if filtering is needed, do it here.
+						// This situation arose in 02EXONYNT.SFM at 4:3 in this line:
+						// \v 3 \x - \xo 4.3 \xt \x* Laban .....
+						if (!aWholeMkr.IsEmpty())
+						{
+							wxString myAugMkr = aWholeMkr + _T(' ');
+							offset = gpApp->gCurrentFilterMarkers.Find(myAugMkr);
+							if (offset != wxNOT_FOUND)
+							{
+								// it's a beginMkr to be filtered out, so do it
+								bIsToBeFiltered = TRUE; // assume bCanFilterIt is also TRUE (but unavailable here)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+								{
+									wxString strPointAt = wxString(ptr, 16);
+									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
+										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 13)
+									{
+										int halt_here = 1; wxUnusedVar(halt_here);
+									}
+								}
+#endif
+								itemLen = 0;
+								itemLen = ParseFilteringSFM(aWholeMkr, ptr, pBufStart, pEnd);
+								wxString temp = wxEmptyString;
+								temp = GetFilteredItemBracketed(ptr, itemLen);
+								pSrcPhrase->AddToFilteredInfo(temp);
+								ptr += itemLen;
+
+								bKeepPtrFromAdvancing = TRUE; // causes ParsePreWord() to be skipped - might help or might not
+								break;
+							}
+						}
 						// BEW 21Jul23 addition...
 						// ptr points to a beginMkr, but the marker belongs to the charAttributeMkrs fast-access
 						// string, we must NOT allow ptr to advance in this block. Why? because after the beginMkr
@@ -41449,8 +41520,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// m_punctsPattern member; and if ptr advances here (by storing the beginMkr), ptr will point
 						// at the "|<...content...}\endMkr* which ParseWord() won't then handle, leading 
 						// to ParseAWord() asserting (or in release mode, an app infinite loop)
-						anAugBeginMkr = aWholeMkr + _T(' ');
-						offset = -1; // init
+						offset = -1; // init again
 						offset = charAttributeMkrs.Find(anAugBeginMkr);
 						if (offset >= 0)
 						{
@@ -41671,7 +41741,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokText() line  %d , after inner WHILE LOOP m_bIsWithinUnfilteredInlineSpan = %d , m_markers= [%s] , bIsToBeFiltered = %d , strPointAt= [%s] "),
 						__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						int halt_here; wxUnusedVar(halt_here);
 					}
@@ -41745,22 +41815,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif						
 					pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 					pSrcPhrase->m_chapterVerse += temp; // append the verse number
-					// BEW 3Aug23 added, if m_markers has no content yet, then set it from tokBuffer
-					if (pSrcPhrase->m_markers.IsEmpty() && !tokBuffer.IsEmpty())
+					// BEW 3Aug23 added, set tokBuffer in m_markers, replacing any prior content
+					pSrcPhrase->m_markers = tokBuffer;
+
+					wxString theVerseNumber = temp; // BEW 22Aug23 added for preserving the number, temp is unhelpful to remember
+
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
-						pSrcPhrase->m_markers = tokBuffer;
-					}
-					else
-					{
-						if (!pSrcPhrase->m_markers.IsEmpty() && !tokBuffer.IsEmpty())
-						{
-							pSrcPhrase->m_markers << tokBuffer;
-						}
-					}
-#if defined (_DEBUG) && !defined (NOLOGS)
-					{
-						wxLogDebug(_T("TokTxt() line  %d , sequNum= %d , tokBuffer= [%s], m_markers= [%s], MADE m_chapterVerse= [%s]"),
-							__LINE__, pSrcPhrase->m_nSequNumber, tokBuffer.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str());
+						wxLogDebug(_T("TokTxt() SET tokBuffer into m_markers, line  %d , sequNum= %d , m_markers= [%s], MADE m_chapterVerse= [%s]"),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str());
 					}
 #endif
 					tokBuffer.Empty(); // prevent duplication if more mkrs added
@@ -41788,13 +41851,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					bIsToBeFiltered = FALSE; // we never filter sacred content
 					bKeepPtrFromAdvancing = FALSE;
 
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokTxt() line  %d , tokBuffer= [%s] , (temp) verseNum= [%s] , m_curChapter= [%s] , m_inform= [%s], m_chapterVerse= [%s], m_srcPhrase= [%s] ,strPointAt= [%s] "),
-							__LINE__, tokBuffer.c_str(), temp.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(),
+						wxLogDebug(_T("TokTxt() in IsVerseMkr TRUE block: line  %d , verseNum= [%s] , m_curChapter= [%s] , m_inform= [%s], m_chapterVerse= [%s], m_srcPhrase= [%s] ,strPointAt= [%s] "),
+							__LINE__, theVerseNumber.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(),
 							pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_srcPhrase.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -41806,15 +41869,28 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// So I need to force the pSrcPhrase to get added to the SPList. Using the finishup goto label will
 					// suffice provided I calculate a correct itemLen value first
 					itemLen = pSrcPhrase->m_markers.Length();
+#if defined (_DEBUG)
+					wxString spanAtPtr;
+					spanAtPtr = wxString(ptr, itemLen + 1); // +1 because ptr may be pointing at one whitespace
+					wxLogDebug(_T("TText() line %d , Set m_marker [%s], in Verse Mkr Parsing TRUE block: spanAtPtr= [%s]"),
+						__LINE__, pSrcPhrase->m_markers.c_str(), spanAtPtr.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 13)
+					{
+						int halt_here = 1;
+					}
+#endif
 					if (itemLen > 0 && (pSrcPhrase->m_markers.Find(_T("\\v ")) >= 0))
 					{
 						// If m_markers has content, and the marker just filled out was a \v beginMkr,
 						// then force TokenizeText to assign this current pSrcPhrase to the m_pSourcePhrases SPList*
-						// and then whatever \v marker may follow, it will be on a new pSrcPhrase
+						// and then whatever \v or other marker may follow, it will be on a new pSrcPhrase
 						tokBuffer.Empty();
 						goto parsing;
 					}
 
+					// BEW 22Aug23 comment: If tokeBuffer just above was not emptied at the setting of m_markers,
+					// so that the test at 41680 failed to sent control to ParseWord() (ie. goto parsing;), then
+					// adding to tokBuffer more content would likely cause problems
 					itemLen = ParseWhiteSpace(ptr); // past white space after the marker
 					AppendItem(tokBuffer, temp, ptr, itemLen);  // add it to the buffer
 					ptr += itemLen; // point past the white space
@@ -41916,7 +41992,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// turn on the flag
 					if (ptr >= pEnd || (*ptr == _T('\\') && *(ptr + 1) == _T('v')))
 					{
-						//						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= [%s]  TESTED TRUE for \v at ptr"),
+						    __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 						bEmptyUSFM = TRUE;
 						pSrcPhrase->m_key.Empty();
 						pSrcPhrase->m_srcPhrase.Empty();
@@ -41973,7 +42050,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokTxt() line  %d , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] End block IsVerseMkr - iterate by continue"),
@@ -41996,11 +42073,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// the lookup and used, likewise, if its an endmarker, * will be removed
 					// as well. However, we should only be encountering legacy content
 					// begin-markers here in TokenizeText()
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokTxt() line  %d , sequNum = %d , ELSE block, Not chapter nor verse; do LookupSFM(), strPointAt= [%s]"),
 						__LINE__, (int)pSrcPhrase->m_nSequNumber, strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						int halt_here = 1;
 					}
@@ -42107,27 +42184,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// that ptr does not advance until control reaches the filtering code lower down
 					bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != -1; // and reset after next LookupSFM below
 
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 					{
-						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokTxt() line  %d , sequNum = %d , BEFORE SkipParseAWord(), strPointAt= [%s]"),
-							__LINE__, (int)pSrcPhrase->m_nSequNumber, strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						wxString strPointAt = wxString(ptr, 18);
+						wxLogDebug(_T("TokTxt() line  %d , sequNum = %d , bIsToBeFiltered %d, BEFORE SkipParseAWord(), strPointAt= [%s]"),
+							__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)bIsToBeFiltered, strPointAt.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1;
 						}
-					}
-#endif
-
-#if defined (_DEBUG) && !defined (NOLOGS)
-					{
-						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokTxt() line  %d , bEmptySWBK = %d , bContinueTwice = %d , strPointAt= [%s] "),
-							__LINE__, (int)bEmptySWBK, strPointAt.c_str());
-					}
-					if (pSrcPhrase->m_nSequNumber >= 2)
-					{
-						int halt_here = 1;
 					}
 #endif
 					wxString whichMkr;
@@ -42139,7 +42204,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// is done below and hiding attributes data makes no sense if it's marker
 						// is gunna be filtered out up to (and including) the matching endMkr
 						bool bHidingNeeded = FALSE;
-						{ // start scoping span
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+						{
+							wxString strPointAt = wxString(ptr, 16);
+							wxLogDebug(_T("TokTxt() line  %d ,  bIsToBeFiltered = %d , strPointAt= [%s] "),
+								__LINE__, (int)bIsToBeFiltered, strPointAt.c_str());
+						}
+						if (pSrcPhrase->m_nSequNumber >= 13)
+						{
+							int halt_here = 1;
+						}
+#endif
+
+
+
+						if (*ptr == gSFescapechar)
+						{ 
 							// BEW 20Jul23, handle \fig as a special case. It's an attribute marker, but maybe intended for
 							// filtering out - and the filtering out code is a long way below
 							int offset;
@@ -42292,7 +42372,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								m_bWithinMkrAttributeSpan = FALSE;
 								m_bHiddenMetadataDone = FALSE;
 							}
-						} // end scoping span
+						} // end of TRUE block for test: if (*ptr == gSFescapechar)
+
 					} // end of TRUE block for test: if (!m_bWithinMkrAttributeSpan && !bIsUnstructured && !bIsToBeFiltered)
 
 					// whm revised this block 11Feb05 to support USFM and SFM Filtering. When
