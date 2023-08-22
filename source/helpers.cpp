@@ -1614,6 +1614,15 @@ wxString GetStringFromBuffer(const wxChar* ptr, int itemLen)
 	return wxString(ptr,itemLen);
 }
 
+// whm 18Aug2023 Note:
+// The Parse_Number() function below is only defined here in helpers.cpp,
+// and it is called by functions in the following two source files:
+// In Adapt_It.cpp:
+// 	bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr) - 2x
+// In CollabUtilities.cpp:
+//	bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
+//		int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
+//	wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer) - 2x
 int Parse_Number(wxChar *pChar, wxChar *pEnd) // whm 10Aug11 added wxChar *pEnd parameter
 {
 	wxChar* ptr = pChar;
@@ -1914,6 +1923,16 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 
 // BEW 23Apr15 provisional support added for / being treated as a word-breaking
 // character (as if it is whitespace) -- support certain east asian languages
+// 
+// whm 18Aug2023 Note: The following Is_NonEol_WhiteSpace() function is only 
+// called within functions defined here in helpers.cpp which include these:
+//	bool Is_ChapterMarker(wxChar* pChar)
+//	bool Is_VerseMarker(wxChar* pChar, int& nCount)
+//	int Parse_Number(wxChar* pChar, wxChar* pEnd)
+//	int Parse_NonEol_WhiteSpace(wxChar* pChar)
+//	int Parse_Marker(wxChar* pChar, wxChar* pEnd)
+//	bool Is_Marker(wxChar* pChar, wxChar* pEnd)
+//
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
 	// The standard white-space characters are the following: space 0x20, tab 0x09,
@@ -1971,7 +1990,13 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	return FALSE;
 }
 
-
+// whm 18Aug2023 Note:
+// This Parse_NonEol_WhiteSpace() function is only defined here in helpers.cpp.
+// It is not called by other functions here in helpers.cpp, but is called by functions
+// in the following source files:
+// In Adapt_It.cpp:
+//	bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr)
+// 
 int Parse_NonEol_WhiteSpace(wxChar *pChar)
 {
 	int	length = 0;
@@ -1989,6 +2014,13 @@ int Parse_NonEol_WhiteSpace(wxChar *pChar)
 }
 
 // BEW 24Oct14, no changes needed to support USFM nested markers
+// 
+// whm 18Aug2023 Note:
+// The Parse_Marker() function defined here in helpers.cpp is not defined elsewhere in our code base,
+// and is only called from these functions within CollabUtilities.cpp:
+//	CopyTextFromTempFolderToBibleditData()
+//	GetUsfmStructureAndExtent() - 3x
+//	MapMd5ArrayToItsText()
 int Parse_Marker(wxChar *pChar, wxChar *pEnd)
 {
     // whm: see note in the Doc's version of ParseMarker for reasons why I've modified
@@ -2008,6 +2040,12 @@ int Parse_Marker(wxChar *pChar, wxChar *pEnd)
 	return len;
 }
 
+// whm 18Aug2023 Note:
+// The Is_Marker() function defined here in helpers.cpp is not defined elsewhere in our code base,
+// and is only called from these functions within CollabUtilities.cpp:
+//	wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer) - 3x
+//	void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr)
+//	wxString RemoveIDMarkerAndCode(wxString text)
 bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 {
 	// whm modified 2May11 from the IsMarker function in the Doc to add checks for pEnd
@@ -7557,6 +7595,18 @@ wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, 
 // is a modification of the one in the doc class; these are needed here for use in
 // CSourcePhrase - later we could replace IsWhiteSpace() and ParseWhiteSpace() in the doc
 // class with these ( ? )
+// 
+// whm 18Aug2023 made this helpers.cpp IsWhiteSpace() conform to most recent version that
+// was in the Doc - by adding explicit support for HairSpace here which was in the Doc's
+// version but missing from here. Then, after ensuring this IsWhiteSpace() was an exact 
+// clone of what was in the Doc's version, I modified the Doc's IsWhiteSpace() function  
+// to simply call this version here in helpers.cpp which will be the place for any future
+// modifications. Note: Since the (3rd) version of IsWhiteSpace() that is defined in the
+// Xhtml.cpp file is also supposed to be "cloned from the one in CAdapt_ItDoc class so 
+// as to consistent with the parsers in the rest of the app", I modified the same-named
+// function in Xhtml.cpp to simply call this global function here in helpers.cpp.
+// This function then is now called from all the places where the Doc's version and the
+// Xhtml's version were previously being called from.
 
 // BEW 23Apr15 added provisional support for Dennis Walters request for / as a
 // like-whitespace wordbreak; only in Unicode version
@@ -7564,6 +7614,7 @@ bool IsWhiteSpace(const wxChar *pChar)
 {
 #ifdef _UNICODE
 	wxChar NBSP = (wxChar)0x00A0; // standard Non-Breaking SPace
+	wxChar HairSpace = (wxChar)0x200A; // used between curly quotes in MATBVM.SFM doc
 #else
 	wxChar NBSP = (unsigned char)0xA0;  // standard Non-Breaking SPace
 #endif
@@ -7571,7 +7622,12 @@ bool IsWhiteSpace(const wxChar *pChar)
 	// returns true for tab 0x09, return 0x0D or space 0x20
 	// _istspace not recognized by g++ under Linux; the wxIsspace() fn and those it relies
 	// on return non-zero if a space type of character is passed in
-	if (wxIsspace(*pChar) != 0 || *pChar == NBSP)
+	// whm 18Aug2023 Note: The remark above about "_istspace not being recognized by g++ 
+	// under Linux" is not longer accurate/significant - wxIsspace() does return TRUE for
+	// when *pChar  is _T('\n') - see testing results near end of OnInit() in the App, and
+	// so I've removed the explicit test: || *pChar == _T('\n') from the if() test below.
+	//if (wxIsspace(*pChar) != 0 || *pChar == NBSP || *pChar == _T('\n') || *pChar == HairSpace)
+	if (wxIsspace(*pChar) != 0 || *pChar == NBSP || *pChar == HairSpace)
 	{
 		return TRUE;
 	}

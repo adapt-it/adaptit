@@ -24424,7 +24424,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
-    
     // whm testing
     /*
     wxString testChVs = _T("0:0");
@@ -31065,6 +31064,130 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //wxString testStr =  _T("â âFirst?! second, thirdâ: â fourth?");
     //wxString testStr = _T("â âFirst?;~secondâ: â"); // test fixedSpace symbol
     //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
+
+    /*
+    // whm testing whitespace chars below
+    wxChar TAB = (wxChar)0x0009; // TAB tab
+    wxChar LF = (wxChar)0x000A; // LF '\n'
+    //wxChar VTAB = (wxChar)0x000B; // VTAB '\v'
+    //wxChar FF   = (wxChar)0x000C; // FF '\f'
+    wxChar CR = (wxChar)0x000D; // CR '\r'
+    wxChar SP = (wxChar)0x0020; // SP standard space, width depends on font, typically 1/4 em, often adjusted
+    //wxChar NEL  = (wxChar)0x0085; // NEL next line, '\\' (LaTeX) this is backspace ???
+    wxChar NBSP = (wxChar)0x00A0; // NBSP standard Non-Breaking Space width as a space, but often not adjusted
+    //wxChar OSM  = (wxChar)0x1680; // OGHAM SPACE MARK, Used for interword separation in Ogham text. 
+    wxChar SP0 = (wxChar)0x2000; // EN QUAD 1 en (= 1/2 em)
+    wxChar SP1 = (wxChar)0x2001; // EM QUAD 1 em (nominally, the height of the font)
+    wxChar SP2 = (wxChar)0x2002; // EN SPACE (nut) 1 en (= 1/2 em)
+    wxChar SP3 = (wxChar)0x2003; // EM SPACE (mutton) 1 em
+    wxChar SP4 = (wxChar)0x2004; // THREE-PER-EM SPACE (thick space) 1/3 em
+    wxChar SP5 = (wxChar)0x2005; // FOUR-PER-EM SPACE (mid space) 1/4 em
+    wxChar SP6 = (wxChar)0x2006; // SIX-PER-EM SPACE 1/6 em
+    wxChar SP7 = (wxChar)0x2007; // FIGURE SPACE “Tabular width”, the width of digits 
+    wxChar SP8 = (wxChar)0x2008; // PUNCTUATION SPACE The width of a period “.”
+    wxChar SP9 = (wxChar)0x2009; // THIN SPACE 1/5 em (or sometimes 1/6 em)
+    wxChar SPA = (wxChar)0x200A; // HAIR SPACE Narrower than THIN SPACE
+    //wxChar LSEP = (wxChar)0x2028; // LINE SEPARATOR
+    //wxChar PSEP = (wxChar)0x2029; // PARAGRAPH SEPARATOR
+    wxChar NNBSP = (wxChar)0x202F; // NARROW NO-BREAK SPACE Narrower than NO-BREAK SPACE (or SPACE), “typically the width of a thin space or a mid space” 
+    wxChar MMS = (wxChar)0x205F; // MEDIUM MATHEMATICAL SPACE 4/18 em
+    //wxChar ISPCJK = (wxChar)0x3000; // IDEOGRAPHIC SPACE, a space as wide as a CJK character cell (fullwidth)
+
+    // Note: According to Unicode v15 the following have property White_Space=no :
+
+    //wxChar MVS    = (wxChar)0x180E; // MONGOLIAN VOWEL SEPARATOR, used in Mongolian to cause the final two characters of a word to take on different shapes
+    wxChar ZWSP = (wxChar)0x200B; // ZERO WIDTH SPACE 0 width
+    // wxChar ZWNJ  = (wxChar)0x200C; // ZERO WIDTH NON-JOINER, causes two chars to be printed in their final and initial forms, respectively 
+    // wxChar ZWJ   = (wxChar)0x200D; // ZERO WIDTH JOINER, between two characters otherwise not connected, causes them to be printed in their connected forms
+    wxChar WJ = (wxChar)0x2060; // WJ word joiner
+    wxChar ZWNBSP = (wxChar)0xFEFF; // ZERO WIDTH NO-BREAK SPACE 0 width
+
+    wxChar TestChar[21] = { TAB,LF,CR,SP,NBSP,SP0,SP1,SP2,SP3,SP4,SP5,SP6,SP7,SP8,SP9,SPA,NNBSP,MMS,ZWSP,WJ,ZWNBSP };
+    wxString TestStr[21] = { _T("TAB 0x0009 hex or '\\t'"),_T("LF 0x000A hex or '\\n'"),_T("CR 0x000D hex or '\\r'") ,_T("SP 0x0020 hex or \" \"") ,
+        _T("NBSP 0x00A0 hex") , _T("SP0 0x2000 hex") ,_T("SP1 0x2001 hex") ,_T("SP2 0x2002 hex") ,_T("SP3 0x2003 hex") ,_T("SP4 0x2004 hex") ,
+        _T("SP5 0x2005 hex") ,_T("SP6 0x2006 hex") ,_T("SP7 0x2007 hex") ,_T("SP8 0x2008 hex") ,_T("SP9 0x2009 hex") ,_T("SPA 0x200A hex") ,
+        _T("NNBSP 0x202F hex") ,_T("MMS 0x205F hex") ,_T("ZWSP 0x200B hex") ,_T("WJ 0x2060 hex") ,_T("ZWNBSP 0xFEFF hex") };
+    int ct;
+    wxString strLabel;
+    wxString wx = _T("according to wxWidgets' wxIsspace() function");
+    wxString doc = _T("according to Adapt_ItDoc's IsWhiteSpace() function");
+    wxString helpers = _T("according to helpers.cpp's IsWhiteSpace() function");
+   for (ct = 0; ct < 21; ct++)
+    {
+        // test the wxWidgets built-in wxIsspace() function for determining whitespace
+        if (wxIsspace(TestChar[ct]) == TRUE)
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s IS WhiteSpace - %s"), ct, strLabel.c_str(), wx.c_str());
+        }
+        else
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s is NOT WhiteSpace - %s"), ct, strLabel.c_str(),wx.c_str());
+        }
+
+        // test the Doc's IsWhiteSpace() function for determining whitespace
+        if (GetDocument()->IsWhiteSpace(&TestChar[ct]) == TRUE)
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s IS WhiteSpace - %s"), ct, strLabel.c_str(),doc.c_str());
+        }
+        else
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s is NOT WhiteSpace - %s"), ct, strLabel.c_str(),doc.c_str());
+        }
+
+        // test the helpers.cpp's IsWhiteSpace() function for determining whitespace
+        if (IsWhiteSpace(&TestChar[ct]) == TRUE)
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s IS WhiteSpace - %s"), ct, strLabel.c_str(),helpers.c_str());
+        }
+        else
+        {
+            strLabel = TestStr[ct];
+            wxLogDebug(_T("TestChar[%d] %s is NOT WhiteSpace - %s"), ct, strLabel.c_str(),helpers.c_str());
+        }
+    }
+    int breakhere;
+    breakhere = 1;
+    // Results (as of 17Aug2023) of above tests reveal there are differences between Windows and Linux (and Mac?).
+    // 
+    // On Windows:
+    // TestChar[0] ... TestChar[17] all 3 functions return "IS Whitespace"
+    // TestChar[18] ZWSP & TestChar[19] WJ return "NOT WhiteSpace" for wxIsSpace(), but "IS WhiteSpace" for the 2 IsWhiteSpace() functions.
+    // TestChar[20] all 3 functions return "NOT" Whitespace"
+    // On Linux:
+    // TestChar[0] ... TestChar[3] all 3 functions return "IS Whitespace"
+    // TestChar[4] ... TestChar[15] SPA, TestChar[18] ZWSP & TestChar[19] WJ return "NOT WhiteSpace" for wxIsSpace(), but "IS WhiteSpace" for the 2 IsWhiteSpace() functions.
+    // TestChar[16] NNBSP, TestChar[17] MMS & TestChar[20] ZWNBSP all 3 functions return "NOT" Whitespace"
+    // 
+    // Conclusions: 
+    // 1. For the common Latin space and whitespace chars TAB '\t', LF '\n', CR '\r', and SP ' ' all 3 functions
+    //    agree on their tests returning "IS WhiteSpace" for on all platforms.
+    // 2. For the more exotic chars NBSP, SP0...SPA, ZWSP and WJ, we can't use wxIsSpace() alone for consistency, 
+    //    but must use one of our IsWhiteSpace() functions which currently force NBSP and SP0...SPA, ZWSP and WJ 
+    //    to be "IS WhiteSpace" and make our current code consistent across platforms for all chars up through 
+    //    TestChar[15] SPA, as well as for ZWSP and WJ.
+    // 3. For the characters NNBSP and MMS Windows returns "IS WhiteSpace" for all 3 function, but Linux returns 
+    //    "NOT WhiteSpce for all 3 functions. We should probably incorporate NNBSP and MMS into our IsWhiteSpace()
+    //    functions so that they force NNBSP and MMS to evaluate as "IS WhiteSpace" and thus make the Linux version
+    //    agree with the Windows version.
+    // 4. We should never use wxIsSpace() by itself when testing whether a character is whitespace within AI. 
+    //    Instead, we should use our own IsWhiteSpace() function(s). We should only use wxIsSpace() within our
+    //    own IsWhiteSpace() function since it is an inline function and it is consistent and fast for the most 
+    //    common Latin whitespace chars TAB, LF, CR, and SP, and also separately and explicitly treat all the 
+    //    other less common characters that we want to treat as "whitespace" within AI.
+    // 5. For programming consistency, clarity, and ease of code maintenance, we should move the IsWhiteSpace()
+    //    function to the App, and get rid of the other IsWhiteSpace() functions in Adapt_ItDoc.cpp, helpers.cpp
+    //    and Xhtml.cpp. The IsWhiteSpace() function in Xhtml is supposed to be a clone of the one that is 
+    //    currently in the Doc anyway. If we want a local function in Adapt_ItDoc.cpp, helpers.cpp and
+    //    Xhtml.cpp, we can simply call the one and only version we maintain in the App. 
+    //    
+    // whm testing whitespace chars above
+    */
+
 
 
 #if wxMAC_USE_CORE_GRAPHICS
