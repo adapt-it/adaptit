@@ -41407,12 +41407,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				itemLen = ParseWhiteSpace(ptr); // parse white space following the number
 				AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
 				ptr += itemLen; // point past it
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 				{
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]"),
 						__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -41427,12 +41427,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				if (!tokBuffer.IsEmpty())
 				{
 					pSrcPhrase->m_markers += tokBuffer;
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokTxt() line  %d , tokBuffer sets m_markers= [%s] , then empties tokBuffer and iterates by continue, strPointAt= [%s]"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -41469,7 +41469,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				nWhiteLen = 0;
 				wxString strWhites;
 				strWhites = wxEmptyString;
-#if defined (_DEBUG) //&& !defined (NOLOGS)
+
+#ifdef _DEBUG
 				{
 					wxString strPointAt = wxString(ptr, 16);
 					wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
@@ -41494,6 +41495,18 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					awholemkrlen = ParseMarker(ptr);
 					aWholeMkr = wxString(ptr, awholemkrlen);
 					anAugBeginMkr = aWholeMkr + _T(' ');
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+					{
+						wxString strPointAt = wxString(ptr, 16);
+						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
+							__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
+						if (pSrcPhrase->m_nSequNumber >= 13)
+						{
+							int halt_here = 1; wxUnusedVar(halt_here);
+						}
+					}
+#endif
+
 					bIsBeginMkr = IsBeginMarker(ptr, pEnd, aWholeMkr, bIsEndMkr);
 					if (!bIsBeginMkr)
 					{
@@ -41514,6 +41527,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// ParseWord() to cause a crash at ParseAWord(). So if filtering is needed, do it here.
 						// This situation arose in 02EXONYNT.SFM at 4:3 in this line:
 						// \v 3 \x - \xo 4.3 \xt \x* Laban .....
+						/* BEW 23Aug23, refactoring elsewhere has, I think, made this block unnecessary
 						if (!aWholeMkr.IsEmpty())
 						{
 							wxString myAugMkr = aWholeMkr + _T(' ');
@@ -41544,6 +41558,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								break;
 							}
 						}
+						*/
 						// BEW 21Jul23 addition...
 						// ptr points to a beginMkr, but the marker belongs to the charAttributeMkrs fast-access
 						// string, we must NOT allow ptr to advance in this block. Why? because after the beginMkr
@@ -41618,30 +41633,57 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 						wxChar period;
 						period = _T('.');
+						int wholeMkrLength;
+						wholeMkrLength = 0;
 						wxString strTest;
 						strTest = wxEmptyString;
 						offset = aWholeMkr.Find(strVerseSearch);
 						if (offset == wxNOT_FOUND)
 						{
 							// We have found a beginMkr, but it is not \v (could be \m or \li1 or \q1 or \p etc)
-							tokBuffer += aWholeMkr; tokBuffer << _T(" "); // needs a following space
-							// BEW 6Jul23 Don't lose the marker, add it to m_markers
-							pSrcPhrase->m_markers += tokBuffer;
-							ptr += awholemkrlen;
-							wxChar* pAux;
-							pAux = ptr;
-#if defined (_DEBUG) && !defined (NOLOGS)
+							tokBuffer += aWholeMkr; 
+							// BEW 23Aug23, unilateral addition of a space could lead to error, if the marker
+							// in the source text is not followed by a space. E.g. \p is often followed by newline
+							// (or maybe \r\n on Windows), so we should instead parse to get whatever the following
+							// character is, and append that to tokBuffer, to keep input data in sync with ptr
+							//tokBuffer << _T(" "); // needs a following space
+							wholeMkrLength = aWholeMkr.Length();
+							wxChar* pAux2;
+							pAux2 = ptr + wholeMkrLength;
+							wxChar chNext;
+							chNext = *pAux2; // chNext is what should be appended to tokBuffer
+							tokBuffer += chNext;
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 							{
 								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s] "),
-									__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 2)
+								wxLogDebug(_T("TokTxt() SETTING tokBuffer, line  %d , tokBuffer= [%s] , m_curChapter= [%s] ,  strPointAt= [%s]   "),
+									__LINE__, tokBuffer.c_str(), pApp->m_curChapter.c_str(),  strPointAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 13)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here);
 								}
 							}
-#endif						
-							if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period)
+#endif
+							// BEW 6Jul23 Don't lose the marker, add it to m_markers
+							pSrcPhrase->m_markers += tokBuffer;
+							ptr += awholemkrlen + 1; // +1 because we parsed over whatever wxChar follows aWholeMkr
+							wxChar* pAux;
+							pAux = ptr;
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+							{
+								wxString strPointAt = wxString(ptr, 16);
+								wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s]  strPointAt= [%s] "),
+									__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 13)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here);
+								}
+							}
+#endif
+							// BEW 23Aug23, bad test - second member should be IsWhiteSpace() because quite
+							// often \p type marker is followed by \r, or \n or \r\n besides just latin space
+							//if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period)
+							if (pAux < pEnd && IsWhiteSpace(pAux) && *(pAux + 1) == period)
 							{
 								// Matched space followed by a period - a period after a beginMkr is unlikely,
 								// except in contentless source text originating from Paratext, where ... or ..
@@ -41678,12 +41720,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								}
 #endif						
 							} // end of TRUE block for test: if (pAux < pEnd && *ptr == _T(' ') && *(ptr + 1) == period)
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 							{
 								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokTxt() line  %d , m_bIsWithinUnfilteredInlineSpan = %d , aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
-									__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 2)
+								wxLogDebug(_T("TokTxt() line  %d , aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
+									__LINE__, aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 13)
 								{
 									int halt_here; wxUnusedVar(halt_here);
 								}
@@ -41694,8 +41736,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// The \v next scenario is most likely, so handle first. If not \v, then try the '[' option.
 							wxChar* auxPtr = ptr;
 							wxChar chAtAuxPtr = *auxPtr;
-							if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n')) &&
-								*(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+							if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n') || chAtAuxPtr == _T('\r'))
+								&& *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
 							{
 								// A verse marker follows either space or newline; so put the whitespace 
 								// into tokBuffer and update ptr, and 
@@ -41756,9 +41798,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									strWhites = wxString(ptr, nWhiteLen);
 									tokBuffer += strWhites;
 									ptr += nWhiteLen;
-								}
+									//BEW 23Aug23, control can get here, with ptr already pointing at a next \v marker,
+									// and if so, we DON'T want to stay in the inner loop, instead we want to break
+									// out so that the test below: if (IsVerseMarker(ptr, nMkrLen))
+									// can process the verse marker
+									if (*ptr == gSFescapechar && *(ptr + 1) == _T('v'))
+									{
+										// ptr is at a \v mamrker
+										break;
+									}
+								} // end of else block for test:
+								  // if ((chSecond == _T('[') || chSecond == _T('(')) && !IsWhiteSpace(pAux + 2) && anoffset == wxNOT_FOUND && chThird != gSFescapechar)
 
-							}
+							} // end of else block for complex test:
+							  // if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n') || chAtAuxPtr == _T('\r'))
+							  // && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+
 						} // end of TRUE block for test: if (offset == wxNOT_FOUND)
 						else
 						{
@@ -41911,15 +41966,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						int halt_here = 1;
 					}
 #endif
+					/* BEW 23Aug23 hopefully this bit is no longer required, it caused premature parsing truncation after sn = 0
 					if (itemLen > 0 && (pSrcPhrase->m_markers.Find(_T("\\v ")) >= 0))
 					{
 						// If m_markers has content, and the marker just filled out was a \v beginMkr,
 						// then force TokenizeText to assign this current pSrcPhrase to the m_pSourcePhrases SPList*
 						// and then whatever \v or other marker may follow, it will be on a new pSrcPhrase
 						tokBuffer.Empty();
-						goto parsing;
+						int len;
+						//goto parsing;
+						len = (int)(ptr - pVerseMkrAtPtr) + itemLen;
+						ptr = pVerseMkrAtPtr + itemLen; // redundant, but useful when debugging
+						// Force a new pSrcPhrase, which should handle any filtering if a filterable marker follows 
+						return len;
 					}
-
+					*/
 					// BEW 22Aug23 comment: If tokeBuffer just above was not emptied at the setting of m_markers,
 					// so that the test at 41680 failed to sent control to ParseWord() (ie. goto parsing;), then
 					// adding to tokBuffer more content would likely cause problems
@@ -42131,8 +42192,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						goto parsing;
 					}
 					pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), 
-										//__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+					//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), 
+					//	__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 					if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
 					{
 						wholeMkr = GetWholeMarker(ptr);
@@ -42144,13 +42205,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						verifyOffset = wholeMkr.Find(tagOnly);
 						wxASSERT(verifyOffset >= 0);
 #endif
-						// BEW 31Jul23 put a copy here of the code for eliminating ... or .. followed by whitespace
-#if defined (_DEBUG) && !defined (NOLOGS)
+						if (!wholeMkr.IsEmpty())
+						{
+							// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
+							// that ptr does not advance until control reaches the filtering code lower down
+#if defined (_DEBUG) 
+							//wxLogDebug(_T("TokText() line %d wholeMkr= [%s], gpApp->gCurrentFilterMarkers= [%s]"),
+							//	__LINE__, wholeMkr.c_str(), gpApp->gCurrentFilterMarkers.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 13)
+								int halt_here = 1;
+#endif
+							bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != -1;
+						}
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 						{
 							wxString strPointAt = wxString(ptr, 16);
-							wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s] "),
-								__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
+								__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -42162,15 +42234,71 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						strTest = wxEmptyString;
 						if (wholeMkr != _T("\\v"))
 						{
-							// The marker is not \v (could be \m or \li1 or \q1 or \p etc)
-							tokBuffer += aWholeMkr;
-							tokBuffer << _T(" "); // needs a following space
-							// BEW 6Jul23 Don't lose the marker, add it to m_markers
-							pSrcPhrase->m_markers += tokBuffer;
-							ptr += awholemkrlen;
+							// The marker is not \v (could be \m or \li1 or \q1 or \p or \x etc)
+							// BEW 23Aug23, at this point, tokBuffer might be empty, and if so
+							// we must not unilaterally add a space.
+							// Also, the code for checking it bToBeFiltered for TRUE is above,
+							// so we don't want to add wholeMkr to m_markers something which
+							// is going to be filtered out, so refactor here with care...
+							if (bIsToBeFiltered)
+							{
+								// We must not do anything here that results in wholeMkr being added to tokBuffer
+								// or to m_markers; parsing must not advance ptr until the filtering has been done
+								;
+								// TODO anything to do here? I don't think so -- e.g. \x must still be pointed at
+								// when control reaches the filtering code, a long way below
+							}
+							else
+							{
+								// This block can parse, but with care - don't append a latin space
+								// to an empty pSrcPhrase->m_markers; also wholeMkr is not going to be filtered out
+								tokBuffer.Trim(FALSE); // remove any initial white space
+								if (pSrcPhrase->m_markers.IsEmpty())
+								{
+									if (!tokBuffer.IsEmpty())
+									{
+										// There is something to add to m_markers, do so and clear tokBuffer
+										pSrcPhrase->m_markers = tokBuffer;
+									
+										int mmkrsLen;
+										mmkrsLen = pSrcPhrase->m_markers.Length();
+										ptr += mmkrsLen; // advance ptr (including initial whitespace if present)
+
+										tokBuffer.Empty();
+									}
+								}
+								else
+								{
+									// pSrcPhrase->m_markers has content; tokBuffer may have some more to append,
+									// or it might be empty. If empty, no harm in unilaterally appending
+									
+									// BEW 6Jul23 Don't lose the marker, add it to m_markers if non-empty
+									// ptr should have earlier been advanced to point past pSrcPhrase->m_markers
+									// so just advance ptr by how long tokBuffer is
+									if (!tokBuffer.IsEmpty())
+									{
+										pSrcPhrase->m_markers += tokBuffer;
+										int tbLen;
+										tbLen = tokBuffer.Length();
+										ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
+										// TODO - some logic?? Or just let control continue on down? I'll do no more here until proven otherwise
+									} // end of TRUE block for test: if (!tokBuffer.IsEmpty())
+								}
+							}
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+							{
+								wxString strPointAt = wxString(ptr, 16);
+								wxLogDebug(_T("TokTxt() line  %d , bIsToBeFiltered %d; wholeMkr= [%s], m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
+									__LINE__, (int)bIsToBeFiltered, wholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 13)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here);
+								}
+							}
+#endif						
 							wxChar* pAux;
 							pAux = ptr;
-							if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period)
+							if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period && !pSrcPhrase->m_markers.IsEmpty())
 							{
 								// Matched space followed by a period - a period after a beginMkr is unlikely,
 								// except in contentless source text originating from Paratext, where ... or ..
@@ -42195,12 +42323,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
 														 // whitespace char follows the periods string
 								pSrcPhrase->SetSrcWordBreak(precWordDelim);
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 								{
 									wxString strPointAt = wxString(ptr, 16);
-									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s] "),
-										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 2)
+									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s], strPointAt= [%s] "),
+										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), strPointAt.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 13)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -42208,19 +42336,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif						
 							} // end of TRUE block for test: if (pAux < pEnd && *ptr == _T(' ') && *(ptr + 1) == period)
 
-						} // end of TRUE block for test: if (wholeMkr != _T("\\v"))
+						} // end of TRUE block for test: if (wholeMkr != _T("\\v") && !bIsToBeFiltered)
+
 					} // end of TRUE block for test: if (pUsfmAnalysis != NULL && *ptr == gSFescapechar)
 
 					// BEW 30Sep19 the one-line test with three subtest below
-					// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
-					// that ptr does not advance until control reaches the filtering code lower down
-					bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != -1; // and reset after next LookupSFM below
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 18);
-						wxLogDebug(_T("TokTxt() line  %d , sequNum = %d , bIsToBeFiltered %d, BEFORE SkipParseAWord(), strPointAt= [%s]"),
-							__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)bIsToBeFiltered, strPointAt.c_str());
+						//wxLogDebug(_T("TokTxt() line  %d , sequNum = %d , bIsToBeFiltered %d, BEFORE SkipParseAWord(), strPointAt= [%s]"),
+						//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)bIsToBeFiltered, strPointAt.c_str());
+						wxLogDebug(_T("TokTxt() line  %d , m_marker= [%s], bIsToBeFiltered = %d , strPointAt= [%s] "),
+							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
+
 						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1;
@@ -42239,17 +42368,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) //&& !defined (NOLOGS)
 						{
 							wxString strPointAt = wxString(ptr, 16);
-							wxLogDebug(_T("TokTxt() line  %d ,  bIsToBeFiltered = %d , strPointAt= [%s] "),
-								__LINE__, (int)bIsToBeFiltered, strPointAt.c_str());
+							wxLogDebug(_T("TokTxt() line  %d , m_marker= [%s], bIsToBeFiltered = %d , strPointAt= [%s] "),
+								__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
 						}
 						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1;
 						}
 #endif
-
-
-
 						if (*ptr == gSFescapechar)
 						{ 
 							// BEW 20Jul23, handle \fig as a special case. It's an attribute marker, but maybe intended for
@@ -42291,13 +42417,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							bHidingNeeded = IsAttributeMarker(ptr);
 							if (bHidingNeeded)
 							{
-
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 								{
-									wxString strPointAt;
-									strPointAt = wxString(ptr, 16);
-									wxLogDebug(_T("TokTxt() line  %d ,  bIsToBeFiltered = %d  , strPointAt= [%s] Need to hide attributes data"),
-										__LINE__, (int)bIsToBeFiltered, strPointAt.c_str());
+									wxString strPointAt = wxString(ptr, 16);
+									//wxLogDebug(_T("TokTxt() line  %d ,  bIsToBeFiltered = %d , strPointAt= [%s] "),
+									//	__LINE__, (int)bIsToBeFiltered, strPointAt.c_str());
+									wxLogDebug(_T("TokTxt() line  %d , m_marker= [%s], bIsToBeFiltered = %d , strPointAt= [%s] "),
+										__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
+								}
+								if (pSrcPhrase->m_nSequNumber >= 13)
+								{
+									int halt_here = 1;
 								}
 #endif
 								// BEW 20Jul23 this block is for handling \fig, on the assumption
@@ -42360,7 +42490,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									} // end of else block of test: if (offset != wxNOT_FOUND)
 								} // end of TRUE block for test: if (!bIsToBeFiltered)
 								// No else block  because we don't stored bar data if filtering is to be done
-
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+								{
+									wxString strPointAt = wxString(ptr, 16);
+									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%], bIsToBeFiltered = %d , strPointAt= [%s] "),
+										__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
+								}
+								if (pSrcPhrase->m_nSequNumber >= 13)
+								{
+									int halt_here = 1;
+								}
+#endif
 								if (!bIsToBeFiltered)
 								{
 									// Okay, if it's not going to be filtered, so bar contents can 
@@ -42458,15 +42598,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					int wholeMkrLen = wholeMkr.Length();
 					wxString augmentedWholeMkr = wholeMkr + _T(' '); // prevent spurious matches
 					wxString bareMkr = wholeMkr.Mid(1); // chop off the initial backslash
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokTxt() line  %d , BEFORE 2nd LookupSFM(), strPointAt= [%s] wholeMkr= [%s]"),
-							__LINE__, strPointAt.c_str(), wholeMkr.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2)
-						{
-							int halt_here = 1;
-						}
+						//wxLogDebug(_T("TokTxt() line  %d ,  bIsToBeFiltered = %d , strPointAt= [%s] "),
+						//	__LINE__, (int)bIsToBeFiltered, strPointAt.c_str());
+						wxLogDebug(_T("TokTxt() line  %d , m_marker= [%s], bIsToBeFiltered = %d , strPointAt= [%s] "),
+							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
+					}
+					if (pSrcPhrase->m_nSequNumber >= 13)
+					{
+						int halt_here = 1;
 					}
 #endif
 					// BEW 17Apr23 Nyindrou Luke 24:39-40 has a '[' after the end of verse 39's text,
@@ -42488,17 +42630,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					if (!wholeMkr.IsEmpty())
 					{
 						anItemLen += wholeMkrLen;
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 						{
-							wxString strPointAt = wxString(ptr, 15);
-							wxLogDebug(_T("\nTokTxt() line  %d , bIsBeginMkr = %d, wholeMkr = %s, strPointAt= [%s]  Inner loop BEGINS "),
-								__LINE__, (int)bIsBeginMkr, wholeMkr.c_str(), strPointAt.c_str());
+							wxString strPointAt = wxString(ptr, 16);
+							wxLogDebug(_T("TokTxt() line  %d , bIsBeginMkr = %d, m_markers= [%s], wholeMkr = %s, strPointAt= [%s]  Inner loop BEGINS "),
+								__LINE__, (int)bIsBeginMkr, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), strPointAt.c_str());
 						}
 #endif
 						pSavedPtr = ptr; // this won't have moved in value
 #if defined (_DEBUG)
 						{
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1;
 							}
@@ -42521,14 +42663,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wholeMkr = GetWholeMarker(ptr);
 								augmentedWholeMkr = wholeMkr + _T(' ');
 								wholeMkrLen = wholeMkr.Length();
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 								{
 									wxString strPointAt = wxString(ptr, 16);
 									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , bContinueTwice = %d , strPointAt= [%s] , 2ndLookup wholeMkr=[%s]"),
 										__LINE__, pSrcPhrase->m_markers.c_str(), (int)bContinueTwice, strPointAt.c_str(), wholeMkr.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 2) // for verse 1
+									if (pSrcPhrase->m_nSequNumber >= 13)
 									{
-										int halt_here = 2;
+										int halt_here = 1;
 									}
 								}
 #endif
@@ -42579,7 +42721,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							} // end of TRUE block for test: if (pUsfmAnalysis != NULL)
 						} // end of TRUE block for test: if (*ptr == gSFescapechar)
 					} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
-
+#if defined (_DEBUG) //&& !defined (NOLOGS)
+					{
+						wxString strPointAt = wxString(ptr, 16);
+						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s],  bIsToBeFiltered = %d , strPointAt= [%s] "),
+							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, strPointAt.c_str());
+					}
+					if (pSrcPhrase->m_nSequNumber >= 13)
+					{
+						int halt_here = 1;
+					}
+#endif
 					// BEW 11Oct10, the block for detecting an inline marker which is not
 					// one of the \f set nor one of the \x set..., or the \e set (\ef, \ex).
 					// if the test succeeds, then in the block we set needed flags and then
@@ -42600,12 +42752,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// the character inline binding marker, \em begins with 'e', so 3rd line
 					// needs extra test to return TRUE if bareMkr is em - to bleed out confusion
 					// with the subsequent initial 'e' subtest.
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , bContinueTwice = %d , strPointAt= [%s] , after 2ndLookup"),
 							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bContinueTwice, strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 2) // for verse 1
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1;
 						}
@@ -42756,17 +42908,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// Not an endmarker. 
 							// BEW 28Apr20 refactored the tests; 21Jul23
 
-							m_bInRedSet = FALSE; // init  BEW 9Jan23, it's a doc.h member bool, 
-												 // set only when augmented beginMkr is in m_RedMBeginMarkers
+							//m_bInRedSet = FALSE; // init  BEW 9Jan23, it's a doc.h member bool, 
+								// set only when augmented beginMkr is in m_RedBeginMarkers BEW 24Aug23 removed, it's unused 
 							bIsCharAttrMkr = FALSE; // init
 							// HERE following we just set booleans, we don't parse
-#if defined (_DEBUG) && !defined(NOLOGS)
-							if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								//wxString ptrPointsAt;
-								ptrPointsAt = wxString(ptr, 15);
-								wxLogDebug(_T("** TokText(), line %d : sequNum = %d , wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
-									__LINE__, (int)pSrcPhrase->m_nSequNumber, wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
+								ptrPointsAt = wxString(ptr, 16);
+								wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_markers= [%s], wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
+									__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
 									pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
 								int halt_here = 1;
 							}
@@ -42853,7 +43005,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 												// these markers are not for 'sacred' text, but for things like \rq etc, they store like \f would
 												bIsInlineBindingMkr = FALSE;
 												bIsInlineNonbindingMkr = FALSE;
-												m_bInRedSet = TRUE; // set the doc member bool; not filterable
+												// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
 												bIsCharAttrMkr = FALSE;
 											}
 											else
@@ -42880,12 +43032,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 						} // end of else block for test: if (bIsAnEndMkr && !m_bWithinMkrAttributeSpan)
 
-#if defined(_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined(_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							//wxString ptrPointsAt;
 							ptrPointsAt = wxString(ptr, 16);
-							wxLogDebug(_T("TokText(), line %d : BREAKING OUT, sequNum = %d , wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
+							wxLogDebug(_T("TokText(), line %d : BREAKING OUT of else block, sequNum = %d , wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
 								pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
 							int halt_here = 1;
@@ -42932,16 +43084,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// that ptr does not advance until control reaches the filtering code lower down
 					bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1;
 
-#if defined (_DEBUG) && !defined(NOLOGS)
-					if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						if (pLastSrcPhrase != NULL)
 						{
 							int sequNumLast = pLastSrcPhrase->m_nSequNumber;
 							wxString lastKey = pLastSrcPhrase->m_key;
-							wxLogDebug(_T("TokenizeText line %d,  sequNumLast %d,  lastKey: %s"), __LINE__, sequNumLast, lastKey.c_str());
+							wxLogDebug(_T("TokenizeText line %d,  sequNumLast %d, bIsToBeFiltered= %d,  lastKey: %s"), 
+								__LINE__, sequNumLast, (int)bIsToBeFiltered, lastKey.c_str());
 
-							//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
+//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 							int halt_here = 1;
 						}
 					}
@@ -43045,7 +43198,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// if (nPunctsSpan > 0) TRUE block below, count any whitespaces after ptr is updated, and 
 						// append them too
 #if defined (_DEBUG)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1;
 						}
@@ -43093,12 +43246,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					bool bCanFilterIt;
 					bCanFilterIt = FALSE;
 					// whm 22Jul2023 separated declaration below from assignment making two lines
-					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bFilteringIsWanted"
-					// Initialise these bools to FALSE
-					bool bFilteringIsWanted;
-					bFilteringIsWanted = FALSE;
-					wxUnusedVar(bFilteringIsWanted);
-					// whm 22Jul2023 separated declaration below from assignment making two lines
 					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bInUnfileterdInlineSpan"
 					bool bInUnfilteredInlineSpan;
 					bInUnfilteredInlineSpan = FALSE;
@@ -43110,11 +43257,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pointsAt = wxEmptyString;
 					wholeMkrAtPtr = wxEmptyString; pointsAtFirst = wxEmptyString; pointsAtPtr = wxEmptyString;
 					strAuxPointsAt = wxEmptyString; fMkr = wxEmptyString; feMkr = wxEmptyString;
-					xMkr = wxEmptyString; exMkr = wxEmptyString;
-#if defined (_DEBUG) && !defined (NOLOGS)
+					xMkr = wxEmptyString; 
+					exMkr = wxEmptyString;
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					wxLogDebug(_T("TokText(), line %d : app->m_bParsingSource = %d"), __LINE__, (int)gpApp->m_bParsingSource);
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -43136,28 +43284,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							goto parsing; // this sends control to just preceding ParsePreWord(), and then ParseWord() follows
 						}
 					}
-					// BEW the next bit was added to handle the possibility of a thing like \x type
-					// of markers being within an unfiltered \f .... \f* span. It is possible for
-					// ptr to be at a \x marker to be filtered when control gets to here, so we need
-					// to handle filtering of augmentedWholeMkr above here, but after the Find()
-					// done in gCurrentFilterMarkers, otherwise we'll find that the \x or whatever
-					// would wrongly get put into m_markers, instead of being filtered. Beware!
-					// Check should we turn on bool for control being in m_bIsWithinUnfilteredInlineSpan
-					// now (for example, the \f marker for a footnote span not wanted for filtering).
-					// This test will be TRUE for a marker like \fig when it's not to be filtered,
-					// because at the begin-marker, baseOfEndMkr will be empty and bIsToBeFiltered will
-					// be FALSE. So a span of CSourcePhrases, not yet tokenized, would lie ahead of ptr. 
 					bool bIsAMkr;
-#if defined (_DEBUG) && !defined (NOLOGS)
-					pointsAtPtr = wxString(ptr, 20);
-					// whm 11Jan2023 separated declaration from assignment below to avoid gcc goto error 
-					bool bIsItRed; bIsItRed = FALSE; // initialise
-					bIsItRed = m_bInRedSet;
-					if (pSrcPhrase->m_nSequNumber >= 2)
-					{
-						int halt_here = 1; wxUnusedVar(halt_here);
-					}
-#endif
 					bIsAMkr = IsMarker(ptr);
 					bool bNotEndMkr;
 					bNotEndMkr = !IsEndMarker2(ptr);
@@ -43167,13 +43294,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					bNotForFiltering = !bIsToBeFiltered;
 
 					wholeMkrAtPtr = GetWholeMarker(ptr);
-					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
-										// BEW 9Jan20 Bleed out beginMkrs like \rq (which we default to filtering out, but if I've set project
-										// to have it unfiltered (and I can do so according to AI_USFM.xml), then I need to support it.
-										// When ptr points at \rq<space> augmentedWholeMkr will be "\\rq<space>" but I can reset that here
-										// to make sure. bIsAMkr will be TRUE, bInLine is FALSE, bNotForFiltering is TRUE, and
-										// wholeMkrAtPtr is "\\rq"
+					// BEW 9Jan20 Bleed out beginMkrs like \rq (which we default to filtering out, but if I've set project
+					// to have it unfiltered (and I can do so according to AI_USFM.xml), then I need to support it.
+					// When ptr points at \rq<space> augmentedWholeMkr will be "\\rq<space>" but I can reset that here
+					// to make sure. bIsAMkr will be TRUE, bInLine is FALSE, bNotForFiltering is TRUE, and
+					// wholeMkrAtPtr is "\\rq"
 					if (bIsAMkr && bNotEndMkr && bNotForFiltering)
 					{
 						// that test is not explicit enough, gotta get more detail - specifically, is it a beginMkr from
@@ -43195,6 +43322,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							pSrcPhrase->m_bSpecialText = TRUE;
 							//pSrcPhrase->m_inform = _("x-ref to source"); // NOTE: "x-ref to source" is m_inform for \rq ... \rq* rightMarginReference (TType 32)
 							pSrcPhrase->m_bBoundary = TRUE;
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+							if (pSrcPhrase->m_nSequNumber >= 13)
+							{
+								//wxString ptrPointsAt;
+								ptrPointsAt = wxString(ptr, 16);
+								wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_markers= [%s], wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
+									__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
+									pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
+								int halt_here = 1;
+							}
+#endif
 							// jump to ParsePreWord() to get quickly to ParseWord(), with ptr pointing at the word following the beginMkr
 							goto parsing;
 						}
@@ -43231,11 +43369,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// it's not a span-creating beginMkr, so the bool stays false
 							m_bIsWithinUnfilteredInlineSpan = FALSE;
 						}
-#if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
-							wxLogDebug(_T("TokText(), line %d : m_bIsWithinUnfilteredInlineSpan = %d , sequNum = %d , wholeMkrAtPtr= [%s] , m_curTextType = %d, m_key= [%s]"),
-								__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
+							wxLogDebug(_T("TokText(), line %d, sequNum = %d , wholeMkrAtPtr= [%s] , m_curTextType = %d, m_key= [%s]"),
+								__LINE__, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 							int halt_here = 1;
 						}
@@ -43249,14 +43387,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// m_bIsWithinUnfilteredInlineSpan back to FALSE.
 						;
 					}
-					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
 					wxChar* pSavePtr;
 					pSavePtr = ptr;
 					if (bIsAMkr && bNotEndMkr && bInLine && bNotForFiltering && m_bIsWithinUnfilteredInlineSpan)
 					{
-#if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							wxLogDebug(_T("TokText(), line %d : m_bIsWithinUnfilteredInlineSpan = %d , sequNum = %d , wholeMkrAtPtr= %s , m_curTextType = %d, m_key= [%s]"),
 								__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
@@ -43301,8 +43439,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						//int mkrLen = 0; // init
 						wxChar* pAuxPointsAt;
 						pAuxPointsAt = pAux;
-#if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							//wxString ptrPointsAt;
 							ptrPointsAt = wxString(ptr, 16);
@@ -43325,7 +43463,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								ptr = pSavePtr; // point ptr back to start of "\f" marker
 								pAux = ptr;
 #if defined (_DEBUG)
-								// NOLOGS								wxString strPointerToPtr = wxString(pAux, 20); // check where pAux points
+// NOLOGS wxString strPointerToPtr = wxString(pAux, 20); // check where pAux points
 #endif
 								// get pAux to insertion point, prior to following mkr
 								pAux += 3;
@@ -43342,10 +43480,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								itemLen += lenQuestions;
 								// point ptr back at \f
 								ptr = pSavePtr;
-								//								wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"),
-								//								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+								//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"),
+								//	__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-								goto parsing; // the label precedes the call of ParseWord()
+								goto parsing; // the label precedes the call of ParsePreWord()
 							}
 							else
 							{
@@ -43422,14 +43560,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					} // end of TRUE block for test: if (bIsAMkr && bNotEndMkr && bInLine && bNotForFiltering && m_bIsWithinUnfilteredInlineSpan)
 					else
 					{
-						//*
+						
 #if defined (_DEBUG)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
-#endif //*/
-						//					wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+#endif
+wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 						wholeMkrAtPtr = GetWholeMarker(ptr);
 						bool bIsAMkr = IsMarker(ptr);
 						bool bNotEndMkr = !IsEndMarker2(ptr);
@@ -43438,8 +43576,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 						m_bIsWithinUnfilteredInlineSpan = FALSE;
 
-						// NOLOGS					wxLogDebug(_T("TokText(), line %d , sn= %d , wholeMkrAtPtr= [%s] , m_markers= [%s], bIsAMkr %d, bNotEndMkr %d, bInLine %d"),
-						//						__LINE__, pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(), pSrcPhrase->m_markers.c_str(), (int)bIsAMkr, (int)bNotEndMkr, (int)bInLine );
+// NOLOGS					wxLogDebug(_T("TokText(), line %d , sn= %d , wholeMkrAtPtr= [%s] , m_markers= [%s], bIsAMkr %d, bNotEndMkr %d, bInLine %d"),
+//						__LINE__, pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(), pSrcPhrase->m_markers.c_str(), (int)bIsAMkr, (int)bNotEndMkr, (int)bInLine );
 
 											// Is ptr now at an InLine marker which is in an unfiltered span's
 											// endmarker and now m_bIsWithinUnfilteredInlineSpan should be turned back
@@ -43470,15 +43608,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						} // end of TRUE block for test:   --- filtering stuff
 						  // if (bIsAMkr && bNotEndMkr && bInLine && bNotForFiltering && m_bIsWithinUnfilteredInlineSpan)
 					}
-					//				wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+					//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
-									// BEW 30Sep19, Bill's change Or to be AND didn't fix it. My logic was wrong.
-									// He made the change to fix an issue with parsing \h
-									// I need to heavily refactor this part of the app.
-									// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
-									//if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
+					// BEW 30Sep19, Bill's change Or to be AND didn't fix it. My logic was wrong.
+					// He made the change to fix an issue with parsing \h
+					// I need to heavily refactor this part of the app.
+					// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
+					//if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 #if defined (_DEBUG)
-					if (pSrcPhrase->m_nSequNumber >= 2)
+					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 						int halt_here = 1;
@@ -43507,8 +43645,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						bCanFilterIt = FALSE;
 					}
 					// Code following is for versions 6.9.4 and earlier
-					bFilteringIsWanted = bIsToBeFiltered;
-					if (bFilteringIsWanted)
+					if (bIsToBeFiltered)
 					{
 						m_bIsWithinUnfilteredInlineSpan = FALSE;
 						bInUnfilteredInlineSpan = FALSE;
@@ -43547,10 +43684,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// that stuff hanging around unused. 
 						// So we'll code in bleeding order - get the special cases out of the way
 						// first, and the general stuff handled last.
-#if defined (_DEBUG) && !defined(NOLOGS)
-						if (pSrcPhrase->m_nSequNumber >= 2)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
-							wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __LINE__,
+							wxLogDebug(_T("TokText(), FILTERING... line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __LINE__,
 								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 							int halt_here = 1;
 						}
@@ -43568,7 +43705,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxString temp = wxEmptyString;
 							itemLen = 0; // initialize
 #if defined (_DEBUG)
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							wxString atPtrHere;
+							atPtrHere = wxString(ptr, 22);
+							wxLogDebug(_T("TokText() entering ParseFilteringSFM, line %d, 22 chars atPtrHere= [%s]"), __LINE__, atPtrHere.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1;
 							}
@@ -43612,38 +43752,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							strCacheDelayedFilteredContent = wxEmptyString; // Gotta clear it, otherwise, if it's
 								// not empty when parse gets to doc end, it will be added again on a "Filtered Info Carrier"
 								// programmatically added extra pSrcPhrase
+							itemLen = 0; // BEW added 24Aug23
 
-							// We don't know  what lies beyond the endmarker, could be a number
-							// things - but most likely whitespace, so parse over & exit the block
-							// iterate the inner loop, to see if another marker follows - if not
-							// control will break from the loop to get to ParsePreWord()
-							//itemLen = 0; // if ptr is not pointing at whitespace, itemLen will remain zero
+							// We don't know  what lies beyond the endmarker, but it's handled further down.
+							// if after some whitespace there is a backslash, then continue; to iterate the loop.
+							// Otherwise, probably words follow
 							int aCount;
 							aCount = 0;
 							aCount = ParseWhiteSpace(ptr); // parse any white space following it,
 															// return 0  if not pointing at whitespace
-							// In the AppendItem() call, tokBuffer is unused, input ptr and itemLen,
-							// and internally those two values will be used to construct a string, temp,
-							// which is returned by reference, so that ptr can be updated to point past
-							// the whitespace
-							if (aCount > 0)
-							{
-								ptr += aCount;
-								itemLen += aCount;
-							}
-							AppendItem(tokBuffer, temp, ptr, itemLen); // add it to buffer
-							//ptr += itemLen; // advance ptr past its following whitespace
+							wxUnusedVar(aCount); // avoid compiler warning
+							// BEW 24Aug23 dont advance ptr, but make aCount available if wanted below
 							tokBuffer.Empty();
 
-							//* didn't get the colour changed from red to blue? - check IsTextTypeChangingEndMarker() 
-							// BEW 2Feb23 reinstate this block & add test of ptr -> gSFescapechar
-							// BEW 10Jan23, if we have just filtered something, the the TextType for what preceded
-							// what has just been filtered out, may not be 'verse' for instance, it could be a \s1 subheading
-							// which would be red. So if ptr points at newline, let's assume we are about to return to 'verse'
-							// for the m_curTextType. 
-							// ParseFilteringSFM() parses from start of beginMkr, but goes over any final space followed by \n
-							// so ptr will be pointing at what the next line is - that is likely to be \p or even \v, so returning
-							// to verse TextType here is quite appropriate
+							/* BEW 24Aug23 unneeded, these values already set
 							if (*ptr == _T('\n') || *(ptr - 1) == _T('\n') || *(ptr - 1) == _T(' ') || *ptr == gSFescapechar)
 							{
 								pSrcPhrase->m_curTextType = verse;
@@ -43651,17 +43773,35 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pSrcPhrase->m_bFirstOfType = TRUE;
 								pSrcPhrase->m_bBoundary = TRUE;
 							}
-							//*/
-#if defined (_DEBUG) && !defined(NOLOGS)
-							wxLogDebug(_T("\nTokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_precPunct = %s , m_markers = %s"),
+							*/
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+							wxLogDebug(_T("TokText(), FILTERING DONE: line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_precPunct = %s , m_markers = %s"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType,
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1;
 							}
 #endif
-							continue; // iterate the inner loop
+							// BEW 23Aug23, it's probably unhelpful to iterate this inner loop using continue; in every
+							// context. For instance, if after any whites there is not a backslash, but rather words to
+							// be parsed, (or if \x to \x* just got filtered out - which is likely to be followed by words)
+							// we would want to break from the loop. But if after whites is a backslash, then continue;
+							// would be appropriate. So sort these possibilities out...
+							{ //scope block
+								wxChar* pAux = ptr + aCount; // typically aCount is 1, for the one space prior to words
+									// unless there is a lurking backslash, which would require iterating the inner loop
+								if ( (*pAux == gSFescapechar) || (*(pAux + 1) == gSFescapechar))
+								{
+									continue; // iterate the inner loop
+								}
+								else
+								{
+									// words probably follow, so break from the loop
+									// send control to ParsePreWord() and then ParseWord()
+									goto parsing;
+								}
+							} // end scopeblock
 						} // end of TRUE block for test: if (bItsSourceText)
 						else
 						{
@@ -43670,7 +43810,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 							// Ready for the filtering code...
 							itemLen = 0; // initialize
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 							wxLogDebug(_T("TokText(), line %d : NOT SOURCE TEXT, sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s"), __LINE__,
 								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
 #endif
@@ -43704,18 +43844,18 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								temp = GetFilteredItemBracketed(ptr, itemLen);
 							}
 
-							//						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-													// We may be at some free translation's anchor pSrcPhrase, having just
-													// set up the filter string to be put into m_markers; and if so, this
-													// string will contain a count of the number of following words to
-													// which the free translation applies; and this count will be
-													// bracketted by |@ (bar followed by @) at the start and @|<space> at
-													// the end, so we can search for these and if found, we extract the
-													// number string and remove the whole substring because it is only
-													// there to inform the parse operation and we don't want it in the
-													// constructed document. We use the count to determine which pSrcPhrase
-													// later encountered is the one to have its m_bEndFreeTrans member set
-													// TRUE.
+							//wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+							// We may be at some free translation's anchor pSrcPhrase, having just
+							// set up the filter string to be put into m_markers; and if so, this
+							// string will contain a count of the number of following words to
+							// which the free translation applies; and this count will be
+							// bracketted by |@ (bar followed by @) at the start and @|<space> at
+							// the end, so we can search for these and if found, we extract the
+							// number string and remove the whole substring because it is only
+							// there to inform the parse operation and we don't want it in the
+							// constructed document. We use the count to determine which pSrcPhrase
+							// later encountered is the one to have its m_bEndFreeTrans member set
+							// TRUE.
 							int nFound = temp.Find(_T("|@"));
 							if (nFound != -1)
 							{
@@ -43745,7 +43885,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									temp.Empty();
 								}
 							} // end of TRUE block for test: if (nFound != -1)
-	//						wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+// wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 							// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
 							// support of notes, backtranslations and free translations, so we have
@@ -43832,7 +43972,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 	//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-					} // end of filtering block, TRUE block for test: if (bIsToBeFiltered && bCanFilterIt)
+					} // end of filtering TRUE block for test: if (bIsToBeFiltered && bCanFilterIt)
 
 					else
 					{
@@ -43919,15 +44059,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							AppendItem(tokBuffer, temp, ptr, itemLen);
 							// advance pointer past the marker
 							ptr += itemLen;
-							//							wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+							//	wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 							{
 								ptrPointsAt = wxString(ptr, 18);
-								wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key= [%s], m_precPunct= [%s] , m_markers= [%s]"),
+								wxLogDebug(_T("TokText(), NON-SRC FILTERING ENDS, line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key= [%s], m_precPunct= [%s] , m_markers= [%s]"),
 									__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 									(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 7)
+								if (pSrcPhrase->m_nSequNumber >= 13)
 								{
 									int halt_here = 1;
 								}
@@ -43951,13 +44091,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					if (bIsVerseMkrParsed && IsAnsiDigit(*ptr))
 					{
 						// \v was just parsed, and ptr advanced to point at the verse number
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 						{
 							ptrPointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("TokText(), line= %d,  sequNum = %d, m_bSpecialText= %d, m_key = [%s], m_markers= [%s], at=[%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText,
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 2)
+							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
 								int halt_here = 1;
 							}
@@ -43979,7 +44119,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 					//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
-//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
+wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str());
 
 					// BEW added 15Aug12: a \p after an empty verses marker, can cause control
 					// to come here without closing off the empty pSrcPhrase after accumulating
