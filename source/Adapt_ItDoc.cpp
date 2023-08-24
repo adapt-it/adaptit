@@ -10969,6 +10969,8 @@ int CAdapt_ItDoc::ParseNumber(wxChar* pChar)
 	// \s Stori.... gives m_markers with "\c 4\s " which gets interpretted by ParseNumber
 	// as "4\s" is the 'number' for the chapter, & carries it through each verse in doc!
 	// BEW 11Jun23 added subtest: && *ptr != _T('\n')
+	// whm 21Aug2023 Note: The IsWhiteSpace() function detects both '\n' and '\r' so those EOL
+	// chars need not be explicitly tested for here, but testing for them doesn't hurt anything.
 	while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && *ptr != _T('\n') && *ptr != gSFescapechar)
 	{
 		ptr++;
@@ -16159,7 +16161,7 @@ bool CAdapt_ItDoc::IsEnd(wxChar* pChar)
 /// \param		ptr			-> a pointer to a character in a buffer
 /// \param		itemLen		-> the number of buffer characters to use in composing the src string
 /// \remarks
-/// Called from: the Doc's TokenizeText() and DoMarkerHousekeeping().
+/// Called from: the Doc's DoMarkerHousekeeping(), ParsePreWord(), and TokenizeText().
 /// AppendItem() actually does double duty. It not only returns the wxString constructed from
 /// itemLen characters (starting at ptr); it also returns by reference the composed
 /// string concatenated to whatever was previously in dest.
@@ -16172,10 +16174,24 @@ bool CAdapt_ItDoc::IsEnd(wxChar* pChar)
 /// \n are not getting removed which puts vertical white space into the layout - so we may as
 /// well test here for final carriage return and or line feed, and remove them from the
 /// formed string after itemLen has been used to form it.
+/// whm 22Aug2023 revised to remove the "endianness" conditionally compiled code blocks as
+/// unneeded.
 ///////////////////////////////////////////////////////////////////////////////
 wxString& CAdapt_ItDoc::AppendItem(wxString& dest, wxString& src, const wxChar* ptr, int itemLen)
 {
 	src = wxString(ptr, itemLen);
+
+	// whm 22Aug2023 modified. The conditionally compiled code blocks below for __WXMSW__ and the other
+	// platforms is not really needed. There is no need to account for endianness is most of our code
+	// which doesn't apply to whole wxChar characters, nor to the wxChars indexed within wxStrings.
+	// Hence, I'm commenting out the conditional tests below as unneeded. The code is also too
+	// dangerous as it attempts to assign null characters to a wxChar buffer. All that is needed is
+	// for this function to append the wxString sub-string to the dest wxString and return the src
+	// wxString. 
+	// According to the comment above the function, the caller of AppendItem() never captures
+	// its return value so it could be made into a void function, but I'll not do that for this
+	// revision.
+	/*
 	// BEW added 13Jul11
 #ifdef __WXMSW__
 	// handle either endianness
@@ -16214,8 +16230,10 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest, wxString& src, const wxChar* 
 		//src.UngetWriteBuf(); // cause str's length to be recalculated
 	}
 #endif
+	*/
+
 	dest += src;
-	return src;
+	return src; // whm 22Aug2023 note: This return value could be removed if the function were changed to a void function.
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32717,7 +32735,9 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// and return FALSE to keep from the poetry mkr causing loop entry. All poetry mkrs are length 3 or 4,
 	// except \q is length 2.
 	int poetryMkrLen = 0; // init
-	if ((wholeMkr.GetChar(0) == gSFescapechar) && wholeMkr.GetChar(1) == _T('q'))
+	// whm 22Aug2023 modified test below to make the GetChar() call safe by first testing that 
+	// wholeMkr.Length() >= 2 Note: testing length >= 2 will test for all poetry makers \q, \q1, \qac etc.
+	if ((wholeMkr.Length() >= 2) && (wholeMkr.GetChar(0) == gSFescapechar) && wholeMkr.GetChar(1) == _T('q'))
 	{
 		poetryMkrLen = wholeMkr.Length();
 		wxChar* pAux2 = (pChar + poetryMkrLen);
@@ -40114,7 +40134,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// BEW 30Dec22 make sure a Doc member variables are initialised to FALSE
 	m_bWidowedParenth = FALSE;
 	m_bWidowedBracket = FALSE;
-	bool bParsedNewlineBeforeVerseMarker; // BEW added 10Apr23
+	bool bParsedNewlineBeforeVerseMarker; // BEW added 10Apr23 // whm 22Aug2023 note: this bool, it is never used
 	bool bContinueTwice;
 	bContinueTwice = FALSE;
 	bool bEmptySWBK; // set true when no backwards search for a src word break character is wanted
@@ -40146,7 +40166,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 
-		bParsedNewlineBeforeVerseMarker = FALSE; // initialise
+		bParsedNewlineBeforeVerseMarker = FALSE; // initialise // whm 22Aug2023 note: this bool, it is never used
 		//m_firstVerseNum.Empty(); // must start out empty for each new pSrcPhrase  & set its
 					// value when the inner parsing loop first comes to tokBuffer with a \v mkr,
 					// then when loop iterations come to the next tokBuffer (or m_markers) with
@@ -40160,7 +40180,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber >= 5)
+		if (pSrcPhrase->m_nSequNumber >= 1068)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -40321,7 +40341,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// to pSrcPhrase->m_srcWordBreak wxString
 			//wxChar chWhat;
 			itemLen = ParseWhiteSpace(ptr);
-			int cnt = 0;
+			// int cnt = 0; // see comment below for reason to remove the cnt variable
+			// 
+			// whm 22Aug2023 Note: The if (itemLen == 1) test below misses all instances where
+			// the EOL encountered here is "\r\n", because when "\r\n" is encountered the
+			// ParseWhiteSpace(ptr) call above will return a value of 2 to itemLen.
+			// Also, the bParseNewlineBeforeVerseMarker bool within the following test is never
+			// tested for or used in code anywhere else within the code base so setting it to
+			// a TRUE value here is pointless. I'm commenting the if test block below from the
+			// code, but if bParsedNewlineBeforeVerseMarker needs to be reinstated and actually
+			// used elsewhere I'm providing farther below my revision that would set the bool
+			// TRUE that accounts for EOL of '\n' or "\r\n" BEFORE A VERSE MARKER (see below)
+			// Moreover the value set for cnt = 1 in the else if block will never happen, and 
+			// isn't really needed since itemLen will be 2 for "\r\n" EOL.
+			// Therefor we can do away with the if (itemLen == 1) test below entirely and just
+			// increment the ptr below by the itemLen value
+			/*
 			if (itemLen == 1)
 			{
 				bParsedNewlineBeforeVerseMarker = FALSE; // init to false
@@ -40339,6 +40374,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 			}
 			ptr += (itemLen + cnt); // in Windows, before backslash might be \r\n 
+			*/
+
+			/*
+			// Here below is a test that will set bParsedNewlineBeforeVerseMarker to TRUE when
+			// a \v marker immediately follows an EOL of '\n' or "\r\n"
+			bParsedNewlineBeforeVerseMarker = FALSE; // initialize for every test
+			if ((itemLen == 1 && *ptr == _T('\n') && *(ptr + 1) == gSFescapechar && *(ptr + 2) == _T('v') && *(ptr + 3) == _T(' ')) 
+				|| (itemLen == 2 && *ptr == _T('\r') && *(ptr + 1) == _T('\n') && *(ptr + 2) == gSFescapechar && *(ptr + 3) == _T('v') && *(ptr + 4) == _T(' ')) )
+			{
+				// Set the bool TRUE if ptr points at: "\n\\v " or "\r\n\\v "
+				bParsedNewlineBeforeVerseMarker = TRUE;
+			}
+			*/
+
+			ptr += itemLen; // see comments above 
+
 #if defined (_DEBUG)
 			//			wxLogDebug(_T("TokenizeText: line %d  , near start, Parsed white space:  itemLen = %d : ptr->  %s : sn=%d"),
 			//				__LINE__, itemLen, (wxString(pSavePtr, 24)).c_str(), pSrcPhrase->m_nSequNumber);
@@ -44786,7 +44837,23 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										else
 										{
 											// bLastSrcPhrase->m_bSpecialText is TRUE, so we may be changing to FALSE and textType verse
-											if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_markers.Find(_T("\\c")) != wxNOT_FOUND
+											// whm 22Aug2023 note. In Nyindrou Matthew input during non-collab at sn="544" there is
+											// in m_markers: "\\ch 1 \n\\ms " where the last marker is \ms and AnalyseMarker() above
+											// correctly assigned pSrcPhrase->m_curTextType to sectionHead. However, the test below
+											// detects that m_markers has a \ch marker within it and the test as is will incorrectly
+											// change the pSrcPhrase->m_curTextType from sectionHead to pLastSrcPhrase->m_curTextType
+											// which was noType which we don't want here. The test below needs to be modified or removed
+											// altogether. I can change the test below to determine whether the current wholeMkr that is
+											// being examined (\ms) comes after the \ch marker, and refrain from propagating the
+											// pLastSrcPhrase->m_curTextType value over to pSrcPhrase.
+											// The wholeMkr was determined by calling GetLastBeginMkr(pSrcPhrase->m_markers) within this
+											// scope above, so we can use that variable to only propagate the values from pLastSrcPhrase
+											// if the wholeMkr is located does not come after the \ch marker.
+											int posLastBeginMkr = pSrcPhrase->m_markers.Find(wholeMkr);
+											int posChMkr = pSrcPhrase->m_markers.Find(_T("\\c"));
+											//if (!pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_markers.Find(_T("\\c")) != wxNOT_FOUND
+											//	&& pLastSrcPhrase->m_bSpecialText)
+											if (!pSrcPhrase->m_markers.IsEmpty() && posChMkr != wxNOT_FOUND && !(posLastBeginMkr > posChMkr)
 												&& pLastSrcPhrase->m_bSpecialText)
 											{
 												// Don't let a \c marker stop propagation of previous special text and textType other than verse
