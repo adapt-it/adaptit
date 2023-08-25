@@ -7366,6 +7366,7 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 #endif
 
 	wxString pattern; pattern = wxEmptyString; // init
+	/* // whm 25Aug2023 commented out this call since BEW commented out the other call back in FromSingleMakeSstr()
 	wxString endMkrsRemoved;
 	endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);
 #if defined (_DEBUG)
@@ -7375,6 +7376,7 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 		int halt_here = 1;
 	}
 #endif
+	*/
 
 
 
