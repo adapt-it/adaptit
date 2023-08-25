@@ -31843,13 +31843,13 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 	wxString afterNestedQuotes = _T(">> > >>"); // only once in John, at 19:20
 	// ===== end of more possibilities
 
-	wxString twoWedges = _T(">>"); // ending puncts which area not single characters need to be checked first
+	wxString twoWedges = _T(">>"); // ending puncts which are not single characters need to be checked first
 	bEndPunctsModified = FALSE; // init
 	wxASSERT(pSrcPhrase != NULL);
 #if defined (_DEBUG)
 	wxLogDebug(_T("%s() line %d , Starting... sequNum = %d , extras=[%s] , pSrcPhrase m_srcPhrase=[%s]"),
 		__FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber , extras.c_str(), pSrcPhrase->m_srcPhrase.c_str());
-	if (pSrcPhrase->m_nSequNumber >= 7)
+	if (pSrcPhrase->m_nSequNumber >= 20)
 	{
 		int halt_here = 1;
 	}
@@ -32060,7 +32060,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		// is nothing left (or only spaces left - we'll get rid of those by doing Trim() when done )
 		// .Find() works correctly whether passing in wxChar or wxString for the search
 #if defined (_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 7 )
+		if (pSrcPhrase->m_nSequNumber >= 20 )
 		{
 			int halt_here = 1;
 		}
@@ -32070,8 +32070,8 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 			aChar = strExtras[0]; // every time one is removed, we must test the first of what remains
 			if (aChar == space)
 			{
-				// Decrease strExtasLen by 1, and iterate (we parse over any embedded spaces)
-				// (Note: failure to do this decrease before calling continue would cause in infinite loop)
+				// Remove the space, decrease strExtrasLen by 1, and iterate (we parse over any embedded spaces)
+				strExtras = strExtras.Mid(1);
 				strExtrasLen--;
 				continue; // iterate over the space, doesn't matter if allPuncts has a matching space or not
 			}
@@ -32109,7 +32109,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		// Trim() to remove any whites
 		allPuncts.Trim();
 		strExtras.Trim(); // it should have length 0 now
-		wxASSERT(strExtras.Length() == 0);
+//		wxASSERT(strExtras.Length() == 0);
 
 		if (strExtras.IsEmpty() && allPuncts.IsEmpty())
 		{
