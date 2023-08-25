@@ -31835,6 +31835,8 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 	// The callers at higher levels will have used spacelessPuncts to determine what to store as punctuation
 	// characters, so we don't here need to check that what we are dealing with are indeed punctuation chars
 	residue = wxEmptyString; // init
+	//wxString saveExtras = extras;
+	//wxString save_m_srcPhrase = pSrcPhrase->m_srcPhrase;
 	//endMkrsOnly = wxEmptyString; // init
 	wxString threeWedgesAndSpace = _T(">> >"); // This sequence occurs in Nyindrou Matthew source text, support it
 	// ====== more possibilities, from Nyindrou John's gospel - it's easier to handle these a substrings
@@ -32104,7 +32106,12 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 			} // end of the else block for test: if (allOffset != wxNOT_FOUND)
  
 		} // the while loop ends
-
+#if defined (_DEBUG)
+		if (pSrcPhrase->m_nSequNumber >= 20)
+		{
+			int halt_here = 1;
+		}
+#endif
 		// If control get to here, both strings should be either empty, or contain whitespace - typically space(s)
 		// Trim() to remove any whites
 		allPuncts.Trim();
@@ -32116,6 +32123,8 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 			// We successfully matched everything, return TRUE
 			extrasLen = 0; // and residue should still be empty
 			wxASSERT(residue.IsEmpty());
+			// BEW 25Aug23 added: all was matched, so m_srcPhrase should not have changed
+			//pSrcPhrase->m_srcPhrase = save_m_srcPhrase;
 			return TRUE;
 		}
 		else
