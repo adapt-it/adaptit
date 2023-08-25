@@ -360,6 +360,7 @@ public:
 														// prevent 2nd creation destroying work
 	WordParseEndsAt	FindOutWhatIsAtPtr(wxChar* ptr, wxChar* pEnd, bool bTokenizingTargetText); // BEW added 12Oct16
 	bool			FindMatchingEndMarker(wxChar* ptr, wxChar* pEnd, int& offsetToMatchedEndmarker, int& endMarkerLen);
+	bool			FindClosingParenthesis(wxChar* pChar, wxChar* pEnd, int& nSpanLen, int nLimit, bool bAlreadyGotOpeningParen);
 	CAdapt_ItApp* GetApp();
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of

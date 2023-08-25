@@ -24345,6 +24345,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_xrefMkrs = _T("\\x \\ex "); // that's all we need - the internal content markers do not change the TextType
 	m_headerMkrs = _T("\\h \\r ");
 	m_identificationMkrs = _T("\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 ");
+    m_paragraphMkrs = _T("\\p \\m \\po \\pr \\cls \\pmo \\pm \\pmc \\pmr \\pi1 \\pi2 \\pi3 \\pi4 \\mi \\nb \\pc \\ph1 \\ph2 \\ph3 \\ph4 \\b ");
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
