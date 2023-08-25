@@ -7478,8 +7478,8 @@ wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 				}
 
 			} // end of else block for test: if (offset2 >= 0) - testing for B
-			wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s]"),
-							__LINE__, strResult.c_str(), offset, strAccum.c_str());
+			wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s], sn = [%d]"),
+							__LINE__, strResult.c_str(), offset, strAccum.c_str(), pSP->m_nSequNumber);
 		}
 		else
 		{

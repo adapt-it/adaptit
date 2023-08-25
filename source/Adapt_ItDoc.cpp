@@ -41785,10 +41785,25 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// BEW 23Jun23, ptr will now be pointing at the whitespace (space or newline) after aWholeMkr, 
 							// (ptr + 1) could be the start of: \v number text, or could be a '[' bracked followed by text.
 							// The \v next scenario is most likely, so handle first. If not \v, then try the '[' option.
+							// 
+							// whm 24Aug2023 note: On 23Aug2023 BEW changed the if test below adding test for chAtAuxPtr == _T('\r')
+							// but that won't catch a \v following the 2 char EOL sequence "\r\n", so I've created an alternative
+							// test which is commented out below the if test. I decided not to make my version the active version
+							// since a comparison of the xml docs - one created with my version compared to BEW's version - showed
+							// no xml difference when parsing Nyindrou Matthew even though the test if TRUE for non-collab, but
+							// FALSE for collab scenarios. There is no difference in the end since I think the code in the outer
+							// if block is essentially the same as the code of the inner else block (lines 41860 ff) except for
+							// the break statement there.
 							wxChar* auxPtr = ptr;
 							wxChar chAtAuxPtr = *auxPtr;
 							if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n') || chAtAuxPtr == _T('\r'))
 								&& *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+							// whm 24Aug2023 note: Below is a version of the if test above that I think more accurately captures the
+							// situation when EOL chars are "\r\n" - during collaboration. See comment above.
+							//if (auxPtr < pEnd &&
+							//	((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+							//	|| ((*auxPtr == _T(' ') || (*auxPtr == _T('\r') && *(auxPtr + 1) == _T('\n')))
+							//		&& *(auxPtr + 2) == gSFescapechar && *(auxPtr + 3) == _T('v'))
 							{
 								// A verse marker follows either space or newline; so put the whitespace 
 								// into tokBuffer and update ptr, and 
