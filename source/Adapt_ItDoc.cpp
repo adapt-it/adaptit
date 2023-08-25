@@ -32027,6 +32027,15 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		{
 			// _T(">>") was found in strExtras, is it also in allPuncts?
 			allOffset = allPuncts.Find(twoWedges);
+			offset = extras.Find(twoWedges);
+#if defined (_DEBUG)
+			wxLogDebug(_T("%s() line %d , Starting... sequNum = %d , extras=[%s] , pSrcPhrase m_srcPhrase=[%s], offset = %d , allOffset = %d"),
+				__FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, extras.c_str(), pSrcPhrase->m_srcPhrase.c_str(), offset, allOffset);
+			if (pSrcPhrase->m_nSequNumber >= 20)
+			{
+				int halt_here = 1;
+			}
+#endif
 			if (allOffset >= 0)
 			{
 				// _T(">>") was also found in allPuncts, remove from both strExtras and allPuncts
@@ -32124,7 +32133,6 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 			extrasLen = 0; // and residue should still be empty
 			wxASSERT(residue.IsEmpty());
 			// BEW 25Aug23 added: all was matched, so m_srcPhrase should not have changed
-			//pSrcPhrase->m_srcPhrase = save_m_srcPhrase;
 			return TRUE;
 		}
 		else
