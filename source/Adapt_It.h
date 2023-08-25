@@ -4949,6 +4949,7 @@ public:
 	wxString m_listTypeMkrs; // BEW 14Jun23 added
 	wxString m_poetryTypeMkrs;
 	wxString m_poetryTypeEndMkrs;
+	wxString m_paragraphMkrs;
 	wxString m_sectionHeadMkrs;
 	wxString m_mainTitleMkrs;
 	wxString m_secondaryTitleMkrs;
