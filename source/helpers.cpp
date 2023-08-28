@@ -7366,6 +7366,7 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 #endif
 
 	wxString pattern; pattern = wxEmptyString; // init
+	/* // whm 25Aug2023 commented out this call since BEW commented out the other call back in FromSingleMakeSstr()
 	wxString endMkrsRemoved;
 
 	//endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);  comment out until I do and finish work on a good algorithm within it
@@ -7377,6 +7378,7 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 		int halt_here = 1;
 	}
 #endif
+	*/
 
 
 
@@ -7485,8 +7487,8 @@ wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 				}
 
 			} // end of else block for test: if (offset2 >= 0) - testing for B
-			wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s]"),
-							__LINE__, strResult.c_str(), offset, strAccum.c_str());
+			wxLogDebug(_T("ConvertEndMkrs2BEN() line %d , strResult= [%s] , offset = %d , strAccum = [%s], sn = [%d]"),
+							__LINE__, strResult.c_str(), offset, strAccum.c_str(), pSP->m_nSequNumber);
 		}
 		else
 		{
