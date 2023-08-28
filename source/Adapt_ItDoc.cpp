@@ -32782,8 +32782,22 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// possibilities are catered for already. Same logic for \c marker - it has a chapterNumber, but never
 	// any following parseable words, so it too should not cause entry to the contentless mkrs loop.
 	// (But when control is already in the loop and either is encountered, each has a dedicated parsing block.)
-	if (wholeMkr == _T("\\p") || wholeMkr == _T("\\c") || wholeMkr == _T("\\m"))
+	// BEW 28Aug23 there are 17 markers in the fast-access m_paragraphMkrs string, 5 of which do not start with
+	// "\p". So I'll change the following simple 3-element if test to utilize m_paragraphMkrs. Only \c is not
+	// in that set.
+	//if (wholeMkr == _T("\\p") || wholeMkr == _T("\\c") || wholeMkr == _T("\\m"))
+	wxString augWholeMkr = wholeMkr + _T(' '); // add space
+	int offset = -1;
+	bool bIsInParagraphSet = FALSE; // init
+	offset = gpApp->m_paragraphMkrs.Find(augWholeMkr);
+	if (offset >= 0)
 	{
+		// wholeMkr is a member of the paragraph set of USFM beginMkrs
+		bIsInParagraphSet = TRUE;
+	}
+	if (wholeMkr == _T("\\c") || bIsInParagraphSet)
+	{
+		// These 'paragraph' type of markers are not allowed to cause entry (these include \m \mi \cls \b and \nb)
 		return FALSE;
 	}
 	// BEW 21Aug23, some beginMkrs are in the app's gCurentFilterMarkers fast-access set. Control must not
@@ -40374,7 +40388,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		if (pSrcPhrase->m_nSequNumber >= 4)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -40875,7 +40889,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				ptrAt = wxString(ptr, 20);
 				wxLogDebug(_T("TokText()  BEFORE EMPTY MKRS LOOP ENTRY, line %d, sn= %d, m_markers= [%s], ptr-> [%s] "),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 12)
+				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
 					int halt_here = 1;
 				}
