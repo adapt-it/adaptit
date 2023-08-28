@@ -6090,13 +6090,15 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 #endif
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
 	// space symbol ~
-	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
+	bool bIsFixedSpaceConjoined;
+	bIsFixedSpaceConjoined = FALSE; // BEW 28Aug23 we no longer test for ~ conjoining, we just accept it as a longer word
+	//bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase); // BEW 28Aug23 commented out
 	bool bBindingMkrsToReplace = FALSE;
 	wxString rebuiltTstr; rebuiltTstr.Empty();
 
 	// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
 	//PutSrcWordBreak(pSingleSrcPhrase); // tests for flag internally, if false, adds a legacy space
-
+	/* BEW 28Aug23, commented out this block, we don't want to call RebuildFixedSpaceTstr() any more
 	if (bIsFixedSpaceConjoined)
 	{
 		// we don't need to access the embedded CSourcePhrase pair, so long as there are
@@ -6125,7 +6127,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			rebuiltTstr = RebuildFixedSpaceTstr(pSingleSrcPhrase); // use it below
 		}
 	}
-
+	*/
     // BEW 22Jun15, store here, if anything, only begin-markers for non-filtered data
 	wxString markersPrefix; markersPrefix.Empty();
 
