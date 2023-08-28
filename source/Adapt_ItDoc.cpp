@@ -17539,8 +17539,8 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		// especially for src data where m_srcPhrase has valid puncts "<<" preceding; so I'll remove them
 		pSrcPhrase->m_key << _T("empty-key");
 		pSrcPhrase->m_srcPhrase << _T("empty-key");
-		ptr += 11;
-		itemLen = 11;
+		ptr += 9;
+		itemLen = 9;
 		return ptr;
 	}
 	//wxASSERT(!pSrcPhrase->m_key.IsEmpty());
@@ -36747,7 +36747,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"),
 					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr-> [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 0)
+					if (pSrcPhrase->m_nSequNumber >= 16)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -41688,7 +41688,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #ifdef _DEBUG
 				{
 					wxString strPointAt = wxString(ptr, 16);
-					wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
+					wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop before whol "),
 						__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
@@ -41713,7 +41713,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG) //&& !defined (NOLOGS)
 					{
 						wxString strPointAt = wxString(ptr, 16);
-						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Inner loop BEGINS "),
+						wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s]  Loop testing Red or Nonbinding "),
 							__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 13)
 						{
@@ -41721,7 +41721,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 #endif
-
 					bIsBeginMkr = IsBeginMarker(ptr, pEnd, aWholeMkr, bIsEndMkr);
 					if (!bIsBeginMkr)
 					{
@@ -43993,7 +43992,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 							wxLogDebug(_T("TokText(), FILTERING DONE: line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = %s , m_precPunct = %s , m_markers = %s"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType,
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 13)
+							if (pSrcPhrase->m_nSequNumber >= 16)
 							{
 								int halt_here = 1;
 							}
@@ -44006,8 +44005,23 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 							{ //scope block
 								wxChar* pAux = ptr + aCount; // typically aCount is 1, for the one space prior to words
 									// unless there is a lurking backslash, which would require iterating the inner loop
-								if ( (*pAux == gSFescapechar) || (*(pAux + 1) == gSFescapechar))
+								if ( (*pAux == gSFescapechar) || (*ptr == gSFescapechar))
 								{
+									// BEW 28Aug23 There is a lurking backslash!  So advance ptr to it, otherwise, control
+									// when continue is called, goes to the while loop at 40835 which tests for a beginMkr
+									// at start of inner loop, but ptr still pointing at space or newline, the loop will
+									// exit immediately; bContinueTwice will be FALSE, bKeepPtrFromAdvancing will be FALSE,
+									// and so control goes to ParsePreWord() and then ParseWord() where the initial backslash
+									// of the marker causes ParseAWord() to fail, and the text that should be parsed is not
+									// parsed, and instead "empty-key" shows. This error sequence starts here, if ptr
+									// points at space or newline and we don't parse over that whitespace.
+									if (*pAux == gSFescapechar)
+									{
+										wxString strACount;
+										strACount = wxString(ptr, aCount);
+										pSrcPhrase->m_precPunct += strACount;
+										ptr += aCount; // point ptr at the beginMkr, (we are not here trying to get a new pSrcPhrase)
+									}
 									continue; // iterate the inner loop
 								}
 								else

@@ -7367,7 +7367,9 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 
 	wxString pattern; pattern = wxEmptyString; // init
 	wxString endMkrsRemoved;
-	endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);
+
+	//endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);  comment out until I do and finish work on a good algorithm within it
+
 #if defined (_DEBUG)
 	if (pSP->m_nSequNumber == 2)
 	{
