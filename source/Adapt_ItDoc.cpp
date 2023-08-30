@@ -16479,7 +16479,7 @@ bool CAdapt_ItDoc::IsUnstructuredPlainText(wxString& rText)
 ///				past the nFound position in rText, otherwise FALSE.
 /// \param		rText		-> the string being examined
 /// \param		nTextLength	-> the length of the rText string
-/// \param		nFound		-> the position in rText beyone which we examine content
+/// \param		nFound		-> the position in rText beyond which we examine content
 /// \remarks
 /// Called from: the Doc's AddParagraphMarkers().
 /// Determines if there are any characters other than \n or \r beyond the nFound position in
@@ -16493,8 +16493,7 @@ bool CAdapt_ItDoc::NotAtEnd(wxString& rText, const int nTextLength, int nFound)
 
 	int index = nFound;
 	wxChar ch;
-	while (((ch = rText.GetChar(index)) == _T('\r') || (ch = rText.GetChar(index)) == _T('\n'))
-		&& index < nTextLength)
+	while ( (index < nTextLength) && ((ch = rText.GetChar(index)) == _T('\r') || (ch = rText.GetChar(index)) == _T('\n')) )
 	{
 		index++; // skip the carriage return or newline
 		if (index >= nTextLength)

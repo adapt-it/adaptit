@@ -1609,6 +1609,37 @@ bool Is_VerseMarker(wxChar *pChar, int& nCount)
 		return FALSE;
 }
 
+// BEW 29Aug23, this might prove useful for EOL decisions, and how many white chars there are at pChar
+bool IsEndOfLine(wxChar* pChar, int& nCount)
+{
+	wxChar* ptr = pChar;
+	wxChar* pNext = (ptr + 1);
+	nCount = 0; //init
+	wxChar CR = _T('\r');
+	wxChar LF = _T('\n');
+	// Longest first
+	if (*ptr == CR && *pNext == LF)
+	{
+		// Windows
+		nCount = 2;
+		return TRUE;
+	}
+	else if (*ptr == LF)
+	{
+		// Linux
+		nCount = 1;
+		return TRUE;
+	}
+	else if (*ptr == CR)
+	{
+		// Mac
+		nCount = 1;
+		return TRUE;
+	}
+	return FALSE; // and nCount still zero
+}
+
+
 wxString GetStringFromBuffer(const wxChar* ptr, int itemLen)
 {
 	return wxString(ptr,itemLen);
@@ -10488,7 +10519,7 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 			// back over it
 			pCh = pCh - 1;
 		}
-		else if (*pCh == _T('\\') || *pCh == _T('\n'))
+		else if (*pCh == _T('\\') || *pCh == _T('\n') || *pCh == _T('\r')) // BEW 30Aug23 added '\r' subtest, for Mac support
 		{
 			return FALSE;
 		}

@@ -200,6 +200,8 @@ wxString  GetStringFromBuffer(const wxChar* ptr, int itemLen);
 int       Parse_Number(wxChar *pChar, wxChar *pEnd);
 //bool    Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar); <<- unused, BEW removed 4Aug11
 bool      Is_NonEol_WhiteSpace(wxChar *pChar);
+bool	  IsEndOfLine(wxChar* pChar, int& nCount); // BEW created 29Aug23 - maybe useful in if tests, 
+												   // and nCount returns 2 or 1
 //int     ParseWhiteSpace(wxChar *pChar);
 int       Parse_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
