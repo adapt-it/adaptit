@@ -5107,6 +5107,10 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	{
 		pDoc->m_bTstrFromMergerCalled = TRUE;
 	}
+	else
+	{
+		pDoc->m_bTstrFromMergerCalled = FALSE; // BEW added 30Aug23, gotta initialize if m_tgtMkrPattern is empty
+	}
 	markersToPlaceArray.Clear();
 	return Tstr;
 }
@@ -6410,6 +6414,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
         // filtered info to come from what is in markersPrefix will be preceding the \v )
 		Tstr = strInitialStuff + Tstr;
 	}
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 
     // any endmarkers on pSingleSrcPhrase are not "medial", and can be added
 	// automatically too provided there is no ambiguity about placement, but if there is
@@ -6467,7 +6481,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
-			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW 20May2 added bool
+			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW 20May23 added bool
 #if defined (_DEBUG)
 			{
 				if (pSingleSrcPhrase->m_nSequNumber >= 11)
@@ -6555,7 +6569,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// it's non-empty, so use it as Tstr's value (first ensure there is no
 			// preceding or final whitespace)
 #if defined (_DEBUG)
-			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			if (pSingleSrcPhrase->m_nSequNumber >= 12)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}

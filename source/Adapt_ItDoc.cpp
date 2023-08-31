@@ -31448,6 +31448,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	wxChar aChar = *ptr; // is aChar a punctuation character?
 	offset = spacelessPuncts.Find(aChar);
 	bNextIsPunct = offset >= 0 ? TRUE : FALSE;
+
 	if (ptr < (pEnd - 4) && bNextIsPunct && IsAnsiDigit(*(ptr + 2)))
 	{
 		// There is extra material to parse and append to the chvrStr value. This is a very rare situation,
@@ -31576,7 +31577,12 @@ wxString CAdapt_ItDoc::GetLastBeginMkr(wxString mkrs)
 	// I'm adding a return wxEmptyString statement here at end of function.
 	return wxEmptyString;
 }
-// BEW 2Aug23 get the priority beginMkr from m_markers, to set the TextType - \v if present
+
+// BEW 2Aug23 get the priority beginMkr from m_markers, to set the TextType
+// BEW 31Aug23, Bill's research indicates that GetLastBeginMkr(wxString mkrs) does not give correct priority
+// if the priority is always a \v marker when there are more than one markers in m_markers, eg. for "\\q\n\\v 23"
+// Bill says the \q marker should be the one that determines the textType etc. So I'm refactoring this function
+// to conform. Priority will be the first, when there are more than one in m_markers.
 wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 {
 	if (mkrs.IsEmpty())
@@ -31588,10 +31594,14 @@ wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 	wxString beginMkr;
 	wxString revMkr;
 	wxString backslash = _T("\\");
+	wxString firstMkr;
+
+	firstMkr = wxEmptyString; // init
 	size_t backslashCount = mkrs.Replace(backslash, backslash); // bReplaceAll is default TRUE
 	wxString reversedMkrs = MakeReverse(mkrs);
 	int offset = wxNOT_FOUND;
 	offset = reversedMkrs.Find(backslash);
+
 	if (backslashCount == 1)
 	{
 		// There is only one marker, so get it
@@ -31601,48 +31611,38 @@ wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 	}
 	if (backslashCount > 1)
 	{
-		// If there is a \v marker in mkrs, (and it will be followed by space and then the verse number)
-		// then that is the "priority" beginMkr, because it's presence better enables the code following
-		// ParseWord() to determine visual properties the user needs to see - such as m_inform, and when
-		// the chapter number is to change and when to parse same. So search for it's presence & return it.
-		wxString vMkr = _T("\\v");
-		wxString augVMkr = _T("\\v ");
-		offset = mkrs.Find(augVMkr);
-		if (offset >= 0)
+		int mkrsLen = mkrs.Length();
+		int index;
+		wxChar indexedChar;
+		for (index = 0; index < mkrsLen; index++)
 		{
-			// Found it
-#if defined(_DEBUG)
-			wxLogDebug(_T("GetPriorityBeginMkr line %d: Returning beginMkr= [%s]"), __LINE__, vMkr.c_str());
-#endif
-			return vMkr;
-		}
-		else
-		{
-			// No \v beginMkr in mkrs, so best bet is to return whatever marker comes first in mkrs 
-			offset = mkrs.Find(backslash);
-			if (offset == 0)
+			indexedChar = mkrs[index].GetValue();
+			if (!IsWhiteSpace(&indexedChar))
 			{
-				// mkrs begins with a backslash, so grab this marker and return it, provided it is not an endMkr
-				beginMkr = GetWholeMarker(mkrs); // has to have backslash at start of mkrs for it to return a non-empty value
-				revMkr = MakeReverse(beginMkr);
-				if (revMkr.GetChar(0) == _T('*'))
-				{
-					// it's an endMkr, so return empty string
-#if defined(_DEBUG)
-					wxLogDebug(_T("GetPriorityBeginMkr line %d: Returning EMPTY string"), __LINE__);
-#endif
-					return wxEmptyString;
-				}
-				else
-				{
-#if defined(_DEBUG)
-					wxLogDebug(_T("GetPriorityBeginMkr line %d: Returning beginMkr= [%s]"), __LINE__, beginMkr.c_str());
-#endif
-					return beginMkr;
-				}
+				firstMkr << indexedChar;
+			}
+			else
+			{
+				// once a whitespace char is reached, break from the loop
+				break;
 			}
 		}
-	}
+
+		// sanity check
+		bool bIsEndMkr = FALSE;
+
+		offset = firstMkr.Find(_T('*'));
+		bIsEndMkr = offset >= 0 ? TRUE : FALSE;
+
+		if (!firstMkr.IsEmpty() && firstMkr.GetChar(0) == _T('\\') && !bIsEndMkr)
+		{
+			// Not empty, and backslash is its first character, and there is no '*' in the marker - 
+			// so it's a beginMkr, and is the first marker in mkrs
+			return firstMkr;
+		}
+
+
+	} // end of TRUE block for test: if (backslashCount > 1)
 
 	// whm 6Jul2023 GCC has warning flag that in this function "control reaches end of non-void function" so
 	// I'm adding a return wxEmptyString statement here at end of function.
@@ -41877,23 +41877,27 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wholeMkrLength = aWholeMkr.Length();
 							wxChar* pAux2;
 							pAux2 = ptr + wholeMkrLength;
-							wxChar chNext;
+							wxChar chNext; bool bCRisnext;
+							bCRisnext = FALSE; // init
 							chNext = *pAux2; // chNext is what should be appended to tokBuffer
-							tokBuffer += chNext;
-#if defined (_DEBUG) //&& !defined (NOLOGS)
+							if (chNext == _T('\r'))
 							{
-								wxString strPointAt = wxString(ptr, 16);
-								wxLogDebug(_T("TokTxt() SETTING tokBuffer, line  %d , tokBuffer= [%s] , m_curChapter= [%s] ,  strPointAt= [%s]   "),
-									__LINE__, tokBuffer.c_str(), pApp->m_curChapter.c_str(),  strPointAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 13)
-								{
-									int halt_here = 1; wxUnusedVar(halt_here);
-								}
+								bCRisnext = TRUE; // collab will have \r next, non-collab would point at \n
 							}
-#endif
-							// BEW 6Jul23 Don't lose the marker, add it to m_markers
+							if (bCRisnext)
+							{
+								tokBuffer += chNext; // when bCRisnext is FALSE, tokBuffer already has aWholeMkr (see 41871) 
+							}
+						// BEW 6Jul23 Don't lose the marker, add it to m_markers
 							pSrcPhrase->m_markers += tokBuffer;
-							ptr += awholemkrlen + 1; // +1 because we parsed over whatever wxChar follows aWholeMkr
+							if (bCRisnext)
+							{
+								ptr += awholemkrlen + 2; // + because we parsed over '\r' and then one char more
+							}
+							else
+							{
+								ptr += awholemkrlen + 1; // +1 because we parsed over whatever wxChar follows aWholeMkr
+							}
 							wxChar* pAux;
 							pAux = ptr;
 #if defined (_DEBUG) //&& !defined (NOLOGS)
@@ -41935,16 +41939,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
 														 // whitespace char follows the periods string
 								pSrcPhrase->SetSrcWordBreak(precWordDelim);
-#if defined (_DEBUG) && !defined (NOLOGS)
-								{
-									wxString strPointAt = wxString(ptr, 16);
-									wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , m_inform= [%s], strPointAt= [%s] "),
-										__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_inform.c_str(), strPointAt.c_str());
+#if defined (_DEBUG) && !defined (NOLOGS)						
 									if (pSrcPhrase->m_nSequNumber >= 2)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
-								}
 #endif						
 							} // end of TRUE block for test: if (pAux < pEnd && *ptr == _T(' ') && *(ptr + 1) == period)
 #if defined (_DEBUG) //&& !defined (NOLOGS)
@@ -41972,14 +41971,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// the break statement there.
 							wxChar* auxPtr = ptr;
 							wxChar chAtAuxPtr = *auxPtr;
-							if (auxPtr < pEnd && (chAtAuxPtr == _T(' ') || chAtAuxPtr == _T('\n') || chAtAuxPtr == _T('\r'))
-								&& *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
-							// whm 24Aug2023 note: Below is a version of the if test above that I think more accurately captures the
-							// situation when EOL chars are "\r\n" - during collaboration. See comment above.
-							//if (auxPtr < pEnd &&
-							//	((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
-							//	|| ((*auxPtr == _T(' ') || (*auxPtr == _T('\r') && *(auxPtr + 1) == _T('\n')))
-							//		&& *(auxPtr + 2) == gSFescapechar && *(auxPtr + 3) == _T('v'))
+							if (auxPtr < pEnd &&
+								((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+								|| ((*auxPtr == _T(' ') || (*auxPtr == _T('\r') && *(auxPtr + 1) == _T('\n')))
+									&& *(auxPtr + 2) == gSFescapechar && *(auxPtr + 3) == _T('v')) )
 							{
 								// A verse marker follows either space or newline; so put the whitespace 
 								// into tokBuffer and update ptr, and 
@@ -42003,6 +41998,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								int anoffset = wxNOT_FOUND;
 								int anItemLen; anItemLen = 0;
 								anoffset = spacelessPuncts.Find(chThird);
+
+
 #if defined (_DEBUG) && !defined (NOLOGS)
 								{
 									wxString strPointAt = wxString(ptr, 16);
@@ -42014,6 +42011,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									}
 								}
 #endif
+
+
+
 								if ((chSecond == _T('[') || chSecond == _T('(')) && !IsWhiteSpace(pAux + 2) && anoffset == wxNOT_FOUND && chThird != gSFescapechar)
 								{
 									wxString whichWhite = *ptr; // could  be space or newline
@@ -42267,10 +42267,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						} // end of TRUE block for test: if (!pSrcPhrase->m_markers.IsEmpty())
 						*/
 
-						wxString lastMkr;
-						lastMkr = GetLastBeginMkr(mkrsContent); // BEW 2Aug23, don't need to change to GetPriorityBeginMkr() here
+						wxString firstMkr; // was lastMkr;
+						//lastMkr = GetLastBeginMkr(mkrsContent);
+						firstMkr = GetPriorityBeginMkr(mkrsContent); // BEW 31Aug23, // Bill wants firstMkr to set the type etc
 						offset = wxNOT_FOUND;
-						offset = tokBuffer.Find(lastMkr);
+						offset = tokBuffer.Find(firstMkr);  // was tokBuffer.Find(lastMkr);
 						if (offset >= 0)
 						{
 							// clear m_markers before appending, to avoid duplication
@@ -44717,12 +44718,15 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			// BEW 6May23 added 3rd subtext, checking that m_srcSinglePattern is empty. Reason? The contents of m_srcSinglePattern
 			// should remain inviolate for the life of the document. Users may change ending puncts, etc, but with algorithmic
 			// marker placements in complex post-word mix of puncts and markers, the algorithms should work well, even when puncts
-			// get changed, provided m_srcSinglePattern does not change. Setting it is only do-able here, so once its done, it
-			// needs to stay unchanged.
+			// get changed, provided m_srcSinglePattern does not change, or if all before versus after puncts are matched with
+			// no residue as the matched ones are removed. Setting it is only do-able here, so once its done, it
+			// needs to stay unchanged. (It's updateable perhaps if the user manually makes puncts changes.)
 			wxString strWordAndExtras = wxEmptyString;
 			if (itemLen > 0 && bTokenizingTargetText == FALSE && pSrcPhrase->m_srcSinglePattern.IsEmpty())
 			{
-				// don't do it if tokenizing the source text so as to get values for use in MakeTargetStringIncludingPunctuation()
+				// Here we handle setting m_srcSinglePattern, for the text being source text.
+				// Don't enter if bTokenizingTargetText is TRUE, it needs it's own dedicated 'get' functionality.
+				//  ( tokenizing the source text is done in MakeTargetStringIncludingPunctuation() -- see view.cpp )
 				// Note: this function must not be called after the ptr += itemLen line which follows
 				strWordAndExtras = MakeWordAndExtras(ptr, itemLen);
 				strWordAndExtras.Trim(); // remove any final whitespace(s)
@@ -44738,10 +44742,10 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 					// is needed in the rebuild. Today I added support for pSrcPhrase->m_oldKey to the document's xml. 
 					// So here I need to store pSrcPhrase->m_key in pSrcPhrase->m_oldKey
 					pSrcPhrase->m_oldKey = pSrcPhrase->m_key;
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 					wxLogDebug(_T("TokenizeText(), line %d : MakeWordAndExtras: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d , m_oldKey= [%s]"),
 						__LINE__, strWordAndExtras.c_str(), (int)aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 1)
+					if (pSrcPhrase->m_nSequNumber >= 11)
 					{
 						int halt_here = 1;
 					}
@@ -44949,17 +44953,18 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			// NOLOGS			wxLogDebug(_T("TokText() LOGGING ONLY, m_markers: doc line %d, m_markers= [%s] ,  sequNum %d , m_srcPhrase= [%s] , verseNumber %s"),
 			//						__LINE__, strMarkers.c_str(), sn, srcPhrase.c_str(), verseNumber.c_str());
 #endif
-			wxString wholeBeginMkr = GetLastBeginMkr(pSrcPhrase->m_markers);
-			//wxString wholeBeginMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // If only one, gets it; if more, gets \v, 
-											// if \v is absent, then gets first one; if endMkr, returns wxEmptyString
+			//wxString wholeBeginMkr = GetLastBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23 Bill wants first marker to be given priority
+			wxString wholeBeginMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated.
+					// If only one, gets it; if more than one in m_markers, gets whatever is first, 
+					// if its an endMkr, returns wxEmptyString
 			// Is it augmented? Quickest way is to Trim() and then add space
 			wholeBeginMkr.Trim(); // default trims the RHS
 			wxString augWholeBeginMkr = wholeBeginMkr + _T(' ');
 
-			//			wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+//			wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-						// BEW changed test below, because control may be at a pSrcPhrase which stores an endMkr
-						// such as \f*. So we want control to enter the block below so AnalyseMarker can sort things out.
+			// BEW changed test below, because control may be at a pSrcPhrase which stores an endMkr
+			// such as \f*. So we want control to enter the block below so AnalyseMarker can sort things out.
 			wxString endMkrs = pSrcPhrase->GetEndMarkers();
 			wxString strLastEndMkr = wxEmptyString; // init
 			if (!endMkrs.IsEmpty())
@@ -45146,9 +45151,9 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 #endif
 				if (pLastSrcPhrase != NULL)
 				{
-					//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
+//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-										// propagate or change the TextType and m_bSpecialText
+					// propagate or change the TextType and m_bSpecialText
 					if (bTextTypeChanges)
 					{
 						// text type and specialText value are set above, so this block won't
@@ -45227,9 +45232,9 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 									{
 										wxString wholeMkr;
 										int wholeMkrLen;
-										wholeMkr = GetLastBeginMkr(pSrcPhrase->m_markers);
-										//wholeMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // If only one, gets it; if more, 
-											// gets \v, if \v is absent, then gets first one; if endMkr, returns wxEmptyString
+										// wholeMkr = GetLastBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, Bill wants firstMkr to be used
+										wholeMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated; gets first in m_markers
+
 										wxASSERT(!wholeMkr.IsEmpty() && wholeMkr.GetChar(0) == gSFescapechar);
 										wholeMkrLen = wholeMkr.Length();
 
@@ -45251,7 +45256,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 													int halt_here = 1; wxUnusedVar(halt_here);
 												}
 #endif
-												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
+												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, ptr, wholeMkrLen, pUsfmAnalysis);
 												// Does the text type of 'special text' value change? If so set bTextTypeChanges to TRUE
 												// (not sure if this test is necessary, but probably worth doing until found otherwise)
 												if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
