@@ -44745,7 +44745,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 #if defined (_DEBUG) //&& !defined (NOLOGS)
 					wxLogDebug(_T("TokenizeText(), line %d : MakeWordAndExtras: strWordAndExtras= [%s], sn = %d , bTokenizingTargetText = %d , m_oldKey= [%s]"),
 						__LINE__, strWordAndExtras.c_str(), (int)aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 11)
+					if (pSrcPhrase->m_nSequNumber >= 4)
 					{
 						int halt_here = 1;
 					}
@@ -45247,16 +45247,22 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 											if (pUsfmAnalysis != NULL)
 											{
 												// The beginMkr is a known marker in the m_RedBeginMarkers set
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 												wxString atPtr = wxString(ptr, 16);
-												wxLogDebug(_T("TokText(), line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d"),
-													__LINE__, pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType);
-												if (pSrcPhrase->m_nSequNumber >= 1)
+												wxLogDebug(_T("TokText(), line %d , sn= %d , atPtr= [%s] , m_bSpecialText = %d , m_curTextType = %d , wholeMkr= [%s]"), __LINE__,
+													 pSrcPhrase->m_nSequNumber, atPtr.c_str(), (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, wholeMkr.c_str());
+												if (pSrcPhrase->m_nSequNumber >= 4)
 												{
 													int halt_here = 1; wxUnusedVar(halt_here);
 												}
 #endif
-												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, ptr, wholeMkrLen, pUsfmAnalysis);
+												// BEW 1Sep23 error, can't use ptr in the AnalyseMarker call, ptr points to <sp>word... lots of stuff
+												// and so the call crashes. The buffer we are working with is a tiny one, for "\\li" its just 3 characters,
+												// - the wholeMkr buffer, so change ptr to be address-of-wholeMkr.GetChar(0) i.e. the backslash of \li
+												wxChar chFirst; wxChar* pFirstChar;
+												chFirst = wholeMkr[0].GetValue();
+												pFirstChar = &chFirst;
+												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pFirstChar, wholeMkrLen, pUsfmAnalysis);
 												// Does the text type of 'special text' value change? If so set bTextTypeChanges to TRUE
 												// (not sure if this test is necessary, but probably worth doing until found otherwise)
 												if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
