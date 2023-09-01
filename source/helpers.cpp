@@ -6268,6 +6268,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	wxString initialPuncts;
 	wxString finalPuncts;
 	wxString tgtBaseStr;
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 
     if (bBindingMkrsToReplace)
 	{
@@ -6343,6 +6353,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			endMkrsToPlace = pSP->GetEndMarkers();
 			markersToPlaceArray.Add(endMkrsToPlace);
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
 		if (!finalPuncts.IsEmpty() && !pSP->GetInlineNonbindingEndMarkers().IsEmpty())
 		{
 			if (finalsLen > 1)
@@ -6352,6 +6372,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			nonbindingEndMkrsToPlace = pSP->GetInlineNonbindingEndMarkers();
 			markersToPlaceArray.Add(nonbindingEndMkrsToPlace);
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
 		// BEW 19Jun12, another scenario for ambiguity is an endmarker (such as \f*)
 		// followed by outer following punctuation (such as closing doublequote) and there
 		// was no normal punctuation to end the footnote - hence finalPuncts is empty. In
@@ -6368,7 +6398,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			markersToPlaceArray.Add(pSP->GetEndMarkers());
 			bAddOuterPuncts = TRUE; // use this later, when it needs to be done
 		}
-
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
 		// build the core of Tstr, using tgtStr and starting with tgtBaseStr
 		if (!pSP->GetInlineBindingMarkers().IsEmpty())
 		{
@@ -6378,6 +6417,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		{
 			tgtStr = tgtBaseStr;
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
 		if (!pSP->GetInlineBindingEndMarkers().IsEmpty())
 		{
 			tgtStr += pSP->GetInlineBindingEndMarkers();
@@ -6391,6 +6440,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		{
 			tgtStr += finalPuncts;
 		}
+#if defined (_DEBUG)
+		{
+			wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+			if (pSingleSrcPhrase->m_nSequNumber >= 11)
+			{
+				int halt_here = 1;
+			}
+		}
+#endif
 		// BEW 19Jun12 added test and addition of following outer puncts
 		if (bAddOuterPuncts)
 		{
@@ -6404,7 +6463,16 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	{
 		Tstr = pSP->GetInlineNonbindingMarkers() + Tstr;
 	}
-
+#if defined (_DEBUG)
+	{
+		wxLogDebug(_T("helpers.cpp FromSingleMakeTstr() line %d, finalPuncts= [%s] , m_targetStr= [%s] , tgtBaseStr = [%s], Tstr= [%s]"),
+			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
+		if (pSingleSrcPhrase->m_nSequNumber >= 11)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 	// add any m_markers content and unfiltered xref material if present, preceding what
 	// we have so far
 	if (!strInitialStuff.IsEmpty())
@@ -6471,6 +6539,8 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 					// currently does not use it internally (one day, it might)
 #if defined (_DEBUG)
 			{
+				int SstrLen = Sstr.Length();
+				wxLogDebug(_T("FromSingleMakeStr() line %d, MADE Sstr= [%s] , has length= %d"), __LINE__, Sstr.c_str(), SstrLen);
 				if (pSingleSrcPhrase->m_nSequNumber >= 11)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
@@ -13894,6 +13964,64 @@ wxString RemoveNulls(wxString inputStr)
 	}
 	return newStr;
 }
+
+//BEW created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
+// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems. Each
+// such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm going to
+// use a separator string "#~%" non which are punctuation characters.
+// The goal is to determine readable data which tells me what puncts go with which
+// endMkrs - so that I can avoid having to show a Placement dlg to do the job
+// The boolean return value sets or clears the caller's bIsAmbiguousForEndEndmarkerPlacement.
+// The latter may have been set TRUE by legacy FromSingleMakeTstr() code, but if this function
+// succeeds in it's analysis task, then the Placement dialog will not get called, and it's fields
+// can be filled out correctly prior to the AutoPlaceSomeMarkers() call which follows
+// params:
+// s		  -> pass in the Sstr value
+// arrItems   <- store the #~%-separated substrings: endMkr, mkrType, itsPuncts - one such line for each endMkr
+// separator  -> the string _T("#~%")
+bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator)
+{
+	// When AI starts up, spaceless src and tgt puncts, final ones, and begining one, are auto-calculated.
+	// We can use these from pApp, the functions bool IsPunctuation(wxChar* pChar, bool bSource) tells
+	// if the *pChar is punctuation. (bSource is default TRUE, explicitly set FALSE to have the 
+	// check work with AI's target puncts set) To convert from src punct to tgt punc, can use
+	// wxString converted = pApp->GetConvertedPunct(strPunctIn); where strPunctIn can be one or more src puncts,
+	// Also wxString pApp->SmartTgtConvert(wxString strPunctIn) is available: it jumps over any intial whitespace
+	// in strPunctIn to get to the punct(s) to convert.  
+
+	// Internally, we have to allow for whitespace to precede a punct; Nyindrou and other data sometimes has
+	// detached final puncts. 
+	// srcPuncts  -> the spaceless source puncts set
+	// tgtPuncts  -> the spaceless target puncts set
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// Sanity tests
+	if (s.IsEmpty())
+	{
+		return FALSE; // can't call a Placement dialog if there is no content in Sstr
+	}
+	// Are there any markers to find?
+	wxString backslash = _T('\\');
+	int numEndMkrs = s.Replace(backslash, backslash);
+	if (numEndMkrs == 0)
+	{
+		return FALSE; // any final puncts will be attached to word end, without any ambiguity
+	}
+	wxString srcPuncts = pApp->m_strSpacelessSourcePuncts;
+	wxString tgtPuncts = pApp->m_strSpacelessTargetPuncts;
+
+
+
+
+
+
+
+
+
+
+
+	return FALSE;
+}
+
 
 // BEW 2May23 created. But no need for this, existing code handles complex endmkr and puncts mixed
 /* leave it here for a while, in case bits of its code are of use sometime soon

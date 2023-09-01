@@ -352,6 +352,14 @@ wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, boo
 							bool bCountInTargetText);
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
+bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator); //BEW created 1Sep23 to
+				// analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to generate
+				// a sequence of wxString 3-substring lines, to store in the passed in arrItems. Each
+				// such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm
+				// going to use a separator string "#~%" non which are punctuation characters.
+				// The goal is to determine readable data which tells me what puncts go with which
+				// endMkrs - so that I can avoid having to show a Placement dlg to do the job
+
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 							bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 							wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText);
