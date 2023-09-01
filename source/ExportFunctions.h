@@ -128,6 +128,7 @@ bool		DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd,
 											   wxChar* pPosAfterMkr, wxString& spacelessPuncts);
 int			GetWordCount(wxString& str, wxArrayString* pStrList);
 void		FormatMarkerBufferForOutput(wxString& str, enum ExportType expType);
+void		NormalizeTextEOLsToCRLF(wxString& str, bool bEndWithEOL = FALSE); // whm added 30Aug2023
 void		FormatUnstructuredTextBufferForOutput(wxString& str, bool bRTFOutput);
 int			ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
 							enum ParseError& parseError);

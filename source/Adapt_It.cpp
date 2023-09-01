@@ -24427,6 +24427,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm testing
     /*
+    // testing the NormalizeTextEOLsToCRLF() function in ExportFunctions()
+    wxString testStr;
+    wxChar CR = _T('\r');
+    wxChar LF = _T('\n');
+    testStr = _T("This is line 1 initially with CR at end.");
+    testStr += CR;
+    testStr += _T("This is line 2 initially with LF at end.");
+    testStr += LF;
+    testStr += _T("This is line 3 initially with CRLF at end.");
+    testStr += CR;
+    testStr += LF;
+    testStr += _T("This is the 4th and last line, no EOL at end.");
+    NormalizeTextEOLsToCRLF(testStr); // no second parameter defaults bEndWithEOL to FALSE 
+    testStr = testStr; // for debug examination
+    NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to TRUE
+    testStr = testStr; // for debug examination
+    NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to TRUE
+    testStr = testStr; // for debug examination
+    NormalizeTextEOLsToCRLF(testStr, FALSE); // TRUE sets bEndWithEOL to TRUE
+    testStr = testStr; // for debug examination
+    */
+    /*
     wxString testChVs = _T("0:0");
     wxString TestCh;
     wxString TestVs;
