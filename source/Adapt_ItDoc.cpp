@@ -1246,6 +1246,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// stage. This does not change the length of the data in the buffer.
 			OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
 
+			// whm 1Sep2023 testing of function to normalize all EOLs to CRLF for non-collab
+			// input of usfm text for parsing.
+			NormalizeTextEOLsToCRLF(*pApp->m_pBuffer, TRUE);
+
 #ifndef __WXMSW__
 #ifndef _UNICODE
 			// whm added 12Apr2007
