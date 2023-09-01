@@ -20635,6 +20635,119 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	*/
 }
 
+// whm 30Aug2023 added the following NormalizeTextEOLsToCRLF() function to normalize 
+// the EOLs of the incoming text to CRLF "\r\n", if the existing EOLs are singular 
+// CR '\r' or LF '\n' EOLs. Any existing "\r\n" EOLs are simply copied over unchanged. 
+// The text conversion process is quick since it is done within a wxStringBuffer. 
+// named pBuff2 which is created to be twice the length of the incoming text. 
+// All text characters which are not EOLs are simply copied from the existing character
+// at the pOld location in the old buffer to the pNew position in the pBuf2 buffer, 
+// and once the conversion is complete the new text2 is assigned to the reference 
+// parameter text before the function exits. 
+// The bEndWitEOL parameter defaults to FALSE, but if set to TRUE, the function ensures 
+// that the text wxString that is returned in the text parameter by reference has a 
+// CRLF at the very end of its text.
+void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
+{
+	// It could be an empty string...
+	if (text.IsEmpty())
+	{
+		return;
+	}
+	int len = text.Length();
+	// Since we require a read-only buffer for our main buffer we'll
+	// use GetData which just returns a const wxChar* to the data in the string.
+	const wxChar* pBuff = text.GetData();
+	wxChar* pBufStart = (wxChar*)pBuff;
+	wxChar* pEnd = pBufStart + len;
+	wxASSERT(*pEnd == _T('\0'));
+
+	// The copy-to buffer is based on text2 with a double-sized buffer.
+	wxString text2;
+	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it.
+	// Use a wxStringBuffer, and create it in a specially scoped block. 
+	// This is crucial here in this function since the wxString text2 is accessed 
+	// directly within this function in text = text2; statement at the end of 
+	// the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuff2(text2, len * 2 + 1);
+		wxChar* pOld = pBufStart;
+		wxChar* pNew = pBuff2;
+		wxChar CR = _T('\r');
+		wxChar LF = _T('\n');
+		int eolLen;
+		while (*pOld != (wxChar)0 && pOld < pEnd)
+		{
+			if (IsEndOfLine(pOld, eolLen))
+			{
+				// We're at an EOL. If it is CRLF we just copy both chars CRLF to pNew
+				// If it is a singular CR or singular LF we copy a CR and an LF to pNew.
+				if (eolLen == 2)
+				{
+					// Just copy the two existing pOld EOL chars to pNew
+					*pNew++ = *pOld++;
+					*pNew++ = *pOld++;
+				}
+				else
+				{
+					// The EOL is either CR or LF, replace it with CR and LF
+					wxASSERT(eolLen == 1);
+					*pNew = CR;
+					*pNew++;
+					*pNew = LF;
+					*pNew++;
+					*pOld++; // advance only one char in pOld
+				}
+			}
+			else
+			{
+				// We're not at an EOL, so just process the non-EOL char.
+				// copying the char we are pointing at to pNew, and advancing
+				// the pointers.
+				*pNew++ = *pOld++;
+			}
+		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+		wxASSERT(pOld == pEnd);
+		if (pOld == pEnd && bEndWithEOL)
+		{
+			int len1, len2;
+			wxChar ch1BeforeEnd = *(pOld - 1);
+			ch1BeforeEnd = ch1BeforeEnd;
+			wxChar ch2BeforeEnd = *(pOld - 2);
+			ch2BeforeEnd = ch2BeforeEnd;
+			if (IsEndOfLine((pOld - 2), len2) && len2 == 2)
+			{
+				// there is already CRLF at end of pOld so nothing to add more
+				// so replace it/them with CRLF at end of buffer
+				;
+			}
+			else if (IsEndOfLine((pOld - 1), len1) && len1 == 1)
+			{
+				// there is a singular EOL at end of buffer, and bEndWithEOL is TRUE
+				// so we need to replace that singular EOL with CRLF
+				*(pNew-1) = CR; // replacing the previous EOL char with CR
+				*pNew = LF;
+				*pNew++; // the (wxChar)0 will go after the LF here, done below
+			}
+			else
+			{
+				// There is no EOL of any kind at end of buffer, and bEndWithEOL is TRUE 
+				// so add CRLF to end of buffer.
+				*pNew = CR;
+				*pNew++;
+				*pNew = LF;
+				*pNew++; // the (wxChar)0 will go after the LF here, done below
+			}
+		}
+
+		*pNew = (wxChar)0; // terminate the new buffer string with null char
+		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
+	} // end of special scoping block
+	//text2.UngetWriteBuf(); // not used with wxStringBuffer
+
+	text = text2; // replace old string with new one
+}
+
 void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 {
 	int nTextLength = text.Length();
