@@ -10803,6 +10803,8 @@ extern bool gbDoingInitialSetup;
 			m_collab_sourceChapterBuffer = ZWSPtoFwdSlash(m_collab_sourceChapterBuffer);
 			m_collab_sourceChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_sourceChapterBuffer);
 			//#endif
+			// whm 1Sep2023 added to ensure that the input text has CRLF for its EOLs
+			NormalizeTextEOLsToCRLF(m_collab_sourceChapterBuffer);
 		}
 		else
 		{
@@ -10819,6 +10821,8 @@ extern bool gbDoingInitialSetup;
 			m_collab_sourceWholeBookBuffer = ZWSPtoFwdSlash(m_collab_sourceWholeBookBuffer);
 			m_collab_sourceWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_sourceWholeBookBuffer);
 			//#endif
+			// whm 1Sep2023 added to ensure that the input text has CRLF for its EOLs
+			NormalizeTextEOLsToCRLF(m_collab_sourceWholeBookBuffer);
 		}
 		// Code for setting up the Adapt It project etc requires the following data be
 		// setup beforehand also
