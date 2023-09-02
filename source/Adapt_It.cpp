@@ -34162,11 +34162,11 @@ enum Reparse reparseDoc)
                         // set up some safe indices, since the counts could be quite different
                         // than before
             difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-                                                         // difference should not be negative; it is expected to be 0 or, in very rare
-                                                         // circumstances where an extra CSourcePhrase might get generated (which we
-                                                         // try hard in TokenizeText() and so in RetokenizeText() which calls it, to avoid
-                                                         // doing) so we need to test for difference being negative
-            wxCHECK_MSG(!(difference < 0), TRUE, _T("DoPunctuationChanges(): fewer CSourcePhrases produced, line 19,880 Adapt_It.cpp"));
+                    // difference should not be negative; it is expected to be 0 or, in very rare
+                    // circumstances where an extra CSourcePhrase might get generated (which we
+                    // try hard in TokenizeText() and so in RetokenizeText() which calls it, to avoid
+                    // doing) so we need to test for difference being negative
+            wxCHECK_MSG(!(difference < 0), TRUE, _T("DoPunctuationChanges(): fewer CSourcePhrases produced, line %d Adapt_It.cpp"), __LINE__);
 
             // for refactored layout code, the following suffices because
             // m_nActiveSequNum remains unchanged within the document; we defer the
