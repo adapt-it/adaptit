@@ -6553,7 +6553,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// until there are no more available for analysis
 			wxArrayString arrItems;
 			wxString separator = _T("#~%");
-			bIsAmbiguousForEndmarkerPlacement = AnalyseSstr(Sstr, arrItems, separator);
+			bIsAmbiguousForEndmarkerPlacement = AnalyseSstr(Sstr, arrItems, separator, Tstr, tgtBaseStr);
 			if (bIsAmbiguousForEndmarkerPlacement == FALSE)
 			{
 				// If control enters here, the Placement dialog is avoided. So do here
@@ -14010,7 +14010,11 @@ wxString RemoveNulls(wxString inputStr)
 // s		  -> pass in the Sstr value
 // arrItems   <- store the #~%-separated substrings: endMkr, mkrType, itsPuncts - one such line for each endMkr
 // separator  -> the string _T("#~%")
-bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator)
+// Tstr		  <- reference to the (modified herein) value of Tstr
+// tgtWord	  -> the "baseword" (value of m_adaption) with which to build Tstr internally
+// Returns bool to set the caller's boolean bIsAmbiguousForEndmarkerPlacement to FALSE if the function
+// succeeds in determining the correct mix of puncts and markers without a placement dialog needing to appear
+bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& Tstr, wxString tgtWord)
 {
 	// When AI starts up, spaceless src and tgt puncts, final ones, and begining one, are auto-calculated.
 	// We can use these from pApp, the functions bool IsPunctuation(wxChar* pChar, bool bSource) tells
@@ -14019,7 +14023,7 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator)
 	// wxString converted = pApp->GetConvertedPunct(strPunctIn); where strPunctIn can be one or more src puncts,
 	// Also wxString pApp->SmartTgtConvert(wxString strPunctIn) is available: it jumps over any intial whitespace
 	// in strPunctIn to get to the punct(s) to convert.  
-
+	wxString asterisk = _T("*");
 	// Internally, we have to allow for whitespace to precede a punct; Nyindrou and other data sometimes has
 	// detached final puncts. 
 	// srcPuncts  -> the spaceless source puncts set
@@ -14040,16 +14044,94 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator)
 	wxString srcPuncts = pApp->m_strSpacelessSourcePuncts;
 	wxString tgtPuncts = pApp->m_strSpacelessTargetPuncts;
 	int nWhitesCount = 0; // there may be white space before an associated punct char (parse separately)
+	long tokensCount = 0; // this count will equal the number of backslashes in Sstr + 1
+	wxArrayString arrElements;
+	wxString delimiters = _T("\\"); // final param: bool bStoreEmptyStringsToo is default TRUE
+	wxString mkrSpan;
+	mkrSpan = wxEmptyString;
+	tokensCount = SmartTokenize(delimiters, s, arrElements);
+#if defined (_DEBUG)
+	if (tokensCount >= (long)3)
+	{
+		wxLogDebug(_T("helpers.cpp AnalyseSstr(), line %d , element1= [%s] , element2= [%s] , element3= [%s]"), __LINE__,
+			arrElements.Item((size_t)0).c_str(), arrElements.Item((size_t)1).c_str(), arrElements.Item((size_t)2).c_str());
+	}
+#endif
+	// can't use the first element of SmartTokenize() as it's source text (i.e. m_key),
+	// and what we want is m_adaption as that is targetText, and targetBaseStr has that. 
+	// So throw away arrElement's first element (the material before the first backslash)
+	// and pass in the caller's tgtBaseStr as last param: tgtWord - we'll need it below
+	arrElements.RemoveAt(0);
+	tokensCount--;
+	// Because the delimiter was backslash, the elements lack initial backslashes. Fix that.
+	wxArrayString arrMkrSpans;
+	long index;
+	for (index = 0; index < tokensCount; index++)
+	{
+		mkrSpan = arrElements.Item((size_t)index);
+		mkrSpan = backslash + mkrSpan;
+		arrMkrSpans.Add(mkrSpan);
+	}
+#if defined (_DEBUG)
+	if (tokensCount >= (long)3)
+	{
+		wxLogDebug(_T("helpers.cpp AnalyseSstr(), line %d , element1= [%s] , element2= [%s] , element3= [%s]"), __LINE__,
+			arrMkrSpans.Item((size_t)0).c_str(), arrMkrSpans.Item((size_t)1).c_str(), arrMkrSpans.Item((size_t)2).c_str());
+	}
+#endif
+	// What remains? The puncts need to be converted to their target text equivalents, then build Tstr to pass back to caller
+	Tstr.Empty();
+	Tstr << tgtWord; // start building Tstr
+
+	int offset; int mkrSpanLen; wxString wholeMkr; wxString remainder; wxChar space; wxString itsPuncts; int numWhites;
+	offset = -1;
+	mkrSpanLen = 0;
+	wholeMkr = wxEmptyString;
+	remainder = wxEmptyString;
+	numWhites = 0;
+	itsPuncts = wxEmptyString;
+	space = _T(' '); // there might be a space before the punctuation in mkrSpan
+
+	for (index = 0; index < tokensCount; index++)
+	{
+		mkrSpan = arrMkrSpans.Item((size_t)index);
+		mkrSpanLen = mkrSpan.Length();
+		offset = mkrSpan.Find(asterisk);
+		if (offset >= 2)
+		{
+			// Found the offset to the * at the end of the endMkr
+			wholeMkr = mkrSpan.Left(offset + 1);
+			remainder = mkrSpan.Mid(offset + 1);
+			wxChar chFirst = remainder.GetChar(0);
+#if defined (_DEBUG)
+			wxChar chSecond = remainder.GetChar(1);
+			wxASSERT(chSecond != space); // if this assert trips, I'll have to count whites, 
+										 // not assume it's one space only
+#endif
+			if (chFirst == space)
+			{
+				itsPuncts = remainder.Mid(1);
+				numWhites = 1;
+			}
+			else
+			{
+				itsPuncts = remainder;
+				numWhites = 0;
+			}
+			itsPuncts = GetConvertedPunct(itsPuncts); // converted to target text punctuation glyphs
 
 
+// TODO complete for this element, we have all we need to put the bits together; nNumWhites tell if we put a space
 
+		}
+	}
 
-
-
-
-
-
-
+#if defined (_DEBUG)
+	if (tgtWord == _T("aTEN10tgt"))
+	{
+		int halt_here = 1;
+	}
+#endif
 	return FALSE;
 }
 
