@@ -34166,7 +34166,12 @@ enum Reparse reparseDoc)
                     // circumstances where an extra CSourcePhrase might get generated (which we
                     // try hard in TokenizeText() and so in RetokenizeText() which calls it, to avoid
                     // doing) so we need to test for difference being negative
-            wxCHECK_MSG(!(difference < 0), TRUE, _T("DoPunctuationChanges(): fewer CSourcePhrases produced, line %d Adapt_It.cpp"), __LINE__);
+            // whm 1Sep2023 modified wxCHECK_MSG() call below, according to GCC the function macro
+            // can only take 3 parameters, so the __LINE__ needs to be formatted into the third msg
+            // parameter string before the call
+            wxString msg = _T("DoPunctuationChanges(): fewer CSourcePhrases produced, line %d Adapt_It.cpp");
+            msg = msg.Format(msg, __LINE__);
+            wxCHECK_MSG(!(difference < 0), TRUE, msg);
 
             // for refactored layout code, the following suffices because
             // m_nActiveSequNum remains unchanged within the document; we defer the
