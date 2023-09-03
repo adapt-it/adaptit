@@ -18294,6 +18294,13 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		wxASSERT(pSrcPhrase);
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =,
 									  // so we must clear its contents first
+#if defined (_DEBUG)
+		if (pSrcPhrase->m_nSequNumber == 7 || pSrcPhrase->m_nSequNumber == 1049)
+		{
+			int halt_here = 1; wxUnusedVar(halt_here);
+		}
+
+#endif
 
 		// BEW 11Oct10 (actually 6Jan11) endmarkers in docV5 are no longer stored at the
 		// start of the next CSourcePhrase's m_markers member, but on the current
@@ -18356,6 +18363,21 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					{
 						// it's the end of either a footnote, endnote or cross reference
 						bStartDefaultTextTypeOnNextIteration = TRUE;
+						// whm 3Sep2023 added to ensure that m_inform is "end fn", esp for collaboration 
+						// scenario where m_inform is otherwise empty - even when m_bFootnoteEnd is TRUE.
+						// Note: This block is executing when there are end markers present, and 
+						// this situation skips the calls of LookupSFM() and AnalyseMarker() that 
+						// are done when processing the m_markers buffer in the other part of this
+						// function below. Those calls - in particular the AnalyseMarker() call
+						// if also done here would set the m_inform properly to "end fn", but
+						// I'm assuming that TokenizeText() will have properly set the other pSrcPhrase
+						// attributes/members, and/or code blocks below that treat m_markers with content.
+						if (pSrcPhrase->m_bFootnoteEnd)
+						{
+							// m_inform was emptied above at start of this function so
+							// it will always be empty at this point.
+							pSrcPhrase->m_inform = _("end fn"); // localizable
+						}
 					}
 				}
 				else
@@ -18415,7 +18437,9 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					pSrcPhrase->m_bFirstOfType = FALSE;
 					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the
 																	// earlier instance's type
-					pSrcPhrase->m_inform.Empty();
+					// whm 3Sep2023 commented out the m_inform.Empty() call below, otherwise 
+					// "fn end" gets removed from above.
+					//pSrcPhrase->m_inform.Empty();
 					pSrcPhrase->m_chapterVerse.Empty();
 					// propagate the previous value
 					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
