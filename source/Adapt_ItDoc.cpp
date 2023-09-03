@@ -1329,6 +1329,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
 					(int)pApp->m_nInputFileLength);
 
+				// whm 2Sep2023 testing below 
+				// Add a call of the  DoMarkerHousekeeping() function here after TokenizeText()
+				// code here directly copied from in the SetupLayoutAndView() function that gets
+				// called when collaborating. This is to see if it removes the differences between
+				// the xml docs created here in the non-collaboration scenario and the collaboration
+				// scenario. The collaboration scenario had more correct xml encoding for certain
+				// pSrcPhrase members including m_curTextType and m_inform.
+				int unusedInt = 0;
+				TextType dummyType = verse;
+				bool bPropagationRequired = FALSE;
+				pApp->GetDocument()->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt,
+					dummyType, bPropagationRequired);
+				pApp->GetDocument()->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet,
+					&pApp->m_unknownMarkers,
+					&pApp->m_filterFlagsUnkMkrs,
+					pApp->m_currentUnknownMarkersStr,
+					useCurrentUnkMkrFilterStatus);
+				// whm 2Sep2023 testing above
+
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 				dt1 = dt2;
 				dt2 = wxDateTime::UNow();
@@ -1379,6 +1398,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 #endif
 				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
 					(int)pApp->m_nInputFileLength);
+
+				// whm 2Sep2023 testing below 
+				// Add a call of the  DoMarkerHousekeeping() function here after TokenizeText()
+				// code here directly copied from in the SetupLayoutAndView() function that gets
+				// called when collaborating. This is to see if it removes the differences between
+				// the xml docs created here in the non-collaboration scenario and the collaboration
+				// scenario. The collaboration scenario had more correct xml encoding for certain
+				// pSrcPhrase members including m_curTextType and m_inform.
+				int unusedInt = 0;
+				TextType dummyType = verse;
+				bool bPropagationRequired = FALSE;
+				pApp->GetDocument()->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt,
+					dummyType, bPropagationRequired);
+				pApp->GetDocument()->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet,
+					&pApp->m_unknownMarkers,
+					&pApp->m_filterFlagsUnkMkrs,
+					pApp->m_currentUnknownMarkersStr,
+					useCurrentUnkMkrFilterStatus);
+				// whm 2Sep2023 testing above
 
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 				dt1 = dt2;
@@ -18204,11 +18242,11 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 	// when the editing changes it to be a marker designated as one which is to be
 	// filtered; we repopulate it just before the AnalyseMarker() call below
 
-// we'll use code and functions used for parsing source text, so we need to set up some
-// buffers so we can simulate the data structures pertinent to those function calls we
-// have to propagate the preceding m_bSpecialText value, until a marker changes it; if
-// there is no preceding context, then we can assume it is FALSE (if a \id follows,
-// then it gets reset TRUE later on)
+	// we'll use code and functions used for parsing source text, so we need to set up some
+	// buffers so we can simulate the data structures pertinent to those function calls we
+	// have to propagate the preceding m_bSpecialText value, until a marker changes it; if
+	// there is no preceding context, then we can assume it is FALSE (if a \id follows,
+	// then it gets reset TRUE later on)
 	bool bSpecialText = FALSE;
 	if (gpPrecSrcPhrase != 0)
 		bSpecialText = gpPrecSrcPhrase->m_bSpecialText;
@@ -31587,6 +31625,13 @@ wxString CAdapt_ItDoc::GetLastBeginMkr(wxString mkrs)
 // if the priority is always a \v marker when there are more than one markers in m_markers, eg. for "\\q\n\\v 23"
 // Bill says the \q marker should be the one that determines the textType etc. So I'm refactoring this function
 // to conform. Priority will be the first, when there are more than one in m_markers.
+// whm 2Sep2023 revised. It is not sufficient to get either the first or last begin marker from the incoming
+// mkrs string. The "priority" one can occur first or last or in between depending on the marker context.
+// The incoming mkrs string could be comething like "\\c 1\r\n\\ms " or "\\q\r\n\\v 23". In the first string
+// "\\ms" should be the priority marker for textType "major sect head". In the second string "\\q" should be
+// the priority marker for textType "poetry". Hence, The priority one needs to be the one that should set the 
+// m_curTextType and m_inform members for the current source phrase, whose marker context is being examined.
+// Note: The AnalyzeMarker() function does set 
 wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 {
 	if (mkrs.IsEmpty())
