@@ -1329,6 +1329,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
 					(int)pApp->m_nInputFileLength);
 
+				// whm 2Sep2023 testing below 
+				// Add a call of the  DoMarkerHousekeeping() function here after TokenizeText()
+				// code here directly copied from in the SetupLayoutAndView() function that gets
+				// called when collaborating. This is to see if it removes the differences between
+				// the xml docs created here in the non-collaboration scenario and the collaboration
+				// scenario. The collaboration scenario had more correct xml encoding for certain
+				// pSrcPhrase members including m_curTextType and m_inform.
+				int unusedInt = 0;
+				TextType dummyType = verse;
+				bool bPropagationRequired = FALSE;
+				pApp->GetDocument()->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt,
+					dummyType, bPropagationRequired);
+				pApp->GetDocument()->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet,
+					&pApp->m_unknownMarkers,
+					&pApp->m_filterFlagsUnkMkrs,
+					pApp->m_currentUnknownMarkersStr,
+					useCurrentUnkMkrFilterStatus);
+				// whm 2Sep2023 testing above
+
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 				dt1 = dt2;
 				dt2 = wxDateTime::UNow();
@@ -1379,6 +1398,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 #endif
 				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
 					(int)pApp->m_nInputFileLength);
+
+				// whm 2Sep2023 testing below 
+				// Add a call of the  DoMarkerHousekeeping() function here after TokenizeText()
+				// code here directly copied from in the SetupLayoutAndView() function that gets
+				// called when collaborating. This is to see if it removes the differences between
+				// the xml docs created here in the non-collaboration scenario and the collaboration
+				// scenario. The collaboration scenario had more correct xml encoding for certain
+				// pSrcPhrase members including m_curTextType and m_inform.
+				int unusedInt = 0;
+				TextType dummyType = verse;
+				bool bPropagationRequired = FALSE;
+				pApp->GetDocument()->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt,
+					dummyType, bPropagationRequired);
+				pApp->GetDocument()->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet,
+					&pApp->m_unknownMarkers,
+					&pApp->m_filterFlagsUnkMkrs,
+					pApp->m_currentUnknownMarkersStr,
+					useCurrentUnkMkrFilterStatus);
+				// whm 2Sep2023 testing above
 
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 				dt1 = dt2;
@@ -14400,6 +14438,11 @@ wxString CAdapt_ItDoc::GetLastEndMarker(wxString endMkrs)
 /// BEW 24Oct14, no changes needed for support of USFM nested markers
 /// BEW 7Nov16, Updated for supporting nested TextType none markers, these have
 /// + after the backslash; we need to remove the + if present
+/// whm 4Sep2023 modified to handle situations where pChar points at string content 
+/// that starts with a backslash, but it gets an empty string from GetWholeMakrer(ptr)
+/// In this situation with Mkr being an empty string we must protect the GetChar(1)
+/// call ensuring that it doesn't get called on an empty string. In this case we don't
+/// call GetChar(1) unless the Mkr string has a length >= 2 to avoid an exception crash.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetMarkerWithoutBackslash(wxChar* pChar)
 {
@@ -14413,9 +14456,9 @@ wxString CAdapt_ItDoc::GetMarkerWithoutBackslash(wxChar* pChar)
 	{
 		wxString Mkr = GetWholeMarker(ptr);
 		// Check for + after the backslash
-		if (Mkr.GetChar(1) == _T('+'))
+		if (Mkr.Length() >=2 && Mkr.GetChar(1) == _T('+'))
 		{
-			return Mkr.Mid(2);
+			return Mkr.Mid(2); // strip of the initial backslash and the '+'
 		}
 		else
 		{
@@ -16343,6 +16386,7 @@ wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 	return src;
 }
 
+/*
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		0 (zero)
 /// \remarks
@@ -16351,6 +16395,7 @@ wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 /// TODO: Eliminate this function and the App's working buffer and just declare and use a local
 /// wxString buffer in the two Doc functions that call ClearBuffer(), and the View's version of
 /// ClearBuffer().
+/// whm 4Sep2023 removed this function along with the buffer on the App
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ClearBuffer()
 {
@@ -16359,6 +16404,7 @@ int CAdapt_ItDoc::ClearBuffer()
 	pApp->buffer.Empty();
 	return 0;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE unless the text in rText contains at least one marker that defines it
@@ -18204,11 +18250,11 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 	// when the editing changes it to be a marker designated as one which is to be
 	// filtered; we repopulate it just before the AnalyseMarker() call below
 
-// we'll use code and functions used for parsing source text, so we need to set up some
-// buffers so we can simulate the data structures pertinent to those function calls we
-// have to propagate the preceding m_bSpecialText value, until a marker changes it; if
-// there is no preceding context, then we can assume it is FALSE (if a \id follows,
-// then it gets reset TRUE later on)
+	// we'll use code and functions used for parsing source text, so we need to set up some
+	// buffers so we can simulate the data structures pertinent to those function calls we
+	// have to propagate the preceding m_bSpecialText value, until a marker changes it; if
+	// there is no preceding context, then we can assume it is FALSE (if a \id follows,
+	// then it gets reset TRUE later on)
 	bool bSpecialText = FALSE;
 	if (gpPrecSrcPhrase != 0)
 		bSpecialText = gpPrecSrcPhrase->m_bSpecialText;
@@ -18216,8 +18262,13 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 	// set up some local variables
 	wxString mkrBuffer; // where we will copy standard format marker strings to, for parsing
 	int itemLen = 0;
-	int strLen = ClearBuffer(); // clear's the class's buffer[256] buffer
-	strLen = strLen; // avoid warning
+
+	// whm 4Sep2023 removed the App's buffer and ClearBuffer. Just use a local wxString buffer.
+	wxString buffer;
+	buffer.Empty();
+	//int strLen = ClearBuffer(); // clear's the class's buffer[256] buffer
+	//strLen = strLen; // avoid warning
+	
 	//bool bHitMarker; // set but not used
 
 	// BEW added 01Oct06; if the sublist (ie. pNewSrcPhrasesList) is empty (because the
@@ -18256,6 +18307,13 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		wxASSERT(pSrcPhrase);
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =,
 									  // so we must clear its contents first
+#if defined (_DEBUG)
+		if (pSrcPhrase->m_nSequNumber == 450)
+		{
+			int halt_here = 1; wxUnusedVar(halt_here);
+		}
+
+#endif
 
 		// BEW 11Oct10 (actually 6Jan11) endmarkers in docV5 are no longer stored at the
 		// start of the next CSourcePhrase's m_markers member, but on the current
@@ -18318,6 +18376,21 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					{
 						// it's the end of either a footnote, endnote or cross reference
 						bStartDefaultTextTypeOnNextIteration = TRUE;
+						// whm 3Sep2023 added to ensure that m_inform is "end fn", esp for collaboration 
+						// scenario where m_inform is otherwise empty - even when m_bFootnoteEnd is TRUE.
+						// Note: This block is executing when there are end markers present, and 
+						// this situation skips the calls of LookupSFM() and AnalyseMarker() that 
+						// are done when processing the m_markers buffer in the other part of this
+						// function below. Those calls - in particular the AnalyseMarker() call
+						// if also done here would set the m_inform properly to "end fn", but
+						// I'm assuming that TokenizeText() will have properly set the other pSrcPhrase
+						// attributes/members, and/or code blocks below that treat m_markers with content.
+						if (pSrcPhrase->m_bFootnoteEnd)
+						{
+							// m_inform was emptied above at start of this function so
+							// it will always be empty at this point.
+							pSrcPhrase->m_inform = _("end fn"); // localizable
+						}
 					}
 				}
 				else
@@ -18377,7 +18450,9 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					pSrcPhrase->m_bFirstOfType = FALSE;
 					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the
 																	// earlier instance's type
-					pSrcPhrase->m_inform.Empty();
+					// whm 3Sep2023 commented out the m_inform.Empty() call below, otherwise 
+					// "fn end" gets removed from above.
+					//pSrcPhrase->m_inform.Empty();
 					pSrcPhrase->m_chapterVerse.Empty();
 					// propagate the previous value
 					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
@@ -18428,25 +18503,25 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					if (nMkrLen == 2)
 					{
 						// its a verse marker
-						pApp->buffer += gSFescapechar;
-						pApp->buffer += _T("v");
+						buffer += gSFescapechar;
+						buffer += _T("v");
 						ptr += 2; // point past the \v marker
 					}
 					else
 					{
 						// its an Indonesia branch verse marker \vn
-						pApp->buffer += gSFescapechar;
-						pApp->buffer += _T("vn");
+						buffer += gSFescapechar;
+						buffer += _T("vn");
 						ptr += 3; // point past the \vn marker
 					}
 
 					itemLen = ParseWhiteSpace(ptr);
-					AppendItem(pApp->buffer, temp, ptr, itemLen); // add white
+					AppendItem(buffer, temp, ptr, itemLen); // add white
 															   // space to buffer
 					ptr += itemLen; // point at verse number
 
 					itemLen = ParseNumber(ptr);
-					AppendItem(pApp->buffer, temp, ptr, itemLen); // add number (or range
+					AppendItem(buffer, temp, ptr, itemLen); // add number (or range
 															   // eg. 3-5) to buffer
 					// whm 11Jun12 added !pApp->m_curChapter.IsEmpty() && to the test below
 					// since GetChar(0) should never be called on an empty string
@@ -18475,7 +18550,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 					itemLen = ParseWhiteSpace(ptr); // past white space which is
 													// after the marker
-					AppendItem(pApp->buffer, temp, ptr, itemLen); // add it to the buffer
+					AppendItem(buffer, temp, ptr, itemLen); // add it to the buffer
 					ptr += itemLen; // point past the white space
 
 					goto b; // check if another marker follows:
@@ -18486,16 +18561,16 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					if (IsChapterMarker(ptr))
 					{
 						// its a chapter marker
-						pApp->buffer += gSFescapechar;
-						pApp->buffer += _T("c");
+						buffer += gSFescapechar;
+						buffer += _T("c");
 						ptr += 2; // point past the \c marker
 
 						itemLen = ParseWhiteSpace(ptr);
-						AppendItem(pApp->buffer, temp, ptr, itemLen); // add white space
+						AppendItem(buffer, temp, ptr, itemLen); // add white space
 																   // to buffer
 						ptr += itemLen; // point at chapter number
 						itemLen = ParseNumber(ptr);
-						AppendItem(pApp->buffer, temp, ptr, itemLen); // add chapter number
+						AppendItem(buffer, temp, ptr, itemLen); // add chapter number
 																   // to buffer
 						pApp->m_curChapter = temp;
 						pApp->m_curChapter += _T(':'); // get it ready to
@@ -18514,7 +18589,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 						itemLen = ParseWhiteSpace(ptr); // parse white space following
 														// the number
-						AppendItem(pApp->buffer, temp, ptr, itemLen); // add it to buffer
+						AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
 						ptr += itemLen; // point past it
 
 						goto b; // check if another marker follows
@@ -18561,7 +18636,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 						wxUnusedVar(tagOnly);
 						wxUnusedVar(baseOfEndMkr);
 						itemLen = ParseMarker(ptr);
-						AppendItem(pApp->buffer, temp, ptr, itemLen);
+						AppendItem(buffer, temp, ptr, itemLen);
 
 						// we wish to know if this marker, which is not within a
 						// span bracketed by \~FILTER followed by \~FILTER*, has
@@ -18615,7 +18690,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 						ptr += itemLen;
 
 						itemLen = ParseWhiteSpace(ptr); // parse white space after it
-						AppendItem(pApp->buffer, temp, ptr, itemLen); // add it to buffer
+						AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
 						ptr += itemLen; // point past it
 						goto b; // check if another marker follows
 					}
@@ -18624,7 +18699,8 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 			else
 			{
 				// get ready for next iteration
-				strLen = ClearBuffer(); // empty the small working buffer
+				buffer.Empty(); // whm 4Sep2023 removed App's buffer, and made a local wxString buffer instead
+				// strLen = ClearBuffer(); // empty the small working buffer
 				itemLen = 0;
 				ptr++;	// whm added. The legacy did not increment ptr here.
 						// The legacy app never reached this else block, because,
@@ -31587,6 +31663,13 @@ wxString CAdapt_ItDoc::GetLastBeginMkr(wxString mkrs)
 // if the priority is always a \v marker when there are more than one markers in m_markers, eg. for "\\q\n\\v 23"
 // Bill says the \q marker should be the one that determines the textType etc. So I'm refactoring this function
 // to conform. Priority will be the first, when there are more than one in m_markers.
+// whm 2Sep2023 revised. It is not sufficient to get either the first or last begin marker from the incoming
+// mkrs string. The "priority" one can occur first or last or in between depending on the marker context.
+// The incoming mkrs string could be comething like "\\c 1\r\n\\ms " or "\\q\r\n\\v 23". In the first string
+// "\\ms" should be the priority marker for textType "major sect head". In the second string "\\q" should be
+// the priority marker for textType "poetry". Hence, The priority one needs to be the one that should set the 
+// m_curTextType and m_inform members for the current source phrase, whose marker context is being examined.
+// Note: The AnalyzeMarker() function does set 
 wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 {
 	if (mkrs.IsEmpty())
@@ -40391,7 +40474,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber >= 4)
+		if (pSrcPhrase->m_nSequNumber == 450)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;

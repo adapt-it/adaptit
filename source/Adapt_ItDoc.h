@@ -238,7 +238,7 @@ protected:
 	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
 		wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
 	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
-	int				ClearBuffer();
+	//int				ClearBuffer(); // whm 4Sep2023 removed along with App's buffer
 	CBString		ConstructSettingsInfoAsXML(int nTabLevel); // BEW added 05Aug05 for XML doc output support
 	int				ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, wxString filterList,
 		wxString& wholeMkr, wxString& wholeShortMkr, wxString& endMkr, bool& bHasEndmarker,

@@ -9847,10 +9847,10 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	wxChar* pBufStart = ptr;		// save start address of Buffer
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go // corrected with ++nTheLen commented out
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
-	wxString workbuff;				// a small working buffer in which to build a string - unused
-	int strLen;
-	strLen = ClearBuffer();		// clear the View's working buffer & set length of its string to zero
-	strLen = strLen; // avoid warning
+	//wxString workbuff;	// a small working buffer in which to build a string - unused
+	//int strLen;
+	//strLen = ClearBuffer(); // clear the App's working buffer & set length of its string to zero
+	//strLen = strLen; // avoid warning
 	wxString LastStyle = _T("");
 	wxString LastParaStyle = _T("");
 	wxString LastCharacterStyle = _T("");
@@ -15323,11 +15323,14 @@ void CountTotalCurlyBraces(wxString outputStr, int& nOpeningBraces, int& nClosin
 	nClosingBraces = nCloseBr;
 }
 
+// whm 4Sep2023 removed the App's buffer. Can just use a local buffer
+/*
 int ClearBuffer()
 {
 	gpApp->buffer.Empty();
 	return 0;
 }
+*/
 
 wxString IntToRoman(int num)
 {
