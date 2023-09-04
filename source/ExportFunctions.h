@@ -189,7 +189,7 @@ void		DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 wxString	ChangeMkrs_vn_vt_To_v(wxString text); // BEW created 19May12
 wxString	ChangeTildeToNonBreakingSpace(wxString text); // BEW created 19May12
 void		CountTotalCurlyBraces(wxString outputStr, int& nOpeningBraces, int& nClosingBraces);
-int			ClearBuffer();
+//int			ClearBuffer(); // whm 4Sep2023 removed the App's buffer. Can just use a local buffer
 wxString	IntToRoman(int n);
 int			ParseAnyFollowingChapterLabel(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
 							wxString& tempLabel);

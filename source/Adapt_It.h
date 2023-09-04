@@ -3025,7 +3025,7 @@ public:
                 // the document, and from version 3 the buffer is also used for composing
                 // settings information in the preparation of the XML form of the Adapt It
                 // document
-	wxString	buffer;
+	//wxString	buffer; // whm 4Sep2023 removed
 	wxString	m_curChapter;
 
 	MapWholeMkrToFilterStatus m_FilterStatusMap;// entries are a wholeMarker (ie. with
