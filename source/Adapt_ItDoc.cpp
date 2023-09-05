@@ -14499,7 +14499,7 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar* pChar)
 			// and just returns the result of stripping off the initial backslash,
 			// so if + is present, it will be the first character. Check and remove it
 	// BEW 29Oct10 protect Get Char(0)
-	wxChar first = _T('\0'); // initialise
+	wxChar first; //= _T('\0'); // initialise BEW dangerous to set to NULL, comment that out
 	int length = bareMkr.Len();
 	if (length > 0)
 	{
@@ -32243,6 +32243,23 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bToken
 	{
 		return FALSE;
 	}
+	// BEW 5Sep23 added this bit. Reason is as follows. Helpers uses AnalyseStr() to help generate
+	// a Tstr which has mrks and puncts mixed correctly, to avoid using a Placement dialog. It
+	// analyses Sstr as stored in pSrcPhrase->m_srcSinglePattern (SourcePhrase.h 367) using the
+	// function AnalyseSstr(). UpdateSingleSrcPattern() is called when the user manually changes
+	// the punctuation inventory of the source text at a pSrcPhrase. That makes our stored
+	// Doc.cpp member, m_tgtMkrPattern become incorrect - its mix of puncts and mkrs is no longer
+	// in sync with the users punctuation changes. We can force automatic recalculation of
+	// m_tgtMkrPattern by checking if it exists, and if so, emptying it. We do it here only because
+	// this UpdateSingleSrcPattern() function is only called when Qm_srcPhrasePunctsPresentAndNoResidue()
+	// has failed (it has a residue which is non-empty) to match the puncts inventory due to changes.
+	// So an empty m_tgtMkrPattern value will auto-cause the needed rectification of its value, when
+	// the target text is next exported by some function - doesn't matter which.
+	if (!pSrcPhrase->m_tgtMkrPattern.IsEmpty())
+	{
+		pSrcPhrase->m_tgtMkrPattern.Empty();
+	}
+
 	wxString srcSinglePat = pSrcPhrase->m_srcSinglePattern;
 	wxASSERT(!srcSinglePat.IsEmpty());
 	wxString srcNewSinglePat = wxEmptyString; // init
@@ -35119,7 +35136,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 	{
 		wxString pointsAt = wxString(ptr, 20);
-		wxLogDebug(_T("ParseWord() line %d , FOR (2t) precPunct= [%s]  ptr-> [%s]"),__LINE__, precPunct.c_str(), pointsAt.c_str());
+		wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], FOR (2t) precPunct= [%s]  ptr-> [%s]"),
+					__LINE__, pApp->m_curChapter.c_str(), precPunct.c_str(), pointsAt.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 3)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -35475,9 +35493,10 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		return len;
 	}
 
-#if defined (_DEBUG) && !defined(NOLOGS)
-	wxString pointsAt = wxString(ptr, 10);
-	wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber %d , len %d , pointsAt=%s"), __LINE__, pSrcPhrase->m_nSequNumber, len, pointsAt.c_str());
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+	wxString pointsAt = wxString(ptr, 16);
+	wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], pSrcPhrase->m_nSequNumber %d , len %d , pointsAt=%s"), 
+		__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, len, pointsAt.c_str());
 #endif
 	if (m_bWidowedBracket)
 	{
@@ -36239,12 +36258,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 								// BEW 14Nov22. Beware. Don't parse over a '\n', it will cause ParseAWord() to assert, 
 								// or release build to crash; if in either case a beginMkr follows ?? BEW 22Dec22 I'm
 								// pretty certain this restriction no longer applies. The comment can stand for now.	
-#if defined (_DEBUG)  && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG)  //&& !defined(NOLOGS) //&& defined(WHERE)
 								{
 									wxString pointsAt = wxString(ptr, 16);
-									wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , ptr-> [%s]"),
-										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 2)
+									wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , ptr-> [%s]"),
+										__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 3)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -36390,8 +36409,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 16);
-							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
-								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+							wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= %s , len= %d , m_markers=[%s] , ptr->%s"),
+								__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 3)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);

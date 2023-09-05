@@ -6552,12 +6552,31 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// work on a copy of Sstr so that the analysis can progressively remove bits analysed,
 			// until there are no more available for analysis
 			wxArrayString arrItems;
-			wxString separator = _T("#~%");
-			bIsAmbiguousForEndmarkerPlacement = AnalyseSstr(Sstr, arrItems, separator, Tstr, tgtBaseStr);
+			wxString separator = _T("\\"); // separate with backslash
+			wxString CopiedTstr = Tstr;  // I want to work on a copy, so I can compare with Tstr after analysis
+			bIsAmbiguousForEndmarkerPlacement = AnalyseSstr(Sstr, arrItems, separator, CopiedTstr, tgtBaseStr);
 			if (bIsAmbiguousForEndmarkerPlacement == FALSE)
 			{
 				// If control enters here, the Placement dialog is avoided. So do here
 				// the extra things needed to make use of the data stored in arrItems
+#if defined (_DEBUG)
+				{
+					int SstrLen = Sstr.Length();
+					wxLogDebug(_T("FromSingleMakeStr() line %d, analysis MADE CopiedTstr= [%s] , original Tstr= [%s]"),
+						__LINE__, CopiedTstr.c_str(), Tstr.c_str());
+					if (pSingleSrcPhrase->m_nSequNumber >= 11)
+					{
+						int halt_here = 1; wxUnusedVar(halt_here);
+					}
+				}
+#endif
+				// Comparing CopiedTstr with original Tstr, the former has it all correct, the original has just ;?” sfter \em*
+				// and CopiedTstr will have target text punctuation glyphs, so proceed by using CopiedTstr
+				Tstr = CopiedTstr;
+
+				// TODO  after analysing, other things do hereas in post-dialog code e.g. set m_tgtMkrPattern 
+				// (do we need to handle mergers? probably) set m_tgtSinglePattern if not a merger
+				// or if m_bTstrFromMergerCalled is TRUE, m_tgtMkrPattern, etc
 
 
 
@@ -6569,117 +6588,110 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 
 
 
-
-
-
-
-// TODO  after analysing, other things as in post-dialog code e.g. set m_tgtMkrPattern 
-// (do we need to handle mergers? probably) set m_tgtSinglePattern if not a merger
-// or if m_bTstrFromMergerCalled is TRUE, m_tgtMkrPattern, etc
 
 			} // end of TRUE block for test: if (bIsAmbiguousForEndmarkerPlacement == FALSE)
-
+			else
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
-			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW 20May23 added bool
-#if defined (_DEBUG)
+			if (bIsAmbiguousForEndmarkerPlacement)
 			{
-				if (pSingleSrcPhrase->m_nSequNumber >= 11)
+				// BEW added above test, 5Sep23 - if TRUE, the Placement dlg will show
+				Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray, bIsAmbiguousForEndmarkerPlacement); // BEW 20May23 added bool
+
+				// BEW 28Oct22, a hack for removing an unsettling outcome (Gerald Harkins reported Oct 2022) as follows.
+				// Situation 1. There is a footnote and \f* (or other endMkr) has to be placed manually, but Sstr has
+				// more than one final punct character - therefore, ambiguity, and manual placement is needed. But on
+				// just having set up collaboration, and there is no text yet within the m_adaption of pSingleSrcPhrase,
+				// there's no text to show in the bottom box of the placement dialog. But punctuation my appear there,
+				// because pSingleSrcPhrase has one or more in the aggregate of m_follPunct and m_follOuterPunct. Showing
+				// just punctuation in the dialog is confusing and unhelpful.
+				// Situation 2. Adapting has been done, and at the export for collaboration, there is text to show. The
+				// existing code *should* handle the placement ambiguity, so probably nothing to be done. 
+				// What to do about Situation 1. My intuition is this: If app->m_bCopySource is FALSE, and if Tstr only
+				// contains one or more punctuation characters - then the copy the reconstituted Sstr - because Paratext
+				// (or Bibledit) needs the markers in their correct place(s) in the string. And empty the array of markers
+				// because placing it not appropriate - only editing is appropriate in this scenario.
+				// But, if m_bCopySource is TRUE, then the best thing would be to show a copy of the Sstr text - with 
+				// endmarkers removed, and the placement list showing the markers for placement, and the user does the
+				// placements in the normal way, and clicks OK. (In either scenario, the workaround of coping from the
+				// top box, and pasting into the bottom one, is still available.)
+				bool bEmptyOrPunctsOnly = IsEmptyOrPunctuationOnly(Tstr, gpApp->m_punctuation[1]);
+				if (bEmptyOrPunctsOnly && (gpApp->m_bCopySource == FALSE))
+				{
+					bIsAmbiguousForEndmarkerPlacement = FALSE;
+					markersToPlaceArray.Empty();
+					Tstr.Empty();
+				}
+
+				// BEW 28Oct22 tested both options above, for app->m_bCopySource TRUE, and then FALSE. They work, and the
+				// user is spared the connundrum of not having a valid Placement dialog with editable lower box and the
+				// list with one or more markers to place.
+#if defined (_DEBUG)
+				{
+					if (pSingleSrcPhrase->m_nSequNumber >= 11)
+					{
+						int halt_here = 1; wxUnusedVar(halt_here);
+					}
+				}
+#endif
+				if (!markersToPlaceArray.IsEmpty() && !Tstr.IsEmpty())
+				{
+					// There's something the user needs to deal with manually
+
+					CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
+
+					// set up the text controls and list box with their data; these setters enable the
+					// data passing to be done without the use of globals
+					dlg.SetNonEditableString(Sstr);
+					dlg.SetUserEditableString(Tstr);
+					dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+
+					// show the dialog
+					dlg.ShowModal();
+
+					// get the post-placement resulting string
+					Tstr = dlg.GetPostPlacementString();
+#if defined (_DEBUG)
+					wxLogDebug(_T("FromSingleMakeTstr() in helpers.cpp line %d, sequNum = %d, GetPostPlacementString returned [%s]"),
+						__LINE__, pSingleSrcPhrase->m_nSequNumber, Tstr.c_str());
+#endif
+				}
+				// as of version  6.2.0, we store the result whenever produced, so that
+				// the placement dialog isn't opened again (unless the user puts phrase
+				// box at this CSourcePhrase's location and edits either puncts or word(s)
+				// to be placed differently - that causes the m_tgtMkrPattern string to be
+				// cleared, and then this and other placement dialogs would show again, if
+				// relevant -- that is, if there is a placement ambiguity requiring that
+				// they show); trim off any whitespace before saving in the CSourcePhrase
+				// -- the dialog puts a space before and after, so we must get rid of
+				// these before saving
+				Tstr = Tstr.Trim(FALSE);
+				Tstr = Tstr.Trim();
+				// make sure the doc is dirty, so the user will be prompted to save it -
+				// we don't want this setting to get lost unnecessarily
+				pDoc->Modify(TRUE);
+			
+			} // end of the TRUE block for test:  else if (bIsAmbiguousForEndmarkerPlacement)
+			else
+			{
+				// it's non-empty, so use it as Tstr's value (first ensure there is no
+				// preceding or final whitespace)
+#if defined (_DEBUG)
+				if (pSingleSrcPhrase->m_nSequNumber >= 12)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
-			}
 #endif
-			// BEW 28Oct22, a hack for removing an unsettling outcome (Gerald Harkins reported Oct 2022) as follows.
-			// Situation 1. There is a footnote and \f* (or other endMkr) has to be placed manually, but Sstr has
-			// more than one final punct character - therefore, ambiguity, and manual placement is needed. But on
-			// just having set up collaboration, and there is no text yet within the m_adaption of pSingleSrcPhrase,
-			// there's no text to show in the bottom box of the placement dialog. But punctuation my appear there,
-			// because pSingleSrcPhrase has one or more in the aggregate of m_follPunct and m_follOuterPunct. Showing
-			// just punctuation in the dialog is confusing and unhelpful.
-			// Situation 2. Adapting has been done, and at the export for collaboration, there is text to show. The
-			// existing code *should* handle the placement ambiguity, so probably nothing to be done. 
-			// What to do about Situation 1. My intuition is this: If app->m_bCopySource is FALSE, and if Tstr only
-			// contains one or more punctuation characters - then the copy the reconstituted Sstr - because Paratext
-			// (or Bibledit) needs the markers in their correct place(s) in the string. And empty the array of markers
-			// because placing it not appropriate - only editing is appropriate in this scenario.
-			// But, if m_bCopySource is TRUE, then the best thing would be to show a copy of the Sstr text - with 
-			// endmarkers removed, and the placement list showing the markers for placement, and the user does the
-			// placements in the normal way, and clicks OK. (In either scenario, the workaround of coping from the
-			// top box, and pasting into the bottom one, is still available.)
-			bool bEmptyOrPunctsOnly = IsEmptyOrPunctuationOnly(Tstr, gpApp->m_punctuation[1]);
-			if (bEmptyOrPunctsOnly && (gpApp->m_bCopySource == FALSE))
-			{
-				bIsAmbiguousForEndmarkerPlacement = FALSE;
-				markersToPlaceArray.Empty();
-				Tstr.Empty();
-			}
+				wxString str = pSingleSrcPhrase->m_tgtMkrPattern;
+				str.Trim(FALSE);
+				str.Trim();
+				Tstr = str;
+			} // end of the else block for test: else if (bIsAmbiguousForEndmarkerPlacement)
+		} // end of TRUE block for test: 
 
-			// BEW 28Oct22 tested both options above, for app->m_bCopySource TRUE, and then FALSE. They work, and the
-			// user is spared the connundrum of not having a valid Placement dialog with editable lower box and the
-			// list with one or more markers to place.
-#if defined (_DEBUG)
-			{
-				if (pSingleSrcPhrase->m_nSequNumber >= 11)
-				{
-					int halt_here = 1; wxUnusedVar(halt_here);
-				}
-			}
-#endif
-			if (!markersToPlaceArray.IsEmpty() && !Tstr.IsEmpty())
-			{
-				// There's something the user needs to deal with manually
+		// ********** MERGERS: legacy code not yet altered, as at 5Sep 23 ************
 
-				CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
-
-				// set up the text controls and list box with their data; these setters enable the
-				// data passing to be done without the use of globals
-				dlg.SetNonEditableString(Sstr);
-				dlg.SetUserEditableString(Tstr);
-				dlg.SetPlaceableDataStrings(&markersToPlaceArray);
-
-				// show the dialog
-				dlg.ShowModal();
-
-				// get the post-placement resulting string
-				Tstr = dlg.GetPostPlacementString();
-#if defined (_DEBUG)
-				wxLogDebug(_T("FromSingleMakeTstr() in helpers.cpp line %d, sequNum = %d, GetPostPlacementString returned [%s]"),
-					__LINE__, pSingleSrcPhrase->m_nSequNumber, Tstr.c_str());
-#endif
-			}
-			// as of version  6.2.0, we store the result whenever produced, so that
-			// the placement dialog isn't opened again (unless the user puts phrase
-			// box at this CSourcePhrase's location and edits either puncts or word(s)
-			// to be placed differently - that causes the m_tgtMkrPattern string to be
-			// cleared, and then this and other placement dialogs would show again, if
-			// relevant -- that is, if there is a placement ambiguity requiring that
-			// they show); trim off any whitespace before saving in the CSourcePhrase
-			// -- the dialog puts a space before and after, so we must get rid of
-			// these before saving
-			Tstr = Tstr.Trim(FALSE);
-			Tstr = Tstr.Trim();
-			// make sure the doc is dirty, so the user will be prompted to save it -
-			// we don't want this setting to get lost unnecessarily
-			pDoc->Modify(TRUE);
-
-		}
-		else
-		{
-			// it's non-empty, so use it as Tstr's value (first ensure there is no
-			// preceding or final whitespace)
-#if defined (_DEBUG)
-			if (pSingleSrcPhrase->m_nSequNumber >= 12)
-			{
-				int halt_here = 1; wxUnusedVar(halt_here);
-			}
-#endif
-			wxString str = pSingleSrcPhrase->m_tgtMkrPattern;
-			str.Trim(FALSE);
-			str.Trim();
-			Tstr = str;
-		}
 		if (pDoc->m_bTstrFromMergerCalled)
 		{
 			// BEW 19May23 There was a prior call of FromMergerMakeTstr() at this current
@@ -13997,37 +14009,32 @@ wxString RemoveNulls(wxString inputStr)
 }
 
 //BEW created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
-// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems. Each
-// such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm going to
-// use a separator string "#~%" non which are punctuation characters.
+// generate mkrSpan elements to store in the passed in arrItems. Each such is the beginMkr,
+// possibly a following whitespace (space probably, if any) then one or more puncts.
 // The goal is to determine readable data which tells me what puncts go with which
 // endMkrs - so that I can avoid having to show a Placement dlg to do the job
 // The boolean return value sets or clears the caller's bIsAmbiguousForEndEndmarkerPlacement.
 // The latter may have been set TRUE by legacy FromSingleMakeTstr() code, but if this function
-// succeeds in it's analysis task, then the Placement dialog will not get called, and it's fields
-// can be filled out correctly prior to the AutoPlaceSomeMarkers() call which follows
+// succeeds in its analysis task, FALSE will be returned, so that the Placement dialog will 
+// not get called, and it's fields can be filled out correctly prior to the AutoPlaceSomeMarkers()
+// call which follows this function
 // params:
 // s		  -> pass in the Sstr value
-// arrItems   <- store the #~%-separated substrings: endMkr, mkrType, itsPuncts - one such line for each endMkr
-// separator  -> the string _T("#~%")
-// Tstr		  <- reference to the (modified herein) value of Tstr
-// tgtWord	  -> the "baseword" (value of m_adaption) with which to build Tstr internally
+// arrItems   <- store the backslash-separated mkrSpan substrings: - one such for each endMkr
+// separator  -> the string _T("\\")
+// CopiedTstr <- reference to the (modified herein) value of CopiedTstr to pass back to caller
+// tgtWord	  -> the "baseword" (value of m_adaption) with which to build CopiedTstr internally
 // Returns bool to set the caller's boolean bIsAmbiguousForEndmarkerPlacement to FALSE if the function
 // succeeds in determining the correct mix of puncts and markers without a placement dialog needing to appear
-bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& Tstr, wxString tgtWord)
+bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord)
 {
 	// When AI starts up, spaceless src and tgt puncts, final ones, and begining one, are auto-calculated.
 	// We can use these from pApp, the functions bool IsPunctuation(wxChar* pChar, bool bSource) tells
 	// if the *pChar is punctuation. (bSource is default TRUE, explicitly set FALSE to have the 
-	// check work with AI's target puncts set) To convert from src punct to tgt punc, can use
-	// wxString converted = pApp->GetConvertedPunct(strPunctIn); where strPunctIn can be one or more src puncts,
-	// Also wxString pApp->SmartTgtConvert(wxString strPunctIn) is available: it jumps over any intial whitespace
-	// in strPunctIn to get to the punct(s) to convert.  
+	// check work with AI's target puncts set)
 	wxString asterisk = _T("*");
 	// Internally, we have to allow for whitespace to precede a punct; Nyindrou and other data sometimes has
 	// detached final puncts. 
-	// srcPuncts  -> the spaceless source puncts set
-	// tgtPuncts  -> the spaceless target puncts set
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// Sanity tests
 	if (s.IsEmpty())
@@ -14046,10 +14053,10 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 	int nWhitesCount = 0; // there may be white space before an associated punct char (parse separately)
 	long tokensCount = 0; // this count will equal the number of backslashes in Sstr + 1
 	wxArrayString arrElements;
-	wxString delimiters = _T("\\"); // final param: bool bStoreEmptyStringsToo is default TRUE
+	wxString delimiters = separator; 
 	wxString mkrSpan;
 	mkrSpan = wxEmptyString;
-	tokensCount = SmartTokenize(delimiters, s, arrElements);
+	tokensCount = SmartTokenize(delimiters, s, arrElements); // final param: bool bStoreEmptyStringsToo is default TRUE
 #if defined (_DEBUG)
 	if (tokensCount >= (long)3)
 	{
@@ -14080,8 +14087,8 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 	}
 #endif
 	// What remains? The puncts need to be converted to their target text equivalents, then build Tstr to pass back to caller
-	Tstr.Empty();
-	Tstr << tgtWord; // start building Tstr
+	CopiedTstr.Empty();
+	CopiedTstr << tgtWord; // start building Tstr
 
 	int offset; int mkrSpanLen; wxString wholeMkr; wxString remainder; wxChar space; wxString itsPuncts; int numWhites;
 	offset = -1;
@@ -14102,29 +14109,37 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 			// Found the offset to the * at the end of the endMkr
 			wholeMkr = mkrSpan.Left(offset + 1);
 			remainder = mkrSpan.Mid(offset + 1);
-			wxChar chFirst = remainder.GetChar(0);
-#if defined (_DEBUG)
-			wxChar chSecond = remainder.GetChar(1);
-			wxASSERT(chSecond != space); // if this assert trips, I'll have to count whites, 
-										 // not assume it's one space only
-#endif
-			if (chFirst == space)
+			// BEW 5Sep23 if the marker has no following puncts, remainder will be just the mkr,
+			// and then remainder will be empty. GetChar(0) cannot be called on an empty string, causes crash
+			wxChar chFirst;
+			if (!remainder.IsEmpty())
 			{
-				itsPuncts = remainder.Mid(1);
-				numWhites = 1;
+				chFirst = remainder.GetChar(0);
+				if (chFirst == space)
+				{
+					itsPuncts = remainder.Mid(1);
+					numWhites = 1;
+				}
+				else
+				{
+					itsPuncts = remainder;
+					numWhites = 0;
+				}
+				itsPuncts = GetConvertedPunct(itsPuncts); // converted to target text punctuation glyphs
+				// Collect the bits to complete CopiedTstr
+				CopiedTstr << wholeMkr;
+				if (numWhites != 0)
+				{
+					CopiedTstr << space;
+				}
+				CopiedTstr << itsPuncts;
 			}
 			else
 			{
-				itsPuncts = remainder;
-				numWhites = 0;
+				CopiedTstr << wholeMkr;
 			}
-			itsPuncts = GetConvertedPunct(itsPuncts); // converted to target text punctuation glyphs
-
-
-// TODO complete for this element, we have all we need to put the bits together; nNumWhites tell if we put a space
-
-		}
-	}
+		} // end of TRUE block for test: if (offset >= 2)
+	} // end of for loop with test: for (index = 0; index < tokensCount; index++)
 
 #if defined (_DEBUG)
 	if (tgtWord == _T("aTEN10tgt"))
@@ -14134,7 +14149,6 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 #endif
 	return FALSE;
 }
-
 
 // BEW 2May23 created. But no need for this, existing code handles complex endmkr and puncts mixed
 /* leave it here for a while, in case bits of its code are of use sometime soon

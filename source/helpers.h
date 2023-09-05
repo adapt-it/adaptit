@@ -352,7 +352,7 @@ wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, boo
 							bool bCountInTargetText);
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
-bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& Tstr, wxString tgtWord);
+bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
 			// Each such line has values: endMkr<separator>endMkrType<separator>itsPuncts, where I'm
