@@ -6573,27 +6573,14 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				// Comparing CopiedTstr with original Tstr, the former has it all correct, the original has just ;?” sfter \em*
 				// and CopiedTstr will have target text punctuation glyphs, so proceed by using CopiedTstr
 				Tstr = CopiedTstr;
+				pSingleSrcPhrase->m_tgtMkrPattern; // store the pattern, for non-merger pSingleSrcPhrase
 
-				// TODO  after analysing, other things do hereas in post-dialog code e.g. set m_tgtMkrPattern 
-				// (do we need to handle mergers? probably) set m_tgtSinglePattern if not a merger
-				// or if m_bTstrFromMergerCalled is TRUE, m_tgtMkrPattern, etc
-
-
-
-
-
-
-
-
-
-
-
-
+				return Tstr;
 			} // end of TRUE block for test: if (bIsAmbiguousForEndmarkerPlacement == FALSE)
 			else
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
 			// automatically. If the markersToPlaceArray is returned empty, then we won't
-			// need to show the placement dialog
+			// need to show the placement dialog. If not possible, placement dlg will show.
 			if (bIsAmbiguousForEndmarkerPlacement)
 			{
 				// BEW added above test, 5Sep23 - if TRUE, the Placement dlg will show
@@ -6709,7 +6696,8 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// As pSrcPhrase is now likely to be moved to a new location, set the bool to default FALSE
 		// (it's also defaulted to FALSE prior to a call of FromMergerMakeTstr() )
 		pDoc->m_bTstrFromMergerCalled = FALSE;
-	}
+
+	} // end of else block for test: if (!bHasOuterFollPunct && !bIsAmbiguousForEndmarkerPlacement)
 
     // now add the prefix string material if it is not empty
 	if (!markersPrefix.IsEmpty())
