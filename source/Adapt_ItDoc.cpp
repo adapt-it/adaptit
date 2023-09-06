@@ -18525,6 +18525,10 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 															   // eg. 3-5) to buffer
 					// whm 11Jun12 added !pApp->m_curChapter.IsEmpty() && to the test below
 					// since GetChar(0) should never be called on an empty string
+					// whm 5Sep2023 test. Decided to comment out all use of the App's global 
+					// m_curChapter and leave the existing pSrcPhrase->m_chapterVerse
+					// unchanged from its value determined in the previous TokenizeText() call.
+					/*
 					if (!pApp->m_curChapter.IsEmpty())
 					{
 						if (pApp->m_curChapter.GetChar(0) == '0')
@@ -18535,6 +18539,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					}
 					pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 					pSrcPhrase->m_chapterVerse += temp; // append the verse number
+					*/
 					pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a
 												 // new verse
 					ptr += itemLen; // point past verse number
@@ -18572,9 +18577,14 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 						itemLen = ParseNumber(ptr);
 						AppendItem(buffer, temp, ptr, itemLen); // add chapter number
 																   // to buffer
+						// whm 5Sep2023 test. Decided to comment out all use of the App's global 
+						// m_curChapter and leave the existing pSrcPhrase->m_chapterVerse
+						// unchanged from its value determined in the previous TokenizeText() call.
+						/*
 						pApp->m_curChapter = temp;
 						pApp->m_curChapter += _T(':'); // get it ready to
 													   // append verse numbers
+						*/
 						ptr += itemLen; // point past chapter number
 
 						// set pSrcPhrase attributes
@@ -45346,10 +45356,13 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 												// BEW 1Sep23 error, can't use ptr in the AnalyseMarker call, ptr points to <sp>word... lots of stuff
 												// and so the call crashes. The buffer we are working with is a tiny one, for "\\li" its just 3 characters,
 												// - the wholeMkr buffer, so change ptr to be address-of-wholeMkr.GetChar(0) i.e. the backslash of \li
-												wxChar chFirst; wxChar* pFirstChar;
-												chFirst = wholeMkr[0].GetValue();
-												pFirstChar = &chFirst;
-												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pFirstChar, wholeMkrLen, pUsfmAnalysis);
+												// whm 5Sep2023 changed the next three lines which produced a bad pointer pFirstChar.
+												//wxChar chFirst; wxChar* pFirstChar;
+												//chFirst = wholeMkr[0].GetValue();
+												//pFirstChar = &chFirst;
+												const wxChar* pFirstChar = wholeMkr.GetData();
+												wxChar* pBufStart = (wxChar*)pFirstChar;
+												pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase, pBufStart, wholeMkrLen, pUsfmAnalysis);
 												// Does the text type of 'special text' value change? If so set bTextTypeChanges to TRUE
 												// (not sure if this test is necessary, but probably worth doing until found otherwise)
 												if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
