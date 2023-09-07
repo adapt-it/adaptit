@@ -566,6 +566,20 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	waitMsg = waitMsg.Format(waitMsg,m_collabEditorName.c_str());
 	pStaticSelectAChapter->SetLabel(waitMsg);
 
+	// whm 7Sep2023 testing. There is a fairly long pause after selecting the book while
+	// the external editor fetches the source and target texts, and it is interrupted by
+	// a flicker of the dialog. This leads the user to try to click OK before the dialog
+	// is ready and updated. Therefore I'm trying the CWaitDlg here along with a Freeze of
+	// the dialog to see if that reduces the distraction and makes the selection process
+	// go better.
+	CWaitDlg waitDlg(this);
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+	waitDlg.Update();
+	this->Freeze();
+	// the wait dialog is automatically destroyed when it goes out of scope below
+	// or after the number of hundredths of a second has expired in the delay func
+
 	int nSel;
 	wxString fullBookName;
 	nSel = pListBoxBookNames->GetSelection();
@@ -1012,6 +1026,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
+		this->Thaw();
 		return;
 	}
 
@@ -1185,6 +1200,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
+		this->Thaw();
 		return;
 	}
 
@@ -1224,6 +1240,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
+		this->Thaw();
 		return;
 	}
 
@@ -1252,6 +1269,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
+		this->Thaw();
 		return;
 	}
 
@@ -1279,6 +1297,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
+		this->Thaw();
 		return;
 	}
 	/*
@@ -1374,6 +1393,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
+		this->Thaw();
 		return;
 	}
 	else
@@ -1506,6 +1526,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		// empty the temp variable that holds the chapter selected
 		m_TempCollabChapterSelected.Empty();
 	}
+	this->Thaw();
 }
 
 void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(event))
