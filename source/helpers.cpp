@@ -6282,13 +6282,32 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
     if (bBindingMkrsToReplace)
 	{
 		// need to use the rebuilt Tstr
+		// BEW 7Sep23 the comment line above is legacy, rebuiltTstr is initialised to empty string
+		// at line 6132 above; and bBindingMkrsToReplace at 6131 likewise initialised to FALSE, and
+		// and neither are used again except here. So control always goes to the else block
+		// else block. In the else block the code accesses pSingleSrcPhrase's marker storage, and
+		// punctuation storage, with a view to preparing for placing the markers into the right
+		// locations within the string of after-the-word punctuation characters at the pSingleSrcPhrase.
+		// Placement won't be needed if there are no final punct substrings longer than 1 wxChar.
+		// So this test:
+			//if (finalsLen > 1)
+			//{
+			//	bIsAmbiguousForEndmarkerPlacement = TRUE;
+		// yielding TRUE is made at about 6387 below, and the TRUE value causes the showing of the
+		// placement dialog further down - unless calculations in AnalyseStr() beforehand below revert
+		// the boolean to FALSE (so that placement dlg is skipped)
 		Tstr = rebuiltTstr;
 	}
 	else
 	{
-		// build Tstr: use this block when there is no conjoining with USFM fixed space ~
-		// marker, or when there is but there are no "medial" inline binding marker or
-		// endmarker involved (i.e. none to the left of the ~ marker and right of word1,
+		// BEW 7Sept23, our deprecation of the legacy fixed-space support, now means control
+		// will enter here with a Tstr value from pSingleSrcPhrase->m_targetStr (i.e. m_adaption
+		// with puncts not removed). This m_targetStr could be empty, or have no puncts.
+		// 
+		// BEW 7Seo23 Legacy comment here no longer applies: 
+		// build Tstr: (use this block when there is no conjoining with USFM fixed space
+		// ~ marker, or when there is but there are no "medial" inline binding marker
+		// or endmarker involved (i.e. none to the left of the ~ marker and right of word1,
 		// nor none to the right of ~ marker and left of word2)
 		int itsLength = Tstr.Len();
 		initialPuncts = SpanIncluding(Tstr,gpApp->m_punctuation[1]); // space is in m_punctuation
@@ -6456,6 +6475,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			tgtStr += pSP->GetFollowingOuterPunct();
 		}
 		Tstr = tgtStr; // we've got any inline binding markers in place, now for the rest
+
 	} // end of else block for test: if (bBindingMkrsToReplace)
 
 	// an inline non-binding (begin)marker is next, if there is one
@@ -6510,13 +6530,27 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			Tstr << pSP->GetInlineNonbindingEndMarkers();
 
 		}
+		// BEW 7Sep23, legacy code did not make sytematic use of the pSrcPhrase member
+		// m_tgtMkrPattern. Prefix pSrcPhrase->m_key to the Tstr built up thus far, and
+		// store it in pSingleSrcPhrase->m_tgtMkrPattern. The placement dialog, if called
+		// may overwrite with a different (and correct) value.
+		Tstr.Trim(FALSE); // remove any initial whitespace
+		if (pSingleSrcPhrase->m_key.IsEmpty())
+		{
+			pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
+		}
+		else
+		{
+			pSingleSrcPhrase->m_tgtMkrPattern = pSingleSrcPhrase->m_key + Tstr;
+		}
 	}
 	else
 	{
 		// there is ambiguity, so do the placement using the dialog -- BEW 22Feb12 added a
 		// check for m_tgtMkrPattern having content; if it does, use that for the Tstr
 		// value (before markersPrefix's contents get added), and so refrain from showing
-		// the placement dialog; but if the string is empty, then show the dialog
+		// the placement dialog; but if the string is empty, then show the dialog - unless
+		// the call of AnalyseSstr() returns a FALSE value to bIsAmbiguousForEndmarkerPlacement
 #if defined (_DEBUG)
 		{
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
@@ -6525,7 +6559,19 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			}
 		}
 #endif
-
+		// BEW 7Sep23, m_tgtMkrPattern will be empty if there has not yet been a tgt text
+		// export; or, it may have had a non-empty value but Doc's UpdateSingleSrcPattern()
+		// has emptied (deliberately) the m_tgtMkrPattern member, because matching puncts
+		// has returned a residue of unmatched ones - probabaly due to puncts changes made
+		// by the user deliberately (rare thing to do, but possible). So if it's emptied
+		// then our code below will, from FromSingleMakeSstr() get what's currently the
+		// pSingleSrcPhrase's end puncts (as maybe changed by the user), and from those
+		// build a new Tstr for putting in pSingleSrcPhrase's m_tgtMkrPattern. The good
+		// thing about this protocol is that puncts changes, though they cause a placement
+		// dialog to show, ones that finishes and Tstr is updated and m_tgtMkrPattern is
+		// then updated, the placement dialog won't be shown again (provided the user stays
+		// satisfied with his new word-ending puncts), because we can build the correct
+		// string in an export from what's been stored in m_tgtMkrPattern.
 		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
 			wxString xrefStr;
@@ -6555,6 +6601,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			wxString separator = _T("\\"); // separate with backslash
 			wxString CopiedTstr = Tstr;  // I want to work on a copy, so I can compare with Tstr after analysis
 			bIsAmbiguousForEndmarkerPlacement = AnalyseSstr(Sstr, arrItems, separator, CopiedTstr, tgtBaseStr);
+
 			if (bIsAmbiguousForEndmarkerPlacement == FALSE)
 			{
 				// If control enters here, the Placement dialog is avoided. So do here
@@ -6662,29 +6709,91 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			} // end of the TRUE block for test:  else if (bIsAmbiguousForEndmarkerPlacement)
 			else
 			{
-				// it's non-empty, so use it as Tstr's value (first ensure there is no
-				// preceding or final whitespace)
+				// Tstr is non-empty, so use it (first ensure there is no preceding or final whitespace)
 #if defined (_DEBUG)
 				if (pSingleSrcPhrase->m_nSequNumber >= 12)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
 #endif
-				wxString str = pSingleSrcPhrase->m_tgtMkrPattern;
-				str.Trim(FALSE);
-				str.Trim();
-				Tstr = str;
+				wxString str;
+				if (!pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
+				{
+					str = pSingleSrcPhrase->m_tgtMkrPattern;
+					str.Trim(FALSE);
+					str.Trim();
+					Tstr = str;
+					return Tstr;
+				}
+				else
+				{
+					// Can't use m_tgtMkrPattern, but m_tgtSinglePattern may have what we want
+					if (!pSingleSrcPhrase->m_tgtSinglePattern.IsEmpty())
+					{
+						str = pSingleSrcPhrase->m_tgtSinglePattern;
+						str.Trim(FALSE);
+						str.Trim();
+						Tstr = str;
+						return Tstr;
+					}
+				}
 			} // end of the else block for test: else if (bIsAmbiguousForEndmarkerPlacement)
-		} // end of TRUE block for test: 
 
-		// ********** MERGERS: legacy code not yet altered, as at 5Sep 23 ************
+		} // end of TRUE block for test: if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
+		else
+		{
+			// BEW 7Sep23 added this else block
+			// m_tgtMkrPattern is not empty, so we can make use of it to generate the correct
+			// mix of puncts and endMkrs for a target text export without recourse to using
+			// the placement dialog. (Note, placement of markers in a retranslation is 
+			// independent of all this stuff, it calls DoPlacementOfMarkersInRetranslation() 
+			// which should be fine according to the legacy code for doing that.)
+			wxString tgtPattern = pSingleSrcPhrase->m_tgtMkrPattern;
+			wxString currKey = pSingleSrcPhrase->m_key;
+			if (!currKey.IsEmpty())
+			{
+				// Find the first backslash in tgtPattern
+				wxChar chBackslash = _T('\\');
+				int nAt = tgtPattern.Find(chBackslash);
+				if (nAt != wxNOT_FOUND)
+				{
+					// There is content from m_key at the start of tgtPattern, remove that
+					// material - exports will use the remainder for getting the right
+					// mix of endMkrs and final puncts in the context of the endMkrs
+					tgtPattern = tgtPattern.Mid(nAt); // if nAt is zero, it gets the whole lot, that's correct
+					// tgtPattern now begins with a backslash
+					Tstr = tgtPattern; // we've got the right mix, and avoided the placement dlg
+					return Tstr;
+				}
+				else
+				{
+					// No backslash was found, so there are no markers, and no need
+					// to try placement - so any word-final puncts are appended to the
+					// m_key string's end - and that is what's in m_targetStr, so return that
+					Tstr = pSingleSrcPhrase->m_targetStr;
+					return Tstr;
+				}
+			}
+			else
+			{
+				// currKey is empty, so tgtPattern does not require removal of
+				// the initial m_key's contents
+				Tstr = tgtPattern;
+				return Tstr;
+			}
 
+		}  // end of else block for test: if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
+
+		// ********** MERGERS: legacy code not yet altered, as at 7Sep23 ************
+		// So placement dialog may appear, 
 		if (pDoc->m_bTstrFromMergerCalled)
 		{
 			// BEW 19May23 There was a prior call of FromMergerMakeTstr() at this current
 			// location, so because a Tstr value was obtained from that call, it is to 
-			// be stored in m_tgtMkrPatter - as of docVersion 6 and higher.
+			// be stored in m_tgtMkrPattern - as of docVersion 6 and higher.
 			pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
+			// BEW 7Sep23, and keep a copy in doc version 10's m_tgtSinglePattern
+			pSingleSrcPhrase->m_tgtSinglePattern = Tstr;
 		}
 		else
 		{
@@ -7392,7 +7501,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 
 			// This is a function which matches by positions, since equality tests won't work
 			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
-			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, bTokenizingTargetText);
+			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText);
 
 
 		}

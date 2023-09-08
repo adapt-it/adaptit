@@ -276,6 +276,7 @@ public:
 	wxString		m_strInitialPuncts; // BEW 23Jun23 a set of 11 pre-word punctuation chars, taken from spacelessPuncts to
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
+	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
 
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
@@ -385,7 +386,8 @@ public:
 	wxString		RemoveEndMkrsFromExtras(wxString extras); // BEW added 4May23
 	bool			Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhrase, wxString extras, 
 					int& extrasLen, wxString& residue, bool& bEndPunctsModified); // BEW added 4May23 'Q' in the name means "Query"
-	bool			UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, bool bTokenizingTargetText = FALSE); // BEW added 10May23
+	bool			UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& Sstr, bool bTokenizingTargetText = FALSE); // BEW added 10May23
+							// BEW 7Sep23 added 2nd param above, ref to Sstr
 							// for updating m_srcSinglePattern when puncts have changes
 	bool			CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString& oldSrcBitsArr, wxString& spacelessPuncts);
 	bool			m_bTstrFromMergerCalled; // BEW 19May23 added. So FromSingleMakeTstr() will know where to store its result
