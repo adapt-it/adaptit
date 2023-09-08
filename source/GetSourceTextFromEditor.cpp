@@ -573,6 +573,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// the dialog to see if that reduces the distraction and makes the selection process
 	// go better.
 	CWaitDlg waitDlg(this);
+	if (gpApp->m_bCollaboratingWithParatext)
+		waitDlg.m_nWaitMsgNum = 15;	// 15 has _("Please wait while Adapt It communicates with Paratext...")
+	if (gpApp->m_bCollaboratingWithBibledit)
+		waitDlg.m_nWaitMsgNum = 16; // 16 has _("Please wait while Adapt It communicates with Bibledit...")
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
 	waitDlg.Update();

@@ -190,12 +190,12 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//case 14:
 		//	WaitMsg = _("Please wait while Adapt It exports the KB...");
 		//	break;
-		//case 15:
-		//	WaitMsg = _("Please wait while the translation is sent to Paratext...");
-		//	break;
-		//case 16:
-		//	WaitMsg = _("Please wait while the translation is sent to Bibledit...");
-		//	break;
+		case 15:
+			WaitMsg = _("Please wait while Adapt It communicates with Paratext...");
+			break;
+		case 16:
+			WaitMsg = _("Please wait while Adapt It communicates with Bibledit...");
+			break;
 		//case 17:
 		//	WaitMsg = _("Please wait while the free translation is sent to Paratext...");
 		//	break;
