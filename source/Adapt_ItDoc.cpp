@@ -32312,19 +32312,20 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// assume it goes after the 'normal' endMkrs provided this does not reduce the remainder of the
 	// puncts to zero: eg. a situation like,  \k*.\f*<rest of puncts>
 	// There's no way we can eliminate guesswork from these protocols, but the above many well generate
-	// correct Tstr values in most instances.
+	// correct Sstr values in several contexts.
 
 	int offset = wxNOT_FOUND; // for getting endMkr type from pApp's fast-access strings
 	bool bOuterPunctHasContent = FALSE;
-	bool bFollowingPunctHasContent = FALSE;
+	bool bNormalEndPunctsHasContent = FALSE;
 	int  nTotalEndPuncts = 0; // init
 	wxString backslash = _T("\\");
+	wxString twoWedges = _T(">>");
 	// There are only two end-puncts storages, m_follPunct and m_follOuterPunct, inventory these first
-	wxString strFollPuncts = pSrcPhrase->m_follPunct;
-	int nNormalEndPuncts = strFollPuncts.Length();
+	wxString strNormalEndPuncts = pSrcPhrase->m_follPunct;
+	int nNormalEndPuncts = strNormalEndPuncts.Length();
 	if (nNormalEndPuncts > 0)
 	{
-		bFollowingPunctHasContent = TRUE;
+		bNormalEndPunctsHasContent = TRUE;
 	}
 	// check if m_follOuterPunct has any ending puncts
 	int nOuterPuncts = 0;
@@ -32364,8 +32365,8 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	}
 	// That gives needed values for decisions in the context of one or more inlineNonbindingEndMkrs
 
-	// Finally, do the same for 'normalType' endMkrs - those that get saved in pSrcPhrase->m_markers
-	normalType = pSrcPhrase->m_markers;
+	// Finally, do the same for 'normalType' endMkrs - those that get saved in pSrcPhrase->m_endMarkers
+	normalType = pSrcPhrase->GetEndMarkers();
 	int numNormal = 0; // count how many there are
 	if (!normalType.IsEmpty())
 	{
@@ -32378,7 +32379,10 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// is a singleton, but easily may be two (or three together, but that is unlikely - we hope)
 	nTotalEndMkrs = numBinding + numNormal + numNonbinding;
 
-	// Now it's time to do analysis. Starting with the nonbinding endMkrs information
+// ********* ANALYSIS *********
+
+	// Now it's time to do analysis. Starting with the nonbinding endMkrs information; the last thing
+	// to add will be the source text keyword, before storing the resulting Sstr in m_srcStringPattern
 	if (numNonbinding > 0 && nOuterPuncts > 0)
 	{
 		// Both conditions have to be TRUE. numNonbinding zero means any outer puncts have
@@ -32407,6 +32411,224 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// there are lots of puncts, and there are more than two successive endMkrs, probably put the first
 	// of those that remain, as after the first of those endMkrs. Not likely that more than 2 'normal'
 	// endMkrs will occur. Here goes...
+
+	// (1) When there are no initial inline binding endMkrs (there could be one or more normal endMkrs)
+	// normalType has the contents of m_endMarkers
+	if (bindingType.IsEmpty())
+	{
+		// There are no binding endMkrs on pSrcPhrase, so we need not consider placing any punct after
+		// such and before 'normal' endMkrs. Consider blocks for zero, one, or more normal endMkrs
+		if (numNormal == 0) // no normal endMkrs (m_endMarkers is empty)
+		{
+			// All the puncts attach directly to the end of the base word - no guesswork here,
+			// so insert them at the start of buildStr
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = strNormalEndPuncts + buildStr;
+			}
+			// if test was FALSE, we've no endPuncts to distribute 
+			// Note, we don't set Str until the very end, and we leave it to the caller to
+			// add m_key at the start, and to deposit the final string in m_srcStringPattern
+		}
+		else if (numNormal == 1) // one normal endMkr from m_endMarkers e.g. \f*
+		{
+			// there is one endMkr, append the normal endPuncts, if any, to it
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = (normalType + strNormalEndPuncts) + buildStr; // e.g. buildStr becomes \f*.” or \f*.>>
+			}
+		}
+		else if (numNormal == 2 && nNormalEndPuncts > 2) // two normal endMkrs from m_endMarkers
+		{
+			// Two final endMkrs, each may have final punctuation, or neither has, or last one of the two has. Guessing begins
+			// I'll assume that only 2 logical endpuncts follow an endMkr - thats 2 characters, or 3 if one is ">>"
+			int howMany = nNormalEndPuncts;
+			if (howMany > numNormal)
+			{
+				// More endPuncts than endMkrs - give first endPunct to follow first endMkr,  the rest after 2nd endMkr
+				wxString endMkr1 = wxEmptyString;
+				wxString endMkr2 = wxEmptyString;
+				endMkr1 = GetWholeMarker(normalType);
+				int lenMkr1 = endMkr1.Length();
+				if (lenMkr1 > 0)
+				{
+					endMkr2 = normalType.Mid(lenMkr1);
+				}
+				wxASSERT(!endMkr2.IsEmpty());
+				wxChar first = strNormalEndPuncts[0].GetValue();
+				wxString strRemainderPuncts = strNormalEndPuncts.Mid(1);
+				wxString subStr; // empty by default
+				subStr = endMkr1 + first;
+				subStr << endMkr2;
+				subStr << strRemainderPuncts;
+
+				buildStr = subStr + buildStr;
+			}
+			else if (howMany == numNormal)
+			{
+				// There are two endPuncts, and two endMkrs; best would be both follow 2nd  endMkr - this covers ">>" possibility
+				if (bNormalEndPunctsHasContent)
+				{
+					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
+				}
+				else
+				{
+					// no end puncts to place, so just insert the endMrks
+					buildStr = normalType + buildStr;
+				}
+			}
+			else if (howMany < numNormal)
+			{
+				// There are fewer endPuncts than endMkrs - so unwise to distribute any, put them all after the endMkr pair
+				if (bNormalEndPunctsHasContent)
+				{
+					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
+				}
+				else
+				{
+					// no puncts to place
+					buildStr = normalType + buildStr;
+				}
+			}
+		}
+		else if (numNormal >= 3) // three or more endMkrs from m_endMarkers
+		{
+			// Three endMkrs - probably extremely rare. Go for simplest possibility, attach
+			// all puncts after the last of the three
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = (normalType + strNormalEndPuncts) + buildStr; // it's guess only
+			}
+			else
+			{
+				// no puncts to place
+				buildStr = normalType + buildStr;
+			}
+		}
+		Sstr = buildStr;
+		return TRUE;
+	} // end of TRUE block for test: if (bindingType.IsEmpty())
+
+	// Next, the more complex case: normal endMkrs, one or more inline binding endMkrs, and various
+	// numbers of final puncts - none, some, many
+
+	// (2) When there are one or more initial inline binding endMkrs, and one or more normal endMkrs, and
+	// 	   some puncts - none or some or many
+	// normalType has the contents of m_endMarkers
+	if ( !bindingType.IsEmpty()) // there are binding endMkrs - one or more
+	{
+		// There are normal endMkrs too, so we need to consider placing puncts with either kind of endMkr -
+		// both binding endMks and 'normal' endMkrs. Consider blocks for zero, one, or more normal endMkrs;
+		// and various numbers of final puncts. 
+		if (numNormal == 0) // no normal endMkrs (m_endMarkers is empty), but there are inline binding mkr or mkrs
+		{
+			// All the puncts attach directly to the end of the binding endMkr, but if there are more than
+			// one binding endMkrs, then propbably we should distribute ending puncts, if their count allows
+			// (remember ">>" counts as one, if present
+			// so insert them at the start of buildStr
+
+			// How many binding endMkrs are there?
+			int nNumBindingEndMkrs = 0; // init
+			nNumBindingEndMkrs = bindingType.Replace(backslash, backslash);
+			wxASSERT(nNumBindingEndMkrs >= 1);
+			// How many normal endMkrs are there? Could be none, one, or more than one
+			int nNumNormalEndMkrs = normalType.Replace(backslash, backslash);
+
+
+// DONE to here, end of Friday 8 Sept 23
+
+
+
+// TODO
+
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = strNormalEndPuncts + buildStr;
+			}
+			// if test was FALSE, we've no endPuncts to distribute 
+			// Note, we don't set Str until the very end
+		}
+		else if (numNormal == 1) // one normal endMkr from m_endMarkers e.g. \f*
+		{
+			// there is one endMkr, append the normal endPuncts, if any, to it
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = (normalType + strNormalEndPuncts) + buildStr; // e.g. buildStr becomes \f*.” or \f*.>>
+			}
+		}
+		else if (numNormal == 2 && nNormalEndPuncts > 2) // two normal endMkrs from m_endMarkers
+		{
+			// Two final endMkrs, each may have final punctuation, or neither has, or last one of the two has. Guessing begins
+			// I'll assume that only 2 logical endpuncts follow an endMkr - thats 2 characters, or 3 if one is ">>"
+			int howMany = nNormalEndPuncts;
+			if (howMany > numNormal)
+			{
+				// More endPuncts than endMkrs - give first endPunct to follow first endMkr,  the rest after 2nd endMkr
+				wxString endMkr1 = wxEmptyString;
+				wxString endMkr2 = wxEmptyString;
+				endMkr1 = GetWholeMarker(normalType);
+				int lenMkr1 = endMkr1.Length();
+				if (lenMkr1 > 0)
+				{
+					endMkr2 = normalType.Mid(lenMkr1);
+				}
+				wxASSERT(!endMkr2.IsEmpty());
+				wxChar first = strNormalEndPuncts[0].GetValue();
+				wxString strRemainderPuncts = strNormalEndPuncts.Mid(1);
+				wxString subStr; // empty by default
+				subStr = endMkr1 + first;
+				subStr << endMkr2;
+				subStr << strRemainderPuncts;
+
+				buildStr = subStr + buildStr;
+			}
+			else if (howMany == numNormal)
+			{
+				// There are two endPuncts, and two endMkrs; best would be both follow 2nd  endMkr - this covers ">>" possibility
+				if (bNormalEndPunctsHasContent)
+				{
+					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
+				}
+				else
+				{
+					// no end puncts to place, so just insert the endMrks
+					buildStr = normalType + buildStr;
+				}
+			}
+			else if (howMany < numNormal)
+			{
+				// There are fewer endPuncts than endMkrs - so unwise to distribute any, put them all after the endMkr pair
+				if (bNormalEndPunctsHasContent)
+				{
+					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
+				}
+				else
+				{
+					// no puncts to place
+					buildStr = normalType + buildStr;
+				}
+			}
+		}
+		else if (numNormal >= 3) // three or more endMkrs from m_endMarkers
+		{
+			// Three endMkrs - probably extremely rare. Go for simplest possibility, attach
+			// all puncts after the last of the three
+			if (bNormalEndPunctsHasContent)
+			{
+				buildStr = (normalType + strNormalEndPuncts) + buildStr; // it's guess only
+			}
+			else
+			{
+				// no puncts to place
+				buildStr = normalType + buildStr;
+			}
+		}
+		Sstr = buildStr;
+		return TRUE;
+	} // end of TRUE block for test: if (bindingType.IsEmpty())
+
+
+
 
 
 
@@ -34969,10 +35191,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 	{
-		wxString pointsAt = wxString(ptr, 20);
-		wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], FOR (2t) precPunct= [%s]  ptr-> [%s]"),
-					__LINE__, pApp->m_curChapter.c_str(), precPunct.c_str(), pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 5)
+		wxString pointsAt = wxString(ptr, 16);
+		wxLogDebug(_T("ParseWord() line %d , Starting parse of (666). , ptr-> [%s]"), __LINE__, pointsAt.c_str());
+		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -34982,44 +35203,71 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	// BEW 8Sep23 In Nyindrou Bill came across this:  (666). before start of footnote, and it was parsed as
 	// (666:. before the footnote. : instead of )  Fix that. Whitespace may preceed, so check for its
 	// length so that the if test can have correct pointer values
+	// BEW9Sep23 my first attempt worked, but it made parsing data like (9:9-13) fail when something internally
+	// not a digit before the next ) is found, gets clobbered - asserts tripping in Nyindrou docs again. So
+	// I'm trying a new way: keep bKeepPtrFromAdvancing set as default FALSE, let therefore ParsePreWord() gobble
+	// the _T('(') that was start of (666), use *(ptr - 1) being an open parenthesis cause entry in the test,
+	// and reject the parse if one of : or - or . or , are found before the matching closing parentheses.
+	//if (pNewPtr < pEnd && *pNewPtr == _T('(') && IsAnsiDigit(*(pNewPtr + 1))) <<-- old way, when initial open paren not gobbled
+
 	{ // scoped block starts
-		int nwhites = CountWhitesSpan(ptr, pEnd);
-		wxChar* pNewPtr = ptr + nwhites;
-		if (pNewPtr < pEnd && *pNewPtr == _T('(') && IsAnsiDigit(*(pNewPtr + 1)))
+		//int nwhites = CountWhitesSpan(ptr, pEnd);
+		wxChar* pNewPtr = ptr; //+ nwhites;
+		if (pNewPtr < pEnd && *(pNewPtr - 1) == _T('(') && IsAnsiDigit(*pNewPtr))
 		{
-			// the above test is not sufficient, we can obtain the correct result only by parsing over
+			len = 0;
+			//wxChar colon = _T(':'); wxChar hyphen = _T('-'); wxChar period = _T('.'); wxChar semicolon = _T(',');
+
+			// The above test is not sufficient, we can obtain the correct result only by parsing over
 			// the digits, and then finding the next character is a matching _T(')') for the opening parenthesis.
 			wxChar* pAux = pNewPtr; // protect pNewPtr from advance until the above condition is satisfied
 			int numDigits = 0;
-			numDigits = ParseNumber(pAux + 1); // parse from the first digit to the end of digits
+			numDigits = ParseNumber(pAux); // parse from the first digit to the end of digits
 			if (numDigits > 0)
 			{
-				pAux += (1 + numDigits); // point at the wxChar following the digits
+				pAux += numDigits; // point at the wxChar following the digits
 			}
 			if (*pAux == _T(')'))
 			{
 				// success, the digits are followed by the matching closed parenthesis
-				len = 0;
-				wxString strResult = wxString(pNewPtr, (numDigits + 2));
-				len += (numDigits + 2);
-				pNewPtr += (numDigits + 2); // pNewPtr now points at whatever follows _T(')') character
+
+				wxString strResult = wxString(pNewPtr, (numDigits + 1));
+				len += (numDigits + 1);
+				pNewPtr += (numDigits + 1); // pNewPtr now points at whatever follows _T(')') character
 				// No markers involved, and no puncts within the (  ) parentheses, but puncts may follow
 				// which belong to the pSrcPhrase - check and append them to form m_srcPhrase correctly
-				pSrcPhrase->m_key = strResult;
-				pSrcPhrase->m_srcPhrase = strResult;
+				// Since '(' got gobbled by ParsePreWord(), we have to restore it for m_key, etc
+				pSrcPhrase->m_key = _T("(") + strResult;
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
 				int punctsLen = ParseFinalPuncts(pNewPtr, pEnd, spacelessPuncts);
 				if (punctsLen > 0)
 				{
 					wxString punctsStr = wxString(pNewPtr, punctsLen);
-					pSrcPhrase->m_srcPhrase = strResult + punctsStr;
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_srcPhrase + punctsStr;
 					len += punctsLen;
-					pNewPtr += punctsLen;
+					pNewPtr += punctsLen; // points at <space> before following word, when ParseWord()
+					// returns, using len value, ptr wil be updated to point at same place
 				}
-				ptr = pNewPtr;
-				bKeepPtrFromAdvancing = FALSE; // retore default, so ParsePreWord() can operate at next pSrcPhrase
-				return len; // force a new pSrcPhrase, this one is finished
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+				{
+					wxString pointsAt = wxString(ptr, 16);
+					wxLogDebug(_T("ParseWord() line %d , Parsing (666). Returning len = %d,  ptr-> [%s]"),
+						__LINE__, len, pointsAt.c_str());
+					if (pSrcPhrase->m_nSequNumber >= 1)
+					{
+						int halt_here = 1; wxUnusedVar(halt_here);
+					}
+				}
+#endif
+				// force a new pSrcPhrase, this one is finished
+				return len;
 			}
-			// if the if (*pAux == _T(')')) test fails, ptr is unmoved, current pSrcPhrase remains current
+			else
+			{
+				// pAux is not pointing at closing parenthesis, so this is some other kind of number - 
+				// disallow this parse so that number parsing code further down can do it's job
+				;
+			}
 		}
 	} // scoped block ends
 	// BEW 25Aug23, source data of this kind [including the ( and ) parentheses]: (2t) (2toea) (2 kina) (5MB) etc
@@ -40422,6 +40670,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 		//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
+/* 
+		BEW 9Sep2023 this turned out to work, but it clobbered parsing of things like (9:9-13), gotta find another way
+		-- probably allow ParsePreWord() to gobble the initial '(', and the code at top of ParseWord then accepts entry
+		if *(ptr -  1) is '(', and don't set bKeepPtrFromAdvancing temporarily to TRUE so as to skip allow ParsePreWord()
 
 		// BEW 3Sep19 added next line, for support of USFM3
 		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
@@ -40442,7 +40694,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				bKeepPtrFromAdvancing = TRUE;
 			}
 		} // scoped block ends
-
+*/
 
 		// Try correct "<<" followed by space before a word. We dont want the word's << punctuation
 		// to be a detached pSrcPhrase storing only "<<"  ptr should be pointing at the first '<' as

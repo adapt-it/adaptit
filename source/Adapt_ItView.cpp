@@ -24371,6 +24371,17 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 				return FALSE; // it's structured data
 			nFound = -1;
 			nFound = markers.Find(s1 + _T("x "));
+			// BEW 9Sep23 add some more, as little unittests may have non of the above, especially in book introductions
+			nFound = -1;
+			nFound = markers.Find(s1 + _T("ip "));
+			nFound = -1;
+			nFound = markers.Find(s1 + _T("io1 "));
+			nFound = -1;
+			nFound = markers.Find(s1 + _T("li "));
+			nFound = -1;
+			nFound = markers.Find(s1 + _T("li1 "));
+			nFound = -1;
+			nFound = markers.Find(s1 + _T("is "));
 			if (nFound >= 0)
 				return FALSE; // it's structured data
 		}
