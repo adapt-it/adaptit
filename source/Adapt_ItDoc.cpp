@@ -42161,6 +42161,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxChar chNext; bool bCRisnext;
 							bCRisnext = FALSE; // init
 							chNext = *pAux2; // chNext is what should be appended to tokBuffer
+							// whm 7Sep2023 modified the next 3 if tests below to ensure that if EOL is "\r\n" that 
+							// "\r\n" gets put into tokBuffer and m_markers, otherwise m_markers can end up with a 
+							// mixture of "\r" and "\r\n" EOLs within it, which when MakeXML() is called the EOLs 
+							// of the xml document are a mixture of EOLs and not consistently "\r\n".
+							/*
 							if (chNext == _T('\r'))
 							{
 								bCRisnext = TRUE; // collab will have \r next, non-collab would point at \n
@@ -42169,7 +42174,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							{
 								tokBuffer += chNext; // when bCRisnext is FALSE, tokBuffer already has aWholeMkr (see 41871) 
 							}
-						// BEW 6Jul23 Don't lose the marker, add it to m_markers
+							// BEW 6Jul23 Don't lose the marker, add it to m_markers
 							pSrcPhrase->m_markers += tokBuffer;
 							if (bCRisnext)
 							{
@@ -42179,6 +42184,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							{
 								ptr += awholemkrlen + 1; // +1 because we parsed over whatever wxChar follows aWholeMkr
 							}
+							*/
+							int eolLen = 0;
+							if (IsWhiteSpace(pAux2))
+							{
+								eolLen = ParseWhiteSpace(pAux2);
+								wxString whiteStr = wxString(pAux2, eolLen);
+								tokBuffer += whiteStr;
+							}
+							pSrcPhrase->m_markers += tokBuffer;
+							ptr += awholemkrlen + eolLen;
+							
 							wxChar* pAux;
 							pAux = ptr;
 #if defined (_DEBUG) //&& !defined (NOLOGS)
