@@ -32517,125 +32517,166 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// normalType has the contents of m_endMarkers
 	if ( !bindingType.IsEmpty()) // there are binding endMkrs - one or more
 	{
+		// How many binding endMkrs are there?
+		int nNumBindingEndMkrs = 0; // init
+		nNumBindingEndMkrs = bindingType.Replace(backslash, backslash);
+		wxASSERT(nNumBindingEndMkrs >= 1);
+		// How many normal endMkrs are there? Could be none, one, or more than one
+		int nNumNormalEndMkrs = normalType.Replace(backslash, backslash);
+		// Get the inline binding mkrs in pSrcPhrase. Usually only one, sometimes
+		// could be two, three would be extremely rare. Use wxArrayString for safety.
+		// We know there are endMkrs, we there is at least one bindingEndMkr, we know
+		// there could be puncts; and there could be normal end mkrs from m_markers;
+		// but we don't know the order in the mix of all 3 of these things - gotta guess
+		wxArrayString arrBindingEMkrs;
+		int index;
+		wxString aBindingEMkr;
+		wxString strBindingMkrs = bindingType; // I'll consume from LHS string in the loop
+		int nSingleEMkrLen = 0;
+		for (index = 0; index < nNumBindingEndMkrs; index++)
+		{
+			aBindingEMkr = GetWholeMarker(strBindingMkrs);
+			nSingleEMkrLen = aBindingEMkr.Length();
+			if (aBindingEMkr.IsEmpty())
+			{
+				break; // somethings wrong, there are fewer than expected, work with how many are identified
+			}
+			arrBindingEMkrs.Add(aBindingEMkr);
+			// remove the one found
+			strBindingMkrs = strBindingMkrs.Mid(nSingleEMkrLen);
+		}
+		// nTotalEndPuncts has to be reset by collecting puncts from m_follPunct (only, m_follOuterPunct done above)
+		wxString strEndPuncts = pSrcPhrase->m_follPunct;
+		nTotalEndPuncts = strEndPuncts.Length();
+
 		// There are normal endMkrs too, so we need to consider placing puncts with either kind of endMkr -
 		// both binding endMks and 'normal' endMkrs. Consider blocks for zero, one, or more normal endMkrs;
 		// and various numbers of final puncts. 
-		if (numNormal == 0) // no normal endMkrs (m_endMarkers is empty), but there are inline binding mkr or mkrs
+		if (numNormal == 0) // no normal endMkrs (m_endMarkers is empty), but there are inline binding endMkr/s
 		{
 			// All the puncts attach directly to the end of the binding endMkr, but if there are more than
-			// one binding endMkrs, then propbably we should distribute ending puncts, if their count allows
+			// one binding endMkrs, then probably we should distribute ending puncts, if their count allows
 			// (remember ">>" counts as one, if present
 			// so insert them at the start of buildStr
-
-			// How many binding endMkrs are there?
-			int nNumBindingEndMkrs = 0; // init
-			nNumBindingEndMkrs = bindingType.Replace(backslash, backslash);
-			wxASSERT(nNumBindingEndMkrs >= 1);
-			// How many normal endMkrs are there? Could be none, one, or more than one
-			int nNumNormalEndMkrs = normalType.Replace(backslash, backslash);
-
-
-// DONE to here, end of Friday 8 Sept 23
-
-
-
-// TODO
-
-			if (bNormalEndPunctsHasContent)
+			if (nNumBindingEndMkrs == 1 && nTotalEndPuncts == 0)
 			{
-				buildStr = strNormalEndPuncts + buildStr;
-			}
-			// if test was FALSE, we've no endPuncts to distribute 
-			// Note, we don't set Str until the very end
-		}
-		else if (numNormal == 1) // one normal endMkr from m_endMarkers e.g. \f*
-		{
-			// there is one endMkr, append the normal endPuncts, if any, to it
-			if (bNormalEndPunctsHasContent)
-			{
-				buildStr = (normalType + strNormalEndPuncts) + buildStr; // e.g. buildStr becomes \f*.” or \f*.>>
-			}
-		}
-		else if (numNormal == 2 && nNormalEndPuncts > 2) // two normal endMkrs from m_endMarkers
-		{
-			// Two final endMkrs, each may have final punctuation, or neither has, or last one of the two has. Guessing begins
-			// I'll assume that only 2 logical endpuncts follow an endMkr - thats 2 characters, or 3 if one is ">>"
-			int howMany = nNormalEndPuncts;
-			if (howMany > numNormal)
-			{
-				// More endPuncts than endMkrs - give first endPunct to follow first endMkr,  the rest after 2nd endMkr
-				wxString endMkr1 = wxEmptyString;
-				wxString endMkr2 = wxEmptyString;
-				endMkr1 = GetWholeMarker(normalType);
-				int lenMkr1 = endMkr1.Length();
-				if (lenMkr1 > 0)
-				{
-					endMkr2 = normalType.Mid(lenMkr1);
-				}
-				wxASSERT(!endMkr2.IsEmpty());
-				wxChar first = strNormalEndPuncts[0].GetValue();
-				wxString strRemainderPuncts = strNormalEndPuncts.Mid(1);
-				wxString subStr; // empty by default
-				subStr = endMkr1 + first;
-				subStr << endMkr2;
-				subStr << strRemainderPuncts;
-
-				buildStr = subStr + buildStr;
-			}
-			else if (howMany == numNormal)
-			{
-				// There are two endPuncts, and two endMkrs; best would be both follow 2nd  endMkr - this covers ">>" possibility
-				if (bNormalEndPunctsHasContent)
-				{
-					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
-				}
-				else
-				{
-					// no end puncts to place, so just insert the endMrks
-					buildStr = normalType + buildStr;
-				}
-			}
-			else if (howMany < numNormal)
-			{
-				// There are fewer endPuncts than endMkrs - so unwise to distribute any, put them all after the endMkr pair
-				if (bNormalEndPunctsHasContent)
-				{
-					buildStr = (normalType + strNormalEndPuncts) + buildStr; // probably okay
-				}
-				else
-				{
-					// no puncts to place
-					buildStr = normalType + buildStr;
-				}
-			}
-		}
-		else if (numNormal >= 3) // three or more endMkrs from m_endMarkers
-		{
-			// Three endMkrs - probably extremely rare. Go for simplest possibility, attach
-			// all puncts after the last of the three
-			if (bNormalEndPunctsHasContent)
-			{
-				buildStr = (normalType + strNormalEndPuncts) + buildStr; // it's guess only
+				// There is only one binding endMkr, but no normal endMkrs (m_endMarkers is empty) 
+				// and no puncts to place; so just insert the endMkr
+				buildStr = arrBindingEMkrs.Item(0) + buildStr;
 			}
 			else
 			{
-				// no puncts to place
-				buildStr = normalType + buildStr;
+				// We Know that entering else must be due to nTotalEndPuncts being > 0.
+				// So just add them all after the first (inline binding) endMkr - no guessing here
+				buildStr = arrBindingEMkrs.Item(0) + strEndPuncts + buildStr;
 			}
-		}
+		} // end of TRUE block for test: if (numNormal == 0)
+		else if (numNormal == 1)
+		{
+			// There is at least one bindingEndMkr, and only a single 'normal' endMkr in m_endMarkers; 
+			// maybe zero, one, or more ending puncts - the number of puncts is in nTotalEndPunts.
+			// The issue here is whether to put the first punct, if any exist, as belonging to the end
+			// of the binding endMkr? Answer is 'no' if there is only a single binding endMkr, but
+			// two binding endMkrs in sequence is problematic. I think we'll associate the ending puncts
+			// as following the single normal endMkr, except when the puncts count is > 2 (or >3 if
+			// ">>" (logically, one punct) is present in strEndPuncts
+			bool bTwoWedgesPresent = strEndPuncts.Find(twoWedges) >= 0 ? TRUE : FALSE;
+			bool bSeveralPuncts = FALSE; // init
+			if ((bTwoWedgesPresent && nTotalEndPuncts > 3) || nTotalEndPuncts > 2 )
+			{
+				bSeveralPuncts = TRUE; // okay, we can "afford" to put the first punct with the binding
+									   //  endMkr and the rest can follow the single 'normal' endMkr
+			}
+			if (bSeveralPuncts)
+			{
+				// Pull off the first punct from strEndPuncts, and the remainder go after the normal endMkr
+				// Beware, the first punct might be ">>"
+				wxString firstPunct;
+				wxString theRest;
+				if (bTwoWedgesPresent)
+				{
+					firstPunct = strEndPuncts.Left(2);
+					theRest = strEndPuncts.Mid(2); // rest of the final puncts
+				}
+				else
+				{
+					firstPunct = strEndPuncts.Left(1);
+					theRest = strEndPuncts.Mid(1); // rest of the final puncts
+				}
+				wxString buildBits = bindingType; // the one or more binding endMkrs ( e.g. \k*\i* or more)
+										// these are character format markers, and unlikely to have punctuation
+										// between them
+				buildBits << firstPunct;
+				buildBits << normalType; // the one 'normal' endMkr (e.g \f* )
+				buildBits << theRest;
+				buildStr = buildBits + buildStr;
+			}
+			else
+			{
+				// Not enough puncts to divide them up
+				wxString buildBits = bindingType; // the one or more binding endMkrs
+				buildBits << strEndPuncts; // all the puncts - could be emptyString
+				buildStr = buildBits + buildStr;
+			}
+		} // end of true block for test: else if (numNormal == 1)
+		else if (numNormal > 1)
+		{
+			// I think I've covered the likely possibilities. So this block can be a
+			// catch all. Three or more binding endMkrs? Unlikely. Two or more 'normal'
+			// endMkrs - a reasonable possibility, so divide puncts up if able, if not
+			// able, just add them and all puncts after the last such endMkr.
+			// Get the last end marker using: wxString GetLastEndMarker(wxString mkrs)
+			bool bTwoWedgesPresent = strEndPuncts.Find(twoWedges) >= 0 ? TRUE : FALSE;
+			// Get the normal end puncts - these from m_endMarkers - grab, if possible
+			// the last punct, and put it after the first of these normal endMkrs, and
+			// the rest of the following puncts can go after the last normal endMkr
+			wxString strLastEMkr = GetLastEndMarker(normalType);
+			int nLastEMkrLen = strLastEMkr.length();
+			wxString strInitialEMkrs = normalType.Left(nNormalLen - nLastEMkrLen);
+
+			// If enough final puncts, grab the first for placing earlier
+			bool bSeveralPuncts = FALSE; // init
+			if ((bTwoWedgesPresent && nTotalEndPuncts > 3) || nTotalEndPuncts > 2)
+			{
+				bSeveralPuncts = TRUE; // okay, put the first punct after the strLastEMkr
+									   // and the of the puncts at end of 'normal' endMkrs
+			}
+			if (bSeveralPuncts)
+			{
+				// Pull off the first punct from strEndPuncts, and the remainder go after
+				//  the normal endMkrs Beware, the first final punct may be ">>"
+				wxString firstPunct;
+				wxString theRest;
+				if (bTwoWedgesPresent)
+				{
+					firstPunct = strEndPuncts.Left(2);
+					theRest = strEndPuncts.Mid(2); // rest of the final puncts
+				}
+				else
+				{
+					firstPunct = strEndPuncts.Left(1);
+					theRest = strEndPuncts.Mid(1); // rest of the final puncts
+				}
+				wxString buildBits = strInitialEMkrs; // the initial set of endMkrs (excluding last one)
+				buildBits << firstPunct;
+				buildBits << strLastEMkr;
+				buildBits << theRest;
+				buildStr = buildBits + buildStr;
+			}  // end of TRUE block for test: if (bSeveralPuncts)
+			else
+			{
+				// Too risky to divide off the first punct, so just add the lot after
+				// normalType
+				wxString buildBits = normalType;
+				buildBits << strEndPuncts;
+				buildStr = buildBits + buildStr;
+			} // end of else block for test: if (bSeveralPuncts)
+
+		} // end of TRUE block for test: else if (numNormal > 1)
+
 		Sstr = buildStr;
 		return TRUE;
 	} // end of TRUE block for test: if (bindingType.IsEmpty())
-
-
-
-
-
-
-
-
-
-// TODO the rest
 
 	Sstr = buildStr; // return this to caller via signature, and return TRUE as function result
 

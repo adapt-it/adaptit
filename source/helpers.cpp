@@ -7467,9 +7467,6 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	}
 	else
 	{
-		// BEW 10Jul23 put the function for converting extras string into a pattern, here
-		pattern = ConvertExtrasToPattern(strSaveExtras, pSingleSrcPhrase);
-
 		// When if (bIsOK && extrasLen == 0 && residue.IsEmpty()) is FALSE... then matching by string equality
 		// for puncts in matching positions failed to reduce the residue to empty. Matchup failure(s) will
 		// cause bEndPunctsModified to be TRUE. That's not a problem if the before and after count of puncts
@@ -7491,19 +7488,18 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			// changed) be put into m_follPunct and perhaps also into m_inlineBindingEndMarkers and/or into
 			// m_inlineNonbindingEndMarkers (though puncts after markers like \wj* etc are very unlikely).
 			// If the number of puncts has not changed, then we can use the new set without a Placement dlg,
-			// but if the inventory is fewer or more, the only way to be sure of accuracy is to do Placement dlg.
+			// but if the inventory is fewer or more, the only way to be sure of accuracy is to do Placement
+			// dlg; however, that can be avoided by use of UpdateSingleSrcPattern() below - but that function
+			// has some guesswork at where final puncts are to be distributed.
 			// (3) If the user, in the phrasebox, manually adds end puncts which differ at least in 1 place
 			// from those in pSrcPhrase->m_srcSinglePattern (at same sequ num). Doing that should also then
 			// result in view's MakeTargetStringIncludingPuctuation() using the changed punc(s), and that
 			// function contains a Placement dialog which we may need to call if the inventory of ending
 			// punctuations differs from those in m_srcSinglePattern (at same sequNum)
 
-
 			// This is a function which matches by positions, since equality tests won't work
 			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
 			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText);
-
-
 		}
 		else
 		{
@@ -7555,16 +7551,11 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	{
 
 
-
-
-
-
-
 // TODO if needed when end puncts were modified
 
 	} // end of else block for test: if (!bEndPuntsModified)
 
-	/*
+	/* BEW, commented out - the caller will do this when appropriate
 	pSingleSrcPhrase->m_srcPhrase = pSingleSrcPhrase->m_srcSinglePattern; // that's the word plus what follows
 
 	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
@@ -7589,7 +7580,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
 }
-
+/* BEW 11Sep23 deprecated, it does nothing useful - I did not implement the B E N stuff
 // BEW 10Jul23 added. Analysis for coping with manual punctuation changes, to reduce 
 // incidence of Placement dialogs appearing. Markers and puncts, whitespace too are
 // given symbols - left to right, according to the order of these in extras string
@@ -7623,30 +7614,12 @@ wxString ConvertExtrasToPattern(wxString extras, CSourcePhrase* pSP)
 #endif
 
 	wxString pattern; pattern = wxEmptyString; // init
-	/* // whm 25Aug2023 commented out this call since BEW commented out the other call back in FromSingleMakeSstr()
-	wxString endMkrsRemoved;
-
-	//endMkrsRemoved = ConvertEndMkrs2BEN(extras, pSP);  comment out until I do and finish work on a good algorithm within it
-
-#if defined (_DEBUG)
-	if (pSP->m_nSequNumber == 2)
-	{
-		wxLogDebug(_T("ConvertExtrasToPatter() line %d , endMkrsRemoved= [%s]"), __LINE__, endMkrsRemoved.c_str());
-		int halt_here = 1;
-	}
-#endif
-	*/
-
-
-
-
-
-
 
 	return pattern;
 }
-
+*/
 // BEW 12Jul23 added
+/* BEW 11Sep23 deprecated, I am not going to implement the B E N protocols
 wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 {
 	if (extras.IsEmpty())
@@ -7783,7 +7756,7 @@ wxString ConvertEndMkrs2BEN(wxString extras, CSourcePhrase* pSP)
 
 	return strResult;
 }
-
+*/
 /// return      The recomposed end of the source text string, including punctuation and markers,
 ///             starting with m_key value, and exclude contents of m_filteredInfo_After 
 /// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
