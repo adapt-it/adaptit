@@ -6519,6 +6519,24 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	if (!bHasOuterFollPunct && !bIsAmbiguousForEndmarkerPlacement)
 	{
 		// there is no ambiguity, so no placement dialog needed
+		
+		// whm 19Sept2023 modified according to BEW email this date. BEW suggested
+		// trying to have just the following two lines in this TRUE block, then
+		// commenting out the remainder of the TRUE block.
+		// 
+		// whm 20Sep2023 UPDATE. NO we cannot call Tstr.Empty() here since it
+		// removes all the content (other than EOLs and spaces) from the target text
+		// being built. The commenting out of the next two if blocks also looks 
+		// wrong to me since the Tstr should I think have engMarkersStr augmented to it
+		// as well as any Inline Nonbinding End Markers. 
+		// Therefore I've commented out the Tstr.Empty() statement, and have 
+		// reinstated those two if blocks below, but have left the 
+		// pSingleSrcPhrase->m_tgtMkrPattern.Empty() call intact.
+		// BEW TODO: check that the changes made here don't mess up the logic of the
+		// code that deals with ambiguous placement of end markers.
+		//Tstr.Empty();
+		pSingleSrcPhrase->m_tgtMkrPattern.Empty();
+		
 		if (!endMarkersStr.IsEmpty())
 		{
 			Tstr << endMarkersStr;
@@ -6530,6 +6548,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			Tstr << pSP->GetInlineNonbindingEndMarkers();
 
 		}
+		/*
 		// BEW 7Sep23, legacy code did not make sytematic use of the pSrcPhrase member
 		// m_tgtMkrPattern. Prefix pSrcPhrase->m_key to the Tstr built up thus far, and
 		// store it in pSingleSrcPhrase->m_tgtMkrPattern. The placement dialog, if called
@@ -6543,6 +6562,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		{
 			pSingleSrcPhrase->m_tgtMkrPattern = pSingleSrcPhrase->m_key + Tstr;
 		}
+		*/
 	}
 	else
 	{

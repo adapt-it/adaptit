@@ -6817,6 +6817,9 @@ extern bool gbDoingInitialSetup;
 		// in next call, param 2 is from enum ExportType in Adapt_It.h
 		FormatMarkerBufferForOutput(text, targetTextExport);
 		text = RemoveMultipleSpaces(text);
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(text,TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
 
 #if defined(_DEBUG)
 		// last verse adaptation loss bug: get the last 200 chars and wxLogDebug them
@@ -6878,6 +6881,9 @@ extern bool gbDoingInitialSetup;
 
 		FormatMarkerBufferForOutput(text, freeTransTextExport);
 		text = RemoveMultipleSpaces(text);
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(text); // no second parameter defaults bEndWithEOL to FALSE 
 
 #if defined(_DEBUG)
 		// last verse free trans loss bug: get the last 200 chars and wxLogDebug them
@@ -11596,6 +11602,10 @@ extern bool gbDoingInitialSetup;
 		FormatMarkerBufferForOutput(source, sourceTextExport);
 
 		source = RemoveMultipleSpaces(source);
+
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(source,TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
 
 		if (bIsUnstructuredData)
 		{

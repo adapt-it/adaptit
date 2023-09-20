@@ -866,6 +866,11 @@ wxString ApplyNormalizingFiltersToTheUSFMText(wxString text)
 
 	// remove any multiple spaces
 	text = RemoveMultipleSpaces(text);
+	
+	// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+	// a single CRLF
+	NormalizeTextEOLsToCRLF(text); // no second parameter defaults bEndWithEOL to FALSE 
+
 	return text;
 }
 /// Open a wxFile for writing, but if it fails to open, abandon the export and warn user
@@ -1798,6 +1803,10 @@ void DoExportAsType(enum ExportType exportType)
 		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
 #endif
 
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(source, TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
+
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(source, bRTFOutput);
 
@@ -1862,6 +1871,10 @@ void DoExportAsType(enum ExportType exportType)
 		FormatMarkerBufferForOutput(glosses, glossesTextExport);
 
 		glosses = RemoveMultipleSpaces(glosses);
+		
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(glosses); // no second parameter defaults bEndWithEOL to FALSE 
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(glosses, bRTFOutput);
@@ -1915,6 +1928,10 @@ void DoExportAsType(enum ExportType exportType)
 		FormatMarkerBufferForOutput(freeTrans, freeTransTextExport);
 
 		freeTrans = RemoveMultipleSpaces(freeTrans);
+		
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(freeTrans); // no second parameter defaults bEndWithEOL to FALSE 
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(freeTrans, bRTFOutput);
@@ -1985,6 +2002,10 @@ void DoExportAsType(enum ExportType exportType)
 #endif
 
 		target = RemoveMultipleSpaces(target);
+		
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(target); // no second parameter defaults bEndWithEOL to FALSE 
 
 #if defined(_DEBUG) && defined(TRUNCATED)
 		wxLogDebug(_T("DoExportAsType() after RemoveMultipleSpaces(): text length = %d"), target.Length());
@@ -17185,6 +17206,9 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // supplying the list pointer, it can rebuild the source text from any SPList (I want this
 // capability so that it can be used in the marker filtering mechanism, when the user
 // changes a marker from being unfiltered, to filtered, using Preferences)
+// whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
+// will have the same EOLs across the board, and not have mixed EOLs with some being
+// LF and some being CRLF.
 int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
@@ -17390,7 +17414,15 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		} // end of TRUE block for test: if (pSrcPhrase->m_nSequNumber > 0)
 		if (!aBreak.IsEmpty())
 		{
-			str += aBreak;
+			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
+			if (aBreak == _T('\n'))
+			{
+				str += _T("\r\n"); // change LF to CRLF
+			}
+			else
+			{
+				str += aBreak;
+			}
 			source << str; // do it now, as str is emptied in a few places further below
 			str.Empty();
 		}
@@ -17843,6 +17875,9 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 		// format for text oriented output
 		FormatMarkerBufferForOutput(usfmText, exportType);
 		usfmText = RemoveMultipleSpaces(usfmText);
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(usfmText); // no second parameter defaults bEndWithEOL to FALSE 
 	}
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
 	return usfmText;
@@ -18846,6 +18881,9 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 // all target text with markers replaced as appropriate, but totally ignore any filtered information
 // because, by definition, it is source text information and does not belong in a target text
 // export. So my refactoring now will be to make it behave like it should have long long ago.
+// whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
+// will have the same EOLs across the board, and not have mixed EOLs with some being
+// LF and some being CRLF.
 int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
 	// BEW 21Jul14, I need the EnableLogging() call, because this function refuses to
@@ -18913,7 +18951,15 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 #endif
 		if (!aBreak.IsEmpty())
 		{
-			targetstr += aBreak;
+			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
+			if (aBreak == _T('\n'))
+			{
+				targetstr += _T("\r\n"); // change LF to CRLF
+			}
+			else
+			{
+				targetstr += aBreak;
+			}
 		}
 		if (pSrcPhrase->m_bRetranslation)
 		{
@@ -20681,15 +20727,46 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 		int eolLen;
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
+#if defined (_DEBUG)
+			if (pOld == pEnd - 80)
+			{
+				int break_here = 1;
+			}
+#endif
 			if (IsEndOfLine(pOld, eolLen))
 			{
 				// We're at an EOL. If it is CRLF we just copy both chars CRLF to pNew
 				// If it is a singular CR or singular LF we copy a CR and an LF to pNew.
 				if (eolLen == 2)
 				{
-					// Just copy the two existing pOld EOL chars to pNew
-					*pNew++ = *pOld++;
-					*pNew++ = *pOld++;
+					// Just copy the two existing pOld EOL chars to pNew, unless the last
+					// two chars of pNew were already CRLF. If the last two chars of pNew
+					// were already CRLF we hereby reduce any CRLFCRLF to just CRLF.
+					if (pOld > pBufStart)
+					{
+						// There should have already been at lease two chars added to the
+						// pNew buffer. Examine the previous two chars in pNew to see if
+						// they are CRLF, and if so don't add the current CRLF to pNew, but
+						// just advance the pOld pointer past the current CRLF chars, which
+						// effectively skips the second EOL pair.
+						if (*(pNew - 2) == _T('\r') && *(pNew -1) == _T('\n'))
+						{
+							*pOld++;
+							*pOld++;
+						}
+						else
+						{
+							*pNew++ = *pOld++;
+							*pNew++ = *pOld++;
+						}
+					}
+					else
+					{
+						// We're at the beginning of the bufer, so just copy the two existing pOld
+						// EOL char to pNew
+						*pNew++ = *pOld++;
+						*pNew++ = *pOld++;
+					}
 				}
 				else
 				{

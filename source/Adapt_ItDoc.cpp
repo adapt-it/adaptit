@@ -6856,6 +6856,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		nTextLength = nTextLength; // avoid warning
 		FormatMarkerBufferForOutput(target, targetTextExport);
 		target = RemoveMultipleSpaces(target);
+		// whm 19Sept2023 added to regularize the EOLs to CRLF and reduce multiple CRLFs to
+		// a single CRLF
+		NormalizeTextEOLsToCRLF(target, TRUE); // TRUE second parameter defaults bEndWithEOL to TRUE 
 
 		// now write out the exported data string
 		wxFile f;
