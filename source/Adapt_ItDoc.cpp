@@ -11015,6 +11015,9 @@ int CAdapt_ItDoc::ParseNumber(wxChar* pChar)
 {
 	wxChar* ptr = pChar;
 	int length = 0;
+	wxChar hyphen = _T('-');
+	wxChar chA = _T('a');
+	wxChar chB = _T('b');
 	// BEW 24Aug11, added 2nd test to next line
 	// BEW 9Sep14, added subtest for \ of a marker, otherwise \c 4 followed by a line
 	// \s Stori.... gives m_markers with "\c 4\s " which gets interpretted by ParseNumber
@@ -11024,7 +11027,21 @@ int CAdapt_ItDoc::ParseNumber(wxChar* pChar)
 	// chars need not be explicitly tested for here, but testing for them doesn't hurt anything.
 	// BEW 8Sep23, oops, this will parse beyond the end of the number digits, as the while loop
 	// does not check that ptr is a digit at each iteration - Fix this: add, && IsAnsiDigit(*ptr)
-	while (!IsWhiteSpace(ptr) && (*ptr != _T('\0')) && (*ptr != _T('\r')) && (*ptr != _T('\n')) && (*ptr != gSFescapechar) && IsAnsiDigit(*ptr) )
+	// BEW 20Sep23 adding  AND IsAnsiDigit(*ptr) to the test was too strong, it destroyed the
+	// ability to parse through the hyphen of a bridge verse number, eg. "3-5", so that the -5
+	// ended up as GUI src text in the layout. The fix is to OR it with a hyphen.
+	while (!IsWhiteSpace(ptr) && (*ptr != _T('\0')) && (*ptr != _T('\r')) && (*ptr != _T('\n')) && (*ptr != gSFescapechar) && (IsAnsiDigit(*ptr) || hyphen) )
+	{
+		ptr++;
+		length++;
+	}
+	// Handle verse parts where a or b is suffixed
+	if (*ptr == chA)
+	{
+		ptr++;
+		length++;
+	}
+	else if (*ptr == chB)
 	{
 		ptr++;
 		length++;
@@ -42423,7 +42440,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						wxString strPointAt = wxString(ptr, 16);
 						wxLogDebug(_T("TokText() line  %d , chapter:verse= [%s], aWholeMkr= [%s], m_markers= [%s] , strPointAt= [%s] "),
 							__LINE__, pSrcPhrase->m_chapterVerse.c_str(), aWholeMkr.c_str(), pSrcPhrase->m_markers.c_str(), strPointAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 2)
 						{
 							int halt_here; wxUnusedVar(halt_here);
 						}
