@@ -30129,6 +30129,12 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 //			int halt_here_now = 1;
 //		}
 //#endif
+#if defined (_DEBUG)
+		if (m_pSrcPhraseBeingCreated != NULL && m_pSrcPhraseBeingCreated->m_nSequNumber == 204)
+		{
+			int breakHere = 1;
+		}
+#endif
 
 		// Now we can lookup the fast access string for attribute-having markers 
 		// or endmarkers. First, check for a begin-marker of the attribute having type
@@ -30187,9 +30193,17 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 			// export target text for transferring across to Paratext (or Bibledit) in
 			// collaboration mode. For Adapt It's non-collaboration exports, we'll simply
 			// leave the contents of m_punctsPattern be ignored. AI doesn't need that stuff.
+#if defined (_DEBUG)
+			if (m_pSrcPhraseBeingCreated != NULL && m_pSrcPhraseBeingCreated->m_nSequNumber == 204)
+			{
+				int breakHere = 1;
+			}
+#endif
 
 			m_auxPtr = ptr; // Start the scanning from where ptr currently is (at the start
 							// of the begin-marker (pointing at its backslash)
+			// whm 21Sep2023 added initialization of m_offsetToFirstBar
+			m_offsetToFirstBar = wxNOT_FOUND;
 			m_offsetToFirstBar = FindBarWithinSpan(m_auxPtr, m_strAttrEndMkr, m_nEndMarkerLen);
 			// Use doc's pDoc->pCreatingSrcPhrase, which gets set in TokenizeText() at
 			// every time new CSourcePhrase is called.
@@ -30205,7 +30219,12 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 				// in which there is internal punctuation - and that also stores into
 				// m_punctsPattern, and we DON'T want to clear m_bUnused not m_punctsPattern,
 				// nor clear the attribute storage
-				if (!m_pSrcPhraseBeingCreated->m_bHasInternalPunct)
+				// 
+				// whm 20Sep2023 added protection against m_pSrcPhraseBeingCreated being NULL
+				// or uninitialized which it was for the 642JN-DukU.sfm input data where the m_auxPtr
+				// was pointing at: "\\w Yohana\\w*, se̱k-wu̱ ...", and at this point an exception
+				// was thrown because m_pSrcPhraseBeingCreated was uninitialized 0xCDCDCDCD.
+				if (m_pSrcPhraseBeingCreated != NULL && !m_pSrcPhraseBeingCreated->m_bHasInternalPunct)
 				{
 					// m_punctsPattern is not being used for storing data string for 
 					// avoiding a Placement of puncts dialog - so safe to do the following clear
@@ -31362,6 +31381,20 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 					{
 						bExitEarly = TRUE;
 					} // no else here
+					// whm 20Sep2023 added. In the 642JN-DukU.sfm input data there is within its intro
+					// a line that has this content:
+					// \io1 M-zante \ior 1-3\ior*
+					// and parsing the "1-3" substring, the "1" is firstPart, the "-" is second part and
+					// the "3" is the third part, and is immediately followed by the backslash of the \ior* 
+					// end marker. After parsing the third part "3" we need to set bExitEarly = TRUE as is
+					// done in the block above for chClosingParen, otherwise the number parsed will end up
+					// being parsed as "1-3\\" with the following backslash included. This in turn will cause
+					// a system assert and other issues and possibly a crash. Therefore I'm adding the following
+					// block here
+					if (*ptr == gSFescapechar)
+					{
+						bExitEarly = TRUE;
+					}
 					if (bIsDigit)
 					{
 						thirdPart += *ptr;
@@ -35254,7 +35287,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	{
 		wxString pointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("ParseWord() line %d , Starting parse of (666). , ptr-> [%s]"), __LINE__, pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 12)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -40731,6 +40764,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// BEW 24Oct22 track the pApp->m_bParsingSource value, where goes TRUE and back to FALSE
 		//wxLogDebug(_T("%s::%s(), line %d : app->m_bParsingSource = %d"), __FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_bParsingSource);
 #endif
+		// BEW 3Sep19 added next line, for support of USFM3
+		// whm 20Sep2023 moved the following initialization here from within the commented out block
+		// below. The m_pSrcPhraseBeingCreated pointer needs to be initialized to pSrcPhrase, otherwise
+		// it is uninitialized as 0xCDCDCDCD when it is used within the IsAttributeMarker() function.
+		m_pSrcPhraseBeingCreated = pSrcPhrase;  //(LHS is in USFM3Support.h)
+												// BEW 30Sep19 added next block
+
 /* 
 		BEW 9Sep2023 this turned out to work, but it clobbered parsing of things like (9:9-13), gotta find another way
 		-- probably allow ParsePreWord() to gobble the initial '(', and the code at top of ParseWord then accepts entry
@@ -43405,8 +43445,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						if (bIsAnEndMkr && !m_bWithinMkrAttributeSpan)
 						{
 							int previousLocation = pSrcPhrase->m_nSequNumber;
-							wxString strPrevKey = _T("unset");
-							wxString strPrevAdaption = _T("unset");
+							wxString strPrevKey = _T("unknown"); // whm 21Sep2023 changed to "unknown"
+							wxString strPrevAdaption = _T("unknown"); // whm 21Sep2023 changed to "unknown"
 							// BEW 29Sep22 Note: pSrcPhrase here may be a just-created instance
 							// which has nothing more than a sequNum set, because it is yet to be
 							// filled out with parsed data. Such a pSrcPhrase will not have a presence
@@ -43445,35 +43485,47 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 							// BEW15Dec22 try to provide an approximate src string for the error - 30 chars either side
 							// of the ptr value, or less if near start of end of input doc
+							// whm 21Sep2023 extended the approx location to be 120 chars wide - 60 either side.
 							wxChar* pDocStart = pBufStart;
 							wxChar* pLocBefore;
 							wxChar* pLocAfter;
-							if ((ptr - 30) > pDocStart)
+							if ((ptr - 60) > pDocStart)
 							{
-								pLocBefore = (ptr - 30);
+								pLocBefore = (ptr - 60);
 							}
 							else
 							{
 								pLocBefore = pDocStart;
 							}
-							if ((ptr + 30) < pEnd)
+							if ((ptr + 60) < pEnd)
 							{
-								pLocAfter = (ptr + 30);
+								pLocAfter = (ptr + 60);
 							}
 							else
 							{
 								pLocAfter = pEnd;
 							}
 							size_t width = (size_t)(pLocAfter - pLocBefore);
-							if (width > 60)
+							if (width > 120)
 							{
-								width = 60;
+								width = 120;
 							}
 							strApproxLocation = wxString(pLocBefore, width);
 
-							wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s and target: %s\n at sequence number: %d, and near middle of span: %s \nFix the input source text file, then re-load to re-create the document.");
-							msg = msg.Format(msg, wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
-							wxString title = _T("Warning: Unexpected End Marker");
+							// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
+							wxString wholeBeginMkr;
+							int posAsterisk = wholeEndMkr.Find(_T("*"));
+							if (posAsterisk != wxNOT_FOUND)
+							{
+								wholeBeginMkr = wholeEndMkr.Mid(0,posAsterisk);
+							}
+							wxString msg = _("Warning: While loading the source text file, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
+							msg = msg.Format(msg, wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
+							wxString msg2;
+							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognie the markers, or they are not located where Adapt It would expect them within the text.");
+							msg2 = _T("\n\n") + msg2;
+							msg = msg + msg2;
+							wxString title = _T("Warning: Unexpected Markers");
 
 							wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 							pApp->LogUserAction(msg);
