@@ -43522,7 +43522,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxString msg = _("Warning: While loading the source text file, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
 							msg = msg.Format(msg, wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
 							wxString msg2;
-							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognie the markers, or they are not located where Adapt It would expect them within the text.");
+							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.");
 							msg2 = _T("\n\n") + msg2;
 							msg = msg + msg2;
 							wxString title = _T("Warning: Unexpected Markers");
