@@ -14103,7 +14103,9 @@ int CAdapt_ItDoc::ParsePuncts(wxChar* pChar, wxChar* pEnd, wxString spacelessPun
 {
 	wxString punctsSet;
 	punctsSet = spacelessPuncts;
-	punctsSet << _T('\'');
+	// whm 22Sep2023 removed the following line thinking it to be illogical to add a word-
+	// building glottal stop to a punctsSet.
+	//punctsSet << _T('\'');
 	int parsedPunctsLen;
 	parsedPunctsLen = ParseFinalPuncts(pChar, pEnd, punctsSet);
 	return parsedPunctsLen;
@@ -40732,7 +40734,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 5)
+		if (pSrcPhrase->m_nSequNumber == 2)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
