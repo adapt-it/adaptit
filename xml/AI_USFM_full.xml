@@ -4,7 +4,7 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	23 December 2019, by Bill Martin
+Last Updated:	23 September 2023, by Bill Martin
 USFM version:	3.0.0 as published in usfm.sty and usfm_sb.sty by UBS April 2018
 				(bill_martin@sil.org, bruce_waters@sil.org, erik_brommers@sil.org)
 Description:	This file contains the style definitions and
@@ -4939,8 +4939,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Long table of contents text"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="1"
-	inLine="0" special="0" bdryOnLast="1"
-	inform="0" navigationText=""
+	inLine="0" special="1" bdryOnLast="1"
+	inform="1" navigationText="toc1"
 	textType="noType" wrap="0"
 	styleName="toc1 - File - Long Table of Contents Text"
 	styleType="paragraph" fontSize="12" color="16384"
@@ -4956,8 +4956,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Short table of contents text"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="1"
-	inLine="0" special="0" bdryOnLast="1"
-	inform="0" navigationText=""
+	inLine="0" special="1" bdryOnLast="1"
+	inform="1" navigationText="toc2"
 	textType="noType" wrap="0"
 	styleName="toc2 - File - Short Table of Contents Text"
 	styleType="paragraph" fontSize="12" color="16384"
@@ -4973,8 +4973,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Book Abbreviation"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="1"
-	inLine="0" special="0" bdryOnLast="1"
-	inform="0" navigationText=""
+	inLine="0" special="1" bdryOnLast="1"
+	inform="1" navigationText="toc3"
 	textType="noType" wrap="0"
 	styleName="toc3 - File - Book Abbreviation"
 	styleType="paragraph" fontSize="12" color="128"
@@ -5252,7 +5252,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Illustration [Columns to span, height, filename, caption text]"
 	usfm="1" png="0"
 	filter="1" userCanSetFilter="1"
-	inLine="1" special="0" bdryOnLast="1"
+	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="figure"
 	textType="noType" wrap="0"
 	styleName="fig...fig* - Auxiliary - Figure/Illustration/Map"

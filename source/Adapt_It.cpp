@@ -1148,32 +1148,32 @@ wxString dummyBack = _T("&Finish"); // the wxstd.mo file doesn't seem to have
 wxString dummyFinish = _T("< &Back"); // the wxstd.mo file doesn't seem to have
                                       // this wizard button for localizing, so I add it here
 
-                                      // support for USFM and SFM Filtering
+// support for USFM and SFM Filtering
 
-                                      /// An array of wxStrings which, when parsed by ParseAndFillStruct(), is used as default
-                                      /// standard format marker style definitions if, for some reason, the program cannot find
-                                      /// the AI_USFM.xml control file.
-                                      /// The default data strings can be produced automatically by making the following
-                                      /// temporary changes in the code:
-                                      /// 1. Temporarily uncomment the #define Output_Default_Style_Strings line at the
-                                      /// beginning of XML.h file.
-                                      /// 2. Copy the current AI_USFM_full.xml file from the project's xml folder to the "Adapt
-                                      /// Unicode It Work" folder (this file which contains the full style information and from which the
-                                      /// AI_USFM.xml file for distribution to users is produced via the UsfmXml.cct and
-                                      /// UsfmXmlTidy.cct changes operations). While the Output_Default_Strings define is active,
-                                      /// running the Adapt It program (Debug) up through the appearance of the Start Working
-                                      /// Wizard causes the routines in XML.cpp to read the full AI_USFM_full.xml file (instead
-                                      /// of AI_USFM.xml) and produce the temporary AI_USFM_full.txt file which simply contains
-                                      /// the Unix-format default strings ready to paste into the code block below.
-                                      /// 3. Copy the strings from the AI_USFM_full.txt file and paste them here for
-                                      /// recompilation. Note that the last line of the file contains the number of usfm strings
-                                      /// which should be equivalent to the calculation of gnDefaultSFMs =
-                                      /// sizeof(defaultSFM)/sizeof(wxString) below. Also, Remember to remove the last comma from
-                                      /// the last string item once it is pasted into this array initialization list.
-                                      /// 4. Comment out the #define Output_Default_Style_Strings line at the beginning of XML.h
-                                      /// file so that the application won't continue to produce the temporary AI_USFM_full.txt
-                                      /// file in the work folder, but will instead revert back to using the normal (abbreviated)
-                                      /// AI_USFM.xml file on program startup.
+/// An array of wxStrings which, when parsed by ParseAndFillStruct(), is used as default
+/// standard format marker style definitions if, for some reason, the program cannot find
+/// the AI_USFM.xml control file.
+/// The default data strings can be produced automatically by making the following
+/// temporary changes in the code:
+/// 1. Temporarily uncomment the #define Output_Default_Style_Strings line at the
+/// beginning of XML.h file.
+/// 2. Copy the current AI_USFM_full.xml file from the project's xml folder to the "Adapt
+/// Unicode It Work" folder (this file which contains the full style information and from which the
+/// AI_USFM.xml file for distribution to users is produced via the UsfmXml.cct and
+/// UsfmXmlTidy.cct changes operations). While the Output_Default_Strings define is active,
+/// running the Adapt It program (Debug) up through the appearance of the Start Working
+/// Wizard causes the routines in XML.cpp to read the full AI_USFM_full.xml file (instead
+/// of AI_USFM.xml) and produce the temporary AI_USFM_full.txt file which simply contains
+/// the Unix-format default strings ready to paste into the code block below.
+/// 3. Copy the strings from the AI_USFM_full.txt file and paste them here for
+/// recompilation. Note that the last line of the file contains the number of usfm strings
+/// which should be equivalent to the calculation of gnDefaultSFMs =
+/// sizeof(defaultSFM)/sizeof(wxString) below. Also, Remember to remove the last comma from
+/// the last string item once it is pasted into this array initialization list.
+/// 4. Comment out the #define Output_Default_Style_Strings line at the beginning of XML.h
+/// file so that the application won't continue to produce the temporary AI_USFM_full.txt
+/// file in the work folder, but will instead revert back to using the normal (abbreviated)
+/// AI_USFM.xml file on program startup.
 const wxString defaultSFM[] =
 {
     // whm 23Dec2019 revised defaultSFM[] array again to reflect the extended usfm 3.0.0 additions and changes (now with 330 elements)
@@ -1442,9 +1442,9 @@ const wxString defaultSFM[] =
     _T("xtSeeAlso:xtSeeAlso*:Concordance and Names Index markup for an additional entry target reference.:1:::1:1::1:::0::xtSeeAlso - Concordance and Names Index - Additional Entry Target Reference:1:12:16711680:1:::::0::::::::::"),
     _T("pub::Front matter publication data:1:::1:::1:::0::OBSOLETE pub Peripherals - Front Matter Publication Data:0:10:::::::0::::::_peripherals_base:pub:::"),
     _T("toc::Front matter table of contents:1:::1:::1:::0::OBSOLETE toc Peripherals - Front Matter Table of Contents:0:10:::::::0::::::_peripherals_base:toc:::"),
-    _T("toc1::Long table of contents text:1:::1:::1:::0::toc1 - File - Long Table of Contents Text:0:12:16384:1:1::::0::::::_peripherals_base:toc1:::"),
-    _T("toc2::Short table of contents text:1:::1:::1:::0::toc2 - File - Short Table of Contents Text:0:12:16384:1:::::0::::::_peripherals_base:toc2:::"),
-    _T("toc3::Book Abbreviation:1:::1:::1:::0::toc3 - File - Book Abbreviation:0:12:128:1:1::::0::::::_peripherals_base:toc3:::"),
+    _T("toc1::Long table of contents text:1:::1::1:1:1:toc1:0::toc1 - File - Long Table of Contents Text:0:12:16384:1:1::::0::::::_peripherals_base:toc1:::"),
+    _T("toc2::Short table of contents text:1:::1::1:1:1:toc2:0::toc2 - File - Short Table of Contents Text:0:12:16384:1:::::0::::::_peripherals_base:toc2:::"),
+    _T("toc3::Book Abbreviation:1:::1::1:1:1:toc3:0::toc3 - File - Book Abbreviation:0:12:128:1:1::::0::::::_peripherals_base:toc3:::"),
     _T("toca1::Alternative Language Long Table of Contents Text:1:::1:::1:::0::toca1 - File - Alternative Language Long Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca1:::"),
     _T("toca2::Alternative language short table of contents text:1:::1:::1:::0::toca2 - File - Alternative Language Short Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca2:::"),
     _T("toca3::Alternative language book Abbreviation:1:::1:::1:::0::toca3 - File - Alternative Language Book Abbreviation:0:10:8421504:1:::::0::::::_peripherals_base:toca3:::"),
@@ -1460,7 +1460,7 @@ const wxString defaultSFM[] =
     _T("pb::Page Break used for new reader portions and children's bibles where content is controlled by the page:1:::1:::1:1:new page:0:1:pb - Break - Page Break:0:12:::::::0::::::p:p:::"),
     _T("b::Poetry text stanza break (e.g. stanza break) (basic):1:::1:::1:1:stanza break:0::b - Poetry - Stanza Break (Blank Line):0:12:::::::0::::::_body_text:b:::"),
     _T("hr::Horizontal rule::1:1:::1:1:::0::hr - Horizontal rule:8:12:::::::0:4:4::::_body_text:hr:::"),
-    _T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:1::1:1:1::1:1:figure:0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
+    _T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:1::1:1:1:1:1:1:figure:0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
     _T("jmp:jmp*:For associating linking attributes to a span of text:1::1:1:1::1:::0::jmp...jmp* - Link text:1:12:16711680:::1:::0::::::::::"),
     _T("rb:rb*:Most often used to provide a reading / pronunciation guide in ideographic scripts:1::::1::1:::1:1:rb...rb* - Special Text - Ruby Glossing:1:12:::::::0::::::::::"),
     _T("loc::Picture location::1:1::::1:::0::loc - Picture location:0:12:::::::0::::::_body_text:loc:::"),

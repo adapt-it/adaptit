@@ -14805,6 +14805,12 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 /// returns a pointer to the USFMAnalysis struct. NULL is returned if no marker could be
 /// parsed from pChar, or if the marker could not be found in the hash map.
 /// BEW 24Oct14 changes needed for support of USFM nested markers
+/// whm 23Sep2023 removed the block forcing values for marker "fig". The attribute 
+/// values for the \fig marker need to be specified within the AI_USFM.xml control 
+/// file rather than the LookupSFM() functions - which I have done as of this date.
+/// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+/// think is better than "illustration" below - being shorter for use as navigation 
+/// text and, more mnemonic for association with the \fig marker.
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar)
 {
@@ -14882,6 +14888,14 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar)
 		// unfiltered caption string with navtext and m_bSpecialText colouring
 		USFMAnalysis* pUsfmAnalyis = iter->second;
 		wxString bareMkr = pUsfmAnalyis->marker;
+		// whm 23Sep2023 removed the following block for marker "fig" that forces the 
+		// attribute values locally here. The \fig marker's attributes need to be 
+		// specified within the AI_USFM.xml control file, rather than here - which I 
+		// have done as of this date.
+		// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+		// think is better than "illustration" below - being shorter for use as navigation 
+		// text and, more mnemonic for association with the \fig marker for users.
+		/*
 		if (bareMkr == _T("fig"))
 		{
 			pUsfmAnalyis->special = TRUE;
@@ -14889,6 +14903,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar)
 			pUsfmAnalyis->inform = TRUE;
 			pUsfmAnalyis->navigationText = _T("illustration");
 		}
+		*/
 		return pUsfmAnalyis;
 	}
 	else
@@ -14918,6 +14933,12 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar)
 /// returns a pointer to the USFMAnalysis struct. NULL is returned if no marker could be
 /// parsed from pChar, or if the marker could not be found in the hash map.
 /// BEW 24Oct14 variant useful for support of USFM nested markers, used in ParseWord()
+/// whm 23Sep2023 removed the block forcing values for marker "fig". The attribute 
+/// values for the \fig marker need to be specified within the AI_USFM.xml control 
+/// file rather than the LookupSFM() functions - which I have done as of this date.
+/// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+/// think is better than "illustration" below - being shorter for use as navigation 
+/// text and, more mnemonic for association with the \fig marker.
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar, wxString& tagOnly,
 	wxString& baseOfEndMkr, bool& bIsNestedMkr)
@@ -15002,6 +15023,14 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar, wxString& tagOnly,
 		// unfiltered caption string with navtext and m_bSpecialText colouring
 		USFMAnalysis* pUsfmAnalyis = iter->second;
 		wxString bareMkr = pUsfmAnalyis->marker;
+		// whm 23Sep2023 removed the following block for marker "fig" that forces the 
+		// attribute values locally here. The \fig marker's attributes need to be 
+		// specified within the AI_USFM.xml control file, rather than here - which I 
+		// have done as of this date.
+		// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+		// think is better than "illustration" below - being shorter for use as navigation 
+		// text and, more mnemonic for association with the \fig marker for users.
+		/*
 		if (bareMkr == _T("fig"))
 		{
 			pUsfmAnalyis->special = TRUE;
@@ -15009,6 +15038,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar, wxString& tagOnly,
 			pUsfmAnalyis->inform = TRUE;
 			pUsfmAnalyis->navigationText = _T("illustration");
 		}
+		*/
 		return pUsfmAnalyis;
 	}
 	else
@@ -15041,6 +15071,12 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar* pChar, wxString& tagOnly,
 /// to ParseWord() - so we don't bother in LookupSFM() to determine if a marker is
 /// an endmarker, because it should never encounter any.
 /// BEW 24Oct14 refactored for support of USFM nested markers
+/// whm 23Sep2023 removed the block forcing values for marker "fig". The attribute 
+/// values for the \fig marker need to be specified within the AI_USFM.xml control 
+/// file rather than the LookupSFM() functions - which I have done as of this date.
+/// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+/// think is better than "illustration" below - being shorter for use as navigation 
+/// text and, more mnemonic for association with the \fig marker.
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 {
@@ -15118,6 +15154,14 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 		// unfiltered caption string with navtext and m_bSpecialText colouring
 		USFMAnalysis* pUsfmAnalyis = iter->second;
 		wxString bareMkr = pUsfmAnalyis->marker;
+		// whm 23Sep2023 removed the following block for marker "fig" that forces the 
+		// attribute values locally here. The \fig marker's attributes need to be 
+		// specified within the AI_USFM.xml control file, rather than here - which I 
+		// have done as of this date.
+		// Note also that the navigationText was already "figure" in AI_USFM.xml which I 
+		// think is better than "illustration" below - being shorter for use as navigation 
+		// text and, more mnemonic for association with the \fig marker for users.
+		/*
 		if (bareMkr == _T("fig"))
 		{
 			pUsfmAnalyis->special = TRUE;
@@ -15125,6 +15169,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 			pUsfmAnalyis->inform = TRUE;
 			pUsfmAnalyis->navigationText = _T("illustration");
 		}
+		*/
 		return pUsfmAnalyis;
 	}
 	else
@@ -33388,7 +33433,8 @@ bool CAdapt_ItDoc::IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spaceless
 			bIs2Periods = TRUE;
 
 			// Check next char, for a third period
-			if (*(pAux + 1) = _T('.'))
+			// whm 23Sep2023 corrected the if () below had assignment = instead of equality test == 
+			if (*(pAux + 1) == _T('.'))
 			{
 				// there is a 3rd period
 				nPeriodCount = 3;
@@ -37288,9 +37334,12 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 					int itemLen; itemLen = 0; // init
 					wxString str1;
 					int str1Len; str1Len = 0; // init
-					wxChar ch2;
-					wxChar ch3;
-					wxChar ch4;
+					// whm 23Sep2023 added initializations for ch2 and ch3 below because compiler was warning
+					// warning C4701: potentially uninitialized local variable 'ch2' used, and
+					// warning C4701 : potentially uninitialized local variable 'ch3' used
+					wxChar ch2; ch2 = _T(' ');
+					wxChar ch3; ch3 = _T(' ');
+					// wxChar ch4; // whm 23Sep2023 remove unused variable
 					bool bstr1OK; bstr1OK = FALSE; // init
 					bool bch2OK; bch2OK = FALSE; // init
 					bool bch3OK; bch3OK = FALSE; // init
@@ -42800,6 +42849,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// the ptr being at a \fig marker: modifications are:
 					// 'special' set to TRUE, 'bdryOnLast' set TRUE, 'inform' set TRUE,
 					// and navigationText set to _T("illustration")
+					// whm 23Sep2023 Note: The attributes of the \fig marker are more
+					// appropriately set in the AI_USFM.xml control file which I've done
+					// as of this date. Also set navigationText to "figure" which I think
+					// is better and more mnemonic to users for \fig.
 					bIsToBeFiltered = FALSE; // init
 					bIsCharAttrMkr = FALSE;  // init
 
@@ -43092,10 +43145,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										{
 											// Set m_inform and m_bSpecialText, because this marker
 											// is \fig at the beginning of a figure's caption text
-											pSrcPhrase->m_inform = pUsfmAnalysis->navigationText; // set it to "illustration"
-											pSrcPhrase->m_bSpecialText = TRUE;
-											pSrcPhrase->m_bFirstOfType = TRUE;
-											pSrcPhrase->m_curTextType = noType;
+											// whm 23Sep2023 commented out the following 4 lines which
+											// force the attributes for the \fig marker. These are now
+											// set properly in the AI_USFM.xml control file which now
+											// has them set to the values commented out below, except
+											// that navigationText is set to "figure" which is shorter
+											// and more mnemonic for users.
+											//pSrcPhrase->m_inform = pUsfmAnalysis->navigationText; // set it to "illustration"
+											//pSrcPhrase->m_bSpecialText = TRUE;
+											//pSrcPhrase->m_bFirstOfType = TRUE;
+											//pSrcPhrase->m_curTextType = noType;
 											// BEW 21Jul23 - I dunno if this legacy comment still applies - testing will tell
 											// ParsePreWord() will need a tweak to handle \fig as
 											// a special (bleed out) case; ParseWord() will need
@@ -43707,6 +43766,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 					// BEW 30Sep19 Bill has changed the \fig properties to have m_inform
 					// supported (should  show "illustration")
+					// whm 23Sep2023 update to above comment. The \fig properties are now
+					// fully set within the AI_USFM.xml control file. The navigationText
+					// is also now "figure" which is shorter for nav text and more mnemonic
+					// for users.
 
 					// BEW 30Sep19 the one-line test with three subtest below
 					// Testing for bIsToBeFiltered needs to be done. If TRUE, then we must ensure
@@ -45215,6 +45278,12 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			// having metadata will have been automatically hidden already (i.e. bar (|)
 			// to the start of the endmarker, and m_bUnused set TRUE to indicate there is
 			// metadata hidden in pSrcPhrase->m_punctsPattern
+			// 
+			// whm 23Sep2023 update to above comment. The attributes for \fig are now fully
+			// set within the AI_USFM.xml control file where they should have been set, including
+			// setting the special attribute to 1 (TRUE) and navigationText to "figure" which
+			// I think is shorter for nav text and more mnemonic for users.
+			// 
 			//wxString aBeginMarker = pSrcPhrase->GetInlineNonbindingMarkers();
 			// BEW 1Aug23 refactored next bit, I had aBeginMarker set to the whole inline fast-access string. Ouch!
 			wxString aBeginMarker;
@@ -45426,6 +45495,12 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 								__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_bSpecialText,
 								(int)pSrcPhrase->m_curTextType, (int)bContainsPoetryMarker);
 							if (pSrcPhrase->m_nSequNumber >= 1)
+							{
+								int halt_here = 1; wxUnusedVar(halt_here);
+							}
+#endif
+#if defined (_DEBUG)
+							if (pSrcPhrase->m_nSequNumber == 4)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
