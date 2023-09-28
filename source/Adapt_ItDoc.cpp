@@ -417,6 +417,10 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_barChar = _T('|');
 	m_strInitialPuncts = wxString::FromUTF8("“‘\"[(<{«¿¡—"); // 11 of them
 
+	// whm 28Sep2023 added initialization of following here in the Doc's constructor
+	// See comments in the PlacePhraseBox() function 
+	m_bWithinEmptyMkrsLoop = FALSE; // set TRUE when entering, FALSE when exiting
+
 	// WX Note: Nearly all Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
 	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD     *****
@@ -37016,7 +37020,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 510)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -40783,7 +40787,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 2)
+		if (pSrcPhrase->m_nSequNumber == 1)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -42012,12 +42016,26 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			ptrAt = wxString(ptr, 20);
 			wxLogDebug(_T("TokText() after EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], chapter:verse= [%s], pointsAt= [%s]"),
 				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), ptrAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 5)
+			if (pSrcPhrase->m_nSequNumber >= 714)
 			{
 				int halt_here = 1; // What do we do here on?
 			}
 			}
 #endif
+			// whm 28Sep203 added next line to reset the m_bWithinEmptyMkrsLoop flag back to FALSE now that we're
+			// exiting the empty markers loop. The failure to reset this flag to FALSE was causing havoc within the
+			// PlacePhraseBox() function where it was tested there and found to be TRUE at that location which then
+			// forced a bypass of the DoGetSuitableText_ForPlacePhraseBox() call. This I believe was causing the 
+			// phrasebox to be prematurely emptied when control there got to the the following line:
+			// a: pApp->m_targetPhrase = str;
+			// where str would be an empty string due to the DoGetSuitableText_ForPlacePhraseBox() call being bypassed
+			// Note: I can't really understand why the test for m_bWithinEmptyMkrsLoop was being made within the
+			// PlacePhraseBox() function, and may decide to remove that test there as being unlikely to ever be 
+			// pertinent to what happens in PlacePhraseBox(). But, in the meantime, at least resetting the 
+			// m_bWithinEmptyMkrsLoop to FALSE here should prevent the test in PlacePhraseBox() from causing the
+			// phrasebox to be prematurely emptied when clicking the phrasebox to certain locations.
+			m_bWithinEmptyMkrsLoop = FALSE;
+
 			} // end of TRUE block for test:  if (bEnterEmptyMkrsLoop)
 
 			// BEW 14Aug23 comment: legacy parsing code for markers having content starts here

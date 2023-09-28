@@ -3956,6 +3956,21 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	// BEW 16Aug23 if control is within the empty USFM mkrs loop, then don't try to get suitable
 	// text for the box, as there isn't any to get - this change may allow a click on empty \s1 to lodge
 	// the empty phrase box at the empty \s1 marker location
+	//
+	// whm 28Sep2023 comment:
+	// While tracing the code to determine why the phrasebox was being emptied at times I found that
+	// the Doc's m_bWithinEmptyMkrsLoop flag that is tested for below to almost always be TRUE
+	// and this would cause the call of DoGetSuitableText_ForPlacePhraseBox() to be bypassed and
+	// the assignment of the str value to remain empty. The reason that the m_bWithinEmptyMkrsLoop 
+	// flag was TRUE was due to it not being initialized to FALSE properly. It was only initialized
+	// to FALSE at the beginning of TokenizeText() which when loading an existing document is not
+	// called before the PlacePhraseBox() function is called. I've fixed that problem by initializing
+	// m_bWithinEmptyMkrsLoop to FALSE in the Doc's constructor, and also resetting it to FALSE 
+	// after the empty markers loop exist within TokenizeText().
+	// Even after the above inisializations, I cannot undersztand why the m_bWithinEmptyMkrsLoop flag
+	// would be tested for here within the PlacePhraseBox() routine. I think the test that BEW added
+	// on 16Aug23 should probably be removed. At least the flag should be properly initialized now
+	// to a FALSE value while the execution is not "within the empty markers loop".
 	if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
 	{
 		if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
