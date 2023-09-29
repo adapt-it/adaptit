@@ -14370,7 +14370,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 */
 		// BEW 18Feb20 check if [ and ] are punctuation characters, or word-building
 		// and sort out what's punctuation and what's not
-		itemLen = pDoc->ParseWord(ptr, pEnd, pSrcPhrase, spacelessPunctsStr,
+		itemLen = pDoc->ParseWord(ptr, pBuffStart2, pEnd, pSrcPhrase, spacelessPunctsStr,
 					pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
 					bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
 		theWord = pSrcPhrase->m_key; // could be empty, and would be if itemLen returned is 0
@@ -14560,7 +14560,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			// in the next call, because there are no inline markers to worry about,
 			// m_follOuterPunct will always be empty, and any following puncts will only
 			// be in m_follPunct
-			itemLen = pDoc->ParseWord(ptr2, pEnd2, pSrcPhrase2, spacelessPunctsStr,
+			itemLen = pDoc->ParseWord(ptr2, pBuffStart2, pEnd2, pSrcPhrase2, spacelessPunctsStr,
 						pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
 						bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
 			theWord2 = pSrcPhrase2->m_key;

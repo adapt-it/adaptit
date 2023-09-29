@@ -35299,8 +35299,11 @@ tryagain:
 /// metadata for a small set of markers, to be hidden from the parse; but itemLen returning
 /// the count of the word chars + skipped over metadata, but skipping the metadata
 /// for m_srcPhrase and m_key -- Adapt It doesn't want that stuff (but PT8 does, if present)
+/// whm 28Sep2023 added a pBuffStart parameter to determine initial buffers start for when
+/// collecting context for warning message.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar* pChar,
+	const wxChar* pBufStart, // whm 28Sep2023 added to determine initial buffer start
 	wxChar* pEnd,
 	CSourcePhrase* pSrcPhrase,
 	wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
@@ -37069,7 +37072,69 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 								// m_markers is empty; ParseAWord() not having just parsed a word (or some text content)
 								// now is unexpected if the USFM markup is valid; so probably there is a markup issue
 								// to be resolved. Here, temporarily, have the assert that formerly ParseAWord() had
-								wxASSERT(!theWord.IsEmpty());   // later, replace with code to inform the user of the error and its context
+								//wxASSERT(!theWord.IsEmpty());   // later, replace with code to inform the user of the error and its context
+								// 
+								// whm 28Sep2023 modified by changing the wxASSERT(!theWord.IsEmpty()) to a more informative
+								// message, and an entry sent to the user log. This code addition required the addition of
+								// the pBuffStart parameter to the ParseWord() function to avoid trying to collect text earlier
+								// than the pBuffStart of the document.
+
+								wxString strApproxLocation;
+								const wxChar* pDocStart = pBufStart;
+								wxChar* pLocBefore;
+								wxChar* pLocAfter;
+								if ((ptr - 60) > const_cast<wxChar*>(pDocStart))
+								{
+									pLocBefore = (ptr - 60);
+								}
+								else
+								{
+									pLocBefore = const_cast<wxChar*>(pDocStart);
+								}
+								if ((ptr + 60) < pEnd)
+								{
+									pLocAfter = (ptr + 60);
+								}
+								else
+								{
+									pLocAfter = pEnd;
+								}
+								size_t width = (size_t)(pLocAfter - pLocBefore);
+								if (width > 120)
+								{
+									width = 120;
+								}
+								strApproxLocation = wxString(pLocBefore, width);
+								
+								// whm 28Sep2023 added a chapter:verse reference to the warning msg.
+								// Get the chapter and verse of the current context for the warning.
+								// Internally GetSourcePhraseByIndex() scans backwards till it finds the
+								// information needed, or comes to doc start. Here we need to start with 
+								// the m_nSequNumber before the current one, since the current one won't
+								// yet be stored in the App's pSrcPhrases list, otherwise the GetSourcePhraseByIndex()
+								// function would generate an index error.
+								CSourcePhrase* pSP = pApp->GetSourcePhraseByIndex(pSrcPhrase->m_nSequNumber - 1);
+								wxString cv = pApp->GetView()->GetChapterAndVerse(pSP);
+								if (cv.IsEmpty())
+									cv = _("Unknown location");
+								// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
+								wxString wholeBeginMkr;
+								int posAsterisk = wholeEndMkr.Find(_T("*"));
+								if (posAsterisk != wxNOT_FOUND)
+								{
+									wholeBeginMkr = wholeEndMkr.Mid(0, posAsterisk);
+								}
+								wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected spaces and/or punctuation were encountered - especially before certain final punctuation characters.\nThey occur within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
+								msg = msg.Format(msg, cv.c_str(), strApproxLocation.c_str());
+								wxString msg2;
+								msg2 = _("When Adapt It encounters \"Unexpected\" spaces and/or punctuation, it usually means that leading spaces have interferred with Adapt It's ability to recognize certain end punctuation. The result may be punctuation that appears as a separate word in the display rather than being bound to some text.");
+								msg2 = _T("\n\n") + msg2;
+								msg = msg + msg2;
+								wxString title = _T("Warning: Unexpected spaces and/or punctuation");
+
+								wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+								pApp->LogUserAction(msg);
+
 							} // and of else block for test: if (!pSrcPhrase->m_markers.IsEmpty())
 
 						} // end of TRUE block for test: if (bWordNotParsed == TRUE)
@@ -40787,7 +40852,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 1)
+		if (pSrcPhrase->m_nSequNumber == 9)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -43591,6 +43656,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							}
 							strApproxLocation = wxString(pLocBefore, width);
 
+							// whm 28Sep2023 added a chapter:verse reference to the warning msg.
+							// Get the chapter and verse of the current context for the warning.
+							// Internally GetSourcePhraseByIndex() scans backwards till it finds the
+							// information needed, or comes to doc start. Here we need to start with 
+							// the m_nSequNumber before the current one, since the current one won't
+							// yet be stored in the App's pSrcPhrases list, otherwise the GetSourcePhraseByIndex()
+							// function would generate an index error.
+							CSourcePhrase* pSP = pApp->GetSourcePhraseByIndex(pSrcPhrase->m_nSequNumber - 1);
+							wxString cv = pApp->GetView()->GetChapterAndVerse(pSP);
+							if (cv.IsEmpty())
+								cv = _("Unknown location");
 							// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
 							wxString wholeBeginMkr;
 							int posAsterisk = wholeEndMkr.Find(_T("*"));
@@ -43598,8 +43674,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							{
 								wholeBeginMkr = wholeEndMkr.Mid(0,posAsterisk);
 							}
-							wxString msg = _("Warning: While loading the source text file, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
-							msg = msg.Format(msg, wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
+							wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
+							msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
 							wxString msg2;
 							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.");
 							msg2 = _T("\n\n") + msg2;
@@ -45127,7 +45203,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 ///#endif
 // ******************************** Parse Word () *************************
 
-			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
+			itemLen = ParseWord(ptr, pBufStart, pEnd, pSrcPhrase, spacelessPuncts, // whm 28Sep2023 added pBufStart to signature
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,

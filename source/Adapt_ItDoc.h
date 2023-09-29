@@ -582,6 +582,7 @@ public:
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	int	ParseWord(wxChar* pChar, // pointer to next wxChar to be parsed
+		const wxChar* pBufStart, // whm 28Sep2023 added to determine initial buffer start
 		wxChar* pEnd, // pointer to the null at the end of the string buffer
 		CSourcePhrase* pSrcPhrase, // where we store what we parse
 		wxString& spacelessPuncts, // punctuationset used, with spaces removed
