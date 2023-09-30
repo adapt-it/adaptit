@@ -37114,7 +37114,9 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 								// yet be stored in the App's pSrcPhrases list, otherwise the GetSourcePhraseByIndex()
 								// function would generate an index error.
 								CSourcePhrase* pSP = pApp->GetSourcePhraseByIndex(pSrcPhrase->m_nSequNumber - 1);
-								wxString cv = pApp->GetView()->GetChapterAndVerse(pSP);
+								wxString cv = _T("");
+								if (pSP != NULL)
+									cv = pApp->GetView()->GetChapterAndVerse(pSP);
 								if (cv.IsEmpty())
 									cv = _("Unknown location");
 								// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
@@ -37124,16 +37126,36 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 								{
 									wholeBeginMkr = wholeEndMkr.Mid(0, posAsterisk);
 								}
-								wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected spaces and/or punctuation were encountered - especially before certain final punctuation characters.\nThey occur within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
+								wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, spaces and/or punctuation were encountered.\nThey occur within the span:\n\n%s");
 								msg = msg.Format(msg, cv.c_str(), strApproxLocation.c_str());
 								wxString msg2;
-								msg2 = _("When Adapt It encounters \"Unexpected\" spaces and/or punctuation, it usually means that leading spaces have interferred with Adapt It's ability to recognize certain end punctuation. The result may be punctuation that appears as a separate word in the display rather than being bound to some text.");
+								msg2 = _("When Adapt It encounters \"Unexpected\" markers, spaces and/or punctuation, it can indicate that leading spaces have interferred with Adapt It's ability to recognize certain end punctuation and/or where it should be stored.\nUnexpected markers may indicate the use of markers inappropriately - such as target references \\xt ... \\xt* embedded within other marker content such as footnotes. The result may be markers appearing within the text, or punctuation that appears as a separate word in the display rather than being bound to some text.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you wnt to continue loading the file?");
 								msg2 = _T("\n\n") + msg2;
 								msg = msg + msg2;
-								wxString title = _T("Warning: Unexpected spaces and/or punctuation");
-
-								wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-								pApp->LogUserAction(msg);
+								wxString title = _T("Warning: Unexpected markers, spaces and/or punctuation in chapter:verse %s");
+								title = title.Format(title, cv.c_str());
+								int response = 0;
+								response = wxMessageBox(msg, title, wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
+								if (response == wxNO)
+								{
+									wxString responseStr = _("User selected No");
+									pApp->LogUserAction(responseStr);
+									pApp->LogUserAction(msg);
+									wxString stopMsg = _("Adapt It will now stop running.\n\nWhen you have fixed the input text, run Adapt It again and try loading the edited text into Adapt.");
+									wxMessageBox(stopMsg, responseStr, wxOK);
+									pApp->LogUserAction(stopMsg);
+									wxKill(::wxGetProcessId(), wxSIGKILL); // Calling wxKill() on the current process is a quiet way to terminate.
+								}
+								else
+								{
+									wxString responseStr = _("User selected Yex");
+									pApp->LogUserAction(responseStr);
+									pApp->LogUserAction(msg);
+									wxString continueMsg = _T("Adapt It will continuing trying to load the input text.\n\nIf the input text completes loading, be sure to check it at chapter:verse %s for proper formatting.");
+									continueMsg = continueMsg.Format(continueMsg, cv.c_str());
+									wxMessageBox(continueMsg, responseStr, wxOK);
+									pApp->LogUserAction(continueMsg);
+								}
 
 							} // and of else block for test: if (!pSrcPhrase->m_markers.IsEmpty())
 
@@ -43664,7 +43686,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// yet be stored in the App's pSrcPhrases list, otherwise the GetSourcePhraseByIndex()
 							// function would generate an index error.
 							CSourcePhrase* pSP = pApp->GetSourcePhraseByIndex(pSrcPhrase->m_nSequNumber - 1);
-							wxString cv = pApp->GetView()->GetChapterAndVerse(pSP);
+							wxString cv = _T("");
+							if (pSP != NULL)
+								cv = pApp->GetView()->GetChapterAndVerse(pSP);
 							if (cv.IsEmpty())
 								cv = _("Unknown location");
 							// whm 21Sep2023 modified the wxMessagBox below to have a more useful msg for users.
@@ -43674,16 +43698,39 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							{
 								wholeBeginMkr = wholeEndMkr.Mid(0,posAsterisk);
 							}
-							wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
-							msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
+							// whm 30Sep2023 removed the strPrevKey, strPrevAdaption, previousLocation from message below as they were never clear/definitive in my tests.
+							wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur at sequence number: %d, and within the span:\n\n%s.");
+							//wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, %s ... %s , were encountered.\nThey occur in the pile following the one with source: %s and target: %s\n at sequence number: %d, and within the span:\n\n%s\n\nFix the input source text file, then re-load to re-create the document.");
+							//msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
+							msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), previousLocation, strApproxLocation.c_str());
 							wxString msg2;
-							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.");
+							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.\nYou should avoid putting punctuation between consecutive end markers. Put any final punctuation after consecutive end markers.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you wnt to continue loading the file?");
 							msg2 = _T("\n\n") + msg2;
 							msg = msg + msg2;
-							wxString title = _T("Warning: Unexpected Markers");
-
-							wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-							pApp->LogUserAction(msg);
+							wxString title = _T("Warning: Unexpected Markers in chapter:verse %s");
+							title = title.Format(title, cv.c_str());
+							int response = 0;
+							response = wxMessageBox(msg, title, wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
+							if (response == wxNO)
+							{
+								wxString responseStr = _("User selected No");
+								pApp->LogUserAction(responseStr);
+								pApp->LogUserAction(msg);
+								wxString stopMsg = _("Adapt It will now stop running.\n\nWhen you have fixed the input text, run Adapt It again and try loading the edited text into Adapt.");
+								wxMessageBox(stopMsg, responseStr, wxOK);
+								pApp->LogUserAction(stopMsg);
+								wxKill(::wxGetProcessId(), wxSIGKILL); // Calling wxKill() on the current process is a quiet way to terminate.
+							}
+							else
+							{
+								wxString responseStr = _("User selected Yex");
+								pApp->LogUserAction(responseStr);
+								pApp->LogUserAction(msg);
+								wxString continueMsg = _T("Adapt It will continuing trying to load the input text.\n\nIf the input text completes loading, be sure to check it at chapter:verse %s for proper formatting.");
+								continueMsg = continueMsg.Format(continueMsg, cv.c_str());
+								wxMessageBox(continueMsg, responseStr, wxOK);
+								pApp->LogUserAction(continueMsg);
+							}
 						} // end of TRUE block for test: if (bIsAnEndMkr && !m_bWithinMkrAttributeSpan)
 						else
 						{
