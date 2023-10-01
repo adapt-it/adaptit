@@ -37129,7 +37129,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 								wxString msg = _("Warning: While loading the source text file at chapter:verse %s, unexpected markers, spaces and/or punctuation were encountered.\nThey occur within the span:\n\n%s");
 								msg = msg.Format(msg, cv.c_str(), strApproxLocation.c_str());
 								wxString msg2;
-								msg2 = _("When Adapt It encounters \"Unexpected\" markers, spaces and/or punctuation, it can indicate that leading spaces have interferred with Adapt It's ability to recognize certain end punctuation and/or where it should be stored.\nUnexpected markers may indicate the use of markers inappropriately - such as target references \\xt ... \\xt* embedded within other marker content such as footnotes. The result may be markers appearing within the text, or punctuation that appears as a separate word in the display rather than being bound to some text.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you wnt to continue loading the file?");
+								msg2 = _("When Adapt It encounters \"Unexpected\" markers, spaces and/or punctuation, it can indicate that leading spaces have interferred with Adapt It's ability to recognize certain end punctuation and/or where it should be stored.\nUnexpected markers may indicate the use of markers inappropriately - such as target references \\xt ... \\xt* embedded within other marker content such as footnotes. The result may be markers appearing within the text, or punctuation that appears as a separate word in the display rather than being bound to some text.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you want to continue loading the file?");
 								msg2 = _T("\n\n") + msg2;
 								msg = msg + msg2;
 								wxString title = _T("Warning: Unexpected markers, spaces and/or punctuation in chapter:verse %s");
@@ -43704,7 +43704,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), strPrevKey.c_str(), strPrevAdaption, previousLocation, strApproxLocation.c_str());
 							msg = msg.Format(msg, cv.c_str(), wholeBeginMkr.c_str(), wholeEndMkr.c_str(), previousLocation, strApproxLocation.c_str());
 							wxString msg2;
-							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.\nYou should avoid putting punctuation between consecutive end markers. Put any final punctuation after consecutive end markers.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you wnt to continue loading the file?");
+							msg2 = _("When Adapt It encounters \"Unexpected\" markers, it means that either Adapt It doesn't recognize the markers, or they are not located where Adapt It would expect them within the text.\nYou should avoid putting punctuation between consecutive end markers. Put any final punctuation after consecutive end markers.\n\nFix the input source text file, then re-load to re-create the document.\n\nDo you want to continue loading the file?");
 							msg2 = _T("\n\n") + msg2;
 							msg = msg + msg2;
 							wxString title = _T("Warning: Unexpected Markers in chapter:verse %s");
