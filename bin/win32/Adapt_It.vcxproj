@@ -149,7 +149,7 @@ echo ********** End of WdrTweaks.exe processing</Command>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.10</Version>
+      <Version>6.11</Version>
     </Link>
     <PostBuildEvent>
       <Command>echo ********** Begin Post-Build Event Batch Process **********

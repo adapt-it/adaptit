@@ -1,8 +1,24 @@
 ﻿----------------------------------------------
-Version 6.11.0  5 January 2023
+Version 6.11.1  5 October 2023
 ----------------------------------------------
-Feature changes and new features in 6.11.0
---------------------------------------------------------------------------------------------
+Feature changes and new features in 6.11.1
+--------------------------------------------------------------------------------------
+* The parser of input source text has been extensively revised. It's more capable, and
+works well with a greater variety of novel (but correct) USFM markup structures.
+* In earlier versions, certain errors when parsing in source text, could crash the app.
+Now, Adapt It will put up a warning message dialog, saying where the data error occurs, 
+and shows the input text for about 60 characters either side of where the error lies. 
+You should take note of the information, and try to fix the relevant part of your input 
+document in an external text editor, and then retry loading it in to Adapt It. Each time 
+the warning message appears you will have the option of continuing to input the source 
+file or to abort the input process, and stop the Adapt It program at a convenient time to 
+edit the input source text. You may wish to continue parsing all the way to the end of 
+the input file - although at the problem location(s) the parsed text will not look right 
+in some way.
+* Sometimes users will have footnote data in which expected information after the \f
+is absent, or is absent preceding the ending \f* marker. When that is the case, Adapt It
+will automatically try to show ??? in such locations, to alert you that perhaps you
+might like to edit the footnote to put in correct text manually.
 * The Retranslation dialog has been revised to be much smaller and less cluttered to 
 allow better ease of use and visibility of the text behind the dialog.
 * Changed the "Back" button in the toolbar to become a "Go To" button which presents the
@@ -22,31 +38,12 @@ but the Edit Source Text... menu item itself still functions, but it is disabled
 Adapt It is collaborating with Paratext or Bibledit.
 * The Ctrl-Q accelerator (short-cut) key now functions on all platforms to Exit the
 application - the "Save Changes" prompt appears if any changes have not been saved.
-* The parser of input source text has been extensively revised. It's more capable, and
-works well with a greater variety of novel (but correct) USFM markup structures.
-* We do not advise using << >> < or > as indicators of opening and/or closing quotes.
-Data of that kind can be reprocessed out of Adapt It with the supplied CC folder in
-each new release. Change these character to: “ ” ‘ ’ respectively. The latter 4 come
-standard in the punctuation set for source and target text. If your data uses, for the
-latter two, U+02BB and U+02BC, you should use the Preferences... Punctuation tab, to
-add them to the existing characters. (Adapt It's defaults for the last two are:
-U+2018 and U+2019 - these have been in every release since version 4.) U+2018 is
-visually identical to U+02BB; and U+2019 is visually identical to U+02BC.
 * The automatic expanding and contracting of the phrasebox when the user types, or
 or deletes, characters; has been improved. In older versions, this was clunky.
-* In earlier versions, certain errors when parsing in source text, could crash the app.
-Now, Adapt It will put up a message dialog, saying where the data error occurs, and shows
-the input text for about 30 characters either side of where the error lies. You should
-take note of the information, and try to fix the relevant part of your input document
-in a word processor, and then retry loading it in to Adapt It. Sometimes you can ignore
-the message, click it away a few times, and parsing from that location will continue -
-although at the problem location the parsed text will not look right in some way.
-* Sometimes users will have footnote data in which expected information after the \f
-is absent, or is absent preceding the ending \f* marker. When that is the case, Adapt It
-will automatically try to show ??? in such locations, to alert you that perhaps you
-might like to edit the footnote to put in correct text manually.
+* Added a "Please wait..." message when Adapt It communicates with Paratext/Bibledit
+for projects that are configured to collaborate with Parate4xt/Bibledit.
 ----------------------------------------------
-Bug fixes in 6.11.0 update
+Bug fixes in 6.11.1 update
 ---------------------------------------------
 * Fixed a bug that wrongly filtered out some scripture text beyond a footnote end 
 marker \f*, when "\f A footnote text item (basic)" is marked to be filtered out using the

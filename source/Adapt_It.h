@@ -223,7 +223,7 @@ class test_system_call;
 //
 // The application version numbers and dates are now mainly set in the
 // _AIandGitVersionNumbers.h header file (included below). However, the version numbers 
-// and/or date numbers for the following still need to be set in these locations:
+// and/or date numbers for the following still need to be set manually in these locations:
 // 1. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the 
 //    adaptit/xml folder.
 // 2. The Visual Studio 2019 Adapt_It > Properties > Linker > General > Version (do for 
@@ -232,7 +232,7 @@ class test_system_call;
 //    MAJOR and MINOR numbers, i.e., 6.10 which keeps things compatible with newer 
 //    versions of Visual Studio.
 // 3. The Mac's Info.plist file in adaptit/bin/mac/ (Erik B. does Mac builds for the 
-//    Adapt_It-x.x.x.dmg distribution).
+//    Adapt_It-x.x.x.dmg distribution). Change in two locations within the Info.plist file
 // 4. The changelog file at: adaptit/debian/changelog
 // 5. Various documentation files in the adaptit/docs folder files including: 
 //    [ ] Adapt It changes.txt
@@ -246,6 +246,8 @@ class test_system_call;
 //    Find out why for the Mac build this wxStaticText value is not getting
 //    updated from the code in MainFrm.cpp to use the current version number
 //    which includes the build number.
+// 7. Within the adaptit.1 man page file, change the release date and version number
+//    within the .TH line.
 
 // The header file included below defines the application's version and date numbers.
 // It also includes the Git version numbers for our Git downloads.

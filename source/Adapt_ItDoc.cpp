@@ -8187,7 +8187,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			}
 			if (pSrcPhrase->m_nSequNumber >= 4)
 			{
-				int halt_here = 1;
+				int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 			}
 #endif
 			curSequNum = pSrcPhrase->m_nSequNumber;
@@ -8322,7 +8322,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							__LINE__, extractedStr.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 4)
 						{
-							int halt_here = 1;
+							int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 						}
 #endif
 
@@ -12283,6 +12283,16 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,
 	bool bTokenizingTargetText)
 {
+	wxUnusedVar(bTokenizingTargetText); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(spacelessPuncts); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(wordBuildersForPostWordLoc); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(endMkr); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(punctBefore); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pWdEnd); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pWdStart); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pEnd); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(ptr); // avoid compiler warning unreferenced formal parameter
+
 	/* BEW 17Jul23 we no longer call this
 	wxChar* pSave = ptr; // BEW 30Sep22, because despite what the comment just
 			// below says, I didn't scan with p, but fiddled with ptr. I want 
@@ -12498,6 +12508,19 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 	wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
 	wxString& spacelessPuncts, bool bTokenizingTargetText)
 {
+	wxUnusedVar(bTokenizingTargetText); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(spacelessPuncts); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(wordBuildersFor2ndPostWordLoc); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(wordBuildersFor2ndPreWordLoc); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(newPunctFrom2ndPostWordLoc); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(newPunctFrom2ndPreWordLoc); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(bindingMkr); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(punctAfter); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pWord2End); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pWord2Start); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(pEnd); // avoid compiler warning unreferenced formal parameter
+	wxUnusedVar(ptr); // avoid compiler warning unreferenced formal parameter
+
 	/* BEW 17Jul23 we not longer support the legacy way of fixed space processing
 	// Note: the punctAfter param is "punctuation after the ~ fixedspace, which, since
 	// this function is only used to parse the second of two conjoined words, is also the
@@ -17060,6 +17083,7 @@ bool CAdapt_ItDoc::IsXRefNext(wxChar* ptr, wxChar* pEnd) // does a \x marker occ
 
 wxString CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 {
+	wxUnusedVar(pBufStart); // avoid gcc warning
 	wxString strReturn; strReturn = wxEmptyString; // initialize to a "safe" value
 	wxChar* pSpann; pSpann = ptr; 
 	wxString mySpan;
@@ -17437,7 +17461,7 @@ int CAdapt_ItDoc::ScanToWhiteSpace(wxChar* pChar, wxChar* pEnd)
 // a digit, must be what pChar points at. It's okay if what follows, on return, is puncts.
 int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
 {
-	wxChar* ptr = pChar;
+	wxChar* ptr = pChar; wxUnusedVar(ptr); // avoid warning variable initialized but not referenced
 	wxString strDate = wxEmptyString; // init
 	wxString legal_separators = _T("/-"); // BEW 30Jun23 removed ':' from list, as 7:14 would be 
 										  // handled as a date, not ch:verse
@@ -17697,7 +17721,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 #if defined (_DEBUG)
 	if (pSrcPhrase->m_nSequNumber >= 8)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
 #endif
 	if (*ptr == gSFescapechar)
@@ -17769,7 +17793,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		__LINE__,  pSrcPhrase->m_nSequNumber, mypointsAt.c_str() );
 	if (pSrcPhrase->m_nSequNumber >= 13)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
 #endif
 
@@ -30183,7 +30207,7 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 #if defined (_DEBUG)
 		if (m_pSrcPhraseBeingCreated != NULL && m_pSrcPhraseBeingCreated->m_nSequNumber == 204)
 		{
-			int breakHere = 1;
+			int breakHere = 1; wxUnusedVar(breakHere); // avoid warning variable initialized but not referenced
 		}
 #endif
 
@@ -30247,14 +30271,14 @@ bool  CAdapt_ItDoc::IsAttributeMarker(wxChar* ptr)
 #if defined (_DEBUG)
 			if (m_pSrcPhraseBeingCreated != NULL && m_pSrcPhraseBeingCreated->m_nSequNumber == 204)
 			{
-				int breakHere = 1;
+				int breakHere = 1; wxUnusedVar(breakHere); // avoid warning variable initialized but not referenced
 			}
 #endif
 
 			m_auxPtr = ptr; // Start the scanning from where ptr currently is (at the start
 							// of the begin-marker (pointing at its backslash)
 			// whm 21Sep2023 added initialization of m_offsetToFirstBar
-			m_offsetToFirstBar = wxNOT_FOUND;
+			m_offsetToFirstBar = (size_t)wxNOT_FOUND;
 			m_offsetToFirstBar = FindBarWithinSpan(m_auxPtr, m_strAttrEndMkr, m_nEndMarkerLen);
 			// Use doc's pDoc->pCreatingSrcPhrase, which gets set in TokenizeText() at
 			// every time new CSourcePhrase is called.
@@ -31996,7 +32020,7 @@ wxString CAdapt_ItDoc::RemoveEndMkrsFromExtras(wxString extras) // BEW added 4Ma
 #if defined (_DEBUG)
 	if (!extras.IsEmpty())
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
 #endif
 	// Search for each gSFescapechar, and each marker will end in '*', trash the substrings so delineated
@@ -32064,7 +32088,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		__FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber , extras.c_str(), pSrcPhrase->m_srcPhrase.c_str());
 	if (pSrcPhrase->m_nSequNumber >= 20)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 	}
 #endif
 	if (extras.IsEmpty())
@@ -32109,6 +32133,12 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		const int nAfterNestedQuotes = 5;
 		int nValue = -1; // init
 
+		// whm 1Oct2023 modified. It's not kosher to have an assignement within 
+		// the conditional expressions as was done in the orginal coding.
+		// Doing so is flagged with a warning by the VS and Gcc compilers.
+		// So I've modified the tests below to put the offset calc within 
+		// the test TRUE blocks rather than within the conditional expressions.
+		/*
 		offset = strExtras.Find(afterNestedQuotes);
 		if (offset >= 0)
 		{
@@ -32139,6 +32169,43 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		{
 			nValue = 0; // noMatch case, ">>" is not in strExtras
 		}
+		*/
+
+		if (strExtras.Find(afterNestedQuotes) != wxNOT_FOUND)
+		{
+			offset = strExtras.Find(afterNestedQuotes);
+			// _T(">> > >>") was found in strExtras
+			nValue = 5;
+		}
+		else if (strExtras.Find(threeWedges_singleFirst) != wxNOT_FOUND)
+		{
+			offset = strExtras.Find(threeWedges_singleFirst);
+			// _T("> >>") was found in strExtras
+			nValue = 4;
+		}
+		else if (strExtras.Find(threeWedgesAndSpace) != wxNOT_FOUND)
+		{
+			offset = strExtras.Find(threeWedgesAndSpace);
+			// _T(">> >") was found in strExtras
+			nValue = 3;
+		}
+		else if (strExtras.Find(twoWedges_afterEndMkr) != wxNOT_FOUND)
+		{
+			offset = strExtras.Find(twoWedges_afterEndMkr);
+			// _T(" >>") was found in strExtras
+			nValue = 2;
+		}
+		else if (strExtras.Find(twoWedges) != wxNOT_FOUND)
+		{
+			offset = strExtras.Find(twoWedges);
+			// _T(">>") was found in strExtras
+			nValue = 1;
+		}
+		else
+		{
+			nValue = 0; // noMatch case, ">>" is not in strExtras
+		}
+
 
 		switch (nValue)
 		{
@@ -32244,7 +32311,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 				__FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, extras.c_str(), pSrcPhrase->m_srcPhrase.c_str(), offset, allOffset);
 			if (pSrcPhrase->m_nSequNumber >= 20)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 			}
 #endif
 			if (allOffset >= 0)
@@ -32284,7 +32351,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 #if defined (_DEBUG)
 		if (pSrcPhrase->m_nSequNumber >= 20 )
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 		}
 #endif
 		while (strExtrasLen > 0)
@@ -32329,7 +32396,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 #if defined (_DEBUG)
 		if (pSrcPhrase->m_nSequNumber >= 20)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid warning variable initialized but not referenced
 		}
 #endif
 		// If control get to here, both strings should be either empty, or contain whitespace - typically space(s)
@@ -32365,6 +32432,8 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 // pass it back to the caller for the caller to store and/or use 
 bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& Sstr, bool bTokenizingTargetText)
 {
+	wxUnusedVar(bTokenizingTargetText); // avoid compiler warning unreferenced formal parameter
+
 	// bTokenizingTargetText defaults to FALSE
 	if (pSrcPhrase == NULL)
 	{
@@ -32387,7 +32456,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 		pSrcPhrase->m_tgtMkrPattern.Empty();
 	}
 
-	CAdapt_ItApp* pApp = &wxGetApp(); // need it to be able to use fast-access strings to get mkrType
+	CAdapt_ItApp* pApp = &wxGetApp();  wxUnusedVar(pApp); // avoid warning variable initialized but not referenced
 	Sstr.Empty();
 	wxString buildStr;
 	buildStr = wxEmptyString; // build in this a string which, when done, will be returned as Tstr
@@ -32418,7 +32487,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// There's no way we can eliminate guesswork from these protocols, but the above many well generate
 	// correct Sstr values in several contexts.
 
-	int offset = wxNOT_FOUND; // for getting endMkr type from pApp's fast-access strings
+	int offset = wxNOT_FOUND; wxUnusedVar(offset); // avoid compiler warning variable initialized but not referenced
 	bool bOuterPunctHasContent = FALSE;
 	bool bNormalEndPunctsHasContent = FALSE;
 	int  nTotalEndPuncts = 0; // init
@@ -32626,7 +32695,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 		nNumBindingEndMkrs = bindingType.Replace(backslash, backslash);
 		wxASSERT(nNumBindingEndMkrs >= 1);
 		// How many normal endMkrs are there? Could be none, one, or more than one
-		int nNumNormalEndMkrs = normalType.Replace(backslash, backslash);
+		int nNumNormalEndMkrs = normalType.Replace(backslash, backslash); wxUnusedVar(nNumNormalEndMkrs); // avoid compiler warning variable initialized but not referenced
 		// Get the inline binding mkrs in pSrcPhrase. Usually only one, sometimes
 		// could be two, three would be extremely rare. Use wxArrayString for safety.
 		// We know there are endMkrs, we there is at least one bindingEndMkr, we know
@@ -32811,11 +32880,11 @@ bool CAdapt_ItDoc::CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString&
 	wxChar* pBufStart = ptr;        // preserve start address for use in testing for buffer beginning
 	int length = srcPattern.Length();
 	wxChar* pEnd = (wxChar*)(ptr + length);
-	int index = 0; // init
+	int index = 0;  wxUnusedVar(index); // avoid compiler warning variable initialized but not referenced
 	// In the old pattern, puncts and markers are visible in their correct places in the pattern. 
 
 	// Find first punct, and subsequent, filling arrays with values. srcPattern could contain ">>" - beware
-	wxChar aChar;
+	wxChar aChar; wxUnusedVar(aChar); // avoid compiler warning variable initialized but not referenced
 	wxChar* pCurrLocn; // use this to preserve where ptr got to when a closing punct was found
 	wxChar* pKickOffLocn; // where to start the scanning when current found punct's substring is appended to OldSrcBitsArr
 					   // (our loop does not remove wxChars as we scan)
@@ -32826,8 +32895,8 @@ bool CAdapt_ItDoc::CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString&
 	wxChar prevChar;
 	wxString subStr;
 	pKickOffLocn = pBufStart;
-	bool bAsteriskLast = FALSE; // init
-	wxChar chAsterisk = _T('*');
+	bool bAsteriskLast = FALSE;  wxUnusedVar(bAsteriskLast); // avoid compiler warning variable initialized but not referenced
+	wxChar chAsterisk = _T('*'); wxUnusedVar(chAsterisk); // avoid compiler warning variable initialized but not referenced
 
 	while (ptr < pEnd)
 	{
@@ -33023,7 +33092,7 @@ bool CAdapt_ItDoc::IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEn
 	wxString wholeMkr = wxEmptyString;
 	wxString augWholeMkr = wxEmptyString;
 	wholeMkr = GetWholeMarker(ptr);
-	bool bIsBeginMkr = TRUE; // init
+	bool bIsBeginMkr = TRUE; wxUnusedVar(bIsBeginMkr); // avoid compiler warning variable initialized but not referenced
 	wxString asterisk = _T("*");
 	offset = wholeMkr.Find(asterisk);
 	if (offset >= 0)
@@ -33413,11 +33482,11 @@ bool CAdapt_ItDoc::IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spaceless
 {
 	pNewPtr = NULL; // init (if unset, then there were no .. or ... sequences in the test span
 	wxChar* ptr = pChar;
-	int offset = -1;
-	bool bIsPunct = FALSE;
+	int offset = -1; wxUnusedVar(offset); // avoid compiler warning variable initialized but not referenced
+	bool bIsPunct = FALSE; wxUnusedVar(bIsPunct); // avoid compiler warning variable initialized but not referenced
 	bool bIs1Period = FALSE;
 	bool bIs2Periods = FALSE;
-	bool bIs3Periods = FALSE;
+	bool bIs3Periods = FALSE; wxUnusedVar(bIs3Periods); // avoid compiler warning variable initialized but not referenced
 	wxString periods1 = _T(".");
 	wxString periods2 = _T("..");
 	wxString periods3 = _T("...");
@@ -35313,6 +35382,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	bool& bIsInlineBindingMkr,
 	bool bTokenizingTargetText)
 {
+	wxUnusedVar(inlineNonbindingEndMrks); // avoid compiler warning unreferenced formal parameter
+
 	// BEW 30Sep19 Because I've split off ParsePreWord()'s code from the legacy ParseWord()
 	// function, some variable are now unused. I'll use wxUnusedVar() for them so as to
 	// avoid compiler warnings
@@ -35674,9 +35745,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	wxString wholeMkr;
 	wxString wholeEndMkr;
 	wxString wholeMkrPlusSpace;
-	bool bExitParseWordOnReturn = FALSE;
-	int nFound = wxNOT_FOUND;
-	bool bHasPrecPunct = FALSE;
+	bool bExitParseWordOnReturn = FALSE; wxUnusedVar(bExitParseWordOnReturn); // avoid compiler warning variable initialized but not referenced
+	int nFound = wxNOT_FOUND; wxUnusedVar(nFound); // avoid compiler warning variable initialized but not referenced
+	bool bHasPrecPunct = FALSE; wxUnusedVar(bHasPrecPunct); // avoid compiler warning variable initialized but not referenced
 	//bool bHasOpeningQuote = FALSE; // set but not used
 	bool bParsedInlineBindingMkr = FALSE;
 	wxUnusedVar(bParsedInlineBindingMkr);
@@ -35687,9 +35758,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	//precedingPunctAfterFixedSpaceSymbol.Empty();
 	//CSourcePhrase* pSrcPhrWord1 = NULL;
 	//CSourcePhrase* pSrcPhrWord2 = NULL;
-	int nHowManyWhites = 0;
+	int nHowManyWhites = 0; wxUnusedVar(nHowManyWhites); // avoid compiler warning variable initialized but not referenced
 	//wxChar* pMaybeWhitesStart = NULL; // set but not used
-	wxChar* pMaybeWhitesEnd = NULL;
+	wxChar* pMaybeWhitesEnd = NULL; wxUnusedVar(pMaybeWhitesEnd); // avoid compiler variable initialized but not referenced
 	wxString wordBuildersForPreWordLoc;
 	wxString wordBuildersForPostWordLoc; wordBuildersForPostWordLoc.Empty();
 	// next pair for use with the second word in a conjoined pair, when a punct is being
@@ -35717,7 +35788,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		wxString pointsAt = wxString(ptr, 20);
 		if (pSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -36022,7 +36093,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString pointsAt = wxString(ptr, 20);
 				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
-					int halt_here = 2;
+					int halt_here = 2; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 #endif
@@ -36047,7 +36118,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString pointsAt = wxString(ptr, 20);
 				if (pSrcPhrase->m_nSequNumber >= 1)
 				{
-					int halt_here = 2;
+					int halt_here = 2; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 #endif
@@ -36137,9 +36208,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		// which could be punctuation, whitespace, or an inline binding endmarker, or a ]
 		// bracket - a later section of this word parser function will deal with those
 		// post-word possibilities.
-		wxChar* pPunctStart = NULL;
-		wxChar* pPunctEnd = NULL;
-		bool bStartedPunctParse = FALSE;
+		wxChar* pPunctStart = NULL; wxUnusedVar(pPunctStart); // avoid compiler warning variable initialized but not referenced
+		wxChar* pPunctEnd = NULL; wxUnusedVar(pPunctEnd); // avoid compiler warning variable initialized but not referenced
+		bool bStartedPunctParse = FALSE; wxUnusedVar(bStartedPunctParse); // avoid compiler warning variable initialized but not referenced
 		// Better ~ parsing requires we parse word1<puncts2>~<puncts3>word2 when there is a ~
 		// fixed space symbol conjoining, within a dedicated function -- and we need a test to
 		// determine when ~ is present which gives TRUE or FALSE even though ptr is still
@@ -36159,7 +36230,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 //		wxString inlineBindingEndMkrBeforeFixedSpace;  // moved to be earlier
 //		wxString inlineBindingMkrAfterFixedSpace;      // moved to be earlier
 		wxChar* savePtr = ptr;
-		int nChangeInLenValue = 0; // initialise
+		int nChangeInLenValue = 0;  wxUnusedVar(nChangeInLenValue); // avoid compiler warning variable initialized but not referenced
 		wxChar* pAux = NULL; // initialise
 
 		// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
@@ -36173,7 +36244,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString pointsAt = wxString(ptr, 20);
 				if (pSrcPhrase->m_nSequNumber >= 2)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 #endif
@@ -36808,7 +36879,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, whitesLe
 										wxChar chNext = *pAux; // character that pAux is pointing at
 										int offset2 = wxNOT_FOUND; // init
 										offset2 = spacelessPuncts.Find(chNext);
-										bool bBeginningPuncts = FALSE;
+										bool bBeginningPuncts = FALSE; wxUnusedVar(bBeginningPuncts); // avoid compiler warning variable initialized but not referenced
 										if (offset2 != wxNOT_FOUND)
 										{
 											// Punctuation follows, get its span
@@ -36887,7 +36958,7 @@ wxLogDebug(_T("LEN+PTR line %d ,  len %d , 20 at ptr= [%s]"), __LINE__, len, wxS
 											wxChar chNext = *pAux;
 											int offset2 = wxNOT_FOUND; // init
 											offset2 = spacelessPuncts.Find(chNext);
-											bool bBeginningPuncts = FALSE;
+											bool bBeginningPuncts = FALSE; wxUnusedVar(bBeginningPuncts); // avoid compiler warning variable initialized but not referenced
 											if (offset2 != wxNOT_FOUND)
 											{
 												// Punctuation follows, get its span
@@ -39790,7 +39861,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 							if (pSrcPhrase->m_nSequNumber >= 4)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 							// BEW 12Dec22 beware, we don't want a message about an unknown end marker to show, if
@@ -41006,7 +41077,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 45)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 
@@ -41121,7 +41192,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, itemLen, beforeUpdate.c_str(), pointsAt.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 5)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 		} // This block just ended is vital. It gets ptr pointing at a backslash, so that tests below don't fail.
@@ -41177,7 +41248,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 45)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// 25Jun23 Handle  ".... pe. (“Kokata ...." here, otherwise, ParsePreWord will swallow
@@ -41208,7 +41279,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 45)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// BEW 7Oct22 we need to support [ bracket here in TokenizeText() because
@@ -41280,7 +41351,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan);
 				if (pSrcPhrase->m_nSequNumber >= 5)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 
 #endif				// Options 2 or 3 must apply
@@ -41414,7 +41485,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 				if (pSrcPhrase->m_nSequNumber >= 5)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 #endif
@@ -41427,7 +41498,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					__LINE__, (int)bEnterEmptyMkrsLoop, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 				if (pSrcPhrase->m_nSequNumber >= 4)
 				{
-					int halt_here = 1;
+					int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 #endif
@@ -41504,7 +41575,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str(),pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 4)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -41525,7 +41596,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 4)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -41552,7 +41623,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -41632,7 +41703,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 4)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -41655,7 +41726,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -41722,7 +41793,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 4)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -41748,7 +41819,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -41826,7 +41897,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 4)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -41851,7 +41922,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -41865,7 +41936,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 6)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 						}
 #endif
@@ -41880,7 +41951,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						if (pUsfmAnalysis != NULL)
 						{
 							// Values needed for when we define a new pSrcPhrase instance:
-							TextType TextTypeEnumValue = pUsfmAnalysis->textType;
+							TextType TextTypeEnumValue = pUsfmAnalysis->textType; wxUnusedVar(TextTypeEnumValue); // avoid compiler warning variable initialized but not referenced
 							navText = pUsfmAnalysis->navigationText;
 
 							pAux = ptr; // protect ptr location
@@ -41940,7 +42011,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 4)
 									{
-										int halt_here = 1;
+										int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 									}
 								}
 #endif
@@ -41967,7 +42038,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 15)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -42057,7 +42128,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 4)
 									{
-										int halt_here = 1;
+										int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 									}
 								}
 #endif
@@ -42105,7 +42176,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), ptrAt.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 714)
 			{
-				int halt_here = 1; // What do we do here on?
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced // What do we do here on?
 			}
 			}
 #endif
@@ -42137,7 +42208,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						__LINE__, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 				}
 #endif
@@ -42256,7 +42327,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					bool bIsBeginMkr;
 					bool bIsEndMkr;
-					bool bAttrMkr;
+					bool bAttrMkr; wxUnusedVar(bAttrMkr); // avoid compiler warning variable initialized but not referenced
 					wxString anAugBeginMkr;
 					awholemkrlen = ParseMarker(ptr);
 					aWholeMkr = wxString(ptr, awholemkrlen);
@@ -42359,8 +42430,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// testing if (IsVerseMarker(ptr,&nCount)) which is what we want (I think)
 							break;
 						}
-						wxChar chPrevious;
-						bool bPrevIsNewline;
+						wxChar chPrevious; wxUnusedVar(chPrevious); // avoid compiler warning variable initialized but not referenced
+						bool bPrevIsNewline; wxUnusedVar(bPrevIsNewline); // avoid compiler warning variable initialized but not referenced
 
 						// BEW 3Jun23 when seqNum is 0 or small, we may be dealing with \id, \h, \mt, \mt#, \ip etc
 						// and these are no inline, not binding, not nonnbinding, but should be coloured RED!
@@ -42524,7 +42595,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// if block is essentially the same as the code of the inner else block (lines 41860 ff) except for
 							// the break statement there.
 							wxChar* auxPtr = ptr;
-							wxChar chAtAuxPtr = *auxPtr;
+							wxChar chAtAuxPtr = *auxPtr; wxUnusedVar(chAtAuxPtr); // avoid compiler warning variable initialized but not referenced
 							if (auxPtr < pEnd &&
 								((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
 								|| ((*auxPtr == _T(' ') || (*auxPtr == _T('\r') && *(auxPtr + 1) == _T('\n')))
@@ -42737,7 +42808,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						__LINE__, pSrcPhrase->m_markers.c_str(), spanAtPtr.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					/* BEW 23Aug23 hopefully this bit is no longer required, it caused premature parsing truncation after sn = 0
@@ -42946,10 +43017,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
-					wxString wholeMkr; wxString augWholeMkr; int verifyOffset;
+					wxString wholeMkr; wxString augWholeMkr; 
 					// BEW 30Sep19 the lookup now returns a pUsfmAnalysis modified for
 					// the ptr being at a \fig marker: modifications are:
 					// 'special' set to TRUE, 'bdryOnLast' set TRUE, 'inform' set TRUE,
@@ -42980,6 +43051,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						lookupStr = augWholeMkr;
 #if defined (_DEBUG) 
 						// Verify
+						int verifyOffset;
 						verifyOffset = wholeMkr.Find(tagOnly);
 						wxASSERT(verifyOffset >= 0);
 #endif
@@ -42991,7 +43063,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							//wxLogDebug(_T("TokText() line %d wholeMkr= [%s], gpApp->gCurrentFilterMarkers= [%s]"),
 							//	__LINE__, wholeMkr.c_str(), gpApp->gCurrentFilterMarkers.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 13)
-								int halt_here = 1;
+							{
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+							}
 #endif
 							bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != -1;
 						}
@@ -43129,7 +43203,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_markers.c_str(), (int)bIsToBeFiltered, pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -43150,7 +43224,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						if (*ptr == gSFescapechar)
@@ -43204,7 +43278,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								}
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 #endif
 								// BEW 20Jul23 this block is for handling \fig, on the assumption
@@ -43281,7 +43355,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								}
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 #endif
 								if (!bIsToBeFiltered)
@@ -43389,7 +43463,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					// BEW 17Apr23 Nyindrou Luke 24:39-40 has a '[' after the end of verse 39's text,
@@ -43423,7 +43497,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						{
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 						}
 #endif
@@ -43451,7 +43525,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str(), wholeMkr.c_str());
 									if (pSrcPhrase->m_nSequNumber >= 5)
 									{
-										int halt_here = 1;
+										int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 									}
 								}
 #endif
@@ -43510,7 +43584,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 					if (pSrcPhrase->m_nSequNumber >= 5)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					// BEW 11Oct10, the block for detecting an inline marker which is not
@@ -43540,7 +43614,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							__LINE__, pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -43749,7 +43823,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_markers= [%s], wholeMkr= [%s] , m_curTextType = %d, m_key = [%s] , ptrPointsAt= [%s]"),
 									__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
 									pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 							int offset = wxNOT_FOUND;
@@ -43810,7 +43884,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 													{
 														// It's a beginMkr
 														wxString augBeginMkr = myBeginMkr + _T(' '); // for fast-access test
-														int offset3 = wxNOT_FOUND;
+														int offset3 = wxNOT_FOUND; wxUnusedVar(offset3); // avoid compiler warning variable initialized but not referenced
 														bool bIsMyInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augBeginMkr);
 														if (bIsMyInlineBindingMkr)
 														{
@@ -43869,7 +43943,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							wxLogDebug(_T("TokText(), line %d, BREAKING OUT of else block, sequNum= %d, wholeMkr= [%s], m_curTextType= %d, m_key= [%s] , pointsAt= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
 								pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						break; // break out of the inner loop, to get to ParsePreWord() etc
@@ -43928,7 +44002,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								__LINE__, sequNumLast, (int)bIsToBeFiltered, lastKey.c_str());
 
 //wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 					}
 #endif
@@ -44012,7 +44086,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// ptr now points at whatever follows the beginMkr and its following whitespace (space or \n)
 						// BEW 20Jul23, just in case there were two or more white spaces, check for more and parse
 						// over them without storing them (this 'heals' sloppy whitespace markup in this context)
-						wxChar* pAux; int whitesLen;
+						wxChar* pAux; int whitesLen; wxUnusedVar(pAux); // avoid compiler warning variable initialized but not referenced
 						{
 							wxChar* pAux = ptr;
 							whitesLen = 0;
@@ -44033,7 +44107,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #if defined (_DEBUG)
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						int nPunctsSpan = ParseFinalPuncts(ptr, pEnd, spacelessPuncts); // <<- NOTE, puncts, can be pre-word 
@@ -44163,7 +44237,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 								wxLogDebug(_T("TokText(), line %d, sequNum= %d, m_markers= [%s], wholeMkr= [%s], m_curTextType = %d, m_key= [%s], pointsAt= [%s] goto parsing"),
 									__LINE__, (int)pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), wholeMkr.c_str(), (int)pSrcPhrase->m_curTextType,
 									pSrcPhrase->m_key.c_str(), ptrPointsAt.c_str());
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 							// jump to ParsePreWord() to get quickly to ParseWord(), with ptr pointing at the word following the beginMkr
@@ -44208,7 +44282,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 							wxLogDebug(_T("TokText(), line %d, sequNum = %d , wholeMkrAtPtr= [%s] , m_curTextType = %d, m_key= [%s]"),
 								__LINE__, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 					}
@@ -44232,7 +44306,7 @@ wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSr
 							wxLogDebug(_T("TokText(), line %d : m_bIsWithinUnfilteredInlineSpan = %d , sequNum = %d , wholeMkrAtPtr= %s , m_curTextType = %d, m_key= [%s]"),
 								__LINE__, (int)m_bIsWithinUnfilteredInlineSpan, (int)pSrcPhrase->m_nSequNumber, wholeMkrAtPtr.c_str(),
 								(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						m_strUnfilteredInlineBeginMarker = gSFescapechar + tagOnly; // e.g. \f or \fig etc
@@ -44279,7 +44353,7 @@ wxLogDebug(_T("TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSr
 							ptrPointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("TokText(), line %d, sequNum= %d , m_bSpecialText= %d , m_curTextType= %d, m_key= [%s]"), __LINE__,
 								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						// Finding the next mkr only determines a halting point. ??? is to be put before that, 
@@ -44452,7 +44526,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 					if (pSrcPhrase->m_nSequNumber >= 13)
 					{
 						//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					// And check what pUsfmAnalysis struct is. bCanFilterIt is returning false here 
@@ -44487,7 +44561,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
 						//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif 
 					// Outermost test...
@@ -44522,7 +44596,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 						{
 							wxLogDebug(_T("TokText(), FILTERING... line %d, sequNum= %d , m_bSpecialText= %d , m_curTextType= %d, m_key = [%s]"), __LINE__,
 								(int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str());
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						// bIsToBeFiltered is TRUE, so determine if the marker is one from
@@ -44543,7 +44617,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 							wxLogDebug(_T("TokText() entering ParseFilteringSFM, line %d, 22 chars atPtrHere= [%s]"), __LINE__, atPtrHere.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 13)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 							// Obtain the string to be filtered out
@@ -44613,7 +44687,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 16)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 							// BEW 23Aug23, it's probably unhelpful to iterate this inner loop using continue; in every
@@ -44813,7 +44887,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 								pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), pSrcPhrase->m_chapterVerse.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 #endif
 						}  // end of else block for test: if (bItsSourceText)
@@ -44917,7 +44991,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 									(int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
 								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
-									int halt_here = 1;
+									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
 							}
 #endif
@@ -44947,7 +45021,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 								pSrcPhrase->m_key.c_str(), pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_markers.c_str(), ptrPointsAt.c_str());
 							if (pSrcPhrase->m_nSequNumber >= 5)
 							{
-								int halt_here = 1;
+								int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 							}
 						}
 #endif
@@ -45003,7 +45077,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 #if defined (_DEBUG)
 					if (pSrcPhrase->m_nSequNumber >= 2)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					// BEW 31Dec22 handle a widowed [ bracket following a \p marker, sets doc boolean m_bWidowedBracket if test succeeds
@@ -45037,7 +45111,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 							pSrcPhrase->m_key.c_str(), pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
-							int halt_here = 1;
+							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
 #endif
 						if (bIsVerseMkrParsed == FALSE)
@@ -45337,7 +45411,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 						__LINE__, strWordAndExtras.c_str(), (int)aSequNum, (int)bTokenizingTargetText, pSrcPhrase->m_oldKey.c_str());
 					if (pSrcPhrase->m_nSequNumber >= 4)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 				}
@@ -45521,7 +45595,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			// as definitive; because \v followed by \p doesn't deliver what we want, we want more smarts - find \v and if not there
 			// then take whatever is first marker in m_markers - I'll implement this protocol asap
 			// I've made a useful new number parser, wxString ParseNumberInStr( wxString <a string having the first digit a number> )
-			int sn = pSrcPhrase->m_nSequNumber;
+			int sn = pSrcPhrase->m_nSequNumber; wxUnusedVar(sn); // avoid compiler warning variable initialized but not referenced
 			wxString srcPhrase = pSrcPhrase->m_srcPhrase;
 			wxString verseNumber = _T("0");
 			wxString strMarkers = pSrcPhrase->m_markers;

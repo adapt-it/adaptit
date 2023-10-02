@@ -1079,7 +1079,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 #if defined(_DEBUG)
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 2)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// BEW 1Jun23 MakeTargetStringIncludingPunctuation() must not be called if pOldActiveSrcPhrase->m_key
@@ -1630,7 +1630,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// make the punctuated target string, but only if adapting; note, for auto capitalization
@@ -1641,7 +1641,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// BEW 9Aug23 experiment. The DoStore..() function is losing 01 02 03 added by my manual edits, so
 		// save pOldActiveSrcPhrase and restore after DoStore_Normal...() has returned
 
-		CSourcePhrase* savepOldActiveSrcPhrase = pOldActiveSrcPhrase; // I don't think I need a deep copy
+		CSourcePhrase* savepOldActiveSrcPhrase = pOldActiveSrcPhrase;  wxUnusedVar(savepOldActiveSrcPhrase); // avoid compiler warning variable initialized but not referenced// I don't think I need a deep copy
 
 #if defined(_DEBUG)
 		if (pCurPile != NULL)
@@ -1665,7 +1665,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		if (!bOK)
@@ -1689,14 +1689,14 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 
 	// move to next pile's cell which has no adaptation yet (or gloss yet, if glossing)
 	pApp->m_bUserTypedSomething = FALSE; // user has not typed at the new location yet
 	bool bAdaptationAvailable = FALSE;
-	bool bGlossAvailable = FALSE; // BEW 9Aug23 added
+	bool bGlossAvailable = FALSE;  wxUnusedVar(bGlossAvailable); // avoid compiler warning variable initialized but not referenced// BEW 9Aug23 added
 	CPile* pNewPile;
 	// BEW 2Jun23 it's jumping over the "2.4" of sn = 2, and this 'next' call gets "The" at sn = 3.
 	// This suggests that the pCurPile value passed in has advance to the next pile, hmm changing
@@ -1705,7 +1705,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	#if defined(_DEBUG)
 	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 
@@ -1810,7 +1810,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 
@@ -1842,7 +1842,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
         // look ahead for a match with KB phrase content at this new active location
@@ -1955,14 +1955,14 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 					__LINE__, pSrcPhraseWhat->m_nSequNumber, m_Translation.c_str(), pSrcPhraseWhat->m_key.c_str());
 				if (pSrcPhraseWhat->m_nSequNumber >= 1)
 				{
-					int halt_here;
+					int halt_here; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
 			}
 			else
 			{
 				// pSrcPhraseWhat is NULL
 				wxLogDebug(_T("PhraseBox::MoveToNextPile(), line = %d , After LookAhead(), pSrcPhraseWhat is NULL"), __LINE__);
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 			
 #endif
@@ -1987,7 +1987,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #if defined(_DEBUG)
 			if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 
@@ -9209,7 +9209,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			__LINE__, targetPhrase.c_str(), (int)pApp->m_bCopySourcePunctuation, pActiveSrcPhrase->m_nSequNumber);
 		if (pActiveSrcPhrase->m_nSequNumber >= 0)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif

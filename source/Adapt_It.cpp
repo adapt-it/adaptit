@@ -64569,7 +64569,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
     {
         if (pSrcPhrase->m_nSequNumber >= 12 && !pSrcPhrase->m_precPunct.IsEmpty())
         {
-            int halt_here = 1;
+            int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
         }
     }
 #endif
@@ -64636,7 +64636,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
     {
         if (pSrcPhrase->m_nSequNumber >= 12 && !pSrcPhrase->m_follPunct.IsEmpty())
         {
-            int halt_here = 1;
+            int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
         }
     }
 #endif

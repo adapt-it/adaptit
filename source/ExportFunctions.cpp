@@ -17434,7 +17434,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 0)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 
@@ -17674,7 +17674,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #if defined (_DEBUG)
 			if (pSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 
@@ -17751,7 +17751,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 #if defined (_DEBUG)
 			if (pSrcPhrase->m_nSequNumber >= 0)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 
@@ -18926,7 +18926,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 #if defined(_DEBUG)
 		if (pSrcPhrase->m_nSequNumber >= 11) 
 		{
-			int break_point = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 #endif
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
@@ -20730,7 +20730,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 #if defined (_DEBUG)
 			if (pOld == pEnd - 80)
 			{
-				int break_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 			if (IsEndOfLine(pOld, eolLen))

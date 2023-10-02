@@ -1225,7 +1225,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 					offset = m_pSrcPhrase->m_chapterVerse.Find(verse17);
 					if (offset >= 0)
 					{
-						int halt_here = 1;
+						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 				}
 #endif

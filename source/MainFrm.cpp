@@ -4860,8 +4860,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		//if ((bHasAdvanced == TRUE) && !bStationaryBox)
 		if (bHasAdvanced == TRUE)
 		{
-			CAdapt_ItApp* pApp = &wxGetApp();
-			CSourcePhrase* pSrcPhrase = NULL;
+			CAdapt_ItApp* pApp = &wxGetApp(); pApp = pApp; // avoid warning in Release mode
+			CSourcePhrase* pSrcPhrase = NULL; pSrcPhrase = pSrcPhrase; // avoid warning in Release mode
 #if defined(_DEBUG) //&& defined(FLAGS)
 			{	
 				if (pApp->m_pActivePile != NULL)

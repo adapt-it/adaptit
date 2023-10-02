@@ -2242,7 +2242,7 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 // will be treated alike (hairspace needed for MATBVM.SFM from Gerald Harkins)
 int	CountSpaces(wxChar* pChar, wxChar* pEnd)
 {
-	wxChar hairspace = (wxChar)0x200A;
+	wxChar hairspace = (wxChar)0x200A; wxUnusedVar(hairspace); // avoid compiler warning variable initialized but not referenced
 	int counter = 0; wxChar* ptr = pChar;
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	//while ((ptr < pEnd) && ((*ptr == _T(' ')) || (*ptr == hairspace)) ) BEW 26May23 removed, not broad enough
@@ -5138,7 +5138,7 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pSi
 			__LINE__, TheStr.c_str(), Sstr.c_str(), pSingleSrcPhrase->m_nSequNumber, arrMkrsPtr->GetCount());
 		if (pSingleSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -5150,7 +5150,7 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pSi
 	}
 	else
 	{
-		bool bIsAmbiguous = bIsAmbiguousForEndmarkerPlacement; // reset to FALSE, if we can avoid need of Placement dlg
+		bool bIsAmbiguous = bIsAmbiguousForEndmarkerPlacement;  wxUnusedVar(bIsAmbiguous); // avoid compiler warning variable initialized but not referenced// reset to FALSE, if we can avoid need of Placement dlg
 		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 		wxString spacelessPunctsForTgt = MakeSpacelessPunctsString(gpApp, targetLang);
 		wxString spacelessPunctsForSrc = MakeSpacelessPunctsString(gpApp, sourceLang); // needed for creating the 'old ones' array
@@ -6119,7 +6119,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			__LINE__, pSingleSrcPhrase->m_srcPhrase.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), pSingleSrcPhrase->m_nSequNumber, Tstr.c_str() );
 		if (pSingleSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -6274,7 +6274,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 		if (pSingleSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -6352,7 +6352,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6378,7 +6378,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6397,7 +6397,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6423,7 +6423,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6442,7 +6442,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6465,7 +6465,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 			if (pSingleSrcPhrase->m_nSequNumber >= 11)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 		}
 #endif
@@ -6489,7 +6489,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 		if (pSingleSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -6508,7 +6508,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			__LINE__, finalPuncts.c_str(), pSingleSrcPhrase->m_targetStr.c_str(), tgtBaseStr.c_str(), Tstr.c_str());
 		if (pSingleSrcPhrase->m_nSequNumber >= 11)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -6628,7 +6628,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				// the extra things needed to make use of the data stored in arrItems
 #if defined (_DEBUG)
 				{
-					int SstrLen = Sstr.Length();
+					int SstrLen = Sstr.Length(); wxUnusedVar(SstrLen); // avoid compiler warning variable initialized but not referenced
 					wxLogDebug(_T("FromSingleMakeStr() line %d, analysis MADE CopiedTstr= [%s] , original Tstr= [%s]"),
 						__LINE__, CopiedTstr.c_str(), Tstr.c_str());
 					if (pSingleSrcPhrase->m_nSequNumber >= 11)
@@ -7393,7 +7393,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 #if defined (_DEBUG)
 	if (pSingleSrcPhrase->m_nSequNumber >= 19)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
@@ -7519,7 +7519,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 
 			// This is a function which matches by positions, since equality tests won't work
 			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
-			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText);
+			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText); wxUnusedVar(bUpdatedOK); // avoid compiler warning variable initialized but not referenced
 		}
 		else
 		{
@@ -7592,7 +7592,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 #if defined (_DEBUG)
 	if (pSingleSrcPhrase->m_nSequNumber >= 19)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 
@@ -14118,6 +14118,8 @@ wxString RemoveNulls(wxString inputStr)
 // succeeds in determining the correct mix of puncts and markers without a placement dialog needing to appear
 bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord)
 {
+	wxUnusedVar(arrItems); // avoid compiler warning variable initialized but not referenced
+
 	// When AI starts up, spaceless src and tgt puncts, final ones, and begining one, are auto-calculated.
 	// We can use these from pApp, the functions bool IsPunctuation(wxChar* pChar, bool bSource) tells
 	// if the *pChar is punctuation. (bSource is default TRUE, explicitly set FALSE to have the 
@@ -14140,7 +14142,7 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 	}
 	wxString srcPuncts = pApp->m_strSpacelessSourcePuncts;
 	wxString tgtPuncts = pApp->m_strSpacelessTargetPuncts;
-	int nWhitesCount = 0; // there may be white space before an associated punct char (parse separately)
+	int nWhitesCount = 0; wxUnusedVar(nWhitesCount); // avoid compiler warning variable initialized but not referenced // there may be white space before an associated punct char (parse separately)
 	long tokensCount = 0; // this count will equal the number of backslashes in Sstr + 1
 	wxArrayString arrElements;
 	wxString delimiters = separator; 
@@ -14234,7 +14236,7 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 #if defined (_DEBUG)
 	if (tgtWord == _T("aTEN10tgt"))
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 	return FALSE;

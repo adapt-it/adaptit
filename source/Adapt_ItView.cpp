@@ -2337,7 +2337,7 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 	{
 #if defined (_DEBUG)
 		CSourcePhrase* pSPhr = pPile->GetSrcPhrase();
-		int theSN = pSPhr->m_nSequNumber;
+		int theSN = pSPhr->m_nSequNumber; wxUnusedVar(theSN); // avoid compiler warning variable initialized but not referenced
 		if (pPile != NULL && (pSPhr->m_nSequNumber >= 0 && pSPhr->m_nSequNumber <= 3) )
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -3078,7 +3078,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 			(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
 		if (pSrcPhrase->m_nSequNumber >= 0)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
 	}
 #endif
@@ -3116,7 +3116,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 		__LINE__, pApp->m_nCacheLeavingLocation);
 	if (sequNum >= 0)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 
 #endif
@@ -3660,7 +3660,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 #if defined(_DEBUG)
 	if (pSrcPhrase->m_nSequNumber >= 1)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 
@@ -3754,7 +3754,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 #if defined (_DEBUG)
 	if (pSrcPhrase->m_nSequNumber >= 5)
 	{
-		int halt_here = 1;
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
 #endif
 	// the following three booleans are local flags which we set in code further below,
@@ -3988,7 +3988,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 				__LINE__, selector, str.c_str(), (int)bHasNothing, (int)bNoValidText, (int)bCopySomethingFromSrc);
 			if (pSrcPhrase->m_nSequNumber >= 0)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 
