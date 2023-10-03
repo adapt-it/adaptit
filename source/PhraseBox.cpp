@@ -7923,11 +7923,18 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 						selectionIndex = 0;
 						int index = selectionIndex;
 
-						// whm 22Aug2018 modification. The index could be pointing to a "<Not In KB>" entry.
+						// whm 22Aug2018 modification. Although it shouldn't be the case when nRefStrCount > 1,
+						// The index value could be pointing to a "<Not In KB>" entry.
 						// If so, we keep the m_targetPhrase, if any, rather than putting <Not In KB> into
-						// the phrasebox's edit box. It could also be pointing at a <no adaptation> entry
+						// the phrasebox's edit box.
+						// whm 2Oct2023 modification. The above comment failed to consider that the
+						// drop down list actually stores "<no adaptation>" rather than what the KB
+						// stores which is "<Not In KB>". The if test below needs to test for
+						// the localizable "<no adaptation>" rather than the non-localizable 
+						// _T("<Not In KB>"). 
 						wxString tempStr = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-						if (tempStr == _T("<Not In KB>"))
+						//if (tempStr == _T("<Not In KB>"))
+						if (tempStr == _("<no adaptation>"))
 						{
 							// Use any existing m_targetPhrase, which may be empty string.
 							this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
@@ -7973,11 +7980,18 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 						index = selectionIndex;
 					}
 
-					// whm 22Aug2018 modification. The index could be pointing to a "<Not In KB>" entry.
+					// whm 22Aug2018 modification. Although it shouldn't be the case when nRefStrCount > 1,
+					// The index value could be pointing to a "<Not In KB>" entry.
 					// If so, we keep the m_targetPhrase, if any, rather than putting <Not In KB> into
 					// the phrasebox's edit box.
+					// whm 2Oct2023 modification. The above comment failed to consider that the
+					// drop down list actually stores "<no adaptation>" rather than what the KB
+					// stores which is "<Not In KB>". The if test below needs to test for
+					// the localizable "<no adaptation>" rather than the non-localizable 
+					// _T("<Not In KB>"). 
 					wxString tempStr = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-					if (tempStr == _T("<Not In KB>"))
+					//if (tempStr == _T("<Not In KB>"))
+					if (tempStr == _("<no adaptation>"))
 					{
 						// Use any existing m_targetPhrase, which may be empty string.
 						this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
