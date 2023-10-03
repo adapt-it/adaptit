@@ -673,20 +673,37 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 
     // whm 21Aug2018 added code to prevent a selection from being entered into the
     // phrasebox during free translation mode
-    if (!pApp->m_bFreeTranslationMode)
-    {
+	if (!pApp->m_bFreeTranslationMode)
+	{
 
-        wxString selItemStr;
-        selItemStr = pApp->m_pTargetBox->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
+		wxString selItemStr;
+		selItemStr = pApp->m_pTargetBox->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-        wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
-            __LINE__, selItemStr.c_str(), pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetDropDownList()->GetSelection(), (int)pApp->m_pTargetBox->m_bEmptyAdaptationChosen);
+		wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
+			__LINE__, selItemStr.c_str(), pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetDropDownList()->GetSelection(), (int)pApp->m_pTargetBox->m_bEmptyAdaptationChosen);
 #endif
-        pApp->m_targetPhrase = selItemStr;
-        pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
+		pApp->m_targetPhrase = selItemStr;
+		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
 
-        if (!pApp->m_pTargetBox->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+		// whm 2Oct2023 addition. If the GetListItemAdjustedforPhraseBox(TRUE) sets the m_pTargetBox->m_bEmptyAdaptationChosen to TRUE,
+		// we should not only empty the App's m_targetPhrase and the phrasebox itself, but also set the active location's source phrase members
+		// m_adaption and m_targetStr to empty strings in response to the having m_bEmptyAdaptationChosen set to TRUE by the
+		// GetListItemAdjustedforPhraseBox(TRUE) call above. 
+		// This change is being made to help eliminate the previous phrasebox contents reappearing after the user selects <no adaptation> from
+		// the drop down list, and hits Enter to move on or clicks the mouse to another location.
+		if (pApp->m_pTargetBox->m_bEmptyAdaptationChosen)
+		{
+			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
+			if (pSP != NULL)
+			{
+				pSP->m_adaption.Empty();
+				pSP->m_targetStr.Empty();
+			}
+		}
+	
+		
+		if (!pApp->m_pTargetBox->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
         {
             pApp->m_pTargetBox->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
         }

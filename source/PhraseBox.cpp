@@ -7997,7 +7997,21 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				}
 				else // nRefStrCount > 1
 				{
-					// There is more than 1 ref string, none of which are <no adaptation>.
+					// whm 2Oct2023 Note:
+					// There is more than 1 ref string, one could be <no adaptation>
+					// but if <no adaptation> exists in the list it is not the first
+					// item in the list. It a <no adaptation> item exists the 
+					// indexOfNoAdaptation at this point will be > 0 which we can test
+					// for below.
+					// whm 2Oct2023 modified comment and coding below to ensure that
+					// when a <no adaptation> exists within the list, and it is not
+					// the top item in the list, and when the pApp->m_targetPhrase
+					// is empty due to pressing the <no adaptation> button, that the
+					// phrasebox remains empty, but the dropdown list will have the
+					// <no adaptation> list entry selected, so that the user can
+					// press Enter to leave the phrasebox empty and the <no adaptation>
+					// effective at that location once the phrasebox moves.
+					// 
 					// Here we basically just ensure that any existing phrasebox content
 					// is selected in the dropdown list using the selectIndex info we got
 					// back from PopulateDropDownList().
@@ -8008,7 +8022,22 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 						// If we pass a selectionIndex of -1 to the SetSelection() call below it
 						// would just empty the edit box and not select the item. Instead we
 						// set the index to 0 to get the first item
-						index = 0;
+						// index = 0;
+						// whm 2Oct2023 modified. If the above comment it true and setting the
+						// index to 0 will "get the first item" we don't want that to happen
+						// when the user has just pressed the <no adaptation> button. 
+						// The indication that <no adaptation> was pressed is when the 
+						// selectionIndex is still -1, and when the indexOfNoAdaptation > 0
+						// and the pApp->m_targetPhrase is empty.
+						// Instead of setting the index to 0, I think it would be better
+						// to set index to the value of indexOfNoAdaptation in this case.
+						// The code below will then get the "<Not in KB>" item from the drop
+						// down list, but the test below that will put the empty string from
+						// the pApp->m_targetPhrase value in the phrasebox instead of the "<Not In KB>".
+						if (indexOfNoAdaptation > 0 && pApp->m_targetPhrase.IsEmpty())
+							index = indexOfNoAdaptation;
+						else
+							index = 0;
 					}
 					else
 					{
@@ -8019,8 +8048,14 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 					// The index value could be pointing to a "<Not In KB>" entry.
 					// If so, we keep the m_targetPhrase, if any, rather than putting <Not In KB> into
 					// the phrasebox's edit box.
+					// whm 2Oct2023 modification. The above comment failed to consider that the
+					// drop down list actually stores "<no adaptation>" rather than what the KB
+					// stores which is "<Not In KB>". The if test below needs to test for
+					// the localizable "<no adaptation>" rather than the non-localizable 
+					// _T("<Not In KB>"). 
 					wxString tempStr = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-					if (tempStr == _T("<Not In KB>"))
+					//if (tempStr == _T("<Not In KB>"))
+					if (tempStr == _("<no adaptation>"))
 					{
 						// Use any existing m_targetPhrase, which may be empty string.
 						this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);

@@ -16957,6 +16957,23 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		}
 #endif
  
+		// whm 2Oct2023 BEW reported that clicking on the <no adaptation> control button didn't result in the 
+		// phrasebox being emptied. It appears that this issue arose after BEW provided this else block to the
+		// preceding if block at line  16862 above if (pApp->m_bTypedNewAdaptationInChooseTranslation).
+		// Note that within the if block above there is a test if (targetStr.IsEmpty()) which when targetStr 
+		// is empty causes this MakeTargetStringIncludingPunctuation() function to exit before calling the
+		// SimplePunctuationRestoration() function at line 16906 above, and now again below.
+		// I believe that not check for an empty targetStr here (like in the if block abov) in order to
+		// cause a premature exit from this function - was an omission here. Because the call of the
+		// SimplePunctuationRestoration() below will produce a strResult from the pSrcPhrase's m_key which
+		// is then wrongly assigned to pSrcPhrase->m_targetStr which was previously emptied by the <no adaptation>
+		// button press. Therefore, to fix this issue I am putting the same if (targetStr.IsEmpty() test here
+		// and allowing for the function to exit before the SimplePunctuationRestoration() call is made
+		if (targetStr.IsEmpty())
+		{
+			return;
+		}
+
 		// BEW 12Dec22 SimplePunctuationRestoration(pSrcPhrase, strEnding) will return any punctuation from, say,
 		// m_follPunct that was stored in pSrcPhrase->m_follPunct etc and preceding puncts too;
 		// BEW 25May23, added 2nd param, bHandledPrecPuncts, so that later below we can use it to
@@ -26617,6 +26634,10 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 
 	GetLayout()->m_docEditOperationType = on_button_no_adaptation_op;
 	Invalidate();
+	// whm 2Oct2023 Note:
+	// We shouldn't call PlaceBox() here with the parameter noDropDownInitialization because
+	// the <no adaptation> won't get added to the drop down list for this location even 
+	// though it gets added to the KB.
 	GetLayout()->PlaceBox();
 }
 

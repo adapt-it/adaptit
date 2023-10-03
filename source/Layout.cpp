@@ -2363,6 +2363,15 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 							// the end of the document)
 	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
+	if (pActivePile != NULL) // whm 2Oct2023 testing
+	{
+		CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+		if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 192)
+		{
+			int halt_here = 1; wxUnusedVar(halt_here);
+		}
+
+	}
 	// BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
 	// -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
 	// set when the last bit of adapting in the file was done and the phrase box moved
