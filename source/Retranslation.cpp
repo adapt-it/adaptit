@@ -1823,8 +1823,14 @@ void CRetranslation::SetRetranslationFlag(SPList* pList,bool bValue)
 // If these changes were not make, then for a retranslation of mergers at 1st or second
 // strip, get a crash (an index bounds error, when OnDraw() is called).
 // BEW 23Apr15 added support for / used as a word-breaking whitespace character.
+// 
+// 3Oct2023 whm modified at BEW's request. He would like the Retranslation 
+// button to be enabled "at any single pile which is not a merger but is
+// the active pile."
 void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 {
+	bool bDoUnselectedLocationRetranslation = FALSE; // whm 3Oct2023 added
+
 	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
 	// refactored 16Apr09
     // Since the Do a Retranslation toolbar button has an accelerator table hot key (CTRL-R
@@ -1843,6 +1849,14 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// Return if this toolbar item is disabled
 	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_RETRANSLATION))
 	{
+		if (m_pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords > 1)
+		{
+			m_pApp->m_bUserDlgOrMessageRequested = TRUE;
+			wxMessageBox(_(
+				"This particular operation is not available for a phrase.\n\nUnmake the phrase first, then select the source phrase words you want to make into a retranslation, and then do the retranslation."),
+				_T(""), wxICON_INFORMATION | wxOK);
+			return;
+		}
 		::wxBell();
 		return;
 	}
@@ -1870,10 +1884,44 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// to fix this is to test for the placeholder, and exit OnButtonRetranslation() if
 	// that's all there was in the selection. We also will test for an empty selection and
 	// exit if so as well. We want to let other single-pile selections pass through
+	//
+	// whm 3Oct2023 added code to allow Retranslations to be done on a single active
+	// location that is not a placeholder, nor a merger, nor an existing retranslation.
+	wxASSERT(m_pView != NULL);
+	wxASSERT(m_pApp->m_nActiveSequNum != NULL);
+	wxASSERT(m_pApp->m_pActivePile != NULL);
+	CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+
 	if (m_pApp->m_selection.IsEmpty())
 	{
-		::wxBell();
-		return;
+		// There is no active selection in the source text.
+		// whm 3Oct2023 added. BEW wants to be able to do a retranslation   
+		// for the active location even when there is no selection. The 
+		// OnUpdateButtonRetranslation() handler now enables the Do a 
+		// Retranslation toolbar button when there is no selection and when 
+		// there is no retranslation yet at that location and it's not a 
+		// merger location, nor is it a placeholder location.
+		//CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+		if (pActiveSrcPhrase != NULL)
+		{
+			if (!pActiveSrcPhrase->m_bRetranslation && pActiveSrcPhrase->m_nSrcWords < 2
+				&& !pActiveSrcPhrase->m_bNullSourcePhrase && pActiveSrcPhrase->m_key != _T("..."))
+			{
+				// there is no retranslation yet at this location and it's not a merger,
+				// nor is it a placeholder location.
+				bDoUnselectedLocationRetranslation = TRUE;
+			}
+			else
+			{
+				::wxBell();
+				return;
+			}
+		}
+		else
+		{
+			::wxBell();
+			return;
+		}
 	}
 	else
 	{
@@ -1895,7 +1943,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
 	SPList* pList = new SPList; // list of the selected CSourcePhrase objects
 	wxASSERT(pList != NULL);
-	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
+	SPList* pSrcPhrases;
+	pSrcPhrases = m_pApp->m_pSourcePhrases;
 	CPile* pStartingPile = NULL;
 
     // determine the active sequ number, so we can determine whether or not the active
@@ -1932,14 +1981,28 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		return;
 	}
 
-	CCell* pCell = (CCell*)pos->GetData();
-	CPile* pPile = pCell->GetPile(); // get the pile first in the selection
+	// whm 3Oct2023 modified to allow doing a retranslation on an unselected un-merged active location
+	CPile* pPile;
+	if (bDoUnselectedLocationRetranslation)
+	{
+		// Get the pPile of the active location
+		pPile = m_pApp->m_pActivePile;
+		// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
+		// pile ptr in the Retranslation instance (.h line 61)
+		m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
+	}
+	else
+	{
+		CCell* pCell = (CCell*)pos->GetData();
+		pPile = pCell->GetPile(); // get the pile first in the selection
+		// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
+		// pile ptr in the Retranslation instance (.h line 61)
+		m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
 
-	// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
-	// pile ptr in the Retranslation instance (.h line 61)
-	m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
+		pos = pos->GetNext(); // needed for our CCellList to effect MFC's GetNext()
+	}
 
-	pos = pos->GetNext(); // needed for our CCellList to effect MFC's GetNext()
+
 
 	pStartingPile = pPile;
 	pSrcPhrase = pPile->GetSrcPhrase();
@@ -1951,7 +2014,21 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // these must be later eliminated after their text, if any, is preserved & any
         // punctuation transferred) and also accumulate the words in the source and target
         // text into string variables
-	GetSelectedSourcePhraseInstances(pList, strSource, strAdapt);
+
+	// whm 3Oct2023 modified for doing a retranslation on a single unselected, non-merget 
+	// source word at the active location.
+	// we don't need to call GetSelectedSourcePhraseInstances() below, but just provide
+	// in pList the current source phrase and prodice strSource and strAdapt from that.
+	if (bDoUnselectedLocationRetranslation)
+	{
+		pList->Append(pActiveSrcPhrase);
+		strSource = pActiveSrcPhrase->m_srcPhrase;
+		strAdapt = pActiveSrcPhrase->m_targetStr;
+	}
+	else
+	{
+		GetSelectedSourcePhraseInstances(pList, strSource, strAdapt);
+	}
 
     // check that the selection is text of a single type - if it isn't, then tell the user
     // and abandon the operation
@@ -2298,6 +2375,17 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
 //#endif
 		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
+
+		// whm 3Oct2023 modified. The nCount value is set to 0 back at line 1970 where it is
+		// set to the returned value of m_selection.GetCount(). However, to get the code to
+		// work correctly for when bDoUnselectedLocationRetranslation = TRUE, it should be
+		// set to a value of 1 in that specific case, otherwise the call of the function
+		// PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount) below
+		// will add a spurious nullSrcPhrase/placeholder to the end of the retranslation.
+		if (bDoUnselectedLocationRetranslation == TRUE)
+		{
+			nCount = 1; // usually 0 for when no selection, but needs to be 1 for this scenario
+		}
 
 		// augment the active sequ num if it lay after the selection
 		if (bActiveLocAfterSelection && nNewCount > nCount)
@@ -5707,6 +5795,29 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// 3Oct2023 whm added at BEW's request. He would like the Retranslation 
+	// button to be enabled "at any single pile which is not a merger but is
+	// the active pile."
+	if (m_pApp->m_selectionLine == -1)
+	{ 
+		// There is no source selection active
+		if (m_pApp->m_pActivePile != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+			if (pSrcPhrase != NULL)
+			{
+				if (!pSrcPhrase->m_bRetranslation && pSrcPhrase->m_nSrcWords < 2
+					&& !pSrcPhrase->m_bNullSourcePhrase && pSrcPhrase->m_key != _T("..."))
+				{
+					// there is no retranslation yet at this location and it's not a merger,
+					// nor is it a placeholder location
+					event.Enable(TRUE);
+					return;
+				}
+			}
+		}
+	}
+	
 	// BEW 24Jan13 added first subtest to avoid spurious false positives
 	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
