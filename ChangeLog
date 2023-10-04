@@ -1,4 +1,63 @@
 ﻿----------------------------------------------
+Version 6.11.1  5 October 2023
+----------------------------------------------
+Feature changes and new features in 6.11.1
+--------------------------------------------------------------------------------------
+* The parser of input source text has been extensively revised. It's more capable, and
+works well with a greater variety of novel (but correct) USFM markup structures.
+* In earlier versions, certain errors when parsing in source text, could crash the app.
+Now, Adapt It will put up a warning message dialog, saying where the data error occurs, 
+and shows the input text for about 60 characters either side of where the error lies. 
+You should take note of the information, and try to fix the relevant part of your input 
+document in an external text editor, and then retry loading it in to Adapt It. Each time 
+the warning message appears you will have the option of continuing to input the source 
+file or to abort the input process, and stop the Adapt It program at a convenient time to 
+edit the input source text. You may wish to continue parsing all the way to the end of 
+the input file - although at the problem location(s) the parsed text will not look right 
+in some way.
+* Sometimes users will have footnote data in which expected information after the \f
+is absent, or is absent preceding the ending \f* marker. When that is the case, Adapt It
+will automatically try to show ??? in such locations, to alert you that perhaps you
+might like to edit the footnote to put in correct text manually.
+* The Retranslation dialog has been revised to be much smaller and less cluttered to 
+allow better ease of use and visibility of the text behind the dialog.
+* Changed the "Back" button in the toolbar to become a "Go To" button which presents the
+user with the small Go To dialog that previously was only available from the "Go To..."
+item on the Edit menu. The To Go dialog now is accessible via single click on the tool
+bar button, and it now has a "Go Back To:" button and a drop down list box making it 
+easy to go back or forward to previous reference locations that were visited via the 
+dialog. The Go Back To list is available for the currently open document.
+* The Print Preview pane is now expanded to the same size as Adapt It's main window. 
+Previously the Print Preview was too small especially if the compose box was open.
+* The View Filtered Material dialog (accessed by clicking on a green wedge mark in the
+text) now works more like the Note Dialog and disappears when the user clicks away from
+the dialog. Any changes made to the text of filtered material are automatically saved
+if they hadn't been saved by explicitly clicking on the dialog's OK button.
+* The Edit Source Text... menu item on the Edit menu no longer has an accelerator key
+but the Edit Source Text... menu item itself still functions, but it is disabled when
+Adapt It is collaborating with Paratext or Bibledit.
+* The Ctrl-Q accelerator (short-cut) key now functions on all platforms to Exit the
+application - the "Save Changes" prompt appears if any changes have not been saved.
+* The automatic expanding and contracting of the phrasebox when the user types, or
+or deletes, characters; has been improved. In older versions, this was clunky.
+* Added a "Please wait..." message when Adapt It communicates with Paratext/Bibledit
+for projects that are configured to collaborate with Parate4xt/Bibledit.
+----------------------------------------------
+Bug fixes in 6.11.1 update
+---------------------------------------------
+* Fixed a bug that wrongly filtered out some scripture text beyond a footnote end 
+marker \f*, when "\f A footnote text item (basic)" is marked to be filtered out using the
+"USFM and Filtering" tab in the Edit Preferences dialog.
+* Fixed a crash that could happen in the Windows version when a user has opened a View 
+Filtered Material dialog, and attempts to close the dialog window by clicking the x icon
+in the upper right corner of the dialog.
+* Fixed a bug that prevented the Auto Correct function from working when editing a note
+within the Note dialog.
+* Fixed a bug that prevented a copied source word/phrase from "sticking" when the user 
+judges that an auto-copied word/phrase into the phrase box needs no editing change, but
+just presses the Enter or Tab key at that location to move ahead in the text. 
+
+----------------------------------------------
 Version 6.10.7  20 May 2022
 ----------------------------------------------
 Bug fixes in 6.10.7 update
