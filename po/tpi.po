@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-01 20:05-0500\n"
+"POT-Creation-Date: 2023-10-04 15:07-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
@@ -73,15 +73,15 @@ msgid "See Glosses"
 msgstr "Lukim Glos"
 
 # Priority 1
-#: Adapt_It.cpp:10350 Adapt_It.cpp:24199 Adapt_ItView.cpp:33274
-#: Adapt_ItView.cpp:33438 ConsistencyCheckDlg.cpp:199
+#: Adapt_It.cpp:10350 Adapt_It.cpp:24199 Adapt_ItView.cpp:33295
+#: Adapt_ItView.cpp:33459 ConsistencyCheckDlg.cpp:199
 #: ConsistencyCheckDlg.cpp:824 RemoveSomeTgtEntries.cpp:182
 msgid "<no gloss>"
 msgstr "<nogat glos>"
 
 # Priority 1
-#: Adapt_It.cpp:10354 Adapt_It.cpp:24198 Adapt_ItView.cpp:33262
-#: Adapt_ItView.cpp:33449 Adapt_It_wdr.cpp:274 Adapt_It_wdr.cpp:5158
+#: Adapt_It.cpp:10354 Adapt_It.cpp:24198 Adapt_ItView.cpp:33283
+#: Adapt_ItView.cpp:33470 Adapt_It_wdr.cpp:274 Adapt_It_wdr.cpp:5158
 #: ChooseTranslation.cpp:214 ChooseTranslation.cpp:359
 #: ChooseTranslation.cpp:485 ChooseTranslation.cpp:640
 #: ChooseTranslation.cpp:803 ChooseTranslation.cpp:831
@@ -90,7 +90,8 @@ msgstr "<nogat glos>"
 #: ConsistencyCheckDlg.cpp:850 KBEditor.cpp:264 KBEditor.cpp:442
 #: KBEditor.cpp:604 KBEditor.cpp:1049 KBEditor.cpp:1094 KBEditor.cpp:1134
 #: KBEditor.cpp:1194 KBEditor.cpp:1705 KBEditor.cpp:2729 PhraseBox.cpp:2932
-#: PhraseBox.cpp:8434 Pile.cpp:451 RemoveSomeTgtEntries.cpp:181
+#: PhraseBox.cpp:7937 PhraseBox.cpp:7994 PhraseBox.cpp:8072 PhraseBox.cpp:8483
+#: Pile.cpp:451 RemoveSomeTgtEntries.cpp:181
 msgid "<no adaptation>"
 msgstr "<nogat trenslesen>"
 
@@ -264,12 +265,12 @@ msgid "Delete all the notes currently in the document"
 msgstr "Rausim olgeta not i stap insait long dispela dokumen i aut olgeta"
 
 # Priority 1
-#: Adapt_It.cpp:10496 Adapt_ItView.cpp:24573 Adapt_ItView.cpp:24594
+#: Adapt_It.cpp:10496 Adapt_ItView.cpp:24590 Adapt_ItView.cpp:24611
 msgid "Boundaries"
 msgstr "Banis"
 
 # Priority 1
-#: Adapt_It.cpp:10496 Adapt_ItView.cpp:24572 MainFrm.cpp:1702
+#: Adapt_It.cpp:10496 Adapt_ItView.cpp:24589 MainFrm.cpp:1702
 #: ToolbarPage.cpp:207
 msgid "Ignore Boundaries"
 msgstr "Maski Banis"
@@ -281,14 +282,14 @@ msgid "Ignore boundaries when making selections"
 msgstr "Maski ol banis, taim yu laik mekim seleksen"
 
 # Priority 1
-#: Adapt_It.cpp:10497 Adapt_ItView.cpp:24696 Adapt_ItView.cpp:24717
+#: Adapt_It.cpp:10497 Adapt_ItView.cpp:24713 Adapt_ItView.cpp:24734
 #: EditPreferencesDlg.cpp:224 EditPreferencesDlg.cpp:228
 #: EditPreferencesDlg.cpp:433 EditPreferencesDlg.cpp:487
 msgid "Punctuation"
 msgstr "Pangsuesen"
 
 # Priority 1
-#: Adapt_It.cpp:10497 Adapt_ItView.cpp:24716 Adapt_It_wdr.cpp:10122
+#: Adapt_It.cpp:10497 Adapt_ItView.cpp:24733 Adapt_It_wdr.cpp:10122
 #: Adapt_It_wdr.cpp:10178 MainFrm.cpp:1703 ToolbarPage.cpp:208
 msgid "Hide Punctuation"
 msgstr "Haitim Pangsuesen"
@@ -515,12 +516,12 @@ msgid "Force the Choose Translation dialog to be shown"
 msgstr "Mas kirapim \"Selektim Trenslesen\" daialog na soim"
 
 # Priority 1
-#: Adapt_It.cpp:10518 Adapt_ItView.cpp:24878 Adapt_ItView.cpp:24903
+#: Adapt_It.cpp:10518 Adapt_ItView.cpp:24895 Adapt_ItView.cpp:24920
 msgid "View Mode"
 msgstr "Vu Mod"
 
 # Priority 1
-#: Adapt_It.cpp:10518 Adapt_ItView.cpp:24902 Adapt_It_wdr.cpp:10151
+#: Adapt_It.cpp:10518 Adapt_ItView.cpp:24919 Adapt_It_wdr.cpp:10151
 #: Adapt_It_wdr.cpp:10207 MainFrm.cpp:1724 ToolbarPage.cpp:229
 msgid "Show Target Text Only"
 msgstr "Soim Taget Teks Tasol"
@@ -550,7 +551,7 @@ msgstr ""
 "dokumen; painim ples bilong sapta na ves"
 
 # Priority 1
-#: Adapt_It.cpp:10521 Adapt_ItView.cpp:25038 Adapt_ItView.cpp:25059
+#: Adapt_It.cpp:10521 Adapt_ItView.cpp:25055 Adapt_ItView.cpp:25076
 msgid "Punctuation Copy"
 msgstr "No Kopim Pangsuesen"
 
@@ -626,10 +627,8 @@ msgstr "Stop Wok\tCtrl-Q"
 
 # Priority 1
 #: Adapt_It.cpp:10986
-#, fuzzy
-#| msgid "Edit Source Text"
 msgid "Edit Source Text..."
-msgstr "Editim Sos Teks"
+msgstr "Editim Sos Teks..."
 
 # Priority 1
 #: Adapt_It.cpp:10995
@@ -647,7 +646,7 @@ msgid "Find and Replace...\tCtrl-Shift-F"
 msgstr "Painim na Senisim...\tCtrl-Shift-F"
 
 # Priority 1
-#: Adapt_It.cpp:11031 Adapt_ItView.cpp:24199 Adapt_ItView.cpp:24290
+#: Adapt_It.cpp:11031 Adapt_ItView.cpp:24216 Adapt_ItView.cpp:24307
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
 msgstr "Wokim toktok i stat long han sut na i go long han kais\tCtrl-Shift-1"
 
@@ -1986,7 +1985,7 @@ msgstr "Stretim Nolis Bes - Step %d bilong %d olgeta"
 msgid "Restoring Knowledge Base..."
 msgstr "Stretim Nolis Bes..."
 
-#: Adapt_It.cpp:40503 Adapt_It.cpp:50558 Retranslation.cpp:5163
+#: Adapt_It.cpp:40503 Adapt_It.cpp:50558 Retranslation.cpp:5251
 msgid ""
 "Sorry, there are no saved document files yet for this project. At least one "
 "document file is required for the operation you chose to be successful. The "
@@ -2834,7 +2833,7 @@ msgstr "No inap opim nolis bes ekspot fail."
 
 # Priority 1
 #: Adapt_It.cpp:60172 ExportFunctions.cpp:921 ExportFunctions.cpp:2064
-#: ExportFunctions.cpp:2261 ExportFunctions.cpp:8979 Retranslation.cpp:5405
+#: ExportFunctions.cpp:2261 ExportFunctions.cpp:8979 Retranslation.cpp:5493
 #, c-format
 msgid ""
 "The exported file was named:\n"
@@ -2854,7 +2853,7 @@ msgstr ""
 "%s"
 
 #: Adapt_It.cpp:60175 ExportFunctions.cpp:2067 ExportFunctions.cpp:2265
-#: ExportFunctions.cpp:8983 Retranslation.cpp:5408
+#: ExportFunctions.cpp:8983 Retranslation.cpp:5496
 msgid "Export operation successful"
 msgstr "Ekspot i kamap gut pinis"
 
@@ -2897,7 +2896,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:1457 Adapt_ItCanvas.cpp:1491 Adapt_ItCanvas.cpp:1523
+#: Adapt_ItCanvas.cpp:1474 Adapt_ItCanvas.cpp:1508 Adapt_ItCanvas.cpp:1540
 #: FreeTrans.cpp:7303
 msgid ""
 "Attempting to put the active location within the gray text area while "
@@ -2909,7 +2908,7 @@ msgstr ""
 "pastaim."
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:1649
+#: Adapt_ItCanvas.cpp:1666
 msgid ""
 "Sorry, but the application will not allow you to extend a selection forwards "
 "across any punctuation unless you use a technique for ignoring a boundary as "
@@ -2919,7 +2918,7 @@ msgstr ""
 "laik kalapim, yu mas wokim long rot olsem selektim \"Maski Banis\" pastaim."
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:1774
+#: Adapt_ItCanvas.cpp:1791
 msgid ""
 "Sorry, it is not possible to extend the selection backwards at this location "
 "unless you use one of the methods for ignoring a boundary."
@@ -2928,7 +2927,7 @@ msgstr ""
 "yu mas wokim long rot olsem selektim \"Maski Banis\" pastaim."
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:2465 Adapt_ItView.cpp:25281 Adapt_ItView.cpp:25331
+#: Adapt_ItCanvas.cpp:2482 Adapt_ItView.cpp:25298 Adapt_ItView.cpp:25348
 msgid ""
 "Sorry, you are trying to select text of different types, such as a heading "
 "and verse text, or some other illegal combination. Combining verse text with "
@@ -3058,13 +3057,13 @@ msgstr ""
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1643 Adapt_ItDoc.cpp:1672 Adapt_ItDoc.cpp:1713
-#: Adapt_ItView.cpp:26237 Adapt_ItView.cpp:26252 Adapt_ItView.cpp:26289
+#: Adapt_ItView.cpp:26254 Adapt_ItView.cpp:26269 Adapt_ItView.cpp:26306
 #, c-format
 msgid "Error opening file %s."
 msgstr "Problem i kamap long opim fail %s."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1656 Adapt_ItView.cpp:26250
+#: Adapt_ItDoc.cpp:1656 Adapt_ItView.cpp:26267
 msgid "The file you selected for input appears to be a binary file."
 msgstr "Dispela fail yu selektim bilong opim - em wanpela bineri fail tasol."
 
@@ -3086,23 +3085,23 @@ msgid "Adapt It input files must be plain text files."
 msgstr "Ol fail bilong adaptim i mas olsem plen teks fail tasol."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1696 Adapt_ItView.cpp:26273
+#: Adapt_ItDoc.cpp:1696 Adapt_ItView.cpp:26290
 msgid "File read error: no data was read in"
 msgstr "Problem i kamap: Olsem no inap ritim gut"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1706 Adapt_ItView.cpp:26282
+#: Adapt_ItDoc.cpp:1706 Adapt_ItView.cpp:26299
 msgid "The file you selected for input is a Unicode file."
 msgstr "Dispela fail yu selektim biliong opim - em i Unicode fail."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1708 Adapt_ItView.cpp:26284
+#: Adapt_ItDoc.cpp:1708 Adapt_ItView.cpp:26301
 msgid "This Regular version of Adapt It cannot process Unicode text files."
 msgstr ""
 "Dispela Regular vesin bilong Adapt It i no inap opim ol Unicode teks fail."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1711 Adapt_ItView.cpp:26287
+#: Adapt_ItDoc.cpp:1711 Adapt_ItView.cpp:26304
 msgid ""
 "You should install and use the Unicode version of Adapt It to process "
 "Unicode text files."
@@ -3690,7 +3689,7 @@ msgstr "pinis fn"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:18913 ExportFunctions.cpp:4149 Retranslation.cpp:248
-#: Retranslation.cpp:264 Retranslation.cpp:5007
+#: Retranslation.cpp:264 Retranslation.cpp:5095
 #, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "%s  - %d bilong %d olgeta ol word na fres"
@@ -4177,10 +4176,8 @@ msgstr ""
 "Adapt It nau bai stop."
 
 #: Adapt_ItDoc.cpp:37192 Adapt_ItDoc.cpp:43767
-#, fuzzy
-#| msgid "location:"
 msgid "Unknown location"
-msgstr "ples:"
+msgstr "Ples"
 
 #: Adapt_ItDoc.cpp:37200
 #, c-format
@@ -4313,7 +4310,7 @@ msgstr ""
 "sampela maka, %s … %s, i kamap, Adapt It I no save lukim.\n"
 "Ol maka i kama long sekwens namba: %d, na insait long dispela  tok:\n"
 "\n"
-"%s"
+"%s."
 
 #: Adapt_ItDoc.cpp:43781
 msgid ""
@@ -4356,10 +4353,8 @@ msgstr "pinis endnote"
 
 # References refering to number of instances of use in documents.
 #: Adapt_ItDoc.cpp:46207
-#, fuzzy
-#| msgid "Verse Reference"
 msgid "end crossReference"
-msgstr "Sapta:Ves Namba"
+msgstr "sapta:ves Namba"
 
 # Priority 1
 # An abbreviation for "End of Footnote". Any translation should be as brief/short as possible
@@ -4507,8 +4502,8 @@ msgstr ""
 # Priority 1
 #: Adapt_ItView.cpp:11047 Adapt_ItView.cpp:12549 PhraseBox.cpp:5747
 #: Placeholder.cpp:2513 Placeholder.cpp:4614 Placeholder.cpp:4669
-#: Retranslation.cpp:1855 Retranslation.cpp:2730 Retranslation.cpp:3410
-#: Retranslation.cpp:4330 Retranslation.cpp:4763
+#: Retranslation.cpp:1869 Retranslation.cpp:2818 Retranslation.cpp:3498
+#: Retranslation.cpp:4418 Retranslation.cpp:4851
 msgid "This particular operation is not available when you are glossing."
 msgstr "Adapt It i no inap mekim kain wok olsem taim yu wokim ol glos."
 
@@ -4694,8 +4689,8 @@ msgstr ""
 "sevim dokumen. Bihain, statim Adapt It gen, go instait long projek gen, na "
 "mekim wok."
 
-#: Adapt_ItView.cpp:19544 Adapt_ItView.cpp:19624 Adapt_ItView.cpp:19694
-#: Adapt_ItView.cpp:19766 Adapt_ItView.cpp:19860
+#: Adapt_ItView.cpp:19561 Adapt_ItView.cpp:19641 Adapt_ItView.cpp:19711
+#: Adapt_ItView.cpp:19783 Adapt_ItView.cpp:19877
 msgid ""
 "Sorry, the Go To command failed. No valid location for the phrase box could "
 "be found before or after your chosen chapter and verse. (Are all your "
@@ -4705,7 +4700,7 @@ msgstr ""
 "ples bilong putim fres bokis. (Olgeta trenselsen yu bin, wokim yu wokim "
 "olsem ritrenslesen tasol?)"
 
-#: Adapt_ItView.cpp:19906
+#: Adapt_ItView.cpp:19923
 #, c-format
 msgid ""
 "Sorry, but the chapter and verse combination  %s  does not exist in this "
@@ -4715,50 +4710,50 @@ msgstr ""
 "insait long dispela dokumen. Olsem Adapt It i no painim."
 
 # Priority 1
-#: Adapt_ItView.cpp:24201 Adapt_ItView.cpp:24292 Adapt_It_wdr.cpp:10049
+#: Adapt_ItView.cpp:24218 Adapt_ItView.cpp:24309 Adapt_It_wdr.cpp:10049
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "Wokim toktok i stat long han sut na i go long han kais\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:24217 Adapt_ItView.cpp:24271
+#: Adapt_ItView.cpp:24234 Adapt_ItView.cpp:24288
 msgid "Layout Window Left To Right\tCtrl-Shift-1"
 msgstr "Wokim toktok i stat long han kais na i go long han sut\tCtrl-Shift-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:24219 Adapt_ItView.cpp:24273
+#: Adapt_ItView.cpp:24236 Adapt_ItView.cpp:24290
 msgid "Layout Window Left To Right\tCtrl-1"
 msgstr "Wokim toktok i stat long han kais na i go long han sut\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:24593
+#: Adapt_ItView.cpp:24610
 msgid "Stop Selection At Boundaries"
 msgstr "Stop Arare Long Seleksen Boda"
 
 # Priority 1
-#: Adapt_ItView.cpp:24695
+#: Adapt_ItView.cpp:24712
 msgid "Show Punctuation"
 msgstr "Soim Pangsuesen"
 
-#: Adapt_ItView.cpp:24877
+#: Adapt_ItView.cpp:24894
 msgid "Show Source And Target Text"
 msgstr "Soim Sos Wantaim Taget Teks"
 
 # Priority 1
-#: Adapt_ItView.cpp:25037
+#: Adapt_ItView.cpp:25054
 msgid "No punctuation copy"
 msgstr "No Ken Kopiim Pangsuesen"
 
 # Priority 1
-#: Adapt_ItView.cpp:25058
+#: Adapt_ItView.cpp:25075
 msgid "Enable Punctuation Copy"
 msgstr "Go Het na Kopiim Pangsuesen"
 
 # Priority 1
-#: Adapt_ItView.cpp:25648
+#: Adapt_ItView.cpp:25665
 msgid "Import to Knowledge Base"
 msgstr "Impot bilong Skruim Nolis Bes"
 
-#: Adapt_ItView.cpp:25649
+#: Adapt_ItView.cpp:25666
 msgid "Choose type of format for import of data into the Knowledge Base:"
 msgstr ""
 "Selektim fomat bilong deta fail bilong impotim I kam insait long Nolis Bes:"
@@ -4769,7 +4764,7 @@ msgstr ""
 # SFM plain text export (with ... & ... fields) [do not translate the \\lx  or the \\ge parts]
 # All Files
 # Leave the parentheses, asterisks, vertical bar | and file wild card specifications as is.
-#: Adapt_ItView.cpp:25777
+#: Adapt_ItView.cpp:25794
 msgid ""
 "SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
 "*)|*.*||"
@@ -4783,24 +4778,24 @@ msgstr ""
 # SFM plain text export (with ... & ... fields) [do not translate the \\lx  or the \\ge parts]
 # All Files
 # Leave the parentheses, asterisks, vertical bar | and file wild card specifications as is.
-#: Adapt_ItView.cpp:25782
+#: Adapt_ItView.cpp:25799
 msgid "XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "XML LIFT impot (*.lift)|*.lift|Olgeta Fail (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_ItView.cpp:25787
+#: Adapt_ItView.cpp:25804
 msgid "Filename for KB import"
 msgstr "Fail Nem bilong KB Impot"
 
-#: Adapt_ItView.cpp:25821
+#: Adapt_ItView.cpp:25838
 msgid "Import KB Records from SFM File"
 msgstr "Impotim ol KB rekot i kam long SFM fail"
 
-#: Adapt_ItView.cpp:25828
+#: Adapt_ItView.cpp:25845
 msgid "Import KB Records from LIFT File"
 msgstr "Impotim ol KB rekot i kam long LIFT fail"
 
-#: Adapt_ItView.cpp:25847
+#: Adapt_ItView.cpp:25864
 #, c-format
 msgid ""
 "Choose a file from the following list:\n"
@@ -4809,7 +4804,7 @@ msgstr ""
 "Makim wanpela fail bilong dispela lista:\n"
 "(i kam long dispela ples: %s):"
 
-#: Adapt_ItView.cpp:25978
+#: Adapt_ItView.cpp:25995
 msgid ""
 "Import your edited version of the source text which belongs to the currently "
 "open document"
@@ -4823,11 +4818,11 @@ msgstr ""
 # SFM plain text export (with ... & ... fields) [do not translate the \\lx  or the \\ge parts]
 # All Files
 # Leave the parentheses, asterisks, vertical bar | and file wild card specifications as is.
-#: Adapt_ItView.cpp:25981
+#: Adapt_ItView.cpp:25998
 msgid "SFM plain text import(*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "SFM plen teks impot(*.txt)|*.txt|All Files (*.*)|*.*||"
 
-#: Adapt_ItView.cpp:26125
+#: Adapt_ItView.cpp:26142
 msgid ""
 "Warning: there was no source language data in the file you imported, so the "
 "document has not been changed."
@@ -4835,7 +4830,7 @@ msgstr ""
 "Sori, fail yu laik impotim i kam long Adapt It i no gat sos tokples teks "
 "insait, olsem dokumen i no senis."
 
-#: Adapt_ItView.cpp:29827
+#: Adapt_ItView.cpp:29848
 msgid ""
 "Collaboration with Paratext is currently ON. You cannot use Adapt It to edit "
 "the source text while collaboration is ON.\n"
@@ -4849,8 +4844,20 @@ msgid ""
 "within Adapt It, and Adapt It will ask you to resolve any conflicts at Save "
 "time."
 msgstr ""
+"Wok wantaim Paratext i ON. Yu no inap editim sos teks insait long Adapt It "
+"taim wok wantaim Paratext i ON.\n"
+"\n"
+"Sapos yu laik editim sos teks, klosim Adapt It pastaim, ronim Paratext na "
+"editim sos teks insait long Paratext. Pinis, wok gen wantaim dispela sos "
+"teks insait long Adapt It. \n"
+"\n"
+"Toksave: Ol wanem senis yu mekim long sos teks ausait long Adapt It bihain "
+"long Adapt It i wokim dokumen pinis bilong en yet, bai kamapim sampela "
+"conflict taim yu sevim wok bilong yu insait long Adapt It, na Adapt It bai "
+"askim yu long stretim ol dispela conflict long taim yu sevim wok insait long "
+"Adapt It."
 
-#: Adapt_ItView.cpp:29832
+#: Adapt_ItView.cpp:29853
 msgid ""
 "Collaboration with Bibledit is currently ON. You cannot use Adapt It to edit "
 "the source text while collaboration is ON.\n"
@@ -4864,8 +4871,20 @@ msgid ""
 "within Adapt It, and Adapt It will ask you to resolve any conflicts at Save "
 "time."
 msgstr ""
+"Wok wantaim Bibledit i ON. Yu no inap editim sos teks insait long Adapt It "
+"taim wok wantaim Bibledit i ON.\n"
+"\n"
+"Sapos yu laik editim sos teks, klosim Adapt It pastaim, ronim Bibledit na "
+"editim sos teks insait long Bibledit. Pinis, wok gen wantaim dispela sos "
+"teks insait long Adapt It. \n"
+"\n"
+"Toksave: Ol wanem senis yu mekim long sos teks ausait long Adapt It bihain "
+"long Adapt It i wokim dokumen pinis bilong en yet, bai kamapim sampela "
+"conflict taim yu sevim wok bilong yu insait long Adapt It, na Adapt It bai "
+"askim yu long stretim ol dispela conflict long taim yu sevim wok insait long "
+"Adapt It."
 
-#: Adapt_ItView.cpp:29834
+#: Adapt_ItView.cpp:29855
 #, fuzzy
 #| msgid "No Adapt It project designated for this collaboration setup"
 msgid "Cannot use Adapt It to edit source text while collaboration is ON"
@@ -4883,10 +4902,8 @@ msgid "This version designed for %s data"
 msgstr "Dispela vesin em i wok wantaim %s deta"
 
 #: Adapt_It_wdr.cpp:93
-#, fuzzy
-#| msgid "Copyright (C) 2022, Bruce Waters, Bill Martin, SIL International"
 msgid "Copyright (C) 2023, Bruce Waters, Bill Martin, SIL International"
-msgstr "Copyright (C) 2022, Bruce Waters, Bill Martin, SIL International"
+msgstr "Copyright (C) 2023, Bruce Waters, Bill Martin, SIL International"
 
 #: Adapt_It_wdr.cpp:110
 msgid "erik_brommers@sil.org"
@@ -10919,10 +10936,8 @@ msgstr ""
 "lista"
 
 #: Adapt_It_wdr.cpp:7855
-#, fuzzy
-#| msgid "No password"
 msgid "Show Password"
-msgstr "I No gat pasword"
+msgstr "Soim pasword"
 
 #: Adapt_It_wdr.cpp:7856
 #, fuzzy
@@ -12781,10 +12796,8 @@ msgstr "Kalap i go long wanpela sapta na ves"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:9949
-#, fuzzy
-#| msgid "Edit Source Text"
 msgid "Edit &Source Text..."
-msgstr "Editim Sos Teks"
+msgstr "Editim Sos Teks..."
 
 #: Adapt_It_wdr.cpp:9949
 msgid "Edit the selected source text"
@@ -17277,16 +17290,13 @@ msgid "Download unspecified failure"
 msgstr ""
 
 #: KbServer.cpp:1653
-#, fuzzy, c-format
-#| msgid ""
-#| "Downloading to the knowledge base: an error code ( %d ) was returned.  "
-#| "Nothing was downloaded, application continues."
+#, c-format
 msgid ""
 "%s() line %d,Downloading to the knowledge base: an error code (rv = %d) was "
 "returned.  Nothing was downloaded, application continues."
 msgstr ""
-"Daunlodim problem, asua kod namba ( %d ). I no gat samting i bin daunlod, na "
-"progrem i wok i go yet."
+"%s() lain %d, Daunlodim problem, asua kod namba ( %d ). I no gat samting i "
+"bin daunlod, na progrem i wok i go yet."
 
 #: KbServer.cpp:1655
 msgid "Downloading to the knowledge base failed"
@@ -18558,7 +18568,19 @@ msgstr "Wokim Ripot..."
 msgid "***  There were no retranslations in the %s document. ***"
 msgstr "***  %s dokumen i no gat ritrenslesen i stap insait. ***"
 
-#: Retranslation.cpp:1930
+#: Retranslation.cpp:1856
+msgid ""
+"This particular operation is not available for a phrase.\n"
+"\n"
+"Unmake the phrase first, then select the source phrase words you want to "
+"make into a retranslation, and then do the retranslation."
+msgstr ""
+"Adapt It i no inap mekim kain wok olsem taim i gat fres I stap.\n"
+"\n"
+"Pastaim yu mas lusim fres, bihain selektim wanem ol sos word yu laik mekim I "
+"go olsem ritranslesen. Pinis, yu ken wokim ritranslesen stret."
+
+#: Retranslation.cpp:1979
 msgid ""
 "Sorry, for a retranslation your selection must not include all the document "
 "contents - otherwise there would be no possible place for the phrase box "
@@ -18569,7 +18591,7 @@ msgstr ""
 "bilong putim. Sotim seleksen pastaim na traim gen."
 
 # Priority 1
-#: Retranslation.cpp:1964
+#: Retranslation.cpp:2041
 msgid ""
 "Sorry, the selection contains text of more than one type. Select only one "
 "text type at a time. The operation will be ignored."
@@ -18577,7 +18599,7 @@ msgstr ""
 "Sori, seleksen yu makim i gat kain kain teks insait. Yu mas selektim wanpela "
 "kain teks tasol i go insait long seleksen."
 
-#: Retranslation.cpp:1991
+#: Retranslation.cpp:2068
 msgid ""
 "Sorry, but this operation is not permitted when the selection contains any "
 "part of a retranslation. First remove the retranslation and then try again."
@@ -18585,7 +18607,7 @@ msgstr ""
 "Sorry, i tambu long mekim olsem taim seleksen i gat ritrenslesen i stap "
 "insait. Yu mas rausim ritrenslesen pinis pastaim, bihain traim gen."
 
-#: Retranslation.cpp:2016
+#: Retranslation.cpp:2093
 #, c-format
 msgid ""
 "Sorry, this operation is not allowed when the selection contains "
@@ -18595,7 +18617,7 @@ msgstr ""
 "Sorry, i tambu long mekim olsem taim seleksen i gat USFM3 metadata i stap "
 "insait. Yu ken traim wokim ritrenslesen I go ararere long dispela tok %s."
 
-#: Retranslation.cpp:2445 Retranslation.cpp:3146 Retranslation.cpp:3897
+#: Retranslation.cpp:2533 Retranslation.cpp:3234 Retranslation.cpp:3985
 msgid ""
 "Warning: your document is full up with retranslations. This makes it "
 "impossible to place the phrase box anywhere in the document."
@@ -18603,7 +18625,7 @@ msgstr ""
 "Toksave: Dispela dokumen i pulap tru wantaim ol ritrenslesen tasol. Olsem "
 "Adapt It i no gat ples bilong putim fres bokis insait long dokumen."
 
-#: Retranslation.cpp:3444 Retranslation.cpp:4364
+#: Retranslation.cpp:3532 Retranslation.cpp:4452
 msgid ""
 "Sorry, the whole of the selection was not within a section of retranslated "
 "text, so the command has been ignored."
@@ -18611,7 +18633,7 @@ msgstr ""
 "Sori, hap bilong seleksen i kalap i go ausait long ritrenslesen, olsem Adapt "
 "It i no inap wokim."
 
-#: Retranslation.cpp:4809
+#: Retranslation.cpp:4897
 msgid ""
 "To get a report based on many or all documents, click No.\n"
 "To get a report based only on this open document, click Yes."
@@ -18620,34 +18642,34 @@ msgstr ""
 "Sapos yu laik kisim ripot bilong displela wanpela dokumen tasol, klikim Yes."
 
 # Priority 1
-#: Retranslation.cpp:4915
+#: Retranslation.cpp:5003
 msgid " report.txt"
 msgstr " ripot.txt"
 
 # Priority 1
-#: Retranslation.cpp:4923
+#: Retranslation.cpp:5011
 msgid "retranslation report.txt"
 msgstr "ritrenslesen ripot.txt"
 
 # Priority 1
-#: Retranslation.cpp:4935
+#: Retranslation.cpp:5023
 msgid "Adapt It Reports (*.txt)|*.txt||"
 msgstr "Adapt It Ripot (*.txt)|*.txt||"
 
 # Priority 1
-#: Retranslation.cpp:4938
+#: Retranslation.cpp:5026
 msgid "Filename For Retranslation Report"
 msgstr "Fail nem bilong Ritrenslesen Ripot"
 
 # Priority 1
-#: Retranslation.cpp:5012 Retranslation.cpp:5021 Retranslation.cpp:5041
-#: Retranslation.cpp:5088 Retranslation.cpp:5130 Retranslation.cpp:5183
-#: Retranslation.cpp:5188 Retranslation.cpp:5231 Retranslation.cpp:5310
-#: Retranslation.cpp:5346
+#: Retranslation.cpp:5100 Retranslation.cpp:5109 Retranslation.cpp:5129
+#: Retranslation.cpp:5176 Retranslation.cpp:5218 Retranslation.cpp:5271
+#: Retranslation.cpp:5276 Retranslation.cpp:5319 Retranslation.cpp:5398
+#: Retranslation.cpp:5434
 msgid "Generating Retranslation Report..."
 msgstr "Wokim Ritrenslesen Ripot..."
 
-#: Retranslation.cpp:5028
+#: Retranslation.cpp:5116
 msgid ""
 "Could not save the current document. Retranslation Report command aborted.\n"
 "You can try to continue working, but it would be safer to shut down and "
@@ -18657,21 +18679,21 @@ msgstr ""
 "Yu ken traim mekim wok yet, tasol moabeta yu stopim Adapt It pastaim, pinis, "
 "statim gen. Maski lusim sampela ol edit yu wokim pinis."
 
-#: Retranslation.cpp:5066
+#: Retranslation.cpp:5154
 msgid "Unable to open report file.\n"
 msgstr "No inap opim ripot fail.\n"
 
-#: Retranslation.cpp:5069
+#: Retranslation.cpp:5157
 msgid "Unable to open report file."
 msgstr "No inap opim ripot fail."
 
 # Priority 1
-#: Retranslation.cpp:5099
+#: Retranslation.cpp:5187
 msgid "Retranslation Report"
 msgstr "Ritrenslesen Ripot"
 
 # Priority 1
-#: Retranslation.cpp:5100
+#: Retranslation.cpp:5188
 #, c-format
 msgid "File Path: %s"
 msgstr "Ples bilong Fail: %s"
