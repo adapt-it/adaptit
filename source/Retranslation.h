@@ -58,10 +58,18 @@ public:
 	int         CountRetransPiles(SPList* pList, int beginSequNum); // BEW added 31Mar21 to support Find retranslations
 	void		EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePhrase); // BEW added 2022
 
+	// whm 3Oct2023 removed the m_pRetransAnchofPile and its associate m_pRetransEndPile
+	// since they are never really used within the code after they are determined.
+	// See note also farther below after the PadWithNullSourcePhrasesAtEnd() call was 
+	// made where m_pRetransEndPile was re-determined from the FindEndingPile()
+	// function. None of them (including the FindEndingPile() function) are actually used
+	// within the current code.
+	/*
 	CPile*		m_pRetransAnchorPile; // BEW 6Sep22, Set for each new retranslation, as the anchor is first 
 									  // and does not move even under retrans editing
 	CPile*		m_pRetransEndPile;    // BEW 6Sep22 this needs to be programmatically determined once the
 									  // number of retrans piles is known. It could change with any EditRetrans
+	*/
 	bool IsWithinRetrans(CPile* pTestPile, CPile* pAnchorPile, CPile* pEndPile); // BEW added 6Sep22, return
 					// TRUE if the sequNum values say that pTestPile is between the anchor and end, or at either 
 					// boundary; otherwise return FALSE (default)

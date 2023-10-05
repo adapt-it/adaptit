@@ -3607,6 +3607,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 		// member, m_pRetransAnchorPile so that every Retranslation has a known anchor (ie. first)
 		// pile. Then I can ensure that finding the retranslation span boundaries will apply to the
 		// correct pile.
+		// whm 3Oct2023 note on above comment. The m_pRetransAnchorPile was never used elsewhere
+		// so it was removed this date.
 
 	//wxASSERT(pActivePile != NULL);
 

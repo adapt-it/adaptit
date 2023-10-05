@@ -1965,7 +1965,30 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	str2.Empty();
 	wxString strSource; // the source text which is to be retranslated
 	strSource.Empty();
-	CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+	// whm 3Oct2023 Note: Changing the OnUpdateButtonRetranslation() handler to allow 
+	// this OnButtonRetranslation() handler to execute when no selection is present 
+	// means having to make some changes to this handler to prevent some crashes due
+	// to bad pointers.
+	// First, the pointer pos below is NULL when m_selection list is empty, and the
+	// nCount determined in the following line will be 0, and a crash will happen at 
+	// the pos->GetData() call due to trying to de-reference a NULL pointer in the
+	// (CCell*)pos->GetData() call below.
+	// Other modifications need to be made further below including a crash scenario
+	// that has been present in the code since a BEW change made on 27Sep2022 (after 
+	// 10.7.0 was released), and has existed since that time. That crash happens when
+	// a merger (of 2 source words) is selected at the active location, and a 
+	// retranslation is attempted, and when the retrans dialog is closed a crash occurs
+	// due to a problem that has existed since the introduction of m_pRetransAnchorPile 
+	// and the function FindEndingPile() function that were introduced in BEW's change
+	// of 27Sep2022 - see more below on this.
+	// Hence, for doing a retranslation when no selection is made as per BEW's request
+	// we have to program defensively, as well as track down a bug that has existed
+	// since BEW's changes made on 27Sep2022.
+	// 
+	// When m_selection is empty, we can't get pPile via the m_selection list, but
+	// we can get a pPile pointer for the current location whic is  stored within 
+	// m_pApp->m_pActivePile.
+	CCellList::Node* pos = m_pApp->m_selection.GetFirst(); 
 
 	int nCount = m_pApp->m_selection.GetCount(); // number of src phrase instances in selection
 	// BEW 6Sep22 note: this nCount value cannot be relied on, when the number of words in the 
@@ -1981,28 +2004,36 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		return;
 	}
 
-	// whm 3Oct2023 modified to allow doing a retranslation on an unselected un-merged active location
-	CPile* pPile;
-	if (bDoUnselectedLocationRetranslation)
+	// Now that retranslations can be done at the active location when no selection has
+	// been made there, we have to get pPile - not from the selection list - but from the
+	// active location stored in m_pApp->m_pActivePile.
+	CPile* pPile = NULL;
+	CCell* pCell = NULL; 
+	if (nCount == 0)
 	{
-		// Get the pPile of the active location
+		// There is no selection so we must be doing a retranslation for the source word  
+		// at the active location, and our flag indicating that situation should be TRUE.
+		wxASSERT(bDoUnselectedLocationRetranslation == TRUE);
 		pPile = m_pApp->m_pActivePile;
-		// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
-		// pile ptr in the Retranslation instance (.h line 61)
-		m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
 	}
 	else
 	{
-		CCell* pCell = (CCell*)pos->GetData();
-		pPile = pCell->GetPile(); // get the pile first in the selection
-		// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
-		// pile ptr in the Retranslation instance (.h line 61)
-		m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
 
+		pCell = (CCell*)pos->GetData();
+		pPile = pCell->GetPile(); // get the pile first in the selection
 		pos = pos->GetNext(); // needed for our CCellList to effect MFC's GetNext()
 	}
 
-
+	// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
+	// pile ptr in the Retranslation instance (.h line 61)
+	// 
+	// whm 3Oct2023 removed the m_pRetransAnchofPile and its associate m_pRetransEndPile
+	// since they are never really used within the code after they are determined.
+	// See note also farther below after the PadWithNullSourcePhrasesAtEnd() call was 
+	// made where m_pRetransEndPile was re-determined from the FindEndingPile()
+	// function. None of them (including the FindEndingPile() function) are actually used
+	// within the current code.
+	//m_pRetransAnchorPile = pPile; // this pile stays constant for the retranslation
 
 	pStartingPile = pPile;
 	pSrcPhrase = pPile->GetSrcPhrase();
@@ -2426,6 +2457,21 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount);
 		// BEW 6Sep22, Get m_pRetransEndPile set using nNewCount (if padding was done)
 		// or nCount if no padding was done
+		// 
+		// whm 3Oct2023 removed the additions that BEW made back on 6Sep2022 including
+		// the determination of m_pRetransAnchorPile (earlier) and m_pRetransEndPile here.
+		// They serve no useful purpose since they are never actually used for anything,
+		// but more importantly, since they were added and the FindEndingPile() function
+		// was added, there has been a crash scenario that has existed since those
+		// additions. The crash happens when a merger is selected at the active location
+		// and a retranslation is attempted. The crash occurs because m_pRetransAnchorPile 
+		// somehow becomes un-initialized between the time it was set to a valid pointer
+		// value back up at about line 2031, and when it arrives here when it is an
+		// input parameter to the FindEndingPile() function in the else case below.
+		// After spending a lot of time and failing to determine the reason, I opted to
+		// just remove the m_pRetransAnchorPile and m_pRetransEndPile and the FindEndingPile()
+		// function - since they serve no useful purpose in the current code. 
+		/*
 		if (nNewCount > nCount)
 		{
 			// padding was done, so use nNewCount to get the ending pile for the span
@@ -2437,8 +2483,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			// the ending pile for the retranslation
 			m_pRetransEndPile = FindEndingPile(m_pApp->GetSourcePhraseList(), m_pRetransAnchorPile, nCount);
 		}
-
-
+		*/
+		
 		// **** Legacy comment -- don't delete, it documents how me need to make changes ****
         // copy the retranslation's words, one per source phrase, to the constituted
         // sequence of source phrases (including any null ones) which are to display it;
