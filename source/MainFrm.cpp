@@ -4846,7 +4846,18 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		bool bHasAdvanced = TRUE; // initialise
 		int oldSN = pApp->m_nOldSequNum;
 		int curSN = pApp->m_nActiveSequNum;
-		if (curSN == oldSN)
+		// whm 5Oct2023 Note: The following test is still too weak for proper operation of the
+		// phrasebox. For example, when an operation like "Remove A Retranslation" has just 
+		// completed, the phrasebox may not have advanced from its position and oldSN and currSN
+		// may still be the same making bHasAdvanced FALSE, and if so, the user cannot advance 
+		// the phrasebox by pressing Enter.
+		// IMO here in the OnIdle() handler is not a good place to try to make such as restriction
+		// against the OnePass() function getting executed whenever >m_bAutoInsert is TRUE.
+		// As a temporary solution, I'm inicluding the if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
+		// tests along with the curSN == oldSN test below to prevent the code here from interferring
+		// with the Enter key press functionality.
+		//if (curSN == oldSN)
+		if (curSN == oldSN && (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject))
 		{
 			bHasAdvanced = FALSE;
 		}
