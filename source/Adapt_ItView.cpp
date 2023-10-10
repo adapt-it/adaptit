@@ -16828,11 +16828,24 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	// BEW changed 6Feb23, pApp->m_TargetPhrase won't be uptodate with any manually type preceding or final
 	// punctuation yet, but the passed in targetStr value WILL have what the phrasebox currently has, so
 	// change to grabbing what's in targetStr, instead, for next two calls
-	//wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(pApp->m_targetPhrase);
-	wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(targetStr);
+	// 
+	// whm 6Oct2023 modification: The above BEW comment of 6Feb23 is not accurate!
+	// BEW reported on 6Oct2023 that any user-entered comma was not "sticking" when the 
+	// phrasebox moved on.
+	// Part of the reason for that comma not "sticking" issue is the change below that BEW 
+	// did on 6Feb23 below.
+	// Tracing through the code reveals that targetStr itself does not have any of the user 
+	// entered final punctuation. However, the previous version of the code line below - before
+	// BEW's change of 6Feb23, sets pApp->m_targetPhrase to the boxContents that DOES have 
+	// any user-entered punctuation. Therefore I'm reversing BEWs change of 6Feb23 below
+	// and am inputing pApp->m_targetPhrase into the GetManuallyAdded...Puncts() functions
+	// making them take the pApp->m_targetPhrase as input parameter, rather than the targetStr.
+	// This change makes the strGrabbedFinalPuncts contain any user-typed final punctuation.
+	wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(pApp->m_targetPhrase);
+	//wxString strGrabbedFinalPuncts = GetManuallyAddedFinalPuncts(targetStr);
 
-	//wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase);
-	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(targetStr);
+	wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(pApp->m_targetPhrase);
+	//wxString strGrabbedPrecPuncts = GetManuallyAddedPrecPuncts(targetStr);
 	//wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, strGrabbedPrecPuncts.c_str(), (int)strGrabbedPrecPuncts.Last());
 
 #if defined (_DEBUG) && !defined (NOLOGS)

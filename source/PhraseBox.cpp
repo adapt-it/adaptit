@@ -1160,7 +1160,20 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 		// 'having-final-punct' entry. To fix this, suppress the inside call of 
 		// MakeTargetStringIncludingPunctuation() - by setting the app member,
 		// m_bInhibitMakeTargetStringCall to TRUE
+		// 
+		// whm 9Oct2023 NOTE and TODO:
+		// After BEW commented out the line below, it started causing the StoreText() 
+		// and its internal call of MakeTargetStringIncludingPunctuation() to be called 
+		// twice. The first call was OK, but in the second call the pApp->m_targetPhrase 
+		// value will have the user-typed final punctuation attached to it which then 
+		// ends up going into the KB.
+		// Testing with pApp->m_bInhibitMakeTargetStringCall = TRUE line restored 
+		// resulted in the issue of the user-typed final punctuation not "sticking"
+		// in the target line after phrasebox moved away, and also fixed, the problem
+		// of a comma getting into the pRefString->m_translation and being stored in
+		// the KB. 
 //BEW 9Aug23		//pApp->m_bInhibitMakeTargetStringCall = TRUE;
+		pApp->m_bInhibitMakeTargetStringCall = TRUE; // whm 9Oct2023 restoring this line
 
 		bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 

@@ -64558,7 +64558,16 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_adaption.c_str());
 
 #endif
-    str = pSrcPhrase->m_adaption; 
+    // whm 6Oct2023 modification and testing. It would seem that the purpose of this function is for punctuation 
+    // "Restoration" which I would interpret as including the restoration of any user-typed punctuation to the 
+    // current pSrcPhrase. When the user types some punctuation that was not already present after input parsing, 
+    // it is not stored in the pSrcPhrase->m_adaption member. Previously, assigning str the value from the 
+    // pSrcPhrase->m_adaption member, this SimplePunctuationRestoration() function misses any user-typed punctuation. 
+    // Therefore, I've opted to use the App's m_targetPhrase member - assigning it to str below rather than the
+    // pSrcPhrase->m_adaption member. The App's m_targetPhrase will have the user-typed punctuation on it that 
+    // pSrcPhrase->m_adaption lacks.
+    //str = pSrcPhrase->m_adaption;
+    str = this->m_targetPhrase;
     bool bNoFinalPuncts = TRUE; // init
     bool bNoPrecPuncts = TRUE; // init
     // BEW 6Feb23, Top half of this function checks what's on m_adaption, which is likely to have no puncts,
