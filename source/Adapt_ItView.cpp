@@ -17403,7 +17403,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						bSquareBracketOnlyAsPunct = TRUE;
 					}
 				} // end of TRUE block for test: if (str.IsEmpty())
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 				{
 					wxLogDebug(_T("MakeTgtStrIncPunc() line %d: [ or ], sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
@@ -17513,7 +17513,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								//pSrcPhrase->m_punctsPattern = _T("");
 							}
 						}
-#if defined (_DEBUG) && !defined (NOLOGS)
+#if defined (_DEBUG) //&& !defined (NOLOGS)
 						{
 							wxLogDebug(_T("MakeTgtStrIncPunc() line %d: ..Pattern support: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
@@ -17523,11 +17523,15 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							}
 						}
 #endif
-
+						// BEW 11Oct23 since a couple of months ago I decided to change fixed space ~ support
+						// to just accept the conjoined-by-tilde words as wholes, for the KB, we no longer
+						// need to call this CPlaceInternalPunct dialog, m_targetStr is already correct
+						 
 						// If the m_lastAdaptionsPattern is empty, for any reason, we must do
 						// a punctuation placement using the dialog for that purpose
 						if (pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 						{
+							/* BEW 11Oct23 comment out, accept what str contains for tgt text, as typed by user
 							// the placement dialog needs to be shown
 							wxString punct;
 							wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might
@@ -17564,6 +17568,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
 													// destroyed when it goes out of scope
 							strCorresp.Empty();
+							*/
+							
 #if defined (_DEBUG) && !defined (NOLOGS)
 							{
 								wxLogDebug(_T("MakeTgtStrIncPunc() line %d: DONE PLACE internal DLG: sn= %d , pSrcPhrase->m_key = %s , pSrcPhrase->m_adaption = %s , pSrcPhrase->m_targetStr = %s , input targetStr= %s "),
@@ -24418,7 +24424,7 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 				return FALSE; // it's structured data
 			nFound = -1;
 			nFound = markers.Find(s1 + _T("x "));
-			// BEW 9Sep23 add some more, as little unittests may have non of the above, especially in book introductions
+			// BEW 9Sep23 add some more, as little unittests may have none of the above, especially in book introductions
 			nFound = -1;
 			nFound = markers.Find(s1 + _T("ip "));
 			nFound = -1;
