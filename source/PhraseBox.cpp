@@ -6355,11 +6355,15 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			return FALSE; // caller is OnIdle(), OnePass is not used elsewhere
 		}
 
-
 		// it will have failed because we are at eof without finding a "hole" at which to
 		// land the phrase box for reaching the document's end, so we must handle eof state
 		//if (pApp->m_pActivePile == NULL && pApp->m_endIndex < pApp->m_maxIndex)
-		if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
+		// BEW 16Oct23 the test: if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
+		// was useless, because with phrasebox at last pile, m_pActivePile is NOT null, and
+		// pApp->m_nActiveSequNum was not -1. Need a more suitable test.
+		int maxindex = pApp->GetMaxIndex();
+		int curSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		if (maxindex == curSequNum)
 		{
 			// we got to the end of the doc...
 
@@ -6373,25 +6377,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
             // namely, the loss of highlighting when the doc is reached by auto-inserting)
             // now fixed.
 
-			// BEW 21May13, first place for doing a thaw...
-			// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
-			// correctly, and there is no need for it since the dropdown phrasebox was introduced.
-			//if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
-			//{
-			//	// We want Thaw() done, and the next call of OnPass() will then get the view 
-			//	// redrawn, and the one after that (if the sequence has not halted) will start
-			//	// a new subsequence of calls where the canvas has been re-frozen 
-			//	pApp->m_nInsertCount = 0;
-			//	pView->canvas->Thaw();
-			//	pApp->m_bIsFrozen = FALSE;
-			//	// don't need a delay here
-			//	if (pApp->m_nCurDelay == 31)
-			//	{
-			//		pApp->m_nCurDelay = 0; // set back to zero
-			//	}
-			//}
-			// remove highlight before MessageBox call below
-			//pView->Invalidate();
 			pLayout->Redraw(); // bFirstClear is default TRUE
 			pLayout->PlaceBox();
 
@@ -6444,24 +6429,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
             pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
 		}
 
-		// BEW 21May15, this is the second of three places in OnePass() where a Thaw() call
-		// must be initiated when conditions are right; control passes through here when the
-		// sequence of auto-inserts is just coming to a halt location - we want a Thaw() done
-		// in that circumstance, regardless of the m_nInsertCount value, and the latter
-		// reset to default zero
-		// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
-		// correctly, and there is no need for it since the dropdown phrasebox was introduced.
-		//if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
-		//{
-		//	pApp->m_nInsertCount = 0;
-		//	pView->canvas->Thaw();
-		//	pApp->m_bIsFrozen = FALSE;
-		//	// Don't need a third-of-a-second delay 
-		//	if (pApp->m_nCurDelay == 31)
-		//	{
-		//		pApp->m_nCurDelay = 0; // set back to zero
-		//	}
-		//}
         // whm 19Feb2018 modified. Don't empty the global m_Translation string before PlaceBox() call
         // below. The PlaceBox may need it for PopulateDropDownList() after which m_Translation.Empty()
         // will be called there.
@@ -6486,34 +6453,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		wxLogDebug(_T("7. After ScrollIntoView"));
 	#endif
 
-	// BEW 21May15, this is the final of the three places in OnePass() where a Thaw() call
-	// must be initiated when conditions are right; control passes through here when the
-	// sequence of auto-inserts has not yet come to a halt location - we want a Thaw() if
-	// periodically, breaking up the auto-insert sequence with a single redraw when
-	// m_nInsertCount reaches the NUMINSERTS value for each subsequence
-	// whm 11Jun2022 removed the support for freezing the canvas window. It wasn't working
-	// correctly, and there is no need for it since the dropdown phrasebox was introduced.
-	//if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
-	//{
-	//	// Are we at the penultimate OnePass() call being completed? If so, we want the
-	//	// Thaw() done, and the next call of OnPass() will then get the view redrawn, and
-	//	// the one after that (if the sequence has not halted) will start a new subsequence
-	//	// of calls where the canvas has been re-frozen 
-	//	if (pApp->m_nInsertCount > 0 && ((pApp->m_nInsertCount + 1) % (int)NUMINSERTS == 0))
-	//	{
-	//		// Ask for the thaw of the canvas window
-	//		pApp->m_nInsertCount = 0;
-	//		pView->canvas->Thaw();
-	//		pApp->m_bIsFrozen = FALSE;
-	//		// Give user a 1-second delay in order to get user visually acquainted with the inserted words
-	//		if (pApp->m_nCurDelay == 0)
-	//		{
-	//			// set delay of 31 ticks, it's unlikely to be accidently set to that value;
-	//			// it's 31/100 of a second
-	//			pApp->m_nCurDelay = 31; 
-	//		}
-	//	}
-	//}
 	pLayout->m_docEditOperationType = relocate_box_op;
 	pView->Invalidate(); // added 1Apr09, since we return at next line
 	pLayout->PlaceBox();
