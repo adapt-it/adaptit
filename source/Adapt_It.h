@@ -5744,8 +5744,8 @@ public:
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
-
-	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts); // BEW 25May23 added  2nd param, 
+	// BEW 25May23 added  2nd param, 11Oct23 added 3rd param
+	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, bool& bHandledPrecPuncts, bool& bHandledFollPuncts);  
 				
 	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15

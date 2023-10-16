@@ -4313,6 +4313,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString kkey = pSrcPhrase->m_key;
 	wxString saveKey = kkey;
 	wxString saveTgtPhrase = tgtPhrase;
+#if defined (_DEBUG)
+	{
+		wxString str2sg = _T("your(sg");
+		int offset = -1;
+		offset = tgtPhrase.Find(str2sg);
+		if (offset != -1)
+		{
+			int halt_here = 1;
+		}
+	}
+#endif
 
 	// BEW 9Aug23 test, what happens if I give an initial pSrcPhrase->m_targetStr value set by tgtPhrase?
 	//pSrcPhrase->m_targetStr = tgtPhrase; //<<--  it cured Mike's error, \n before tgtPhrase kills retention of the user's 01, 02, additions (but puncts missing yet)
@@ -5284,7 +5295,34 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// (tilde ~) between two words. In glossing mode we want that to be two separate
 			// words, so create a new wxString, assign tgtPhrase to it, and remove any ~
 			// instances, and then set m_translation using the new string.
-			wxString tstr = tgtPhrase;
+			
+			// BEW 16Oct23 for data like "you(sg" in input tgtPhrase, the earlier call of
+			// MakeTargetStringIncludingPunctuation() will, if pSrcPhrase->m_follPunct has
+			// _T(')') stored in it, it would have restored the ')' to the end, making "your(sg)"
+			// and so tgtPhrase will have become "your(sg)" - so if I do nothing extra here,
+			// a tgt string with following punctuation ')' will get saved wrongly as valid
+			// "punctuation-less" tgt text - producing a bogus extra entry to appear in the
+			// dropdown list for this pSrcPhrase. Refactor here to prevent this.
+			int offset = -1;
+			wxString tstr = wxEmptyString;
+			int nLenSavedTgtPhrase = saveTgtPhrase.Length(); // length value of tgtPhrase passed in
+			if (!gbIsGlossing)
+			{
+				offset = tgtPhrase.Find(saveTgtPhrase);
+				if (offset != wxNOT_FOUND)
+				{
+					// saveTgtPhrase is a substring in the value that tgtPhrase has become, so what's
+					// been added will have been punctuation, most probably final punctuation, and that
+					// must not go into the KB
+					int newLength = tgtPhrase.Length();
+					if (newLength > nLenSavedTgtPhrase)
+					{
+						tgtPhrase = saveTgtPhrase;
+					}
+				}
+			}
+			tstr = tgtPhrase;
+
 			if (gbIsGlossing)
 			{
 				tstr.Replace(_T("~"), _T(" ")); // turn all ~  into Latin space
