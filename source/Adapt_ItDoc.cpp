@@ -17885,32 +17885,15 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					// pSrcPhrase will fail if it is asked to handle a beginMkr
 					bool bIsEndMkr; bIsEndMkr = FALSE; // init
 					wxString nextWholeMkr; nextWholeMkr = wxEmptyString; // init
-					bool bIsBeginMkr;
-					bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
-					// BEW 17Oct23 need a block here to handle legitimate endmkrs, e.g. \f* when unfiltering
-					bIsEndMkr = IsEndMarker(pAux, pEnd);
-					if (pAux < pEnd && bIsEndMkr)
-					{
-						nextWholeMkr = GetWholeMarker(pAux);
-						augWholeMkr = nextWholeMkr + space;
-						offset = pApp->m_RedEndMarkers.Find(augWholeMkr); // this set includes \f* and many others
-						if (offset >= 0)
-						{
-
-							mkrLen = nextWholeMkr.Length();
-							itemSpan = mkrLen;
-							pSrcPhrase->m_follPunct << nextWholeMkr; // append the endMkr
-							pAux += itemSpan;
-							ptr += itemSpan; // ptr has advanced
-							itemLenAccum += itemSpan;
-							bIterateAgain = TRUE;
-						} // end of TRUE block for test: if (pAux < pEnd && bIsEndMkr)
-						else
-						{
-							goto unknown;
-						}
-					}
-					else if (pAux < pEnd && bIsBeginMkr )
+					// whm 17Oct2023 reverted changes made by BEW in his commit 
+					// on 16Oct2023 ad512a72b9be97a9b089b14e4acecf503f040097 since those
+					// changes were causing footnote end markers to be wrongly stored in
+					// the m_markers field, the footnote texttype to propagate past the
+					// SP at the footnote end marker, and other issues.
+					// Other changes involving the "Warning: Unexpected End Marker" message
+					// were partially retained farther below.
+					bool bIsBeginMkr; bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
+					if (pAux < pEnd && bIsBeginMkr )
 					{
 						// Must exit the loop immediately, beginMkrs belong on the next pSrcPhrase
 						ptr = pAux;
@@ -17919,7 +17902,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					} // end of TRUE block for test: if (pAux < pEnd && bIsBeginMkr )
 					else
 					{
-unknown:				bool bIsAnEndMkr;
+						bool bIsAnEndMkr;
 						bIsAnEndMkr = FALSE; // initialize
 						int myOffset; myOffset = wxNOT_FOUND; // init
 						myOffset = wholeMkr.Find(wxString(_T('*')));
@@ -18012,11 +17995,23 @@ unknown:				bool bIsAnEndMkr;
 								itemLenAccum += theMkrLen;
 								itemLen += theMkrLen; // returned by signature, keep ptr and what's parsed over, in sync
 
+								// whm 17Oct2023 reverted the change made by BEW in commit made
+								// on 16Oct2023 ad512a72b9be97a9b089b14e4acecf503f040097 since those
+								// changes were causing footnote end markers to be wrongly stored in
+								// the m_markers field, the footnote texttype to propagate past the
+								// SP at the footnote end marker, and other issues.
+								// I'm also temporary commenting out the user log storage of the warning 
+								// message below to prevent entering spurious warnings of perfectly valid
+								// \f* and \fq* end markers into the user log.
+								// TODO: BEW could try again to refactor the above code to make warnings
+								// apply to genuinely unexpected end-markers, but I'm not sure it is worth
+								// the work to do so, and the handling of end markers here seems quite
+								// fragile so that refactoring has already produced unexpected side effects.
 								wxString msg = _("Warning: While loading source text, encountered unexpected end-marker: %s \nPossibly occurs in the pile following: %s\n in the span: %s \n Either correct the unknown end-marker and reload the file, or just ignore the error.");
 								msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
 								//wxString title = _T("Warning: Unexpected End Marker"); // BEW 17Oct23 don't display the msg box, just use LogUserAction()
 								//wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-								pApp->LogUserAction(msg);
+								// pApp->LogUserAction(msg); // whm 17Oct2023 commented out - see note above.
 								bIterateAgain = FALSE;
 							} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
 
