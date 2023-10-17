@@ -18012,11 +18012,10 @@ unknown:				bool bIsAnEndMkr;
 								itemLenAccum += theMkrLen;
 								itemLen += theMkrLen; // returned by signature, keep ptr and what's parsed over, in sync
 
-								wxString msg = _("Warning: While loading the source text file, an unexpected end-marker, %s , was encountered.\nIt occurs in the pile following the one with source: %s\n near middle of span: %s \n Correct the end-marker in the source text file, then re-load the source text.");
+								wxString msg = _("Warning: While loading source text, encountered unexpected end-marker: %s \nPossibly occurs in the pile following: %s\n in the span: %s \n Either correct the unknown end-marker and reload the file, or just ignore the error.");
 								msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
-								wxString title = _T("Warning: Unexpected End Marker");
-
-								wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+								//wxString title = _T("Warning: Unexpected End Marker"); // BEW 17Oct23 don't display the msg box, just use LogUserAction()
+								//wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 								pApp->LogUserAction(msg);
 								bIterateAgain = FALSE;
 							} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
