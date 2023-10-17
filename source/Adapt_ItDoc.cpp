@@ -17885,8 +17885,32 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					// pSrcPhrase will fail if it is asked to handle a beginMkr
 					bool bIsEndMkr; bIsEndMkr = FALSE; // init
 					wxString nextWholeMkr; nextWholeMkr = wxEmptyString; // init
-					bool bIsBeginMkr; bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
-					if (pAux < pEnd && bIsBeginMkr )
+					bool bIsBeginMkr;
+					bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
+					// BEW 17Oct23 need a block here to handle legitimate endmkrs, e.g. \f* when unfiltering
+					bIsEndMkr = IsEndMarker(pAux, pEnd);
+					if (pAux < pEnd && bIsEndMkr)
+					{
+						nextWholeMkr = GetWholeMarker(pAux);
+						augWholeMkr = nextWholeMkr + space;
+						offset = pApp->m_RedEndMarkers.Find(augWholeMkr); // this set includes \f* and many others
+						if (offset >= 0)
+						{
+
+							mkrLen = nextWholeMkr.Length();
+							itemSpan = mkrLen;
+							pSrcPhrase->m_follPunct << nextWholeMkr; // append the endMkr
+							pAux += itemSpan;
+							ptr += itemSpan; // ptr has advanced
+							itemLenAccum += itemSpan;
+							bIterateAgain = TRUE;
+						} // end of TRUE block for test: if (pAux < pEnd && bIsEndMkr)
+						else
+						{
+							goto unknown;
+						}
+					}
+					else if (pAux < pEnd && bIsBeginMkr )
 					{
 						// Must exit the loop immediately, beginMkrs belong on the next pSrcPhrase
 						ptr = pAux;
@@ -17895,7 +17919,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					} // end of TRUE block for test: if (pAux < pEnd && bIsBeginMkr )
 					else
 					{
-						bool bIsAnEndMkr;
+unknown:				bool bIsAnEndMkr;
 						bIsAnEndMkr = FALSE; // initialize
 						int myOffset; myOffset = wxNOT_FOUND; // init
 						myOffset = wholeMkr.Find(wxString(_T('*')));
@@ -17922,7 +17946,9 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 						if (pCurPile != NULL)
 						{
 							CSourcePhrase* pCurSrcPhrase;
-							pCurSrcPhrase = pCurPile->GetSrcPhrase();
+							// BEW 17Oct23 a better choice for pCurSrcPhrase is the passed in pSrcPhrase
+							//pCurSrcPhrase = pCurPile->GetSrcPhrase();
+							pCurSrcPhrase = pSrcPhrase;
 							if (pCurSrcPhrase != NULL)
 							{
 								wxString curKey;
@@ -17937,18 +17963,18 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 								int snLocBefore; snLocBefore = curSN; // initialise
 								int snLocAfter; snLocAfter = curSN; // initialise
 								int snLocAfterEnd; snLocAfterEnd = curSN; // initialise
-								snLocBefore -= 5;
+								snLocBefore -= 2; // BEW 17Oct23 was 5 
 								snLocAfter += 1; // starting at next after curSN
-								snLocAfterEnd = snLocAfter + 5;
+								snLocAfterEnd = snLocAfter + 2; // BEW 17Oct23 was 5
 								if (snLocBefore > 0)
 								{
-									// At least 5 previous pSrcPhrase instances are available
+									// At least 2 previous pSrcPhrase instances are available
 									pLocBefore_Pile = pView->GetPile(snLocBefore);
 									wxASSERT(pLocBefore_Pile != NULL); // change later into an if/else test ********
 								}
 								else
 								{
-									// Too close to start of doc to fit 5, so start at sn = 0 pile
+									// Too close to start of doc to fit 2, so start at sn = 0 pile
 									pLocBefore_Pile = pView->GetPile(0);
 									wxASSERT(pLocBefore_Pile != NULL);
 								}
