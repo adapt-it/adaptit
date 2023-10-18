@@ -17885,7 +17885,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					// pSrcPhrase will fail if it is asked to handle a beginMkr
 					bool bIsEndMkr; bIsEndMkr = FALSE; // init
 					wxString nextWholeMkr; nextWholeMkr = wxEmptyString; // init
-					bool bIsBeginMkr;
+					bool bIsBeginMkr; wxString endMkrs;
 					bIsBeginMkr = IsBeginMarker(pAux, pEnd, nextWholeMkr, bIsEndMkr);
 					// BEW 17Oct23 need a block here to handle legitimate endmkrs, e.g. \f* when unfiltering
 					bIsEndMkr = IsEndMarker(pAux, pEnd);
@@ -17899,7 +17899,9 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 
 							mkrLen = nextWholeMkr.Length();
 							itemSpan = mkrLen;
-							pSrcPhrase->m_follPunct << nextWholeMkr; // append the endMkr
+							endMkrs = pSrcPhrase->GetEndMarkers();
+							endMkrs << nextWholeMkr;
+							pSrcPhrase->SetEndMarkers(endMkrs); 
 							pAux += itemSpan;
 							ptr += itemSpan; // ptr has advanced
 							itemLenAccum += itemSpan;
