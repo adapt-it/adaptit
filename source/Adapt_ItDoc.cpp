@@ -11039,8 +11039,20 @@ int CAdapt_ItDoc::ParseNumber(wxChar* pChar)
 	// ended up as GUI src text in the layout. The fix is to OR it with a hyphen.
 	while (!IsWhiteSpace(ptr) && (*ptr != _T('\0')) && (*ptr != _T('\r')) && (*ptr != _T('\n')) && (*ptr != gSFescapechar) && (IsAnsiDigit(*ptr) || hyphen) )
 	{
-		ptr++;
-		length++;
+		// BEW 18Oct23 for unknown reason, for a string like:  37).\f* after parsing the 37 correctly, so that ptr 
+		// points at ')', IsAnsiDigit(*ptr) in the while test returns TRUE, similarly for the '.' following; so that
+		// if I do nothing more, the a length of 4 is returned, rather than the correct value of 2. So my fix will
+		// be to explicitly check for *ptr == ')', and when matched, to break from the loop with correct length 2,
+		// because on return, code checks for ')' to complete the bracketed number
+		if (*ptr == _T(')'))
+		{
+			break;
+		}
+		else
+		{
+			ptr++;
+			length++;
+		}
 	}
 	// Handle verse parts where a or b is suffixed
 	if (*ptr == chA)
@@ -35439,8 +35451,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 	{
 		wxString pointsAt = wxString(ptr, 16);
-		wxLogDebug(_T("ParseWord() line %d , Starting parse of (666). , ptr-> [%s]"), __LINE__, pointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 12)
+		wxLogDebug(_T("ParseWord() line %d , Before ParseNumber() , ptr-> [%s]"), __LINE__, pointsAt.c_str());
+		if (pSrcPhrase->m_nSequNumber >= 8)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -35498,9 +35510,9 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 				{
 					wxString pointsAt = wxString(ptr, 16);
-					wxLogDebug(_T("ParseWord() line %d , Parsing (666). Returning len = %d,  ptr-> [%s]"),
+					wxLogDebug(_T("ParseWord() line %d , After ParseNumber(). Returning len = %d,  ptr-> [%s]"),
 						__LINE__, len, pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 1)
+					if (pSrcPhrase->m_nSequNumber >= 8)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -35540,10 +35552,31 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	bAlreadyGotOpeningParen = precPunct == _T("(") ? TRUE : FALSE;
 	if ( (*ptr == _T('(') && !bAlreadyGotOpeningParen) || bAlreadyGotOpeningParen )
 	{
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+		{
+			wxString pointsAt = wxString(ptr, 16);
+			wxLogDebug(_T("ParseWord() line %d, PARENTHESES, ptr-> [%s]"), __LINE__, pointsAt.c_str());
+			if (pSrcPhrase->m_nSequNumber >= 8)
+			{
+				int halt_here = 1; wxUnusedVar(halt_here);
+			}
+		}
+#endif
+
 		// search for the closing parenthesis, within 16 following characters
 		bFoundParen = FindClosingParenthesis(ptr, pEnd, nSpanLen, nLimit, bAlreadyGotOpeningParen);
 		if (bFoundParen)
 		{
+#if defined (_DEBUG) //&& !defined(NOLOGS)
+			{
+				wxString pointsAt = wxString(ptr, 16);
+				wxLogDebug(_T("ParseWord() line %d , bFoundParen was TRUE , ptr-> [%s]"), __LINE__, pointsAt.c_str());
+				if (pSrcPhrase->m_nSequNumber >= 8)
+				{
+					int halt_here = 1; wxUnusedVar(halt_here);
+				}
+			}
+#endif
 			// Finding ) is not enough. The result is only acceptable if the character
 			// preceding the closing parenthesis is NOT a digit
 			wxChar* pPrev;
@@ -36143,7 +36176,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #if defined (_DEBUG) //&& defined(WHERE)
 			{
 				wxString pointsAt = wxString(ptr, 20);
-				if (pSrcPhrase->m_nSequNumber >= 1)
+				if (pSrcPhrase->m_nSequNumber >= 8)
 				{
 					int halt_here = 2; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 				}
@@ -36332,49 +36365,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 //		wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
 
-		if (bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan)
-		{
-			/* BEW 16Jul23 refactoring ~ support. Don't need this block any more
-
-			// There is a pair of words conjoined by ~, so complete the parse of what follows the ~
-			// symbol, the IsFixedSpaceAhead() function exits with ptr pointing at the first
-			// character following ~
-			// BEW 24Oct14, added bTokenizingTargetText boolean because the next function
-			// calls FindParseHaltLocation() to which I had to had the same boolean to the
-			// signature; spaceless puncts is already either src or tgt puncts depending on
-			// what TokenizeText() was called to do, so it's a bit clumsy, but at least we
-			// are using the correct punctuation set throughout the parser etc
-			FinishOffConjoinedWordsParse(ptr, pEnd, pSecondWordBegins, pSecondWordEnds,
-				precedingPunctAfterFixedSpaceSymbol, inlineBindingMkrAfterFixedSpace,
-				newPunctFrom2ndPreWordLoc, newPunctFrom2ndPostWordLoc,
-				wordBuildersFor2ndPreWordLoc, wordBuildersFor2ndPostWordLoc,
-				spacelessPuncts, bTokenizingTargetText);
-			nChangeInLenValue = ptr - savePtr;
-			// BEW 4Nov22 if ~ matched, inline mkrs would not be present internally, so do a sanity
-			// hack here, like above as a temporary measure
-			wxASSERT(inlineBindingMkrAfterFixedSpace.IsEmpty());
-			wxASSERT(wordBuildersFor2ndPreWordLoc.IsEmpty());
-			wxASSERT(wordBuildersFor2ndPostWordLoc.IsEmpty());
-//			wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-
-			// if word-building characters have become punctuation, ptr may not be pointing at
-			// the end of the word, so augment it by the number of characters in the string
-			// newPunctFrom2ndPostWordLoc to get it's correct location
-			ptr += newPunctFrom2ndPostWordLoc.Len();
-			// update len
-			len += nChangeInLenValue; // note, if ptr and pSecondWordBegins point at different
-			// locations, then the number of word-initial characters
-			// which have just become punctuation due to the user just
-			// having changed the punctuation settings, have already
-			// been included in the update for len, hence we don't do
-			// it again below -- see below for a note to this effect
-			// there also (yep, this stuff is VERY complex)
-			// bStartedPunctParse is still FALSE, and we must NOT make it become TRUE here
-			// because variables in code blocks below for when it is TRUE are not alive when
-			// control comes through here
-			*/
-		} // end of TRUE block for test: if (bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan)
-		else
+		if (!(bMatchedFixedSpaceSymbol && !m_bWithinMkrAttributeSpan))
 		{
 			// a conjoining ~ was not found ahead
 #if defined (_DEBUG) //&& !defined(NOLOGS)
@@ -36384,7 +36375,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				wxString precedingPuncts = pSrcPhrase->m_precPunct;
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , follPunct= [%s] , precPunct= [%s], pointsAt= [%s]"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), followingPuncts.c_str(), precedingPuncts.c_str(), pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 5)
+				if (pSrcPhrase->m_nSequNumber >= 8)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -36468,7 +36459,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						wxString pointsAt = wxString(ptr, 20);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 8)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -36519,7 +36510,7 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 				wxString pointsAt = wxString(ptr, 20);
 				wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , pointsAt= [%s]"),
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 5)
+				if (pSrcPhrase->m_nSequNumber >= 8)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -36635,7 +36626,7 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 									wxString pointsAt = wxString(ptr, 16);
 									wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , pointsAt= [%s]"),
 										__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pointsAt.c_str());
-									if (pSrcPhrase->m_nSequNumber >= 5)
+									if (pSrcPhrase->m_nSequNumber >= 8)
 									{
 										int halt_here = 1; wxUnusedVar(halt_here);
 									}
@@ -36704,7 +36695,7 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 						wxString pointsAt = wxString(ptr, 16);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 8)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -36734,9 +36725,9 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 					{
 						wxString pointsAt = wxString(ptr, 16);
-						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+						wxLogDebug(_T("ParseWord() line %d, Before IsAnsiDigit() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 8)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -36788,6 +36779,17 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 								return len;
 							}
 						}
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+						{
+							wxString pointsAt = wxString(ptr, 16);
+							wxLogDebug(_T("ParseWord() line %d, Before ParseDate() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+							if (pSrcPhrase->m_nSequNumber >= 8)
+							{
+								int halt_here = 1; wxUnusedVar(halt_here);
+							}
+						}
+#endif
 						// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
 						// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
 						int dateLen;
@@ -36801,14 +36803,26 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 						else
 						{
 							// Call this instead
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+							{
+								wxString pointsAt = wxString(ptr, 16);
+								wxLogDebug(_T("ParseWord() line %d, Before ParseChVerseUnchanged() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+								if (pSrcPhrase->m_nSequNumber >= 8)
+								{
+									int halt_here = 1; wxUnusedVar(halt_here);
+								}
+							}
+#endif
+
 							strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
 						}
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 16);
-							wxLogDebug(_T("ParseWord() line %d , m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+							wxLogDebug(_T("ParseWord() line %d, After ParseChVerseUnchanged(): m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 8)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
