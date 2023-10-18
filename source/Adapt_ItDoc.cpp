@@ -18018,7 +18018,7 @@ unknown:				bool bIsAnEndMkr;
 								msg = msg.Format(msg, wholeEndMkr.c_str(), curKey.c_str(), strApproxLocation.c_str());
 								//wxString title = _T("Warning: Unexpected End Marker"); // BEW 17Oct23 don't display the msg box, just use LogUserAction()
 								//wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-								pApp->LogUserAction(msg);
+								pApp->LogUserAction(msg); // whm 17Oct2023 commented out - see note above.
 								bIterateAgain = FALSE;
 							} // end of TRUE block for test: if (pCurSrcPhrase != NULL)
 

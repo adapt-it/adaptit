@@ -4320,7 +4320,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		offset = tgtPhrase.Find(str2sg);
 		if (offset != -1)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif
