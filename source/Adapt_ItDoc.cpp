@@ -35503,6 +35503,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				{
 					wxString punctsStr = wxString(pNewPtr, punctsLen);
 					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_srcPhrase + punctsStr;
+					// BEW 19Oct23, I forgot to append punctsStr to m_follPunct, do so here
+					pSrcPhrase->m_follPunct += punctsStr;
 					len += punctsLen;
 					pNewPtr += punctsLen; // points at <space> before following word, when ParseWord()
 					// returns, using len value, ptr wil be updated to point at same place
@@ -35518,17 +35520,147 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					}
 				}
 #endif
-				// force a new pSrcPhrase, this one is finished
-				return len;
-			}
-			else
-			{
-				// pAux is not pointing at closing parenthesis, so this is some other kind of number - 
-				// disallow this parse so that number parsing code further down can do it's job
-				;
-			}
-		}
+				// BEW 19Oct23, the parenthesized number may not just have following puncts, but the pSrcPhrase
+				// may be the last in a "red" mkr span, such as \f ....to.....\f*, and the \f* is not yet parsed.
+				// Returning here without dealing with it will cause red run-on, and \f* will not get its pSrcPhrase
+				// to have "end fn" in m_inform. So add here the test for following endMkr (get them all, if more than
+				// one - e.g. \fk*\f* is a real possibility) advance ptr after storing in m_endMarkers and updated len
+				// etc.
+				ptr = pNewPtr;
+				wxString wholeMkr; bool bIsAnEndMkr;
+				wholeMkr = wxEmptyString;
+				if (*ptr == gSFescapechar)
+				{
+					// a marker follows, is it an endMkr?
+					wholeMkr = GetWholeMarker(ptr);
+					int wholeMkrLen;
+					if (!wholeMkr.IsEmpty())
+					{
+						bIsAnEndMkr = IsEndMarker(ptr, pEnd);
+						if (bIsAnEndMkr)
+						{
+							// collect the end mkrs, any binding ones first, then normals - like  \f*, then non-binding ones, like \wj*
+							// (this is done elsewhere later in ParseWord() so check if I can copy the needed code to here, yep, can do )
+							bool bWhiteAfterEndMkr;
+							bool bIsANewline;
+							bool bIsABeginMkr;
+							// If any of those 3  goes TRUE, update len etc and return it to caller; but while they stay FALSE, we can
+							// process (a) a binding endMkr like \fk* or \k* etc; then (b) any normal ones, like \f*, then (c) any
+							// nonbinding ones, like \wj*. Deal with that set of ordered possibilities. Assume only 1 of each.
+							bWhiteAfterEndMkr = FALSE;
+							bIsANewline = FALSE;
+							bIsABeginMkr = FALSE;
+							wxString augWholeEndMkr;
+
+							augWholeEndMkr = wholeMkr + _T(' ');
+							wxChar* pAux = ptr + wholeMkrLen;
+							int offset;
+							offset = gpApp->m_charFormatEndMkrs.Find(augWholeEndMkr);
+							if (offset >= 0)
+							{
+								// It's an inline binding endmkr, such as \it*
+								wxString myCharEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers(); // have to use accessor
+								myCharEndMkrs << wholeMkr; // append the whole endMkr
+								pSrcPhrase->SetInlineBindingEndMarkers(myCharEndMkrs); // set the new value
+								// We have parsed over and stored the binding endMkr, so update len 
+								len += wholeMkrLen;
+								pAux += wholeMkrLen;
+								// get ptr pointing at pAux, then don't use pAux again in this block
+								ptr = pAux;	// ptr now points where pAux points
+							}
+							// If at ptr there is a beginMkr, go no further, and return len to the caller
+							bIsAnEndMkr = IsEndMarker(ptr, pEnd);
+							bWhiteAfterEndMkr = ParseWhiteSpace(ptr);
+							if (!bIsAnEndMkr || bWhiteAfterEndMkr)
+							{
+								return len;
+							}
+							// soldier on, check for the endMkr being one of the m_RedMarkers set
+							offset = -1; // init
+							wholeMkr = GetWholeMarker(ptr);
+							if (!wholeMkr.IsEmpty())
+							{
+								wholeMkrLen = wholeMkr.Length();
+								bool bIsEndMkr = IsEndMarker(ptr, pEnd);
+								if (bIsEndMkr)
+								{
+									augWholeEndMkr = wholeMkr + _T(' ');
+									wxChar* pAux = ptr + wholeMkrLen; // pAux points at what follows the endMkr
+									// Check for augWholeEndMkr being one of the m_RedMarkers set, eg. \f*
+									offset = -1; // init
+									offset = pApp->m_RedEndMarkers.Find(augWholeEndMkr);
+									if (offset >= 0)
+									{
+										// It's an endMkr of the Red set, parse over it etc
+										int nCountWhites = ParseWhiteSpace(pAux);
+										// Is it followed by whitespace? how many?
+										if (nCountWhites > 0)
+										{
+											bWhiteAfterEndMkr = TRUE;
+										}
+										// Is it followed by newline?
+										bIsANewline = (*pAux == _T('\n') || (*pAux == _T('\r') && *(pAux + 1) == _T('\n')));
+										// Is it followed by a beginMkr?
+										bIsABeginMkr = FALSE; // init
+										bIsAnEndMkr = IsEndMarker(pAux, pEnd);
+										if (!bIsAnEndMkr)
+										{
+											bIsABeginMkr = TRUE;
+										}
+										// We know now what follows the endMkr, so after we deal with it, we can know whether or
+										// not to return updated len value to caller, or test if a nonbinding endMkr follows
+										wxString myEndMkrs = pSrcPhrase->GetEndMarkers(); // gets contents of m_endMarkers
+										myEndMkrs << wholeMkr; // append the new whole endMkr
+										pSrcPhrase->SetEndMarkers(myEndMkrs); // update m_endMarkers storage
+										len += wholeMkrLen;
+										ptr += wholeMkrLen; // ptr now points at where pAux points
+										wxASSERT(ptr == pAux);
+										// Are we done? any of these 3 being TRUE indicates parsing further is not valid
+										if (bWhiteAfterEndMkr || bIsANewline || bIsABeginMkr)
+										{
+											return len;
+										}
+										// Is there a further endMkr? One from the nonbinding set? E.g. \wj*
+										if (*ptr == gSFescapechar)
+										{
+											wholeMkr = GetWholeMarker(ptr);
+											if (!wholeMkr.IsEmpty())
+											{
+												wholeMkrLen = wholeMkr.Length();
+												augWholeEndMkr = wholeMkr + _T(' ');
+												offset = -1; // init
+												offset = gpApp->m_inlineNonbindingEndMarkers.Find(augWholeEndMkr);
+												if (offset >= 0)
+												{
+													// It's one of the 10 known inline nonbinding endMkrs
+													// and len, and store the endMkr in m_endMarkers then return len
+													wxString myEndMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+													myEndMkrs << wholeMkr;
+													pSrcPhrase->SetInlineNonbindingEndMarkers(myEndMkrs);
+													len += wholeMkrLen;
+													ptr += wholeMkrLen;
+													// after a non-binding endMkr there is no possibility of a
+													// further endMkr, so control can just fall thru the return len call
+
+												} // end of TRUE block for test: if (offset >= 0)
+											} // end of TRUE block for test: if (*ptr == gSFescapechar)
+										} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
+
+									} // end of TRUE block for test: if (offset >= 0)
+								} // end of TRUE block for test: if (bIsEndMkr)
+							}  // end of TRUE block for test: if (!wholeMkr.IsEmpty())
+
+						} // end of TRUE block for test: if (bIsAnEndMkr)
+					} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
+					
+				} // end of TRUE block for test: if (*ptr == gSFescapechar)
+
+			} // end of TRUE block for test: if (*pAux == _T(')'))
+			// force a new pSrcPhrase, this one is finished
+			return len;
+		} // end of TRUE block for test: if (pNewPtr < pEnd && *(pNewPtr - 1) == _T('(') && IsAnsiDigit(*pNewPtr))
 	} // scoped block ends
+
 	// BEW 25Aug23, source data of this kind [including the ( and ) parentheses]: (2t) (2toea) (2 kina) (5MB) etc
 	// currently get parsed as two pSrcPhrases: "(2" and then "t)" because our number parser, ParseChVerseUnchanged()
 	// will parse only as far as the non-digit, and then the rest will go on a new pSrcPhrase. So here I'm building
@@ -40971,6 +41103,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxASSERT(pSrcPhrase != NULL);
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
+		pSrcPhrase->bHasPostWordMetadata = FALSE; // BEW 19Oct23 initialize to FALSE, else bogus "204" counts as a TRUE value
 
 		bParsedNewlineBeforeVerseMarker = FALSE; // initialise // whm 22Aug2023 note: this bool, it is never used
 		//m_firstVerseNum.Empty(); // must start out empty for each new pSrcPhrase  & set its
@@ -45380,7 +45513,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 		//	__LINE__, itemLen, (wxString(ptr, 12)).c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
 #endif
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 2)
+			if (pSrcPhrase->m_nSequNumber >= 8)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
