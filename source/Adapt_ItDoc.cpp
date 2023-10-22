@@ -35533,7 +35533,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				{
 					// a marker follows, is it an endMkr?
 					wholeMkr = GetWholeMarker(ptr);
-					int wholeMkrLen;
+					int wholeMkrLen = wholeMkr.Length(); // whm 21Oct2023 added to prevent exception dur to uninitialized variable used below
 					if (!wholeMkr.IsEmpty())
 					{
 						bIsAnEndMkr = IsEndMarker(ptr, pEnd);
@@ -35656,6 +35656,35 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 				} // end of TRUE block for test: if (*ptr == gSFescapechar)
 
 			} // end of TRUE block for test: if (*pAux == _T(')'))
+			// whm 21Oct2023 modified. An input test having something like "(300 kina)" would go into an infinite loop
+			// creating duplicate pSrcPhrases until crashing due memory full situation. The crash results from not having
+			// the code necessary to handle a non-numerical text content after the number and before the closing parenthesis.
+			// So, I added an 'else if' block here to increment the len value by any numDigits that were parsed by ParseNumber() 
+			// above, otherwise when no closing parenthesis follows the digits parsed, the len value will still be zero
+			// even though ParseNumber() may have parsed some digits as when parsing "(300 kina)..." in which ParseNumber()
+			// parsed the "300" returning a value of 3 to mumDigits, but since no closing parenthesis ')' follows the numDigits
+			// value here would be lost and the result would be an infinite loop where ParseNumber() gets called in an infinite
+			// loop each iteration creating a new source phrase. Also, I added the code necessary to update the pSrcPhrase->m_key
+			// and pSrcPhrase->m_srcPhrase, as well as parse any final puncts after the number.
+			else if (numDigits > 0)
+			{
+				len += numDigits;
+				wxString strResult = wxString(pNewPtr, numDigits);
+				pNewPtr += numDigits;
+				pSrcPhrase->m_key = _T("(") + strResult;
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_key;
+				int punctsLen = ParseFinalPuncts(pNewPtr, pEnd, spacelessPuncts);
+				if (punctsLen > 0)
+				{
+					wxString punctsStr = wxString(pNewPtr, punctsLen);
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_srcPhrase + punctsStr;
+					// BEW 19Oct23, I forgot to append punctsStr to m_follPunct, do so here
+					pSrcPhrase->m_follPunct += punctsStr;
+					len += punctsLen;
+					pNewPtr += punctsLen; // points at <space> before following word, when ParseWord()
+					// returns, using len value, ptr wil be updated to point at same place
+				}
+			}
 			// force a new pSrcPhrase, this one is finished
 			return len;
 		} // end of TRUE block for test: if (pNewPtr < pEnd && *(pNewPtr - 1) == _T('(') && IsAnsiDigit(*pNewPtr))
@@ -41127,7 +41156,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// whm 7Jul2023 testing
 #endif
 #if defined (_DEBUG) //&& !defined(NOLOGS)
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		if (pSrcPhrase->m_nSequNumber >= 16)
 		{
 			bool bWithinInlineSpan = m_bIsWithinUnfilteredInlineSpan; // doc member, I want to know it's value at each new pSrcPhrase
 			wxUnusedVar(bWithinInlineSpan);
