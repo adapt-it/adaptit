@@ -438,7 +438,7 @@ public:
 	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsClosingDoubleChevron(wxChar* pChar); // BEW 6Oct16 added, but no IsOpeningDoubleChevron() done yet
 	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
-	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
+	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis); // whm 24Oct2023 see definition for warnings about use of this function!!
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
 	bool			IsMarker(wxChar* pChar);

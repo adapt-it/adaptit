@@ -10873,7 +10873,16 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar* pChar)
 /// Called from: the Doc's TokenizeText()
 /// Parses through the filtering marker beginning at pChar (the initial backslash).
 /// Upon entry pChar must point to a filtering marker determined by a prior call to
-/// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging
+/// IsAFilteringSFM(). 
+/// 
+/// whm 24Oct2023 comment. The above comment is incorrect. It should read:
+/// "Upon entry pChar must point to a filtering marker determined by examining the
+/// gCurrentFilterMarkers string." The reason why is the IsAFilteringSFM() function
+/// only returns the DEFAULT state of the marker as defined in the AI_USFM.xml control
+/// file. It's filter="0" does NOT change from that value even when the user ticks the
+/// filtering box within the USFM/Filtering tab in Preferences.
+/// 
+/// Parsing will include any embedded (inline) markers belonging
 /// to the parent marker.
 /// BEW 9Sep10 removed need for param pBufStart, since only IsMarker() used to use
 /// it as its second param and with docVersion 5 changes that became unnecessary
@@ -15295,7 +15304,10 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the pUsfmAnalysis represents a filtering marker, FALSE otherwise
+/// \return		TRUE if the pUsfmAnalysis represents a filtering marker by default
+///				FALSE otherwise. Note this return value DOES NOT indicate what the
+///				current filtering status of a marker is, only what its DEFAULT value
+///				is as indicated in the AI_USFM.xml control file.
 /// \param		pUsfmAnalysis	-> a pointer to a USFMAnalysis struct
 /// \remarks
 /// Called from: the Doc's TokenizeText().
@@ -15305,6 +15317,11 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 /// or LookupSFM(wxString bareMkr) to populate the pUsfmAnalysis struct, which should then
 /// be passed to this function.
 /// BEW 24Oct14, no changes for support of USFM nested markers
+/// whm 24Oct2023 removed this IsAFilteringSFM() from active use since it has been mis-used
+/// due to a mis-understanding. The value returned by this function DOES NOT indicate 
+/// the current filtering status of the marker whose properties were determined by a 
+/// prior call of LookupSFM(). Only by examining the gCurrentFilterMarkers string can
+/// the current filtering status of a marker be determined.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 {
@@ -15317,8 +15334,12 @@ bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 	// Determine the filtering state of the marker
 	if (pUsfmAnalysis != NULL)
 	{
-		// we have a known filter marker so return its filter status from the USFMAnalysis
-		// struct found by previous call to LookupSFM()
+		// we have a known marker so return its DEFALUT filter status from the USFMAnalysis
+		// struct found by previous call to LookupSFM().
+		// WARNING: The pUsfmAnalysis->filter property below comes from the AI_USFM.xml 
+		// control file and DOES NOT indicate the current filtering status of any USFM 
+		// maker!! To get the current filtering status of a USFM marker you must examing 
+		// the App's gCurrentFilterMarkers string.
 		return (bool)pUsfmAnalysis->filter;
 	}
 	else
@@ -29962,6 +29983,7 @@ bool CAdapt_ItDoc::WordPrecedes(wxChar* pChar, wxString& theWord,
 // bIsFilterableStuff <- set true if whatever marker it is should be filtered, regardless of
 //                      whether it is a \x \f or \fe or not
 // wholeMkr         <-  the begin-marker at pChar (pass it back to save recalculating in the caller)
+// whm 24Oct2023 modification to remove the use of the IsAFilteringSFM() function. See comments below. 
 bool CAdapt_ItDoc::IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn, bool& bIsFilterStuff, wxString& wholeMkr)
 {
 	wxChar* ptr = pChar; // initialize ptr
@@ -29982,8 +30004,18 @@ bool CAdapt_ItDoc::IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orE
 	augmentedWholeMkr += tagOnly;
 	wxASSERT(augmentedWholeMkr == wholeMkr); // at this point they should be identical
 	augmentedWholeMkr += _T(' ');
-	if (IsAFilteringSFM(pUsfmAnalysis) &&
-		(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1) &&
+	// whm 24Oct2023 modification. The IsAFilteringSFM() function should NOT be used along with a
+	// check of the gCurrentFilterMarkers string, since the IsAFilteringSFM() function only
+	// returns the "default" filtering status of a marker as set in the AI_USFM.xml control file,
+	// which does NOT change when a marker such as \s section heading is currently filtered by 
+	// the USFM/Filtering tab in Preferences. Therefore I've removed the IsAFilteringSFM()
+	// function from the following test. Examining the App's gCurrentFilterMarkers string for the 
+	// existence of a given marker within that string, is the only way to get an accurate 
+	// test of whether the given marker is currently being filtered or not.
+	//if (IsAFilteringSFM(pUsfmAnalysis) &&
+	//	(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1) &&
+	//	pUsfmAnalysis->inLine)
+	if (gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1 &&
 		pUsfmAnalysis->inLine)
 	{
 		bIsFilterStuff = TRUE; // this is the more general value than for xref, ftnote, endnote
@@ -33166,15 +33198,16 @@ bool CAdapt_ItDoc::IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEn
 
 // ======= contentless markup support ======
 
-	// BEW 11Aug23, These following are in support of parsing contentless USFM beginMkrs, and elimination of
-	// any encountered ".." or "..." (the latter, when successive periods are generated by Paratext,
-	// appear to be limited to only two of three, so I'll code accordingly)
+// BEW 11Aug23, These following are in support of parsing contentless USFM beginMkrs, and elimination of
+// any encountered ".." or "..." (the latter, when successive periods are generated by Paratext,
+// appear to be limited to only two of three, so I'll code accordingly)
 
-	// BEW 11Aug23, I've fought the AI code for weeks, to robustly parse contentless markup, and failed.
-	// So I'm taking control. When IsMarker(ptr) returns TRUE, I'll make a test, and if true, use a new
-	// parsing loop that is not in the app yet - dedicated to parsing contentless markers. \v will require
-	// special attention, to get a following verseNumber handled right, but we must not allow the following:
-	// "\v versNum<whitespace>\v" as it causes the verseNumNext after 2nd \v to parse verseNumNext as srcText.
+// BEW 11Aug23, I've fought the AI code for weeks, to robustly parse contentless markup, and failed.
+// So I'm taking control. When IsMarker(ptr) returns TRUE, I'll make a test, and if true, use a new
+// parsing loop that is not in the app yet - dedicated to parsing contentless markers. \v will require
+// special attention, to get a following verseNumber handled right, but we must not allow the following:
+// "\v versNum<whitespace>\v" as it causes the verseNumNext after 2nd \v to parse verseNumNext as srcText.
+// whm 24Oct2023 modified to remove use of the IsAFilteringSFM() function. See comments below.
 bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 {
 	wxChar* ptr = pChar; // protect pChar
@@ -33219,21 +33252,38 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// \xt is empty, and would cause entry to the empty mkrs loop and an eventual crash at ParseAWord().
 	// So test for mkrs to be filtered, and if so, return FALSE to keep control in the legacy parsing code
 	bool bIsToBeFiltered = FALSE;
-	bool bCanFilterIt = FALSE;
-	USFMAnalysis* pUsfmAnalysis = NULL; // init
+	//bool bCanFilterIt = FALSE; // whm 24Oct2023 not needed
+	//USFMAnalysis* pUsfmAnalysis = NULL; // init // whm 24Oct2023 not needed
 	wxString bareMkr = wholeMkr.Mid(1); // remove initial backslash
 	int myOffset = -1;
 	myOffset = gpApp->gCurrentFilterMarkers.Find(bareMkr);
 	bIsToBeFiltered = myOffset != -1;
-	pUsfmAnalysis = LookupSFM(bareMkr);
-	if (pUsfmAnalysis != NULL)
+	// whm 24Oct2023 modification. The IsAFilteringSFM() function should NOT be used along with a
+	// check of the gCurrentFilterMarkers string, since the IsAFilteringSFM() function only
+	// returns the "default" filtering status of a marker which does NOT change when a marker
+	// is currently being filtered by the USFM/Filtering tab in Preferences. For example, a marker 
+	// such as \s section heading is not filtered by default as set within the AI_USFM.xml 
+	// control file where its setting is filter="0". That setting never changes even when the \s
+	// marker is set to be filtered within the USFM/Filtering tab in Preferences.
+	//  
+	// Therefore I've removed the IsAFilteringSFM() function from the following test. We should
+	// only test the bIsToBeFiltered boolean value which was determined above by examining the
+	// App's gCurrentFilterMakers string. Therefore, in the code below we only need check the 
+	// value of the bIsToBeFiltered boolean and return FALSE if that variable is FALSE.
+	//pUsfmAnalysis = LookupSFM(bareMkr);
+	//if (pUsfmAnalysis != NULL)
+	//{
+	//	bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
+	//	if (bIsToBeFiltered && bCanFilterIt)
+	//	{
+	//		// disallow entry to the empty mkrs parsing loop
+	//		return FALSE;
+	//	}
+	//}
+	if (bIsToBeFiltered)
 	{
-		bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
-		if (bIsToBeFiltered && bCanFilterIt)
-		{
-			// disallow entry to the empty mkrs parsing loop
-			return FALSE;
-		}
+		// disallow entry to the empty mkrs parsing loop
+		return FALSE;
 	}
 
 	// BEW 21Aug23, Bill has parsing errors in 41MATNYNT.SFM where an occasional empty \li (or \li1) marker
@@ -41148,7 +41198,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 9)
+		if (pSrcPhrase->m_nSequNumber == 26)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -43613,10 +43663,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
 					// TokenizeText can evaluate anew the filtering status of the marker(s)
 					// that had been embedded within the filtered text. If the markers and
-					// associated text are still to be filtered (as determined by LookupSFM()
-					// and IsAFilteringSFM()), the filtering brackets are added again. If the
-					// markers should no longer be filtered, they and their associated text are
-					// processed normally.
+					// associated text are still to be filtered (as determined by examining 
+					// whether the marker is present within the App's gCurrentFilterMarkers
+					// string, the filtering brackets are added again. If the markers should 
+					// no longer be filtered, they and their associated text are processed 
+					// normally.
 
 					// BEW comment 11Oct10, this block handles filtering. In the legacy
 					// version of TokenizeText() propagation of TextType was also handled
@@ -44353,8 +44404,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// whm 22Jul2023 separated declaration below from assignment making two lines
 					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bCanFilterIt"
 					// Initialise these bools to FALSE
-					bool bCanFilterIt;
-					bCanFilterIt = FALSE;
+					// whm 24Oct2023 modification. The bCanFilterIt bool value is determined by calling
+					// the IsAFilteringSFM() function below, but the IsAFilteringSFM() function should
+					// not be used to determine the current filtering status of any marker. See comments
+					// and fuller description below.
+					//bool bCanFilterIt;
+					//bCanFilterIt = FALSE;
 					// whm 22Jul2023 separated declaration below from assignment making two lines
 					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bInUnfileterdInlineSpan"
 					bool bInUnfilteredInlineSpan;
@@ -44724,16 +44779,33 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 					// He made the change to fix an issue with parsing \h
 					// I need to heavily refactor this part of the app.
 					// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
+					// whm 24Oct2023 see comments below. The IsAFilteringSFM() function's return value has
+					// been mis-understood and should not be used to indicate the current filtering status of
+					// a USFM marker!!
 					//if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 #if defined (_DEBUG)
-					if (pSrcPhrase->m_nSequNumber >= 13)
+					if (pSrcPhrase->m_nSequNumber >= 26)
 					{
 						//wxLogDebug(_T("TokenizeText line %d: gCurrentFilterMarkers: %s "), __LINE__, gpApp->gCurrentFilterMarkers.c_str());
 						int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 					}
 #endif
 					// And check what pUsfmAnalysis struct is. bCanFilterIt is returning false here 
-					bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
+					// 
+					// whm 24Oct2023 change: The pUsfmAnalysis struct' filter member does not indicate
+					// whether a marker is currently filtered or not, but only indicates what the
+					// DEFAULT filtering state of the marker is as defined in the AI_USFM.xml control
+					// file. The IsAFilteringSFM() function returns the boolean state of the 
+					// pUsfmAnalysis->filter member of the struct which never changes unless the
+					// AI_USFM.xml file's filter property is changed. 
+					// To get the current filter status of a given marker that is filterable, 
+					// the gCurrentFilterMarkers string and only that string must be examined. 
+					// The IsAFilteringSFM(pUsfmAnalysis) function call below does NOT give any 
+					// indication of what the "current filter status" is of the marker now being 
+					// examined here in TokenizeText().
+					// Therefore as of this date, I have removed the IsAFilteringSFM(pUsfmAnalysis)
+					// function call below, and all references to the bCanFilterIt boolean.
+					// bCanFilterIt = IsAFilteringSFM(pUsfmAnalysis);
 
 					// If the marker is \ex, its inner markers will be those of a \x...\x* span,
 					// which is okay of the latter span is not marked for filtering out. But
@@ -44752,7 +44824,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 					if (bFirstTest || bSecondTest) // BEW 16Dec20 added 2nd test
 					{
 						bIsToBeFiltered = FALSE;
-						bCanFilterIt = FALSE;
+						// bCanFilterIt = FALSE; // whm 24Oct2023 removed
 					}
 					// Code following is for versions 6.9.4 and earlier
 					if (bIsToBeFiltered)
@@ -44768,7 +44840,9 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 					}
 #endif 
 					// Outermost test...
-					if (bIsToBeFiltered && bCanFilterIt)
+					// whm 24Oct2023 removed the bCanFilterIt test. See comments elsewhere.
+					//if (bIsToBeFiltered && bCanFilterIt)
+					if (bIsToBeFiltered)
 					{
 						// This is the block for filtering a span of source text out,
 						// to store it in m_filteredInfo in the CSourcePhrase instance
@@ -45097,7 +45171,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 
 	//					wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
-					} // end of filtering TRUE block for test: if (bIsToBeFiltered && bCanFilterIt)
+					} // end of filtering TRUE block for test: if (bIsToBeFiltered)
 
 					else
 					{
