@@ -255,7 +255,7 @@ protected:
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
 	wxString		GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After,
 		wxString& metadata, int& offset, int& nEnd);
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo); // whm 24Oct2023 added last parameter
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
 	wxString		GetLastEndMarker(wxString endMkrs); //BEW added 31May23 for use in propagation code (in TokenizeText)
@@ -438,7 +438,7 @@ public:
 	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsClosingDoubleChevron(wxChar* pChar); // BEW 6Oct16 added, but no IsOpeningDoubleChevron() done yet
 	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
-	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis); // whm 24Oct2023 see definition for warnings about use of this function!!
+	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis); // whm 24Oct2023 see definition comments for warnings about use of this function!!
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
 	bool			IsMarker(wxChar* pChar);
