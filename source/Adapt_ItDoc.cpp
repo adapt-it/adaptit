@@ -9188,7 +9188,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			#if defined (_DEBUG)
 			{
-				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
+				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 25)
 				{
 					int halt_here = 1;
 					wxUnusedVar(halt_here);
@@ -9196,6 +9196,17 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				}
 			}
 			#endif
+
+			// whm 6Nov2023 provide a pointer to the previous source phrase. We'll use
+			// this to store filtered info from a previously un-filtered char attribute
+			// marker.
+			CSourcePhrase* pPrevSrcPhrase = NULL;
+			SPList::Node* prevPos = pos->GetPrevious();
+			if (prevPos != NULL)
+			{
+				pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
+			}
+
 			pos = pos->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			nCurActiveSequNum = gpApp->m_nActiveSequNum;
@@ -9302,7 +9313,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 #if defined (_DEBUG)
 			{
-				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 31)
+				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 24)
 				{
 					int halt_here = 1;
 					wxUnusedVar(halt_here);
@@ -9662,6 +9673,15 @@ g:				bIsUnknownMkr = FALSE;
 							pSrcPhr->SetFreeTrans(_T(""));
 						}
 					}
+					// whm 6Nov2023 added. Need to reset m_bCurrentlyFiltering to TRUE,
+					// because more than one marker may be filtered, and the RebuildSourceText()
+					// sets the m_bCurrentlyFiltering to FALSE near the end of its function.
+					// If we don't reinitialize m_bCurrentlyFiltering to TRUE, then subsequent
+					// calls of RebuildSourceText() for any second and following char attribute 
+					// markers will fail to have their hidden metadata included within their
+					// filtered material.
+					m_bCurrentlyFiltering = TRUE;
+
 					// end of addition done on 9Apr15
 					 // BEW changed 29Mar23, pass in pointer, not a reference
 					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
@@ -9863,15 +9883,20 @@ g:				bIsUnknownMkr = FALSE;
 					// which follows the filtered out section - that one might have filtered material
 					// already, so we have to check and take the appropriate branch
 					wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
+					// whm 6Nov2023 we want to store the pPrevSrcPhrase rather than on the 
+					// pUnfilteredSrcPhrase. The if and else blocks below now store the filteredStr
+					// on pPrevSrcPhrase instead of pUnfilteredSrcPhrase.
 					if (filteredStuff.IsEmpty())
 					{
-						pUnfilteredSrcPhrase->SetFilteredInfo(filteredStr);
+						//pUnfilteredSrcPhrase->SetFilteredInfo(filteredStr);
+						pPrevSrcPhrase->SetFilteredInfo(filteredStr);
 					}
 					else
 					{
 						filteredStuff = filteredStr + filteredStuff; // inserted at start of string
 						// Store it back on the CSourcePhrase
-						pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
+						//pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
+						pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
 					}
 
 					// These should be empty already, but make sure
@@ -9884,7 +9909,20 @@ g:				bIsUnknownMkr = FALSE;
 					//strFilteredStuffToCarryForward.Empty(); //empty this too
 
 					// get the navigation text set up correctly
-					pUnfilteredSrcPhrase->m_inform = RedoNavigationText(pUnfilteredSrcPhrase);
+					// 
+					// whm 31Oct2023 removed the following call to RedoNavigationText(pUnfilteredSrcPhrase).
+					// The reason for removal is that some markers like \fig will
+					// not have any content in their pSP's m_markers member. The
+					// RedoNavigationText() function was apparently created when filtered info
+					// was stored in m_markers. It is not helpful anymore since it immediately 
+					// returns an empty string when m_marker is empty. This then, wipes out the
+					// already correct m_inform value of markers like \fig. 
+					// Here we are within the TRUE block of if (bMarkerInNonbindingSet) so
+					// we can assume that pPrevSrcPhrase now has filtered info within its
+					// m_filteredInfo member, and it will be marked by a green caret above this
+					// pPrevSrcPhrase. Also its m_inform will still be intact and should display
+					// accordingly.
+					//pUnfilteredSrcPhrase->m_inform = RedoNavigationText(pUnfilteredSrcPhrase);
 
 					// enable iteration from this location
 					if (posEnd == NULL)
@@ -10469,6 +10507,16 @@ g:				bIsUnknownMkr = FALSE;
 						}
 					}
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
+					
+					// whm 6Nov2023 added. Need to reset m_bCurrentlyFiltering to TRUE,
+					// because more than one marker may be filtered, and the RebuildSourceText()
+					// sets the m_bCurrentlyFiltering to FALSE near the end of its function.
+					// If we don't reinitialize m_bCurrentlyFiltering to TRUE, then subsequent
+					// calls of RebuildSourceText() for any second and following char attribute 
+					// markers will fail to have their hidden metadata included within their
+					// filtered material.
+					m_bCurrentlyFiltering = TRUE;
+
 					// end of addition done on 9Apr15
 					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
