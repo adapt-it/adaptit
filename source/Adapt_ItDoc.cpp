@@ -9858,6 +9858,10 @@ g:				bIsUnknownMkr = FALSE;
 					// get the first sourcephrase instance following the filtered section
 					pUnfilteredSrcPhrase = (CSourcePhrase*)posEnd->GetData();
 
+					// whm Note: The parallel section outside the if (bMarkerInNonbindingSet)
+					// farther below has code to prepend markers into m_markers, but this is
+					// not needed here within the if (bMarkerInNonbindingSet) block since such
+					// markers don't store stuff within their m_markers member.
 
 					// insert any already filtered stuff we needed to carry forward before the newly
 					// filtered material (because if it was unfiltered, it would appear in the
@@ -9875,7 +9879,24 @@ g:				bIsUnknownMkr = FALSE;
 					// in the appropriate source phrase.
 					if (!existingFilteredInfo.IsEmpty())
 					{
-						filteredStr = existingFilteredInfo + filteredStr;
+						// TODO: Need a smarter way to know where to put the newly filtered filterStr
+						// within the string that goes into the m_filteredInfo member. When there already
+						// exists one or more filtered markers within existingFilteredInfo, we need to
+						// know whether to prefix, suffix, or infix the filteredstr into the 
+						// existingFilteredInfo string before storing filterStr in the m_filteredInfo member.
+						// 
+						// Perhaps we could implement a hidden file that contains the wxArrayString contents
+						// of the usfm structure of the original input file at AI doc creation - created by
+						// a call to the GetUsfmStructureAndExtent() function in CollabUtilities.cpp and 
+						// saving the resulting wxString to a hidden text file named <project-name>.usfmstruct
+						// stored within a new hidden folder named .usfmstruct stored within the <project-name>
+						// directory. Then a new function supplied with ch:vs info for the preceding context 
+						// of the marker being filtered/un-filtered, could then examine the usfm marker context
+						// of that usfm structure to see where the markers currently being filtered/unfiltered 
+						// are, or need to be, in relation to the previously filtered markers, and use that 
+						// information to inform assignment below about where to place the currently being
+						// filtered markers within the m_filteredInfo member.
+						filteredStr = filteredStr + existingFilteredInfo;
 					}
 
 					// insert the newly filtered material (and any carried forward filtered info
@@ -10692,7 +10713,13 @@ g:				bIsUnknownMkr = FALSE;
 				else
 				{
 					// get the first sourcephrase instance following the filtered section
-					pUnfilteredSrcPhrase = (CSourcePhrase*)posEnd->GetData();
+					// 
+					// whm 6Nov2023 changed the location for storing the filtered marker
+					// and its associated text to the source phrase instance BEFORE the
+					// filtered section, which source phrase we've set elsewhere to be
+					// pPrevSrcPhrase.
+					//pUnfilteredSrcPhrase = (CSourcePhrase*)posEnd->GetData();
+					pUnfilteredSrcPhrase = pPrevSrcPhrase;
 				}
 				wxASSERT(pUnfilteredSrcPhrase);
 
@@ -10739,6 +10766,23 @@ g:				bIsUnknownMkr = FALSE;
 				// in the appropriate source phrase.
 				if (!existingFilteredInfo.IsEmpty())
 				{
+					// TODO: Need a smarter way to know where to put the newly filtered filterStr
+					// within the string that goes into the m_filteredInfo member. When there already
+					// exists one or more filtered markers within existingFilteredInfo, we need to
+					// know whether to prefix, suffix, or infix the filteredstr into the 
+					// existingFilteredInfo string before storing filterStr in the m_filteredInfo member.
+					// 
+					// Perhaps we could implement a hidden file that contains the wxArrayString contents
+					// of the usfm structure of the original input file at AI doc creation - created by
+					// a call to the GetUsfmStructureAndExtent() function in CollabUtilities.cpp and 
+					// saving the resulting wxString to a hidden text file named <project-name>.usfmstruct
+					// stored within a new hidden folder named .usfmstruct stored within the <project-name>
+					// directory. Then a new function supplied with ch:vs info for the preceding context 
+					// of the marker being filtered/un-filtered, could then examine the usfm marker context
+					// of that usfm structure to see where the markers currently being filtered/unfiltered 
+					// are, or need to be, in relation to the previously filtered markers, and use that 
+					// information to inform assignment below about where to place the currently being
+					// filtered markers within the m_filteredInfo member.
 					filteredStr = filteredStr + existingFilteredInfo;
 				}
 
