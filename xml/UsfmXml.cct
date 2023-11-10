@@ -1,9 +1,9 @@
-c UsfmXml.cct - by Bill Martin 25 February 2005 revised 25 November 2005
+c UsfmXml.cct - by Bill Martin 25 February 2005 revised 9 November 2023
 c Usage: Use AI_USFM_full.xml as the input file for this changes table
 c        and temp.xml as the output file.
 c        Then use temp.xml as the input file to the UsfmXmlTidy.cct 
 c        changes table and AI_USFM.xml as the final output file
-c        for distribution with Adapt It version 3.
+c        for distribution with Adapt It version 3 and later.
 
 c skip comments
 '<!-- '	> dup set(comment)
@@ -17,6 +17,8 @@ c the following markers should never be removed when generating the AI_USFM.xml 
 c   marker
 c   description
 
+'occursUnder="" '		> if(comment) dup else '' endif
+'occursUnder=""'		> if(comment) dup else '' endif
 'endMarker="" '			> if(comment) dup else '' endif
 'endMarker=""'			> if(comment) dup else '' endif
 'usfm="0" '			> if(comment) dup else '' endif

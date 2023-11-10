@@ -1493,7 +1493,7 @@ enum WhichPass // BEW added 10Jun05 for support of SFM set changes done on the f
 
 /// An enum for specifying the fields of a USFMAnalysis struct, used in
 /// ParseAndFillStruct(). Can be one of the following: marker, endMarker, description,
-/// usfm, png, filter, userCanSetFilter, inLine, special, bdryOnLast, inform,
+/// ooursUnder, usfm, png, filter, userCanSetFilter, inLine, special, bdryOnLast, inform,
 /// navigationText, textType, wrap, styleName, styleType, fontSize, color, italic, bold,
 /// underline, smallCaps, superScript, justification, spaceAbove, spaceBelow,
 /// leadingMargin, followingMargin, firstLineIndent, basedOn, nextStyle, keepTogether or
@@ -1504,6 +1504,7 @@ enum USFMAnalysisField
 	marker,
 	endMarker,
 	description,
+	occursUnder, // whm 9Nov2023 addition
 	usfm,
 	png,
 	filter,
@@ -1568,7 +1569,7 @@ enum USFMAnalysisField
 /// A struct for storing the attributes of usfm markers. Structs are created on the heap
 /// and their pointers are associated with the standard format marker name in high-speed
 /// maps for each of the three possible sfm sets. Struct members include the following:
-/// marker, endMarker, description, usfm, png, filter, userCanSetFilter, inLine, special,
+/// marker, endMarker, description, occursUnder, usfm, png, filter, userCanSetFilter, inLine, special,
 /// bdryOnLast, inform, navigationText, textType, wrap, styleName, styleType, fontSize,
 /// color, italic, bold, underline, smallCaps, superScript, justification, spaceAbove,
 /// spaceBelow, leadingMargin, followingMargin, firstLineIndent, basedOn, nextStyle,
@@ -1578,6 +1579,7 @@ struct USFMAnalysis
 	wxString marker; // this is the marker, without the initial gSFescapechar
 	wxString endMarker; // likewise, lacks initial gSFescapechar
 	wxString description;
+	wxString occursUnder; // whm 9Nov2023 added
 	bool usfm;
 	bool png;
 	bool filter;

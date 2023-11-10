@@ -1,11 +1,11 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <USFMsupport>
 <!--
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	23 September 2023, by Bill Martin
-USFM version:	3.0.0 as published in usfm.sty and usfm_sb.sty by UBS April 2018
+Last Updated:	8 November 2023, by Bill Martin
+USFM version:	3.0.9 as published in usfm.sty and usfm_sb.sty by UBS Sept 7, 2022
 				(bill_martin@sil.org, bruce_waters@sil.org, erik_brommers@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -56,9 +56,11 @@ contained in this xml file:
 			Preferences "Filtering" tab. The description also appears
 			in the "View Filtered Material" dialog that appears when 
 			the user clicks on the caret that is located above and 
-			precededing any text associated with a filtered marker.
+			preceding any text associated with a filtered marker.
 			Every SFM listed in this xml file must have a description 
 			attribute specified.
+	occursUnder:
+		="" a list of space separated markers without backslashes
 	usfm:
 		="1" the marker will be recognized as a USFM 2 or 3 marker.
 		="0" (default when absent) the marker will NOT be recognized
@@ -343,15 +345,15 @@ marker attribute definitions below.  -->
 	to make it virtually invisible in printouts  -->
 <SFM marker="ide"
 	description="File encoding information"
+	occursUnder="id"
 	usfm="1"
 	filter="1"
 	bdryOnLast="1"
 	textType="noType"
 	styleName="ide - File - Encoding"
-	fontSize="1" color="65535"
+	color="65535"
 	justification="leading"
 	basedOn="__normal" nextStyle="ide"
-	keepWithNext="1"
 	>
 </SFM>
 	<!-- Note: In RTF exports, the text associated with \ide is 
@@ -359,6 +361,7 @@ marker attribute definitions below.  -->
 	to make it virtually invisible in printouts  -->
 <SFM marker="h"
 	description="Running header text for a book (basic)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -392,6 +395,7 @@ marker attribute definitions below.  -->
 	the "_header" style defined toward the end of this file.  -->
 <SFM marker="h1"
 	description="Running header text"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -411,6 +415,7 @@ marker attribute definitions below.  -->
 	used in the "_header" style defined toward the end of this file.  -->
 <SFM marker="h2"
 	description="Running header text, left side of page"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -430,6 +435,7 @@ marker attribute definitions below.  -->
 	used in the "_header" style defined toward the end of this file.  -->
 <SFM marker="h3"
 	description="Running header text, right side of page"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -451,6 +457,7 @@ marker attribute definitions below.  -->
 	Note: All remarks and comments are filtered by default -->
 <SFM marker="rem"
 	description="Comments and remarks"
+	occursUnder="id ide c"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -464,6 +471,7 @@ marker attribute definitions below.  -->
 </SFM>
 <SFM marker="sts"
 	description="Status of this file"
+	occursUnder="id ide c"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -477,6 +485,7 @@ marker attribute definitions below.  -->
 </SFM>
 <SFM marker="restore"
 	description="Project restore information"
+	occursUnder="id"
 	usfm="1"
 	filter="1"
 	bdryOnLast="1"
@@ -489,6 +498,7 @@ marker attribute definitions below.  -->
 </SFM>
 <SFM marker="lit"
 	description="For a comment or note inserted for liturgical use"
+	occursUnder="c"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -536,6 +546,7 @@ marker attribute definitions below.  -->
 	filtered. -->
 <SFM marker="c"
 	description="Chapter number (basic)"
+	occursUnder="id"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1"
@@ -553,6 +564,7 @@ marker attribute definitions below.  -->
 	chapter (c) and verse (v) as c:v -->
 <SFM marker="ca" endMarker="ca*"
 	description="Second (alternate) chapter number (for coding dual versification; useful for places where different traditions of chapter breaks need to be supported in the same translation)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -567,6 +579,7 @@ marker attribute definitions below.  -->
 	in the same translation. Revised to character style in usfm 2.1 -->
 <SFM marker="cl"
 	description="Chapter label used for translations that add a word such as 'Chapter' before chapter numbers (e.g. Psalms). The subsequent text is the chapter label."
+	occursUnder="id c ms ms1 ms2 ms3 mr"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -590,6 +603,7 @@ marker attribute definitions below.  -->
 	example, "Chapter One"). -->
 <SFM marker="cp"
 	description="Published chapter number (chapter string that should appear in the published text)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -607,6 +621,7 @@ marker attribute definitions below.  -->
 	different than the \c # used within the translation editor. -->
 <SFM marker="cd"
 	description="Chapter Description (Publishing option D, e.g. in Russian Bibles)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -624,6 +639,7 @@ marker attribute definitions below.  -->
 	the first verse of the chapter. -->
 <SFM marker="v"
 	description="A verse number (basic)"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1"
@@ -664,6 +680,7 @@ marker attribute definitions below.  -->
 	chapter (c) and verse (v) as c:v -->
 <SFM marker="va" endMarker="va*"
 	description="Second (alternate) verse number (for coding dual numeration in Psalms; see also NRSV Exo 22.1-4)"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1"
@@ -679,6 +696,7 @@ marker attribute definitions below.  -->
 	does not track its locations nor goto commands with this number. -->
 <SFM marker="vp" endMarker="vp*"
 	description="Published verse marker (verse string that should appear in the published text)"
+	occursUnder="cd lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1"
@@ -696,6 +714,7 @@ specified in its spaceAbove and spaceBelow attributes, and its
 keepTogether and keepWithNext attributes should be set to "1". -->
 <SFM marker="mt"
 	description="The main title of the book (if single level)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -712,6 +731,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="mt1"
 	description="The main title of the book (if multiple levels) (basic)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -728,6 +748,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="mt2"
 	description="A secondary title usually occurring before the main title (basic)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -745,6 +766,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \mt2 usually occurs before the main title \mt1 -->
 <SFM marker="mt3"
 	description="A secondary title occurring after the main title"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -762,6 +784,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \mt3 usually occurs after the main title \mt1 -->
 <SFM marker="mt4"
 	description="A small secondary title sometimes occuring within parentheses"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -794,6 +817,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="mte"
 	description="The main title of the book repeated at the end of the book (if single level)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -811,6 +835,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \mte is Uncommon -->
 <SFM marker="mte1"
 	description="The main title of the book repeated at the end of the book (if multiple levels)"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tc1 tc2 tc3 tc4 s3 d"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -828,6 +853,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \mte1 is Uncommon -->
 <SFM marker="mte2"
 	description="A secondary title occurring before or after the 'ending' main title"
+	occursUnder="mte1"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -879,6 +905,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \bn is similar to usfm \ms or png's \div -->
 <SFM marker="ms"
 	description="A major section division heading, level 1 (if single level) (basic)"
+	occursUnder="c esb"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -893,8 +920,26 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
+<SFM marker="mse"
+	description="A major section division ending heading, level 1 (if single level)"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="major sect ending"
+	textType="sectionHead" wrap="1"
+	styleName="mse - Heading - Major Section Ending Level 1"
+	fontSize="14"
+	bold="1"
+	justification="center"
+	spaceAbove="16" spaceBelow="4"
+	basedOn="_heading_base" nextStyle="mr"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="ms1"
 	description="A major section division heading, level 1 (if multiple levels)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -911,6 +956,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ms2"
 	description="A major section division heading, level 2"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -925,8 +971,26 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
+<SFM marker="ms2e"
+	description="A major section division ending heading, level 2"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="major sect ending L2"
+	textType="sectionHead" wrap="1"
+	styleName="ms2e - Heading - Major Section Ending Level 2"
+	fontSize="14"
+	bold="1"
+	justification="center"
+	spaceAbove="16" spaceBelow="4"
+	basedOn="_heading_base" nextStyle="mr"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="ms3"
 	description="A major section division heading, level 3"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -941,8 +1005,26 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
+<SFM marker="ms3e"
+	description="A major section division ending heading, level 3"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="major sect ending L3"
+	textType="sectionHead" wrap="1"
+	styleName="ms3e - Heading - Major Section Ending Level 3"
+	fontSize="14"
+	italic="1"
+	justification="center"
+	spaceAbove="16" spaceBelow="4"
+	basedOn="_heading_base" nextStyle="mr"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="s"
 	description="A section heading, level 1 (if single level) (basic)"
+	occursUnder="c"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -958,6 +1040,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="s1"
 	description="A section heading, level 1 (if multiple levels)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -971,8 +1054,25 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
+<SFM marker="s1e"
+	description="A section ending heading, level 1 (if multiple levels)"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="sect head ending L1"
+	textType="sectionHead" wrap="1"
+	styleName="s1e - Heading - Section Ending Level 1"
+	bold="1"
+	justification="center"
+	spaceAbove="8" spaceBelow="4"
+	basedOn="_heading_base" nextStyle="p"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="s2"
 	description="A section heading, level 2 (e.g. Proverbs 22-24)"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -987,8 +1087,25 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	>
 </SFM>
 	<!-- e.g. Proverbs 22-24 -->
+<SFM marker="s2e"
+	description="A section ending heading, level 2"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="sect head ending L2"
+	textType="sectionHead" wrap="1"
+	styleName="s2e - Heading - Section Ending Level 2"
+	italic="1"
+	justification="center"
+	spaceAbove="8" spaceBelow="4"
+	basedOn="_heading_base" nextStyle="p"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="s3"
 	description="A section heading, level 3 (e.g. Genesis 'The First Day')"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -1003,8 +1120,25 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	>
 </SFM>
 	<!-- e.g. Genesis "The First Day" -->
+<SFM marker="s3e"
+	description="A section ending heading, level 3"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="sect head ending L3"
+	textType="sectionHead" wrap="1"
+	styleName="s3e - Heading - Section Ending Level 3"
+	italic="1"
+	justification="left"
+	spaceAbove="6" spaceBelow="3"
+	basedOn="_heading_base" nextStyle="p"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="s4"
 	description="A section heading, level 4"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -1018,8 +1152,25 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
+<SFM marker="s4e"
+	description="A section ending heading, level 4"
+	occursUnder="c"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="sect head ending L4"
+	textType="sectionHead" wrap="1"
+	styleName="s4e - Heading - Section Ending Level 4"
+	italic="1"
+	justification="leading"
+	spaceAbove="6" spaceBelow="3"
+	basedOn="_heading_base" nextStyle="p"
+	keepTogether="1" keepWithNext="1"
+	>
+</SFM>
 <SFM marker="sr"
 	description="A section division references range heading"
+	occursUnder="s s1 s2 s3 s4"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -1065,6 +1216,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="sp"
 	description="A heading, to identify the speaker (e.g. Job)"
+	occursUnder="c"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -1080,6 +1232,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="d"
 	description="A Hebrew text heading, to provide description (e.g. Psalms)"
+	occursUnder="c"
 	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="descr title"
@@ -1095,6 +1248,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Used in Psalms for Choir Directions -->
 <SFM marker="sd"
 	description="Vertical space used to divide the text into sections, level 1 (if single level)"
+	occursUnder="c"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -1109,6 +1263,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \sd marker is new in usfm 3.0.0 -->
 <SFM marker="sd1"
 	description="Vertical space used to divide the text into sections, level 1 (if single level)"
+	occursUnder="c"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -1123,6 +1278,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \sd1 marker is new in usfm 3.0.0 -->
 <SFM marker="sd2"
 	description="Vertical space used to divide the text into sections, level 2"
+	occursUnder="c"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -1137,6 +1293,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \sd2 marker is new in usfm 3.0.0 -->
 <SFM marker="sd3"
 	description="Vertical space used to divide the text into sections, level 3"
+	occursUnder="c"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -1151,6 +1308,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \sd3 marker is new in usfm 3.0.0 -->
 <SFM marker="sd4"
 	description="Vertical space used to divide the text into sections, level 4"
+	occursUnder="c"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -1199,6 +1357,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Edit Preferences.  -->
 <SFM marker="r"
 	description="Parallel reference(s) (basic)"
+	occursUnder="c s s1 s2 s3 s4"
 	usfm="1" png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -1230,6 +1389,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- probably same as usfm \mr Major Section Reference -->
 <SFM marker="mr"
 	description="A major section division references range heading (basic)"
+	occursUnder="ms ms1 ms2 ms3"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1"
@@ -1280,6 +1440,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	-->
 <SFM marker="x" endMarker="x*"
 	description="A list of cross references (basic)"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 s s1 s2 s3 d"
 	usfm="1" png="0"
 	filter="1" userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
@@ -1306,6 +1467,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	doing the typesetting.) -->
 <SFM marker="xo" endMarker="xo*"
 	description="The cross reference origin reference (basic)"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1327,6 +1489,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	closure of any preceding character level marker.  -->
 <SFM marker="xop" endMarker="xop*"
 	description="Published cross reference origin reference (origin reference that should appear in the published text)"
+	occursUnder="x"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1343,6 +1506,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The \xop and \xop* markers are new in usfm 3.0.0. -->
 <SFM marker="xt" endMarker="xt*"
 	description="The cross reference target reference(s), protocanon only (basic)"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x ef efe ex NEST"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1361,6 +1525,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xt. -->
 <SFM marker="xta" endMarker="xta*"
 	description="Cross reference target references added text"
+	occursUnder="x"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1377,6 +1542,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The \xta and \xta* markers are new in usfm 3.0.0. -->
 <SFM marker="xk" endMarker="xk*"
 	description="A cross reference keyword"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1396,6 +1562,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xk. -->
 <SFM marker="xq" endMarker="xq*"
 	description="A cross-reference quotation from the scripture text"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1415,6 +1582,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xq. -->
 <SFM marker="xot" endMarker="xot*"
 	description="Cross-reference target reference(s), Old Testament only"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1433,6 +1601,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xot. -->
 <SFM marker="xnt" endMarker="xnt*"
 	description="Cross-reference target reference(s), New Testament only"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1451,6 +1620,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xnt. -->
 <SFM marker="xdc" endMarker="xdc*"
 	description="Cross-reference target reference(s), Deuterocanon only"
+	occursUnder="x ex"
 	usfm="1"
 	filter="1"
 	inLine="1" special="1"
@@ -1492,6 +1662,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	following the quote. -->
 <SFM marker="rq" endMarker="rq*"
 	description="A cross-reference indicating the source text for the preceding quotation"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 NEST"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1"
@@ -1547,6 +1718,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	marker -->
 <SFM marker="p"
 	description="Paragraph text, with first line indent (basic)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph"
@@ -1559,6 +1731,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="pi"
 	description="Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse (basic)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented"
@@ -1571,6 +1744,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="pi1"
 	description="Paragraph text, level 1 indent (if multiple levels), with first line indent; often used for discourse"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L1"
@@ -1584,6 +1758,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/8 inch first line indent -->
 <SFM marker="pi2"
 	description="Paragraph text, level 2 indent, with first line indent; often used for discourse"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L2"
@@ -1597,6 +1772,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/8 inch first line indent. Often used for discourse -->
 <SFM marker="pi3"
 	description="Paragraph text, level 3 indent, with first line indent; often used for discourse"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L3"
@@ -1624,6 +1800,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	\pgi in place of \pi -->
 <SFM marker="ph"
 	description="Paragraph text, with level 1 hanging indent (if single level)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent"
@@ -1637,6 +1814,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap USFM 2.0 lists the \ph marker as DEPRECATED -->
 <SFM marker="ph1"
 	description="Paragraph text, with level 1 hanging indent (if multiple levels)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L1"
@@ -1650,6 +1828,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap USFM 2.0 lists the \ph1 marker as DEPRECATED -->
 <SFM marker="ph2"
 	description="Paragraph text, with level 2 hanging indent"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L2"
@@ -1663,6 +1842,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 3/4 inch wrap USFM 2.0 lists the \ph2 marker as DEPRECATED -->
 <SFM marker="ph3"
 	description="Paragraph text, with level 3 hanging indent"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L3"
@@ -1676,6 +1856,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 3/4 inch indent, 1 inch wrap USFM 2.0 lists the \ph3 marker as DEPRECATED -->
 <SFM marker="phi"
 	description="Paragraph text, indented with hanging indent"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indent hang indent"
@@ -1689,6 +1870,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- USFM 2.0 lists the \phi marker as DEPRECATED -->
 <SFM marker="m"
 	description="Paragraph text, with no first line indent (may occur after poetry) (basic)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph margin"
@@ -1700,6 +1882,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="po"
 	description="Letter opening"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph"
@@ -1714,6 +1897,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \po marker is new in usfm 3.0.0 -->
 <SFM marker="pr"
 	description="Text refrain (paragraph text, right aligned)"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph"
@@ -1727,6 +1911,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \pr marker added back in usfm 3.0.0 -->
 <SFM marker="pmo"
 	description="Embedded text opening"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para embedded text opening"
@@ -1739,6 +1924,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="mi"
 	description="Paragraph text, indented, with no first line indent; often used for discourse"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indent no 1st line indent"
@@ -1764,6 +1950,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: conflicts with usfm \pc Centered Paragraph -->
 <SFM marker="pc"
 	description="Paragraph text, centered (for Inscription)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para centered inscription"
@@ -1808,6 +1995,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- PNG \ps conflicts with USFM \ps (obsolete) -->
 <SFM marker="ps"
 	description="Paragraph text, no break with next paragraph text at chapter boundary"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para spans chapters"
@@ -1820,6 +2008,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- USFM \ps (obsolete) conflicts with PNG \ps similar to PNG \pc -->
 <SFM marker="psi"
 	description="Paragraph text, indented, with no break with next paragraph text (at chapter boundary)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para spans chapters indent"
@@ -1875,6 +2064,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: This png marker conflicts with the usfm \pm marker -->
 <SFM marker="pm"
 	description="Embedded text paragraph"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr psi q q1 q2 q3 q4 qc qr b s1 s2 s3 s4"
 	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="paragraph embedded text"
@@ -1888,6 +2078,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: This usfm \pm marker conflicts with the png \pm marker -->
 <SFM marker="pmc"
 	description="Embedded text closing"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4"
 	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="para embedded text closing"
@@ -1900,6 +2091,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="pmr"
 	description="Embedded text refrain (e.g. Then all the people shall say, 'Amen!')"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr po q q1 q2 q3 q4 qc qr b s1 s2 s3 s4"
 	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="para embedded text refrain"
@@ -1913,6 +2105,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- For example, Then all the people shall say, "Amen'" -->
 <SFM marker="nb"
 	description="Paragraph text, with no break from previous paragraph text (at chapter boundary) (basic)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para no break"
@@ -1925,6 +2118,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \nb may be used at chapter boundary -->
 <SFM marker="cls"
 	description="Letter Closing"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="Letter closing"
@@ -1938,6 +2132,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- POETRY ELEMENTS -->
 <SFM marker="q"
 	description="Poetry text, level 1 indent (if single level)"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry"
@@ -1951,6 +2146,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1 1/4 inch wrap -->
 <SFM marker="q1"
 	description="Poetry text, level 1 indent (if multiple levels) (basic)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L1"
@@ -1964,6 +2160,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1 1/4 inch wrap -->
 <SFM marker="q2"
 	description="Poetry text, level 2 indent (basic)"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L2"
@@ -1977,6 +2174,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 1 1/4 inch wrap -->
 <SFM marker="q3"
 	description="Poetry text, level 3 indent"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L3"
@@ -1990,6 +2188,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 3/4 inch indent, 1 1/4 inch wrap -->
 <SFM marker="q4"
 	description="Poetry text, level 4 indent"
+	occursUnder="c"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L3"
@@ -2003,6 +2202,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1 inch indent, 1 1/4 inch wrap -->
 <SFM marker="qc"
 	description="Poetry text, centered"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry centered"
@@ -2014,6 +2214,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="qr"
 	description="Poetry text, Right Aligned"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry right margin"
@@ -2025,6 +2226,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="qa"
 	description="Poetry text, Acrostic marker/heading"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -2040,6 +2242,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- \qa is similar to PNG \hl  -->
 <SFM marker="qac" endMarker="qac*"
 	description="Poetry text, Acrostic markup of the first character of a line of acrostic poetry"
+	occursUnder="q q1 q2 q3 q4 qc qr  NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	textType="poetry"
@@ -2051,6 +2254,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="qs" endMarker="qs*"
 	description="Poetry text, Selah"
+	occursUnder="q q1 q2 q3 q4 qc qr NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	styleName="qs...qs* - Poetry Text - Selah"
@@ -2073,6 +2277,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: PNG sfms use this for Greetings as in Romans 16. -->
 <SFM marker="qm"
 	description="Poetry text, embedded, level 1 indent (if single level)"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed"
@@ -2087,6 +2292,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	1/4 inch indent, 1 inch wrap -->
 <SFM marker="qm1"
 	description="Poetry text, embedded, level 1 indent (if multiple levels)"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L1"
@@ -2100,6 +2306,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1 inch wrap -->
 <SFM marker="qm2"
 	description="Poetry text, embedded, level 2 indent"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L2"
@@ -2113,6 +2320,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 1 inch wrap -->
 <SFM marker="qm3"
 	description="Poetry text, embedded, level 3 indent"
+	occursUnder="m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L3"
@@ -2126,6 +2334,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 3/4 inch indent, 1 inch wrap -->
 <SFM marker="qd"
 	description="A Hebrew musical performance annotation, similar in content to Hebrew descriptive title."
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="Hebrew note"
@@ -2170,6 +2379,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	footnote text. -->
 <SFM marker="f" endMarker="f*"
 	description="A Footnote text item (basic)"
+	occursUnder="c cp lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
@@ -2199,6 +2409,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	filtered. -->
 <SFM marker="fe" endMarker="fe*"
 	description="An Endnote text item"
+	occursUnder="c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 ms3 s s1 s2 s3 d ip"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
@@ -2215,6 +2426,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	just as \f...\f* and \x...\x* are. -->
 <SFM marker="fr" endMarker="fr*"
 	description="The origin reference for the footnote (basic)"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="ref"
@@ -2229,6 +2441,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fk" endMarker="fk*"
 	description="A footnote keyword (basic)"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="keyword"
@@ -2243,6 +2456,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fq" endMarker="fq*"
 	description="A footnote scripture quote or alternate rendering (basic)"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="quote"
@@ -2257,6 +2471,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fqa" endMarker="fqa*"
 	description="A footnote alternate rendering for a portion of scripture text"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="alt-transln"
@@ -2271,6 +2486,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fl" endMarker="fl*"
 	description="A footnote label text item, for marking or 'labelling' the type or alternate translation being provided in the note."
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="label"
@@ -2289,6 +2505,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	an alternate translation note, "Others", "Heb.", "LXX" etc.  -->
 <SFM marker="fw" endMarker="fw*"
 	description="A footnote witness list, for distinguishing a list of sigla representing witnesses in critical editions."
+	occursUnder="f fe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="witness list"
@@ -2303,6 +2520,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The \fw marker is new in USFM 3.0.0.   -->
 <SFM marker="fp" endMarker="fp*"
 	description="A Footnote additional paragraph marker"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="new-paragr"
@@ -2320,6 +2538,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	a new footnote paragraph, add a soft-return before the \fp marker. -->
 <SFM marker="ft" endMarker="ft*"
 	description="Footnote text, Protocanon (basic)"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="fn-text"
@@ -2340,6 +2559,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	of \ft is demonstrated. -->
 <SFM marker="fdc" endMarker="fdc*"
 	description="Footnote text, applies to Deuterocanon only"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="deut-canon"
@@ -2353,6 +2573,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers.  -->
 <SFM marker="fv" endMarker="fv*"
 	description="A verse number within the footnote text"
+	occursUnder="f fe ef efe"
 	usfm="1"
 	inLine="1" special="1"
 	inform="1" navigationText="verse#"
@@ -2367,6 +2588,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers.  -->
 <SFM marker="fm" endMarker="fm*"
 	description="An additional footnote marker location for a previous footnote"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 s s1 s2 s3 d ip"
 	usfm="1"
 	inLine="1" special="1"
 	inform="1" navigationText="call-prev"
@@ -2397,6 +2619,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	hard coding of character styles -->
 <SFM marker="qt" endMarker="qt*"
 	description="For Old Testament quoted text appearing in the New Testament (basic)"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="Quotation"
@@ -2409,6 +2632,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Use to mark OT quotes in NT, or any other quoted text -->
 <SFM marker="nd" endMarker="nd*"
 	description="For name of deity (basic)"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="nd...nd* - Special Text - Name of Deity"
@@ -2419,6 +2643,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tl" endMarker="tl*"
 	description="For transliterated words"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="tl...tl* - Special Text - Transliterated Word"
@@ -2429,6 +2654,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="dc" endMarker="dc*"
 	description="Deuterocanonical/LXX additions or insertions in the Protocanonical text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="dc...dc* - Special Text - Deuterocanonical/LXX Additions"
@@ -2439,6 +2665,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="bk" endMarker="bk*"
 	description="For the quoted name of a book"
+	occursUnder="imt imt1 imt2 imt3 imt4 imte imte1 imte2 is is1 is2 ili ili1 ili2 ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="bk...bk* - Special Text - Quoted book title"
@@ -2449,6 +2676,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="sig" endMarker="sig*"
 	description="For the signature of the author of an Epistle"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="sig...sig* - Special Text - Author's Signature (Epistles)"
@@ -2459,6 +2687,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="pn" endMarker="pn*"
 	description="For a proper name"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="pn...pn* - Special Text - Proper Name"
@@ -2469,6 +2698,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="png" endMarker="png*"
 	description="For a geographic proper name"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="png...png* - Special Text - Geographic Proper Name"
@@ -2480,6 +2710,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \png marker is new in usfm 3.0.0 -->
 <SFM marker="wj" endMarker="wj*"
 	description="For marking the words of Jesus"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="wj...wj* - Special Text - Words of Jesus"
@@ -2489,6 +2720,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="k" endMarker="k*"
 	description="For a keyword"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="k...k* - Special Text - Keyword"
@@ -2499,6 +2731,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="sls" endMarker="sls*"
 	description="To represent where the original text is in a secondary language or from an alternate text source"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="sls...sls* - Special Text - Secondary Language or Text Source"
@@ -2512,6 +2745,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Hebrew -->
 <SFM marker="ord" endMarker="ord*"
 	description="For the text portion of an ordinal number"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1"
 	styleName="ord...ord* - Special Text - Ordinal number text portion"
@@ -2522,6 +2756,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- i.e., 1st, e.g., 1\ord st\ord* -->
 <SFM marker="add" endMarker="add*"
 	description="For a translational addition to the text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="addl material"
@@ -2540,6 +2775,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	formatting -->
 <SFM marker="no" endMarker="no*"
 	description="A character style, use normal text"
+	occursUnder="is ip ipi im imi ili ili1 ili2 imq ipq iex iq iot io1 io2 io3 io4 s s1 s2 s3 NEST"
 	usfm="1"
 	inLine="1"
 	styleName="no...no* - Character - Normal Text"
@@ -2549,6 +2785,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="bd" endMarker="bd*"
 	description="A character style, use bold text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	styleName="bd...bd* - Character - Bold Text"
@@ -2559,6 +2796,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="it" endMarker="it*"
 	description="A character style, use italic text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	styleName="it...it* - Character - Italic Text"
@@ -2569,6 +2807,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="bdit" endMarker="bdit*"
 	description="A character style, use bold + italic text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	styleName="bdit...bdit* - Character - BoldItalic Text"
@@ -2579,6 +2818,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="em" endMarker="em*"
 	description="A character style, use emphasized text style"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	styleName="em...em* - Character - Emphasized Text"
@@ -2589,6 +2829,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="sc" endMarker="sc*"
 	description="A character style, for small capitalization text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	styleName="sc...sc* - Character - Small Caps"
@@ -2601,6 +2842,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	have RTF tag \scaps, so we'll allow for it. -->
 <SFM marker="sup" endMarker="sup*"
 	description="A character style, for superscript text. Typically for use in critical edition footnotes."
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	inLine="1"
 	textType="none"
@@ -2612,6 +2854,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \sup and \sup* markers are new in usfm 3.0.0 -->
 <SFM marker="pro" endMarker="pro*"
 	description="For indicating pronunciation in CJK texts"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	inLine="1"
@@ -2624,6 +2867,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- INTRODUCTION ELEMENTS -->
 <SFM marker="imt"
 	description="Introduction main title, level 1 (if single level) (basic)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2640,6 +2884,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imt1"
 	description="Introduction major title, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2656,6 +2901,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imt2"
 	description="Introduction major title, level 2"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2672,6 +2918,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imt3"
 	description="Introduction major title, level 3"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2687,6 +2934,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imt4"
 	description="Introduction major title, level 4 (usually within parenthesis)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2702,6 +2950,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imte"
 	description="Introduction major title at introduction end, level 1 (if single level)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2717,6 +2966,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imte1"
 	description="Introduction major title at introduction end, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2732,6 +2982,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="imte2"
 	description="Introduction major title at introduction end, level 2"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2747,6 +2998,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="is"
 	description="Introduction section heading, level 1 (if single level) (basic)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2762,6 +3014,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="is1"
 	description="Introduction section heading, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2777,6 +3030,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="is2"
 	description="Introduction section heading, level 2"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2792,6 +3046,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ip"
 	description="Introduction prose paragraph (basic)"
+	occursUnder="id c"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2806,6 +3061,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ipi"
 	description="Introduction prose paragraph, indented, with first line indent"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2820,6 +3076,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ipq"
 	description="Introduction prose paragraph, quote from the body text"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2835,6 +3092,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ipr"
 	description="Introduction prose paragraph, right aligned"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2850,6 +3108,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="iq"
 	description="Introduction poetry text, level 1 (if single level)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2866,6 +3125,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1 inch wrap -->
 <SFM marker="iq1"
 	description="Introduction poetry text, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2882,6 +3142,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1 inch wrap -->
 <SFM marker="iq2"
 	description="Introduction poetry text, level 2"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2898,6 +3159,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 1 inch wrap -->
 <SFM marker="iq3"
 	description="Introduction poetry text, level 3"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2914,6 +3176,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 3/4 inch indent, 1 inch wrap -->
 <SFM marker="im"
 	description="Introduction prose paragraph, with no first line indent (may occur after poetry)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2928,6 +3191,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- may occur after poetry -->
 <SFM marker="imi"
 	description="Introduction prose paragraph text, indented, with no first line indent"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2942,6 +3206,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ili"
 	description="A list entry, level 1 (if single level)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2956,6 +3221,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 5/8 inch wrap -->
 <SFM marker="ili1"
 	description="A list entry, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2970,6 +3236,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap -->
 <SFM marker="ili2"
 	description="A list entry, level 2"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2984,6 +3251,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 3/4 inch wrap -->
 <SFM marker="imq"
 	description="Introduction prose paragraph, quote from the body text, with no first line indent"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -2999,6 +3267,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ib"
 	description="Introduction blank line"
+	occursUnder="id"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1"
@@ -3010,6 +3279,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="iot"
 	description="Introduction outline title (basic)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3025,6 +3295,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="io"
 	description="Introduction outline text, level 1 (if single level)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3041,6 +3312,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	for basedOn compatibility -->
 <SFM marker="io1"
 	description="Introduction outline text, level 1 (if multiple levels) (basic)"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3055,6 +3327,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="io2"
 	description="Introduction outline text, level 2"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3069,6 +3342,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="io3"
 	description="Introduction outline text, level 3"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3083,6 +3357,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="io4"
 	description="Introduction outline text, level 4"
+	occursUnder="id"
 	usfm="1" png="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3097,6 +3372,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ior" endMarker="ior*"
 	description="Introduction references range for outline entry; for marking references separately"
+	occursUnder="id io io1 io2 io3 io4 NEST"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" special="1"
@@ -3110,6 +3386,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	marking references separately -->
 <SFM marker="iex"
 	description="Introduction explanatory or bridge text (e.g. explanation of missing book in Short Old Testament)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3127,6 +3404,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Testament -->
 <SFM marker="iqt" endMarker="iqt*"
 	description="For quoted scripture text appearing in the introduction"
+	occursUnder="id NEST"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" special="1"
@@ -3139,6 +3417,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="ie"
 	description="Introduction ending marker"
+	occursUnder="id"
 	usfm="1"
 	filter="1"
 	special="1" bdryOnLast="1"
@@ -3156,6 +3435,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- LISTS -->
 <SFM marker="li"
 	description="A list entry, level 1 (if single level)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item"
@@ -3169,6 +3449,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 5/8 inch wrap -->
 <SFM marker="lh"
 	description="List header (introductory remark)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list header"
@@ -3183,6 +3464,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lh marker is new in usfm 3.0.0, 1/4 inch first line indent -->
 <SFM marker="lf"
 	description="List footer (concluding remark)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list footer"
@@ -3195,6 +3477,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lf marker is new in usfm 3.0.0 -->
 <SFM marker="lim"
 	description="An embedded list entry, level 1 (if single level)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="embedded list item"
@@ -3208,6 +3491,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lim marker is new in usfm 3.0.0 -->
 <SFM marker="lim1"
 	description="An embedded list entry, level 1 (if multiple levels)"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="embedded list item"
@@ -3221,6 +3505,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lim1 marker is new in usfm 3.0.0 -->
 <SFM marker="lim2"
 	description="An embedded list entry, level 2"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="embedded list item"
@@ -3234,6 +3519,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lim2 marker is new in usfm 3.0.0 -->
 <SFM marker="lim3"
 	description="An embedded list entry, level 3"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="embedded list item"
@@ -3247,6 +3533,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lim3 marker is new in usfm 3.0.0 -->
 <SFM marker="lim4"
 	description="An embedded list entry, level 4"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="embedded list item"
@@ -3260,6 +3547,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lim4 marker is new in usfm 3.0.0 -->
 <SFM marker="litl" endMarker="litl*"
 	description="List entry total text"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="list item total"
@@ -3273,6 +3561,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \litl marker is new in usfm 3.0.0 -->
 <SFM marker="lik" endMarker="lik*"
 	description="Structured list entry key text"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list key"
@@ -3286,6 +3575,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \lik marker is new in usfm 3.0.0 -->
 <SFM marker="liv" endMarker="liv*"
 	description="Structured list entry value 1 content (if single value)"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list entry"
@@ -3298,6 +3588,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv marker is new in usfm 3.0.0 -->
 <SFM marker="liv1" endMarker="liv1*"
 	description="Structured list entry value 1 content (if multiple values)"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	filter="1"
 	bdryOnLast="1"
@@ -3311,6 +3602,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv1 marker is new in usfm 3.0.0 -->
 <SFM marker="liv2" endMarker="liv2*"
 	description="Structured list entry value 2 content"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list entry"
@@ -3323,6 +3615,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv2 marker is new in usfm 3.0.0 -->
 <SFM marker="liv3" endMarker="liv3*"
 	description="Structured list entry value 3 content"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list entry"
@@ -3335,6 +3628,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv3 marker is new in usfm 3.0.0 -->
 <SFM marker="liv4" endMarker="liv4*"
 	description="Structured list entry value 4 content"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list entry"
@@ -3347,6 +3641,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv4 marker is new in usfm 3.0.0 -->
 <SFM marker="liv5" endMarker="liv5*"
 	description="Structured list entry value 5 content"
+	occursUnder="li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="structured list entry"
@@ -3359,6 +3654,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \liv5 marker is new in usfm 3.0.0 -->
 <SFM marker="li1"
 	description="A list entry, level 1 (if multiple levels)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L1"
@@ -3372,6 +3668,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap -->
 <SFM marker="li2"
 	description="A list entry, level 2"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L2"
@@ -3385,6 +3682,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 3/4 inch wrap -->
 <SFM marker="li3"
 	description="A list entry, level 3"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L3"
@@ -3398,6 +3696,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 3/4 inch indent 1 inch wrap -->
 <SFM marker="li4"
 	description="A list entry, level 4"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L4"
@@ -3425,6 +3724,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- TABLES -->
 <SFM marker="tr"
 	description="A new table row"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row"
@@ -3438,6 +3738,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap Marks a new table row -->
 <SFM marker="tr1"
 	description="A table Row"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row L1"
@@ -3451,6 +3752,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/4 inch indent, 1/2 inch wrap Note: USFM 2.0 lists \tr1 as OBSOLETE. -->
 <SFM marker="tr2"
 	description="A table Row"
+	occursUnder="c"
 	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row L2"
@@ -3464,6 +3766,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- 1/2 inch indent, 3/4 inch wrap Note: USFM 2.0 lists \tr1 as OBSOLETE. -->
 <SFM marker="th1"
 	description="A table heading, column 1"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="th1 - Table - Column 1 Heading"
@@ -3474,6 +3777,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="th2"
 	description="A table heading, column 2"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="th2 - Table - Column 2 Heading"
@@ -3484,6 +3788,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="th3"
 	description="A table heading, column 3"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="th3 - Table - Column 3 Heading"
@@ -3494,6 +3799,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="th4"
 	description="A table heading, column 4"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="th4 - Table - Column 4 Heading"
@@ -3504,6 +3810,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="th5"
 	description="A table heading, column 5"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="th5 - Table - Column 5 Heading"
@@ -3512,8 +3819,86 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	justification="leading"
 	>
 </SFM>
+<SFM marker="th6"
+	description="A table heading, column 6"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th6 - Table - Column 6 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th7"
+	description="A table heading, column 7"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th7 - Table - Column 7 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th8"
+	description="A table heading, column 8"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th8 - Table - Column 8 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th9"
+	description="A table heading, column 9"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th9 - Table - Column 9 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th10"
+	description="A table heading, column 10"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th10 - Table - Column 10 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th11"
+	description="A table heading, column 11"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th11 - Table - Column 11 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="th12"
+	description="A table heading, column 12"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="th12 - Table - Column 12 Heading"
+	styleType="character"
+	italic="1"
+	justification="leading"
+	>
+</SFM>
 <SFM marker="thr1"
 	description="A table heading, column 1, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thr1 - Table - Column 1 Heading - Right Aligned"
@@ -3524,6 +3909,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thr2"
 	description="A table heading, column 2, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thr2 - Table - Column 2 Heading - Right Aligned"
@@ -3534,6 +3920,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thr3"
 	description="A table heading, column 3, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thr3 - Table - Column 3 Heading - Right Aligned"
@@ -3544,6 +3931,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thr4"
 	description="A table heading, column 4, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thr4 - Table - Column 4 Heading - Right Aligned"
@@ -3554,6 +3942,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thr5"
 	description="A table heading, column 5, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thr5 - Table - Column 5 Heading - Right Aligned"
@@ -3562,8 +3951,86 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	justification="following"
 	>
 </SFM>
+<SFM marker="thr6"
+	description="A table heading, column 6, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr6 - Table - Column 6 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr7"
+	description="A table heading, column 7, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr7 - Table - Column 7 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr8"
+	description="A table heading, column 8, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr8 - Table - Column 8 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr9"
+	description="A table heading, column 9, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr9 - Table - Column 9 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr10"
+	description="A table heading, column 10, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr10 - Table - Column 10 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr11"
+	description="A table heading, column 11, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr11 - Table - Column 11 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
+<SFM marker="thr12"
+	description="A table heading, column 12, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thr12 - Table - Column 12 Heading - Right Aligned"
+	styleType="character"
+	italic="1"
+	justification="following"
+	>
+</SFM>
 <SFM marker="tc1"
 	description="A table cell item, column 1"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tc1 - Table - Column 1 Cell"
@@ -3573,6 +4040,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tc2"
 	description="A table cell item, column 2"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tc2 - Table - Column 2 Cell"
@@ -3582,6 +4050,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tc3"
 	description="A table cell item, column 3"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tc3 - Table - Column 3 Cell"
@@ -3591,6 +4060,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tc4"
 	description="A table cell item, column 4"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tc4 - Table - Column 4 Cell"
@@ -3600,6 +4070,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tc5"
 	description="A table cell item, column 5"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tc5 - Table - Column 5 Cell"
@@ -3607,8 +4078,79 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	justification="leading"
 	>
 </SFM>
+<SFM marker="tc6"
+	description="A table cell item, column 6"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc6 - Table - Column 6 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc7"
+	description="A table cell item, column 7"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc7 - Table - Column 7 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc8"
+	description="A table cell item, column 8"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc8 - Table - Column 8 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc9"
+	description="A table cell item, column 9"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc9 - Table - Column 9 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc10"
+	description="A table cell item, column 10"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc10 - Table - Column 10 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc11"
+	description="A table cell item, column 11"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc11 - Table - Column 11 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
+<SFM marker="tc12"
+	description="A table cell item, column 12"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tc12 - Table - Column 12 Cell"
+	styleType="character"
+	justification="leading"
+	>
+</SFM>
 <SFM marker="thc1"
 	description="A table heading, column 1, center aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thc1 - Table - Column 1 Heading - Center Aligned"
@@ -3619,6 +4161,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thc2"
 	description="A table heading, column 2, center aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thc2 - Table - Column 2 Heading - Center Aligned"
@@ -3629,6 +4172,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thc3"
 	description="A table heading, column 3, center aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thc3 - Table - Column 3 Heading - Center Aligned"
@@ -3639,6 +4183,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thc4"
 	description="A table heading, column 4, center aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thc4 - Table - Column 4 Heading - Center Aligned"
@@ -3649,6 +4194,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="thc5"
 	description="A table heading, column 5, center aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="thc5 - Table - Column 5 Heading - Center Aligned"
@@ -3657,8 +4203,75 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	justification="center"
 	>
 </SFM>
+<SFM marker="thc6"
+	description="A table heading, column 6, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc6 - Table - Column 6 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
+<SFM marker="thc7"
+	description="A table heading, column 7, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc7 - Table - Column 7 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
+<SFM marker="thc8"
+	description="A table heading, column 8, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc8 - Table - Column 8 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
+<SFM marker="thc9"
+	description="A table heading, column 9, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc9 - Table - Column 9 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
+<SFM marker="thc11"
+	description="A table heading, column 11, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc11 - Table - Column 11 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
+<SFM marker="thc12"
+	description="A table heading, column 12, center aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="thc12 - Table - Column 12 Heading - Center Aligned"
+	styleType="character"
+	italic="1"
+	justification="center"
+	>
+</SFM>
 <SFM marker="tcr1"
 	description="A table cell item, column 1, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tcr1 - Table - Column 1 Cell - Right Aligned"
@@ -3668,6 +4281,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tcr2"
 	description="A table cell item, column 2, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tcr2 - Table - Column 2 Cell - Right Aligned"
@@ -3677,6 +4291,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tcr3"
 	description="A table cell item, column 3, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tcr3 - Table - Column 3 Cell - Right Aligned"
@@ -3686,6 +4301,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tcr4"
 	description="A table cell item, column 4, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tcr4 - Table - Column 4 Cell - Right Aligned"
@@ -3695,9 +4311,80 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="tcr5"
 	description="A table cell item, column 5, right aligned"
+	occursUnder="tr"
 	usfm="1"
 	bdryOnLast="1"
 	styleName="tcr5 - Table - Column 5 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr6"
+	description="A table cell item, column 6, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr6 - Table - Column 6 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr7"
+	description="A table cell item, column 7, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr7 - Table - Column 7 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr8"
+	description="A table cell item, column 8, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr8 - Table - Column 8 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr9"
+	description="A table cell item, column 9, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr9 - Table - Column 9 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr10"
+	description="A table cell item, column 10, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr10 - Table - Column 10 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr11"
+	description="A table cell item, column 11, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr11 - Table - Column 11 Cell - Right Aligned"
+	styleType="character"
+	justification="following"
+	>
+</SFM>
+<SFM marker="tcr12"
+	description="A table cell item, column 12, right aligned"
+	occursUnder="tr"
+	usfm="1"
+	bdryOnLast="1"
+	styleName="tcr12 - Table - Column 12 Cell - Right Aligned"
 	styleType="character"
 	justification="following"
 	>
@@ -3802,6 +4489,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- PERIPHERAL REFERENCES -->
 <SFM marker="w" endMarker="w*"
 	description="A wordlist text item"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	styleName="w...w* - Peripheral Ref - Wordlist Entry"
@@ -3812,6 +4500,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- Note: Since \w ... \w* is verse type userCanSetFilter="0" -->
 <SFM marker="wr" endMarker="wr*"
 	description="A Wordlist text item"
+	occursUnder="ms s li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr tc1 tc2 tc3 tc4 f fe NEST"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="1"
@@ -3829,6 +4518,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="wh" endMarker="wh*"
 	description="A Hebrew wordlist text item"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="1"
@@ -3846,6 +4536,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="wg" endMarker="wg*"
 	description="A Greek Wordlist text item"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="1"
@@ -3863,6 +4554,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="wa" endMarker="wa*"
 	description="An Aramaic Wordlist text item"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="1"
@@ -3881,6 +4573,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- The \wa and \wa* markers are new in usfm 3.0.0 -->
 <SFM marker="ndx" endMarker="ndx*"
 	description="A subject index text item"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	textType="none"
@@ -3909,6 +4602,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- ADDITIONAL PERIPHERAL MATERIAL EXTENSIONS TO EXISTING USFM MARKUP -->
 <SFM marker="p1"
 	description="Front or back matter text paragraph, level 1 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3923,6 +4617,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- 1/8 inch first line indent -->
 <SFM marker="p2"
 	description="Front or back matter text paragraph, level 2 (if multiple levels)"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3937,6 +4632,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- 1/4 inch first line indent -->
 <SFM marker="k1"
 	description="Concordance main entry text or keyword, level 1"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3949,6 +4645,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="k2"
 	description="Concordance main entry text or keyword, level 2"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -3961,6 +4658,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="xtSee" endMarker="xtSee*"
 	description="Concordance and Names Index markup for an alternate entry target reference."
+	occursUnder="p"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
@@ -3973,6 +4671,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="xtSeeAlso" endMarker="xtSeeAlso*"
 	description="Concordance and Names Index markup for an additional entry target reference."
+	occursUnder="p"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
@@ -3986,6 +4685,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- 2.0x peripheral markup (replaced with \periph + Content Division Title/Argument) -->
 <SFM marker="pub"
 	description="Front matter publication data"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -3998,6 +4698,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="toc"
 	description="Front matter table of contents"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4010,6 +4711,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="toc1"
 	description="Long table of contents text"
+	occursUnder="h h1 h2 h3 id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -4025,6 +4727,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toc1 marker was added in USFM 2.0.4  -->
 <SFM marker="toc2"
 	description="Short table of contents text"
+	occursUnder="h h1 h2 h3 id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -4040,6 +4743,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toc2 marker was added in USFM 2.0.4  -->
 <SFM marker="toc3"
 	description="Book Abbreviation"
+	occursUnder="h h1 h2 h3 id"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -4055,6 +4759,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toc3 marker was added in USFM 2.0.4  -->
 <SFM marker="toca1"
 	description="Alternative Language Long Table of Contents Text"
+	occursUnder="h h1 h2 h3"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4069,6 +4774,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toca1 marker was added in USFM 3.0.0  -->
 <SFM marker="toca2"
 	description="Alternative language short table of contents text"
+	occursUnder="h h1 h2 h3"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4083,6 +4789,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toca2 marker was added in USFM 3.0.0  -->
 <SFM marker="toca3"
 	description="Alternative language book Abbreviation"
+	occursUnder="h h1 h2 h3"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4097,6 +4804,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- The \toca3 marker was added in USFM 3.0.0  -->
 <SFM marker="pref"
 	description="Front matter preface"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4109,6 +4817,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="intro"
 	description="Front matter introduction"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4121,6 +4830,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="conc"
 	description="Back matter concordance"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4133,6 +4843,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="glo"
 	description="Back matter glossary"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4145,6 +4856,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="idx"
 	description="Back matter index"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4157,6 +4869,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="maps"
 	description="Back matter map index"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4169,6 +4882,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="cov"
 	description="Other peripheral materials - cover"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4181,6 +4895,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="spine"
 	description="Other peripheral materials - spine"
+	occursUnder="id"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4193,6 +4908,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="pubinfo"
 	description="Publication information - Lang,Credit,Version,Copies,Publisher,Id,Logo"
+	occursUnder="id ide"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4208,6 +4924,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- SPECIAL SPACING and FORMATTING -->
 <SFM marker="pb"
 	description="Page Break used for new reader portions and children's bibles where content is controlled by the page"
+	occursUnder="c"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4222,6 +4939,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	where content is controlled by the page. -->
 <SFM marker="b"
 	description="Poetry text stanza break (e.g. stanza break) (basic)"
+	occursUnder="c esb ms ms1 ms2 s s1 s2 s3 s4 ip"
 	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
@@ -4261,9 +4979,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- ILLUSTRATION AND PICTURE FORMATTING -->
 <SFM marker="fig" endMarker="fig*"
 	description="Illustration [Columns to span, height, filename, caption text]"
+	occursUnder="lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
-	inLine="1" bdryOnLast="1"
+	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="figure"
 	textType="noType"
 	styleName="fig...fig* - Auxiliary - Figure/Illustration/Map"
@@ -4273,6 +4992,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 <SFM marker="jmp" endMarker="jmp*"
 	description="For associating linking attributes to a span of text"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST"
 	usfm="1"
 	filter="1" userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
@@ -4286,6 +5006,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- The \jmp and \jmp* markers are new in usfm 3.0.0 -->
 <SFM marker="rb" endMarker="rb*"
 	description="Most often used to provide a reading / pronunciation guide in ideographic scripts"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	wrap="1"
@@ -4388,6 +5109,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- The following markers were added in USFM 2.04 revision October 2005  -->
 <SFM marker="addpn" endMarker="addpn*"
 	description="For chinese words to be dot underline and underline"
+	occursUnder="ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
 	styleName="DEPRECATED addpn...addpn* - Special Text for Chinese"
@@ -4404,8 +5126,9 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	by Adapt It, so they should be included in the AI_USFM.xml control file. -->
 <SFM marker="ef" endMarker="ef*"
 	description="A Study Note text item"
+	occursUnder="c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp"
 	usfm="1"
-	userCanSetFilter="1"
+	filter="1" userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="study note text item"
 	textType="note"
@@ -4419,6 +5142,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	version 3.0.0 but not in usfm.sty -->
 <SFM marker="ex" endMarker="ex*"
 	description="List of study Bible extended cross references"
+	occursUnder="c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp"
 	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
@@ -4434,6 +5158,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	version 3.0.0 but not in usfm.sty -->
 <SFM marker="esb"
 	description="Study Bible sidebar (mini article)"
+	occursUnder="id c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1"
@@ -4447,6 +5172,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	version 3.0.0 but not in usfm.sty -->
 <SFM marker="esbe"
 	description="Study Bible sidebar ending"
+	occursUnder="id c esb"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -4460,6 +5186,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	version 3.0.0 but not in usfm.sty -->
 <SFM marker="erq"
 	description="Study Bible reflective questions"
+	occursUnder="id c"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1"
@@ -4473,6 +5200,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	version 3.0.0 but not in usfm.sty -->
 <SFM marker="erqe"
 	description="Study Bible reflective questions ending"
+	occursUnder="id c erq"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
@@ -4593,7 +5321,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	nextStyle="__normal"
 	>
 </SFM>
-	<!-- Note: The __normal marker name must be preceeded with two underscore
+	<!-- Note: The __normal marker name must be preceded with two underscore
 	characters. This forces the "__normal" style to appear first in the stylesheet 
 	in RTF headers. -->
 <SFM marker="_src_lang_interlinear"
@@ -4611,7 +5339,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _src_lang_interlinear marker above. These attributes
 	are independent of those you set for the Adapt It screen in Edit Preferences.
-	The _src_lang_interlinear marker name must be preceeded with one underscore
+	The _src_lang_interlinear marker name must be preceded with one underscore
 	character. This forces the "Src Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_tgt_lang_interlinear"
@@ -4629,7 +5357,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _tgt_lang_interlinear marker above. These attributes
 	are independent of those you set for the Adapt It screen in Edit Preferences.
-	The _tgt_lang_interlinear marker name must be preceeded with one underscore
+	The _tgt_lang_interlinear marker name must be preceded with one underscore
 	character. This forces the "Tgt Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_gls_lang_interlinear"
@@ -4647,7 +5375,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _gls_lang_interlinear marker above. These attributes
 	are independent of those you set for the Adapt It screen in Edit Preferences.
-	The _gls_lang_interlinear marker name must be preceeded with one underscore
+	The _gls_lang_interlinear marker name must be preceded with one underscore
 	character. This forces the "Gls Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_nav_lang_interlinear"
@@ -4665,7 +5393,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _nav_lang_interlinear marker above. These attributes
 	are independent of those you set for the Adapt It screen in Edit Preferences.
-	The _nav_lang_interlinear marker name must be preceeded with one underscore
+	The _nav_lang_interlinear marker name must be preceded with one underscore
 	character. This forces the "Nav Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_hdr_ftr_interlinear"
@@ -4682,7 +5410,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _hdr_ftr_interlinear marker above. These attributes
 	are independent of those you set for the Adapt It screen in Edit Preferences.
-	The _hdr_ftr_interlinear marker name must be preceeded with one underscore
+	The _hdr_ftr_interlinear marker name must be preceded with one underscore
 	character. This forces the "Nav Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_small_para_break"
@@ -4699,7 +5427,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	<!-- Note: The _small_para_break can be used to separate boxed paragraphs and
 	tables from each other. Version 3.0.0 does not use the _small_para_break to
 	separate \bt and \free boxed paragraphs.
-	The _small_para_break marker name must be preceeded with one underscore 
+	The _small_para_break marker name must be preceded with one underscore 
 	character. This forces the "Small Paragraph Break" style to appear in 
 	sorted order directly after the "__normal" style, and before the other 
 	non-base styles. -->
@@ -4714,7 +5442,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_vernacular_base" nextStyle="_body_text"
 	>
 </SFM>
-	<!-- Note: The _body_text marker name must be preceeded with one underscore
+	<!-- Note: The _body_text marker name must be preceded with one underscore
 	character. This forces the "Body text" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_heading_base"
@@ -4731,7 +5459,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	keepTogether="1" keepWithNext="1"
 	>
 </SFM>
-	<!-- Note: The _heading_base marker name must be preceeded with one underscore
+	<!-- Note: The _heading_base marker name must be preceded with one underscore
 	character. This forces the "Heading base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_intro_base"
@@ -4747,7 +5475,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_vernacular_base" nextStyle="_intro_base"
 	>
 </SFM>
-	<!-- Note: The _intro_base marker name must be preceeded with one underscore
+	<!-- Note: The _intro_base marker name must be preceded with one underscore
 	character. This forces the "Intro base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_list_base"
@@ -4761,7 +5489,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_vernacular_base" nextStyle="_list_base"
 	>
 </SFM>
-	<!-- Note: The _list_base marker name must be preceeded with one underscore
+	<!-- Note: The _list_base marker name must be preceded with one underscore
 	character. This forces the "List base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_notes_base"
@@ -4776,7 +5504,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_vernacular_base" nextStyle="_notes_base"
 	>
 </SFM>
-	<!-- Note: The _notes_base marker name must be preceeded with one underscore
+	<!-- Note: The _notes_base marker name must be preceded with one underscore
 	character. This forces the "Notes base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_peripherals_base"
@@ -4791,7 +5519,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_vernacular_base" nextStyle="_peripherals_base"
 	>
 </SFM>
-	<!-- Note: The _peripherals_base marker name must be preceeded with one underscore
+	<!-- Note: The _peripherals_base marker name must be preceded with one underscore
 	character. This forces the "Peripherals base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_vernacular_base"
@@ -4805,7 +5533,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="__normal" nextStyle="_vernacular_base"
 	>
 </SFM>
-	<!-- Note: The _vernacular_base marker name must be preceeded with one underscore
+	<!-- Note: The _vernacular_base marker name must be preceded with one underscore
 	character. This forces the "Vernacular base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
 <SFM marker="_annotation_ref"
@@ -4820,7 +5548,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Note: The _annotation_ref character style is used to format
 	references used in annotations/comments that appear in balloon callouts.
-	The _annotation_ref marker name must be preceeded with one 
+	The _annotation_ref marker name must be preceded with one 
 	underscore character. This forces the "_Annotation Reference" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
@@ -4837,7 +5565,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Note: The _annotation_text style is used as the paragraph style for
 	references used in annotations/comments that appear in balloon callouts.
-	The _annotation_text marker name must be preceeded with one 
+	The _annotation_text marker name must be preceded with one 
 	underscore character. This forces the "_Annotation Text" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
@@ -4855,7 +5583,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	are ignored for RTF purposes. It always takes the font characteristics
 	of the underlying paragraph font. It is included in this list only for
 	internal stylesheet construction purposes.
-	The _dft_para_font marker name must be preceeded with one 
+	The _dft_para_font marker name must be preceded with one 
 	underscore character. This forces the "Default Paragraph Font" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
@@ -4874,7 +5602,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	(usually superscripted) that indicates that there is a footnote at that 
 	location. The caller is also repeated at the base of the page, followed 
 	by the actual text of the footnote. The _footnote_caller marker name must 
-	be preceeded with one underscore character. This forces the "Footnote 
+	be preceded with one underscore character. This forces the "Footnote 
 	Caller" style to appear in sorted order directly after the __normal style 
 	and before the other non-base styles. -->
 <SFM marker="_normal_table"
@@ -4888,7 +5616,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	nextStyle="_normal_table"
 	>
 </SFM>
-	<!-- Note: The _normal_table marker name must be preceeded with one 
+	<!-- Note: The _normal_table marker name must be preceded with one 
 	underscore character. This forces the "Normal Table" style to
 	appear in sorted order directly after the __normal style and before the
 	other non-base styles. -->
@@ -4903,7 +5631,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	basedOn="_normal_table" nextStyle="_table_grid"
 	>
 </SFM>
-	<!-- Note: The _table_grid marker name must be preceeded with one 
+	<!-- Note: The _table_grid marker name must be preceded with one 
 	underscore character. This forces the "Table Grid" style to
 	appear in sorted order directly after the __normal style and before the
 	other non-base styles. -->

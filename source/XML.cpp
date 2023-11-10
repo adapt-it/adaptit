@@ -229,6 +229,7 @@ const char sfm[] = "SFM";
 const char markerStr[] = "marker";
 const char endmarkerStr[] = "endMarker";
 const char descriptionStr[] = "description";
+const char occursUnderStr[] = "occursUnder"; // whm 9Nov2023 added
 const char usfmStr[] = "usfm";
 const char pngStr[] = "png";
 const char filterStr[] = "filter";
@@ -1495,6 +1496,8 @@ e:			bContainsAttr = TRUE;
 			bHaltedAtSpace = FALSE; // turn it off once an attribute
 									// has been encountered
 			
+			SkipWhiteSpace(pPos, pEnd); // whm 9Nov2023 added
+
 			// allow the app to do something with the attribute name
 			// and its string value, using a callback
 			bCallbackSucceeded = (*pAtAttr)(tagname,attrName,attrValue,pStack); // BEW 4Jun10, added pStack param
@@ -2612,6 +2615,7 @@ bool AtSFMTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUsfmAnalysis->marker = _T("");
 		gpUsfmAnalysis->endMarker = _T("");
 		gpUsfmAnalysis->description = _T("");
+		gpUsfmAnalysis->occursUnder = _T(""); // whm 9Nov2023 added
 		gpUsfmAnalysis->usfm = FALSE;
 		gpUsfmAnalysis->png = FALSE;
 		gpUsfmAnalysis->filter = FALSE;
@@ -2700,6 +2704,14 @@ bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			gpUsfmAnalysis->description = pValueW;
 #else
 			gpUsfmAnalysis->description = pValue;
+#endif
+		}
+		else if (attrName == occursUnderStr) // whm 9Nov2023 added
+		{
+#ifdef _UNICODE
+			gpUsfmAnalysis->occursUnder = pValueW;
+#else
+			gpUsfmAnalysis->occursUnder = pValue;
 #endif
 		}
 		else if (attrName == usfmStr)
