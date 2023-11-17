@@ -170,6 +170,16 @@ enum AttrMkrType {
 	attrEndMkr
 };
 
+// whm 15Nov2023 added for support of usfm struct file and
+// the filtering/unfiltering of multiple adjacent usfm markers.
+enum UsfmStructFileProcess {
+	createNewFile,
+	recreateExistingFile,
+	openExistingFile,
+	createFromSPList
+};
+
+
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
 // the SrcPList class that is declared by the macro to declare 
@@ -362,11 +372,27 @@ public:
 	WordParseEndsAt	FindOutWhatIsAtPtr(wxChar* ptr, wxChar* pEnd, bool bTokenizingTargetText); // BEW added 12Oct16
 	bool			FindMatchingEndMarker(wxChar* ptr, wxChar* pEnd, int& offsetToMatchedEndmarker, int& endMarkerLen);
 	bool			FindClosingParenthesis(wxChar* pChar, wxChar* pEnd, int& nSpanLen, int nLimit, bool bAlreadyGotOpeningParen);
-	CAdapt_ItApp* GetApp();
+	CAdapt_ItApp*	GetApp();
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
 											// the project configuration file to the project's directory
 	int				GetCurrentDocVersion();
+
+	// whm 10Nov2023 added the following to aid in insertion of marker-being-unfiltered into pList
+	// when a previous adjacent marker must occur under the current marker-being-unfiltered.
+	bool			ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Node* currPos, 
+					SPList::Node*& prevPos, wxString occursUnderStr);
+	wxArrayString	m_UsfmStructArr;
+	wxString		m_UsfmStructStringBuffer;
+	wxString		m_usfmStructFilePathAndName;
+	wxString		m_usfmStructDirName;
+	wxString		m_usfmStructDirPath;
+	wxString		m_usfmStructFilePath;
+	wxString		m_usfmStructFileName;
+	bool			SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess, wxString& 
+						pInputBuffer, SPList* pList = NULL);
+	void			GetFilterableMarkersFromString(wxString tempMkrs, wxArrayString& filterableMkrsArray);
+	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
 
 	// **** functions involved in removing the need for having placement dialogs, DOCUMENT_VERSION 10 ********
 

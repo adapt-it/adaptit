@@ -31549,6 +31549,47 @@ bailout:	pAdaptList->Clear();
 		(int)gEditStep);
 #endif
 
+	// whm 15Nov2023 added the following to update the m_UsfmStructArr array and the .usfmstruct
+	// external file after the Edit Source Text operation has made its adjustments to the Doc's
+	// main source phrase list pSrcPhrases.
+	if (bMarkerSetsAreDifferent)
+	{
+		bool bSetupOK;
+		wxString inputBuffer;
+		inputBuffer.Empty();
+		// whm 15Nov2023 added. Here is where we should create the original .usfmstruct file
+		// for a non-collab document that is being created from *pApp->m_pBuffer input text.
+		// Note: This SetupUsfmStructArrayAndFile() with its createFromSPList internally calls
+		// the RebuildSourceText() function which first uses the pSrcPhrase list to generate
+		// the whole source text, then continues to setup the Doc's parameters and populates the
+		// Doc's m_UsfmStructArr array, and recreates the .usfmstruct external file.
+		// After the SetupUsfmStructArrayAndFile() call below we call the 
+		// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function to update the filter
+		// status of the Doc's array and external file.
+		bSetupOK = pDoc->SetupUsfmStructArrayAndFile(createFromSPList, inputBuffer, pSrcPhrases);
+		if (!bSetupOK)
+		{
+			// Not likely to happen so an English message is OK.
+			wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			pApp->LogUserAction(msg);
+		}
+		// whm 13Nov2023 added the following function call to update the filter status fields in the 
+		// .usfmstruct file that was created for the newly created document from the input source text
+		// file before the TokenizeText() call above.
+		// The following function uses the gCurrentFilterMarkers string to add or update the last colon
+		// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in
+		// gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in gCurrentFilterMarkers.
+		// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+		// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+		// AFTER the TokenizeText[String]() call is made here below.
+		// *****************************
+		// whm TODO: Verify that the gCurrentFilteredMarkers string is up to date before the
+		// call below.
+		// *****************************
+		pDoc->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(pDoc->m_usfmStructFilePathAndName);
+	}
+
 	// delay cancel cleanup to here, as the restoration of the view needed
 	// to use the pRec values which are to be initialized here
 	if (bUserCancelled)
