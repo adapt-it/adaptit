@@ -17780,12 +17780,132 @@ int CAdapt_ItDoc::ScanToWhiteSpace(wxChar* pChar, wxChar* pEnd)
 	return charCount;
 }
 
+//BEW 16Nov23 need a parser for things like:  12-nha  28-ŋura  26-dja etc. ParseAWord could do it, but that
+// is much further below and ParseDate() or ParseChVerseUnchanged() would unhelpfully get called before control
+// can get that far. So need something which starts off like ParseDate(), and after the first number there must
+// be a hyphen, and after that alphabetic chars. We don't have a reliable test for alphabetics when exotic languages
+// are to be supported, so we could just require that after the hyphen every character until whitespace is 
+// (a) not punctuation, (b) not a digit. Failure of those tests, return emptyString, (and ParseDate() can have a go)
+// else return the whole as wxString non-empty (and caller treats that as signal to skip call of ParseDate() ).
+// Declarlation is in .h public access, about line 280
+wxString CAdapt_ItDoc::ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
+{
+	wxChar* ptr = pChar;
+	wxString strResult = wxEmptyString;
+	bool bIsDigit = IsAnsiDigit(*pChar);
+	if (!bIsDigit)
+	{
+		return strResult; // empty
+	}
+	wxString hyphen = _T("-");
+	int nSpanLen = 0; // init
+	int offset = wxNOT_FOUND; // init
+	wxString strBefore = wxEmptyString;
+	wxString strAfter = wxEmptyString;
+	// Starts with a digit
+	nSpanLen = ScanToWhiteSpace(ptr, pEnd);
+	if (nSpanLen > 0)
+	{
+		strResult = wxString(ptr, nSpanLen);
+		offset = strResult.Find(hyphen);
+		if (offset == wxNOT_FOUND)
+		{
+			// no internal hyphen, so return empty string
+			strResult.Empty();
+			return strResult;
+		}
+		// We know there is at least one or more initial digits, and there is
+		// also a hyphen. But the digits may have a non-digit within, and the
+		// post-hyphen content may not be purely alphabetic, so separate into
+		// strBefore (check all are digits), and strAfter (check all are not puncts
+		// and not digits) in two loops
+		strBefore = strResult.Left(offset); //wxString(ptr, offset);
+		offset++; // point at what follows the hyphen
+		strAfter = strResult.Mid(offset);
+		// To be valid, strAfter must contain at least one character. If not, return empty str
+		if (strAfter.IsEmpty())
+		{
+			strResult.Empty();
+			return strResult;
+		}
+		// Now test that contents of strBefore are all digits, and of strAfter neither digits
+		// nor alphabetics.
+		bool bIsAnsiDigit = FALSE; // init
+		wxChar* pEnd;
+		int beforeLen = (int)strBefore.Length();
+		const wxChar* pBefore = strBefore.GetData(); // pBefore is constant, the loop changes nothing
+		pEnd = (wxChar*)pBefore + beforeLen;
+		wxChar* pBufStart = (wxChar*)pBefore;
+		wxChar* pAux = pBufStart; // init
+		while (pAux < pEnd)
+		{
+			bIsAnsiDigit = IsAnsiDigit(*pAux);
+			if (!bIsAnsiDigit)
+			{
+				// Initial digits string has a non-digit, so function fails to satisfy the structure constraint
+				strResult.Empty();
+				return strResult;
+			}
+			// ptr pointed at a digit, so advance ptr to next character
+			pAux++;
+		}
+		// If control did not return within the above loop, then all characters preceding the hyphen are digits
+		// Now do similarly for the strAfter: in this case we want no puncts, and no digits in the post-hyphen string
+		bIsAnsiDigit = FALSE;
+		int afterLen = (int)strAfter.Length();
+		const wxChar* pAfter = strAfter.GetData();
+		pEnd = (wxChar*)pAfter + afterLen;
+		pBufStart = (wxChar*)pAfter;
+		pAux = pBufStart; // init
+		while (pAux < pEnd)
+		{
+			bIsAnsiDigit = IsAnsiDigit(*pAux);
+			if (bIsAnsiDigit)
+			{
+				// post-hyphen string has a digit, so function fails to satisfy the structure constraint
+				strResult.Empty();
+				return strResult;
+			}
+			// Now test that pAux is not punctuation character
+			offset = -1; // init
+			offset = spacelessPuncts.Find(*pAux);
+			if (offset >= 0)
+			{
+				// The suffix string contains a punctuation character, so function fails
+				// to satisfy the structure constrint
+				strResult.Empty();
+				return strResult;
+			}
+			// ptr pointed at a digit, so advance ptr to next character
+			pAux++;
+		}
+		// If control gets to here, all's well: strResult is one or more digits, then a hyphen,
+		// and then a suffix string up to the first instance of whitespace, and the suffix
+		// string has no digits nor any punctuation. So it's a kosher parsing result.
+	}
+	return strResult;
+	/*  loop processing - clone & tweak from this code from Bill.... 
+		// wx version note: Since we require a read-only buffer we use GetData which just
+		// returns a const wxChar* to the data in the string theRest.
+		const wxChar* ptr = theRest.GetData();
+		wxChar* pEnd;
+		pEnd = (wxChar*)ptr + len2 - metadataLength; 
+		wxChar* pBufStart = (wxChar*)ptr;
+	*/
+}
+
 // BEW added 16Jun23 for parsing data like 02/26/01 or 02/26/2001, or 2010/05/24, or 12/02
 // If parsed successfully, returns the length of the date string. Any error or inconsistency,
 // return -1. The date must not include an internal whitespace, return -1 if it does. We
 // parse for at least one separator. If there is a second, it mustbe the same - eg, / and / , 
 // : and : , or - and - (hyphens); and the string must start and end with a digit. First character,
 // a digit, must be what pChar points at. It's okay if what follows, on return, is puncts.
+// Bummer. In Gupapuyngu Mark, there is one sequence which is not yet parsed right:  "10:4-ŋuru"
+// which means "from 10:4" -- the 10:4 is a chapter:verse, and ParseNumberHyphenSuffix() will have
+// rejected it, returning empty string. So ParseDate gets to try next. The suffix is present, after
+// a hyphen, but what precedes the hyphen is a substring which contains punctuation (could be : or .)
+// and there's no '/' (which by itself is an insufficient test, but is a good test if : or . precede
+// a present hyphen. So I need to refactor to reject a string like "10:4-ŋuru"
 int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts)
 {
 	wxChar* ptr = pChar; wxUnusedVar(ptr); // avoid warning variable initialized but not referenced
@@ -17813,9 +17933,40 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 			//BEW 22Jun23 added code for shortening span if one or more puncts follow.
 			int count = 0; // count final puncts that get removed
 			wxString revDate = MakeReverse(strDate);
+
 			// loop from start, chucking away every wxChar which is punctuation
 			//bool bIsPunct = FALSE;
 			aChar = revDate.GetChar(0);
+
+			// BEW 17Nov23 add code to reject data like: "10:4-ŋuru", or same with . instead of :
+			// First test is for offset to : or .
+			int offset1 = -1;
+			int offset2 = -1;
+			wxChar chsep1 = _T(':');
+			wxChar chsep2 = _T('.');
+			offset1 = strDate.Find(chsep1);
+			offset2 = strDate.Find(chsep2);
+			//bool bHasASeparator = FALSE; // init
+			if (offset1 >= 0 || offset2 >= 0)
+			{
+				return 0;
+				// This bool being true is probably sufficient
+				//bHasASeparator = TRUE;
+			}
+			/* for now, comment out
+			// What might matter is where the : or . punct separator is in relation to valid date
+			// separators ( / or - ), if prior to '/' or especially to '-', then reject the
+			// strDate as a valid date
+			int offset3 = -1;
+			int offset4 = -1;
+			wxChar chsep3 = _T('-');
+			wxChar chsep4 = _T('/');
+			offset3 = strDate.Find(chsep3);
+			offset4 = strDate.Find(chsep4);
+			// I've not made any comparison tests of the 4 offsets here, as I think bHasASeparator
+			// is probably sufficient for rejection
+			*/
+
 			int myoffset = wxNOT_FOUND;
 			myoffset = spacelessPuncts.Find(aChar);
 			// If myoffset returns >= zero, aChar is a final punctuation to be chucked away
@@ -31691,6 +31842,10 @@ bool CAdapt_ItDoc::IsDetachedWJtype_endMkr_Ahead(wxChar* pChar, wxChar* pEnd, in
 // So I'll have to include some code at the end of ParseChVerseUnchanged to detect when a punct
 // followed by more digits occurs, and when detected, parse the substring until end of the extra
 // digits, and then finish off any subsequent puncts finish at a whitespace. Here goes...
+// BEW 17Nov23, Gupapuyngu has a sequence:  10:4-ŋuru  which, if I don't add code to parse it
+// successfully (the "-ŋuru" bit is the problem), the function would return "10:4-" causing the
+// "ŋuru" to be parsed as test on the next pSrcPhrase. ParseAWord() can't handle the 10:4 due to
+// the presence of punctuation (the ':'), so I've gotta get a parse done here
 wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPuncts, wxChar* pEnd)
 {
 	wxChar* ptr = pChar;
@@ -31719,7 +31874,7 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 	bool   bIsRangeChar = FALSE; // initialise
 	bool   bIsABorC = FALSE; // initialise
 	bool   bExitEarly = FALSE; // initialise
-	wxChar chClosingParen = _T(')'); // to extent functionality, for dealing with, e.g. 5,000) -- dont incude ')' in the parse
+	wxChar chClosingParen = _T(')'); // to extent functionality, for dealing with, e.g. 5,000) -- dont include ')' in the parse
 	while ((ptr < pEnd) && (*ptr != colon) && (*ptr != period) && (*ptr != semicolon) && (*ptr != ahyphen)  && (*ptr != horiz_bar) )
 	{
 		bIsDigit = IsAnsiDigit(*ptr);
@@ -31983,6 +32138,49 @@ wxString CAdapt_ItDoc::ParseChVerseUnchanged(wxChar* pChar, wxString spacelessPu
 			if (offset == 0)
 			{
 				chARange = wxString(ahyphen);
+				// BEW 17Nov23 this is where we must support data such as "10:4-ŋuru" in Gupapuyngu
+				// or similar languages, where (typically in a footnote) the user may add a hyphen
+				// followed by a suffix, ŋuru for instance, means "from" or "after". At such data,
+				// the suffix will terminate at a space. So we can update here to get an auxiliary
+				// pointer over the hyphen, scan to space to generate the post-hyphen substring,
+				// i.e. 'ŋuru', and test that the first and last characters of the string
+				// are not digits. If so, build chvsStr with -ŋuru appended and return it to caller
+				wxChar* pAux = ptr; // protect ptr location
+				pAux++;
+				int nCount = 0;
+				while (!IsWhiteSpace(pAux))
+				{
+					pAux++;
+					nCount++;
+				}
+				if (nCount > 0)
+				{
+					// There is a potential suffix following the hyphen, so form
+					// a wxString from ptr (which still points at the hyphen) and
+					// the value of nCount
+					wxString suffix = wxString((ptr + 1), nCount);
+					int suffixLen = (int)suffix.Length();
+					//wxString reversed_suffix = MakeReverse(suffix); // done 'in place'
+					// Now, test that first char of suffix is not a digit, and last char is not a digit
+					bool bFirstIsDigit = FALSE; // init
+					bool bLastIsDigit = FALSE; // init
+					bFirstIsDigit = IsAnsiDigit(*(ptr + 1));
+					bLastIsDigit = IsAnsiDigit(*((ptr + 1) + suffixLen - 1));
+					// Now if both bools are FALSE, we likely have a non-digits substring after the hyphen,
+					// if so, generate the new value for chvsStr and return it to the caller, after
+					// advancing ptr to point at the space following the suffix string
+					if (!bFirstIsDigit && !bLastIsDigit)
+					{
+						ptr = (ptr + 1 + suffixLen);
+						chvsStr += ahyphen + suffix;
+						return chvsStr;
+					}
+				} // end of TRUE block for test: if (nCount > 0)
+				else
+				{
+					// There is no suffix following the hyphen, so let legacy code continue its parsing
+					;
+				}
 			}
 			else
 			{
@@ -37522,45 +37720,63 @@ wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan 
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d, Before ParseDate() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 8)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
 						}
 #endif
-						// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
-						// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
-						int dateLen;
-						dateLen = ParseDate(ptr, pEnd, spacelessPuncts); // if error, returns -1, okay if dateLen is +ve
-						bool bValidDate;
-						bValidDate = dateLen > 0 ? TRUE : FALSE;
-						if (bValidDate)
+						// BEW 17Nov23 added call of ParseNumberHyphenSuffix() to handle data like "24-tja" or "14-nha" before
+						// ParseDate() gets a chance to misparse such info. The latter would wrongly produce "24" then 
+						// "-tja" on a following pSrcPhrase. If structure constraint is not satisfied, this function returns
+						// an empty string - and if so, let ParseDate() have a go instead.
+						wxString strNumHyphSuffix;
+						strNumHyphSuffix = ParseNumberHyphenSuffix(ptr, pEnd, spacelessPuncts);
+						if (!strNumHyphSuffix.IsEmpty())
 						{
-							strWord = wxString(ptr, dateLen);
-						}
+							strWord = strNumHyphSuffix;
+						} // end of TRUE block for test: if (!strNumHyphSuffix.IsEmpty())
 						else
 						{
-							// Call this instead
-#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+
+							// BEW 16Jun23 added facility to scan a date such as 15/12/2023 and variants, if false returned, the
+							// do ParseChVerseUnchanged(). Both the latter, and ParseDate(), start with *ptr at an ansi digit
+							int dateLen;
+							dateLen = ParseDate(ptr, pEnd, spacelessPuncts); // if error, returns -1, okay if dateLen is +ve
+							bool bValidDate;
+							bValidDate = dateLen > 0 ? TRUE : FALSE;
+							if (bValidDate)
 							{
-								wxString pointsAt = wxString(ptr, 16);
-								wxLogDebug(_T("ParseWord() line %d, Before ParseChVerseUnchanged() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
-									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 8)
-								{
-									int halt_here = 1; wxUnusedVar(halt_here);
-								}
+								strWord = wxString(ptr, dateLen);
 							}
+							else
+							{
+								// Call this instead
+#if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
+								{
+									wxString pointsAt = wxString(ptr, 16);
+									wxLogDebug(_T("ParseWord() line %d, Before ParseChVerseUnchanged() test: pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+										__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
+									if (pSrcPhrase->m_nSequNumber >= 1)
+									{
+										int halt_here = 1; wxUnusedVar(halt_here);
+									}
+								}
 #endif
 
-							strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
-						}
+								strWord = ParseChVerseUnchanged(ptr, spacelessPuncts, pEnd);
+							}
+
+						} // end of else block for test: if (!strNumHyphSuffix.IsEmpty())
+
+						// ParseNumberHyphenSuffix(), if it has returned a valid result string,
+						// must set strWord to the result string before control gets to here 
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d, After ParseChVerseUnchanged(): m_curChapter= [%s], pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pApp->m_curChapter.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 8)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -37873,7 +38089,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 510)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -37888,7 +38104,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 							wxString pointsAt = wxString(ptr, 16);
 							wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 								__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 5)
+							if (pSrcPhrase->m_nSequNumber >= 1)
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -38062,7 +38278,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -38098,7 +38314,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 					wxString pointsAt = wxString(ptr, 16);
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 16)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						int halt_here = 1; wxUnusedVar(halt_here);
 					}
@@ -38151,7 +38367,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len,
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						// m_bChapter set TRUE at TokText 19,087; m_bVerse set TRUE at 19475; 
 						// m_bFirtOfType at 19532 & 19562 & 19586; \c is deliberately not included in the
@@ -38178,7 +38394,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 						wxString pointsAt = wxString(ptr, 16);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len, pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 5)
+						if (pSrcPhrase->m_nSequNumber >= 1)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -38245,7 +38461,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 					wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , m_srcPhrase= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_srcPhrase.c_str(), len,
 						pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-					if (pSrcPhrase->m_nSequNumber >= 5)
+					if (pSrcPhrase->m_nSequNumber >= 1)
 					{
 						// m_bChapter set TRUE at TokText 19,087; m_bVerse set TRUE at 19475; 
 						// m_bFirtOfType at 19532 & 19562 & 19586; \c is deliberately not included in the
