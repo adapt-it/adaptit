@@ -287,6 +287,7 @@ public:
 										// help our ParseWord() parser to know when a post-word punct belongs in m_precPunct on next pSrcPhrase
 	bool			WordBeginsHere(wxChar chFirst, wxString spacelessPuncts);
 	bool			bKeepPtrFromAdvancing; // BEW 8Sep23 moved here from within TokenizeText() so that ParseWord() can access it
+	wxString		ParseNumberHyphenSuffix(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW added 16Nov23
 
 protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
