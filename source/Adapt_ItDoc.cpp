@@ -5479,7 +5479,7 @@ bool CAdapt_ItDoc::ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Nod
 	filterableMkrsArr.Clear(); // initialize
 	if (currentPos == NULL)
 	{
-		prevPos = nullptr;
+		prevPos = NULL;
 		return FALSE;
 	}
 	// The incoming parameter Node* pointer currPos is a pointer to a position in the pList.
@@ -5557,7 +5557,7 @@ bool CAdapt_ItDoc::ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Nod
 			bKeepSearching = FALSE;
 		}
 	}
-	prevPos = nullptr;
+	prevPos = NULL;
 	return FALSE;
 }
 
@@ -9432,7 +9432,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// occursUnderStr of markers. If there is a match, we can use the
 							// tempPos position as our location to insert the current pSubList into
 							// the main pList of soruce phrases.
-							SPList::Node* prevAdjacentPos = nullptr;
+							SPList::Node* prevAdjacentPos = NULL;
 							if (ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(saveNextPos, prevAdjacentPos, occursUnderStr))
 							{
 
