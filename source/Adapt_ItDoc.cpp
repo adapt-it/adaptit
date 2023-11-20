@@ -41940,11 +41940,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 #if defined (_DEBUG) //&& !defined(NOLOGS)
 		wxString pointsAt = wxString(ptr, 20);
-		wxLogDebug(_T("\n\nTokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s"),
+		wxLogDebug(_T("\nTokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 24)
+		if (pSrcPhrase->m_nSequNumber == 5)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -42074,7 +42074,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString mypointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 45)
+		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -42113,7 +42113,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 20);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
 			int halt_here = 1;
 		}
@@ -42276,7 +42276,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 45)
+		if (pSrcPhrase->m_nSequNumber >= 5)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -42572,7 +42572,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								ptrAt = wxString(ptr, 20);
 								wxLogDebug(_T("TokText() EMPTY MKRS LOOP, line %d, sn= %d, Appending %s, m_markers= [%s], ptr-> [%s]"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str(),pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 4)
+								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -42593,7 +42593,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								ptrAt = wxString(ptr, 20);
 								wxLogDebug(_T("TokText() LEAVING EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptr-> [%s]"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 4)
+								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -42790,7 +42790,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								ptrAt = wxString(ptr, 20);
 								wxLogDebug(_T("TokText() LEAVING EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptrAt= [%s]"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 4)
+								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -42894,7 +42894,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								ptrAt = wxString(ptr, 20);
 								wxLogDebug(_T("TokText() LEAVING EMPTY MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptrAt= [%s]"),
 									__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-								if (pSrcPhrase->m_nSequNumber >= 4)
+								if (pSrcPhrase->m_nSequNumber >= 5)
 								{
 									int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 								}
@@ -43035,7 +43035,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						ptrAt = wxString(ptr, 20);
 						wxLogDebug(_T("TokText()  BETWEEN BLOCKS in MKRS LOOP, line %d, sn= %d, m_markers= [%s], ptrAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_markers.c_str(), ptrAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 15)
+						if (pSrcPhrase->m_nSequNumber >= 5)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 						}
@@ -44504,9 +44504,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 #endif
 						// BEW 5Jun23, if the above block was entered at ptr pointing at a begin mkr, it will
-						// have parsed over it and saved in m_markers, and dealt with any puncts for m_precPunct.
+						// have parsed over it and saved in m_markers**, and dealt with any puncts for m_precPunct.
 						// ptr may now be pointing at another beginMkr, such as a character format beginMkr, so
 						// if a marker follows, LookupSFM has to be done here to get its identity and width etc
+						// BEW 20Nov23, ** in comment above: Unilateral saving of a beginMkr in m_markers must only
+						// apply to non-inline beginMks, and non-attributeMkrs. If data like: \k Jesus Krais\k*,
+						// occurs, where \k belongs to the gpApp->m_charFormatMkrs inlinemarkers set, the \k being
+						// put into m_markers is a storage error. Fix this, shortly after LookupSFM is called a
+						// few lines further down.
 						if (*ptr == gSFescapechar)
 						{
 							pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
@@ -44534,6 +44539,115 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxChar* pAux = ptr;
 								if (!IsEndMarker(ptr, pEnd))
 								{
+									// BEW 20Nov23, add a block here, for data like ptr pointing at: \k Jesus Krais\k*,
+									// BeginMkrs from the m_charFormatMkrs set, or m_inlineNonbindingMarkers set must be
+									// stored in the special locations on pSrcPhrase specific to them; m_inlineBindingMarkers
+									// and m_inlineNonbindingMarkers, repectively
+									int offset = wxNOT_FOUND;
+									offset = pApp->m_charFormatMkrs.Find(augmentedWholeMkr);
+									if (offset >= 0 && pSrcPhrase->m_markers.IsEmpty())
+									{
+										// It's one of the several markers like \k \it etc, textType 
+										// 'none' - binding ones
+										bIsInlineBindingMkr = TRUE;
+										bIsInlineNonbindingMkr = FALSE;
+										bIsCharAttrMkr = FALSE;
+										// We have enough info to store it, do so
+										if (bIsInlineBindingMkr && !bIsCharAttrMkr)
+										{
+											int nAugMkrLen = wholeMkrLen + 1; // +1 for the following space
+											wxString strInlineBindingBeginMkrs;
+											strInlineBindingBeginMkrs = pSrcPhrase->GetInlineBindingMarkers();
+											strInlineBindingBeginMkrs += augmentedWholeMkr;
+											pSrcPhrase->SetInlineBindingMarkers(strInlineBindingBeginMkrs);
+											// Update ptr
+											ptr += (size_t)nAugMkrLen;
+										}
+									}
+									/* 
+										// BEW 20Nov23 commented out this block, because it's relevant only if an
+										// inlineNonbindingBeginMkr precedes a m_inlineBindingMkr like \k --
+										// and what makes this reasonable is that the above test:
+										// if (offset >= 0 && pSrcPhrase->m_markers.IsEmpty())
+										// has a subtest for m_markers being empty - because it's unlikely that
+										// an inline binding beginMkr would be preceded by something like \wj
+										// when the m_markers member is empty. If this assumption is violated,
+										// then remove this commenting out
+									else
+									{
+										// It's not 'binding' type, check if it's 'non-binding' type
+										offset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
+										if (offset != wxNOT_FOUND)
+										{
+											// It's a nonbinding type
+											bIsInlineBindingMkr = FALSE;
+											bIsInlineNonbindingMkr = TRUE;
+											bIsCharAttrMkr = FALSE;
+
+											// BEW 6May23, we have to retest for inline binding beginMkr here.
+											// Why? Because the source text parse may have come to an
+											// inline nonbinding beginMkr (which very conceivably would precede
+											// a following inline binding beginMkr. I have such data, and it
+											// led to the inline binding beginMkr being placed by ParsePreWord()
+											// in the default location, m_markers, in which it definitely does NOT belong.
+											// ParsePreWord will handle the inline binding beginMkr correctly if we
+											// here determine that something like the \k of  \k .... \k* (keyword)
+											// is the next beginMkr and so bIsInlineBindingMkr will be set TRUE.
+											// (ParsePreWord() is not marker-order-sensitive, fortunately)
+											int inlineNBMrkLen = augmentedWholeMkr.Length(); // for, say, \wj<space> that's 4
+											wxChar* pAux = (ptr + inlineNBMrkLen); // pAux might now be pointing at a binding beginMkr
+											if (*pAux == gSFescapechar)
+											{
+												wxString myBeginMkr = GetWholeMarker(pAux);
+												// use bool CAdapt_ItDoc::IsEndMarker2(wxChar* pChar)
+												if (!myBeginMkr.IsEmpty())
+												{
+													bool bIsNotEndMkr = !IsEndMarker2(pAux);
+													if (bIsNotEndMkr)
+													{
+														// It's a beginMkr
+														wxString augBeginMkr = myBeginMkr + _T(' '); // for fast-access test
+														int offset3 = wxNOT_FOUND; wxUnusedVar(offset3); // avoid compiler warning variable initialized but not referenced
+														bool bIsMyInlineBindingMkr = gpApp->m_charFormatMkrs.Find(augBeginMkr);
+														if (bIsMyInlineBindingMkr)
+														{
+															// TRUE, it belongs to the marker set that has \k \it etc
+															bIsInlineBindingMkr = TRUE;
+														}
+														// If bIsInlineBindingMkr was not set TRUE here, then ParsePreWord() would
+														// probably "lose it", and it would get picked up as a member of m_markers,
+														// leading to m_srcSinglePattern not having it, when it should
+													}
+												}
+											}
+										}
+										// BEW 9Jan2023 I need to check the m_RedBeginMarkers set, that's where \rq is. m_RedEndMarkers has \rq*
+										// There are a heap of markers in these red sets, they are not necessarily inLine; but a not 'verse or 'poetry'
+										else
+										{
+											offset = pApp->m_RedBeginMarkers.Find(augmentedWholeMkr);
+											if (offset != wxNOT_FOUND)
+											{
+												// these markers are not for 'sacred' text, but for things like \rq etc, they store like \f would
+												bIsInlineBindingMkr = FALSE;
+												bIsInlineNonbindingMkr = FALSE;
+												// m_bInRedSet = TRUE; // set the doc member bool; not filterable BEW24Aug23 remove, unused
+												bIsCharAttrMkr = FALSE;
+											}
+											else
+											{
+												// It's not a character formatting mkr
+												// It's not a 'binding' type of mkr
+												// It's not a 'non-binding' type of mkr
+												// It's not one of the Red set
+												// So let the legacy code decide what to do
+												bIsInlineBindingMkr = FALSE;
+												bIsInlineNonbindingMkr = FALSE;
+												bIsCharAttrMkr = FALSE;
+											}
+										}
+									} // end of the else block for test: if (offset >= 0) - for char format mkrs
+									*/
 									// it's a beginMkr
 									pAux += wholeMkrLen; // point pAux past the beginMkr, space should follow
 									// Test: are the next two characters   <space>[
@@ -44925,7 +45039,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 												bIsCharAttrMkr = FALSE;
 											}
 										}
-									} // end of the else block for test: if (offset >= 0) - for char char format mkrs
+									} // end of the else block for test: if (offset >= 0) - for char format mkrs
 
 								} // end of else block for testing for one in m_inlineNonbindingMarkers
 							} // end of TRUE block for test: if (offset >= 0) - for charAttributeMkrs
