@@ -1176,7 +1176,7 @@ wxString dummyFinish = _T("< &Back"); // the wxstd.mo file doesn't seem to have
 /// AI_USFM.xml file on program startup.
 const wxString defaultSFM[] =
 {
-    // whm 23Dec2019 revised defaultSFM[] array again to reflect the extended usfm 3.0.0 additions and changes (now with 371 elements)
+    // whm 9Nov2023 revised defaultSFM[] array again to reflect the extended usfm 3.0.9 additions and changes (now with 371 elements)
     // which are defined in the Paratext usfm_sb.sty stylesheet. The extensions in usfm_sb.sty include study Bible marker extensions
     // that are not included in the standard usfm.sty that we've used in the past. All future revisions should be based on the
     // usfm_sb.sty file which includes all of the usfm.sty markers plus the bible study extensions added in this revision.

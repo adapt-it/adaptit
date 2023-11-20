@@ -1210,7 +1210,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// If there is a parse failure, it happened after the last m_srcPhrase in
 			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
 			// when "Make diagnostic logfile during document creation and opening" check box
-			// is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
+			// is ticked in the docPage or the GetSourceTextFromEditor dialog.
 			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
 			{
 				// Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -1288,17 +1288,110 @@ bool CAdapt_ItDoc::OnNewDocument()
 			gpApp->gCurrentFilterMarkers = gpApp->gProjectFilterMarkersForConfig;
 
 			//#if defined(FWD_SLASH_DELIM)
-						// BEW 23Apr15, if supporting / as a whitespace word-breaking character, preprocess
-						// the input text to have no ZWSP in it, and to insert / at the correct places where
-						// there is punctuation (since the users do not type it in such locations, so we do
-						// it using CC table processing)
+			// BEW 23Apr15, if supporting / as a whitespace word-breaking character, preprocess
+			// the input text to have no ZWSP in it, and to insert / at the correct places where
+			// there is punctuation (since the users do not type it in such locations, so we do
+			// it using CC table processing)
 			*pApp->m_pBuffer = ZWSPtoFwdSlash(*pApp->m_pBuffer);
 			*pApp->m_pBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, *pApp->m_pBuffer);
 			//#endif
-						// parse the input file
-						// whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
-						// that the warning message below would ever be show to the user since the wxMessageBox that
-						// displays the message below TokenizeText().
+			
+			// whm 15Nov2023 added. Here is where we should create the original .usfmstruct file
+			// for a non-collab document that is being created from *pApp->m_pBuffer input text.
+			// Note: This SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+			// call below. Then, there should be a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+			// AFTER the TokenizeText[String]() call below.
+			bool bSetupOK;
+			bSetupOK = SetupUsfmStructArrayAndFile(createNewFile, *pApp->m_pBuffer);
+			if (!bSetupOK)
+			{
+				// Not likely to happen so an English message is OK.
+				wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+				wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+				pApp->LogUserAction(msg);
+			}
+
+			/*
+			// whm 13Nov2023 added the following code to create a wxArrayString UsfmStructArr from 
+			// the source input *pApp->m_pBuffer text, then save that array of strings to a file 
+			// named <filename>.usfmstruct that is saved to a hidden sub-directory at the following 
+			// path:
+			// /Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+			// where <filename> is the name of the document file being created via gpApp->m_curOutputPath
+			// which already has an .xml extension. We add the additional extension .usfmstruct to 
+			// the usfm struct file we're creating.
+			// This usfm struct file will get updated with filter status fields in the 
+			// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function call made after TokenizeText() is
+			// called later below.
+			m_usfmStructDirName = _T(".usfmstruct");
+			wxFileName structFn(gpApp->m_curOutputPath);
+			m_usfmStructFilePath = structFn.GetPath();
+			m_usfmStructFileName = structFn.GetFullName(); // gets full name including extension, but excluding directories
+			m_usfmStructDirPath = m_usfmStructFilePath + gpApp->PathSeparator + m_usfmStructDirName;
+			if (!::wxDirExists(m_usfmStructDirPath))
+			{
+				// The hidden dir .usfmstruct doesn't exist yet so create it.
+				bool bOK;
+				bOK = ::wxMkdir(m_usfmStructDirPath);
+				if (!bOK)
+				{
+					// failure to make the directory not expected so English message to the user log is sufficient
+					wxString msg = _T("In OnNewDocument() - Failed to Create hidden directory at %s");
+					msg = msg.Format(msg, m_usfmStructDirPath.c_str());
+					gpApp->LogUserAction(msg);
+				}
+			}
+
+			m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
+			// The wxArrayString m_UsfmStructArr array is on the Doc class, and its contents persist while a doc is open.
+			m_UsfmStructArr = GetUsfmStructureAndExtent(*gpApp->m_pBuffer, TRUE);
+			// Get the wxArrayString's lines and save them in the <filename>.usfmstruct file at:
+			// .../Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+			m_UsfmStructStringBuffer.Empty();
+			size_t len = 0;
+			// scan our array and determine its required character length including EOL chars
+			int totCt = (int)m_UsfmStructArr.GetCount();
+			for (int i = 0; i < totCt; i++)
+			{
+				m_UsfmStructStringBuffer = m_UsfmStructStringBuffer + m_UsfmStructArr.Item(i) + _T("\r\n");
+				len += m_UsfmStructArr.Item(i).Length();
+				len += 2; // for the EOLs _T("\r\n") to be added
+			}
+
+			// We should ensure it doesn't exist because we want to start afresh for a new usfmstruct file.
+			if (::wxFileExists(m_usfmStructFilePathAndName))
+			{
+				bool bRemoved = FALSE;
+				bRemoved = ::wxRemoveFile(m_usfmStructFilePathAndName);
+				if (!bRemoved)
+				{
+					// Not likely to happen, so an English message will suffice.
+					wxString msg = _T("Unable to remove existing usfmstruct file at:\n%s");
+					msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+					gpApp->LogUserAction(msg);
+				}
+			}
+			
+			// Write the usfmstruct string to the .usfmstruct file
+			wxFile f;
+			if (!f.Open(m_usfmStructFilePathAndName, wxFile::write))
+			{
+				wxString msg = _T("Failed f.Open() for writing usfmstruct info to %s");
+				msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+				gpApp->LogUserAction(msg);
+			}
+			else
+			{
+				f.Write(m_UsfmStructStringBuffer, len);
+			}
+
+			f.Close();
+			*/
+
+			// parse the input file
+			// whm 6Apr2020 Note: If the parsing routine in TokenizeText() below crashes, is is NOT likely 
+			// that the warning message below would ever be show to the user since the wxMessageBox that
+			// displays the message below TokenizeText().
 			int nHowMany;
 			wxString msg = _("Aborting document creation. A significant parsing error occurred.\n\nThe most recent diagnostic log file named %s is in the __LOGS_EMAIL_REPORTS folder.\n\nThe last line in that diagnostic file shows the last source word/phrase processed before the error. Please send that diagnostic file to the developers.");
 			msg = msg.Format(msg, gpApp->m_docCreationFilePathAndName);
@@ -1459,6 +1552,17 @@ bool CAdapt_ItDoc::OnNewDocument()
 					return TRUE;
 				}
 			}
+
+			// whm 13Nov2023 added the following function call to update the filter status fields in the 
+			// .usfmstruct file that was created for the newly created document from the input source text
+			// file before the TokenizeText() call above.
+			// The following function uses the gCurrentFilterMarkers string to add or update the last colon
+			// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in
+			// gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in gCurrentFilterMarkers.
+			// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+			// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+			// AFTER the TokenizeText[String]() call is made here below.
+			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
 
 			// whm 13Apr2020 added line at end of document creation log to indicate we reached end of the document
 			// This essentially signals within the log file that the document creation was successful.
@@ -5160,6 +5264,515 @@ int CAdapt_ItDoc::GetCurrentDocVersion()
 	return m_docVersionCurrent;
 }
 
+// whm 10Nov2023 added the following function to aid in insertion of 
+// the marker-being-unfiltered into pList.
+// Why have the ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker() 
+// function?
+// Our filtering code now does a good job of filtering markers and
+// associated text - filtering any of the above 4 markers in any
+// order, including carrying forward filtered material to a previous 
+// location, and combining it with any already existing filtered 
+// material that might exist on the previous source phrase.
+// Filtering is relatively easy as we can readily determine where
+// the filtered material should go - prior to the source phrase that
+// precedes the marker being filtered. And, if the last word of the 
+// associated text of this marker is currently storing filtered 
+// material itself, and the marker itself gets filtered, its last
+// word's stored material can be easily combined with the currently-
+// being filtered marker, and both carried forward to be re-stored
+// on the first visible source phrase preceding the marker being 
+// filtered.
+// Unfiltering is more complex especially when unfiltering one of
+// several adjacent markers that had previously been filtered at a
+// given location. It is more complex because once adjacent markers
+// have been filtered we loose ordering information about the 
+// filtered markers and their ordering with respect to any adjacent
+// markers that are currently unfiltered and possibly visible before 
+// or after the current source phrase. We don't know from their
+// storage order within m_filteredInfo whether the marker being
+// unfiltered from there should be inserted before or after any
+// marker and its associated text that is already in an unfiltered 
+// state adjacent to the marker being filtered. 
+// 
+// This function was created to deal with the following situation:
+// Whevever multiple adjacent markers have previously been filtered,
+// knowledge of their original ordering in the text can be lost, and
+// that knowledge is needed to accurately determine the position 
+// where the marker-being-unfiltered should be inserted back into the
+// main text, especially when text that is adjacent to the marker-
+// being-unfiltered's storage location is itself part of a filterable
+// marker. Always unfiltering a marker and its associated text 
+// following the storage source phrase, can easily result in two 
+// adjacent markers ending up in an order that is reverse of their
+// original order.
+// For example, sapos 2 originally adjacent markers \s and \r were
+// filtered. Our current unfiltering routine unfilters markers
+// back to the main text immediately following their storage location.
+// If the user unfilters the \r marker, then unfilters the
+// \s marker they will end up being in the correct order in the main 
+// text \s followed by \r. However, if the user unfilters the \s 
+// marker, then unfilters the \r marker they will end up being 
+// restored to the main text in the wrong/reverse order \r followed
+// by \s. The situation only gets more complex when 3 or 4 adjacent
+// markers have all been filtered and are all unfiltered one-by-one
+// in different unfiltering orders. In the Nyindrou Scripture texts 
+// one sometimes finds 4 filterable markers adjacent to each other:
+// \ms, \mr, \s, and \r - each having its own associated text. When
+// these texts are first created the \mr and \r markers are parsed
+// as filtered, but a user can easily also filter \mr and \r so that
+// all 4 markers \ms, \mr, \s, and \r get filtered and stored together
+// on the same source phrase's m_filteredInfo member, that source 
+// phrase being the last word of text just before the original 
+// location of the first first of the 4 adjacent markers now in a
+// filtered state. The user can choose to unfilter all of the 4
+// already-filtered markers, and may unfilter all 4 of them in any 
+// one of 24 different ways! Here are those 24 ways to unfilter them:
+// \ms \mr \s \r, \ms \mr \r \s, \ms \s \mr \r, \ms \s \r \mr, \ms \r \mr \s, \ms \r \s \mr, 
+// \mr \ms \s \r, \mr \ms \r \s, \mr \s \ms \r, \mr \s \r \ms, \mr \r \ms \s, \mr \r \s \ms,
+// \s \ms \mr \r, \s \ms \r \mr, \s \mr \ms \r, \s \mr \r \ms, \s \r \ms \mr, \s \r \mr \ms,
+// \r \ms \mr \s, \r \ms \s \mr, \r \mr \ms \s, \r \mr \s \ms, \r \s \ms \mr, \r \s \mr \ms.
+// Within the above 24 different unfiltering sequences, only one
+// sequence, the first one: \ms \mr \s \r, is the correct sequence.
+// Unfiltering. The same possible sequences for filtering these
+// four markers area also possible, and the m_filteredInfo storage
+// member might also have the order of filtered marker strings 
+// within \~FILTER ...\~FILTER* markers stored in similarly 
+// different orders.
+// Our algorithm mmust be able to unfilter markers and their
+// associated words stored in any one of the above 23 incorrect
+// sequences, and decide where to insert the marker strings in 
+// the one correct order in the main text!
+// My assumption is that we can indeed devise a function that can
+// decide the correct position/node to insert the subList of source 
+// phrases representing each marker-being-unfiltered string, 
+// inserting it into the main pList of source phrases, and thereby
+// end up with the correct order of all adjacent markers as they 
+// are being unfiltered.
+// I think we can gain sufficient knowledge to unfilter adjacent 
+// filtered markers by examining the marker-being-unfiltered's 
+// occursUnder information and scanning to determine what markers 
+// may be adjacent - either following or preceding - the current 
+// marker being unfiltered. 
+// Depending on the occursUnder information available, it may be
+// necessary to unfilter the current marker:
+// a. immediately following the current marker being unfiltered (this
+//    is the usual case when there are no adjacent markers).
+// b. before an adjacent preceding marker and its associated text
+//    (this requires scanning preceding associated text words to
+//    locate the SP that contains the associated text marker and
+//    return the position of the SP BEFORE that marker).
+// c. after an adjacent following marker and its associated text.
+//    (this requires scanning the following SP, and if it contains
+//    the adjacent marker, continue scanning followin SPs until it
+//    locates the SP that is the last word of associated text and
+//    return the position of the SP AFTER that ending word's SP).
+// 
+// Let's say that all 4 markers \ms, \mr, \s, and \r were 
+// previously filtered, and are stored within in a source phrase 
+// with sequence number say 20.
+// And, at a later time the user decides to unfilter some or all
+// of the filtered material. There are a number of different ways
+// the user might proceed since the unfiltering might be done in
+// any of 23 possible orders, but the user decides to unfilter \s
+// first. 
+// The occursUnder string list of markers for the \s marker has:
+//    "c"
+// And the occursUnder string list of markers for the \r marker has:
+//    "c s s1 s2 s3 s4"
+// From these occursUnder lists we know the following about the 
+// relative ordering of the \r and \s markers:
+// While \s can occurs most anywhere under the "c" chapter marker,
+// The \r marker occurs UNDER any adjacent section heading including
+// \s.
+// OK, let's now look at the following unfiltering scenario:
+// The user decides first to unfilter the \s marker, and then unfilter
+// the \r marker, both of which are currently stored at the source 
+// phrase sequence number 20. The user first unfilters the \s marker
+// which is inserted along with its associated text AFTER its storage
+// location (sequence 20) starging at sequence numbers 21 and 
+// following. Then after that, the user decides to unfilter the
+// \r maker which is still stored at sequence number 20. The usual
+// location for inserting filtered information is AFTER the source 
+// phrase location where the filtered info is stored, which would
+// usually be starting at sequence 21, but we already unfiltered the
+// \s marker and its associated text starting at sequence number 21
+// and following. If the \r marker were to be unfiltered starting at
+// sequence number 21, it would push the already-unfiltered \s marker
+// and its associated text AFTER its location - resulting in the \s
+// marker and associated text being ordered AFTER the \r marker and
+// its associated text. But \s "occurring under" \r is NOT the correct
+// ordering. The ordering should be \r "occurring under" \s.
+// Therefore, our unfiltering routine - when unfiltering \r in this
+// situation, needs to check to see if there is an adjacent unfiltered
+// marker in the text immediately AFTER its stored location, and if 
+// so, check whether that adjacent marker is present in the currently 
+// being unfiltered marker's occursUnder list. If so, the routine 
+// needs to scan through the adjacent marker and its associated text 
+// to find the sequence number of the last word of the adjacent 
+// marker's text, and insert the \r marker and its associated text 
+// AFTER that last word's SP sequence number.
+// If we insert the \r marker and its associated text after that last
+// word associated with the \s marker, then we will get the proper
+// order of both markers \s and \r once both of them have been 
+// unfiltered. 
+// Hence, it isn't really feasible to rely on the ordering of 
+// still-filtered marker information that is stored within the 
+// pSP->m_filteredInfo member. The information we need is no longer 
+// within that m_filteredInfo member! The \s member was already 
+// unfiltered, and now that we are in the process of unfiltering an 
+// adjacent \r marker, there is nothing within the m_filteredInfo 
+// member's current storage alone to inform us that the \r marker and
+// its associated text should be restored or unfiltered to a source 
+// phrase that may be located many SP sequence numbers following the 
+// current pSP source phrase - i.e., inserted at the source phrase 
+// immediately following the last word of the \s marker's associated 
+// text.
+// With my recent refactoring of USFMAnalysis struct to include the usfm
+// occursUnder information, we now have ordering information readily 
+// available for the marker that is now being unfiltered. To utilize 
+// that information we call the following function with the long name:
+// bool ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Node* currPos, 
+//		SPList::Node*& prevPos, wxString occursUnderStr)
+// This function then is called from the ReconstituteAfterFilteringChange() 
+// function's if (bUnfilteringRequired) block.
+// 
+// TODO: Revise comment below !!!
+// 1. Get the occursUnder list, if any, call LookupSFM(bareMarker) to get
+//    the pUsfmAnalysis instance of the current marker being unfilterd,
+//    and retrieve the pUsfmAnalysis->occursUnder information into a 
+//    string list.
+// 2. If the above list from occursUnder is not empty, call a new function
+//     named with these input parameters:
+//     ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(
+//			saveNextPos, filterableMarkers)
+//     This above mentioned function returns the SPList::Node* pointer to 
+//     a pList position tempPos which, if non-NULL, points to the position 
+//     in pList to insert the current pSublist.
+//     This function scans backwards through pList checking previous source 
+//     phrases for any "filterable" begin markers that satisfy these 
+//     conditions:
+//     a. A found marker must be "filterable", i.e., its 
+//        pUsfmAnalysis->userCanSetFilter == TRUE.
+//     b. It is an "adjacent" marker, that is, no non-marker text occurs
+//        between the curent marker and the text assoicated with the
+//        candidate marker.
+// 3. If the ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker()
+//    function locates and returns a non-NULL pointer to the position of a 
+//    source phrase (in pList) matching the conditions in 2 above, we then 
+//    check to see if any of the filterableMarkersArr markers are present
+//    within the currently being-unfiltered-marker's occursUnder list. 
+// 4. If the adjacent marker is present within the occursUnder list, we
+//    know we can asign our insertPos to be that returned position - the
+//    position at which point we start inserting the source phrases of our 
+//    pSublist that represent the unfiltered text being inserted into the 
+//    document's pList of source phrases. If a tempPos is non-NULL, the 
+//    third parameter filterableMarkersArr array will contain any potential
+//    markers to check if present in the occursUnder string list.
+// TODO: Update above comments
+// whm 10Nov2023 added the following to aid in insertion of marker-being-unfiltered into pList
+// when a previous adjacent marker must occur under the current marker-being-unfiltered.
+bool CAdapt_ItDoc::ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Node* currPos, 
+	SPList::Node*& prevPos, wxString occursUnderStr)
+{
+	SPList::Node* currentPos = currPos; // use local node pointer
+	wxArrayString filterableMkrsArr;
+	filterableMkrsArr.Clear(); // initialize
+	if (currentPos == NULL)
+	{
+		prevPos = NULL;
+		return FALSE;
+	}
+	// The incoming parameter Node* pointer currPos is a pointer to a position in the pList.
+	// That currPos pointer is actually the saveNextPos back in the caller, i.e., the position
+	// of the source phrase FOLLOWING the source phrase containing the filtered marker that's 
+	// currently being unfiltered. Therefore we need to start scanning backwards one (two???) 
+	// position prior to that saveNextPos position for eligible markers in pList. 
+	// TODO: If need to start scanning two positions prior uncomment the second block below.
+	if (currentPos != NULL)
+	{
+		currentPos = currentPos->GetPrevious(); // Backup one to get the current position.
+	}
+	//if (currPos != NULL)
+	//{
+	//	currPos = currPos->GetPrevious(); // Backup one more to get previous position before the current one.
+	//}
+	bool bKeepSearching = TRUE;
+	while (currentPos != NULL && bKeepSearching)
+	{
+		CSourcePhrase* ptempSP = currentPos->GetData();
+		if (ptempSP != NULL)
+		{
+			// Examine ptempSP's m_markers and m_filteredInfo members. 
+			if (ptempSP->m_markers.IsEmpty() && ptempSP->GetFilteredInfo().IsEmpty())
+			{
+				currentPos = currentPos->GetPrevious();
+			}
+			else
+			{
+				// There is content in m_markers and/or m_filteredInfo, so collect any
+				// content present into a filterableMkrs array to make it easier to 
+				// examine the markers one-by-one to see if they are present within the
+				// occursUnderStr string of the current marker.
+				// If a marker is present in occursUnderStr we return TRUE to the caller
+				// ReconstituteAfterFilteringChange(), and return its pList node position 
+				// in the prePos reference parameter.
+				// We can combine any m_markers and m_filteredInfo strings together, since
+				// the GetFilterableMarkersFromString() function called below internally
+				// calls the GetMarkersAndTextFromString() function which knows how to
+				// deal with any \~FILTER ... \~FILTER* markers that may be enclosing a
+				// candidate marker within the previous marker's m_filteredInfo member.
+				// Our GetFilterableMarkersFromString() function ensures that the return
+				// filterableMkrs array only contains whole markers, and not any 
+				// associated text that would be present together with a marker enclosed
+				// within \~FILTER ...\~FILTER* markers.
+				wxArrayString filterableMkrs;
+				filterableMkrs.Clear(); // need to start each location check with empty array
+				bool bInsertAtThisPos = FALSE;
+				wxString markerStr = ptempSP->m_markers + ptempSP->GetFilteredInfo();
+				GetFilterableMarkersFromString(markerStr, filterableMkrs);
+				size_t fm_ct = filterableMkrs.GetCount();
+				wxString mkrToCheck;
+				if (fm_ct > 0)
+				{
+					for (int i = 0; i < (int)fm_ct; i++)
+					{
+						mkrToCheck = filterableMkrs.Item(i);
+						if (occursUnderStr.Find(mkrToCheck) != wxNOT_FOUND)
+						{
+							bInsertAtThisPos = TRUE;
+						}
+					}
+					if (bInsertAtThisPos == TRUE)
+					{
+						bKeepSearching = FALSE;
+						prevPos = currentPos; //return currPos;
+						return TRUE;
+					}
+				}
+				currentPos = currentPos->GetPrevious();
+			}
+		}
+		else
+		{
+			bKeepSearching = FALSE;
+		}
+	}
+	prevPos = NULL;
+	return FALSE;
+}
+
+// whm 16Nov2023 added for support of the .usfmstruct file and the doc's m_UsfmStructArr array.
+// This function is used to assign values to the the Doc's variables related to the creation
+// and maintenance of the m_usfmStructArr in-memory array and related variables on the Doc, 
+// and the external .usfmstruct file that is stored in the .usfmstruct folder, a sub-folder of
+// the current project's "Adaptations" folder.
+// This function takes as its first parameter an enum value of: createNewFile, recreateExistingFile, 
+// openExistingFile, or createFromSPList. 
+// The second parameter is a reference parameter inputBuffer which is replaced by an internally
+// build string by calling RebuildSourceText() if the first parameter enum is createFromSPList.
+// The third parameter is an SPList* pointer to a source phrase list which is also used if the
+// first parameter enum is createFromSPList.
+//
+bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess, 
+	wxString& inputBuffer, SPList* pList)
+{
+	// whm 13Nov2023 added the following code to create a wxArrayString UsfmStructArr from 
+	// the source input *pApp->m_pBuffer text, or alternately from a pList of source phrases
+	// and then saves that array of strings to a file named <filename>.usfmstruct that is 
+	// saved to a hidden sub-directory at the following path:
+	// /Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+	// where <filename> is the name of the document file being created via gpApp->m_curOutputPath
+	// which already has an .xml extension. We add the additional extension .usfmstruct to 
+	// the usfm struct file we're creating.
+	// This usfm struct file will get updated with filter status fields in the 
+	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray() function call made after TokenizeText() is
+	// called later below.
+
+	// Substitute a string generated from RebuildSourceText is the fileProcess is createFromSPList
+	if (fileProcess == createFromSPList)
+	{
+		int textLen;
+		textLen = RebuildSourceText(inputBuffer, pList);
+	}
+
+	m_usfmStructDirName = _T(".usfmstruct");
+	wxFileName structFn(gpApp->m_curOutputPath);
+	m_usfmStructFilePath = structFn.GetPath();
+	m_usfmStructFileName = structFn.GetFullName(); // gets full name including extension, but excluding directories
+	m_usfmStructDirPath = m_usfmStructFilePath + gpApp->PathSeparator + m_usfmStructDirName;
+	if (!::wxDirExists(m_usfmStructDirPath))
+	{
+		// The hidden dir .usfmstruct doesn't exist yet so create it.
+		bool bOK;
+		bOK = ::wxMkdir(m_usfmStructDirPath);
+		if (!bOK)
+		{
+			// failure to make the directory not expected so English message to the user log is sufficient
+			wxString msg = _T("In OnNewDocument() - Failed to Create hidden directory at %s");
+			msg = msg.Format(msg, m_usfmStructDirPath.c_str());
+			gpApp->LogUserAction(msg);
+			return FALSE;
+		}
+	}
+
+	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
+	// The wxArrayString m_UsfmStructArr array is on the Doc class, and its contents persist while a doc is open.
+	m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer, TRUE);
+	// Get the wxArrayString's lines and save them in the <filename>.usfmstruct file at:
+	// .../Adapt It Unicode Work/<project-directory/Adaptations/.usfmstruct/<filename>.usfmstruct
+	m_UsfmStructStringBuffer.Empty();
+	size_t len = 0;
+	// scan our array and determine its required character length including EOL chars
+	int totCt = (int)m_UsfmStructArr.GetCount();
+	for (int i = 0; i < totCt; i++)
+	{
+		m_UsfmStructStringBuffer = m_UsfmStructStringBuffer + m_UsfmStructArr.Item(i) + _T("\r\n");
+		len += m_UsfmStructArr.Item(i).Length();
+		len += 2; // for the EOLs _T("\r\n") to be added
+	}
+
+	if (fileProcess == createNewFile || fileProcess == recreateExistingFile)
+	{
+		// This block is executed when creating a new document in OnNewDocument() in non-collaboration
+		// scenarios, and when creating a new document or opening an existing document in collaboration
+		// scenarios.
+		// We should ensure the .usfmstruct file doesn't exist because we want to start afresh for a new 
+		// usfmstruct file.
+		if (::wxFileExists(m_usfmStructFilePathAndName))
+		{
+			bool bRemoved = FALSE;
+			bRemoved = ::wxRemoveFile(m_usfmStructFilePathAndName);
+			if (!bRemoved)
+			{
+				// Not likely to happen, so an English message will suffice.
+				wxString msg = _T("Unable to remove existing usfmstruct file at:\n%s");
+				msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+				gpApp->LogUserAction(msg);
+				return FALSE;
+			}
+		}
+	}
+
+	if (fileProcess == openExistingFile)
+	{
+		// The openExistingFile is used when AI is opening an existing file in
+		// non-collaboration scenarios.
+		// Open and read the .usfmstruct file into the m_UsfmStructArr array
+		// so that the array has the doc's usfm structure listed for the life
+		// of the open document.
+		wxTextFile f(m_usfmStructFilePathAndName);
+		bool bOpened = f.Open();
+		if (!bOpened)
+		{
+			wxString msg = _T("Failed f.Open() for reading usfmstruct info to %s");
+			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+			gpApp->LogUserAction(msg);
+			return FALSE;
+		}
+		else
+		{
+			// File is open for reading, and we read its contents into the m_UsfmStructArr
+			// The Doc's m_UsfmStructArr should be empty
+			m_UsfmStructArr.Clear();
+			int totLines = f.GetLineCount();
+			wxString lineStr;
+			// Read each line of text and store it into the m_UsfmStructArr wxArrayString on the Doc
+			for (int i = 0; i < totLines; i++)
+			{
+				lineStr = f.GetLine(i);
+				m_UsfmStructArr.Add(lineStr);
+			}
+			f.Close();
+		}
+	}
+	else // whm when fileProcess == createNewFile or fileProcess == recreateExistingFile
+	{
+		// Write the usfmstruct string to the .usfmstruct file
+		wxFile f;
+		if (!f.Open(m_usfmStructFilePathAndName, wxFile::write))
+		{
+			wxString msg = _T("Failed f.Open() for writing usfmstruct info to %s");
+			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
+			gpApp->LogUserAction(msg);
+			return FALSE;
+		}
+		else
+		{
+			f.Write(m_UsfmStructStringBuffer, len);
+			f.Close();
+		}
+	}
+	return TRUE;
+}
+
+
+// whm 10Nov2023 added. Gets a list of markers from the input string tempMkrs.
+// This function makes a call to GetMarkersAndTextFromString() which returns
+// a wxArrayString of markers via the filterableMkrsArray in its second 
+// reference parameter. 
+// This function is called from the ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker()
+// function.
+// The input string tempMkrs can be a plain wxString of markers (from m_markers),
+// or it can also have a string of filtered markers concatenated to it which 
+// has one or more sub-strings embedded within \~FILTER ... \~FILTER* markers.
+// We remove any associated text that would be following markers in the 
+// wxArrayString returned from GetMarkersAndTextFromString() when it encounters
+// markers that are embedded within \~FILTER ... \~FILTER* markers.
+// This function then looks up each marker using the LookupSFM() function which 
+// returns a pAnalysis struct of that marker. For each marker whose 
+// pAnalysis->userCanSetFilter is TRUE the function returns it as an item within
+// its returned wxArrayString. The returned wxArrayString then contains any/all
+// filterable markers that were found, each padded with final space. 
+void CAdapt_ItDoc::GetFilterableMarkersFromString(wxString tempMkrs, wxArrayString& filterableMkrsArray)
+{
+	//wxArrayString filterableMkrsArray;
+	filterableMkrsArray.Clear();
+	if (!tempMkrs.IsEmpty())
+	{
+		// Collect all marker(s) found in tempMkrs, check each marker, and 
+		// return only those that are "filterable", that is, those whose 
+		// pUsfmAnalysis->userCanSetFilter == TRUE.
+		wxArrayString MkrList; 
+		wxString endMarkers = _T("");
+		GetMarkersAndTextFromString(&MkrList, tempMkrs, endMarkers);
+		size_t ct = MkrList.GetCount();
+		if (ct > 0)
+		{
+			for (int i = 0; i < (int)ct; i++)
+			{
+				wxString mkr = MkrList.Item(i);
+				mkr.Trim(TRUE);
+				mkr.Trim(FALSE);
+				int offset = mkr.Find(_T(" "));
+				if (offset > 0)
+				{
+					// There is a space within the marker string which indicates the marker is followed
+					// by its associated text - as would be the case for markers taken from a filtered
+					// string enclosed by \~FILTER ... \~FILTER* markers - , so remove the associated 
+					// text, leaving only the marker.
+					mkr = mkr.Mid(0, offset);
+					mkr.Trim();
+				}
+				// Is mkr filterable? Call LookupSFM() to find out.
+				wxString bareMkr = mkr.Mid(1);
+				USFMAnalysis* pAnalysis = LookupSFM(bareMkr);
+				if (pAnalysis->userCanSetFilter == TRUE)
+				{
+					// the mkr is "filterable" so add it to the filterableMkrsArray
+					mkr += _T(" "); // pad the mkr with a final space
+					filterableMkrsArray.Add(mkr);
+				}
+				// Although the incoming string tempMkrs could be composed of a mix of
+				// markers and markers with associated text, we've ensured above that 
+				// the filterableMkrsArray only contains whole markers that are filterable
+				// and are padded with following spaces.
+			}
+			//return filterableMkrsArray;
+		}
+	}
+	//return filterableMkrsArray;
+}
+
 void CAdapt_ItDoc::RestoreCurrentDocVersion()
 {
 	m_docVersionCurrent = (int)VERSION_NUMBER; // VERSION_NUMBER is #defined in AdaptitConstants.h
@@ -6508,7 +7121,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		// If there is a parse failure, it happened after the last m_srcPhrase in
 		// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
 		// when "Make diagnostic logfile during document creation and opening" check box
-		// is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
+		// is ticked in the docPage or the GetSourceTextFromEditor dialog.
 		if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
 		{
 			// Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -6952,6 +7565,15 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pStatusBar->FinishProgress(_("Opening the Document"));
 	}
 
+	// whm 15Oct2023 added. We're near the end of OnOpenDocument() and we need to ensure that
+	// the Doc's variables and m_UsfmStructArr array are set up and populated for the current
+	// document being opened by calling the Doc's SetupUsfmStructArrayAndFile() function:
+	wxString unusedString = wxEmptyString;
+	SetupUsfmStructArrayAndFile(openExistingFile, unusedString);
+	// amd also update the .usfmstruct file (that was created when 
+	// document was first created) with current filter status information. We do that by calling the Doc function:
+	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray().
+	UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
 	// BEW 12Feb20 added call to check if the adaptation KB has any placeholder items stored
 	// within - if any are found then this function removes them. Observing workflow as
 	// Yolngu translators did their adapting at Milingimbi island, a placehold coming up with
@@ -8001,7 +8623,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 /// resulted in adaptations being thrown away in the piles following the correct filter span.
 /// The error was a logic error in the code in HasMatchingEndMarker() which caused FALSE to
 /// be returned, instead of TRUE (for a successful match) - and so filtering did not halt.
-/// whm 24Oct2023-31Oct2023 refactored the filtering and un-filtering parts, fixed some errors.
+/// whm 24Oct2023-31Oct2023 refactored the filtering and unfiltering parts, fixed some errors.
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	SPList*& pList, wxString& fixesStr)
@@ -8229,7 +8851,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 				// for pSrcPhrase, loop across any filtered substrings in m_filteredInfo, 
 				// until no more are found. Often there is one only, but if storing more
-				// than one (very unlikely or impossible), the loop lets us cherry-pick
+				// than one (can be the case where 2 or more adjacent markers along with
+				// their associated text have been filtered), the loop lets us cherry-pick
 				// the content with the matching filterMkr, that's what we will unfilter
 				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(), filterMkr, offset)) != -1)
 				{
@@ -8311,7 +8934,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						preStr += appendStr;
 						offsetNextSection = end; // update, this section is deemed moved
 					}
-					else
+					else // we have found a marker with content needing to be unfiltered
 					{
 						// we have found a marker with content needing to be unfiltered, so
 						// do so (note: the unfiltering operation will consume some of the
@@ -8406,10 +9029,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						}
 
 						// make the marker accessible, minus its backslash
-					f:						bareMarker = mkr.Mid(1); // remove backslash
+					f:	bareMarker = mkr.Mid(1); // remove backslash
 
-											// determine if there is an endmarker
-											//bHasEndMarker = FALSE;
+						// determine if there is an endmarker
+						//bHasEndMarker = FALSE;
 						extractedStr = MakeReverse(extractedStr);
 						curPos = extractedStr.Find(_T('*')); // remember, extractedStr is reversed!!
 						// determine if the extracted string has an endmarker at its end
@@ -8481,7 +9104,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// things set up right. (a POSITION pos2 value of zero is
 						// sufficient test for being at the final sourcephrase, after the
 						// GetNext() call has obtained the final one)
-					h:						bool bIsInitial = TRUE;
+					h:	bool bIsInitial = TRUE;
 						int nWhich = -1;
 
 						int extractedStrLen = extractedStr.Length();
@@ -8712,16 +9335,160 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// now insert the completed CSourcePhrase instances into the
 						// m_pSourcePhrases list preceding the SaveNextPos POSITION
 						// 
-						// whm 31Oct2023 modified the routines below, because the un-filtering
+						// whm 31Oct2023 modified the routines below, because the unfiltering
 						// of markers is not inserting them at the correct soure phrase location
 						// in the sacred text. The old code was inserting them BEFORE the last
 						// word of normal source text, instead of AFTER it.
 						// To remedy the problem I've added code to get the position of the
 						// source phrase AFTER the saveNextPos node, calling it insertPos,
-						// which is then used at the insertion point for the un-filtered
+						// which is then used at the insertion point for the unfiltered
 						// material.
+						// 
+						// whm 10Nov2023 further modification needed. To account for the 
+						// possibility that multiple adjacent markers have previously been 
+						// filtered, we need a smarter way of determining the precise location 
+						// to insert the marker (and its associated text) currently being 
+						// unfiltered. Such better smarts are needed when we have a situation 
+						// in which adjacent markers were previously filtered (such as \s and \r), 
+						// and one of those markers (\r) - whose occursUnder list indicates that 
+						// it should occurUnder/FOLLOW one of the still-filtered markers (\s) 
+						// - was unfiltered first, BEFORE the one (\s) that is currently being 
+						// unfiltered. In such a case as this, the \s marker needs to be 
+						// unfiltered - NOT at the current location (which is after the already 
+						// unfiltered \r marker), but BEFORE the already unfiltered \r marker.
+						// It isn't really feasible to rely on the ordering of still-filtered
+						// marker information that is stored within the pSP->m_filteredInfo
+						// member. The information we need is no longer within that m_filteredInfo
+						// member! The \r member was already unfiltered, and now that we are
+						// in the process of unfiltering an adjacent \s marker, there is nothing
+						// within the m_filteredInfo member's current storage alone to inform us 
+						// that the \s marker and its associated text should be restored or
+						// unfiltered to a source phrase that may be located many sequence numbers
+						// prior to the current pSP source phrase - i.e., the source phrase that
+						// now contains the \r marker within its source phrase members.
+						// Our strategy now that we have occursUnder information for the marker
+						// that is now being unfiltered is the following:
+						// 1. Get the occursUnder list, if any, of the current marker being 
+						//     unfilterd.
+						// 2. If the above list from occursUnder is not empty, call a new function
+						//     named with these input parameters:
+						//     GetSrcPhrasePositionOfFilterableMarkersOfPreviousAdjacentText(saveNextPos, 
+						//        filterableMarkersArr)
+						//     This function returns the SPList::Node* pointer to a pList position
+						//     where, if non-NULL points to the position in pList to insert the current
+						//     pSublist. The function also returns filterable markers in the 
+						//     filterableMarkersArr array.
+						//     This function scans backwards through pList checking previous source 
+						//     phrases for a "filterable" begin marker that satisfies these 
+						//     conditions:
+						//     a. A found marker must be "filterable", i.e., its 
+						//        pUsfmAnalysis->userCanSetFilter == TRUE.
+						//     b. It is an "adjacent" marker, that is, no non-marker text occurs
+						//        between the curent marker and the text assoicated with the
+						//        candidate marker.
+						//     c. The candidate marker must be found in the current 
+						//        being-unfiltered-marker's occursUnder list. 
+						// 3. If the GetSrcPhrasePositionOfFilterableMarkersOfPreviousAdjacentText() 
+						//    function locates and returns a non-NULL pointer to the position of a 
+						//    source phrase (in pList) matching the conditions in 2 above, we then 
+						//    asign our insertPos to be that returned position, at which point we 
+						//    start inserting the source phrases of our pSublist. 
+						
+						// First, get any applicable occursUnser information for the currently 
+						// being-unfiltered marker.
+						wxString occursUnderStr = _T("");
+						USFMAnalysis* pUsfmAnalysis;
+						pUsfmAnalysis = LookupSFM(bareMarker);
+						if (pUsfmAnalysis != NULL)
+						{
+							occursUnderStr = pUsfmAnalysis->occursUnder;
+						}
 
-						SPList::Node* insertPos = saveNextPos->GetNext();
+						//SPList::Node* insertPos = saveNextPos->GetNext();
+						SPList::Node* insertPos = NULL;
+						//SPList::Node* tempPos = NULL;
+						// Now, if we have occursUnder info to work with, see if there is an
+						// adjacent filterable marker preceding this location that should 
+						// "occur under" the current marker.
+						if (!occursUnderStr.IsEmpty())
+						{
+							// Here we must determine if an unfiltered marker and associated
+							// text exists adjacent to the currently-being-unfiltered marker,
+							// and whether our occursUnder information for the current marker
+							// says the previous/adjacent marker should occur UNDER our
+							// current one that is being unfiltered. We now have a function 
+							// with the following name, signature and return value:
+							// SPList::Node* GetSrcPhrasePositionOfFilterableMarkersOfPreviousAdjacentText(
+							//		SPList::Node* currPos, wxArrayString& filterableMarkersArr) 
+							// This function will return a non-NULL position pointer if there 
+							// exists such an adjacent marker that has filterable markers, and when
+							// the return value is non-NULL it returns the filterable marker(s) it
+							// finds via the wxArrayString filterableMarkersArr.
+							// With a non-NULL SPList::Note* position, we use that position
+							// as our insertPos. It also returns via ref paremeter
+							// filterableMarkersArr one or more candidate markers that were found 
+							// in the source phrase at the tempPos location which. The marker(s)
+							// in the filterableMarkersArr array we compare below with the 
+							// occursUnderStr of markers. If there is a match, we can use the
+							// tempPos position as our location to insert the current pSubList into
+							// the main pList of soruce phrases.
+							SPList::Node* prevAdjacentPos = NULL;
+							if (ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(saveNextPos, prevAdjacentPos, occursUnderStr))
+							{
+
+								insertPos = prevAdjacentPos;
+							}
+							else
+							{
+								insertPos = saveNextPos->GetNext();
+							}
+							/*
+							wxArrayString filterableMarkersArr;
+							filterableMarkersArr.Clear(); 
+							tempPos = GetSrcPhrasePositionOfFilterableMarkersOfPreviousAdjacentText(saveNextPos, filterableMarkersArr);
+							if (tempPos != NULL)
+							{
+								size_t arrCt = filterableMarkersArr.GetCount();
+								wxASSERT(arrCt > 0);
+								// We found one or more filterableMarkers at tempPos in pList
+								// We now check to see if there are any ordering constraints
+								// specified by the occursUnder information.
+								bool bInsertAtThisPos = FALSE;
+								// Check each marker(s) stored in the filterableMarkersArr array
+								// to see if it exists in the occursUnderStr or not. If a marker is
+								// found in occursUnderStr, we know that the tempPos returned by the
+								// GetSrcPhrasePositionOfFilterableMarkersOfPreviousAdjacentText() 
+								// call is the insertPos we need, and the pSubList composing the
+								// marker-and-associated-text currently being-unfiltered needs
+								// to be inserted at the tempPos position.
+								wxString mkrToCheck;
+								for (int i = 0; i < (int)arrCt; i++)
+								{
+									mkrToCheck = filterableMarkersArr.Item(arrCt);
+									if (occursUnderStr.Find(mkrToCheck) != wxNOT_FOUND)
+									{
+										bInsertAtThisPos = TRUE;
+									}
+								}
+								if (bInsertAtThisPos == TRUE)
+								{
+									insertPos = tempPos;
+								}
+								else
+								{
+									insertPos = saveNextPos->GetNext();
+								}
+							}
+							*/
+						}
+						else
+						{
+							// the occursUnderStr was empty so we have no ordering constraints
+							// and can simply insert the marker-being-unfiltered at the usual
+							// saveNextPos->GetNext() insertPos
+							insertPos = saveNextPos->GetNext();
+						}
+
 #if defined(_DEBUG)
 						// whm 31Oct2023 Debug block for inspection of source phrases at insertPos
 						if (insertPos != NULL)
@@ -8747,18 +9514,21 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// wxList::Insert() inserts before specified position in the list
 							// BEW 30Sep19 refactoring changes are here...
 							// 
-							// whm 31Oct2023 modified the routines below, because the un-filtering
+							// whm 31Oct2023 modified the routines below, because the unfiltering
 							// of markers is not inserting them at the correct soure phrase location
 							// in the sacred text. 
 #if defined(_DEBUG)
 							// whm 31Oct2023 Debug block for inspection of source phrases at insertPos
-							CSourcePhrase* ptempSP = (CSourcePhrase*)insertPos->GetData();
-							if (ptempSP != NULL)
+							if (insertPos != NULL)
 							{
-								int sn = ptempSP->m_nSequNumber;
-								sn = sn;
-								wxString tempKey = ptempSP->m_key;
-								tempKey = tempKey;
+								CSourcePhrase* ptempSP = (CSourcePhrase*)insertPos->GetData();
+								if (ptempSP != NULL)
+								{
+									int sn = ptempSP->m_nSequNumber;
+									sn = sn;
+									wxString tempKey = ptempSP->m_key;
+									tempKey = tempKey;
+								}
 							}
 #endif
 							// whm 31Oct2023 modified the following to execute pList->Insert() before 
@@ -9198,7 +9968,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			#endif
 
 			// whm 6Nov2023 provide a pointer to the previous source phrase. We'll use
-			// this to store filtered info from a previously un-filtered char attribute
+			// this to store filtered info from a previously unfiltered char attribute
 			// marker.
 			CSourcePhrase* pPrevSrcPhrase = NULL;
 			SPList::Node* prevPos = pos->GetPrevious();
@@ -9378,6 +10148,67 @@ g:				bIsUnknownMkr = FALSE;
 			// in correct information order.
 			// Adapt It will do best if the user filters only one marker at a time, and unfilters
 			// only one at a time, via Preferences' USFM & Filtering tab.
+			// 
+			// whm 31Oct2023-14Oct2023 comment about the above comments. 
+			// There are a number of scenarios where filtering can result in different 
+			// orderings of multiple adjacent filtered markers within the m_filteredInfo source
+			// phrase mamber string including the carrying forward of filtered material when
+			// a previously filtered marker is already stored on the last word of associated 
+			// text of a marker currently being filtered. After exploring a number of ways of 
+			// handling the filtering and subsequent unfiltering of adjacent filterable markers
+			// I came up with 2 possible methods to help determine the proper ordering of 
+			// filtered markers within the m_filteredInfo string, and deterining the position
+			// of previously filtered material now being unfiltered:
+			// Method 1. Reworking our USFMAnalysis struct to include the "occursUnder"
+			// information available from the usfm 3.0 standard's usfm.sty stylesheet, then 
+			// drawing on that information when it is not clear at what position in 
+			// m_filteredInfo subsequently filtered adjacent markers should be inserted within 
+			// that string. I refactored the USFMAnalysis struct and its related functions to 
+			// incorporate the "occursUnder" information so that it is now easily available by 
+			// just calling LookupSFM() and examining the new pUSFMAnalysis->occursUnder member. 
+			// This method worked for some situations, however, later I found the occursUnder 
+			// information to be incomplete, especially for some common adjacent marker sequences 
+			// such as \ms \mr \s \r (all filterable) which commonly occur within the Nyindrou
+			// Scriptures - and marker sequences that are likely in other projects that work from
+			// highly marked up, already published Scriptures. The problem is that the occursUnder
+			// info can help order \mr AFTER/"occursUnder" the \ms marker, and also order the \r 
+			// marker under the \s marker, but the occursUnder information doesn't help order 
+			// the \s marker in relation to the \mr marker since the occursUnder list of markers 
+			// for \s only lists the \c marker, and not others like \mr and \ms. Hence, after 
+			// refactoring to include access to the occursUnder information (which may eventually
+			// be of some help), I decided on a more determinate and hopefully more comprehensive 
+			// methos of determining the proper ordering of multiple adjacent filtered markers 
+			// within m_filteredInfo, but also where the marker-being-unfiltered along with its
+			// accociated text should be inserted back into the text. 
+			// The unfiltering process is more complex than the filtereing process since, when
+			// unfiltering, one must often deal with determining how many source phrases forward 
+			// or backwards to position the insertion point of the sublist of source phrases 
+			// composing the associated text of the marker being unfiltered. This issue can be
+			// quite complex when the situation involves 4 or more filterable adjacent markers 
+			// that were previously filtered (such as \ms \mr \s and \r), and are now being
+			// unfiltered. The ordering possibilities for 4 adjacent markers can involve 24
+			// different orders of unfiltering!
+			// Mehod 2. A more determinate method for the positioning of filtered marterial, 
+			// and positioning the insertion point of material being unfiltered, can be had by
+			// storing a slightly modified usfm structure file in a hidden folder .usfmstruct
+			// residing in the project's Adaptations folder. The usfm struct file is easily
+			// and quickly generated by our existing function GetUsfmStructureAndExtent()
+			// from CollabUtilities.cpp. This function creates a wxArrayString of lines,
+			// each line having one usfm marker followed by colon-separated fields of
+			// information including a field that represents the number of characters tallied
+			// for the marker and its associated text, and a field that has an MD5 sum for
+			// the marker and its associated text. The text file generated by the 
+			// GetUsfmStructureAndExtent() function is called at the time a source text
+			// is loaded from disk or received from Paratext and before TokenizeText() is
+			// called on to parse the source input file. At this time the usfm struct file
+			// is created and lives in its hidden folder for the life of the document. I
+			// tweaked the usfm file to remove the MD5 information and in its place keep a
+			// single "0" or "1" in its last field to indicate whether the particular marker
+			// listed on each line is filtered ("1"), or not-filtered ("0"). The filtering
+			// status recorded in the file is done by a separate function call that is
+			// done after TokenizeText() has processed the input file and at other times
+			// such as after editing the source text. That function is called 
+			// UpdateCurrentFilterStatusOfUsfmStructFileAndArray().
 
 			strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo(); // could be empty
 
@@ -9404,7 +10235,8 @@ g:				bIsUnknownMkr = FALSE;
 			{
 				// whm 24Oct2023 Note: The only binding markers are the inline ones:
 				// _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig ")
-				// and the only filterable one of the above is the \fig marker.
+				// and the only filterable one of the above is the \fig marker - the \fig
+				// marker being the only one that has the property userCanSetFilter="1".
 				// Therefore this block should only be entered when the \fig or \+fig
 				// maker has had a filtering change.
 				// 
@@ -9413,7 +10245,7 @@ g:				bIsUnknownMkr = FALSE;
 				// So we will simply set preStr and remainderStr to empty (we won't try
 				// any fancy stuff, such as to move preceding stored markers to the 
 				// pUnfilteredSrcPhrase defined later below - first in the post-span list,
-				// they should not be present anyway, and if so, let them die)
+				// they should not be present anyway, and if so, let them die).
 				preStr = wxEmptyString;
 				remainderStr = wxEmptyString;
 				// m_inlineNonbindingMarkers can now be cleared, we've got the info we need
@@ -9722,7 +10554,7 @@ g:				bIsUnknownMkr = FALSE;
 				// whm 24Oct2023 modification. When a filtered marker is adjacent to other non-filtered 
 				// markers such as a chapter marker, for example, \c 11 the strFilteredStuff string that
 				// was generated by the RebuildSourceText(strFilteredStuff...) call above, it will 
-				// potentially contain a lot of marker(s) and associated text that must not be included 
+				// potentially contain one or more marker(s) and associated text that must not be included 
 				// in the filteredStr assignment from strFilteredStuff below.
 				// We need to purge the non-filtered material from the strFilteredStuff variable before 
 				// assigning its content to filteredStr. So, for example, when the chapter marker 
@@ -9891,7 +10723,7 @@ g:				bIsUnknownMkr = FALSE;
 						// saving the resulting wxString to a hidden text file named <project-name>.usfmstruct
 						// stored within a new hidden folder named .usfmstruct stored within the <project-name>
 						// directory. Then a new function supplied with ch:vs info for the preceding context 
-						// of the marker being filtered/un-filtered, could then examine the usfm marker context
+						// of the marker being filtered/unfiltered, could then examine the usfm marker context
 						// of that usfm structure to see where the markers currently being filtered/unfiltered 
 						// are, or need to be, in relation to the previously filtered markers, and use that 
 						// information to inform assignment below about where to place the currently being
@@ -9904,9 +10736,23 @@ g:				bIsUnknownMkr = FALSE;
 					// which follows the filtered out section - that one might have filtered material
 					// already, so we have to check and take the appropriate branch
 					wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
-					// whm 6Nov2023 we want to store the pPrevSrcPhrase rather than on the 
+					
+					// whm 6Nov2023 we want to store to the pPrevSrcPhrase rather than on the 
 					// pUnfilteredSrcPhrase. The if and else blocks below now store the filteredStr
 					// on pPrevSrcPhrase instead of pUnfilteredSrcPhrase.
+					// 
+					// whm 15Nov2023 update to the previous strategy, which was not sufficiently robust 
+					// for when multiple adjacent markers are filtered. Before storing the filteredStuff,
+					// we need to ensure that we have the correct order of multiple instances of filtered 
+					// info that may be within the filteredStuff string. This is important as it needs to
+					// reflect what the original ordering was of the filtered markers in the original
+					// document, otherwise when RebuildSourceText() is called to export the source text
+					// the markers won't be in their correct ordering. 
+					// the current ordering and make any necessary adjustments that may be needed as shown
+					// by consulting the information we have in the usfmstruct file for the current document.
+					// 
+					// TODO:
+
 					if (filteredStuff.IsEmpty())
 					{
 						//pUnfilteredSrcPhrase->SetFilteredInfo(filteredStr);
@@ -10778,7 +11624,7 @@ g:				bIsUnknownMkr = FALSE;
 					// saving the resulting wxString to a hidden text file named <project-name>.usfmstruct
 					// stored within a new hidden folder named .usfmstruct stored within the <project-name>
 					// directory. Then a new function supplied with ch:vs info for the preceding context 
-					// of the marker being filtered/un-filtered, could then examine the usfm marker context
+					// of the marker being filtered/unfiltered, could then examine the usfm marker context
 					// of that usfm structure to see where the markers currently being filtered/unfiltered 
 					// are, or need to be, in relation to the previously filtered markers, and use that 
 					// information to inform assignment below about where to place the currently being
@@ -19940,7 +20786,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 	// I've moved the pLast != NULL condition to inside the block to protext the assignment
 	// of the gPreviousTextType and pLast->m_bBoundary from dereferencing the pLast pointer. 
 	// At least this change will allow the bleed out special case" to work and return proper 
-	// values for the analysis of the \fig marker within the un-filtering case back in 
+	// values for the analysis of the \fig marker within the unfiltering case back in 
 	// ReconstituteAfterFilteringChange().
 	//if (str == _T("\\fig") && pLast != NULL)
 	if (str == _T("\\fig"))
@@ -21385,9 +22231,9 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 ///	   BEW 30Sep19, updated comments for clarity, due to USFM3 now needing to be supported
 ///		 and some refactoring here and there to take m_inlineNonbindingMarkers into account
 ///    whm 24Oct2023 added last parameter to return any encountered filtered information to
-///	   the caller, so the caller can use it to carry it forward when needed. We no longer 
+///	   the caller, so the caller can use it to carry it forward when needed. We no longer use
 ///	   the existence of filterInfo to exclude the passed in CSourcePhrase instance from being 
-///    in the to-be-filtered span. Instead we depend on other criteria
+///    in the to-be-filtered span. Instead we depend on other criteria.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhraseNext, wxString& filterInfo)
 {
@@ -32596,7 +33442,7 @@ int CAdapt_ItDoc::ScanToNextMarker(wxChar* pChar, wxChar* pEnd)
 // whm 31Oct2023 modified. This function needs to be smarter and be able to handle the situation
 // where the fromThisStr that is coming in from a m_srcSinglePatter that has a marker at the 
 // beginning of the string, such as "\\fig At" that will be the case when we're rebuilding the source 
-// text at the time a previously un-filtered \fig marker is now being filtered again, and the function
+// text at the time a previously unfiltered \fig marker is now being filtered again, and the function
 // call FromSingleMakeSstr() calls this GetPostwordExtras() function.
 // Before this change the calculation of the key length keyLen assumes that the m_key part of the
 // incoming string is at the beginning of the fromThisStr. However, when it consists of "\\fig <m_key>"
@@ -32644,6 +33490,162 @@ wxString CAdapt_ItDoc::GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fro
 	keyLen = key.Length();
 	extras = fromThisStr.Mid(mkrLen + keyLen); // mkrLen if non-zero skips over marker + space
 	return extras;
+}
+
+// whm 13Nov2023 added the following function to update the filter status fields in the 
+// .usfmstruct file that was created for the newly created document from the input source text
+// made just before the TokenizeText() function is called to tokenize the input text and filter
+// any markers designated to be filtered by the settings in the USFM and Filtering tab of
+// Preferences.
+// The following function uses the gCurrentFilterMarkers string to add or update the last colon
+// delimited field in the .sfmstruct file, making the field ":1" if the marker is present in the
+// App's gCurrentFilterMarkers, or making it ":0" if the marker is NOT present in 
+// gCurrentFilterMarkers. It also updates the m_UsfmStructArr string elements with the same filter
+// status data, so that the in-memory array is immediately accessible with the current filter
+// status of all markers making up the document.
+// Note: The SetupUsfmStructArrayAndFile() should be called BEFORE the call to TokenizeText[String]()
+// and this UpdateCurrentFilterStatusOfUsfmStructFileAndArray() should be called AFTER the call to
+// TokenizeText[String]().
+void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath)
+{
+	// The incoming parameter has the full path to the usfm struct file that we will update.
+	// Open the file as a wxTextFile
+	wxTextFile file(usfmStructFileNameAndPath);
+	bool bOK;
+	bOK = file.Open();
+	if (!bOK)
+	{
+		wxString msg = _T("Could NOT OPEN input path / name at : % s");
+		msg = msg.Format(msg, usfmStructFileNameAndPath.c_str());
+		gpApp->LogUserAction(msg);
+	}
+	else
+	{
+		// Read each line in the file and add/update the filter status according to whether
+		// the marker at the beginning of the line is within the App's gCurrentFilterMarkers
+		// using ":1" if the marker is present, ":0" if not present.
+		int ct;
+		wxString lineStr;
+		wxString newLineStr;
+		wxString mkr;
+		wxString colon = _T(":");
+		wxString space = _T(" ");
+		wxString strUpToFirstColon = wxEmptyString;
+		wxString strAfterFirstColon = wxEmptyString;
+		wxString strBetweenFirstAndSecondColons = wxEmptyString;
+		wxString strAfterSecondColon = wxEmptyString;
+		int nLines = file.GetLineCount();
+		// Empth the m_UsfmStructArr array, and reload it with the updated filter status
+		// information
+		m_UsfmStructArr.Clear();
+		for (ct = 0; ct < nLines; ct++)
+		{
+			lineStr = file.GetLine(ct);
+			// Each line in the usfm struct file starts with a marker, and each marker is
+			// followed by either a space or a colon, for example, a usfm struct file BEFORE
+			// it gets any filter status field might look like this:
+			// \c 10:0
+			// \v 52:155
+			// \c 11:0
+			// \ms:47
+			// \mr:13
+			// \s:32
+			// \r:43
+			// \p:0
+			// \v 1:127
+			// After the update is done below each line will have a filter status field by
+			// adding a second colon ':' followed by a "0" or "1" to indicate the marker's
+			// current filter status.
+			// If the usfm struct file was previously updated, the file would already have
+			// the filter status fields, and the current update will not add another colon
+			// field, but will simply update the existing "0" or "1" to reflect the current
+			// status of the marker according to its presence in gCurrentFilteredMarkers.
+			if (!lineStr.IsEmpty())
+			{
+				// Extract the marker at the beginning of the lineStr which exists before the 
+				// first colon.
+				int posColon = lineStr.Find(colon);
+				wxASSERT(posColon != wxNOT_FOUND);
+				if (posColon != wxNOT_FOUND)
+				{
+					mkr = lineStr.Mid(0, posColon);
+					strUpToFirstColon = lineStr.Mid(0, posColon);
+					strAfterFirstColon = lineStr.Mid(posColon+1);
+					// The mkr may be a chapter or verse marker that would be followed by a space 
+					// and a number, so remove any space and number to have a whole marker
+					int posSpace = mkr.Find(space);
+					if (posSpace != wxNOT_FOUND)
+					{
+						mkr = mkr.Mid(0, posSpace);
+						mkr.Trim(TRUE);
+						mkr.Trim(FALSE); // mkr is now a whole marker, minus any extraneous whitespace
+					}
+					// Is the mkr present in gCurrentFilteredMarkers? 
+					// each marker in gCurrentFilteredMarkers is followed by a space delimiter
+					// so make sure we call Find() looking for a space augmented marker.
+					wxString augmentedMkr = mkr + space;
+					bool bMkrIsFiltered;
+					if (gpApp->gCurrentFilterMarkers.Find(augmentedMkr) >= 0)
+					{
+						bMkrIsFiltered = TRUE;
+					}
+					else
+					{
+						bMkrIsFiltered = FALSE;
+						// The filter status is 0, add/update the lineStr accordingly
+					}
+
+					int posSecondColon = strAfterFirstColon.Find(colon);
+					if (bMkrIsFiltered)
+					{
+						// The filter status is 1, add/update the lineStr accordingly
+						// If there is a second colon in strAfterFirstColon, the lineStr
+						// already has a filter status field.
+						if (posSecondColon != wxNOT_FOUND)
+						{
+							// A filter status field exists, so update its field to "1"
+							strBetweenFirstAndSecondColons = strAfterFirstColon.Mid(0, posSecondColon);
+							strAfterSecondColon = strAfterFirstColon.Mid(posSecondColon+1);
+							newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + _T("1");
+						}
+						else
+						{
+							// A filter status field doesn't exist, so add one as ":1"
+							newLineStr = strUpToFirstColon + colon + strAfterFirstColon + _T(":1");
+						}
+					}
+					else
+					{
+						// The filter status is "0", add/update the lineStr accordingly
+						// If there is a second colon in strAfterFirstColon, the lineStr
+						// already has a filter status field.
+						if (posSecondColon != wxNOT_FOUND)
+						{
+							// A filter status field exists, so update its field to "0"
+							strBetweenFirstAndSecondColons = strAfterFirstColon.Mid(0, posSecondColon);
+							strAfterSecondColon = strAfterFirstColon.Mid(posSecondColon+1);
+							newLineStr = strUpToFirstColon + colon + strBetweenFirstAndSecondColons + colon + _T("0");
+						}
+						else
+						{
+							// A filter status field doesn't exist, so add one as ":0"
+							newLineStr = strUpToFirstColon + colon + strAfterFirstColon + _T(":0");
+						}
+
+					} // end of if (posColon != wxNOT_FOUND)
+					// Update the lineStr in the file. In a wxTextFile we remove the old line and 
+					// insert the new/edited line at the same location we deleted the old line.
+					file.RemoveLine(ct);
+					file.InsertLine(newLineStr, ct);
+					// While we're at it, update the m_UsfmStructArr by adding newLineStr to it
+					m_UsfmStructArr.Add(newLineStr);
+				} // end of if (posColon != wxNOT_FOUND)
+			} // end of if (!lineStr.IsEmpty())
+		}  // end of for (ct = 0; ct < nLines; ct++)
+
+		// write changes back to the file.
+		file.Write();
+	} // end of else block of if (!bOK)
 }
 
 wxString CAdapt_ItDoc::RemoveEndMkrsFromExtras(wxString extras) // BEW added 4May23
@@ -44327,7 +45329,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 											// whm 31Oct2023 I initially on 23Sep2023 commented out the following 
 											// 4 lines which change some of the attributes for the \fig marker which
 											// is by default filtered. Although these are normally set properly in 
-											// the AI_USFM.xml, when un-filtering the \fig marker, non-default values 
+											// the AI_USFM.xml, when unfiltering the \fig marker, non-default values 
 											// are needed. Although the desired non-default values could be set by
 											// calling other functions, that may not have been done, so as of this 
 											// date I'm re-enabling the assignments below.
@@ -46644,7 +47646,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			aBeginMarker = wxEmptyString; // init
 			// whm 31Oct2023 correction was needed back in ParseWord(), because currently the 
 			// pSrcPhrase's m_inlineNonbindingMarkers member is empty when TokenizeText() is 
-			// parsing to un-filter a previously filtered \fig marker which was stored in
+			// parsing to unfilter a previously filtered \fig marker which was stored in
 			// the pSrcPhrase->m_filteredInfo member. So, currently the strNBMkrs string ends
 			// up being empty in the code below. Therefore, I'm making modifications in
 			// ParseWord() to ensure that the pSrcPhrase->m_inlineNonbindingMarkers member

@@ -2974,6 +2974,19 @@ extern bool gbDoingInitialSetup;
 			msgDisplayed = progMsg.Format(progMsg, 4, nTotal);
 			pStatusBar->UpdateProgress(_("Merging Documents..."), 4, msgDisplayed);
 
+			// whm 15Nov2023 added. Here is where we should recreate/update the original .usfmstruct 
+			// file for the collab document that is being opened-with-merger from the text now contained
+			// in pBuffer. During collaboration, there is always the possibility that the source text 
+			// usfm structure may have been changed by the user through edits made within Paratext. Hence,
+			// we should always call the GetUsfmStructureAndExtent() function with the TRUE parameter
+			// here, and update the filter status of the .usfmstruct array/file after the TokenizeTextString()
+			// call below.
+			// Note: This SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+			// call below. Then, there should be a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+			// AFTER the TokenizeText[String]() call below.
+			bool bSetupOK;
+			bSetupOK = pDoc->SetupUsfmStructArrayAndFile(recreateExistingFile, *pBuffer);
+
 			// parse the new source text data into a list of CSourcePhrase instances
 			int nHowMany;
 			wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
@@ -3000,6 +3013,16 @@ extern bool gbDoingInitialSetup;
 				// whm 23Aug2018 added FinishProgress() must be called before return is called
 				pStatusBar->FinishProgress(_("Merging Documents..."));
 				return FALSE;
+			}
+
+			// whm 15Nov2023 added. Now that TokenizeTextString() has been called, update the Doc's
+			// m_UsfmStructArr and .usfmstruct file with the current filter status.
+			// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+			// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+			// AFTER the TokenizeText[String]() call is made below.
+			if (nHowMany > 0)
+			{
+				gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
 			}
 
 			SPList* pMergedList = new SPList; // store the results of the merging here
@@ -4839,10 +4862,12 @@ extern bool gbDoingInitialSetup;
 	/// string, or 0 when no text is associated with the marker, i.e. the MD5 checksum is
 	/// used where there are text characters associated with a usfm marker; when the
 	/// character count is zero, the MD5 checksum is also 0 in such cases.
+	/// whm 13Nov2023 added a second bool parameter suppressMD5Sum which defaults to FALSE
+	/// this change is to allow for creation of a usfm struct that omits the MD5 sums.
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
+	wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer, bool suppressMD5Sum) // default is FALSE
 	{
-		// process the buffer extracting an wxArrayString representing the general usfm structure
+		// Process the buffer extracting an wxArrayString representing the general usfm structure
 		// from of the fileBuffer (i.e., the source and/or target file buffers)
 		// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
 		// the form of the representation would be \mkr:1:nnnn:MD5, where the MD5 is a 32 byte hex
@@ -5000,8 +5025,11 @@ extern bool gbDoingInitialSetup;
 							// Calc md5Hash here, and below
 							md5Hash = wxMD5::GetMD5(stringForMD5Hash);
 						}
-						usfmDataStr += _T(':');
-						usfmDataStr += md5Hash;
+						if (!suppressMD5Sum)
+						{
+							usfmDataStr += _T(':');
+							usfmDataStr += md5Hash;
+						}
 						charCountSinceLastMarker = 0;
 						stringForMD5Hash.Empty();
 						lastMarker.Empty();
@@ -5130,8 +5158,11 @@ extern bool gbDoingInitialSetup;
 				// Calc md5Hash here, and below
 				md5Hash = wxMD5::GetMD5(stringForMD5Hash);
 			}
-			usfmDataStr += _T(':');
-			usfmDataStr += md5Hash;
+			if (!suppressMD5Sum)
+			{
+				usfmDataStr += _T(':');
+				usfmDataStr += md5Hash;
+			}
 			charCountSinceLastMarker = 0;
 			stringForMD5Hash.Empty();
 			lastMarker.Empty();
@@ -5212,7 +5243,7 @@ extern bool gbDoingInitialSetup;
 		return tempStr;
 	}
 
-	// get the substring for thee character count, and return it's base-10 value
+	// get the substring for the character count, and return it's base-10 value
 	int GetCharCountFromStructExtentString(const wxString str)
 	{
 		// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
@@ -11014,7 +11045,7 @@ extern bool gbDoingInitialSetup;
 				// If there is a parse failure, it happened after the last m_srcPhrase in
 				// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
 				// when "Make diagnostic logfile during document creation and opening" check box
-				// is ticked in the docPage or the GetSourceTextFromExternalEditor dialog.
+				// is ticked in the docPage or the GetSourceTextFromEditor dialog.
 				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in docPage of the Wizard or in GetSourceTextFromEditor dialog; it is OFF by default
 				{
 					// Construct the parameter string composed of the current output filename + date-time stamp for Now().
@@ -11262,6 +11293,24 @@ extern bool gbDoingInitialSetup;
 					// it doesn't exist, so we have to tokenize the source text coming from PT
 					// or BE, create the document, save it and lay it out in the view window...
 					wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+
+					// whm 15Nov2023 added. Here is where we should create the original .usfmstruct file
+					// for the collab document that is being created from m_collab_sourceChapterBuffer
+					// or m_collab_sourceWholeBookBuffer input text.
+					// Note: This SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+					// call below. Then, there should be a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+					// AFTER the TokenizeText[String]() call below.
+					bool bSetupOK;
+					if (pApp->m_bCollabByChapterOnly)
+					{
+						bSetupOK = gpApp->GetDocument()->SetupUsfmStructArrayAndFile(createNewFile, m_collab_sourceChapterBuffer);
+					}
+					else
+					{
+						bSetupOK = gpApp->GetDocument()->SetupUsfmStructArrayAndFile(createNewFile, m_collab_sourceWholeBookBuffer);
+					}
+
+
 					// parse the input file
 					int nHowMany;
 					SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
@@ -11275,6 +11324,17 @@ extern bool gbDoingInitialSetup;
 					{
 						nHowMany = pView->TokenizeTextString(pSourcePhrases, m_collab_sourceWholeBookBuffer, 0);
 					}
+
+					// whm 15Nov2023 added. Now that TokenizeTextString() has been called, update the Doc's
+					// m_UsfmStructArr and .usfmstruct file with the current filter status.
+					// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
+					// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
+					// AFTER the TokenizeText[String]() call is made below.
+					if (nHowMany > 0)
+					{
+						gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
+					}
+
 					// whm 14Apr2020 added following additional LogDocCreationData() call to indicate success
 					// of step 5.
 					if (pApp->m_bMakeDocCreationLogfile)

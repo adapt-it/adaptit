@@ -3033,7 +3033,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		// removals of perfectly good target text retranslations in the Kyaka Enga EPHesians
 		// collaboration with PT8. Good single-word retranslations, with tgt or tgt empty,
 		// were having the tgt text cleared. And at one place at least, a series of retranslations
-		// were not handled properly and the call failed due to a nullptr error. So better
+		// were not handled properly and the call failed due to a null pointer error. So better
 		// to just not have this call. I checked the first 8 instances of bogus removals,
 		// these were in the 1:1 to 2:10 range of Ephesians, so there would have been heaps
 		// more later, but I gave up looking for them all. No point, because the call is just

@@ -308,7 +308,9 @@ class CSetupEditorCollaboration;
 	enum			CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1,
 							const wxArrayString& usfmText2);
 	void			DeleteMD5MapStructs(wxArrayPtrVoid& structsArr);
-	wxArrayString	GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
+	// whm 13Nov2023 added a second bool parameter suppressMD5Sum below which defaults to FALSE
+	// this change is to allow for creation of a usfm struct that omits the MD5 sums.
+	wxArrayString	GetUsfmStructureAndExtent(wxString& sourceFileBuffer, bool suppressMD5Sum = FALSE);
 	bool			IsTextOrPunctsChanged(wxString& oldText, wxString& newText);
 	// overload of the above, taking arrays and start & finish item indices as parameters
 	bool			IsTextOrPunctsChanged(wxArrayString& oldMd5Arr, int oldStart, int oldEnd,
