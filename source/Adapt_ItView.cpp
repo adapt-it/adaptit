@@ -18338,7 +18338,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							int precPunctsLen = precPuncts.Length();
 							wxString strTheRest = wxEmptyString;
 							wxString strTgt = pSrcPhrase->m_targetStr;
-							if (precPunctsLen > 0)
+							if (bAlreadyHasPrecPunct && precPunctsLen > 0)
 							{
 								// Removed inital precPuncts, they were already added to strTgt, so don't add them a second time
 								strTheRest = strTgt.Mid(precPunctsLen);
