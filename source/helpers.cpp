@@ -8290,8 +8290,10 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 
 // BEW 11Oct10, for support of doc version 5
 // BEW 7Sep22 refactored to support glossing KB with m_adaption/gloss entries
+// BEW 28Nov23 we now ignore ~ between two words, we treat the pair as a single word
 bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 {
+	/* 28Nov23, always return FALSE, whether or not ~ is in pSrcPhrase's text members - src or tgt
 	wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	if (pSrcPhrase == NULL)
 	{
@@ -8318,6 +8320,7 @@ bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 				return TRUE;
 		}
 	}
+	*/
 	return FALSE;
 }
 

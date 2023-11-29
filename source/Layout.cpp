@@ -662,15 +662,19 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 
 	// BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only.
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
-#if defined(_DEBUG) && defined (_NEWDRAW)
+#if defined(_DEBUG) //&& defined (_NEWDRAW)
 	{ // set a temporary scope
 		int nActiveSequNum = m_pApp->m_nActiveSequNum;
 		CPile* pActivePile = GetPile(nActiveSequNum);
 		if (pActivePile != NULL)
 		{
-			wxLogDebug(_T("\n\n*** Entering PlaceBox() line %d,  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+			wxLogDebug(_T("\nPlaceBox() Entering, line %d, PhraseBox= [%s], m_curBoxWidth: %d m_curListWidth: %d, m_nWidth (the gap) %d,  m_nMinWidth  %d,  sequNum  %d,  adaption: [%s], m_SaveTargetPhrase [%s]"),
 				__LINE__, m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-				pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+				pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption, m_pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
+		}
+		if (pActivePile->GetSrcPhrase()->m_nSequNumber >= 118)
+		{
+			int halt_here = 1;
 		}
 	}
 #endif
