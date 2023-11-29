@@ -14,7 +14,7 @@
 
 <img src="https://github.com/adapt-it/adaptit/blob/master/res/screenshots/ai_main.png" width=512 height=400 alt="Main screen" title="Main screen" />
 
-Adapt It maintains a translation memory called a _Knowledge Base_ which stores previously-entered word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process. Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported to several formats -- USFM, Rich Text (rtf), HTML, or -- on Windows and Linux -- mobile formats such as .epub via the [SIL Pathway](http://pathway.sil.org/) program.
+Adapt It maintains a translation memory called a _Knowledge Base_ which stores previously-entered word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process. Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported to several formats -- USFM, Rich Text (rtf), HTML, or -- on Windows and Linux -- mobile formats such as .epub via the [SIL Pathway](https://software.sil.org/pathway/) program.
 
 <img src="https://github.com/adapt-it/adaptit/blob/master/res/screenshots/ai_export.png" width=444 height=400 alt="Export Options" title="Export Options" />
 
@@ -26,7 +26,7 @@ For those wanting to contribute to this project, check out the [wiki pages](http
 
 ## Philosophy
 
-Adapt It is a free open source tool for quickly translating between related languages. We seek to create, as a community, an adaptation tool that will run on all major platforms and facilitate translation of [USFM](http://paratext.ubs-translations.org/about/usfm) text, and support collaboration between other translation tools such as [UBS Paratext](http://paratext.ubs-translations.org/) and [Bibledit](https://sites.google.com/site/bibledit/).
+Adapt It is a free open source tool for quickly translating between related languages. We seek to create, as a community, an adaptation tool that will run on all major platforms and facilitate translation of [USFM](https://ubsicap.github.io/usfm/) text, and support collaboration between other translation tools such as [Paratext](https://paratext.org/) and [Bibledit](https://bibledit.org/).
 
 ## License
 
