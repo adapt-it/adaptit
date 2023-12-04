@@ -16800,7 +16800,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	// when str.Last() is called on an empty str. This assert occurred many times in Mike H's Exodus data.
 	if (!str.IsEmpty())
 	{
-		wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
+		wxLogDebug(_T("MakeTgtStrInclPunct JUST OPENED line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
 	}
 #endif
 	wxChar* pEnd = NULL; // init

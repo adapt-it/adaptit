@@ -23836,7 +23836,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bTimestampWasEmpty = FALSE; // default
 
-
     // BEW added 1Feb22, during app development, we need a place to store info from
     // the user table of kbserver, used for reliable authentication purposes. We set these
     // here - but in a release version these values will be defined by each user, along with
