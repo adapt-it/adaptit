@@ -5857,6 +5857,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	{
 		int textLen;
 		textLen = RebuildSourceText(inputBuffer, pList);
+		textLen = textLen;  // avoid gcc set but not used warning
 	}
 
 	m_usfmStructDirName = _T(".usfmstruct");
@@ -9162,6 +9163,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			SPList::Node* saveNextPos = NULL;
 			SPList::Node* prevPos = NULL;
 			SPList::Node* follPos = NULL; // whm 26Nov2023 added but unused.
+			follPos = follPos;  // avoid gcc set but not used warning
 
 			// Unfiltering loop starts - each iteration deals with one CSourcePhrase instance
 			while (pos != NULL)
@@ -18531,7 +18533,7 @@ wxString CAdapt_ItDoc::FindWordBreakChar(wxChar* ptr, wxChar* pBufStart)
 {
 	wxUnusedVar(pBufStart); // avoid gcc warning
 	wxString strReturn; strReturn = wxEmptyString; // initialize to a "safe" value
-	wxChar* pSpann; pSpann = ptr; 
+	wxChar* pSpann; pSpann = ptr; wxUnusedVar(pSpann);
 	wxString mySpan;
 	mySpan = wxEmptyString; // init
 	// BEW 22Mar23, MUST not return a NULL. pBufStart is a small local span, typically starting with
@@ -19036,6 +19038,7 @@ int CAdapt_ItDoc::ParseDate(wxChar* pChar, wxChar* pEnd, wxString spacelessPunct
 	int separatorCount = 0; // init
 	int nSaveOriginalLength = 0; // init
 	bool bIsPunct = FALSE; // init
+	bIsPunct = bIsPunct;  // avoid gcc set but not used warning
 
 	int dateSpanLen = 0;
 	wxChar aChar;
@@ -19520,6 +19523,7 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 					{
 unknown:				bool bIsAnEndMkr;
 						bIsAnEndMkr = FALSE; // initialize
+						bIsAnEndMkr = bIsAnEndMkr; // avoid gcc warning set but not used warning
 						int myOffset; myOffset = wxNOT_FOUND; // init
 						myOffset = wholeMkr.Find(wxString(_T('*')));
 						wxString wholeEndMkr;
@@ -19554,8 +19558,10 @@ unknown:				bool bIsAnEndMkr;
 								curKey = pCurSrcPhrase->m_key;
 								// BEW15Dec22 try to provide an approximate src string for the error - 30 chars
 								// either side of the ptr value, or less if near start of end of input source text
-								CSourcePhrase* pSPLocBefore; // go back 5 pSrcPhases, or to the sn = 0 one
-								CSourcePhrase* pSPLocAfter; // go forward 5 pSrcPhases, or to the sn = MAXINDEX one
+								CSourcePhrase* pSPLocBefore = NULL; // go back 5 pSrcPhases, or to the sn = 0 one
+								pSPLocBefore = pSPLocBefore; // avoid gcc warning set but not used warning
+								CSourcePhrase* pSPLocAfter = NULL; // go forward 5 pSrcPhases, or to the sn = MAXINDEX one
+								pSPLocAfter = pSPLocAfter; // avoid gcc warning set but not used warning
 								CPile* pLocBefore_Pile;
 								CPile* pLocAfter_Pile;
 								int maxIndex; maxIndex = gpApp->GetMaxIndex();
@@ -32425,6 +32431,7 @@ void CAdapt_ItDoc::LogSequNumbers_LimitTo(int nLimit, SPList* pList)
 	if (count > nLimit || count > 5)
 		return;
 	int sequNums[5];  // our sequ number storage array
+	wxUnusedVar(sequNums);
 	// initialize
 	sequNums[0] = -1;
 	sequNums[1] = -1;
@@ -33960,6 +33967,7 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 	// Parse the ch and vs from the incoming ChVs parameter value
 	bool bNeededReordering = FALSE;
 	bool bNoColonInRef = FALSE;
+	bNoColonInRef = bNoColonInRef; // avoid gcc warning set but not used warning
 	wxString colon = _T(":");
 	if (!ChVs.IsEmpty())
 	{
@@ -34270,6 +34278,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 		int allOffset = wxNOT_FOUND; // -1   for searching in allPuncts string
 		int strExtrasLen = strExtras.Length();
 		int allPunctsLen = allPuncts.Length(); // can't be guaranteed that these two lengths are equal
+		allPunctsLen = allPunctsLen; // avoid gcc warning set but not used warning
 
 		// Bleed out ending puncts which are not a single character; >> is the only such in our default puncts set;
 		// BEW 13Jul23, however, there are rare longer substrings which must be checked for first, ">> >" etc -- see above
@@ -34639,6 +34648,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 
 	int offset = wxNOT_FOUND; wxUnusedVar(offset); // avoid compiler warning variable initialized but not referenced
 	bool bOuterPunctHasContent = FALSE;
+	bOuterPunctHasContent = bOuterPunctHasContent; // avoid gcc warning set but not used warning
 	bool bNormalEndPunctsHasContent = FALSE;
 	int  nTotalEndPuncts = 0; // init
 	wxString backslash = _T("\\");
@@ -34665,9 +34675,12 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// Next, get the inventory of endMkrs, left to right order, as individual substrings for
 	// each marker type. Keeping separate types makes our algorithm easier to get right
 	int nBindingLen; int nNormalLen; int nNonbindingLen; // spans for each endMkr
+	wxUnusedVar(nBindingLen); // avoid gcc warning set but not used warning
+	wxUnusedVar(nNonbindingLen); // avoid gcc warning set but not used warning
 	nBindingLen = 0; nNormalLen = 0; nNonbindingLen = 0; // initialisations
 	int nTotalEndMkrs;
 	nTotalEndMkrs = 0; // init
+	nTotalEndMkrs = nTotalEndMkrs; // avoid gcc warning set but not used warning
 
 	bindingType = pSrcPhrase->GetInlineBindingEndMarkers();
 	int numBinding = 0; // count how many there are
@@ -35036,6 +35049,7 @@ bool CAdapt_ItDoc::CreateOldSrcBitsArr(CSourcePhrase* pSrcPhrase, wxArrayString&
 	// Find first punct, and subsequent, filling arrays with values. srcPattern could contain ">>" - beware
 	wxChar aChar; wxUnusedVar(aChar); // avoid compiler warning variable initialized but not referenced
 	wxChar* pCurrLocn; // use this to preserve where ptr got to when a closing punct was found
+	wxUnusedVar(pCurrLocn);
 	wxChar* pKickOffLocn; // where to start the scanning when current found punct's substring is appended to OldSrcBitsArr
 					   // (our loop does not remove wxChars as we scan)
 	int offset = wxNOT_FOUND; // init
@@ -35652,8 +35666,8 @@ bool CAdapt_ItDoc::IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spaceless
 	wxChar* ptr = pChar;
 	int offset = -1; wxUnusedVar(offset); // avoid compiler warning variable initialized but not referenced
 	bool bIsPunct = FALSE; wxUnusedVar(bIsPunct); // avoid compiler warning variable initialized but not referenced
-	bool bIs1Period = FALSE;
-	bool bIs2Periods = FALSE;
+	bool bIs1Period = FALSE; wxUnusedVar(bIs1Period);
+	bool bIs2Periods = FALSE; wxUnusedVar(bIs2Periods);
 	bool bIs3Periods = FALSE; wxUnusedVar(bIs3Periods); // avoid compiler warning variable initialized but not referenced
 	wxString periods1 = _T(".");
 	wxString periods2 = _T("..");
@@ -35744,7 +35758,7 @@ bool CAdapt_ItDoc::IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spaceless
 				// We know *p cannot be pointing at a period - we bled that option out above. So
 				// we can assume that ptr is pointing at a word-initial punctuation character.
 				// So return TRUE
-				wxNO_OP;
+				; //  wxNO_OP; whm removed since gcc says "statement had no effect"
 			}
 		}
 	}
@@ -37893,6 +37907,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					wxChar openParen = pSrcPhrase->m_precPunct.GetChar(0);
 					int newlen;
 					newlen = strContents.Length();
+					newlen = newlen; // avoid gcc warning set but not used warning
 					pSrcPhrase->m_follPunct = strTotal.GetChar(nSpanLen - 1);
 					strContents = strContents.Left(nSpanLen - 1); // remove the ) at the end
 					pSrcPhrase->m_key = strContents;
@@ -38084,6 +38099,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		augTheMkr = theMkr + _T(' ');
 		bool bIsCharAttributeMkr;
 		bIsCharAttributeMkr = FALSE; // init
+		bIsCharAttributeMkr = bIsCharAttributeMkr; // avoid gcc warning set but not used warning
 		offset = charAttributeMkrs.Find(augTheMkr); // if found, it's guaranteed to be a beginMkr
 
 		if (offset >= 0)
@@ -38656,6 +38672,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					int mkrsLen; int oldLen;
 					mkrsLen = pSrcPhrase->m_markers.Length();
 					oldLen = len;
+					oldLen = oldLen; // avoid gcc warning set but not used warning
 					ptr += mkrsLen;
 					len += mkrsLen;
 #if defined (_DEBUG) && !defined (NOLOGS)
@@ -39635,6 +39652,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 								int mkrsLen; int oldLen;
 								mkrsLen = pSrcPhrase->m_markers.Length();
 								oldLen = len;
+								oldLen = oldLen; // avoid gcc warning set but not used warning
 								ptr += mkrsLen;
 								len += mkrsLen;
 #if defined (_DEBUG) //&& !defined(NOLOGS) //&& defined(WHERE)
@@ -40017,6 +40035,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 
 					wxChar chSpace; chSpace = _T(' ');
 					int offset; offset = wxNOT_FOUND; // init
+					offset = offset; // avoid gcc warning set but not used warning
 
 					// First set of tests, having punct or puncts at pAux
 					// initial puncts could be . or .>>  (or other combinations?)
@@ -40207,6 +40226,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 				// we do it here because immediately following puncts will have been collected already
 				bool bParsedEndMaterial;
 				bParsedEndMaterial = FALSE; // initialise
+				bParsedEndMaterial = bParsedEndMaterial; // avoid gcc warning set but not used warning
 				if (m_bIsWithinUnfilteredInlineSpan == TRUE)
 				{
 					if (*ptr == gSFescapechar)
@@ -41775,6 +41795,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 
 				wxString strPuncts1 = wxEmptyString; // init
 				int nPuncts1 = 0; // init
+				nPuncts1 = nPuncts1; // avoid gcc warning set but not used warning
 
 				wxString strCountedSpaces1 = wxEmptyString; // init
 
@@ -41782,6 +41803,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 				wxString strToAdd1 = wxEmptyString;
 				wxString strEndMkrs1 = wxEmptyString;
 				int      nInlineBindingEMLen1 = 0;
+				nInlineBindingEMLen1 = nInlineBindingEMLen1; // avoid gcc warning set but not used warning
 				wxString strFirstPuncts = wxEmptyString; // init
 				wxString strIBEM = wxEmptyString; // init
 
@@ -42556,6 +42578,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 				wxChar* pSavePtr;
 
 				pSavePtr = ptr; // we may need to restore ptr to here in what follows
+				pSavePtr = pSavePtr; // avoid gcc warning set but not used warning
 // NOLOGS wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __LINE__, pSrcPhrase->m_markers.c_str(), len, wxString(ptr, 20).c_str());
 
 				//bool bWasInlineEndMkr = FALSE; // initialise
@@ -43410,6 +43433,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	m_bWidowedParenth = FALSE;
 	m_bWidowedBracket = FALSE;
 	bool bParsedNewlineBeforeVerseMarker; // BEW added 10Apr23 // whm 22Aug2023 note: this bool, it is never used
+	wxUnusedVar(bParsedNewlineBeforeVerseMarker); // avoid gcc warning set but not used warning
 	bool bContinueTwice;
 	bContinueTwice = FALSE;
 	bool bEmptySWBK; // set true when no backwards search for a src word break character is wanted
@@ -43417,6 +43441,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	wxString ptrPointsAt;
 	bKeepPtrFromAdvancing = FALSE; // init
 	wxChar* pVerseMkrAtPtr; // BEW added 3Jul23, set at top of IsVerseMarker() TRUE block
+	wxUnusedVar(pVerseMkrAtPtr);
 
 	// the parsing loop commences...
 	while (ptr < pEnd)
@@ -44561,7 +44586,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// was handled above for this pSrcPhrase. Nor \c, as like \v it too is followed by a number which
 					// must not be parsed as m_key text.
 					bVerseOrChaptMkr = FALSE;
-					if (ptr < pEnd && *ptr == gSFescapechar && !atMkr.IsEmpty() && (atMkr == _T("\\v")) || (atMkr == _T("\\c")) )
+					if ( (ptr < pEnd && *ptr == gSFescapechar && !atMkr.IsEmpty() && (atMkr == _T("\\v")) ) || (atMkr == _T("\\c")) )
 					{
 							bVerseOrChaptMkr = TRUE; // dont' entry TRUE block of next test 
 					}
@@ -44810,6 +44835,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				awholemkrlen = 0;
 				int offset;
 				offset = wxNOT_FOUND;
+				offset = offset; // avoid gcc warning set but not used warning
 				wxString strVerseSearch;
 				strVerseSearch = _T("\\v");
 				int nWhiteLen;
@@ -45106,10 +45132,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// the break statement there.
 							wxChar* auxPtr = ptr;
 							wxChar chAtAuxPtr = *auxPtr; wxUnusedVar(chAtAuxPtr); // avoid compiler warning variable initialized but not referenced
-							if (auxPtr < pEnd &&
-								((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
+							if ((auxPtr < pEnd) &&
+								(((*auxPtr == _T(' ') || *auxPtr == _T('\n')) && *(auxPtr + 1) == gSFescapechar && *(auxPtr + 2) == _T('v'))
 								|| ((*auxPtr == _T(' ') || (*auxPtr == _T('\r') && *(auxPtr + 1) == _T('\n')))
-									&& *(auxPtr + 2) == gSFescapechar && *(auxPtr + 3) == _T('v')) )
+									&& *(auxPtr + 2) == gSFescapechar && *(auxPtr + 3) == _T('v'))) )
 							{
 								// A verse marker follows either space or newline; so put the whitespace 
 								// into tokBuffer and update ptr, and 
@@ -45989,7 +46015,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// some as-yet unassigned content for m_markers.
 					wxChar* pSavedPtr;
 					pSavedPtr = ptr;
-					int nSaveItemLen;
+					int nSaveItemLen; wxUnusedVar(nSaveItemLen);
 					int anItemLen; // use if we parse over some content
 					anItemLen = 0; // initialise
 					bool bIsEndMkr = FALSE; // init
@@ -46787,6 +46813,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// avoids GCC error "jump to label 'isnull' ... crosses initialization of bool bInUnfileterdInlineSpan"
 					bool bInUnfilteredInlineSpan;
 					bInUnfilteredInlineSpan = FALSE;
+					bInUnfilteredInlineSpan = bInUnfilteredInlineSpan; // avoid gcc warning set but not used warning
 
 					// Might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
 					// test and jump to further down -- so that \yy ends up in m_markers, and
@@ -48334,6 +48361,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 			// BEW 13Dec22 - the code above is now correct, only a few small changes, and int nFirstSequNumOfSpan moved to be member on Doc.h
 
 			bool bIsUnknownMkr = FALSE; // init
+			bIsUnknownMkr = bIsUnknownMkr; // avoid gcc warning set but not used warning
 			// Set TextType and m_bSpecialText according to what the type and special text
 			// value are for the last marker in tokBuffer. We have to handle beginMkrs first,
 			// and further down, endMkrs which typically end some kind of span
@@ -48394,6 +48422,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 				wxASSERT(!strLastEndMkr.IsEmpty());
 			}
 			bool bEndedffexspanUsedToChangedTextType = FALSE; // init
+			bEndedffexspanUsedToChangedTextType = bEndedffexspanUsedToChangedTextType; // avoid gcc warning set but not used warning
 
 			if (!wholeBeginMkr.IsEmpty() || !strLastEndMkr.IsEmpty()) // BEW 15Jun23 added 2nd subtest
 			{
@@ -48451,6 +48480,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 								// wholeBeginMkr is a poetry marker (\v may follow, so use the flag
 								// later to prevent poetry TextType from being overridden by verse)
 								bContainsPoetryMarker = TRUE;
+								bContainsPoetryMarker = bContainsPoetryMarker; // avoid gcc warning set but not used warning
 							}
 							// Analyse the wholeBeginMkr itself, using its short data buffer.
 							// Internally it will set pSrcPhrase->m_curTextType if appropriate,
@@ -48646,6 +48676,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 								// because when that is the current pSrcPhrase, pLastSrcPhrase is NULL. Note,
 								// we are here dealing with beginMkrs, which start off a colour change from blue to red. 
 								int offset; offset = wxNOT_FOUND; // init
+								offset = offset; // avoid gcc warning set but not used warning
 								wxString bareMkr;
 								if (pLastSrcPhrase != NULL)
 								{

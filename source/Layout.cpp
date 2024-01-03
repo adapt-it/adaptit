@@ -674,7 +674,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 		}
 		if (pActivePile->GetSrcPhrase()->m_nSequNumber >= 118)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif

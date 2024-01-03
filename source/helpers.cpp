@@ -6127,6 +6127,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	// space symbol ~
 	bool bIsFixedSpaceConjoined;
 	bIsFixedSpaceConjoined = FALSE; // BEW 28Aug23 we no longer test for ~ conjoining, we just accept it as a longer word
+	bIsFixedSpaceConjoined = bIsFixedSpaceConjoined; // avoid gcc warning: set but not used
 	//bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase); // BEW 28Aug23 commented out
 	bool bBindingMkrsToReplace = FALSE;
 	wxString rebuiltTstr; rebuiltTstr.Empty();
@@ -6640,7 +6641,10 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				// Comparing CopiedTstr with original Tstr, the former has it all correct, the original has just ;?” sfter \em*
 				// and CopiedTstr will have target text punctuation glyphs, so proceed by using CopiedTstr
 				Tstr = CopiedTstr;
-				pSingleSrcPhrase->m_tgtMkrPattern; // store the pattern, for non-merger pSingleSrcPhrase
+				// whm 3Jan2024 noted gcc compiler say about following line: "Statement has no effect". I assum
+				// that Tstr should be assigned to the m_tgtMkrPattern.
+				// TODO: BEW should verify this assumption
+				pSingleSrcPhrase->m_tgtMkrPattern = Tstr; // pSingleSrcPhrase->m_tgtMkrPattern; // store the pattern, for non-merger pSingleSrcPhrase
 
 				return Tstr;
 			} // end of TRUE block for test: if (bIsAmbiguousForEndmarkerPlacement == FALSE)
@@ -8293,6 +8297,7 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 // BEW 28Nov23 we now ignore ~ between two words, we treat the pair as a single word
 bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 {
+	wxUnusedVar(pSrcPhrase);
 	/* 28Nov23, always return FALSE, whether or not ~ is in pSrcPhrase's text members - src or tgt
 	wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	if (pSrcPhrase == NULL)
@@ -14188,6 +14193,7 @@ bool AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxStri
 	int offset; int mkrSpanLen; wxString wholeMkr; wxString remainder; wxChar space; wxString itsPuncts; int numWhites;
 	offset = -1;
 	mkrSpanLen = 0;
+	mkrSpanLen = mkrSpanLen; // avoid gcc warning: set but not used
 	wholeMkr = wxEmptyString;
 	remainder = wxEmptyString;
 	numWhites = 0;

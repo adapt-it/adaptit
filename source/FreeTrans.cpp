@@ -7295,7 +7295,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                     m_pApp->m_bUserDlgOrMessageRequested = TRUE;
 					if (pPrevPile->GetSrcPhrase()->GetFreeTrans().IsEmpty())
 					{
-						wxNO_OP;
+						; //  wxNO_OP; whm removed since gcc says "statement had no effect"
 					}
 					else
 					{

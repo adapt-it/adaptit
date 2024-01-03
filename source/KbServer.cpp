@@ -1764,6 +1764,7 @@ bool KbServer::Line2EntryStruct(wxString& aLine)
 	int index = 0; // initialise iterator
 
 	offset = wxNOT_FOUND;
+	offset = offset; // avoid gcc warning: set but not used
 	wxString left;
 	//int anID = 0; // initialise
 	

@@ -1780,6 +1780,7 @@ void DoExportAsType(enum ExportType exportType)
 	case sourceTextExport:
 	{
 		nTextLength = RebuildSourceText(source, pList);
+		nTextLength = nTextLength; // avoid gcc warning set but not used warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
 		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
@@ -20753,6 +20754,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 						{
 							*pOld++;
 							*pOld++;
+							*pOld = *pOld; // avoid gcc warning set but not used warning
 						}
 						else
 						{
@@ -20776,7 +20778,9 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 					*pNew++;
 					*pNew = LF;
 					*pNew++;
+					*pNew = *pNew; // avoid gcc warning set but not used warning
 					*pOld++; // advance only one char in pOld
+					*pOld = *pOld; // avoid gcc warning set but not used warning
 				}
 			}
 			else
@@ -20808,6 +20812,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				*(pNew-1) = CR; // replacing the previous EOL char with CR
 				*pNew = LF;
 				*pNew++; // the (wxChar)0 will go after the LF here, done below
+				*pNew = *pNew; // avoid gcc warning set but not used warning
 			}
 			else
 			{
@@ -20817,6 +20822,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				*pNew++;
 				*pNew = LF;
 				*pNew++; // the (wxChar)0 will go after the LF here, done below
+				*pNew = *pNew; // avoid gcc warning set but not used warning
 			}
 		}
 

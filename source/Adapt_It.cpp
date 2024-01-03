@@ -19635,7 +19635,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
 {
     // BEW 9Feb23 the dataFolderPath needs to be the path to _DATA_KB_SHARING folder.
     // But this path, will vary - for a released version, it will be in the work folder;
-    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug\
+    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug\ 
     // (or Unicode Release), and so there has to be a _DATA_KB_SHARING folder put manually
     // in each, to get dev work done on kbserver. Fix this. execFolderPath is what to use.
     wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; 
@@ -22199,10 +22199,9 @@ int system_hidden(const char* cmdArgs)
             QS_ALLPOSTMESSAGE);
         if ((ret == WAIT_FAILED) || (ret == WAIT_OBJECT_0))
             break;
-        //*
+        // *
         // * Don't block message loop
-        //*/
-        /*
+        // *
         MSG msg;
         while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
         {
@@ -22412,6 +22411,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
         // It would be nice if there is a setting for system() that suppressed showing the CMD window. I'll try google
         int rv = -1; // initialise
+        rv = rv; // avoid gcc set but not used warning
         /*  wxExecute above worked quicker & robustly
         bool bExecutedSucceeded = FALSE; // initialise
         const char* pstart = "do_create_entry.exe";
@@ -64629,7 +64629,9 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
     // pSrcPhrase's puncts members lack.
 
     bool bNoFinalPuncts = TRUE; // init
+    bNoFinalPuncts = bNoFinalPuncts;  // avoid gcc set but not used warning
     bool bNoPrecPuncts = TRUE; // init
+    bNoPrecPuncts = bNoPrecPuncts;  // avoid gcc set but not used warning
     str = this->m_targetPhrase;
     // BEW 12Oct23, if user typed preceding and/or following puncts manually, this->m_targetPhrase will have them
     // "in place" already, so we must determine if there were manual puncts typed. If so, their existence must be determined.
@@ -64689,7 +64691,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str(), strManuallyTypedPrecPuncts.c_str(), strManuallyTypedFollPuncts.c_str());
     if (pSrcPhrase->m_nSequNumber >= 1)
     {
-        int halt_here = 1;
+        int halt_here = 1; wxUnusedVar(halt_here);
     }
 #endif
     wxString theEndStuff = wxEmptyString; // init
