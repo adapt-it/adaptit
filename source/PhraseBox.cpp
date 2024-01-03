@@ -9208,7 +9208,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	{
 		wxLogDebug(_T("DoStore_ForPlacePhraseBox(), line %d, targetPhrase= [%s], pApp->m_bCopySourcePunctuation= %d, sequNumber= %d"),
 			__LINE__, targetPhrase.c_str(), (int)pApp->m_bCopySourcePunctuation, pActiveSrcPhrase->m_nSequNumber);
-		if (pActiveSrcPhrase->m_nSequNumber >= 0)
+		if (pActiveSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -9238,7 +9238,29 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		{
 			pActiveSrcPhrase->m_adaption = wxEmptyString;
 			pActiveSrcPhrase->m_targetStr = wxEmptyString;
-//BEW 9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			//BEW 9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			// BEW 4Dec23 a MakeTargetStringIncludingPunctuation() call should not be done when
+			// punctuation has been added correctly to pSrcPhrase->m_targetStr, and the a RemovePunctuation
+			// call done before StoreText() is called with m_bInhibitMakeTargetStringCall set to FALSE (the default)
+			// when the using is clicking to place the box elsewhere (or even at same location). Why, when the box
+			// moves, the puncts at the just left location are lost. So test for the right context and set
+			// m_bInhibitMakeTargetStringCall to TRUE, restoring FALSE after the StoreText() call completes
+			//if (pApp->m_bUserTypedSomething == TRUE && m_bBoxTextByCopyOnly == FALSE && pApp->m_bAutoInsert == FALSE)
+
+			// Setting m_bInhibitMakeTargetStringCall = TRUE, does the job. But gotta prevent setting TRUE when box
+			// advancement is by Enter keypress, so get there values here and examine in order to set an if test
+			//bool userTyped = pApp->m_bUserTypedSomething;
+			//bool byCopyOnly = m_bBoxTextByCopyOnly;
+			//bool autoInsert = pApp->m_bAutoInsert;
+			//bool abandonable = m_bAbandonable;
+			//bool punctFlag = m_bCurrentCopySrcPunctuationFlag;
+			//wxString tgtstr = pActiveSrcPhrase->m_targetStr;
+			bool hasFinalPuncts = !pActiveSrcPhrase->m_follPunct.IsEmpty();
+			bool hasPrecPuncts = !pActiveSrcPhrase->m_precPunct.IsEmpty();
+			if (hasFinalPuncts == TRUE || hasPrecPuncts == TRUE)
+			{
+				pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			}
 
 			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
@@ -9264,6 +9286,20 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			pActiveSrcPhrase->m_targetStr = wxEmptyString; // start off empty
 
 //BEW9Aug23			//pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			// Setting m_bInhibitMakeTargetStringCall = TRUE, does the job. But gotta prevent setting TRUE when box
+			// advancement is by Enter keypress, so get there values here and examine in order to set an if test
+			//bool userTyped = pApp->m_bUserTypedSomething;
+			//bool byCopyOnly = m_bBoxTextByCopyOnly;
+			//bool autoInsert = pApp->m_bAutoInsert;
+			//bool abandonable = m_bAbandonable;
+			//bool punctFlag = m_bCurrentCopySrcPunctuationFlag;
+			//wxString tgtstr = pActiveSrcPhrase->m_targetStr;
+			bool hasFinalPuncts = !pActiveSrcPhrase->m_follPunct.IsEmpty();
+			bool hasPrecPuncts = !pActiveSrcPhrase->m_precPunct.IsEmpty();
+			if (hasFinalPuncts == TRUE || hasPrecPuncts == TRUE)
+			{
+				pApp->m_bInhibitMakeTargetStringCall = TRUE;
+			}
 			bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase, targetPhrase);
 			pApp->m_bInhibitMakeTargetStringCall = FALSE;
 

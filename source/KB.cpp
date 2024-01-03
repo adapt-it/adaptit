@@ -4315,10 +4315,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString saveTgtPhrase = tgtPhrase;
 #if defined (_DEBUG)
 	{
+		wxString boolvalue = gpApp->m_bInhibitMakeTargetStringCall ? _T("TRUE") : _T("FALSE");
+		wxLogDebug(_T("StoreText(pSrcPhrase, &targetPhrase, bSupportNoAdaptationButton) line %d, pApp->m_bInhibitMakeTargetStringCall is %s"),
+					__LINE__, boolvalue.c_str() );
 		wxString str2sg = _T("your(sg");
 		int offset = -1;
 		offset = tgtPhrase.Find(str2sg);
-		if (offset != -1)
+		//if (offset != -1)
+		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}

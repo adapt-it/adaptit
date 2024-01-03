@@ -23836,7 +23836,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bTimestampWasEmpty = FALSE; // default
 
-
     // BEW added 1Feb22, during app development, we need a place to store info from
     // the user table of kbserver, used for reliable authentication purposes. We set these
     // here - but in a release version these values will be defined by each user, along with
@@ -64594,7 +64593,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
 #if defined (_DEBUG) //&& !defined (NOLOGS)
     wxLogDebug(_T("SimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_key= [%s] pSP->m_adaption= [%s], pSP->m_follPunct= [%s]"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_follPunct.c_str());
-    if (pSrcPhrase->m_nSequNumber >= 2)
+    if (pSrcPhrase->m_nSequNumber >= 1)
     {
         int halt_here; wxUnusedVar(halt_here);
     }
@@ -64614,212 +64613,109 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
     {
         return str;
     }
-
-    if (pSrcPhrase->m_adaption.IsEmpty())
-    {
-        // BEW 24May23, don't return if m_adaption is still empty, use pSrcPhrase's m_key as
-        // a starting point, so that control can get past the early returns to check out the
-        // punctuations further down. m_key won't be empty.
-        //return str;
-        pSrcPhrase->m_adaption = pSrcPhrase->m_key;
-        //wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
-    }
 #if defined (_DEBUG) //&& !defined (NOLOGS)
     wxLogDebug(_T("SimplePunctuationRestoration() line %d, sn= %d, pSrcPhrase->m_precPunct= [%s] pSrcPhrase->m_follPunct= [%s]"),
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_follPunct.c_str());
-
 #endif
     // whm 6Oct2023 modification and testing. It would seem that the purpose of this function is for punctuation 
     // "Restoration" which I would interpret as including the restoration of any user-typed punctuation to the 
-    // current pSrcPhrase. (BEW 12Oct23 - Bill's assumption is not correct.)
+    // current pSrcPhrase. (BEW 12Oct23 - Bill's assumption is not correct. The caller does replacements)
     // BEW The rest of this comment is okay.
     // When the user types some punctuation that was not already present after input parsing, 
-    // it is not stored in the pSrcPhrase->m_adaption member. Previously, assigning str the value from the 
+    // it is not stored in the pSrcPhrase puncts members. Previously, assigning str the value from the 
     // pSrcPhrase->m_adaption member, this SimplePunctuationRestoration() function misses any user-typed punctuation. 
     // Therefore, I've opted to use the App's m_targetPhrase member - assigning it to str below rather than the
     // pSrcPhrase->m_adaption member. The App's m_targetPhrase will have the user-typed punctuation on it that 
-    // pSrcPhrase->m_adaption lacks.
-    //str = pSrcPhrase->m_adaption;
+    // pSrcPhrase's puncts members lack.
+
     bool bNoFinalPuncts = TRUE; // init
     bool bNoPrecPuncts = TRUE; // init
     str = this->m_targetPhrase;
     // BEW 12Oct23, if user typed preceding and/or following puncts manually, this->m_targetPhrase will have them
-    // "in place" already, so we must determine if there manual puncts typed. If so, their existence must be determined
-    // using m_key's value, and we then set the "bHandled..." bools accordingly. 
+    // "in place" already, so we must determine if there were manual puncts typed. If so, their existence must be determined.
+     
     // DO NOT assign to pSrcPhrase->m_precPunct or m_follPunct herein, as these assignments will be handled further 
     // down in the caller, and to do it here would produce puncts doubling.
-    wxString theKey = pSrcPhrase->m_key;
-    int keyLen = theKey.Length();
-    int offset = wxNOT_FOUND;
-    offset = str.Find(theKey);
-    if (offset > 0)
-    {
-        // There is something before theKey, assume it's preceding punctuation
-        bHandledPrecPuncts = TRUE;
-    }
-    wxString theEndStuff = wxEmptyString; // init
-    theEndStuff = str.Mid(offset);
-    theEndStuff = theEndStuff.Mid(keyLen);
-    if (!theEndStuff.IsEmpty())
-    {
-        // There is content following m_key, assume it is following punctuation
-        bHandledFollPuncts = TRUE;
-    }
-    if (bHandledPrecPuncts == TRUE || bHandledFollPuncts == TRUE)
-    {
-        // Nothing more needs to be done, if pSrcPhrase has no preceding or following puncts,
-        // but if it has one or the other, override the bool setting for that one & continue herein
-        if (!pSrcPhrase->m_precPunct.IsEmpty())
-        {
-            bHandledPrecPuncts = FALSE; // This function should deal with existing preceding puncts itself
-        }
-        else if (!pSrcPhrase->m_follPunct.IsEmpty())
-        {
-            bHandledFollPuncts = FALSE; // This function should deal with existing following puncts itself
-        }
-        else
-        {
-            // Neither, so str is correct, "as is"
-            return str; // sets caller wxString, strResult, to key plus manually typed puncts
-        }
-    }
 
-    // BEW 6Feb23, Top half of this function checks what's on m_adaption, which is likely to have no puncts,
-    // so it will initialise bNoFinalPuncts to TRUE, and bNoPrecPuncts to TRUE. The lower half then checks
-    // if pSrcPhrase has stored puncts in m_precPunt, m_follPunct, or m_follOuterPunt; and depending on the
-    // result of those tests, preceding and/or following puncts will be added
-#if defined (_DEBUG)
-    {
-        if (pSrcPhrase->m_nSequNumber >= 0) // && !pSrcPhrase->m_precPunct.IsEmpty())
-        {
-            int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
-        }
-    }
-#endif
+    // Check for manually typed following puncts, in this->m_targetPhrase (e.g. "(unknown)" has ")"
     if (!str.IsEmpty())
     {
         wxChar chLast = str.Last();
         if (m_strSpacelessTargetPuncts.Find(chLast) >= 0)
         {
             bNoFinalPuncts = FALSE;
-            bHandledFollPuncts = TRUE; // for caller to know
+            bHandledFollPuncts = TRUE; // TRUE means Simple..() handled all the punctuation issues internally
+                // this value will be changed to FALSE if we determine that manually typed final puncts exist
         }
     }
-    // Now check if there are any user-typed preceding puncts to deal with, in str
+    // Check if there are any user-typed preceding puncts to deal with, in this->m_targetPhrase;
     if (!str.IsEmpty())
     {
         wxChar chFirst = str.GetChar(0);
         if (m_strSpacelessTargetPuncts.Find(chFirst) >= 0)
         {
             bNoPrecPuncts = FALSE; // there's some to be dealt with (in the caller)
-            bHandledPrecPuncts = TRUE; // BEW added 11Oct23 so caller can know there 
-                                       // is 1 or more preceding puncts
+            bHandledPrecPuncts = TRUE; // TRUE means Simple..() handled all the punctuation issues internally
+                // this value will be changed to FALSE if we determine that manually typed final puncts exist
         }
     }
-    // also check for any from pSrcPhrase's m_precPunct member to be dealt with here; 
-    // there might be a detached punct, detached by a following nonbreaking space (nbsp)
-    // before the word, e.g. or by a normal Latin/English space, or hairspace etc
+    // Get the punctuation-less m_adaptation value, put in strNoPuncts; that enables setting m_adaption text
+    CAdapt_ItView* pView = GetView();
+    CAdapt_ItDoc* pDoc = GetDocument();
+    wxString saveStr = str; // preserve
+    wxString* pStr = &str; // the value in this->m_targetPhrase
+    wxString strNoPuncts;
+    pView->RemovePunctuation(pDoc, pStr, 1); // any begin or ending puncts get removed, so need saveStr to restore
+    strNoPuncts = *pStr;
+    strNoPuncts.Trim(); // because RemovePunctuation usually leaves a space at end, which was not in the input
+    pSrcPhrase->m_adaption = strNoPuncts; // RHSide comes from value in app's m_targetPhrase wxString value, i.e. phraseBox contents as typed
 
-    wxString precPunct = wxEmptyString;
-    if (!pSrcPhrase->m_precPunct.IsEmpty()) 
+    str = saveStr; // restore str value (which may have manually typed puncts before, after, both, or none at all) -- but don't need this restoration
+
+    // Work out what any manually typed preceding puncts are; then do same for manually typed following ones - if any
+    wxString strManuallyTypedPrecPuncts = wxEmptyString;
+    wxString strManuallyTypedFollPuncts = wxEmptyString;
+    int offset = -1;
+    offset = str.Find(strNoPuncts);
+    strManuallyTypedPrecPuncts = str.Left(offset);
+    wxString reversed = MakeReverse(str);
+    offset = -1;
+    wxString reversedStrNoPuncts = MakeReverse(strNoPuncts);
+    offset = reversed.Find(reversedStrNoPuncts);
+    strManuallyTypedFollPuncts = reversed.Left(offset);
+    MakeReverse(strManuallyTypedFollPuncts);
+#if defined (_DEBUG)
+    wxLogDebug(_T("SimplePunctuationRestoration() line %d, sequNum = %d, pSrcPhrase->m_adaption= [%s], strManuallyTypedPrecPunct= [%s], strManuallyTypedFollPuncts= [%s]"),
+        __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str(), strManuallyTypedPrecPuncts.c_str(), strManuallyTypedFollPuncts.c_str());
+    if (pSrcPhrase->m_nSequNumber >= 1)
     {
-        precPunct = pSrcPhrase->m_precPunct;
-        int precPunctLen = precPunct.Length();
-        if (precPunctLen > 1)
+        int halt_here = 1;
+    }
+#endif
+    wxString theEndStuff = wxEmptyString; // init
+    // BEW 28Nov23 maybe only a valid m_adaption value is all we need to return
+    if (!strNoPuncts.IsEmpty())
+    {
+        // BEW 28Nov23 determine if we need to make bHandledPrecPuncts and bHandledFollPuncts FALSE so that
+        // the MakeTargetStringIncludingPunctuation() caller can have add some subtests in it, to get more robustness
+        if (!strManuallyTypedFollPuncts.IsEmpty())
         {
-            // there may be more than one, or there may be the sequence "<punct><nbsp>"
-            // and if the latter, the <nbsp> character does not play well with
-            // GetConvertedPunct(), so we need a little 'smart' function hack round this problem
-
-            // replace the following with a function
-            // is there a whitespace at the end of m_precPunct?
-            wxChar chLast = precPunct.GetChar(precPunctLen - 1);
-            bool bIsWhite = GetDocument()->IsWhiteSpace(&chLast);
-            if (bIsWhite)
-            {
-                // There is a whitespace at end of pSrcPhrase->m_precPunct. IsWhiteSpace() handles
-                // English space, nbsp, hairspace and many other widths of space
-                wxString strLeft = precPunct.Left(precPunctLen - 1); // everything before the final whitespace
-                // We can call GetConvertedPunct() now, as the whitespace that would mess it up is absent
-                wxString converted = GetConvertedPunct(strLeft);
-                // Now put the pieces back together
-                if (!converted.IsEmpty())
-                {
-                    precPunct = converted;
-                    precPunct << chLast;
-                    bHandledPrecPuncts = TRUE; // the value for the caller to grab
-                }
-
-            } // end of TRUE block for test: if (bIsWhite)
-            else
-            {
-                // At the end of pSrcPhrase->m_precPunct there is something other than a whitespace
-                precPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
-                bHandledPrecPuncts = TRUE; // the value for the caller to grab
-            }
-
-        } // end of TRUE block for test: if (precPunctLen > 1)
-        // BEW 12Oct23, if str already has preceding punct/s from pSrcPhrase, to add same again
-        // would produce preceding-puncts doubling. Protect. Use bHandledPrecPuncts TRUE to avoid duplicating
-        if (!bHandledPrecPuncts)
-        {
-            // Skip this if bHandledPrecPuncts is TRUE, because str already has correct form
-            str = precPunct + str;
+            bHandledFollPuncts = FALSE; // set, but caller no longer uses it - but could at point of need
         }
-    } // end of TRUE block for test: if (!pSrcPhrase->m_precPunct.IsEmpty())
-
+        if (!strManuallyTypedPrecPuncts.IsEmpty())
+        {
+            bHandledPrecPuncts = FALSE; // set, but caller no longer uses it - but could at point of need
+        }
+        str = strNoPuncts; // doing this would mean that the caller will work out the puncts
+    }
 #if defined (_DEBUG)
     {
-        if (pSrcPhrase->m_nSequNumber >= 1 && !pSrcPhrase->m_follPunct.IsEmpty())
+        if (pSrcPhrase->m_nSequNumber >= 1) // && !pSrcPhrase->m_precPunct.IsEmpty())
         {
             int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
         }
     }
 #endif
-    wxString follPunct = wxEmptyString; // init
-    if (!pSrcPhrase->m_follPunct.IsEmpty() && !bNoFinalPuncts)
-    {
-        // BEW 24May23 some data markups may make a point of detaching punctuation from
-        // text by a whitespace character (eg. non-breaking space, nbsp, = U+00A0)
-        // GetConvertedPunct() does not work well when the punct to be converted is
-        // preceded by a whitespace character - so check here, and remove and store
-        // the whitespace temporarily, and submit the punct char following to the
-        //GetConvertedPunct() function, then put the whitespace back in position
-        follPunct = pSrcPhrase->m_follPunct;
-        // BEW 15Oct23 prevent duplication of following puncts
-        if (!theEndStuff.IsEmpty() && (theEndStuff != follPunct))
-        {
-            // Don't do this block if the two strings are identical
-            int follPunctLen = follPunct.Length();
-            if (follPunctLen > 1)
-            {
-                follPunct = CAdapt_ItApp::SmartTgtConvert(follPunct);
-                bNoFinalPuncts = FALSE;
-            }
-            else
-            {
-                follPunct = GetConvertedPunct(follPunct);
-            }
-            str += follPunct;
-            if (bNoFinalPuncts == FALSE)
-            {
-                bHandledFollPuncts = TRUE;
-            }
-        }
-        else if (theEndStuff.IsEmpty() && !pSrcPhrase->m_follPunct.IsEmpty())
-        {
-            wxString endPuncts = pSrcPhrase->m_follPunct;
-            endPuncts = GetConvertedPunct(endPuncts);
-            str += endPuncts;
-        }
-        
-    } // end of TRUE block for test: if (!pSrcPhrase->m_follPunct.IsEmpty() && !bNoFinalPuncts)
-
-    if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty() ) // && !bNoFinalPuncts)
-    {
-        wxString follOuterPunct_pSP = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
-        str += follOuterPunct_pSP;
-    }
 	return str;
 }
 

@@ -3231,7 +3231,6 @@ public:
 	int m_savedSelectionAnchorIndex; // the sequence number for the pile where saved selection starts
 	int m_savedSelectionCount; // how many consecutive CCell (or CPile) instances are in the selection
 
-
 	bool m_bSelectByArrowKey; // TRUE when user is using ALT + arrow key to extend sel'n
                 //next two cannot be removed for refactored layout, because they are needed
                 //for backwards compatibility of the config files; retain them, but make no
