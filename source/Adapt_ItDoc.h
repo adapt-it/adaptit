@@ -381,8 +381,14 @@ public:
 
 	// whm 10Nov2023 added the following to aid in insertion of marker-being-unfiltered into pList
 	// when a previous adjacent marker must occur under the current marker-being-unfiltered.
+	/*
+	// The following are currently unused
 	bool			ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Node* currPos, 
 					SPList::Node*& prevPos, wxString occursUnderStr);
+	wxString		GetAdjacentUsfmMarkersAndTheirFilterStatus(wxString mkr, wxString ChVs, wxArrayString m_UsfmStructArr, 
+					wxString& filterStatusStr, wxString& filterableMkrStr);
+	*/
+	void			ParseUsfmStructLine(wxString line, wxString& mkr, wxString& numChars, wxString& filterStatus);
 	wxArrayString	m_UsfmStructArr;
 	wxString		m_UsfmStructStringBuffer;
 	wxString		m_usfmStructFilePathAndName;
@@ -392,8 +398,11 @@ public:
 	wxString		m_usfmStructFileName;
 	bool			SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess, wxString& 
 						pInputBuffer, SPList* pList = NULL);
-	void			GetFilterableMarkersFromString(wxString tempMkrs, wxArrayString& filterableMkrsArray);
+	void			GetFilterableMarkersFromString(wxString tempMkrs, 
+						wxArrayString& filteredMkrsArrayWithFilterBrackets, wxArrayString& filterableMkrsArray);
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
+	wxString		ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr);
+	int				GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int aboveThisValue);
 
 	// **** functions involved in removing the need for having placement dialogs, DOCUMENT_VERSION 10 ********
 
@@ -436,6 +445,7 @@ public:
 	wxString		GetWholeMarker(wxString str);
 	wxString		GetMarkerWithoutBackslash(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxChar* pChar);
+	wxString		GetBareMarkerForLookup(wxString wholeMkr); // whm 30Nov2023 added
 	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);

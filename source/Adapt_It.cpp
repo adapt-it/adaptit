@@ -30786,6 +30786,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#endif
 
     // **** test code fragments here ****
+
+    /*
+    // Test the ReorderFilterMaterialUsingUsfmStructData() function
+    // Make up a couple instances of a filterStr to input into the function, one with a wrong order and another with
+    // a correct order according to the test_UsfmStructArr containing the noral correct ordering.
+    wxString filteredStuffWrongOrder = _T("\\~FILTER \\s This is a subheading\\~FILTER*\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*\\~FILTER \\r This is a parallel reference\\~FILTER*");
+    wxString filteredStuffInOrder = _T("\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*\\~FILTER \\s This is a subheading\\~FILTER*\\~FILTER \\r This is a parallel reference\\~FILTER*");
+    wxString ChVs = _T("10:52");
+    // Make up a test version of m_UsfmStructArr that has 4 adjacent filterable markers in their normal correct ordering
+    wxArrayString test_UsfmStructArr;
+    test_UsfmStructArr.Clear();                 // index
+    test_UsfmStructArr.Add(_T("\\c 10:0:0"));   // 0
+    test_UsfmStructArr.Add(_T("\\v 52:155:0")); // 1
+    test_UsfmStructArr.Add(_T("\\c 11:0:0"));   // 2
+    test_UsfmStructArr.Add(_T("\\ms:47:1"));    // 3
+    test_UsfmStructArr.Add(_T("\\mr:13:1"));    // 4
+    test_UsfmStructArr.Add(_T("\\s:32:1"));     // 5
+    test_UsfmStructArr.Add(_T("\\r:43:1"));     // 6
+    test_UsfmStructArr.Add(_T("\\p:0:0"));      // 7
+    test_UsfmStructArr.Add(_T("\\v 1:127:0"));  // 8
+    filteredStuffInOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffInOrder, ChVs, test_UsfmStructArr);
+    int debugBreak = -1;
+    filteredStuffWrongOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffWrongOrder, ChVs, test_UsfmStructArr);
+    debugBreak = -1; wxUnusedVar(debugBreak);
+    */
+
     /*
     // GDLC 24OCT12 testing the new wxUUID class
     wxString test_UUID = GetUuid();
