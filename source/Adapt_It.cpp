@@ -19046,9 +19046,10 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 	// we default them all to FALSE here, to ensure code which
 	// checks for TRUE doesn't get invoked for any funcNumber,
 	// until such time that one of the buttons is clicked
-	m_bDoingChangeFullname = FALSE;
-	m_bDoingChangePassword = FALSE;
-	m_bChangingPermission = FALSE;
+    // BEW 18Dec23 Nah, defaulting them here rubs out a valid TRUE value when one of the 3 'change...' button handlers is called
+	//m_bDoingChangeFullname = FALSE;
+	//m_bDoingChangePassword = FALSE;
+	//m_bChangingPermission = FALSE;
 
 	wxString dataFolderPath = m_dataKBsharingPath; //path to _DATA_KB_SHARING folder, in work folder
 
@@ -19067,7 +19068,15 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		}
 		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
 		{
-            wxString filename = _T("add_foreign_users.dat");
+            wxString filename = wxEmptyString; // init
+            if (m_bAddUser2UserTable)
+            {
+                filename = _T("add_foreign_users.dat");
+            }
+            else
+            {
+                filename = _T("add_foreign_KBUsers.dat");
+            }
 
 			DeleteOldDATfile(filename, execFolderPath);
 			//MoveBlankDatFile(filename, dataFolderPath, execFolderPath);
@@ -20062,7 +20071,15 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
         }
         case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
         {
-            wxString filename = _T("add_foreign_users.dat");
+            wxString filename = wxEmptyString;
+            if (m_bAddUser2UserTable)
+            {
+                filename = _T("add_foreign_users.dat");
+            }
+            else
+            {
+                filename = _T("add_foreign_KBUsers.dat");
+            }
             wxString execFilename = _T("do_add_foreign_kbusers.exe");
             DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
@@ -20122,9 +20139,42 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
+        case change_permission: // funcNumber is 10 in AI.h lines 854+/-
+        {
+            wxString filename = _T("change_permission.dat");
+            wxString execFilename = _T("do_change_permission.exe");
 
-        // TODO  cases 10 to 12 go here
+            // Next call does any commandLine single quote escaping, makes the input .dat file
+            // by taking the passed in commandLine and writing (with conversion to UTF8) to a
+            // file: change_permission.dat file which is in the same folder as the AI executable.
+            // and then moves the do_change_permission.exe file to where AI.exe is running (bool bDoMove is TRUE)
+            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+        }
+        break;
+        case change_fullname: // funcNumber is 11 in AI.h lines 854++
+        {
+            wxString filename = _T("change_fullname.dat");
+            wxString execFilename = _T("do_change_fullname.exe");
 
+            // Next call does any commandLine single quote escaping, makes the input .dat file
+            // by taking the passed in commandLine and writing (with conversion to UTF8) to a
+            // file: change_fullname.dat file which is in the same folder as the AI executable.
+            // and then moves the do_change_fullname.exe file to where AI.exe is running (bool bDoMove is TRUE)
+            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+        }
+        break;
+        case change_password:
+        {
+            wxString filename = _T("change_password.dat");
+            wxString execFilename = _T("do_change_password.exe");
+
+            // Next call does any commandLine single quote escaping, makes the input .dat file
+            // by taking the passed in commandLine and writing (with conversion to UTF8) to a
+            // file: change_password.dat file which is in the same folder as the AI executable.
+            // and then moves the do_change_password.exe file to where AI.exe is running (bool bDoMove is TRUE)
+            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+        }
+        break;
         case blanksEnd:
         {
             ;
@@ -20149,6 +20199,9 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
 
 void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath)
 {
+#if defined (_DEBUG)
+    wxLogDebug(_T("ConfigureMovedDatFile() CALLED, line %d  funcNumber %d"), __LINE__, funcNumber);
+#endif
 	// Put a copy of execFolderPath into app's m_curExecPath member, so that
 	// CallExecute() can grab it when needed
 	m_curExecPath = execFolderPath;
@@ -20393,12 +20446,60 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // BEW 14Feb22 added, as the credentials user & pwd are no longer hard-coded by Leon
             tempStr = m_strUserID;
             commandLine += tempStr + comma;
-            m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
             // BEW 14Feb22 added, as the credentials user & pwd are no longer hard-coded by Leon
             tempStr = m_curNormalPassword;
             commandLine += tempStr + comma;
-            m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
-            // The rest are the legacy ones
+            //m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
+            // BEW 3Jan24 start with an empty string, and build for what is to be in arrLines
+            m_strNewUserLine = wxEmptyString;
+
+            // BEW 29Dec23 m_strNewUserLine is a scratch string; it plays an important role when
+            // populating the 4 app arrays with username, fullname, password, and useradmin value, 
+            // when the user clicks int the Manager's user list to make some different user be
+            // focused - these arrays preserve the old user's values, as they are important for
+            // getting values for kbserver processing functionalities which cannot be obtained 
+            // in any other way.
+            
+            // BEW 1Jan24, do_add_KBUser.py is now longer, we must add the authenticating username
+            // and its password a second time. (eg. if authenticated as kbadmin,kbauth, then repeat
+            // these for the connection search - makes commandLine two fields longer than before)
+            wxString strAuthenticatingUser = m_strUserID;
+            wxString strAuthenticatingPwd = m_curNormalPassword;
+            commandLine += strAuthenticatingUser + comma;
+            commandLine += strAuthenticatingPwd + comma;
+             
+            // The rest are the legacy ones. These are the values for the "foreign" new user to be added
+            
+            // BEW 3Jan24 explanation for m_strNewUserLine usage is needed here...
+            // In early design of the KB Sharing Manager, to do Add User from the button of that name,
+            // required a prior click on a user in the user list. Why? Clicking a user caused the old
+            // active user's credentials to be saved to 4 wxArrayStrings, m_mgrUsernameArr, etc. This
+            // made old username, fullname, password and useradmin values get archived - necessary, as
+            // not available any other way.
+            // In the refactored design underlying Add User handler, we don't want the active user to
+            // have to click some other user first. Instead, we require that no listed user is clicked.
+            // This gives us a problem. No prior click on a listed user means that the new user's
+            // name, fullname, password and useradmin values are not accessible from the 4 wxArrayStrings
+            // mentioned above. Where do these get set - at a call of the .dat file: list_users_results.dat
+            // which is deposited in the Unicode Debug folder when developing (otherwise, Unicode Release) -
+            // And after that DatFile2StringArray() extracts the 5 fields (last is the timestamp), from
+            // LoadDataForPage(0) when called. Here is what list_users_results.dat currently is for me,
+            // in the Unicode Debug folder (fields are comma-separated):
+            //kbadmin,KBAdmin,kbauth,1,2022-05-26 14:45:49
+            //bruceUnit2,Bruce Edwin,Clouds2093,1,2023-03-20 17:15:32
+            //glenys@Unit2,Glenys Lee,GW^ pass!,0,2023-12-29 10:00:44
+            //Bloggs,Nobody,noonePass,1,2023-12-29 16:11:17
+            //Plane,Flying,upPass,0,2024-01-03 09:29:22
+            // What I need to do is to get the new user's values added to the list_users_results.dat file,
+            // before CallExecute() uses the buil commandLine to add the new values to a line of the kbserver's
+            // user table. How? I need to create a timestamp, and add it to a string comprising the new username,
+            // fullname, password, and useradmin value ('0' or '1'); then hunt for the list_users_results.dat
+            // file (create it if not in the executable's folder), and add the values needed for a new line.
+            // Where do I make this new line? Below, based on the 'foreign' user values - 4 of them, and
+            // stored in m_strNewUserLine. Finally, when control gets to re-load the user list, I need to add
+            // a bit of code to find which user in the updated user list was added, and set the list selection
+            // to that one's list item. It's the helpers.cpp function
+
             tempStr = m_temp_username;
             commandLine += tempStr + comma;
             m_strNewUserLine += m_temp_username + comma;  // for the line to be added to arrLines
@@ -20413,12 +20514,31 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             commandLine += m_temp_useradmin_flag + comma;
             m_strNewUserLine += m_temp_useradmin_flag + comma;  // for the line to be added to arrLines
 
+            wxString aTimeStamp = GetDateTimeNow(forXHTML);
+            m_strNewUserLine += aTimeStamp + comma;
+
             // That finishes the commandLine to be put into the input .dat file,
             // when the user addition is sourced from the user page of KB Sharing Mgr
+            // and the m_strNewUserLine for the list_users_results.dat file update in executable's folder
 #if defined (_DEBUG)
-            wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-                __LINE__, commandLine.c_str());
+            wxLogDebug(_T("ConfigureMovedDatFile() line %d: funcNumber = %d , commandline = %s  m_strNewUserLine = %s"),
+                __LINE__, funcNumber, commandLine.c_str(), m_strNewUserLine.c_str());
 #endif
+            // BEW 3Jan24 the next 6 lines are just so we can get a curCountOfLines value. The value will reflect
+            // having set m_strNewUserLine above, so we don't actually have to add to the resultsFile, CallExecut()'s
+            // handler gets it done.. (We can remove all of these first 5 lines without harming app performance.)
+            wxString resultsFile = _T("list_users_results.dat");
+            wxString execFolderPath = this->m_appInstallPathOnly + PathSeparator;
+            wxString resultsPath = execFolderPath + resultsFile;
+            bool bExists = ::FileExists(resultsPath);
+            int curCountOfLines = this->m_arrLines.GetCount(); // tells what the count is after this line is added
+            this->m_bSelectionChange = FALSE; // no user in list is selected by a click, use false to cause
+                    // the showing of the info message when an Add User is being done, to be skipped. The checkbox
+                    // handler will show the advisory message if m_bSelectionChange is TRUE, because that means
+                    // OnSelChangeUsersList was used to select some using of the list already existing, and that's
+                    // when the user may want to toggle the permission value (to 0 or 1), and the message advises
+                    // about that. If FALSE the user can tick the box, or refrain, to give Add User permission 1, 
+                    // or 0, without an attempt to "Change Permission" being advised
         }
 
 		// Now in the caller the file has been moved to the the folder where the 
@@ -21073,7 +21193,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// and the input .dat file, "create_entry.dat", is there too (as UTF16 data still)
 		// the call of ConvertAndWrite() below will take the utf16 commandLine, and internally
         // convert it to utf8 raw text which gets immediately saved to the create_entry.dat
-        // file, so that the data being sent is UTF8 -0 which is what MariaDB/kebserver wants
+        // file, so that the data being sent is UTF8 -0 which is what MariaDB/kbserver wants
         // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly 
         // doesn't end with a PathSeparator
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
@@ -21826,14 +21946,80 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_bChangingPermission = TRUE;
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
-		wxString tempStr;
-		commandLine = m_chosenIpAddr + comma;
-		UpdateIpAddr(m_chosenIpAddr);
-		tempStr = m_strUserID;
-		commandLine += tempStr + comma;
 
-// TODO  add CreateInputFile_AndCopyEXE() below -- it does escaping of ' and converting to UTF8, so do it with similar code if movinf .exe is not required
-// 
+// TODO comment out below and replace with fullname's code & tweak for name changes etc
+        bool bDoingChangePermission = TRUE;
+		//wxString tempStr;
+		//commandLine = m_chosenIpAddr + comma;
+		//UpdateIpAddr(m_chosenIpAddr);
+		//tempStr = m_strUserID;
+		//commandLine += tempStr + comma;
+        wxString commandLine;
+        if (bDoingChangePermission && !m_commandLine_forManager.IsEmpty())
+        {
+            commandLine = m_commandLine_forManager;
+        }
+        if (!commandLine.IsEmpty())
+        {
+            // The CreateInputDatFile_AndCopyEXE call just below will cause DatFileMoveExe() to be called,
+            // and if change_permission.dat is not created (containing the valid commandLine) and stored in
+            // executable's folder, the handler for creating a permission change will crash, so do it here
+            // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
+            // wxString datPath = m_appInstallPathOnly + PathSeparator + filename;
+            // BEW 18Dec23 it's not the install path we want here, but the location of the _DATA_KB_SHARING folder, which has
+            // the boilerplate change_permission.dat file - ie. the one with all #-initial lines: code below will remove
+            // the boilerplate lines, and replace them all with the constructed commandLine, saving to a file of same name
+            // BEW 18Dec23, I've also allowed no boilerplace file to be there, in that case the else block will still 
+            // create and add the commandLine.
+            wxString datPath = m_dataKBsharingPath + filename;
+
+            bool bExists = ::FileExists(datPath); // if it contains boilerplate text only - each line begins with #
+            wxTextFile f;
+            if (bExists)
+            {
+                bool bOpened = f.Open(datPath);
+                if (bOpened)
+                {
+                    // Clear out the boilerplate content
+                    f.Clear();
+                    // Now add commandLine as the only line
+                    f.AddLine(commandLine);
+                    f.Write();
+                    f.Close();
+                    // File: change_permission.dat now just has the relevant data 
+                    // fields for the subsequent do_change_permission.exe to use 
+                    // as argument in wxExecute()
+                }
+            }
+            else
+            {
+                // If absent, create instead of assuming it exists, within the m_dataKBsharingPath folder
+                bool bCreated = f.Create(datPath);
+                if (bCreated == TRUE)
+                {
+                    bool bExists = f.Exists();
+                    if (bExists)
+                    {
+                        f.AddLine(commandLine);
+                        f.Write();
+                        f.Close();
+                        // File: change_permission.dat now just has the relevant data 
+                        // fields for the subsequent do_change_fullname.exe to use 
+                        // as argument in wxExecute()
+                    }
+                }
+            }
+        }
+
+        bool bCreatedOK = CreateInputDatFile_AndCopyEXE(change_permission, commandLine);
+        if (!bCreatedOK)
+        {
+            m_commandLine_forManager.Empty();
+            return;
+        }
+
+// TODO  add CreateInputFile_AndCopyEXE() below -- it does escaping of ' and converting to UTF8, so do it with similar code if moving .exe is not required
+        /*
 		// And the password should be the one associated by the above line,
 		// as stored in m_curNormalPassword;
 		wxASSERT(!m_curNormalPassword.IsEmpty());
@@ -21922,6 +22108,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			// Unlikely to fail, a bell ring will do
 			wxBell();
 		}
+        */
 		break;
 	} // end of case change_permission:
 	case change_fullname: // = 11
@@ -21929,68 +22116,74 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("change_fullname_results.dat");
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
-		wxString tempStr;
-		commandLine = m_chosenIpAddr + comma;
-		UpdateIpAddr(m_chosenIpAddr);
-		// in case of embedded single quotes, escape them with
-		tempStr = m_strUserID;
-		commandLine += tempStr + comma;
+#if defined (_DEBUG)
+        wxLogDebug(_T("App value of m_bDoingChangeFullname: %d, at line %d  in ConfigureMovedDatFile()"), (int)m_bDoingChangeFullname, __LINE__ );
+#endif
+        wxString commandLine;
+        if (m_bDoingChangeFullname && !m_commandLine_forManager.IsEmpty())
+        {
+            commandLine = m_commandLine_forManager;
+        }
 
-// TODO  add CreateInputDatFile_AndCopyEXE() *******************************************************************************
- 
-		// And the password should be the one associated by the above line,
-		// as stored in m_curNormalPassword;
-		wxASSERT(!m_curNormalPassword.IsEmpty());
-		commandLine += m_curNormalPassword + comma;
+        if (!commandLine.IsEmpty())
+        {
+            // The CreateInputDatFile_AndCopyEXE call just below will cause DatFileMoveExe() to be called,
+            // and if change_fullname.dat is not created (containing the valid commandLine) and stored in
+            // executable's folder, the handler for creating a fullname change will crash, so do it here
+            // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
+            // wxString datPath = m_appInstallPathOnly + PathSeparator + filename;
+            // BEW 18Dec23 it's not the install path we want here, but the location of the _DATA_KB_SHARING folder, which has
+            // the boilerplate change_fullname.dat file - ie. the one with all #-initial lines: code below will remove
+            // the boilerplate lines, and replace them all with the constructed commandLine, saving to a file of same name
+            // BEW 18Dec23, I've also allowed no boilerplace file to be there, in that case the else block will still 
+            // create and add the commandLine.
+            wxString datPath = m_dataKBsharingPath + filename;
 
-		// The username2 has to come from the Sharing Manager, and fullname also,
-		// to complete the commandLine for a change of fullname done in KB Sharing Mgr
-		tempStr = m_strChangeFullname_User2; 
-		commandLine += tempStr + comma;
+            bool bExists = ::FileExists(datPath); // if it contains boilerplate text only - each line begins with #
+            wxTextFile f;
+            if (bExists)
+            {
+                bool bOpened = f.Open(datPath);
+                if (bOpened)
+                {
+                    // Clear out the boilerplate content
+                    f.Clear();
+                    // Now add commandLine as the only line
+                    f.AddLine(commandLine);
+                    f.Write();
+                    f.Close();
+                    // File: change_fullname.dat now just has the relevant data 
+                    // fields for the subsequent do_change_fullname.exe to use 
+                    // as argument in wxExecute()
+                }
+            }
+            else
+            {
+                // If absent, create instead of assuming it exists, within the m_dataKBsharingPath folder
+                bool bCreated = f.Create(datPath);
+                if (bCreated == TRUE)
+                {
+                    bool bExists = f.Exists();
+                    if (bExists)
+                    {
+                        f.AddLine(commandLine);
+                        f.Write();
+                        f.Close();
+                        // File: change_fullname.dat now just has the relevant data 
+                        // fields for the subsequent do_change_fullname.exe to use 
+                        // as argument in wxExecute()
+                    }
+                }
+            }
+        }
 
-		if (m_bDoingChangeFullname)
-		{
-			tempStr = m_strChangeFullname; // RHS set from Handler for 'Change Fullname' button
-			commandLine += tempStr;
-		}
-		else
-		{
-			// if the bool is false, use m_strFullname as a fallback - which
-			// hopefully prevents a crash, but just leaves the fullname unchanged
-			tempStr = m_strFullname;
-			commandLine += tempStr;
-		}
-		// That finishes the commandLine to be put into the input .dat file.
+        bool bCreatedOK = CreateInputDatFile_AndCopyEXE(change_fullname, commandLine);
+        if (!bCreatedOK)
+        {
+            m_commandLine_forManager.Empty();
+            return; 
+        }
 
-		// Now in the caller the file has been moved to the parent folder 
-		// of the dist folder; so use wxTextFile to make the changes in
-		// the file copy within the parent folder: "change_fullname.dat" 
-		// so it has only the above commandLine value stored in it
-        // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly down't end with a PathSeparator
-        wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021 changed to use m_appInstallPathOnly
-		bool bExists = ::FileExists(datPath);
-		wxTextFile f;
-		if (bExists)
-		{
-			bool bOpened = f.Open(datPath);
-			if (bOpened)
-			{
-				// Clear out the boilerplate content
-				f.Clear();
-				// Now add commandLine as the only line
-				f.AddLine(commandLine);
-				f.Write();
-				f.Close();
-				// File: change_fullname.dat now just has the relevant data 
-				// fields for the subsequent do_change_fullname.exe to use 
-				// as argument in wxExecute()
-			}
-		}
-		else
-		{
-			// Unlikely to fail, a bell ring will do
-			wxBell();
-		}
 		break;
 	} // end of case change_fullname:
 	case change_password: // = 12
@@ -21998,6 +22191,75 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("change_password_results.dat");
 		m_bUseForeignOption = TRUE; // we know its a Sharing Manager situation
 		m_bUserAuthenticating = FALSE;
+#if defined (_DEBUG)
+        wxLogDebug(_T("App value of m_bDoingChangePassword: %d, at line %d  in ConfigureMovedDatFile()"), (int)m_bDoingChangePassword, __LINE__);
+#endif
+        wxString commandLine;
+        if (m_bDoingChangePassword && !m_commandLine_forManager.IsEmpty())
+        {
+            commandLine = m_commandLine_forManager;
+        }
+
+        if (!commandLine.IsEmpty())
+        {
+            // The CreateInputDatFile_AndCopyEXE call just below will cause DatFileMoveExe() to be called,
+            // and if change_password.dat is not created (containing the valid commandLine) and stored in
+            // executable's folder, the handler for creating a password change will crash, so do it here
+            // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
+            // wxString datPath = m_appInstallPathOnly + PathSeparator + filename;
+            // BEW 18Dec23 it's not the install path we want here, but the location of the _DATA_KB_SHARING folder, which has
+            // the boilerplate change_password.dat file - ie. the one with all #-initial lines: code below will remove
+            // the boilerplate lines, and replace them all with the constructed commandLine, saving to a file of same name
+            // BEW 18Dec23, I've also allowed no boilerplate file to be there, in that case the else block will still 
+            // create and add the commandLine.
+            wxString datPath = m_dataKBsharingPath + filename;
+
+            bool bExists = ::FileExists(datPath); // if it contains boilerplate text only - each line begins with #
+            wxTextFile f;
+            if (bExists)
+            {
+                bool bOpened = f.Open(datPath);
+                if (bOpened)
+                {
+                    // Clear out the boilerplate content
+                    f.Clear();
+                    // Now add commandLine as the only line
+                    f.AddLine(commandLine);
+                    f.Write();
+                    f.Close();
+                    // File: change_password.dat now just has the relevant data 
+                    // fields for the subsequent do_change_password.exe to use 
+                    // as argument in wxExecute()
+                }
+            }
+            else
+            {
+                // If absent, create instead of assuming it exists, within the m_dataKBsharingPath folder
+                bool bCreated = f.Create(datPath);
+                if (bCreated == TRUE)
+                {
+                    bool bExists = f.Exists();
+                    if (bExists)
+                    {
+                        f.AddLine(commandLine);
+                        f.Write();
+                        f.Close();
+                        // File: change_password.dat now just has the relevant data 
+                        // fields for the subsequent do_change_password.exe to use 
+                        // as argument in wxExecute()
+                    }
+                }
+            }
+        }
+
+        bool bCreatedOK = CreateInputDatFile_AndCopyEXE(change_password, commandLine);
+        if (!bCreatedOK)
+        {
+            m_commandLine_forManager.Empty();
+            return;
+        }
+
+        /* old code - comment out for now
 		wxString tempStr;
 		commandLine = m_chosenIpAddr + comma;
 		UpdateIpAddr(m_chosenIpAddr);
@@ -22050,6 +22312,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			// Unlikely to fail, a bell ring will do
 			wxBell();
 		}
+        */
+
+
 		break;
 	} // end of case change_password:
 	case blanksEnd:
@@ -22064,7 +22329,15 @@ void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
 	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
-	wxString datFilename = _T("add_foreign_users.dat");
+    wxString datFilename = wxEmptyString; // init
+    if (m_bAddUser2UserTable)
+    {
+        datFilename = _T("add_foreign_users.dat");
+    }
+    else
+    {
+        datFilename = _T("add_foreign_KBUsers.dat");
+    }
 	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
@@ -22088,7 +22361,7 @@ void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
             f.AddLine(line);
             line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# data folder's 'input' file: add_foreign_users.dat");
+			line = _T("# data folder's 'input' file: add_foreign_users.dat or add_foreign_KBUsers.dat for Add User in Manager");
 			f.AddLine(line);
 			line = _T("# After login, if username does not exist, adds to");
 			f.AddLine(line);
@@ -22306,7 +22579,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	case credentials_for_user:
     {
         int rv = 0;
-        const char* pstart = { "start do_add_foreign_kbusers.exe" }; // avoid need of path prefix
+        const char* pstart = { "do_add_foreign_kbusers.exe" }; // avoid need of path prefix
         rv = system(pstart);
         wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
         if (rv == 0)
@@ -23060,31 +23333,154 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         // This is a KB Sharing Manager case, so no report wanted
         bReportResult = FALSE;
         // Escaping single quotes as already been done on the selected username
+        // and on the selected fullname     
         wxASSERT(resultFile == m_resultDatFileName);
+        // BEW 7Feb22 when developing, the do_change_ppermission.exe file is located at:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_change_permission.exe'
 
-        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+        const char* pstart = "do_change_permission.exe"; // char based
 
+        int flags = 68; // 68 is binary  01000011 ie, wxEXEC_SYNC (bit 2) wxEXEC_NOEVENTS (bit 7) and wxEXEC_HIDE_CONSOLE (bit 8)
+        //int flags = wxEXEC_SYNC & wxEXEC_BLOCK & wxEXEC_HIDE_CONSOLE; // hmm, wxEXEC_HIDE_CONSOLE doesn't do what it says
+        long rvalue = 0L; // initialise to success result (not startable returns -1 if synchonous, > 0 is probably a process ID, not error)
+
+        rvalue = wxExecute(pstart, flags);   // BEW 10Feb23 this is char based, does the job, but flashes
+                    // a blank window and briefly shows the window of the terminal process that does the work
+        bool bExecutedSucceeded = rvalue >= 0 ? TRUE : FALSE; // BEW 19Dec23 despite what wxWidgets says regarding
+                // the returned rvalue, and the specification wxEXEC_HIDE_CONSOLE, I've never got the hiding of
+                // the console to work, and a success result returns rvalue +ve, e.g. 236 - possibly the process ID,
+                // but the wxExecute works and the returned results string is correct - containing "success" on 1st line
+        if (!bExecutedSucceeded)
+        {
+            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+            wxString msg;
+            wxString title = _("Change mermission warning");
+            wxString ipAddress = m_strKbServerIpAddr;
+            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+            if (bIsEmptyAddress)
+            {
+                ipAddress = _("ipAddress is undefined");
+
+            }
+            msg = msg.Format(_T("Change password failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                ipAddress.c_str());
+            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+            LogUserAction(msg);
+        }
+        if (bExecutedSucceeded)
+        {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+            bSuccessfulSwitch = TRUE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: result .dat file is: %s"),
+            __FILE__, __FUNCTION__, __LINE__, m_resultDatFileName.c_str());
     }
-		break;
+    break;
 	case change_fullname: // = 11
     {
         // This is a KB Sharing Manager case, so no report wanted
         bReportResult = FALSE;
         // Escaping single quotes as already been done on the selected username
-        // and on the selected fullname
+        // and on the selected fullname     
         wxASSERT(resultFile == m_resultDatFileName);
+        // BEW 7Feb22 when developing, the do_change_fullname.exe file is located at:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_change_fullname.exe'
 
-        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+        const char* pstart = "do_change_fullname.exe"; // char based
+        
+        int flags = 68; // 68 is binary  01000011 ie, wxEXEC_SYNC (bit 2) wxEXEC_NOEVENTS (bit 7) and wxEXEC_HIDE_CONSOLE (bit 8)
+        //int flags = wxEXEC_SYNC & wxEXEC_BLOCK & wxEXEC_HIDE_CONSOLE; // hmm, wxEXEC_HIDE_CONSOLE doesn't do what it says
+        long rvalue = 0L; // initialise to success result (not startable returns -1 if synchonous, > 0 is some kind of error)
 
+        rvalue = wxExecute(pstart, flags);   // BEW 10Feb23 this is char based, does the job, but flashes
+                    // a blank window and briefly shows the window of the terminal process that does the work
+        bool bExecutedSucceeded = rvalue >= 0 ? TRUE : FALSE; // BEW 19Dec23 despite what wxWidgets says regarding
+                // the returned rvalue, and the specification wxEXEC_HIDE_CONSOLE, I've never got the hiding of
+                // the console to work, and a success result returns rvalue +ve, e.g. 236 - possibly the process ID,
+                // but the wxExecute works and the returned results string is correct "success" and next line the new "fullname"
+                // So just in case a 'success' run does return 0L, I'll accept == 0L or > 0L as successful execution
+        if (!bExecutedSucceeded)
+        {
+            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+            wxString msg;
+            wxString title = _("Change fullname warning");
+            wxString ipAddress = m_strKbServerIpAddr;
+            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+            if (bIsEmptyAddress)
+            {
+                ipAddress = _("ipAddress is undefined");
+
+            }
+            msg = msg.Format(_T("Change fullname failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                ipAddress.c_str());
+            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+            LogUserAction(msg);
+        }
+        if (bExecutedSucceeded)
+        {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+            bSuccessfulSwitch = TRUE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: result .dat file is: %s"),
+            __FILE__, __FUNCTION__, __LINE__, m_resultDatFileName.c_str());
     }
 		break;
 	case change_password: // = 12
     {
         // This is a KB Sharing Manager case, so no report wanted
         bReportResult = FALSE;
+        // Escaping single quotes as already been done on the selected username
+        // and on the selected fullname     
         wxASSERT(resultFile == m_resultDatFileName);
+        // BEW 7Feb22 when developing, the do_change_password.exe file is located at:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_change_password.exe'
 
-        //RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+        const char* pstart = "do_change_password.exe"; // char based
+
+        int flags = 68; // 68 is binary  01000011 ie, wxEXEC_SYNC (bit 2) wxEXEC_NOEVENTS (bit 7) and wxEXEC_HIDE_CONSOLE (bit 8)
+        //int flags = wxEXEC_SYNC & wxEXEC_BLOCK & wxEXEC_HIDE_CONSOLE; // hmm, wxEXEC_HIDE_CONSOLE doesn't do what it says
+        long rvalue = 0L; // initialise to success result (not startable returns -1 if synchonous, > 0 is some kind of error)
+
+        rvalue = wxExecute(pstart, flags);   // BEW 10Feb23 this is char based, does the job, but flashes
+                    // a blank window and briefly shows the window of the terminal process that does the work
+        bool bExecutedSucceeded = rvalue >= 0 ? TRUE : FALSE; // BEW 19Dec23 despite what wxWidgets says regarding
+                // the returned rvalue, and the specification wxEXEC_HIDE_CONSOLE, I've never got the hiding of
+                // the console to work, and a success result returns rvalue +ve, e.g. 236 - possibly the process ID,
+                // but the wxExecute works and the returned results string is correct "success" and next line the new "password"
+                // So just in case a 'success' run does return 0L, I'll accept == 0L or > 0L as successful execution
+        if (!bExecutedSucceeded)
+        {
+            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
+            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
+            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
+            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
+            wxString msg;
+            wxString title = _("Change password warning");
+            wxString ipAddress = m_strKbServerIpAddr;
+            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
+            if (bIsEmptyAddress)
+            {
+                ipAddress = _("ipAddress is undefined");
+
+            }
+            msg = msg.Format(_T("Change password failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
+                ipAddress.c_str());
+            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+            LogUserAction(msg);
+        }
+        if (bExecutedSucceeded)
+        {
+            RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
+            bSuccessfulSwitch = TRUE;
+        }
+        wxLogDebug(_T("%s::%s() line %d: result .dat file is: %s"),
+            __FILE__, __FUNCTION__, __LINE__, m_resultDatFileName.c_str());
     }
 		break;
 	case blanksEnd:
@@ -23100,7 +23496,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
         fnn.SetCwd(saveCWD); // restore old CWD path
     }
 
-    // BEW 27Jan22 - what follows is legacy code, from years ago - it may still be useful
+    // BEW 27Jan22 - what follows is legacy code, from years ago - it's still okay - gotta restore
+    // current working directory etc.
 	wxArrayString output;
 	wxArrayString errors;
 	bool bSuccess = FALSE; // initialise - this bool governs whether or not to do post .exe processing
@@ -23448,26 +23845,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case change_permission: // = 10
 					{
-						/* wxExecute() uses the list_users call - so this code needs to be in case 3 above
-						// The only thing needed here is to compare
-						// usernames, to see if a permission change was wanted
-						// for a different user, or for the same one - and to
-						// record the result of this decision in a boolean
-						// member of the app: m_bChangePermission_DifferentUser
-						// as that enables us to provide two processing paths
-						// through the LoadDataForPage(0) call later on. If
-						// this bool is FALSE, the username hasn't changed, so
-						// we have a simpler job to toggle the GUI checkbox
-						// to agree with what the wxExecute() call did.
-						if (m_ChangePermission_NewUser == m_ChangePermission_OldUser)
-						{
-							m_bChangePermission_DifferentUser = FALSE;
-						}
-						else
-						{
-							m_bChangePermission_DifferentUser = TRUE;
-						}
-						*/
+                        // BEW 28Dec23, norhing to do here
 						break;
 					}
 					case change_fullname: // = 11
@@ -23514,7 +23892,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
 			} // end of the else block for test: if (bResultsFileExists)
 
-		} // end of TRUE block for test: if (rv == 0)
+		} // end of TRUE block for test: if (bSuccessfulSwitch)
 		else
 		{
 			wxBell();
@@ -23778,6 +24156,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
 	m_bkSlash = _T("\\");
+    m_bSelectionChange = FALSE; // init - used in KB Sharing Mgr
     const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
     // on my Windows machine name = "Adapt_ItApp-Bill Martin"
     // on my Linux machine name = "Adapt_ItApp-wmartin"
@@ -63173,7 +63552,8 @@ void CAdapt_ItApp::DoDiscoverKBservers()
                 // reset because this get's used in setting the .dat input files'
                 // first param, the ipAddress.
                 gpApp->m_strKbServerIpAddr = gpApp->m_chosenIpAddr;
-			}
+                m_strKbServerHostname = m_chosenHostname; // BEW added 15Dec23 as sharing Mgr InitDlg() got empty string for m_chosenIpAddr;
+            }
 		}
 		else
 		{
@@ -63182,6 +63562,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			{
 				gpApp->m_chosenIpAddr.Empty();
 				gpApp->m_chosenHostname.Empty();
+                m_strKbServerHostname = _T("unknown"); // a non empty default
 				result = SD_MultipleIpAddr_UserCancelled;
 
 				// Since the user has deliberately chosen to Cancel, and the dialog
@@ -63979,7 +64360,7 @@ void CAdapt_ItApp::MakeChangePermission(const int funcNumber, wxString dataPath)
 
 void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString dataPath)
 {
-	//wxASSERT(!execPath.IsEmpty());
+
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
 	wxString datFilename = _T("change_fullname.dat");
@@ -64004,7 +64385,7 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString dataPath)
 			f.AddLine(line);
 			line = _T("# Encoding: UTF-16 for Win, or UTF-32 for Linux/OSX");
 			f.AddLine(line);
-			line = _T("# dist folder's 'input' file: change_fullname.dat");
+			line = _T("# _DATA_KB_SHARING folder's 'input' file: change_fullname.dat");
 			f.AddLine(line);
 			line = _T("# AI executable's folder, output file: change_fullname_results.dat");
 			f.AddLine(line);
@@ -64016,7 +64397,7 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString dataPath)
 			f.AddLine(line);
 			line = _T("# Purpose for this .dat input file:");
 			f.AddLine(line);
-			line = _T(" Get the current useradmin value of selected_username, then update the");
+			line = _T("# Get the current useradmin value of selected_username, then update the");
 			f.AddLine(line);
 			line = _T("# record in user table to replace fullname value with selected_fullname.");
 			f.AddLine(line);
@@ -64030,11 +64411,11 @@ void CAdapt_ItApp::MakeChangeFullname(const int funcNumber, wxString dataPath)
 			f.AddLine(line);
 			line = _T("# and the value of selected_fullname in the second line");
 			f.AddLine(line);
-			line = _T("# e.g: Input .dat file:  192.168.1.11,bruce@unit2,Clouds2093,glenys@unit2,Glenys Waters");
+			line = _T("# e.g: Input .dat file:  192.168.1.7,kbadmin,kbauth,glenysUnit2,Glenys Waters,");
 			f.AddLine(line);
-			line = _T("and Output .dat file, change_fullname_results.dat, 2 lines, contents as above.");
+			line = _T("# and Output .dat file, change_fullname_results.dat, 2 lines, contents as above.");
 			f.AddLine(line);
-			line = _T("ipAddress,username,password,selected_username,selected_fullname");
+			line = _T("# ipAddress,username,password,glenysUnit2,Glenys Lee,");
 			f.AddLine(line);
 			f.Write();
 			f.Close();

@@ -40,11 +40,12 @@ public:
 	bool m_bAllow;
 protected:
 	bool		   m_bLegacyEntry; // Set this TRUE for a re-entry, or when within
-						// the current Mgr session and normal entry to the legagu TRUE
+						// the current Mgr session and normal entry to the legacy TRUE
 						// block for the test at line 546 is wanted
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
 	wxListBox*     m_pUsersListBox;
 	//wxTextCtrl*    m_pTheConnectedIpAddr;
+public:
 	wxTextCtrl*	   m_pConnectedTo;
 	wxTextCtrl*    m_pTheUsername;
 	wxTextCtrl*    m_pEditInformalUsername;
@@ -53,6 +54,9 @@ protected:
 	wxCheckBox*    m_pCheckUserAdmin;
 	wxTextCtrl*	   m_pEditShowPasswordBox;
 
+	bool m_bClearUseradminCheckbox; // set TRUE if a permission change to 0 leaves Useradmin checkbox ticked
+			// and use the TRUE value to force clearing of the checkbox at end of call of LoadDataForPage(0)
+protected:
 	wxButton*      m_pBtnUsersClearControls;
 	wxButton*      m_pBtnUsersAddUser;
 
@@ -77,8 +81,17 @@ public:
 	void  LoadDataForPage(int pageNumSelected);
 	void  FillUserList(CAdapt_ItApp* pApp);
 
+
 	// BEW Created 21Dec20 - extract a field (wxString value) from the matrix
 	//wxString GetFieldAtIndex(wxArrayString& arr, int index);
+
+	// BEW added 15Dec23, to support building commandLine strings for various buttons in the Manager,
+	// and sending the resulting built commandLine to a new wxString, public access, in AI.h called
+	// m_commandLine_forManager. The latter is a scratch string, don't try to save it.
+	wxString localCmdLineStr; // build the commandLine using this local one, and save it to
+							  // m_commandLine_forManager in AI.h when done
+	// BEW added 21Dec23 to facilitate replacing fullname, or pwd, or useadmin values in KB Sharing Mgr, Users list
+	int m_nIndexOfChangedField;
 
 protected:
 	void  OnTabPageChanged(wxNotebookEvent& event);

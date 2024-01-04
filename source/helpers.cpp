@@ -13261,6 +13261,133 @@ bool Credentials_For_Manager(CAdapt_ItApp* pApp, wxString* pIpAddr,	wxString* pU
 	return TRUE;
 }
 
+// BEW 2Jan23 DoAddForeignUser is a helpers.cpp & .h function, similar to Credentials_ForUser() above,
+// but having more fields - to match the do_add_KBuser.py function which Leon altered to have 9 fields:
+// do_add_KBuser( IPaddress,DB_user_name,DB_user_password,user_name,user_password,foreign_username,foreign_user_fullname,
+// foreign_user_password,foreign_user_permissions )
+bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPassword, wxString* pUser2, wxString* pPwd2,
+	wxString* pForeignUser, wxString* pForeignFullname, wxString* pForeignPwd, bool bCanAddUsers, wxString datFilename)
+{
+	gpApp->m_bUseForeignOption = TRUE; // ConfigureMovedDatFile() will therefore
+			// get its values from the open users Page in KBSharingManagerTabbedDlg()
+	// Using absolute paths...
+	wxString separator = gpApp->PathSeparator;
+	wxString ipaddr, username, fullname, pwd, user2, pwd2, foreignUser, foreignFullname, foreignPwd, foreignUseradmin;
+	ipaddr = *pIpAddr;
+	username = *pUsername;
+	pwd = *pPassword;
+	// the above 3 complete the accessing params
+	// The next 2 are included because the .py requires them to be present, and I'll have to set them to same as username and pwd
+	user2 = *pUser2;
+	pwd2  = *pPwd2;
+	// the next 4 are the 'foreign' data for the new username, fullname, password and useradmin value (.py function supplies a datetime value)
+	foreignUser = *pForeignUser;
+	foreignFullname = *pForeignFullname;
+	foreignPwd = *pForeignPwd;
+	foreignUseradmin = bCanAddUsers ? _T("1") : _T("0");
+/*
+	wxString comma = _T(",");
+	wxString datFolderPath = gpApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
+	wxASSERT(datFilename == _T("add_foreign_KBUsers.dat"));
+	wxString datPath = datFolderPath + datFilename; // datafolderPath (to _DATA_KB_SHARING) should already end in separator
+
+	// Check that the file already exists, if not, create it
+	wxTextFile textFile; // line-oriented file of lines of text
+	bool bFileExists = FALSE; // initialise
+	bFileExists = wxFileName::FileExists(datPath);
+*/
+	// Build the commandLine needed
+	wxString comma = _T(",");
+	wxString commandLine = wxEmptyString;
+
+	// escape any single quotes in wxStrings
+	commandLine = ipaddr + comma;
+	//commandLine = ipaddr + comma + username + comma +pwd + comma + user2 + comma + pwd2 + comma
+	//+ foreignUser + comma + foreignFullname + comma + foreignPwd + comma + foreignUseradmin + comma;
+	// BEWARE, don't try escaping any ' in commandLin, the pwd may contain one and it should not
+	// be changed. Do each field separately, for the fields that potentially need ' escaping
+
+	wxString temp = username;
+	temp = DoEscapeSingleQuote(temp); // may need escaping any '
+	commandLine += temp + comma;
+	commandLine += pwd + comma;
+
+	temp = user2;
+	temp = DoEscapeSingleQuote(temp);
+	commandLine += temp + comma;
+	commandLine += pwd2 + comma;
+
+	temp = foreignUser;
+	temp = DoEscapeSingleQuote(temp);
+	commandLine += temp + comma;
+
+	temp = foreignFullname;
+	temp = DoEscapeSingleQuote(temp);
+	commandLine += temp + comma;
+	commandLine += foreignPwd + comma + foreignUseradmin + comma;
+#if defined (_DEBUG)
+	wxLogDebug(_T("DoAddForeignUser(), line %d commandLine= [%s]"), __LINE__, commandLine.c_str());
+#endif
+
+	wxString datFolderPath = gpApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
+	wxASSERT(datFilename == _T("add_foreign_KBUsers.dat"));
+	wxString datPath = datFolderPath + datFilename; // datafolderPath (to _DATA_KB_SHARING) should already end in separator
+
+	// Check that the file already exists, if not, create it
+	wxTextFile textFile; // line-oriented file of lines of text
+	bool bFileExists = FALSE; // initialise
+	bFileExists = wxFileName::FileExists(datPath);
+
+	if (!bFileExists)
+	{
+		// doesn't exist in _DATA_KB_SHARING folder, so create it there. We know what commandLine is from what is above
+		textFile.Create(datPath);
+		// Note textFile is empty at this point
+		textFile.Open();
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			textFile.AddLine(commandLine);
+			// Write it to the _DATA_KB_SHARING buffer
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	else
+	{
+		// file exists
+		textFile.Open(datPath);
+		bool bIsOpened = textFile.IsOpened();
+		if (bIsOpened)
+		{
+			// Line numbering is 0-based
+			textFile.Clear();
+			textFile.AddLine(commandLine); // we only need this line
+
+			// Write it to the _DATA_KB_SHARING folder
+			bool bGoodWrite = textFile.Write();
+			textFile.Close();
+			if (!bGoodWrite)
+			{
+				return FALSE; // write error
+			}
+		}
+		else
+		{
+			return FALSE; // opening error
+		}
+	}
+	return TRUE;
+}
+
 // BEW 23Nov20, use this one from the KB Sharing Manager, so set app's
 // m_bUseForeignOption to TRUE, so that the case 1, with "add_foreign_users.dat
 // as the input .dat file, can be filled from an alternative path using KB Sharing
