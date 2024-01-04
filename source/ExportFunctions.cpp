@@ -20726,6 +20726,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 		wxChar CR = _T('\r');
 		wxChar LF = _T('\n');
 		int eolLen;
+		wxChar dummyChar = _T('x'); // for avoiding gcc warning: value computed is not used below
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
 #if defined (_DEBUG)
@@ -20752,22 +20753,21 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 						// effectively skips the second EOL pair.
 						if (*(pNew - 2) == _T('\r') && *(pNew -1) == _T('\n'))
 						{
-							*(pOld++);
-							*(pOld++);
-							//*pOld = *pOld; // avoid gcc warning set but not used warning
+							dummyChar = *(pOld++);
+							dummyChar = *(pOld++);
 						}
 						else
 						{
-							*(pNew++) = *(pOld++);
-							*(pNew++) = *(pOld++);
+							dummyChar = *(pNew++) = *(pOld++);
+							dummyChar = *(pNew++) = *(pOld++);
 						}
 					}
 					else
 					{
 						// We're at the beginning of the bufer, so just copy the two existing pOld
 						// EOL char to pNew
-						*(pNew++) = *(pOld++);
-						*(pNew++) = *(pOld++);
+						dummyChar = *(pNew++) = *(pOld++);
+						dummyChar = *(pNew++) = *(pOld++);
 					}
 				}
 				else
@@ -20775,12 +20775,10 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 					// The EOL is either CR or LF, replace it with CR and LF
 					wxASSERT(eolLen == 1);
 					*pNew = CR;
-					*(pNew++);
+					dummyChar = *(pNew++);
 					*pNew = LF;
-					*(pNew++);
-					//*pNew = *pNew; // avoid gcc warning set but not used warning
-					*(pOld++); // advance only one char in pOld
-					//*pOld = *pOld; // avoid gcc warning set but not used warning
+					dummyChar = *(pNew++);
+					dummyChar = *(pOld++); // advance only one char in pOld
 				}
 			}
 			else
@@ -20788,9 +20786,10 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				// We're not at an EOL, so just process the non-EOL char.
 				// copying the char we are pointing at to pNew, and advancing
 				// the pointers.
-				*(pNew++) = *(pOld++);
+				dummyChar = *(pNew++) = *(pOld++);
 			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+		dummyChar = dummyChar;
 		wxASSERT(pOld == pEnd);
 		if (pOld == pEnd && bEndWithEOL)
 		{
@@ -20811,7 +20810,7 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				// so we need to replace that singular EOL with CRLF
 				*(pNew-1) = CR; // replacing the previous EOL char with CR
 				*pNew = LF;
-				*(pNew++); // the (wxChar)0 will go after the LF here, done below
+				dummyChar = *(pNew++); // the (wxChar)0 will go after the LF here, done below
 				//*pNew = *pNew; // avoid gcc warning set but not used warning
 			}
 			else
@@ -20819,10 +20818,9 @@ void NormalizeTextEOLsToCRLF(wxString& text, bool bEndWithEOL)
 				// There is no EOL of any kind at end of buffer, and bEndWithEOL is TRUE 
 				// so add CRLF to end of buffer.
 				*pNew = CR;
-				*(pNew++);
+				dummyChar = *(pNew++);
 				*pNew = LF;
-				*(pNew++); // the (wxChar)0 will go after the LF here, done below
-				//*pNew = *pNew; // avoid gcc warning set but not used warning
+				dummyChar = *(pNew++); // the (wxChar)0 will go after the LF here, done below
 			}
 		}
 
