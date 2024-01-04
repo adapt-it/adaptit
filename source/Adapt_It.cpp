@@ -19635,7 +19635,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
 {
     // BEW 9Feb23 the dataFolderPath needs to be the path to _DATA_KB_SHARING folder.
     // But this path, will vary - for a released version, it will be in the work folder;
-    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug\ 
+    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug
     // (or Unicode Release), and so there has to be a _DATA_KB_SHARING folder put manually
     // in each, to get dev work done on kbserver. Fix this. execFolderPath is what to use.
     wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; 
@@ -24513,7 +24513,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //testStr = testStr; // for debug examination
     //NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to TRUE
     //testStr = testStr; // for debug examination
-    NormalizeTextEOLsToCRLF(testStr, FALSE); // TRUE sets bEndWithEOL to FALSE
+    NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to FALSE
     testStr = testStr; // for debug examination
     */
     /*

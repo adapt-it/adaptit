@@ -45024,7 +45024,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							pAux2 = ptr + wholeMkrLength;
 							wxChar chNext; bool bCRisnext;
 							bCRisnext = FALSE; // init
+							bCRisnext = bCRisnext; // avoid gcc warning: set but not used
 							chNext = *pAux2; // chNext is what should be appended to tokBuffer
+							chNext = chNext; // avoid gcc warning: set but not used
 							// whm 7Sep2023 modified the next 3 if tests below to ensure that if EOL is "\r\n" that 
 							// "\r\n" gets put into tokBuffer and m_markers, otherwise m_markers can end up with a 
 							// mixture of "\r" and "\r\n" EOLs within it, which when MakeXML() is called the EOLs 
@@ -45769,6 +45771,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// filtering out - and the filtering out code is a long way below
 							int offset;
 							bool bFoundOne;// TRUE if we find a member of the charAttributeMkrs string
+							wxUnusedVar(bFoundOne); // avoid gcc warning: set but not used
 							int anOffset;
 
 							anOffset = -1;
@@ -46818,7 +46821,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// Might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
 					// test and jump to further down -- so that \yy ends up in m_markers, and
 					// not somewhere else
-					int xxx;
 					pointsAt = wxEmptyString;
 					wholeMkrAtPtr = wxEmptyString; pointsAtFirst = wxEmptyString; pointsAtPtr = wxEmptyString;
 					strAuxPointsAt = wxEmptyString; fMkr = wxEmptyString; feMkr = wxEmptyString;
@@ -47580,7 +47582,7 @@ wxLogDebug(_T("TokText(), line %d , sn= %d , m_markers= %s"), __LINE__, pSrcPhra
 						// or it's not one that can be filtered (by checking in pUsfmAnalysis)
 						// BEW 30Sep19  Attribute hiding, if to be done, is done in ParseWord()
 						// so there is nothing to be added here for USFM 3.0
-					isnull:	xxx;			// dummy convenience variable as a destination for jump
+					isnull:
 
 											// BEW 30Sep19, since control will go to ParsePreWord() which needs
 											// to know correct values for the booleans:
@@ -47761,7 +47763,7 @@ wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_markers= %s"), __LINE__, pS
 
 					wxChar newLine;
 					newLine = _T('\n');
-					if (pSrcPhrase->m_key.IsEmpty() && *ptr == _T('[') && (*(ptr + 1) == newLine) ||
+					if ((pSrcPhrase->m_key.IsEmpty() && *ptr == _T('[') && (*(ptr + 1) == newLine)) ||
 						(*(ptr + 1) == _T(' ') && *(ptr + 2) == newLine) ||
 						(*(ptr + 1) == _T(' ') && *(ptr + 2) == _T('\r') && *(ptr + 3) == _T('\n')))
 					{
