@@ -16900,7 +16900,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			__LINE__, strGrabbedPrecPuncts.c_str(), strGrabbedFinalPuncts.c_str());
 		if (pSrcPhrase->m_nSequNumber >= 1)
 		{
-			int halt_here = 1;
+			int halt_here = 1; wxUnusedVar(halt_here);
 		}
 	}
 #endif
@@ -16935,7 +16935,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
 			if (pSrcPhrase->m_nSequNumber >= 1)
 			{
-				int halt_here = 1;
+				int halt_here = 1; wxUnusedVar(halt_here);
 			}
 		}
 #endif
@@ -17102,6 +17102,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	// bAlreadyHasFollPunct is, and don't default it to FALSE at initialization, make it TRUE if the puncts were added
 	// just above
 	bool bSimpleHasAppendedPuncts = FALSE; // init
+	bSimpleHasAppendedPuncts = bSimpleHasAppendedPuncts; // avoid gcc warning set but not used warning
 	int offsett = wxNOT_FOUND;
 	wxString follPunctsStr = pSrcPhrase->m_follPunct;
 	if (!follPunctsStr.IsEmpty())

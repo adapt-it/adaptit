@@ -2986,6 +2986,7 @@ extern bool gbDoingInitialSetup;
 			// AFTER the TokenizeText[String]() call below.
 			bool bSetupOK;
 			bSetupOK = pDoc->SetupUsfmStructArrayAndFile(recreateExistingFile, *pBuffer);
+			bSetupOK = bSetupOK; // avoid gcc warning set but not used warning
 
 			// parse the new source text data into a list of CSourcePhrase instances
 			int nHowMany;
@@ -11309,7 +11310,7 @@ extern bool gbDoingInitialSetup;
 					{
 						bSetupOK = gpApp->GetDocument()->SetupUsfmStructArrayAndFile(createNewFile, m_collab_sourceWholeBookBuffer);
 					}
-
+					bSetupOK = bSetupOK; // avoid gcc warning set but not used warning
 
 					// parse the input file
 					int nHowMany;

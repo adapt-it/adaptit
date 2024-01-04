@@ -19644,7 +19644,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
 {
     // BEW 9Feb23 the dataFolderPath needs to be the path to _DATA_KB_SHARING folder.
     // But this path, will vary - for a released version, it will be in the work folder;
-    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug\
+    // but when developing, the running AIU executable will be in bin\win32\Unicode Debug
     // (or Unicode Release), and so there has to be a _DATA_KB_SHARING folder put manually
     // in each, to get dev work done on kbserver. Fix this. execFolderPath is what to use.
     wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //this->execPath; 
@@ -22472,10 +22472,9 @@ int system_hidden(const char* cmdArgs)
             QS_ALLPOSTMESSAGE);
         if ((ret == WAIT_FAILED) || (ret == WAIT_OBJECT_0))
             break;
-        //*
+        // *
         // * Don't block message loop
-        //*/
-        /*
+        // *
         MSG msg;
         while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
         {
@@ -22685,6 +22684,7 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 
         // It would be nice if there is a setting for system() that suppressed showing the CMD window. I'll try google
         int rv = -1; // initialise
+        rv = rv; // avoid gcc set but not used warning
         /*  wxExecute above worked quicker & robustly
         bool bExecutedSucceeded = FALSE; // initialise
         const char* pstart = "do_create_entry.exe";
@@ -24892,7 +24892,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //testStr = testStr; // for debug examination
     //NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to TRUE
     //testStr = testStr; // for debug examination
-    NormalizeTextEOLsToCRLF(testStr, FALSE); // TRUE sets bEndWithEOL to FALSE
+    NormalizeTextEOLsToCRLF(testStr, TRUE); // TRUE sets bEndWithEOL to FALSE
     testStr = testStr; // for debug examination
     */
     /*
@@ -31164,6 +31164,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#endif
 
     // **** test code fragments here ****
+
+    /*
+    // Test the ReorderFilterMaterialUsingUsfmStructData() function
+    // Make up a couple instances of a filterStr to input into the function, one with a wrong order and another with
+    // a correct order according to the test_UsfmStructArr containing the noral correct ordering.
+    wxString filteredStuffWrongOrder = _T("\\~FILTER \\s This is a subheading\\~FILTER*\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*\\~FILTER \\r This is a parallel reference\\~FILTER*");
+    wxString filteredStuffInOrder = _T("\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*\\~FILTER \\s This is a subheading\\~FILTER*\\~FILTER \\r This is a parallel reference\\~FILTER*");
+    wxString ChVs = _T("10:52");
+    // Make up a test version of m_UsfmStructArr that has 4 adjacent filterable markers in their normal correct ordering
+    wxArrayString test_UsfmStructArr;
+    test_UsfmStructArr.Clear();                 // index
+    test_UsfmStructArr.Add(_T("\\c 10:0:0"));   // 0
+    test_UsfmStructArr.Add(_T("\\v 52:155:0")); // 1
+    test_UsfmStructArr.Add(_T("\\c 11:0:0"));   // 2
+    test_UsfmStructArr.Add(_T("\\ms:47:1"));    // 3
+    test_UsfmStructArr.Add(_T("\\mr:13:1"));    // 4
+    test_UsfmStructArr.Add(_T("\\s:32:1"));     // 5
+    test_UsfmStructArr.Add(_T("\\r:43:1"));     // 6
+    test_UsfmStructArr.Add(_T("\\p:0:0"));      // 7
+    test_UsfmStructArr.Add(_T("\\v 1:127:0"));  // 8
+    filteredStuffInOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffInOrder, ChVs, test_UsfmStructArr);
+    int debugBreak = -1;
+    filteredStuffWrongOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffWrongOrder, ChVs, test_UsfmStructArr);
+    debugBreak = -1; wxUnusedVar(debugBreak);
+    */
+
     /*
     // GDLC 24OCT12 testing the new wxUUID class
     wxString test_UUID = GetUuid();
@@ -64984,7 +65010,9 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
     // pSrcPhrase's puncts members lack.
 
     bool bNoFinalPuncts = TRUE; // init
+    bNoFinalPuncts = bNoFinalPuncts;  // avoid gcc set but not used warning
     bool bNoPrecPuncts = TRUE; // init
+    bNoPrecPuncts = bNoPrecPuncts;  // avoid gcc set but not used warning
     str = this->m_targetPhrase;
     // BEW 12Oct23, if user typed preceding and/or following puncts manually, this->m_targetPhrase will have them
     // "in place" already, so we must determine if there were manual puncts typed. If so, their existence must be determined.
@@ -65044,7 +65072,7 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
         __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_adaption.c_str(), strManuallyTypedPrecPuncts.c_str(), strManuallyTypedFollPuncts.c_str());
     if (pSrcPhrase->m_nSequNumber >= 1)
     {
-        int halt_here = 1;
+        int halt_here = 1; wxUnusedVar(halt_here);
     }
 #endif
     wxString theEndStuff = wxEmptyString; // init
