@@ -672,7 +672,7 @@ void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 				__LINE__, m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
 				pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption, m_pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 		}
-		if (pActivePile->GetSrcPhrase()->m_nSequNumber >= 118)
+		if (pActivePile != NULL && pActivePile->GetSrcPhrase()->m_nSequNumber >= 118) // whm 5Jan2024 added first test pActivePile != NULL because of exception when closing file
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}

@@ -30786,6 +30786,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // **** test code fragments here ****
 
+    // Test the FilteredMaterialContainsMoreThanOneItem() function used twice in ReconstituteAfterFilteringChange() 
+    //bool bOK;
+    //// test with empty filterStuff string
+    //wxString filterStuff = _T("");
+    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    //// test with only one item in filterStuff
+    //filterStuff = _T("\\~FILTER \\s This is a subheading\\~FILTER*");
+    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    //// test with more than one item in filterStuff
+    //filterStuff = _T("\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*");
+    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    //bOK = bOK;
+
     /*
     // Test the ReorderFilterMaterialUsingUsfmStructData() function
     // Make up a couple instances of a filterStr to input into the function, one with a wrong order and another with

@@ -7370,30 +7370,127 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 /// BEW refactored 22Jun15, so that no filtered information is returned.
 /// Because of this refactoring, the bAttachFilteredInfo, even if passed in TRUE, will have
 /// no filtered info to attach; similarly, xrefStr will be empty always, likewise filteredInfoStr
+/// whm 3Jan2024 reverse refactored BEW's 22Jun15 refactoring to incorporate filtered info in 
+/// RebuildSourceText() which requires filtered information to be returned again from this function.
 wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxUnusedVar(bCountInTargetText); // BEW added 22Jun15
 	wxUnusedVar(bDoCount); // BEW added 22Jun15
 	wxUnusedVar(bAttach_m_markers); // 5May23 unreferenced, no longer needed
-	wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed
-	wxUnusedVar(mMarkersStr); // 8May23 no longer needed
-	wxUnusedVar(filteredInfoStr); // 8May23 no longer needed
-	wxUnusedVar(xrefStr); // 8May23 no longer needed
+	//wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed // whm 3Jan2024 reinstated
+	//xUnusedVar(mMarkersStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+	//wxUnusedVar(filteredInfoStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+	//wxUnusedVar(xrefStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
 	bool bEndPunctsModified = FALSE; // init
 	wxString pattern; pattern = wxEmptyString; // init
 
 	wxString Sstr;
-	wxString aSpace = _T(" ");
-	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix it at end
 
-	//mMarkersStr = markersStr; // unilaterally returned to caller, in case it wants it
-	//CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
+	// ORDER OF COMPONENTS OF RETURNED Sstr (in the OLDER code model):
+	// 1. Note: markersPrefix (includes filtered info, which is last to be prefixed on Sstr), followed by a space
+	// 2. If bIsFixedSpaceConjoined (wrd1 + ~ + wrd2), wrd1 and wrd2 are separately processes as follows:
+	//    wrd1 prefixed by any wrd1's inlineBindingMarkers, and suffixed by any wrd1's inlineBindingEndMarkers, then suffixed by any wrd1's m_follPunct.
+	//    wrd2 prefixed by any wrd2's inlineBindingMarkers, and suffixed by any wrd2's inlineBindingEndMarkers, then prefixed by any wrd2's m_precPunct
+	//    Then srcStr = wrd1 + ~ + wrd2 (where wrd1 and wrd2 were augmented as above.
+	// 3. If no conjoining, srcStr is prefixed by pSingleSrcPhrase's inlineBindingMarkers, and suffixed by pSingleSrcPhrase's inlineBindingEndMarkers
+	// 4. srcStr is prefixed by pSingleSrcPhrase's m_precPunct, and suffixed by pSingleSrcPhrase's m_follPunct
+	// 5. srcStr is assigned to Sstr
+	// 6. Sstr is prefixed by any pSingleSrcPhrase's inlineNonbindingMarkers.
+	// 7. 
+
+
+	// ORDER OF COMPONENTS OF RETURNED Sstr (in this NEWER code model):
+	// 1. Return only _T("\\") if m_key is empty and m_srcPhrase is _T("\\"), 
+	//    Return m_markers + _T("\\") if m_markers is not empty when m_key is empty and m_srcPhrase is _T("\\").
+	//    If m_key not empty, the following components contribute to returned Sstr:
+	// 2. pSingleSrcPhrase->m_srcSinglePattern is updated if m_key has changed due to a src text edit - making
+	//    the m_key value different, or PT source text project has been user-edited to change the m_key spelling.
+	//    If m_key has not changed, the following components contribute to returned Sstr:
+	// 3. GetPostwordExtras() gets any post-word extras (stuff after the m_key) from m_srcSinglePattern, which may 
+	//    be puncts, markers, or whitespaces, but any end markers are removed by the RemoveEndMkrsFromExtras() call.
+	//    The extras value is only used as input ref var to Qm_srcPhrasePunctsPresentAndNoResidue()
+	// 4. srcStr begins with any m_precPunct assigned to it
+	// 5. srcStr has m_srcSinglePattern suffixed to it whenever extras is empty and no residue.
+	//    If extras/residue is not empty, and bEndPunctsModified is TRUE, Sstr is recreated by a
+	//    call to UpdateSingleSrcPattern(...,Sstr...) function.
+	//     srcStr = pSingleSrcPhrase->m_srcSinglePattern + any residue suffixed.
+	//    Then any m_precPunct is prefixed to srcStr.
+	// 6. If bEndPunctsModified is FALSE, any non-empty markersStr is assigned to a prefixStr
+	//    Then strNonbinding markers if any are suffixed to prefixStr.
+	//    Then strBinding markers, if any are suffixed to prefixStr.
+	// 7. The prefixStr is prefixed to srcStr, which is finally assigned to Sstr, trimmed and returned.
+
+	// whm 3Jan2024 added following old code back for filtered information to be incorporated
+	// in to the string returned from FromSingleMakeSstr().
+	// Some code adjustments have been done to account for newer the revisions that have been
+	// made since BEW removed filtered info processing.
+	// 
+	// Clear next three ready for returning what we find to caller (caller may use any or
+	// all of it, or decline it, but we return it anyway via the signature), the booleans
+	// in the signature control whether the filtered stuff and m_markers stuff is to be
+	// included in the returned string or not.
+	xrefStr.Empty();
+	filteredInfoStr.Empty();
+	mMarkersStr.Empty();
+	// store here any string of filtered information stored on pSingleSrcPhrase (in any or
+	// all of m_freeTrans, m_note, m_collectedBackTrans, m_filteredInfo)
+	wxString markersPrefix; markersPrefix.Empty();
+
+	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
+
+	wxString aSpace = _T(" ");
+	wxString markersStr; // gotten from pSrcPhrase->m_markers
+	wxString endMarkersStr; // gotten from pSrcPhrase->GetEndMarkers()
+	wxString freeTransStr; // gotten from pSrcPhrase->GetFreeTrans(
+	wxString noteStr; // gotten from pSrcPhrase->GetNote()
+	wxString collBackTransStr; // gotten from pSrcPhrase->GetCollectedBackTrans()
+	wxString filteredInfoStr2; // gotten from pSrcPhrase->GetFilteredInfo()
+
+	//wxString markersStr = pSingleSrcPhrase->m_markers; // prefix it at end // whm 3Jan2024 markerStr assigned in restored code below
+	
+	// whm 3Jan2024 restored earlier filtered info code below
+	// empty the scratch strings
+	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
+		collBackTransStr, filteredInfoStr2);
+	// get the other string information we want, putting it in the scratch strings
+	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
+		freeTransStr, noteStr, collBackTransStr, filteredInfoStr2);
+	// remove any filter bracketing markers if filteredInfoStr2 has content
+	if (!filteredInfoStr2.IsEmpty())
+	{
+		filteredInfoStr2 = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr2);
+
+		// separate out any cross reference information - it must be placed following
+		// information in m_markers, if the caller wants it; other filtered info is to be
+		// placed preceding m_markers, if the caller wants it
+		SeparateOutCrossRefInfo(filteredInfoStr2, xrefStr, filteredInfoStr);
+	}
+	mMarkersStr = markersStr; // unilaterally returned to caller, in case it wants it
+	if (bAttachFilteredInfo)
+	{
+
+		// For the one and only CSourcePhrase, we store any filtered info within the prefix
+		// string, and any content in m_markers, if present, must be put at the start
+		// of Sstr if filtered info is xref info (which comes after m_markers), but if there
+		// is other filtered info, it precedes m_markers info; remove LHS whitespace when done
+		markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
+			pSrcPhrases, filteredInfoStr, collBackTransStr,
+			freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+				// and xrefStr are handled in a separate function, later below
+
+	} // end of TRUE block for test: if (bAttachFilteredInfo)
+
+	// whm 5Jan2024 TODO: complete the refactoring of FromSingleMakeSstr() and RebuildSourceText() !!!
+	// the above is only a partial start at refactoring to include filtered info in rebuilds of source text
+
+
 
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
+
 #if defined (_DEBUG)
 	if (pSingleSrcPhrase->m_nSequNumber >= 19)
 	{
@@ -7417,7 +7514,6 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxString extras = wxEmptyString;
 	wxString strSaveExtras;
 	strSaveExtras = wxEmptyString; // init
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	// BEW 10May23, pSrcPhrase (docVersion == 10) has a new wxString, m_oldKey which stores
 	// the key parsed in the doc ParseWords() call. m_srcSinglePattern has the m_key value at that
@@ -7604,6 +7700,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
 }
+
 /* BEW 11Sep23 deprecated, it does nothing useful - I did not implement the B E N stuff
 // BEW 10Jul23 added. Analysis for coping with manual punctuation changes, to reduce 
 // incidence of Placement dialogs appearing. Markers and puncts, whitespace too are

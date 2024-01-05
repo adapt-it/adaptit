@@ -2986,7 +2986,14 @@ extern bool gbDoingInitialSetup;
 			// AFTER the TokenizeText[String]() call below.
 			bool bSetupOK;
 			bSetupOK = pDoc->SetupUsfmStructArrayAndFile(recreateExistingFile, *pBuffer);
-			bSetupOK = bSetupOK; // avoid gcc warning set but not used warning
+			if (!bSetupOK)
+			{
+				// Not likely to happen so an English message is OK.
+				wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+				wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+				pApp->LogUserAction(msg);
+				pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+			}
 
 			// parse the new source text data into a list of CSourcePhrase instances
 			int nHowMany;
@@ -3023,7 +3030,10 @@ extern bool gbDoingInitialSetup;
 			// AFTER the TokenizeText[String]() call is made below.
 			if (nHowMany > 0)
 			{
-				gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
+				if (gpApp->GetDocument()->m_bUsfmStructEnabled)
+				{
+					gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
+				}
 			}
 
 			SPList* pMergedList = new SPList; // store the results of the merging here
@@ -11310,7 +11320,14 @@ extern bool gbDoingInitialSetup;
 					{
 						bSetupOK = gpApp->GetDocument()->SetupUsfmStructArrayAndFile(createNewFile, m_collab_sourceWholeBookBuffer);
 					}
-					bSetupOK = bSetupOK; // avoid gcc warning set but not used warning
+					if (!bSetupOK)
+					{
+						// Not likely to happen so an English message is OK.
+						wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+						wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+						pApp->LogUserAction(msg);
+						gpApp->GetDocument()->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+					}
 
 					// parse the input file
 					int nHowMany;
@@ -11333,7 +11350,10 @@ extern bool gbDoingInitialSetup;
 					// AFTER the TokenizeText[String]() call is made below.
 					if (nHowMany > 0)
 					{
-						gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
+						if (gpApp->GetDocument()->m_bUsfmStructEnabled)
+						{
+							gpApp->GetDocument()->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(gpApp->GetDocument()->m_usfmStructFilePathAndName);
+						}
 					}
 
 					// whm 14Apr2020 added following additional LogDocCreationData() call to indicate success

@@ -398,6 +398,8 @@ public:
 	wxString		m_usfmStructFileName;
 	bool			SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess fileProcess, wxString& 
 						pInputBuffer, SPList* pList = NULL);
+	bool			m_bUsfmStructEnabled;
+	bool			FilteredMaterialContainsMoreThanOneItem(wxString filteredStuff);
 	void			GetFilterableMarkersFromString(wxString tempMkrs, 
 						wxArrayString& filteredMkrsArrayWithFilterBrackets, wxArrayString& filterableMkrsArray);
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);

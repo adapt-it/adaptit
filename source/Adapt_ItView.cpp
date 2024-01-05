@@ -31499,6 +31499,7 @@ bailout:	pAdaptList->Clear();
 			wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
 			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
 			pApp->LogUserAction(msg);
+			pDoc->m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
 		}
 		// whm 13Nov2023 added the following function call to update the filter status fields in the 
 		// .usfmstruct file that was created for the newly created document from the input source text
@@ -31513,7 +31514,10 @@ bailout:	pAdaptList->Clear();
 		// whm TODO: Verify that the gCurrentFilteredMarkers string is up to date before the
 		// call below.
 		// *****************************
-		pDoc->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(pDoc->m_usfmStructFilePathAndName);
+		if (pDoc->m_bUsfmStructEnabled)
+		{
+			pDoc->UpdateCurrentFilterStatusOfUsfmStructFileAndArray(pDoc->m_usfmStructFilePathAndName);
+		}
 	}
 
 	// delay cancel cleanup to here, as the restoration of the view needed

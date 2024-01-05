@@ -415,6 +415,13 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 							// needs to be made FALSE if it was TRUE
 	m_bWithinMkrAttributeSpan = FALSE; // FOR USFM3 support, should start off FALSE
 
+	// whm 5Jan2024 added. We will assume the SetupUsfmStructArrayAndFile() succeeded
+	// in has access to the <filename>.usfmstruct file and its m_UsfmStructArr structure
+	// here on the Doc. If the SetupUsfmStructArrayAndFile() returns FALSE, the code
+	// sets this flag to FALSE, and the assistance that the usfm structure will be
+	// unavailble for usfm ordering during usfm filtering operations.
+	m_bUsfmStructEnabled = TRUE; 
+
 	// whm 24Dec2019 moved the following initialization here from Adapt_ItDoc.h
 	// using _T('°') to represent the degree character \u00B0 causes a compiler warning 
 	// "warning C4066: characters beyond first in wide-character constant ignored", so
@@ -1309,6 +1316,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
 				wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
 				pApp->LogUserAction(msg);
+				m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
 			}
 
 			/*
@@ -1562,7 +1570,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// Note: SetupUsfmStructArrayAndFile() should be called BEFORE the TokenizeText[String]()
 			// call above. Then, then a call to UpdateCurrentFilterStatusOfUsfmStructFileAndArray()
 			// AFTER the TokenizeText[String]() call is made here below.
-			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
+			if (m_bUsfmStructEnabled)
+			{
+				UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
+			}
 
 			// whm 13Apr2020 added line at end of document creation log to indicate we reached end of the document
 			// This essentially signals within the log file that the document creation was successful.
@@ -5857,7 +5868,14 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	{
 		int textLen;
 		textLen = RebuildSourceText(inputBuffer, pList);
-		textLen = textLen;  // avoid gcc set but not used warning
+		if (textLen == 0 || inputBuffer.IsEmpty() || pList->IsEmpty())
+		{
+			// Not likely to happen so an English message is OK.
+			wxString msg = _T("RebuildSourceText could not create an inputBuffer.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			gpApp->LogUserAction(msg);
+			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
+		}
 	}
 
 	m_usfmStructDirName = _T(".usfmstruct");
@@ -5876,11 +5894,12 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 			wxString msg = _T("In OnNewDocument() - Failed to Create hidden directory at %s");
 			msg = msg.Format(msg, m_usfmStructDirPath.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE;
+			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
 		}
 	}
 
 	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
+
 	// The wxArrayString m_UsfmStructArr array is on the Doc class, and its contents persist while a doc is open.
 	m_UsfmStructArr = GetUsfmStructureAndExtent(inputBuffer, TRUE);
 	// Get the wxArrayString's lines and save them in the <filename>.usfmstruct file at:
@@ -5914,7 +5933,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 				wxString msg = _T("Unable to remove existing usfmstruct file at:\n%s");
 				msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 				gpApp->LogUserAction(msg);
-				return FALSE;
+				return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
 			}
 		}
 	}
@@ -5934,7 +5953,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 			wxString msg = _T("Failed f.Open() for reading usfmstruct info to %s");
 			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE;
+			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
 		}
 		else
 		{
@@ -5962,7 +5981,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 			wxString msg = _T("Failed f.Open() for writing usfmstruct info to %s");
 			msg = msg.Format(msg, m_usfmStructFilePathAndName.c_str());
 			gpApp->LogUserAction(msg);
-			return FALSE;
+			return FALSE; // the caller will set m_bUsfmStructEnabled to FALSE to disable usfmStruct processing
 		}
 		else
 		{
@@ -5973,6 +5992,35 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	return TRUE;
 }
 
+
+bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuff)
+{
+	// Check whether filteredStuff has more than one filtered item.
+	// Each filtered item will be enclosed by \~FILTER ...\~FILTER* bracket markers
+	// If there are more than one set of filter bracket markers return TRUE,
+	// otherwise return FALSE
+	wxString filterStr = filteredStuff;
+	int posFilterMarker = -1;
+	posFilterMarker = filterStr.Find(_T("\\~FILTER ")); // following space in find string uniquely gets the beginning bracket marker
+	if (posFilterMarker != wxNOT_FOUND)
+	{
+		// Found one, remove it and check for another. If there is at least two markers
+		// we can return TRUE, otherwise FALSE
+		int posFilterEndMarker = -1;
+		posFilterEndMarker = filterStr.Find(_T("\\~FILTER*"));
+		int len = (int)filterStr.Length();
+		if (posFilterEndMarker != wxNOT_FOUND && len > posFilterEndMarker + 9)
+		{
+			filterStr = filterStr.Mid(posFilterEndMarker + 9);
+			if (filterStr.Find(_T("\\~FILTER ")) != wxNOT_FOUND)
+			{
+				// We found a second "\\~FILTER " substring, so return TRUE
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
 
 // whm 10Nov2023 added. Gets a list of markers from the input string tempMkrs.
 // This function makes a call to GetMarkersAndTextFromString() which returns
@@ -7850,13 +7898,72 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 	// whm 15Oct2023 added. We're near the end of OnOpenDocument() and we need to ensure that
 	// the Doc's variables and m_UsfmStructArr array are set up and populated for the current
-	// document being opened by calling the Doc's SetupUsfmStructArrayAndFile() function:
-	wxString unusedString = wxEmptyString;
-	SetupUsfmStructArrayAndFile(openExistingFile, unusedString);
+	// document being opened by calling the Doc's SetupUsfmStructArrayAndFile() function.
+	// When opening an existing document, there is a good chance that the user will be opening
+	// a document that AI created before version 6.11.1 and there would not be any existing
+	// <filename>.usfmstruct file to process. We check first to see if the <filename.usfmstruct
+	// file exists. If so, we pass openExistingFile enum to SetupUsfmStructArrayAndFile(). If
+	// the .usfmstruct file doesn't yet exist we need to pass createFromSPList to the 
+	// SetupUsfmStructArrayAndFile() function. At this point in OnOpenDocument() the SPList
+	// should exist for the just-opened document.
+	m_usfmStructDirName = _T(".usfmstruct");
+	wxFileName structFn(gpApp->m_curOutputPath);
+	m_usfmStructFilePath = structFn.GetPath();
+	m_usfmStructFileName = structFn.GetFullName(); // gets full name including extension, but excluding directories
+	m_usfmStructDirPath = m_usfmStructFilePath + gpApp->PathSeparator + m_usfmStructDirName;
+	if (!::wxDirExists(m_usfmStructDirPath))
+	{
+		// The hidden dir .usfmstruct doesn't exist yet so create it.
+		bool bOK;
+		bOK = ::wxMkdir(m_usfmStructDirPath);
+		if (!bOK)
+		{
+			// failure to make the directory not expected so English message to the user log is sufficient
+			wxString msg = _T("In OnNewDocument() - Failed to Create hidden directory at %s");
+			msg = msg.Format(msg, m_usfmStructDirPath.c_str());
+			gpApp->LogUserAction(msg);
+			m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+		}
+	}
+
+	m_usfmStructFilePathAndName = m_usfmStructDirPath + gpApp->PathSeparator + m_usfmStructFileName + m_usfmStructDirName;
+	if (!::wxFileExists(m_usfmStructFilePathAndName))
+	{
+
+		wxString inputBuffer;
+		inputBuffer.Empty();
+		bool bSetupOK;
+		bSetupOK = SetupUsfmStructArrayAndFile(createFromSPList, inputBuffer, gpApp->m_pSourcePhrases);
+		if (!bSetupOK)
+		{
+			// Not likely to happen so an English message is OK.
+			wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			pApp->LogUserAction(msg);
+			m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+		}
+	}
+	else
+	{
+		wxString unusedString; unusedString.Empty();
+		bool bSetupOK;
+		bSetupOK = SetupUsfmStructArrayAndFile(openExistingFile, unusedString);
+		if (!bSetupOK)
+		{
+			// Not likely to happen so an English message is OK.
+			wxString msg = _T("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			pApp->LogUserAction(msg);
+			m_bUsfmStructEnabled = FALSE; // the usfm struct routines are disabled
+		}
+	}
 	// amd also update the .usfmstruct file (that was created when 
 	// document was first created) with current filter status information. We do that by calling the Doc function:
 	// UpdateCurrentFilterStatusOfUsfmStructFileAndArray().
-	UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
+	if (m_bUsfmStructEnabled)
+	{
+		UpdateCurrentFilterStatusOfUsfmStructFileAndArray(m_usfmStructFilePathAndName);
+	}
 
 	// BEW 12Feb20 added call to check if the adaptation KB has any placeholder items stored
 	// within - if any are found then this function removes them. Observing workflow as
@@ -10982,7 +11089,7 @@ g:				bIsUnknownMkr = FALSE;
 					// which follows the filtered out section - that one might have filtered material
 					// already, so we have to check and take the appropriate branch.
 					wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
-					
+
 					// whm 6Nov2023 we want to store to the pPrevSrcPhrase rather than on the 
 					// pUnfilteredSrcPhrase. The if and else blocks below now store the filteredStr
 					// on pPrevSrcPhrase instead of pUnfilteredSrcPhrase.
@@ -11006,8 +11113,26 @@ g:				bIsUnknownMkr = FALSE;
 					// The ReorderFilterMaterialUsingUsfmStructData() guarantees that we preserve the 
 					// relative ordering of the adjacent filtered markers in filteredStuff.
 					filteredStuff = filteredStr + filteredStuff; // inserted at start of string, but it may need reordering
-					wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
-					filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+					// To avoid un-needed warnings, test filteredStuff to see if more than one filtered 
+					// item is in filteredStuff. If it only has a single filtered item reordering isn't
+					// necessary, and even if the .usfmstruct apparratus is not enabled, we need not
+					// warn the user about it.
+					if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
+					{
+						if (m_bUsfmStructEnabled)
+						{
+							wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
+							filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+						}
+						else
+						{
+							// Give a warning message to the user
+							wxString msg = _("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+							wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+							gpApp->LogUserAction(msg);
+
+						}
+					}
 					// Store it back on the pPrevSrcPhrase CSourcePhrase.
 					pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
 
@@ -11890,8 +12015,11 @@ g:				bIsUnknownMkr = FALSE;
 				// The ReorderFilterMaterialUsingUsfmStructData() guarantees that we preserve the 
 				// relative ordering of the adjacent filtered markers in filteredStuff.
 				filteredStuff = filteredStr + filteredStuff;
-				wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
-				filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+				if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
+				{
+					wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
+					filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+				}
 				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
 
 				preStr.Empty();
@@ -34587,7 +34715,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 // BEW added 10May23 for updating m_srcSinglePattern when puncts have changes
 // When this function gets called within FromSingleMakeSstr(), m_srcSinglePattern's oldKey value will
 // already have been updated to whatever is the new m_key value; so it's the rest we deal with here
-// BEW 7Sep23 added wxString ref to Sstr to signature, since we build a Sstr internally, we need to
+// BEW 7Sep23 added wxString ref Sstr to signature, since we build a Sstr internally, we need to
 // pass it back to the caller for the caller to store and/or use 
 bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& Sstr, bool bTokenizingTargetText)
 {
@@ -34625,14 +34753,14 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// Our protocol for endMkrs storage is, in left to right order:
 	// (1) one or more inlineBindingMkrs, then (2) one or more from pSrcPhrase->m_markers, and lastly
 	// (3) sometimes one of the inlineNonbinding endMkrs (e.g \wj* "words of Jesus") which we do not
-	// expect to ever be followed by a punctuation character other that \r\n or \n of legacy OSX \s
+	// expect to ever be followed by a punctuation character other than \r\n or \n of legacy OSX \s
 	// Our protocol in this function involves some guesswork, because we have to guess where each
 	// punct should be located relative to the three endMkr types. We handle it this way:
 	// Inventory the ending puncts, collecting from m_follPunct and appending any in m_follOuterPunct;
 	// count how many total.
 	// Get an inventory of endMkrs - left to right order, from binding ones, then m_markers ones, and
 	// finally any stored in nonbinding endMkrs storage. Count how many backslashes are present.
-	// The work from right to left, to make best guesses for assigning puncts from the puncts inventory
+	// Then work from right to left, to make best guesses for assigning puncts from the puncts inventory
 	// to follow relevant endMkrs. We are helped, I think, by the following observations. (a) I expect
 	// an inline nonbinding endMkr to never be followed by an ending punct (but if there is one, we
 	// should steal from end of the inventory of punct, to assign that one). Normal ending puncts are
@@ -34643,7 +34771,7 @@ bool CAdapt_ItDoc::UpdateSingleSrcPattern(CSourcePhrase* pSrcPhrase, wxString& S
 	// only one such, and it's unlikely these have a following punct - so if only one punct remains,
 	// assume it goes after the 'normal' endMkrs provided this does not reduce the remainder of the
 	// puncts to zero: eg. a situation like,  \k*.\f*<rest of puncts>
-	// There's no way we can eliminate guesswork from these protocols, but the above many well generate
+	// There's no way we can eliminate guesswork from these protocols, but the above may well generate
 	// correct Sstr values in several contexts.
 
 	int offset = wxNOT_FOUND; wxUnusedVar(offset); // avoid compiler warning variable initialized but not referenced
