@@ -9257,7 +9257,10 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 			//wxString tgtstr = pActiveSrcPhrase->m_targetStr;
 			bool hasFinalPuncts = !pActiveSrcPhrase->m_follPunct.IsEmpty();
 			bool hasPrecPuncts = !pActiveSrcPhrase->m_precPunct.IsEmpty();
-			if (hasFinalPuncts == TRUE || hasPrecPuncts == TRUE)
+			// BEW 5Dec23 added second subtest, because when pActiveSrcPhrase has no following or preceding puncts,
+			// then I found out that I had to click in the phrasebox to make my typing 'stick'. So I want to inhibit
+			// MakeTargetStringIncludingPunctuation() call in that situation too
+			if ((hasFinalPuncts == TRUE || hasPrecPuncts == TRUE) || (!hasFinalPuncts && !hasPrecPuncts))
 			{
 				pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			}

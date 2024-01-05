@@ -165,8 +165,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pUsersListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_CUR_USERS);
 	wxASSERT(m_pUsersListBox != NULL);
 
-	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
+	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_SERVER_URL);
 	wxASSERT(m_pConnectedTo != NULL);
+	// BEW added 15Dec23 put the hostname into the m_pConnectedTo wxTextCtrl
+	wxString strHostConnectedTo = m_pApp->m_strKbServerHostname; // 15Dec23 gets correct value "bew-VB"
+	//m_pConnectedTo->SetValue(strHostConnectedTo); <<-- BEW 15Dec23, getting nullptr access violations, find a workaround
 
 	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
 	// used as a custom control in wxDesigner's RetranslationDlgFunc() dialog.
@@ -530,6 +533,27 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 {
 	if (pageNumSelected == 0) // Users page
 	{
+		// BEW 21Dec23 the users page has buttons for changing fulname, pwd or useradmin. When one
+		// of these buttons is pressed, the index for which field to change in the users' page four
+		// arrays, for user, or fullname, or pwd, or useradmin will range between [1 and 3], but
+		// the index for which user was clicked is given by app's m_nMgrSel value - which could be
+		// must more than 3. So we need to set a correct array index for each of the 4 arrays, here
+		// (Note, changing the clicked user's pwd is not allowed, if that user is the authenticated one)
+		m_nIndexOfChangedField = -1; // init
+		if (m_pApp->m_bDoingChangeFullname)
+		{
+			m_nIndexOfChangedField = 1;
+		}
+		else if (m_pApp->m_bDoingChangePassword)
+		{
+			m_nIndexOfChangedField = 2;
+		}
+		else if (m_pApp->m_bChangingPermission)
+		{
+			// There's no m_bChangingPermission in AI.h, is at line 4071
+			m_nIndexOfChangedField = 3;
+		}
+			
 		// Setting m_pApp->m_bChangePermission_DifferentUser to TRUE is
 		// incompatible with an operation different than changing some
 		// other parameter, so check and hack it to FALSE before making
@@ -655,8 +679,19 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 					// Get the wxTextCtrl's updated value
 					wxString strFullname = m_pEditInformalUsername->GetValue();
 					wxASSERT(m_pApp->m_nMgrSel != wxNOT_FOUND);
-					m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel);
-					m_pApp->m_mgrFullnameArr.Insert(strFullname, m_pApp->m_nMgrSel);
+					//m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel); // BEW 21Dec23 if Change Fullname btn was
+					// pressed, there's no reason for removing that user's password from m_mgrPasswordArr - because doing
+					// so loses the user's pwd value, and reduces the AI.h/s m_mgrPasswordArr's count by 1, leading to
+					// an app crash if the clicked user's Show Password button is clicked, due to: nIndex  < m_nCount.
+
+					// BEW 21Dec23 a second error to the first just above is the next line. strFullname has been correctly
+					// set, but doing insert (e.g. for selection = 2 in a 3 line user array) pushes the earlier fullname 
+					// value to the right, and so adds an extra line to the m_mgrFullnameArr array, making it a 4-line array.
+					// Fortunately, that pushed-right value would not get accessed, but its a logic error. We need to replace
+					// it with the new strFullname value. So fix that here
+					//m_pApp->m_mgrFullnameArr.Insert(strFullname, m_pApp->m_nMgrSel);
+					m_pApp->m_mgrFullnameArr.RemoveAt(m_nIndexOfChangedField,1);
+					m_pApp->m_mgrFullnameArr.Insert(strFullname, m_nIndexOfChangedField, 1);
 				}
 				else
 				{
@@ -673,12 +708,18 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 					// to get the new value displayed. But to display it, it first
 					// has to be lodged in the relevant m_mgr....Array of AI.h
 					wxASSERT(m_pApp->m_nMgrSel != wxNOT_FOUND);
-					m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel);
-					m_pApp->m_mgrPasswordArr.Insert(strPwd, m_pApp->m_nMgrSel);
+					// BEW 21Dec23, next two lines wrong, replacement requires index of 2 for a pwd replacement
+					// but m_nMgrSel could be a value larger than 2, or might be 1. m_nIndexOfChangedField is 
+					// set at top of LoadDataForPage(0)
+					//m_pApp->m_mgrPasswordArr.RemoveAt(m_pApp->m_nMgrSel);
+					//m_pApp->m_mgrPasswordArr.Insert(strPwd, m_pApp->m_nMgrSel);
+					m_pApp->m_mgrPasswordArr.RemoveAt(m_nIndexOfChangedField, 1);
+					m_pApp->m_mgrPasswordArr.Insert(strPwd, m_nIndexOfChangedField, 1);
+
 				}
 
 				// Set the useradmin checkbox's value to what it should be, if
-				// it needs changing
+				// it needs changing - it's a toggle, so simpler
 				if (m_pApp->m_bChangingPermission && m_pApp->m_bChangePermission_DifferentUser)
 				{
 					theUseradmin = m_pApp->m_mgrUseradminArr.Item(m_pApp->m_nMgrSel);
@@ -692,10 +733,22 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				wxString dumpedPasswords = m_pApp->DumpManagerArray(m_pApp->m_mgrPasswordArr);
 				wxString dumpedUseradmins = m_pApp->DumpManagerUseradmins(m_pApp->m_mgrUseradminArr);
 
-				wxLogDebug(_T("%s::%s(), line %d  usernames: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedUsers.c_str());
-				wxLogDebug(_T("%s::%s(), line %d  fullnames: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedFullnames.c_str());
-				wxLogDebug(_T("%s::%s(), line %d  passwords: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedPasswords.c_str());
-				wxLogDebug(_T("%s::%s(), line %d  useradmins: %s"), __FILE__, __FUNCTION__, __LINE__, dumpedUseradmins.c_str());
+				wxLogDebug(_T("User_Names_Page, line %d  usernames: %s"), __LINE__, dumpedUsers.c_str());
+				wxLogDebug(_T("User_Names_Page, line % d  fullnames : % s"), __LINE__, dumpedFullnames.c_str());
+				wxLogDebug(_T("User_Names_Page, line %d  passwords: %s"), __LINE__, dumpedPasswords.c_str());
+				wxLogDebug(_T("User_Names_Page, line %d  useradmins: %s"), __LINE__, dumpedUseradmins.c_str());
+
+				// BEW 21Dec23 counts for each of the arrays
+				wxLogDebug(_T("User_Names_Page, line %d  usernames m_nCount: %d "), __LINE__, m_pApp->m_mgrUsernameArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  fullnames  m_nCount: %d "), __LINE__, m_pApp->m_mgrFullnameArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  passwords m_nCount: %d "), __LINE__, m_pApp->m_mgrPasswordArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  useradmins m_nCount: %d "), __LINE__, m_pApp->m_mgrUseradminArr.GetCount());
+				// And for the "saved" set
+				wxLogDebug(_T("User_Names_Page, line %d  SAVED usernames m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedUsernameArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  SAVED fullnames  m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedFullnameArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  SAVED passwords m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedPasswordArr.GetCount());
+				wxLogDebug(_T("User_Names_Page, line %d  SAVED useradmins m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedUseradminArr.GetCount());
+
 #endif
 
 			} // end TRUE block for test: if (m_pApp->m_nMgrSel != wxNOT_FOUND)
@@ -748,6 +801,16 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			}
 		} // end of else block for test: if ( m_bLegacyEntry == TRUE)
 
+		if (m_bClearUseradminCheckbox == TRUE)
+		{
+			// clear the Useradmin checkbox
+			bool bChecked = m_pCheckUserAdmin->IsChecked();
+			if (bChecked)
+			{
+				m_pCheckUserAdmin->SetValue(FALSE);
+				m_bClearUseradminCheckbox = FALSE; // ready for another change_permission attempt
+			}
+		}
 	} // end of TRUE block for test: if (pageNumSelected == 0)
 	m_pApp->m_bDoingChangeFullname = FALSE; // re-initialise pending a new request for fullname change
 	m_pApp->m_bDoingChangePassword = FALSE; // restore default
@@ -757,6 +820,57 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event))
 {
 	m_pApp->m_bChangingPermission = TRUE; // BEW 7Jan21 added
+	// Get the selected (in list) username that was clicked e.g. glenys@Unit2
+	m_pApp->m_Username2 = m_pTheUsername->GetValue();
+
+	// BEW 29Dec23, we should disallow changing the permission value when m_Username2 is the same
+	// user as the currenly active user (ie. when same as m_pApp->m_strUserID), because if that user
+	// has useradmin value of 1 (usually would be so, but could be 0) then the active user would be
+	// unable to do anything in the KB Sharing Manager other than look at the users list, or create
+	// a new KB for saving to its entry table.
+	if (m_pApp->m_Username2 == m_pApp->m_strUserID)
+	{
+		wxString msg = _("You are trying to change the permission value for the active user. This is not allowed for active user: %s");
+		msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
+		wxString title = _("Illegal permission change attempt");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		m_pApp->m_bChangingPermission = FALSE;
+		wxCommandEvent dummyevent;
+		OnButtonUserPageClearControls(dummyevent);
+		return;
+	}
+
+	// we don't need the useradmin value for that user, if we did, it's in the storage arrays in pApp
+	int selIndex = m_pApp->m_nMgrSel; // index in the list to the selected user for which changes are to be made
+	wxUnusedVar(selIndex); // don't think I need it for this handler
+	//int User2UseradminFlag = m_pApp->m_mgrSavedUseradminArr.Item(selIndex); // see AI.h line 2446 No, get it from the user table for that user
+	// Now build the commandLine in a local wxString, and save to m_pApp->m_commandLine_forManager when it's done
+	wxString comma = _T(",");
+	localCmdLineStr = wxEmptyString; // build commandLine here...
+	localCmdLineStr = m_pApp->m_chosenIpAddr + comma;
+
+	wxString tempStr;
+	tempStr = m_pApp->m_strUserID;
+	if (m_pApp->m_curNormalUsername.IsEmpty())
+	{
+		m_pApp->m_curNormalUsername = tempStr;
+	}
+	localCmdLineStr += tempStr + comma; // has any embedded ' escaped
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	if (m_pApp->m_curNormalPassword.IsEmpty())
+	{
+		m_pApp->m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+	}
+	localCmdLineStr += m_pApp->m_curNormalPassword + comma;
+	// Finally add the 2nd user - the one clicked
+	localCmdLineStr += m_pApp->m_Username2 + comma;
+	// Note, the useradmin flag is integer, not _T('0') or _T('1'), and it's present value gets
+	// grabbed from the second user's entry in the user table when do_change_permission.exe runs
+
+	// Put a copy of this commandLine on the app, where it can be accessed by the various processing
+	// functions which are on the app
+	m_pApp->m_commandLine_forManager = localCmdLineStr;
+
 	m_pApp->RemoveDatFileAndEXE(change_permission); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bReady = m_pApp->ConfigureDATfile(change_permission); // arg is const int, value 10
 	if (bReady)
@@ -765,7 +879,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 		wxString execFileName = _T("do_change_permission.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("change_permission_results.dat");
-		bool bExecutedOK = m_pApp->CallExecute(list_users, execFileName, execPath, resultFile, 99, 99);
+		bool bExecutedOK = m_pApp->CallExecute(change_permission, execFileName, execPath, resultFile, 99, 99, FALSE); // bReportResult is FALSE
 		if (!bExecutedOK)
 		{
 			// error in the call, inform user, and put entry in LogUserAction() - English will do
@@ -777,32 +891,126 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 		}
 
 		// At this point, the user table is altered, so it just remains to
-		// use LoadDataForPage() and make the GUI conform to what was done
+		// use LoadDataForPage() and make the GUI conform to what was done - well almost, see below
+		//LoadDataForPage(0); <<-- put it later, at it's end clear the Useradmin checkbox if permission was reset to 0
+		
+		// BEW 28Dec23 a successful CallExecute() to change a user's permission from 1 to 0, leaves the
+		// UserAdministrator checkbox ticked (ie. suggesting useradmin is 1, when it's actually been changed
+		// to 0. So I need to detect this, and clear the checkbox. I can get the useradmin value from the
+		// results.dat file, which will end in either "0," or "1,", provided the line starts with "success".
+		m_bClearUseradminCheckbox = FALSE; // init, public member added by BEW 28Dec23
+		wxString resultsPath = execPath + resultFile;
+		bool bResultsFileExists = ::FileExists(resultsPath);
+		wxString firstLineStr = wxEmptyString; // init
+		if (bResultsFileExists)
+		{
+			// The file exists, so open it and check for an empty initial line
+			wxTextFile f(resultsPath);
+			bool bOpened = f.Open();
+			if (bOpened)
+			{
+				// It was successfully opened, so get it's line count
+				size_t count = f.GetLineCount();
+				if (count > 0)
+				{
+					// There is at least one line, - get it
+					firstLineStr = f.GetFirstLine(); // may be empty
+				}
+			}
+			f.Close();
+		}
+		int offset = -1;
+		wxString strSuccess = _T("success");
+		offset = firstLineStr.Find(strSuccess);
+		if (offset >= 0)
+		{
+			// It was a successful run. Now we want to know if the substring _T("0,")
+			// is present - if so, then set m_bClearUseradminCheckbox to TRUE, for LoadDataForPage(0)
+			// at its end to clear the checkbox
+			offset = -1;
+			offset = firstLineStr.Find(_T("0,"));
+			if (offset > 0)
+			{
+				m_bClearUseradminCheckbox = TRUE; // Load DataForPage(0) will use this
+			}
+		}
+
 		LoadDataForPage(0);
 	}
 }
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNUSED(event))
 {
-	// Get the new fullname value, not the one in the m_pUserStructForeign - the latter is old one
+	// Get the new fullname value, from the value put by user in editbox m_pEditInformalUsername, e.g. GLenys Lee (was: Glenys Waters)
 	wxString newFullname = m_pEditInformalUsername->GetValue();
+	// Get the selected (in list) username matching the fullname value: e.g. glenys@Unit2
+	m_pApp->m_Username2 = m_pTheUsername->GetValue();
+
+	// Get the original values for the clicked username, including fullname, and password - do_change_fullname.py  or permission etc, needs them
+	int selIndex = m_pApp->m_nMgrSel; // index in the list to the selected user for which changes are to be made
+	wxString strClickedUser2 = m_pApp->m_mgrSavedUsernameArr.Item(selIndex); //see AI.h line 2444
+	wxString strUser2Fullname = m_pApp->m_mgrSavedFullnameArr.Item(selIndex); //see AI.h line 2445
+	wxString strUser2Pwd = m_pApp->m_mgrSavedPasswordArr.Item(selIndex); //see AI.h line 2445
+	int User2UseradminFlag = m_pApp->m_mgrSavedUseradminArr.Item(selIndex); // see AI.h line 2446
+#if defined (_DEBUG)
+	wxLogDebug(_T("\nOnButtonUserPageChangeFullname() line %d, orig params: user2= %s, user2Fullname= %s user2Pwd= %s user2UseradminFlag= %d"),
+		__LINE__, strClickedUser2.c_str(), strUser2Fullname.c_str(), strUser2Pwd.c_str(), (int)User2UseradminFlag);
+#endif
 	m_pApp->m_bDoingChangeFullname = TRUE;
 	m_pApp->m_strChangeFullname = newFullname; // make sure app knows it
 	m_pApp->m_strChangeFullname_User2 = m_pApp->m_Username2; // so LoadDataForPage(0) can grab it
+
 #if defined (_DEBUG)
-	wxLogDebug(_T("%s::%s() line %d: before ConfiDATfile(change_fullname): newFullname: %s (old)m_Username2: %s"),
-		__FILE__,__FUNCTION__,__LINE__, newFullname.c_str(), m_pApp->m_Username2.c_str());
+	wxLogDebug(_T("OnButtonUserPageChangeFullname() line %d: before ConfigDATfile(change_fullname): newFullname= %s selected username= %s"),
+		__LINE__, newFullname.c_str(), strClickedUser2.c_str());
 #endif
+	wxString comma = _T(",");
+	localCmdLineStr = wxEmptyString; // build commandLine here...
+	localCmdLineStr = m_pApp->m_chosenIpAddr + comma;
+
+	wxString tempStr;
+	tempStr = m_pApp->m_strUserID;
+	if (m_pApp->m_curNormalUsername.IsEmpty())
+	{
+		m_pApp->m_curNormalUsername = tempStr;
+	}
+	localCmdLineStr += tempStr + comma; // has any embedded ' escaped
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	if (m_pApp->m_curNormalPassword.IsEmpty())
+	{
+		m_pApp->m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+	}
+	localCmdLineStr += m_pApp->m_curNormalPassword + comma;
+
+	// Now add the next 4 fields, selected username, old fullname, user2's password, then the new fullname
+	localCmdLineStr += strClickedUser2 + comma;
+	localCmdLineStr += strUser2Pwd + comma;
+	localCmdLineStr += strUser2Fullname + comma;
+	localCmdLineStr += newFullname + comma;
+
+	// Put a copy of this commandLine on the app
+	m_pApp->m_commandLine_forManager = localCmdLineStr;
+
+// TODO where does ConfigureMovedDatFile() go?
+
 	m_pApp->RemoveDatFileAndEXE(change_fullname); // BEW 11May22 added, must precede call of ConfigureDATfile()
+#if defined (_DEBUG)
+	wxLogDebug(_T("App value of m_bDoingChangeFullname: %d, at line %d, in OnButtonUserPageChangeFullname()"), 
+		(int)m_pApp->m_bDoingChangeFullname, __LINE__ );
+#endif
 	bool bReady = m_pApp->ConfigureDATfile(change_fullname); // arg is const int, value 11
 	if (bReady)
 	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("App value of m_bDoingChangeFullname: %d, at line %d, in OnButtonUserPageChangeFullname()"),
+			(int)m_pApp->m_bDoingChangeFullname, __LINE__);
+#endif
 		// The input .dat file is now set up ready for do_change_fullname.exe
 		wxString execFileName = _T("do_change_fullname.exe");
 		wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
 		wxString resultFile = _T("change_fullname_results.dat");
 
-		bool bExecutedOK = FALSE;
-		bExecutedOK = m_pApp->CallExecute(change_fullname, execFileName, execPath, resultFile, 99, 99);
+		bool bExecutedOK = FALSE; // return from CallExecute() the value of bool bSuccess
+		bExecutedOK	= m_pApp->CallExecute(change_fullname, execFileName, execPath, resultFile, 99, 99);
 		if (!bExecutedOK)
 		{
 			// error in the call, inform user, and put entry in LogUserAction() - English will do
@@ -833,33 +1041,98 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangeFullname(wxCommandEvent& WXUNU
 
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp->m_bDoingChangePassword = TRUE;
 	// Get the new password value
-	wxString newPassword = m_pEditShowPasswordBox->GetValue(); // user should have typed the new one
-
-	// If the user tries to change the password for root access, disallow
-	wxString rootPwd = _T("pq46lfy#BZ");
-	if (rootPwd == newPassword)
+	//wxString newPassword = m_pEditShowPasswordBox->GetValue(); // user should have typed the new one
+	wxString newPassword = wxEmptyString; // init
+	if (m_pEditPersonalPassword->GetValue().IsEmpty())
 	{
-		// disallow, return here after informing user
-		wxString msg = _("You are not allowed to change that password. You can change any of the others.");
-		wxString title = _("Illegal Password Change");
-		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-		m_pEditShowPasswordBox->Clear();
-		wxBell();
+		wxString msgTitle = _("Type new password");
+		wxString msgGuide = _("Type your new password in each of the password text boxes. The two must match.");
+		wxMessageBox(msgGuide, msgTitle, wxICON_INFORMATION | wxOK);
 		return;
 	}
+	wxString pwd1 = m_pEditPersonalPassword->GetValue();
+	wxString pwd2 = m_pEditPasswordTwo->GetValue();
+	if (pwd1.IsEmpty())
+	{
+		// warn user that no new password has been typed in the first box, middle column of KB Sharing Manager
+		wxString title = _("No new password was typed");
+		wxString msg = _("Changing password error: no new password was typed in the text box under: A password for this user");
+		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
+		return;
+	}
+	else
+	{
+		newPassword = pwd1;
+	}
+	if (pwd2.IsEmpty() || pwd2 != pwd1)
+	{
+		wxString titleBad = _("Typed passwords do not match");
+		wxString msgBad = _("Either the second password box is empty, or the two typed passwords do not match. Try again.");
+		wxMessageBox(msgBad, titleBad, wxICON_ERROR | wxOK);
+		// Clear the password boxes so the user can retry in both
+		m_pEditPersonalPassword->SetValue(wxEmptyString);
+		m_pEditPasswordTwo->SetValue(wxEmptyString);
+		return;
+	}
+	else
+	{
+		newPassword = pwd1;
+	}
 
+	// Get the original values for the clicked username, including fullname, and password - do_change_password.py  or permission etc, needs them
+	int selIndex = m_pApp->m_nMgrSel; // index in the list to the selected user for which changes are to be made
+	wxString strClickedUser2 = m_pApp->m_mgrSavedUsernameArr.Item(selIndex); //see AI.h line 2444
+	wxString strUser2Fullname = m_pApp->m_mgrSavedFullnameArr.Item(selIndex); //see AI.h line 2445
+	wxString strUser2Pwd = m_pApp->m_mgrSavedPasswordArr.Item(selIndex); //see AI.h line 2445
+	int User2UseradminFlag = m_pApp->m_mgrSavedUseradminArr.Item(selIndex); // see AI.h line 2446
+#if defined (_DEBUG)
+	wxLogDebug(_T("\nOnButtonUserPageChangePassword() line %d, orig params: user2= %s, user2Fullname= %s user2Pwd= %s user2UseradminFlag= %d"),
+		__LINE__, strClickedUser2.c_str(), strUser2Fullname.c_str(), strUser2Pwd.c_str(), (int)User2UseradminFlag);
+#endif
+	m_pApp->m_bDoingChangePassword = TRUE;
 	m_pApp->m_ChangePassword_NewPassword = newPassword; // make sure app knows it
 	m_pApp->m_strChangePassword_User2 = m_pApp->m_Username2; // so LoadDataForPage(0) can grab it
 
 	// Test, it's same as what's in gui text ctrl
 	wxString guiUser2 = m_pTheUsername->GetValue(); // use this if the assert trips
 	wxASSERT(guiUser2 == m_pApp->m_Username2); 
+//#if defined (_DEBUG)
+//	wxLogDebug(_T("OnButtonUserPageChangePassword() line %d: before ConfigureDATfile(change_password): newPassword: %s (old)m_Username2: %s , guiUser2: %s"),
+//		__LINE__, newPassword.c_str(), m_pApp->m_Username2.c_str(), guiUser2.c_str());
+//#endif
 #if defined (_DEBUG)
-	wxLogDebug(_T("%s::%s() line %d: before ConfiDATfile(change_password): newPassword: %s (old)m_Username2: %s , guiUser2: %s"),
-		__FILE__, __FUNCTION__, __LINE__, newPassword.c_str(), m_pApp->m_Username2.c_str(), guiUser2.c_str());
+	wxLogDebug(_T("OnButtonUserPageChangePassword() line %d: before ConfigDATfile(change_password): newPassword= %s selected username= %s"),
+		__LINE__, newPassword.c_str(), strClickedUser2.c_str());
 #endif
+
+	wxString comma = _T(",");
+	localCmdLineStr = wxEmptyString; // build commandLine here...
+	localCmdLineStr = m_pApp->m_chosenIpAddr + comma;
+
+	wxString tempStr;
+	tempStr = m_pApp->m_strUserID;
+	if (m_pApp->m_curNormalUsername.IsEmpty())
+	{
+		m_pApp->m_curNormalUsername = tempStr;
+	}
+	localCmdLineStr += tempStr + comma; // has any embedded ' escaped
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	if (m_pApp->m_curNormalPassword.IsEmpty())
+	{
+		m_pApp->m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
+	}
+	localCmdLineStr += m_pApp->m_curNormalPassword + comma;
+
+	// Now add the next 4 fields, selected username, old fullname, user2's password, then the new password
+	localCmdLineStr += strClickedUser2 + comma;
+	localCmdLineStr += strUser2Pwd + comma;
+	localCmdLineStr += strUser2Fullname + comma;
+	localCmdLineStr += newPassword + comma;
+
+	// Put a copy of this commandLine on the app
+	m_pApp->m_commandLine_forManager = localCmdLineStr;
+
 	m_pApp->RemoveDatFileAndEXE(change_password); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bReady = m_pApp->ConfigureDATfile(change_password); // arg is const int, value 12
 	if (bReady)
@@ -884,7 +1157,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePassword(wxCommandEvent& WXUNU
 		// load in the new state to the m_pUsersListBox
 		LoadDataForPage(0);
 
-		// Clear these, until such time as another change of fullname is done
+		// Clear these, until such time as another change of password is done
 		m_pApp->m_ChangePassword_NewPassword.Clear();
 		m_pApp->m_strChangePassword_User2.Clear();
 		
@@ -938,6 +1211,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageClearControls(wxCommandEvent& WXUNUS
 	m_pEditPasswordTwo->ChangeValue(emptyStr);
 	m_pCheckUserAdmin->SetValue(FALSE);
 	ClearCurPwdBox();
+	m_pApp->m_bSelectionChange = FALSE;
 }
 
 // BEW 19Dec20 uses the mgr arrays defined in AI.h at 2217 to 2225 to
@@ -1016,6 +1290,21 @@ void KBSharingMgrTabbedDlg::OnButtonShowPassword(wxCommandEvent& WXUNUSED(event)
 		wxBell();
 		return;
 	}
+#if defined (_DEBUG)
+	// BEW 21Dec23 counts for each of the arrays
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  usernames m_nCount: %d "), __LINE__, m_pApp->m_mgrUsernameArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  fullnames  m_nCount: %d "), __LINE__, m_pApp->m_mgrFullnameArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  passwords m_nCount: %d "), __LINE__, m_pApp->m_mgrPasswordArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  useradmins m_nCount: %d "), __LINE__, m_pApp->m_mgrUseradminArr.GetCount());
+	// And for the "saved" set
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  SAVED usernames m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedUsernameArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  SAVED fullnames  m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedFullnameArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  SAVED passwords m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedPasswordArr.GetCount());
+	wxLogDebug(_T("User_Names_Page in ShowPassword, line %d  SAVED useradmins m_nCount: %d "), __LINE__, m_pApp->m_mgrSavedUseradminArr.GetCount());
+
+#endif
+
+
 	// Get the password from the matrix
 	wxString the_password = m_pApp->GetFieldAtIndex(m_pApp->m_mgrPasswordArr, m_pApp->m_nMgrSel);
 	// show it in the box
@@ -1035,44 +1324,72 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	// m_temp_password, m_temp_useradmin_flag. Set these from within this handler.
 	// Then our ConfigureMovedDatFile() can grab it's needed data from these.
 
-	// Legacy comments - still relevant...
-	// Username box with a value, informal username box with a value, password box with a
-	// value, and the checkbox for useradmin flag, with or without a tick, are mandatory. 
-	// Test for these and if one is not set, abort the button press
-	// and inform the user why. Also, a selection in the list is irrelevant, and it may
-	// mean that the logged in person is about to try to add the selected user a second
-	// time - which is illegal, so test for this and if so, warn, and remove the
-	// selection, and clear the controls & return. In fact, ensure no duplication of username
+	// BEW 30Dec23 I discovered logic flaws when trying to use the Add User button.
+	// (1) If I want to add a new user with 0 permission - checkbox unticked (i.e. can't add other users), the current
+	// code drops into a test's TRUE block where a message is shown and then control drops back into the Mgr's user
+	// page having done nothing. So the present code won't allow a new user with permission zero.
+	// (2) Long ago I made a mad decision - requiring a user with permission 1 be clicked (which gets the checkbox
+	// ticked) as a prerequisite to being able to have Add User button do its job. This was crazy, why would a 
+	// naive user think he should click some other user first as a way to get a new one added - and clicking the
+	// other user puts that user's values into the wxTextCtrls - the very controls that we want the naive user to
+	// consider to be the ones where he should type the wanted new user's credentials: username, fullname, new pwd,
+	// and use the checkbox to set permission either 0 or 1?
+	// So, the Add User button should work ONLY provided no user in the user list is clicked to be active. And all
+	// the textboxes must be empty, and the checkbox unticked. Clicking Clear Controls button will accomplish this,
+	// so I think I should programmatically get Clear Controls's handler called, as the first thing to do when the
+	// user clicks OnButtonUserPageAddUser. (Remember there are pApp wxArrayString's which store username, fullname,
+	// current password, and useradmin value, already with valid param values for these, for active user m_strUserID,
+	// by the time that a user can get the User page of the Manager open, so a sensible fix of the protocols will work.)
+
+	// BEW 1Jan24 first, check if there currently is a user in the list that is selected. If so, it must be unselected
+	// and a message box given to the user about what the condition are for a successfulu Add User button press, and
+	// with that programmatically remove the selection, clear all the controls, and return to UserPage(0) for the user
+	// to have a second try.
+	if (m_pApp->m_nMgrSel != wxNOT_FOUND)
+	{
+		// A username in the Mgr's listBox is selected. This selection must be removed so that no user is selected, to
+		// clear the way for setting the values for a new user (and ticking the checkbox if the new user is to have
+		// permission to create other users). Inform the active user, and then clear the controls and checkbox and
+		// return to the userpage without progressing further.
+		wxString msg = _("The Add User button only works when no user is selected in the list.\nThe controls will be cleared when you close this message,\nthen you can type in the values for a new username, its fullname, and its password.\nYou can see this password by clicking the Show Password button.\nTo give your new user the privilege to add other users\ntick the User Administrator checkbox also.");
+		wxString title = _("Clear list selection");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		wxCommandEvent dummyEvent;
+		OnButtonUserPageClearControls(dummyEvent);
+		return;
+	}
+
+	// Test that the logged in person is not trying to add an existing listed username a second
+	// time - which is illegal. If so, warn, then clear the controls & return without doing anything
+
+	// The following lines get the new user's name, fullname, password, and useradmin value (if any of the
+	// required fields are empty, warn, (don't clear), just return so the active user can remedy the empty fields)
 	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
-	// BEW 24Mar23 couple of problems here. First, strPassword ad strPasswordTwo are going
-	// to be empty, even if the chosen user's password shown by "Show Password" is visible.
-	// So out test must not ask for these two to be non-empty.
-	// Second, our selected user must have a password anyway, otherwise he'd not be in the list.
-	// So there's no point in checking it exists. The only test value relevant are the first two,
-	// and last - the strUseradmin value - it has to be TRUE for the chosen user to be able
-	// to add any other users - regardless of what permission level those others are to receive
 	wxString strPassword = m_pEditPersonalPassword->GetValue(); // variable needs to be defined, even if empty
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();  //  ditto
 	bool bUseradmin = m_pCheckUserAdmin->GetValue();
 	wxString strUseradmin = bUseradmin ? _T("1") : _T("0");
 
-	// First, test the relevant parameters have enabling values in them
-	if (strUsername.IsEmpty() || strFullname.IsEmpty() || (bUseradmin == FALSE) )
-	{
-		wxString msg = _("First click a user with full permission level from the user table.\nThe Add User button only works when you have selected a username\ntogether with the fullname, and that username's password.\nYou can see this password by clicking the Show Password button.\nTo give your new user the privilege to add other users\ntick the User Administrator checkbox also.");
-		wxString title = _("Warning: No user selected");
 
-		//wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want this new user to have the privilege to add other users, tick the checkbox also.");
-		//wxString title = _("Warning: Incomplete user definition");
+	// Test now that the relevant wxTextCtrl values have enabling values in them (don't test the checkbox, because
+	// if it is unticked, then the new user will have a 0 value, which is a legal value meaning "this new user can't 
+	// add more users")
+	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty() || strPasswordTwo.IsEmpty())
+	{
+		wxString msg = _("One or more of the text boxes: Username, Fullname, or one or both password boxes, are empty.\nEach of these must have appropriate values typed into them. Do so now.");
+		wxString title = _("Warning: Incomplete new user definition");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
 	}
-	else
+
+	// turn this else block into a scoping block, where the only task is to discover an illegal
+	// attempt to add an already existing user to the list a second time - and prevent it
+	//else
 	{
-        // BEW 27Jan16 refactored, to test strUsername against *all* currently listed
-        // usernames, to ensure this is not an attempt to create a duplicate - that's a
-        // fatal error
+		// BEW 27Jan16 refactored, to test strUsername against *all* currently listed
+		// usernames, to ensure this is not an attempt to create a duplicate - that's a
+		// fatal error
 		int count = m_pUsersListBox->GetCount();
 		int index;
 		for (index = 0; index < count; index++)
@@ -1086,64 +1403,78 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 				wxBell();
 				wxString title = _("Warning: this user already exists");
 				wxString msg = _(
-				"You are trying to add a username which already exists in the user table. This is illegal.");
+					"You are trying to add a username which already exists in the user table. This is illegal. Each username must be unique.");
 				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 				wxCommandEvent dummy;
 				OnButtonUserPageClearControls(dummy);
 				return;
 			}
 		}
+		m_pUsersListBox->SetSelection(-1); // don't leave last of the for loop showing as selected
+	}
 
-		// Test the passwords match in the two boxes for them,(if they don't match, 
-		// or a box is empty, then the call will show an exclamation message from 
-		// within it, and clear both password text boxes)
-		bool bMatchedPasswords = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
-		if (!bMatchedPasswords)
-		{
-			// Unmatched passwords, the user has been told to try again
-			return;
-		}
+	// Test the passwords match in the two boxes for them,(if they don't match, 
+	// or a box is empty, then the call will show an exclamation message from 
+	// within it, and clear both password text boxes). Leave other values as they are.
+	// We just want to give the opportunity to retype the new pwd identically in each box
+	bool bMatchedPasswords = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
+	if (!bMatchedPasswords)
+	{
+		// Unmatched passwords, the user has been told to try again
+		return;
+	}
 
-		// Create the new entry in the KBserver's user table
-		int result = -1; // initialize
-		// First, copy the strings needed to the temp variables above
-		m_pApp->m_temp_username = strUsername;
-		m_pApp->m_temp_fullname = strFullname;
-		m_pApp->m_temp_password = strPassword;
-		m_pApp->m_temp_useradmin_flag = strUseradmin;
-		wxString ipAddr = m_pApp->m_chosenIpAddr;
-		wxString datFilename = _T("add_foreign_users.dat");
-		wxString resultFile = _T("add_foreign_KBUsers_results.dat");
+	// Create the new entry in the KBserver's user table
+	// First, copy the strings needed to the temp variables above
+	// - these are the foreign ones, when taking values from user page of Manager
+	m_pApp->m_temp_username = strUsername;
+	m_pApp->m_temp_fullname = strFullname;
+	m_pApp->m_temp_password = strPassword;
+	m_pApp->m_temp_useradmin_flag = strUseradmin;
+	wxString ipAddr = m_pApp->m_chosenIpAddr;
+	//wxString datFilename = _T("add_foreign_users.dat"); <<-- BEW 2Jan24, wrong name for the .dat having the commandLine
+	wxString datFilename = _T("add_foreign_KBUsers.dat");
 
-		bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname,
-			&strPassword, bUseradmin, datFilename);
-		if (bCredsOK)
+	wxString resultFile = _T("add_foreign_KBUsers_results.dat");
+
+	m_pApp->m_bAddUser2UserTable = FALSE; // BEW added 2Jan24, if left unset, it will have value 205 which is a bogus TRUE
+				// which then results in the code for the GUI way of creating a new user being called. Setting FALSE
+				// means that values will come from user page's text controls and possibly also the checkbox, if ticked
+	bool result = FALSE; // initialize
+
+	wxString DBUsername = m_pApp->m_strUserID;
+	wxString DBPassword = m_pApp->m_curNormalPassword;
+
+	//bool bCredsOK = Credentials_For_User(&ipAddr, &strUsername, &strFullname, &strPassword, bUseradmin, datFilename);
+	bool bCredsOK = DoAddForeignUser(&ipAddr, &DBUsername, &DBPassword, &DBUsername, &DBPassword,
+		&strUsername, &strFullname, &strPassword, &strUseradmin, datFilename);
+
+	if (bCredsOK)
+	{
+		m_pApp->RemoveDatFileAndEXE(credentials_for_user); // BEW 11May22 added, must precede call of ConfigureDATfile() - call does nothing here, yet
+		bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
+		if (bOK)
 		{
-			m_pApp->RemoveDatFileAndEXE(credentials_for_user); // BEW 11May22 added, must precede call of ConfigureDATfile() - call does nothing here, yet
-			bool bOK = m_pApp->ConfigureDATfile(credentials_for_user);
-			if (bOK)
-			{
-				wxString execFileName = _T("do_add_KBUsers.exe");				
-				result = m_pApp->CallExecute(credentials_for_user, execFileName,
-						m_pApp->m_curExecPath, resultFile, 99, 99);
-			}
-		}
-		// Update the page if we had success, if no success, just clear the controls
-		if (result == 0)
-		{
-			LoadDataForPage(0);
-		}
-		else
-		{
-			// The creation did not succeed -- an error message will have been shown
-			// from within the above CreateUser() call
-			wxString msg = _T("KB Sharing Manager, line %d: OnButtonUserPageAddUser() failed.");
-			msg = msg.Format(msg, __LINE__);
-			m_pApp->LogUserAction(msg);
-			wxCommandEvent dummy;
-			OnButtonUserPageClearControls(dummy);
+			wxString execFileName = _T("do_add_foreign_kbusers.exe");
+			result = m_pApp->CallExecute(credentials_for_user, execFileName, m_pApp->m_curExecPath, resultFile, 99, 99);
 		}
 	}
+	// Update the page if we had success, if no success, just clear the controls
+	if (result == TRUE)
+	{
+		LoadDataForPage(0);
+	}
+	else
+	{
+		// The creation did not succeed -- an error message will have been shown
+		// from within the above CreateUser() call
+		wxString msg = _T("KB Sharing Manager, line %d: OnButtonUserPageAddUser() failed.");
+		msg = msg.Format(msg, __LINE__);
+		m_pApp->LogUserAction(msg);
+		wxCommandEvent dummy;
+		OnButtonUserPageClearControls(dummy);
+	}
+	//}
 }
 
 // The box state will have already been changed by the time control enters the handler's body
@@ -1154,11 +1485,17 @@ void KBSharingMgrTabbedDlg::OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event))
 	bool bCurrentUseradminValue = m_pCheckUserAdmin->GetValue();
     // kbadmin value is auto-set to 1 (TRUE) always, because users have to be 
 	// able to create entries in kb table
-
-	wxString title = _("Permission level: Set or Change");
-	wxString msg = _("Tick the box, but after that do not click 'Change Permission',\nif you are giving the permission 'Can add other users'\n to a new user you are creating.\nTick the box and then click the 'Change Permission' button,\nif you want to change the permission level for an existing user.\nUn-tick the box to give a new user no permission to add other users,\nor to remove an existing user's permission to add new users.");
-	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-
+	// BEW 3Jan24 added test to not show the message if the current user is wanting to set
+	// the permission level to '1' for an Add User button press. If not suppressed, the message
+	// would recommend ticking the checkbox to effect a toggle of an already added user from 1 to 0,
+	// or from 0 to 1.
+	if (m_pApp->m_bSelectionChange == TRUE)
+	{
+		wxString title = _("Permission level: Set or Change");
+		//wxString msg = _("Tick the box, but after that do not click 'Change Permission',\nif you are giving the permission 'Can add other users'\n to a new user you are creating.\nTick the box and then click the 'Change Permission' button,\nif you want to change the permission level for an existing user.\nUn-tick the box to give a new user no permission to add other users,\nor to remove an existing user's permission to add new users.");
+		wxString msg = _("If you want to change the permission level for an existing user,\ntick the checkbox and then click the 'Change Permission' button.\n(Note: trying to turn off the active user's permission to add new users\nwill not be allowed.)");
+		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+	}
 	wxString strAuthenticatedUser;
 	wxString strSelectedUsername;
 
@@ -1234,6 +1571,11 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 #if defined(_DEBUG) //&& defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("OnSelchangeUsersList(): selection index m_nMgrSel = %d"), m_pApp->m_nMgrSel);
 #endif
+	// BEW 3Jan24, m_bSelectionChange needs to be set TRUE. The checkbox handler needs to know when 
+	// it's true or false. When false, the user needs to have the handler for the checkbox suppress
+	// showing the message - because otherwise ticking the checkbox for a Add User call, would show
+	// a confusing message.
+	m_pApp->m_bSelectionChange = TRUE;
 
 	// Get the username - the one clicked in the list - to compare with whatever
 	// was the existing username before the Change Permission request. Why?
@@ -1256,6 +1598,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// and it can't do so without getting the user name selected in the Manager user list
 	m_pApp->m_strChangePermission_User2 = userReturned;
 
+	//* BEW 19Dec23 removed this block?? unsure if need - keep it for now
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("OnSelchangeUsersList(): Old username = %s"),
 		m_pApp->m_ChangePermission_OldUser.c_str());
@@ -1269,7 +1612,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 		m_pApp->m_bChangePermission_DifferentUser = FALSE; // user didn't select 
 				// a different user than the one currently selected in the list
 	}
-
+	//*/
 	// BEW 9Dec20 fullname changing needs it's own app storage wxStrings for commandLine building
 	m_pApp->m_strChangeFullname_User2 = userReturned;
 	wxString fullnameReturned = m_pApp->GetFieldAtIndex(m_pApp->m_mgrFullnameArr, m_pApp->m_nMgrSel);

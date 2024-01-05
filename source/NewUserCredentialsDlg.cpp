@@ -77,19 +77,19 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// BEW 30Dec21 we need to use Bill's little class for AutoCorrect support... 
 	// copied from user1_user2_lookup_func -- see next two comment lines
 	// whm 31Aug2021 modified line below to use the AutoCorrectTextCtrl class which is now
-	// used as a custom control in wxDesigner's user1_user2_lookup_func() dialog.   ?? BEW 21Mar23, Deprecate comment ??
+	// used as a custom control in wxDesigner's user1_user2_lookup_func() dialog. Note,
+	// this is a class defined in AI.h, it's a subclass of wxTextCtrl class, and has only
+	// one internal function, an OnChar() function. Do not confuse with our implementation
+	// of Paratext's AutoCorrect functionality - the latter is different thing
 	 
 	// BEW 21Mar23 modified, in the .h, I made the control pointers be public, (they were
 	// protected earlier) so I can get at them without accessors. The comment above is
 	// perhaps now out of date or inaccurate - it seems wrong to me to tie this dialog
 	// to anything in the AutoCorrect support
 	
-	//m_pNewUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERNM); 
-	m_pNewUsernameCtrl = (wxTextCtrl*)FindWindowById(ID_THE_USERNAME);
-	//m_pNewFullnameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_FULLNAME);
-	m_pNewFullnameCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
-	//m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
-	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_PASSWORD);
+	m_pNewUsernameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERNM); 
+	m_pNewFullnameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_FULLNAME);
+	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
 	m_pCheck_GrantPermission = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
 	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked
 	wxString empty = wxEmptyString;

@@ -4065,6 +4065,7 @@ public:
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
 	int		  m_nMgrSel; // (public) index value (0 based) for selection in the the listbox of 
 				 // the manager's user page, and has value wxNOT_FOUND when nothing is selected
+	bool	  m_bSelectionChange;
 	bool	  m_bChangePermission_DifferentUser; // BEW 5Jan21 moved from Share Mgr .h to here, default FALSE
 	wxString  m_ChangePermission_OldUser;
 	wxString  m_ChangePermission_NewUser;
@@ -4105,6 +4106,14 @@ public:
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
 									 // simultaneously if sharing both was requested
+	wxString    m_commandLine_forManager; // BEW 15Dec23 added. For kbserver, some functions build the needed
+			// commandLine from saved app members at point of need; but when button handlers in the open
+			// KK Sharing Mgr tabbed dialog get called, typically the user has put content into the Manager's
+			// fields and that's the only place that content is accessible, so the handlers there need to
+			// get some of their commandLine values not just from, say, AI.h, but from Mgr text boxes; so
+			// build the commandLine at the beginning of such handlers, and send to here so that other
+			// functions can grab the needed commandLine before wxExecute() is called.
+			
 	// BEW 26May16, added next two, because any move of the phrasebox will call PlacePhraseBox()
 	// and that will internally try to do DoStore_ForPlacePhraseBox() and that in turn, if
 	// m_bIsKBServerProject (from config file) is TRUE, will try to access a connected KBserver -
