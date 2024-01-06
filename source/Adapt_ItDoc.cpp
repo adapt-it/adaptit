@@ -45410,7 +45410,28 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 					pSrcPhrase->m_chapterVerse += temp; // append the verse number
 					// BEW 3Aug23 added, set tokBuffer in m_markers, replacing any prior content
-					pSrcPhrase->m_markers = tokBuffer;
+					// 
+					// whm 6Jan2024 We need a fix for a problem when a chapter marker is lost during 
+					// here in parsing in TokenizeText() if the chapter marker is adjacent to a following 
+					// verse number. Testing shows that the assignment of tokBuffer should be an augment
+					// operation += when the chapter and verse markers are adjacent, otherwise it an 
+					// assignment = wipes out the chapter number that occurs immediately before a verse 
+					// marker due to the strict assignment of tokBuffer to m_markers. For example, when 
+					// m_markers already had "\\c 10\r\n" we have at the same time we have "\\v 1" in 
+					// tokBuffer in such situations. However later when there is only a verse number that 
+					// is preceded by "\\p\r\n" m_markers will have the "\\p\r\n" value. But, this is 
+					// repeated within the tokBuffer which has the verse number precedded by a duplication 
+					// of what is already within m_markers, as "\\p\r\n\\v 1". I'm not sure how to correct 
+					// this duplication in the logic, but as an interim fix to correct the loss of a 
+					// chapter number marker, and avoid possible duplication of markers within m_markers, 
+					// I'll do a find of m_markers within tokBuffer to see if the content of m_markers is 
+					// repeated/duplicated within the tokBuffer, and if so, unilaterally do 
+					// m_markers = tokBuffer, but when it is not repeated/duplicated do an augmentation 
+					//instead: m_markers += tokBuffer.
+					if (tokBuffer.Find(pSrcPhrase->m_markers) != wxNOT_FOUND)
+						pSrcPhrase->m_markers = tokBuffer;
+					else
+						pSrcPhrase->m_markers += tokBuffer; //pSrcPhrase->m_markers = tokBuffer;
 
 					wxString theVerseNumber = temp; // BEW 22Aug23 added for preserving the number, temp is unhelpful to remember
 #if defined (_DEBUG) //&& !defined (NOLOGS)
