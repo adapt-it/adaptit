@@ -16280,6 +16280,145 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 	// We've finished building the wxArrayString
 }
 
+// whm 8Jan2024 added. This function is similar to the GetMarkersAndTextFromString() function
+// above, but include any white space following the Marker. 
+// The pMkrList will contain a list of all markers and following whitespace, one marker/whitespace
+// per list item.
+// The str is the input string from pSrcPhrase->m_markers provided by the caller.
+// This function is designed to be called from the RemoveDuplicateMarkersFromMkrString() function. 
+// It provides that function with an inventory of markers existing in the m_markers member passed
+// in here as str. Each marker in the inventory includes any following whitespace (usually a
+// space or CR (\r), LF (\n) or combination CRLF \r\n). The RemoveDuplicateMarkersFromMkrString() 
+// can then use the information provided from this function to remove duplicate markers from the 
+// m_markers input string. Within the RemoveDuplicateMarkersFromMkrString() function, if the 
+// marker has following white space and a duplicate marker also has that same white space, the 
+// duplicate white space is also removed along with any duplicate marker found in the callers 
+// m_markers member.
+// Note: filtered markers and end markers are not expected in m_markers and so are not treated
+// here.
+void CAdapt_ItDoc::GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& MkrList, wxString str)
+{
+	// Populates a wxArrayString containing usfm markers and any white space
+	// following the marker parsed from the input str. pMkrList will contain one list item for
+	// each marker and following white space found in str, in order from beginning of
+	// str to end.
+	MkrList.Clear();
+	int nLen = str.Length();
+	// wx version note: Since we require a read-only buffer we use GetData which just
+	// returns a const wxChar* to the data in the string.
+	const wxChar* pBuf = str.GetData();
+	wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
+	wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06
+	wxChar* ptr = (wxChar*)pBuf;
+	//wxChar* pBufStart = (wxChar*)pBuf; // BEW 9Sep10, IsMarker() call no longer needs this
+	wxString accumStr = _T("");
+	// caller needs to call Clear() to start with empty list
+	while (ptr < pEnd)
+	{
+		// Filtered markers with brackets are not stored within m_markers
+		// an so we won't expect them in str.
+		/*
+		if (IsFilteredBracketMarker(ptr, pEnd))
+		{
+			// It's a filtered marker opening bracket. There should always
+			// be a corresponding closing bracket, so parse and accumulate
+			// chars until end of filterMkrEnd.
+			while (ptr < pEnd && !IsFilteredBracketEndMarker(ptr, pEnd))
+			{
+				accumStr += *ptr;
+				ptr++;
+			}
+			if (ptr < pEnd)
+			{
+				// accumulate the filterMkrEnd
+				// whm 8Jun12 modified for wxWidgets-2.9.3 wxStrlen_() is invalid, use wxStrlen()
+				//for (int i = 0; i < (int)wxStrlen_(filterMkrEnd); i++)
+				for (int i = 0; i < (int)wxStrlen(filterMkrEnd); i++)
+				{
+					accumStr += *ptr;
+					ptr++;
+				}
+			}
+			accumStr.Trim(FALSE); // trim left end
+			accumStr.Trim(TRUE); // trim right end
+			// add the filter sfm and associated text to list
+			pMkrList->Add(accumStr);
+			accumStr.Empty();
+		}
+		else 
+		*/
+		if (IsMarker(ptr))
+		{
+			// We'll parse and accumulate chars until we reach the next marker (or 
+			// end of buffer).
+			// If the marker is a corresponding end marker we'll parse and
+			// accumulate it too, otherwise we'll not accumulate it with the
+			// current accumStr.
+			// First save the marker we are at to check that any end marker
+			// that follows is indeed a corresponding end marker.
+			wxString currMkr = MarkerAtBufPtr(ptr, pEnd); // BEW 25Mar15, refactored this
+			int itemLen;
+			// Must accumulate the backslash being pointed at before entering the loop
+			accumStr += *ptr;
+			ptr++;
+			// The marker could be a \c n or \v n marker which has whitespace as part
+			// of the marker itself, wo the while loop below should not stop at whitespace
+			// as part of its iteration through the m_marker string.
+			// TODO: Is this stopping at whitespace a flaw in the logic of the similar-named
+			// GetMarkersAndTextFromString() function above???
+			while (ptr < pEnd && *ptr != gSFescapechar) //while (ptr < pEnd && (!IsWhiteSpace(ptr) && *ptr != gSFescapechar))
+			{
+				accumStr += *ptr;
+				ptr++;
+			}
+			// If ptr is now pointing at white we accumulate it along with the marker
+			itemLen = ParseWhiteSpace(ptr); 
+			wxString whiteSp = wxString(ptr, itemLen);
+			if (!whiteSp.IsEmpty())
+			{
+				accumStr += whiteSp;
+				ptr += itemLen;
+			}
+			ptr += itemLen;
+			// We don't add any extra space as we don't expect any associated text in m_markers (str)
+			//if (itemLen > 0)
+			//	accumStr += _T(' ');
+			// 
+			// BEW 25Mar15, the endmarker code here was made redundant at docVersion 5 (?) and
+			// above, because from that point onwards endmarkers are never stored in the
+			// m_markers member of a CSourcePhrase. Instead, they are stored in the
+			// m_endMarkers member. To get the endmarker showing correctly at the end of
+			// the string being composed, we therefore must take the currMkr string found
+			// above, append * to make it a 'correponding endmarker' possibility, and search
+			// to find out if that putative endmarker is indeed stored in m_endMarkers.
+			// If so, we can append it to accumStr
+
+			// End markers are not treated here
+			/*
+			if (!endmarkers.IsEmpty())
+			{
+				int offset = wxNOT_FOUND;
+				wxString endMkr = currMkr + _T('*');
+				offset = endmarkers.Find(endMkr);
+				if (offset != wxNOT_FOUND)
+				{
+					// A matching endmarker exists on this CSourcePhrase instance
+					accumStr += endMkr;
+				}
+			}
+			*/
+			// accumStr.Trim(TRUE); // Do not trim off any white space from right end!
+			accumStr.Trim(FALSE); // trim left end
+			// add the non-filter sfm and associated text to list
+			MkrList.Add(accumStr);
+			accumStr.Empty();
+		}
+		else
+			ptr++;
+	} // end of while (ptr < pEnd)
+	// We've finished building the wxArrayString
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if there is a filename clash, FALSE if the typed name is unique
 ///
@@ -34297,6 +34436,112 @@ int CAdapt_ItDoc::GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int above
 	return lowestIntValue;
 }
 
+// whm 6Jan2024 added.
+// whm 6Jan2024 Testing shows that doing an augment operation += as follows:
+//	pSrcPhrase->m_markers += tokBuffer in various places in TokenizeText()
+// sometimes results
+// in a marker getting duplicated within m_markers.
+// To eliminate any such duplication including any duplication of whitespace
+// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
+// remove any duplicate markers found in m_markers. If the first marker in 
+// m_markers has following whitespace, and any following duplicate marker also 
+// has the same whitespace, the whitespace of the duplicate is also removed. 
+// If the initial marker has no following whitespace, but a duplicate marker 
+// does have some following whitespace, only the duplicate marker is
+// removed - leaving its white space. However, if leaving the duplicate marker's
+// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
+// m_markers, then the doubled EOL and doubled spaces are changed to single
+// instances in m_markers. 
+wxString CAdapt_ItDoc::RemoveDuplicateMarkersFromMkrString(wxString markerStr)
+{
+	if (markerStr.IsEmpty())
+		return markerStr;
+
+	wxString mkrStr = markerStr;
+	int lineCount;
+	wxString tempStr;
+	tempStr.Empty();
+	wxArrayString MarkersList;
+	wxArrayString NewMarkersListNoDups;
+	MarkersList.Clear();
+	int mkrPos = (int)mkrStr.Find(gSFescapechar);
+	if (mkrPos == wxNOT_FOUND)
+	{
+		// The m_markers has content, but there are no markers in it. This would 
+		// be an error, so the best we can do is to just return the string and
+		// let the caller deal with it.
+		return mkrStr;
+	}
+	else
+	{
+		// The mkrStr has markers, so accumulate them along with their following whitespace
+		// into an array MarkersList.
+		GetMarkersAndFollowingWhiteSpaceFromString(MarkersList, mkrStr);
+		lineCount = (int)MarkersList.GetCount();
+		// Now copy each element from MarkersList that doesn't already exist in the
+		// NewMarkersListNoDups array
+		for (int i = 0; i < lineCount; i++)
+		{
+			wxString itemStr = MarkersList.Item(i);
+			wxString itemStrNoWS = itemStr;
+			itemStrNoWS.Trim(TRUE); // TRUE - trim following whitespace
+			bool bItemStrHasWhiteSp = FALSE;
+			bool bDupItemHasWhiteSp = FALSE;
+			if (itemStr != itemStrNoWS)
+				bItemStrHasWhiteSp = TRUE;
+			int newListTot = (int)NewMarkersListNoDups.GetCount();
+			bool bItemFound = FALSE;
+			wxString dupesWhiteSp;
+			dupesWhiteSp.Empty();
+			for (int j = 0; j < newListTot; j++)
+			{
+				// Compare the markers without following whitespace
+				wxString newItemStr = NewMarkersListNoDups.Item(j);
+				wxString newItemStrNoWS = newItemStr; 
+				newItemStrNoWS.Trim(TRUE); // TRUE - trim followin whitespace
+				if (newItemStrNoWS == itemStrNoWS)
+				{
+					// The original marker (minus following whitespace) is already in 
+					// NewMarkersListNoDups, so set bItemFound to TRUE
+					bItemFound = TRUE;
+					// Did the marker item in the new array have following whitespace?
+					if (newItemStr != newItemStrNoWS)
+					{
+						bDupItemHasWhiteSp = TRUE;
+						int lenDupItemNoWS = newItemStrNoWS.Length();
+						dupesWhiteSp = newItemStr.Mid(lenDupItemNoWS);
+					}
+				}
+			}
+			if (!bItemFound)
+			{
+				// Add itemStr to the NewMarkersListNoDups array
+				// If itemStr has no whitespace, but duplicate item did have whitespace
+				// we probably should suffix the original marker itemStr with the same
+				if (!bItemStrHasWhiteSp && bDupItemHasWhiteSp)
+					NewMarkersListNoDups.Add(itemStr + dupesWhiteSp);
+				else
+					NewMarkersListNoDups.Add(itemStr);
+			}
+		}
+	}
+	// Recreate the mkrStr from what is now in the NewMarkersList array
+	lineCount = (int)NewMarkersListNoDups.GetCount();
+	for (int i = 0; i < lineCount; i++)
+	{
+		tempStr += NewMarkersListNoDups.Item(i);
+	}
+
+	// Now remove any doubled white spaces
+	tempStr.Replace(_T("\r\n\r\n"), _T("\r\n"), TRUE); // TRUE - replace all EOL duplicates
+	tempStr.Replace(_T("  "), _T(" "), TRUE); // TRUE - replace all space duplicates
+
+	if (!tempStr.IsEmpty())
+		return tempStr;
+	else
+		return mkrStr;
+}
+
 wxString CAdapt_ItDoc::RemoveEndMkrsFromExtras(wxString extras) // BEW added 4May23
 {
 	if (extras.IsEmpty())
@@ -35431,6 +35676,12 @@ bool CAdapt_ItDoc::IsRedOrBindingOrNonbindingBeginMkr(wxChar* pChar, wxChar* pEn
 // whm 24Oct2023 modified to remove use of the IsAFilteringSFM() function. See comments below.
 bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 {
+	// whm 9Jan2024 testing set EnterEmptyMkrsLoop to always FALSE and compare the result
+	// only difference in the Hezekiah file was there was no empty pSrcPhrase created for
+	// the \fe* end marker which was dropped out entirely. The following \v 12 was still
+	// missing at the beginning of the verse text following the \fe*.
+	return FALSE;
+
 	wxChar* ptr = pChar; // protect pChar
 	// Entry allowed when a beginMkr is at pChar, and the beginMkr is contentless; but not allowed when
 	// after the beginMkr (or after the verseNum if it's \v,) there is parseable content - e.g. words
@@ -35461,7 +35712,7 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 		// wholeMkr is a member of the paragraph set of USFM beginMkrs
 		bIsInParagraphSet = TRUE;
 	}
-	if (wholeMkr == _T("\\c") || bIsInParagraphSet)
+	if (wholeMkr == _T("\\c") || wholeMkr == _T("\\v") || bIsInParagraphSet) // whm 9Jan2024 test added: || wholeMkr == _T("\\v)
 	{
 		// These 'paragraph' type of markers are not allowed to cause entry (these include \m \mi \cls \b and \nb)
 		return FALSE;
@@ -35510,12 +35761,13 @@ bool CAdapt_ItDoc::EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd)
 	// BEW 21Aug23, Bill has parsing errors in 41MATNYNT.SFM where an occasional empty \li (or \li1) marker
 	// occurs. He says Paratext ignores them except in its unformatted view, where they then appear. So I
 	// guess I need to prevent entry to the loop when the marker is \li or \li1, and it's empty
+	// whm 6Jan2024 added test for \li2 to if () test below since _Hezekiah 7 USFM2.txt has an empty \li2 marker
 	bool bIsListIndexMkr = FALSE;
 	int liLen = 0;
-	if (wholeMkr == _T("\\li") || wholeMkr == _T("\\li1"))
+	if (wholeMkr == _T("\\li") || wholeMkr == _T("\\li1" || wholeMkr == _T("\\li2") || wholeMkr == _T("\\li3") || wholeMkr == _T("\\li4")))
 	{
 		bIsListIndexMkr = TRUE;
-		if (wholeMkr == _T("\\li1"))
+		if (wholeMkr == _T("\\li1") || wholeMkr == _T("\\li2") || wholeMkr == _T("\\li3") || wholeMkr == _T("\\li4"))
 		{
 			liLen = 4;
 		}
@@ -43608,7 +43860,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
 		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 5)
+		if (pSrcPhrase->m_nSequNumber == 680)
 		{
 			int haltHere = -1;
 			haltHere = haltHere;
@@ -43940,7 +44192,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 16);
 		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 5)
+		if (pSrcPhrase->m_nSequNumber == 964)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -44111,7 +44363,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				wxString strPointAt = wxString(ptr, 16);
 				wxLogDebug(_T("TokTxt() line  %d , m_markers= [%s] , m_curChapter= [%s] , chapter:verse= [%s], pointsAt= [%s]  Mkr loop BEGINS "),
 					__LINE__, pSrcPhrase->m_markers.c_str(), pApp->m_curChapter.c_str(), pSrcPhrase->m_chapterVerse.c_str(), strPointAt.c_str());
-				if (pSrcPhrase->m_nSequNumber >= 5)
+				if (pSrcPhrase->m_nSequNumber == 1042)
 				{
 					int halt_here = 1; wxUnusedVar(halt_here);
 				}
@@ -45186,7 +45438,29 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								wxString whiteStr = wxString(pAux2, eolLen);
 								tokBuffer += whiteStr;
 							}
+							// whm 6Jan2024 modification.
+							// Testing (of Hezekiah text file) indicates the when input text has a \b stanza break or 
+							// a \tr table row marker, the marker gets doubled within m_markers.
+							// When \b was previously put in m_marker above as "\\b\r\n" the tokBuffer at this point
+							// also has something like "\\b\r\n\\nc " revealing that the m_markers content would
+							// be doubled when the following line "augments" (+=) m_markers with tokBuffer content. 
+							// 
+							// whm 6Jan2024 Testing shows that doing an augment operation += sometimes results
+							// in a marker getting duplicated within m_markers.
+							// To eliminate any such duplication including any duplication of whitespace
+							// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
+							// remove any duplicate markers found in m_markers. If the first marker in 
+							// m_markers has following whitespace, and any following duplicate marker also 
+							// has the same whitespace, the whitespace of the duplicate is also removed. 
+							// If the initial marker has no following whitespace, but a duplicate marker 
+							// does have some following whitespace, only the duplicate marker is
+							// removed - leaving its white space. However, if leaving the duplicate marker's
+							// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
+							// m_markers, then the doubled EOL and doubled spaces are changed to single
+							// instances in m_markers. 
 							pSrcPhrase->m_markers += tokBuffer;
+							pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
+
 							ptr += awholemkrlen + eolLen;
 							
 							wxChar* pAux;
@@ -45205,27 +45479,45 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// BEW 23Aug23, bad test - second member should be IsWhiteSpace() because quite
 							// often \p type marker is followed by \r, or \n or \r\n besides just latin space
 							//if (pAux < pEnd && *pAux == _T(' ') && *(pAux + 1) == period)
-							if (pAux < pEnd && IsWhiteSpace(pAux) && *(pAux + 1) == period)
+							// whm 9Jan2024 modified test below by removing the IsWhiteSpace(pAux) part of
+							// the test. The whitespace was already unilaterally parsed over above when eolLen
+							// was calculated and ptr/pAux incremented. With the extra IsWhiteSpace() call in
+							// the test, it would fail to detect the existence of a period after the \p marker
+							// within a "\\p .." sequence.
+							//if (pAux < pEnd && IsWhiteSpace(pAux) && *(pAux + 1) == period)
+							if (pAux < pEnd && *(pAux + 1) == period)
 							{
 								// Matched space followed by a period - a period after a beginMkr is unlikely,
 								// except in contentless source text originating from Paratext, where ... or ..
 								// sometimes appears after the marker. So check out for ..., and failing that, 
 								// for .. and if either is found, eliminate either by advancing ptr the necessary
 								// distance, don't update len, and continue in the parsing.
-								strTest = wxString(pAux, 4); // for space followed by ...
-								if (strTest == strThreePeriods)
+								// whm 9Jan2024 the code below fails to detect the "\\p ..\r\n" sequence because
+								// pAux is pointing at the first period and so the strTest strings end up being
+								// suffixed by parts of the EOL sequence as "..\r\n" in the first test and "..\r"
+								// in the second test. Then each test: strTest == strThreePeriods and
+								// strTest == strTwoPeriods both fail due to presence of \rn and \r suffixed to
+								// strTest. We could do a .Trim() of strTest, but I think a while loop would work
+								// better and catch any number of periods after the \p marker
+								//strTest = wxString(pAux, 4); // for space followed by ...
+								//if (strTest == strThreePeriods)
+								//{
+								//	// At pAux, <space>...  so remove all four, because whitespace will follow the ...
+								//	ptr += 4;
+								//}
+								//else
+								//{
+								//	strTest = wxString(pAux, 3);
+								//	if (strTest == strTwoPeriods)
+								//	{
+								//		// At pAux, <space>..  so remove all three, because whitespace will follow the ..
+								//		ptr += 3;
+								//	}
+								//}
+								while (pAux < pEnd && *pAux == period && !IsWhiteSpace(pAux))
 								{
-									// At pAux, <space>...  so remove all four, because whitespace will follow the ...
-									ptr += 4;
-								}
-								else
-								{
-									strTest = wxString(pAux, 3);
-									if (strTest == strTwoPeriods)
-									{
-										// At pAux, <space>..  so remove all three, because whitespace will follow the ..
-										ptr += 3;
-									}
+									pAux++;
+									ptr++;
 								}
 								precWordDelim = *ptr; // the post-mkr space in swbk needs to be replaced by whatever
 														 // whitespace char follows the periods string
@@ -45411,27 +45703,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pSrcPhrase->m_chapterVerse += temp; // append the verse number
 					// BEW 3Aug23 added, set tokBuffer in m_markers, replacing any prior content
 					// 
-					// whm 6Jan2024 We need a fix for a problem when a chapter marker is lost during 
-					// here in parsing in TokenizeText() if the chapter marker is adjacent to a following 
-					// verse number. Testing shows that the assignment of tokBuffer should be an augment
-					// operation += when the chapter and verse markers are adjacent, otherwise it an 
-					// assignment = wipes out the chapter number that occurs immediately before a verse 
-					// marker due to the strict assignment of tokBuffer to m_markers. For example, when 
-					// m_markers already had "\\c 10\r\n" we have at the same time we have "\\v 1" in 
-					// tokBuffer in such situations. However later when there is only a verse number that 
-					// is preceded by "\\p\r\n" m_markers will have the "\\p\r\n" value. But, this is 
-					// repeated within the tokBuffer which has the verse number precedded by a duplication 
-					// of what is already within m_markers, as "\\p\r\n\\v 1". I'm not sure how to correct 
-					// this duplication in the logic, but as an interim fix to correct the loss of a 
-					// chapter number marker, and avoid possible duplication of markers within m_markers, 
-					// I'll do a find of m_markers within tokBuffer to see if the content of m_markers is 
-					// repeated/duplicated within the tokBuffer, and if so, unilaterally do 
-					// m_markers = tokBuffer, but when it is not repeated/duplicated do an augmentation 
-					//instead: m_markers += tokBuffer.
-					if (tokBuffer.Find(pSrcPhrase->m_markers) != wxNOT_FOUND)
-						pSrcPhrase->m_markers = tokBuffer;
-					else
-						pSrcPhrase->m_markers += tokBuffer; //pSrcPhrase->m_markers = tokBuffer;
+					// whm 6Jan2024 Testing shows that doing an augment operation += sometimes results
+					// in a marker getting duplicated within m_markers.
+					// To eliminate any such duplication including any duplication of whitespace
+					// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
+					// remove any duplicate markers found in m_markers. If the first marker in 
+					// m_markers has following whitespace, and any following duplicate marker also 
+					// has the same whitespace, the whitespace of the duplicate is also removed. 
+					// If the initial marker has no following whitespace, but a duplicate marker 
+					// does have some following whitespace, only the duplicate marker is
+					// removed - leaving its white space. However, if leaving the duplicate marker's
+					// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
+					// m_markers, then the doubled EOL and doubled spaces are changed to single
+					// instances in m_markers. 
+					pSrcPhrase->m_markers += tokBuffer;
+					pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
 
 					wxString theVerseNumber = temp; // BEW 22Aug23 added for preserving the number, temp is unhelpful to remember
 #if defined (_DEBUG) //&& !defined (NOLOGS)
@@ -45813,15 +46099,56 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									
 									// BEW 6Jul23 Don't lose the marker, add it to m_markers if non-empty
 									// ptr should have earlier been advanced to point past pSrcPhrase->m_markers
-									// so just advance ptr by how long tokBuffer is
-									if (!tokBuffer.IsEmpty())
+									// so just advance ptr by how long tokBuffer is.
+									// 
+									// whm 6Jan2024 modification.
+									// Testing (of Hezekiah text file) indicates the when input text has a \b stanza break or 
+									// a \tr table row marker, the marker gets doubled within m_markers.
+									// When \b was previously put in m_marker above as "\\b\r\n" the tokBuffer at this point
+									// also has something like "\\b\r\n\\nc " revealing that the m_markers content would
+									// be doubled if the following line "augments" (+=) m_markers with tokBuffer content. 
+									// 
+									// whm 6Jan2024 Testing shows that doing an augment operation += sometimes results
+									// in a marker getting duplicated within m_markers.
+									// To eliminate any such duplication including any duplication of whitespace
+									// I've written a new function RemoveDuplicateMarkersFromMkrString() that will 
+									// remove any duplicate markers found in m_markers. If the first marker in 
+									// m_markers has following whitespace, and any following duplicate marker also 
+									// has the same whitespace, the whitespace of the duplicate is also removed. 
+									// If the initial marker has no following whitespace, but a duplicate marker 
+									// does have some following whitespace, only the duplicate marker is
+									// removed - leaving its white space. However, if leaving the duplicate marker's
+									// whitespace leaves doubled CRLFCRLF EOL sequence or doubled space "  " in
+									// m_markers, then the doubled EOL and doubled spaces are changed to single
+									// instances in m_markers.
+									//  
+									// whm 9Jan2024 testing in Hezekiah when parsing and red marker \ms1 is being
+									// parsed here, the \ms1 marker has not yet been added to tokBuffer, and 
+									// moreover the content of tokBuffer was same as m_markers both having "\\b\r\n"
+									// in them. To avoid dropping the \ms1 marker and properly increment the ptr below
+									// The solution needs to do the following:
+									// 1. Empty tokBuffer if it is not empty and has the same duplicate content as 
+									//    m_markers.
+									// 2. Add the marker to the tokBuffer so that the content of tokBuffer is solely
+									//    the wholeMkr - which ptr is currently pointing at. This will then result
+									//    in a proper increment value for ptr that just advances past the marker.
+									// The above solution I think will also help reduce or eliminate marker duplication
+									// within the m_markers member. However, I'm leaving the call of 
+									// RemoveDuplicateMarkersFromMkrString() below in place, as it doesn't cause
+									// any change in m_markers if there is no duplication.
+									if (!tokBuffer.IsEmpty() && tokBuffer == pSrcPhrase->m_markers)
 									{
-										pSrcPhrase->m_markers += tokBuffer;
-										int tbLen;
-										tbLen = tokBuffer.Length();
-										ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
+										tokBuffer.Empty();
+									}
+									tokBuffer = augWholeMkr; // need the augmented marker here to provide space following marker
+
+									pSrcPhrase->m_markers += tokBuffer;
+									pSrcPhrase->m_markers = RemoveDuplicateMarkersFromMkrString(pSrcPhrase->m_markers);
+									int tbLen;
+									tbLen = tokBuffer.Length(); // whm 9Jan2024 note: tbLen will now always be the length of the marker
+									ptr += tbLen; // advance ptr (including initial whitespace if present in tokBuffer)
 										// TODO - some logic?? Or just let control continue on down? I'll do no more here until proven otherwise
-									} // end of TRUE block for test: if (!tokBuffer.IsEmpty())
+									//} // end of TRUE block for test: if (!tokBuffer.IsEmpty())
 								}
 							}
 #if defined (_DEBUG) //&& !defined (NOLOGS)

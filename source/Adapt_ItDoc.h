@@ -405,6 +405,7 @@ public:
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
 	wxString		ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr);
 	int				GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int aboveThisValue);
+	wxString		RemoveDuplicateMarkersFromMkrString(wxString markerStr);
 
 	// **** functions involved in removing the need for having placement dialogs, DOCUMENT_VERSION 10 ********
 
@@ -449,6 +450,7 @@ public:
 	wxString		GetBareMarkerForLookup(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxString wholeMkr); // whm 30Nov2023 added
 	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
+	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);

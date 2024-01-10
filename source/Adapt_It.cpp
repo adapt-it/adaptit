@@ -24740,7 +24740,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// single Blue set, does NOT change the text type.
 	m_RedBeginMarkers = _T("\\f \\ef \\x \\ex \\id \\s \\s1 \\s2 \\s3 \\s4 \\r \\d \\rq \\sd1 \\sd2 \\sd3 \\sp \\esb \\cat \\usfm \\ide \\sts \\rem \\h \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 \\imt \\imt1 \\imt2 \\imt3 \\imt4 \\is \\is1 \\is2 \\is3 \\ip \\ipi \\im \\imi \\ipq \\imq \\ipr \\iq \\iq1 \\iq3 \\iq3 \\ili1 \\ili2 \\ili3 \\iot \\io1 \\io2 \\io3 \\ior \\iqt \\iex \\imte1 \\imte2 \\imte3 \\ie \\mt \\mt1 \\mt2 \\mt3 \\mt4 \\mte1 \\mte2 \\mte3 \\ms \\ms1 \\ms2 \\ms3 \\mr \\sr \\fe \\fr \\fv \\ft \\fdc \\fm \\fk \\fq \\fqa \\fl \\fw \\fp \\xo \\xk \\xq \\xt \\xta \\xop \\xot \\xnt \\xdc \\xr ");
 
-	m_RedEndMarkers = _T("\\f* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
+    // whm 9Jan2024 added \\fe* to the m_RedEndMarkers. Without it the Doc's ParsePostWordPunctsAndEndMkrs()
+    // function fails to recognize \fe* as an end marker which ends up causing the failure of \fe* to be
+    // added to the pSrcPhrase->m_endMarkers member, and ultimately to the dropping out of a following
+    // verse number (\v 12 in the Hezekiah text parse).
+	m_RedEndMarkers = _T("\\f* \\fe* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
     
 	m_BlueBeginMarkers = _T("\\c \\v \\p \\m \\ca \\va \\vp \\sls \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 \\b ");
 
@@ -24768,7 +24772,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_xrefMkrs = _T("\\x \\ex "); // that's all we need - the internal content markers do not change the TextType
 	m_headerMkrs = _T("\\h \\r ");
 	m_identificationMkrs = _T("\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 ");
-    m_paragraphMkrs = _T("\\p \\m \\po \\pr \\cls \\pmo \\pm \\pmc \\pmr \\pi1 \\pi2 \\pi3 \\pi4 \\mi \\nb \\pc \\ph1 \\ph2 \\ph3 \\ph4 \\b ");
+    // whm 6Jan2024 in m_paragraphMkrs below I added a number of paragraph type markers that should be 
+    // included here:
+    // These added ones include: \\pi \\ph \\phi and \\ps (i.e., this used in Hezekiah test text in USFM docs)
+    m_paragraphMkrs = _T("\\p \\m \\po \\pr \\cls \\pmo \\pm \\pmc \\pmr \\pi \\pi1 \\pi2 \\pi3 \\pi4 \\mi \\nb \\pc \\ph \\ph1 \\ph2 \\ph3 \\ph4 \\phi \\b \\ps ");
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
@@ -31201,6 +31208,78 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     int debugBreak = -1;
     filteredStuffWrongOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffWrongOrder, ChVs, test_UsfmStructArr);
     debugBreak = -1; wxUnusedVar(debugBreak);
+    */
+
+    /*
+    // whm 8Jan2024 testing two functions GetMarkersAndFollowingWhiteSpaceFromString()
+    // and RemoveDuplicateMarkersFromMkrString
+    wxArrayString test_MarkersList;
+    test_MarkersList.Clear();
+    wxString testStrNoDups = _T("");
+    // test with some markers but no duplicate markers, some with following sp others not
+    wxString testStr = _T("\\p\r\n\\c 2\r\n\\ps\r\n\\v 1"); // has 4 markers \p \ms \c 2 and \v 1
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    int mcount = (int)test_MarkersList.GetCount();
+    for (int i = 0; i < mcount; i++)
+    {
+        wxLogDebug("Marker and following whitespace is [%s]", test_MarkersList.Item(i).c_str());
+    }
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    wxASSERT(testStrNoDups == testStr);
+    // test with initial and duplicate having following whitespace
+    testStr = _T("\\p\r\n\\c 2\r\n\\ps\r\n\\ps\r\n\\v 1"); // \ps is duplicated both with foll whitespace
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    mcount = (int)test_MarkersList.GetCount();
+    for (int i = 0; i < mcount; i++)
+    {
+        wxLogDebug("Marker and following whitespace is [%s]", test_MarkersList.Item(i).c_str());
+    }
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    // test with initial having foll whitespace, but duplicate not having following whitespace
+    testStr = _T("\\p\r\n\\c 2\r\n\\ps\r\n\\ps\\v 1"); // \ps with foll whitespace, dup with no foll whitespace
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    mcount = (int)test_MarkersList.GetCount();
+    for (int i = 0; i < mcount; i++)
+    {
+        wxLogDebug("Marker and following whitespace is [%s]", test_MarkersList.Item(i).c_str());
+    }
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    // test with no following whitespace on initial marker, but white space following duplicate
+    testStr = _T("\\p\r\n\\c 2\r\n\\ps\\ps\r\n\\v 1"); // \ps no foll whitespace, but dup with foll whitespace
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    mcount = (int)test_MarkersList.GetCount();
+    for (int i = 0; i < mcount; i++)
+    {
+        wxLogDebug("Marker and following whitespace is [%s]", test_MarkersList.Item(i).c_str());
+    }
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    // test with no following whitespace on initial marker, but doubled EOL after \p white space following duplicate
+    testStr = _T("\\p\r\n\r\n\\c 2\r\n\\ps\\ps\r\n\\v 1"); // \ps no foll whitespace, but dup with foll whitespace
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    mcount = (int)test_MarkersList.GetCount();
+    for (int i = 0; i < mcount; i++)
+    {
+        wxLogDebug("Marker and following whitespace is [%s]", test_MarkersList.Item(i).c_str());
+    }
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    // test with empty testStr
+    testStr = _T(""); // test with an empty testStr
+    GetDocument()->GetMarkersAndFollowingWhiteSpaceFromString(test_MarkersList, testStr);
+    mcount = (int)test_MarkersList.GetCount();
+    if (mcount == 0)
+    {
+        wxLogDebug("The tesStr was empty - mcount = %d", mcount);
+    }
+    else
+        wxLogDebug("The tesStr was not empty! - mcount = %d", mcount);
+    testStrNoDups = GetDocument()->RemoveDuplicateMarkersFromMkrString(testStr);
+    wxLogDebug("testStrNoDups = [%s]", testStrNoDups.c_str());
+    int breakTest = -1; wxUnusedVar(breakTest);
     */
 
     /*

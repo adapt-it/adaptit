@@ -345,8 +345,20 @@ bool      HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 wxString  RemoveSubstring(wxString inputStr, wxString subStr, bool bRemoveAll = FALSE); //BEW 30Sep19
 bool      IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool      IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
-wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
-							bool bCountInTargetText, bool bIncludeNote = TRUE);
+wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, 
+							bool bDoCount, 
+							bool bCountInTargetText, 
+							bool bIncludeNote = TRUE);
+// whm 5Jan2024 added following override of above function in which the
+// caller can select any of the following: Notes, filteredInfo, collectedBackTrans,
+// or FreeTrans.
+wxString  GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase,
+							bool bDoCount,
+							bool bCountInTargetText,
+							bool bIncludeNote,
+							bool bIncludeFilteredInfo,
+							bool bIncludeCollBackTransStr,
+							bool bIncludeFreeTransStr);
 wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
 wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);

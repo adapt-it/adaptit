@@ -687,6 +687,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	} // end of switch(exportType)
 
 	nTextLength = nTextLength; // whm 27Jun12 added to avoid "set but not used" compiler warning;
+
 	// remove the following markers and their text content... \free, \note, \bt and
 	// any \bt-initial custom markers, and \rem (Paratext note marker) from the string
 	// which defines the markers not to be included in the export
@@ -697,6 +698,16 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	// ExcludeCustomMarkersAndRemFromExport(). But here, the xhtml is not to get emptied footnote
 	// markers, that would be crazy, so here we'll instead ask for them to be fully removed if
 	// filtered, then ApplyOutputFilterToText() call will remove them too.
+	// 
+	// whm 6Jan2024 comment and modification. Why exclude footnotes from a "clean exported USFM 
+	// base"? The reason is that this GetCleanExportedUSFMBaseText() function wished to accommodate
+	// some limitations fo the Xhtml standard. See comments above the DoExportAsXhtml() signature.
+	// 
+	// TODO: Check whther those very old limitations still a factor for AI's Xhtml exports?
+	// If not, the following ExcludeCustomMarkersAndRemFromExport() could well be replaced with
+	// the ExcludeCustomMarkersAndRemFromExport() which only removes AI's custom markers \note, \bt...,
+	// and \free. For now, I'll leave the broader ExcludeCustomMarkersAndRemFromExport() function 
+	// call here. This is the only place in AI where this broader call may be justified.
 	ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
 
 	// Handle \f ...\f* removal
@@ -1783,7 +1794,30 @@ void DoExportAsType(enum ExportType exportType)
 		nTextLength = nTextLength; // avoid gcc warning set but not used warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
-		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		// whm 6Jan2024 modified. We should not remove from exports all that is removed in the
+		// broader ExcludeCustomMarkersAndRemFromExport() function that was made below. 
+		// It is important especially for source text exports that they include all markers including
+		// filtered information. The reason: The filtering routines depend on a function called
+		// ReorderFilterMaterialUsingUsfmStructData() which will not work correctly unless the
+		// input text given to the GetUsfmStructureAndExtent() functions has all markers - especially
+		// the filterable ones. When the user does an Edit Source Text action which changes the
+		// usfm structure of filterable markers makes a call to RebuildSourceText() which must include
+		// the filtered information in the source text it generates. Also, when the user opens a
+		// document that was previously created before the usfmstruct mechanism was implemented,
+		// the app will need to call RebuildSourceText() at the end of the (existing) document
+		// opening process to get an input text that as closely as possible is an exact representation
+		// of the original input text that was used to create the original document, including all
+		// markers that would not have existed (even those AI later filtered) when the document
+		// was first created. AI's custom markers \note, \bt..., and \free would normally be
+		// added later after the document was created - and those "custom markers" are always 
+		// filtered, and cannot be unfiltered by the user. Hence, it is OK for those, but only
+		// those to be removed from source text exports here.
+		// For now then, I'm replaceing the ExcludeCustomMarkersAndRemFromExport() call with the 
+		// ExcludeCustomMarkersFromExport() call which only removes AI's custom markers: \note, 
+		// \bt..., and \free
+		//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
+
 #if defined(_DEBUG)
 		//wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
 #endif
@@ -1843,10 +1877,26 @@ void DoExportAsType(enum ExportType exportType)
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		//
+		// whm 6Jan2024 modification.I don't think there is justification from removing
+		// any markers other than the AI custom markers: \note, \bt..., and \free
+		// from exports of glosses. This export routine does not have anything to do
+		// with collaboration (there are special export function with collab in their
+		// names for that purpose). Here in DoExportAsType() the exports are done to
+		// some kind of external file and not for collaboration. As BEW noted in the
+		// above comment, "the user can use the export dialog's Options button to exclude
+		// particular other ones." 
+		//ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
+		
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
+		// whm 6Jan2024 removed following block that eliminate footnotes from the
+		// export of glossing text. This was only a special request made by a single
+		// user and concerned only the gutting of footnote marker's associated text 
+		// from free tranlsation exports.
+		/*
 		// Handle \f ...\f* -- remove there, if relevant. For collaboration the
 		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
 		// go to the output minus their markers' contents; but for our manual normal
@@ -1864,6 +1914,7 @@ void DoExportAsType(enum ExportType exportType)
 			}
 		}
 		// end of 5Sep14 addition
+		*/
 
 		// Apply output filter to the glosses text
 		glosses = ApplyOutputFilterToText(glosses, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
@@ -1900,10 +1951,29 @@ void DoExportAsType(enum ExportType exportType)
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		//
+		// whm 6Jan2024 modification.I don't think there is justification from removing
+		// any markers other than the AI custom markers: \note, \bt..., and \free
+		// from exports of free trans. This export routine does not have anything to do
+		// with collaboration (there are special export function with collab in their
+		// names for that purpose). Here in DoExportAsType() the exports are done to
+		// some kind of external file and not for collaboration. As BEW noted in the
+		// above comment, "the user can use the export dialog's Options button to exclude
+		// particular other ones." 
+		//ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
+
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
+		// whm 6Jan2024 removed following block that eliminate footnotes from the
+		// export of glossing text. This was only a special request made by a single
+		// user and concerned only the gutting of footnote marker's associated text 
+		// from free tranlsation exports. The special request could be handled by
+		// adding a checkbox to the ExportOptionsDlg:
+		// [ ] free translation footnote includes only the markers with footnote text removed
+
+		/*
 		// Handle \f ...\f* -- remove there, if relevant. For collaboration the
 		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
 		// go to the output minus their markers' contents; but for our manual normal
@@ -1921,6 +1991,7 @@ void DoExportAsType(enum ExportType exportType)
 			}
 		}
 		// end of 5Sep14 addition
+		*/
 
 		// Apply output filter to the freeTrans text
 		freeTrans = ApplyOutputFilterToText(freeTrans, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
@@ -1963,7 +2034,27 @@ void DoExportAsType(enum ExportType exportType)
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		//
+		// whm 6Jan2024 modification.I don't think there is justification from removing
+		// any markers other than the AI custom markers: \note, \bt..., and \free
+		// from exports of target text. This export routine does not have anything to do
+		// with collaboration (there are special export function with collab in their
+		// names for that purpose). Here in DoExportAsType() the exports are done to
+		// some kind of external file and not for collaboration. As BEW noted in the
+		// above comment, "the user can use the export dialog's Options button to exclude
+		// particular other ones." 
+		//ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
+
+		// cause the markers set for exclusion, plus their contents, to be removed
+		// from the exported text
+
+		// whm 6Jan2024 removed following block that eliminate footnotes from the
+		// export of glossing text. This was only a special request made by a single
+		// user and concerned only the gutting of footnote marker's associated text 
+		// from free tranlsation exports.
+		/*
+
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
@@ -1984,6 +2075,8 @@ void DoExportAsType(enum ExportType exportType)
 			}
 		}
 		// end of 5Sep14 addition
+		*/
+
 #if defined(_DEBUG) && defined(TRUNCATED)
 		wxLogDebug(_T("DoExportAsType() before ApplyOutputFilterToText(): text length = %d"), target.Length());
 #endif
@@ -2445,7 +2538,7 @@ void ExcludeCustomMarkersFromExport()
 // \rem marker and its content from the export.
 // Usage: used in XHTML export support -- see DoExportAsType()
 // Created: BEW 19May12
-// BEW 5Sep12,extended so that filtered markers are checked for and removed from the
+// BEW 5Sep12, extended so that filtered markers are checked for and removed from the
 // export when filtered - I'm thinking to support \x, \f (except for \f we'll just remove
 // the content when filtered but still send the markers with a space delimiter between
 // each), \fe, \fig, \sr, \r, \rq, and \d. That should cover the common ones in OT and NT.
@@ -17673,7 +17766,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 11)
+			if (pSrcPhrase->m_nSequNumber >= 30)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
