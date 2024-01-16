@@ -6817,8 +6817,14 @@ extern bool gbDoingInitialSetup;
 #endif
 		// set \note, \bt, and \free as to be programmatically excluded from the export
 		wxUnusedVar(textLen); // avoid warning
-		//ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		// whm 6Jan2024 modification. I think we should only remove AI's custom markers from our
+		// text exports made for collaboration with an external editor. We shouldn't remove any
+		// legitimate USFM markers from the exports, since those probably came originally from the
+		// source texts residing in the external editors. 
+		// Hence I'm changing the following wrapper function to be just the one that removes AI's
+		// custom markers from the export.
+		//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 		bool bRTFOutput = FALSE; // we are working with USFM marked up text
@@ -6896,10 +6902,30 @@ extern bool gbDoingInitialSetup;
 		textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
 		// in next call, param 2 is from enum ExportType in Adapt_It.h
 		textLen = textLen; // avoid warning
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		// whm 6Jan2024 modification. I think we should only remove AI's custom markers from our
+		// text exports made for collaboration with an external editor. We shouldn't remove any
+		// legitimate USFM markers from the exports, since those probably came originally from the
+		// source texts residing in the external editors. 
+		// Hence I'm changing the following wrapper function to be just the one that removes AI's
+		// custom markers from the export.
+		//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
+		// whm 6Jan2024 observation:
+		// The following special request from a single user is for free translation text
+		// only, so I think the request could be honored. But, would average AI users 
+		// collaborating with PT or BE want footnotes that were free translated in AI, 
+		// to be gutted of content when sent back to PT or BE? I doubt that would be the
+		// case, but I won't remove this special request at this time.
+		// 
+		// TODO: Evaluate whether this special request below should be incorporated as
+		// an option in the ExportOptionsDlg in wxDesigner, rather than unilaterally
+		// gutting all free translation footnotes before transferring the exported text
+		// to PT or BE. It could be added as a checkbox in the ExportOptionsDlg:
+		// [ ] free translation footnote includes only the markers with footnote text removed
+		// 
 		// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
 		// to still get transferred to PT or BE, but without any content, so we have to
 		// use a function that looks for \f and stops at \f*, and at any intervening marker,
@@ -7322,8 +7348,16 @@ extern bool gbDoingInitialSetup;
 			// BEW 5Sep14 next lines copied for support of better syncing with filter settings,
 			// from the code within Export
 			bool bRTFOutput = FALSE;
-			ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+			// whm 6Jan2024 modification. I think we should only remove AI's custom markers from our
+			// text exports made for collaboration with an external editor. We shouldn't remove any
+			// legitimate USFM markers from the exports, since those probably came originally from the
+			// source texts residing in the external editors. 
+			// Hence I'm changing the following wrapper function to be just the one that removes AI's
+			// custom markers from the export.
+			//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+			ExcludeCustomMarkersFromExport();
 			text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+			
 			wxString footnote = _T("\\f ");
 			wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 			bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
@@ -11672,7 +11706,16 @@ extern bool gbDoingInitialSetup;
 		wxUnusedVar(nTextLength); // avoid warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
-		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		// 
+		// whm 6Jan2024 modification. I think we should only remove AI's custom markers from our
+		// source text exports made for collaboration conflict resolution. We shouldn't remove any
+		// legitimate USFM markers from the exports, since those probably came originally from the
+		// source texts residing in the external editors. If we were to remove usfm markers that
+		// were originally in the external editor, that would guarantee the generation of conflicts.
+		// Hence I'm changing the following wrapper function to be just the one that removes AI's
+		// custom markers from the export.
+		//ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+		ExcludeCustomMarkersFromExport();
 
 		// Apply output filter to the source text
 		// m_exportBareMarkers is a global wxArrayString defined in ExportSOptions.cpp (I think)

@@ -4263,6 +4263,157 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount,
 	return str;
 }
 
+// whm 5Jan2024 added.
+// The following GetFilteredStuffAsUnfiltered() function is an override of the
+// function above with the same name. This function has boolean flags in its 
+// signature that allows for the selection of any of the different types of
+// filtered information, including: Notes, filteredInfo, collectedBackTrans,
+// or FreeTrans.
+wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, 
+	bool bDoCount,
+	bool bCountInTargetText, 
+	bool bIncludeNote,
+	bool bIncludeFilteredInfo,
+	bool bIncludeCollBackTransStr,
+	bool bIncludeFreeTransStr)
+{
+	wxString str; str.Empty();
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	wxASSERT(pSrcPhrases->GetCount() > 0);
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
+	// markers needed, since doc version 5 doesn't store some filtered
+	// stuff using them
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+	wxString aSpace = _T(" ");
+
+	// scratch strings, in wxWidgets these local string objects start off empty
+	wxString markersStr; markersStr.Empty();
+	wxString endMarkersStr; endMarkersStr.Empty();
+	wxString freeTransStr; freeTransStr.Empty();
+	wxString noteStr; noteStr.Empty();
+	wxString collBackTransStr; collBackTransStr.Empty();
+	wxString filteredInfoStr; filteredInfoStr.Empty();
+
+	// Get the other string information we want, putting it in the
+	// scratch strings.
+	// This GetFilteredStuffAsUnfiltered() makes no use of the data returned in
+	// the markersStr and endMarkersStr of the GetMarkersAndFilteredStrings()
+	// function call below.
+	GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
+		freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
+
+	if (bIncludeFilteredInfo)
+	{
+		// remove any filter bracketing markers if filteredInfoStr has content
+		if (!filteredInfoStr.IsEmpty())
+		{
+			filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+		}
+		// make filteredInfoStr information now come first
+		if (!filteredInfoStr.IsEmpty())
+		{
+			// this data has any markers and endmarkers already 'in place'
+			str.Trim();
+			str += aSpace + filteredInfoStr;
+		}
+	}
+	if (bIncludeCollBackTransStr)
+	{
+		if (!collBackTransStr.IsEmpty())
+		{
+			// add the marker too
+			str.Trim();
+			str += backTransMkr;
+			str += aSpace + collBackTransStr;
+		}
+	}
+	if (bIncludeFreeTransStr)
+	{
+		// the CSourcePhrase instance which stores a free translation section is always the
+		// anchor one, so we can reliably call CountWordsInFreeTranslationSection() below
+		if (!freeTransStr.IsEmpty() || pSrcPhrase->m_bStartFreeTrans)
+		{
+			str.Trim();
+			str += aSpace + freeMkr;
+			if (bDoCount)
+			{
+				// BEW addition 06Oct05; a \free .... \free* section pertains to a
+				// certain number of consecutive sourcephrases starting at this one if
+				// m_freeTrans has content, but the knowledge of how many
+				// sourcephrases is marked in the latter instances by which ones have
+				// the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+				// just export the filtered free translation content we will lose all
+				// information about its extent in the document. So we have to compute
+				// how many target words are involved in the section, and store that
+				// count in the exported file -- and the obvious place to do it is
+				// after the \free marker and its following space. We will store it as
+				// follows: |@nnnn@|<space> so that we can search for the number and
+				// find it quickly and remove it if we later import the exported file
+				// into a project as source text.
+				// (Note: the following call has to do its word counting in the SPList,
+				// because only there is the filtered information, if any, still hidden
+				// and therefore unable to mess up the word count.)
+				int nWordCount = CountWordsInFreeTranslationSection(bCountInTargetText,
+					pSrcPhrases, pSrcPhrase->m_nSequNumber);
+				// construct an easily findable unique string containing the number
+				wxString entry = _T("|@");
+				entry << nWordCount; // converts int to string automatically
+				entry << _T("@| ");
+				// append it after a delimiting space
+				str += aSpace + entry;
+			}
+			if (freeTransStr.IsEmpty())
+			{
+				// we need to support empty free translation sections
+				str += aSpace + freeEndMkr;
+			}
+			else
+			{
+				// now the free translation string itself & endmarker
+				str += aSpace + freeTransStr;
+				str += freeEndMkr; // don't need space too
+			}
+		}
+	}
+	// notes being after free trans means that OXES parsing is easier, as all notes -
+	// including one at the free translation anchor point, then become 'embedded' in the
+	// sacred text - though the one at the anchor point is 'embedded' at the start of the
+	// sacred  text, it's not stretching things to far to consider it embedded like any
+	// others in that section of text
+	if (bIncludeNote)
+	{
+		if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
+		{
+			str.Trim();
+			str += aSpace + noteMkr;
+			if (noteStr.IsEmpty())
+			{
+				// although other parts of the app don't as yet support empty notes, we'll do
+				// so here
+				str += aSpace + noteEndMkr;
+			}
+			else
+			{
+				str += aSpace + noteStr;
+				str += noteEndMkr; // don't need space too
+			}
+		}
+	}
+	// moved the block for export of filteredInfo from here to at start of the blocks above
+	str.Trim(FALSE); // finally, remove any LHS whitespace
+	// ensure it ends with a space
+	str.Trim();
+	str += aSpace;
+	return str;
+}
+
+
+
 void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
 								  wxString& markersStr,
 								  wxString& endMarkersStr,
@@ -7377,19 +7528,23 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxUnusedVar(bCountInTargetText); // BEW added 22Jun15
 	wxUnusedVar(bDoCount); // BEW added 22Jun15
 	wxUnusedVar(bAttach_m_markers); // 5May23 unreferenced, no longer needed
-	//wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed // whm 3Jan2024 reinstated
-	//xUnusedVar(mMarkersStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
-	//wxUnusedVar(filteredInfoStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
-	//wxUnusedVar(xrefStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+	wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed // whm 3Jan2024 reinstated
+	wxUnusedVar(mMarkersStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+	wxUnusedVar(filteredInfoStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+	wxUnusedVar(xrefStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
 	bool bEndPunctsModified = FALSE; // init
 	wxString pattern; pattern = wxEmptyString; // init
 
 	wxString Sstr;
+	wxString aSpace = _T(" ");
+	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
 
+	// whm 3Jan2024 observations comparing old and new versions of FromSingleMakeSstr():
+	// 
 	// ORDER OF COMPONENTS OF RETURNED Sstr (in the OLDER code model):
 	// 1. Note: markersPrefix (includes filtered info, which is last to be prefixed on Sstr), followed by a space
 	// 2. If bIsFixedSpaceConjoined (wrd1 + ~ + wrd2), wrd1 and wrd2 are separately processes as follows:
@@ -7400,8 +7555,6 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	// 4. srcStr is prefixed by pSingleSrcPhrase's m_precPunct, and suffixed by pSingleSrcPhrase's m_follPunct
 	// 5. srcStr is assigned to Sstr
 	// 6. Sstr is prefixed by any pSingleSrcPhrase's inlineNonbindingMarkers.
-	// 7. 
-
 
 	// ORDER OF COMPONENTS OF RETURNED Sstr (in this NEWER code model):
 	// 1. Return only _T("\\") if m_key is empty and m_srcPhrase is _T("\\"), 
@@ -7424,75 +7577,10 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	//    Then strBinding markers, if any are suffixed to prefixStr.
 	// 7. The prefixStr is prefixed to srcStr, which is finally assigned to Sstr, trimmed and returned.
 
-	// whm 3Jan2024 added following old code back for filtered information to be incorporated
-	// in to the string returned from FromSingleMakeSstr().
-	// Some code adjustments have been done to account for newer the revisions that have been
-	// made since BEW removed filtered info processing.
-	// 
-	// Clear next three ready for returning what we find to caller (caller may use any or
-	// all of it, or decline it, but we return it anyway via the signature), the booleans
-	// in the signature control whether the filtered stuff and m_markers stuff is to be
-	// included in the returned string or not.
-	xrefStr.Empty();
-	filteredInfoStr.Empty();
-	mMarkersStr.Empty();
-	// store here any string of filtered information stored on pSingleSrcPhrase (in any or
-	// all of m_freeTrans, m_note, m_collectedBackTrans, m_filteredInfo)
-	wxString markersPrefix; markersPrefix.Empty();
-
-	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
-
-	wxString aSpace = _T(" ");
-	wxString markersStr; // gotten from pSrcPhrase->m_markers
-	wxString endMarkersStr; // gotten from pSrcPhrase->GetEndMarkers()
-	wxString freeTransStr; // gotten from pSrcPhrase->GetFreeTrans(
-	wxString noteStr; // gotten from pSrcPhrase->GetNote()
-	wxString collBackTransStr; // gotten from pSrcPhrase->GetCollectedBackTrans()
-	wxString filteredInfoStr2; // gotten from pSrcPhrase->GetFilteredInfo()
-
-	//wxString markersStr = pSingleSrcPhrase->m_markers; // prefix it at end // whm 3Jan2024 markerStr assigned in restored code below
-	
-	// whm 3Jan2024 restored earlier filtered info code below
-	// empty the scratch strings
-	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
-		collBackTransStr, filteredInfoStr2);
-	// get the other string information we want, putting it in the scratch strings
-	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
-		freeTransStr, noteStr, collBackTransStr, filteredInfoStr2);
-	// remove any filter bracketing markers if filteredInfoStr2 has content
-	if (!filteredInfoStr2.IsEmpty())
-	{
-		filteredInfoStr2 = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr2);
-
-		// separate out any cross reference information - it must be placed following
-		// information in m_markers, if the caller wants it; other filtered info is to be
-		// placed preceding m_markers, if the caller wants it
-		SeparateOutCrossRefInfo(filteredInfoStr2, xrefStr, filteredInfoStr);
-	}
-	mMarkersStr = markersStr; // unilaterally returned to caller, in case it wants it
-	if (bAttachFilteredInfo)
-	{
-
-		// For the one and only CSourcePhrase, we store any filtered info within the prefix
-		// string, and any content in m_markers, if present, must be put at the start
-		// of Sstr if filtered info is xref info (which comes after m_markers), but if there
-		// is other filtered info, it precedes m_markers info; remove LHS whitespace when done
-		markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
-			pSrcPhrases, filteredInfoStr, collBackTransStr,
-			freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
-				// and xrefStr are handled in a separate function, later below
-
-	} // end of TRUE block for test: if (bAttachFilteredInfo)
-
-	// whm 5Jan2024 TODO: complete the refactoring of FromSingleMakeSstr() and RebuildSourceText() !!!
-	// the above is only a partial start at refactoring to include filtered info in rebuilds of source text
-
-
-
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 19)
+	if (pSingleSrcPhrase->m_nSequNumber >= 45)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -7640,15 +7728,53 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		}
 	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 30)
+	{
+		int halt_here = 1; wxUnusedVar(halt_here);
+	}
+#endif
+
+	// whm 5Jan2024 modification. I think the m_markers should come AFTER the 
+	// m_srcSinglePattern (which is now in srcStr), but those m_markers should come
+	// BEFORE the filtered material below.
+	// From testing, however, it appears when filtered material is not involved,
+	// the m_markers should come BEFORE the filtered material.
+	// TODO: Test if this is only a happy accidental find !!!
+	if (!markersStr.IsEmpty())
+	{
+		if (HasFilteredInfo(pSingleSrcPhrase))
+		{
+			// suffix m_markers to the source word when there is filtered info
+			srcStr += markersStr;
+		}
+		else
+		{
+			// prefix m_markers to the source word when there is no filtered info 
+			srcStr = markersStr + srcStr;
+		}
+	}
+
+	// whm 5Jan2024 addition. The app now holds filtered material on the preceding source 
+	// phrase, which means that filtered material being unfiltered should come suffixed to 
+	// the srcStr (m_srcSinglePattern) as determined above.
+	wxString filteredMaterialStr = pSingleSrcPhrase->GetFilteredInfo();
+	filteredMaterialStr = pDoc->RemoveAnyFilterBracketsFromString(filteredMaterialStr);
+	filteredMaterialStr.Trim(); // remove any space at end of the filtered material
+	if (!filteredMaterialStr.IsEmpty())
+	{
+		srcStr += filteredMaterialStr;
+	}
+
     // now add the prefix string material if it is not empty
 	wxString prefixStr = wxEmptyString;
 	if (!bEndPunctsModified)
 	{
-		if (!markersStr.IsEmpty())
-		{
-			// prefix it, it may have markers like \s, \s1, \p, \v etc
-			prefixStr = markersStr;
-		}
+		//if (!markersStr.IsEmpty())
+		//{
+		//	// prefix it, it may have markers like \s, \s1, \p, \v etc
+		//	prefixStr = markersStr;
+		//}
 		// Next, there could be inline nonbinding beginMkr like \wj
 		wxString strNonbinding = pSingleSrcPhrase->GetInlineNonbindingMarkers();
 		if (!strNonbinding.IsEmpty())
