@@ -1308,12 +1308,12 @@ void KbServer::ClearUserStruct()
 	m_structUser.useradmin = _T('0');
 	m_structUser.datetime.Empty();
 }
-/* Testing, commented out to see if recompiling flags an error for lack of this. Got no error. BEW 4Jan24
+
 KbServerUser KbServer::GetUserStruct()
 {
 	return m_structUser;
 }
-*/
+
 UsersListForeign* KbServer::GetUsersListForeign() // a 'for manager' scenario
 {
 	return &m_usersListForeign;

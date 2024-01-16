@@ -2767,6 +2767,8 @@ class CAdapt_ItApp : public wxApp
 							// It is set to MAXINT in OnInit()
 
 	bool m_bAdminMoveOrCopyIsInitializing;
+	wxString m_strThingieID;
+	wxString m_strThingieLarim;
 
     /// The application's m_pDocManager member is one of the main players in the
     /// document-view framework as implemented in wxWidgets. It is created in OnInit() and
@@ -5332,7 +5334,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     return wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1);
 }
 // end EDB
-
+	// BEW 11Jan24 added next function
+	wxString GetThingieStart(wxString bilum, wxString nem, wxString larim);
 	// whm 25Sep11 added the following two functions
 	bool	DocHasGlosses(SPList* pSPList);
 	bool	DocHasFreeTranslations(SPList* pSPList);

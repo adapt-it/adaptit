@@ -91,10 +91,11 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	pUsernameTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME);
 
 	usernameMsgTitle = _("Warning: No Unique Username");
+	invalidMsgTitle = _("Warning: Invalid username");
 	usernameMsg = _("You must supply a username in the Unique Username text box.");
 	usernameInformalMsgTitle = _("Warning: No Informal Username");
 	usernameInformalMsg = _("You must supply a fullname in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
-
+	m_invalidName = _("Invalid name. Please type something else.");
     // Transfer the m_strUserID username string (loaded from basic config file before
     // InitDialog() is called) to the pUsernameTextCtrl textbox where the user can do
     // nothing if it is correct, type something different if necessary, or if the box is
@@ -120,17 +121,23 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 void UsernameInputDlg::OnOK(wxCommandEvent& event)
 {
-//	CAdapt_ItApp* pApp = &wxGetApp();
-//	wxASSERT(pApp != NULL);
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
 
     // Don't allow dialog dismissal if the username textctrl is empty , or **** is there;
-    // but if not so then set m_strUserID to what it contains.
+    // or equals "kbadmin",but if not so then set m_strUserID to what it contains.
 	wxString strBox1 = pUsernameTextCtrl->GetValue();
 	if ( strBox1.IsEmpty() || strBox1 == NOOWNER )
 	{
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
+		return;
+	}
+	else if (strBox1 == pApp->m_strThingieID)
+	{
+		gpApp->m_bUserDlgOrMessageRequested = TRUE;
+		wxMessageBox(m_invalidName, invalidMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
 	else

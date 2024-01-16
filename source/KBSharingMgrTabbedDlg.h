@@ -23,7 +23,7 @@
     #pragma interface "KBSharingMgrTabbedDlg.h"
 #endif
 //#if defined(_KBSERVER)
-// needed for the KbServerUser and KbServerKb structures
+
 #include "KbServer.h"
 
 // forward declarations
@@ -45,6 +45,7 @@ protected:
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
 	wxListBox*     m_pUsersListBox;
 	//wxTextCtrl*    m_pTheConnectedIpAddr;
+
 public:
 	wxTextCtrl*	   m_pConnectedTo;
 	wxTextCtrl*    m_pTheUsername;
@@ -59,6 +60,10 @@ public:
 protected:
 	wxButton*      m_pBtnUsersClearControls;
 	wxButton*      m_pBtnUsersAddUser;
+	wxButton*      m_pBtnChangePermission;
+
+	// BEW added 9Jan24 controls for kbs page (page index = 1)
+	
 
 	// local copies of globals on the App, for the person using the Manager dialog
 	bool           m_bKbAdmin;   // for m_kbserver_kbadmin - BEW 27Aug20, retain, 
