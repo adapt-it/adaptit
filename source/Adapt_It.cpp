@@ -22755,6 +22755,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 // TO DO or FIX:  OnePass() is being continually skipped after doing a 2 pile merger. Step it to find why. Also, the 1920 datetime is not getting 
 // lstsync_adaptatins.txt file updated to be the current timestamp. <- FIX
 
+#if defined (_DEBUG)
+            wxLogDebug(_T("%s::%s() line %d, execPath= %s  BEFORE system(pstart) call "), __FILE__, __FUNCTION__, __LINE__, execPath.c_str());
+#endif
+
             //const char* pstart = { "do_changed_since_timed.exe" };
             const char* pstart = "do_changed_since_timed.exe"; // avoid path prefix
                     // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"

@@ -2224,7 +2224,9 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				// not parse the flag correctly, but run on into stale buffer text, and
 				// cause the .exe to fail
 				entryLine += comma;
-
+#if defined (_DEBUG)
+				wxLogDebug(_T("%s() line= %d , entryLine= %s"), __FUNCTION__, __LINE__, entryLine.c_str());
+#endif
 				// Note, we don't grab any of the local timestamps, because the 
 				// timestamp that kbserver wants is the time at which the bulk upload
 				// is done. So we calculate that timestamp once in the python, and add
@@ -2236,7 +2238,6 @@ bool KbServer::PopulateLocalKbLines(const int funcNumber, CAdapt_ItApp* pApp,
 				// Escape any single quotes in the data fields
 				entryLine = DoEscapeSingleQuote(entryLine);
 				
-
 				// write out the entry line, for the wxTextFile "EntryTableData", no conversion to utf8
 				if (!entryLine.IsEmpty())
 				{
