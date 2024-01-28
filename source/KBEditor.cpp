@@ -1095,6 +1095,23 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue();
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
+	// BEW 16Jan24, m_srcKeyStr set from the m_pTypeSourceBox is not robust, if that box was not used
+	// to find an entry in the panels. It would be empty, and lead to an empty src key which is 
+	// an error - though the app doesn't fail, MariaDB's entry table just gets "empty string/ <no adaptation>"
+	// which is a bogus entry. There will be a selected src key, and it's value will be in m_TheSelectedKey,
+	// so test and use that instead
+	if (m_srcKeyStr.IsEmpty())
+	{
+		m_srcKeyStr = m_TheSelectedKey; // in case RHS has the src key value (it won't have in every situation)
+		// Also, m_currentKey probably has the correct value, if m_TheSelectedKey is empty
+		if (m_srcKeyStr.IsEmpty())
+		{
+			if (!m_currentKey.IsEmpty())
+			{
+				m_srcKeyStr = m_currentKey; // BEW 16Jan24 yep, that's where the correct current key is
+			}
+		}
+	}
 	wxASSERT(pCurTgtUnit != 0);
 	bool bOK = AddRefString(pCurTgtUnit,newText); // adds it, provided it is
 												  // not already there

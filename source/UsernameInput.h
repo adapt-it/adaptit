@@ -34,11 +34,13 @@ public:
 	wxTextCtrl* pUsernameTextCtrl;
 	wxTextCtrl* pInformalUsernameTextCtrl;
 	wxString usernameMsgTitle;
+	wxString invalidMsgTitle;
 	wxString usernameMsg;
 	wxString usernameInformalMsgTitle;
 	wxString usernameInformalMsg;
 	wxString m_finalUsername;
 	wxString m_finalInformalUsername;
+	wxString m_invalidName; // BEW 11Jan24 added
 
 protected:
 

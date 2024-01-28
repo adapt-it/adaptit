@@ -12871,6 +12871,21 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{
 						// This pwd is probably valid for m_strUserID, so save it on pFrame
 						pFrame->SetKBSvrPassword(pwd);
+						// BEW 10Jan24 make it available to 3 AI.h member strings for password
+#if defined (_DEBUG)
+						wxLogDebug(_T("Authenticate dialog line %d OLD pApp values: m_curNormalPassword %s, m_curAuthPassword %s, m_temp_password %s"),
+							__LINE__, pApp->m_curNormalPassword.c_str(), pApp->m_curAuthPassword.c_str(), pApp->m_temp_password.c_str());
+
+						if (pApp->m_bIsKBServerProject == TRUE && pApp->m_bUserAuthenticating)
+						{
+							pApp->m_curNormalPassword = pwd;
+							pApp->m_curAuthPassword = pwd;
+							pApp->m_temp_password = pwd;
+
+							wxLogDebug(_T("Authenticate dialog line %d SET NEW pApp values: m_curNormalPassword %s, m_curAuthPassword %s, m_temp_password %s"),
+								__LINE__, pApp->m_curNormalPassword.c_str(), pApp->m_curAuthPassword.c_str(), pApp->m_temp_password.c_str());
+						}
+#endif
 					}
 				}
 				// BEW 27Jan22 let processing continue - most of what follows has been rendered safe
@@ -12891,6 +12906,8 @@ here2:		dlgReturnCode = dlg.ShowModal();
                 // (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing
                 // adaptations KB, if that is wanted. Then again for glossing KB if that is
                 // wanted (usually it won't be)
+
+				/* BEW 10Jan24 don't do this stuff now, we don't use language codes any more
 				bool bDidFirstOK = TRUE;
 				bool bDidSecondOK = TRUE;
 				if (m_bSharingAdaptations)
@@ -12900,12 +12917,12 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						/* BEW 25Sep20, deprecate, codes are no longer wanted, names instead
+						// BEW 25Sep20, deprecate, codes are no longer wanted, names instead
 						HandleBadLangCodeOrCancel(pApp->m_saveOldIpAddrStr, pApp->m_saveOldHostnameStr,
 							pApp->m_saveOldUsernameStr, pApp->m_savePassword,
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
-						*/
+						
 						bSimulateUserCancellation = TRUE;
 					}  // 3
 				} // 2
@@ -12924,10 +12941,11 @@ here2:		dlgReturnCode = dlg.ShowModal();
 							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 							pApp->m_saveSharingGlossesFlag);
 						pApp->m_bLoginFailureErrorSeen = TRUE;
-						*/
+						
 						bSimulateUserCancellation = TRUE;
 					} // 3
 				} // 2
+				*/
 
 				// If control gets to here, we can go ahead and establish the
 				// setup(s), provided bSimulateUserCancellation is not TRUE

@@ -165,11 +165,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pUsersListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_CUR_USERS);
 	wxASSERT(m_pUsersListBox != NULL);
 
-	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_SERVER_URL);
+	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
 	wxASSERT(m_pConnectedTo != NULL);
-	// BEW added 15Dec23 put the hostname into the m_pConnectedTo wxTextCtrl
-	wxString strHostConnectedTo = m_pApp->m_strKbServerHostname; // 15Dec23 gets correct value "bew-VB"
-	//m_pConnectedTo->SetValue(strHostConnectedTo); <<-- BEW 15Dec23, getting nullptr access violations, find a workaround
 
 	// whm 31Aug2021 modified 2 lines below to use the AutoCorrectTextCtrl class which is now
 	// used as a custom control in wxDesigner's RetranslationDlgFunc() dialog.
@@ -204,7 +201,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pBtnUsersClearControls != NULL);
 	m_pBtnUsersAddUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_USER);
 	wxASSERT(m_pBtnUsersAddUser != NULL);
-
+	m_pBtnChangePermission = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CHANGE_PERMISSION);
+	wxASSERT(m_pBtnChangePermission != NULL);
 	// Set an appropriate 'ForManager' KbServer instance which we'll need for the
 	// services it provides regarding access to the KBserver
 	// We need to use app's m_pKbServer_ForManager as the pointer, but it should be NULL
@@ -265,9 +263,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// the results file of do_list_users.exe and updates the m_pOriginalUsersList and 
 	// m_pUsersListForeign 'in place' with an Update....() function
 
-// REPLACE START
-// pApp-. : m_strKbServerIpAddr, or m_chosenIpAddr; m_strUserID ; m_curNormalUsername ; m_curAuthPassword & set m_DB_password
-
 /*
 #if defined  (_DEBUG)
 	wxLogDebug(_T("ConfigureDATfile(lookup_user = %d) line %d: entering, in Mgr InitDialog()"),
@@ -323,17 +318,16 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	}
 */
 
-// First, before dealing with the attempt to list users, which is only relevant to
- // authorizing to enter the KB Sharing Manager, or to it's LoadDataForPage(0) once 
- // logged in; we must find out whether the user trying to log in is credentialed to
- // gain access. This depends on that users  useradmin value, in the user table.
- // A '1' value will allow access; a '0' value will be cause Adapt It code to 
- // disallow access to the Manager. (But such a use can still operate as the owning
- // user for a valid kbserver-supported installation for his/her adapting project.)
- // So here we need to get lookup_user.dat suitably initialized and filled with
- // correct parameters, so do_lookup_user.exe can be called by system(), and return
- // a filled one-line lookup_user_results.dat file, with the useradmin flag value
- // in it so we can stored it, and use that for the subsequent list users code further below.
+	// BEW 9Jan24 updated comment: First, before dealing with the attempt to list users, which is
+	// relevant to authorizing to enter the KB Sharing Manager, to it's LoadDataForPage(0) pane; 
+	// we must find out whether the user trying to log in is credentialed to
+	// be able to add other users. This depends on that user's  useradmin value, in the user table.
+	// A '1' value will allow adding others; a '0' value will allow access to the user page, but 
+	// disallow two things:  the Add User button, and the Change Permission button. 
+	// (But a 0-valued user can still change password or fullname, and can work under a different
+	// username in different AI project (i.e. different language names - or at least one different name)
+	// provided sharing on the same LAN, and that username can access to kbserver (ie. name is listed in user table)
+
 	m_pApp->RemoveDatFileAndEXE(lookup_user); // BEW 11May22 added, must precede call of ConfigureDATfile()
 	bool bUserLookupSucceeded = m_pApp->ConfigureDATfile(lookup_user);
 	if (bUserLookupSucceeded)
@@ -383,16 +377,22 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 					// disallow, if user does not have useradmin == 1 permission
 					if (bUserLookupSucceeded && !m_pApp->m_bHasUseradminPermission)
 					{
+						/* BEW comment out 9Jan24 - we now let such users in, but disable adding users or changing permission to such users
 						wxString msg = _("Access to the Knowledge Base Sharing Manager denied. Insufficient permission level, 0. Choose a different user having level 1.");
 						wxString title = _("Warning: permission too low");
 						wxMessageBox(msg, title, wxICON_WARNING & wxOK);
 						m_pApp->LogUserAction(msg);
 						m_bAllow = FALSE; // enables caller to cause exit of the Mgr handler
 						return;
+						*/
+						m_pBtnUsersAddUser->Enable(FALSE);
+						m_pBtnChangePermission->Enable(FALSE);
 					}
 					else
 					{
 						m_pApp->m_bHasUseradminPermission = TRUE;
+						m_pBtnUsersAddUser->Enable();
+						m_pBtnChangePermission->Enable();
 					}
 				} // end of TRUE block for test: if (!myResults.IsEmpty())
 				else
@@ -426,6 +426,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 			wxString msg = _("Looking up user \"%s\" failed when attempting to get useradmin value (0 or 1), in support of ListUsers");
 			msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
 			m_pApp->LogUserAction(msg);
+			m_pBtnUsersAddUser->Enable(FALSE);
+			m_pBtnChangePermission->Enable(FALSE);
+			m_pApp->m_bHasUseradminPermission = FALSE;
+
 		}
 	}
 	else
@@ -812,11 +816,13 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			}
 		}
 	} // end of TRUE block for test: if (pageNumSelected == 0)
+
 	m_pApp->m_bDoingChangeFullname = FALSE; // re-initialise pending a new request for fullname change
 	m_pApp->m_bDoingChangePassword = FALSE; // restore default
 	m_pApp->m_bChangingPermission = FALSE; // restore default
 	m_bLegacyEntry = TRUE; // reset default value
 }
+
 void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXUNUSED(event))
 {
 	m_pApp->m_bChangingPermission = TRUE; // BEW 7Jan21 added
@@ -826,8 +832,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageChangePermission(wxCommandEvent& WXU
 	// BEW 29Dec23, we should disallow changing the permission value when m_Username2 is the same
 	// user as the currenly active user (ie. when same as m_pApp->m_strUserID), because if that user
 	// has useradmin value of 1 (usually would be so, but could be 0) then the active user would be
-	// unable to do anything in the KB Sharing Manager other than look at the users list, or create
-	// a new KB for saving to its entry table.
+	// unable to do anything in the KB Sharing Manager other than look at the users list
 	if (m_pApp->m_Username2 == m_pApp->m_strUserID)
 	{
 		wxString msg = _("You are trying to change the permission value for the active user. This is not allowed for active user: %s");
@@ -1212,6 +1217,10 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageClearControls(wxCommandEvent& WXUNUS
 	m_pCheckUserAdmin->SetValue(FALSE);
 	ClearCurPwdBox();
 	m_pApp->m_bSelectionChange = FALSE;
+	m_pApp->m_bHasUseradminPermission = TRUE;
+	m_pBtnUsersAddUser->Enable();
+	m_pBtnChangePermission->Enable();
+
 }
 
 // BEW 19Dec20 uses the mgr arrays defined in AI.h at 2217 to 2225 to
@@ -1238,6 +1247,16 @@ void KBSharingMgrTabbedDlg::FillUserList(CAdapt_ItApp* pApp)
 	for (i = 0; i < count; i++)
 	{
 		aUsername = pApp->m_mgrUsernameArr.Item(i);
+		/* BEW remove, must take it out of usrs table, otherwise, adding new users becomes impossible
+		// BEW 11Jan24 hide kbadmin and kbauth, as these are dedicated username and pwd for 
+		// accessing the MariaDB to do something within - send data, get data, or change data.
+		// These two are now built-in values, and so must not appear in the user list - they are
+		// not changeable; other values do not give access to the MariaDB server's kbserver
+		if (aUsername == pApp->m_strThingieID)
+		{
+			continue;
+		}
+		*/
 		locn = m_pUsersListBox->Append(aUsername);
 #if defined (_DEBUG)
 		wxLogDebug(_T("%s::%s(), line %d: list location - where appended = %d , aUsername = %s"), 
@@ -1360,7 +1379,9 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	}
 
 	// Test that the logged in person is not trying to add an existing listed username a second
-	// time - which is illegal. If so, warn, then clear the controls & return without doing anything
+	// time - which is illegal. If so, warn, then clear the controls & return without doing anything.
+	// BEW 11Jan24, listing the special MariaDB accessing username is illegal, so disallow "kbadmin"
+	// being set as strUsername 
 
 	// The following lines get the new user's name, fullname, password, and useradmin value (if any of the
 	// required fields are empty, warn, (don't clear), just return so the active user can remedy the empty fields)
@@ -1371,6 +1392,14 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	bool bUseradmin = m_pCheckUserAdmin->GetValue();
 	wxString strUseradmin = bUseradmin ? _T("1") : _T("0");
 
+	if (strUsername == m_pApp->m_strThingieID)
+	{
+		wxString msg = _("Your typed user in the Username box is not available for Add User button. Please type something else.");
+		wxString title = _("Warning: Wrong user definition");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		m_pTheUsername->SetValue(wxEmptyString);
+		return;
+	}
 
 	// Test now that the relevant wxTextCtrl values have enabling values in them (don't test the checkbox, because
 	// if it is unticked, then the new user will have a 0 value, which is a legal value meaning "this new user can't 
@@ -1584,6 +1613,17 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// processing paths, however, need to call do_change_permission.exe, which
 	// has the python code for toggling the useradmin permission to the opposite value
 	wxString theUsername = m_pUsersListBox->GetString(m_pApp->m_nMgrSel);
+
+	// BEW 12Jan24 the kbadmin user is special, it's the only one that can be used for accessing
+	// the MariaDB/MySQL kbserver. We don't want clicks on it to select it, as a protection for
+	// users in the Manager who might think is of equal status to other listed users. So disallow
+	// an attempt to select it.
+	if (theUsername == m_pApp->m_strThingieID)
+	{
+		wxString msg = _("Do not select this user. It is important for kbserver database access.");
+		wxLogDebug(_T("OnSelchangeUsersList(): msg = %s"), msg.c_str());
+		return;
+	}
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("OnSelchangeUsersList(): from list: username = %s"), theUsername.c_str());
 #endif
