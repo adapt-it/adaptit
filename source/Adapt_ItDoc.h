@@ -449,7 +449,7 @@ public:
 	wxString		GetMarkerWithoutBackslash(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxChar* pChar);
 	wxString		GetBareMarkerForLookup(wxString wholeMkr); // whm 30Nov2023 added
-	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
+	void			GetMarkersAndEndMarkersFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetMarkersAndFollowingWhiteSpaceFromString(wxArrayString& pMkrList, wxString str);
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,	wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags,
 							wxString& unkMkrsStr, enum SetInitialFilterStatus mkrInitStatus);
@@ -810,12 +810,33 @@ public:
 
 	// BEW 11Aug23, return TRUEa if pChar points at text string or digits string (but not the digits of a versenumber
 	bool IsTextAtPChar(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts, wxChar*& pNewPtr);
-	bool EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd); // BEW 12Aug23
+	
+	// whm 17Jan2024 removed the EnterEmptyMkrsLoop() function. The use of IsEmptyMkr() function is 
+	// sufficient test along with bIsToBeFiltered flag as to whether to enter the long block of code
+	// in TokenizeText() that deal with empty content markers.
+	//bool EnterEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd); // BEW 12Aug23
 	//bool ExitEmptyMkrsLoop(wxChar* pChar, wxChar* pEnd, wxString spacelessPuncts); // BEW 12Aug23
-	bool IsEmptyMkr(wxChar* pChar, int& nWhitesLen); // BEW 14Aug23, parses over whites at pChar and 
-			// returns TRUE if backspace follows, and the length of span up to but not including the
-			// the backslash; else FALSE and return -1 for nWhitesLen - a backslash must be at least
-			// one white further on than pChar
+
+	// BEW 14Aug23, parses over whites at pChar and 
+	// returns TRUE if backspace follows, and the length of span up to but not including the
+	// the backslash; else FALSE and return -1 for nWhitesLen - a backslash must be at least
+	// one white further on than pChar.
+	// 
+	// whm 15Jan2024 modified the IsEmptyMkr() function below so that it has three reference 
+	// parameters in its signature: 
+	//    bool& bHasBogusPeriods - there are bogus periods to process for the m_paragraphMkrs
+	//		marker and/or chapter marker that is excluded from being treated as an empty marker.
+	//    int& nWhitesLenIncludingBogusPeriods - the number of whites + bogus periods following
+	//		the marker. 
+	//    int& nPeriodsInWhitesLen - the number of periods within the whites followoing the 
+	//		marker.
+	// See the definition of IsEmptyMkr() for explanation.
+	bool bHasBogusPeriods;
+	int nWhitesLenIncludingBogusPeriods;
+	int nPeriodsInWhitesLen;
+	bool IsEmptyMkr(wxChar* pChar, wxChar* pEnd, 
+		bool& bHasBogusPeriods, int& nWhitesLenIncludingBogusPeriods, int& nPeriodsInWhitesLen);
+	void IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd); 
 	bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
 
 

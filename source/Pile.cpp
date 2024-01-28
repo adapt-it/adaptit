@@ -1120,13 +1120,37 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				bool bFreeHasNoContent = IsFreeTranslationContentEmpty(m_pSrcPhrase);
 				bool bBackHasNoContent = IsBackTranslationContentEmpty(m_pSrcPhrase);
 
+				// whm 27Jan2024 modified. I think now that filtered info is stored
+				// on a previous source phrase pile, that for LTR the green filter
+				// wedge should be drawn in the upper right corner of the pile's rectangle
+				// and for RTL the green filter wedge should be drawn in the upper left
+				// corner of the pile's rectange. That change should be easily made by
+				// simply switching the location of the _RTL_FLAGS define for the determination
+				// of the pWedge.x coordinate below. The original is left in commented out
+				// text.
+				// TODO 1: The change of position here needs to have a coresponding change
+				// made back in the Canvas's OnLButtonDown() routines that detect a click
+				// on the green wedge.
+				// TODO: 2: While the change below moves the green wedge, we need to also
+				// make a similar change to the note icon to keep its position next to the
+				// green wedge, within similar adjustments to the routines that detect a
+				// click on the yellow notebook icon.
+//#ifdef _RTL_FLAGS
+//				if (m_pLayout->m_pApp->m_bRTL_Layout)
+//					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
+//#endif
+//				// get the point where the drawing is to start (from the bottom tip of
+//				// the downwards pointing wedge)
+//				ptWedge.x += 1;
+
 #ifdef _RTL_FLAGS
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
-					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
+					ptWedge.x += 1; // whm 27Jan2024 changed. Align to the left if LTR layout
 #endif
-			// get the point where the drawing is to start (from the bottom tip of
-			// the downwards pointing wedge)
-				ptWedge.x += 1;
+				// get the point where the drawing is to start (from the bottom tip of
+				// the downwards pointing wedge)
+				ptWedge.x += rectBounding.GetWidth(); // align right if LTR layout
+
 				ptWedge.y -= 2;
 
 				// whm note: According to wx docs, wxWidgets shows all non-white pens as
@@ -1409,21 +1433,42 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			wxPoint ptNote;
 			TopLeft(ptNote);
 			// offset top left (-13,-9) for regular app
+
+			// whm 27Jan2024 modified. As I did above with the green filter wedge, I think
+			// it works better to put the note icon at upper right for LTR text direction
+			// and upper left for RTL text direction. The commented out code is the original
+			// design with my changes below it.
+//#ifdef _RTL_FLAGS
+//			if (m_pLayout->m_pApp->m_bRTL_Layout)
+//			{
+//				ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
+//				ptNote.x += 7;
+//			}
+//			else
+//			{
+//				ptNote.x -= 13;
+//			}
+//#else
+//			ptNote.x -= 13;
+//#endif
+//			ptNote.y -= 9;
+
 #ifdef _RTL_FLAGS
 			if (m_pLayout->m_pApp->m_bRTL_Layout)
+			{
+				ptNote.x -= 13;
+			}
+			else
 			{
 				ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
 				ptNote.x += 7;
 			}
-			else
-			{
-				ptNote.x -= 13;
-			}
 #else
-			ptNote.x -= 13;
+			ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
+			ptNote.x += 7;
 #endif
 			ptNote.y -= 9;
-
+			
 			// create a brush
 			// whm note: According to wx docs, wxWidgets shows all brushes as white unless
 			// the colour is really black on monochrome displays, i.e., the OLPC screen in
@@ -1559,6 +1604,21 @@ void CPile::Draw(wxDC* pDC)
 	}
 	if (!m_pLayout->m_pApp->m_bIsPrinting || (m_pLayout->m_pApp->m_bIsPrinting && !gbIsGlossing))
 	{
+		// whm 12Jan2024 added for coloring cell background with extremely light grey color when cell is
+		// empty
+		if (m_pCell[1]->GetCellText()->IsEmpty())
+		{
+			wxRect enclosingRect;
+			m_pCell[1]->GetCellRect(enclosingRect);
+			pDC->SetBrush(wxBrush(m_pLayout->m_pApp->m_NormalTargetBackgroundColor, wxBRUSHSTYLE_SOLID));
+			pDC->SetPen(wxPen(m_pLayout->m_pApp->m_NormalTargetBackgroundColor));
+			pDC->DrawRectangle(enclosingRect);
+			pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
+					// the current brush to be selected out of the device context, and the
+					// original brush restored.
+			pDC->SetPen(wxNullPen);
+		}
+
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	}
 

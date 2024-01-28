@@ -223,6 +223,7 @@ public:
 	//void RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation); // BEW removed 5Apr22
 	bool RestoreDeletedRefCount_1_ItemToDropDown();
 
+	bool IsPhraseBoxVisibleInClientWindow();
 
     void ClearDropDownList();
     void CloseDropDown();

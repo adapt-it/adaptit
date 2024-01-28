@@ -8343,6 +8343,39 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 	return FALSE;
 }
 
+// whm 25Jan2024 created to be able to inform some scrolling functions and/or
+// their callers whether the phrasebox is visible within the main client window.
+// This is mainly to prevent CMainFrame::OnActivate() from scrolling the window
+// back to the phrasebox after the user has clicked away to a different place 
+// and simply clicked back to the AI main window bringing it back into focus.
+// When this function returns FALSE it means that the phrase box location was
+// scrolled away at the time the main frame was activated by a user click or
+// by some dialog closing. For example, at the time the phrasebox has landed
+// at a location, the user may decide to scroll away to a different location that
+// where the phrasebox is NOT in view, then decides to click on a different
+// location to move the phrasebox there. In the meantime the user has also
+// clicked away from AI to some other window, or has just dismissed a dialog
+// window. Without this function, however, the user's click back on the AI
+// main window to move the phrasebox to a location away from the current phrasebox
+// location is frustrated because the main frame's OnActivate() function will
+// automatically scroll back to the current location of the phrasebox instead
+// of honoring the user's click to move the phrasebox to its new intended
+// location.
+bool CPhraseBox::IsPhraseBoxVisibleInClientWindow()
+{
+	bool bPhraseBoxIsVisible = TRUE;
+
+	// TODO: if phrasebox is not currently within the client window we
+	// return FALSE instead of the default TRUE value.
+	if (gpApp->m_pTargetBox != NULL)
+	{
+		// get the client coordinates of the phrasebox
+
+	}
+
+	return bPhraseBoxIsVisible;
+}
+
 // This code based on PopulateList() in the CChooseTranslation dialog class.
 // The pTU parameter is the pCurTargetUnit passed in from the dropdown setup
 // code in PlaceBox(), which determined the value of pCurTargetUnit at the
@@ -9368,17 +9401,11 @@ void CPhraseBox::RemoveFinalSpaces(CPhraseBox* pBox, wxString* pStr)
 				nIndexLast = len -1;
 
 				bChanged = TRUE;
-#if defined (_DEBUG)
-				wxLogDebug(_T("RemoveFinalSpaces(pBox,pStr) line %d , *pStr= [%s] , bChanged= %b"), __LINE__, (*pStr).c_str(), bChanged);
-#endif
 			}
 			else
 			{
 				break;
 			}
-#if defined (_DEBUG)
-			wxLogDebug(_T("RemoveFinalSpaces(pBox,pStr) line %d , *pStr= [%s] , bChanged= %b"), __LINE__, (*pStr).c_str(), bChanged);
-#endif
 		} while (len > 0 && nIndexLast > -1);
 	}
 	else
