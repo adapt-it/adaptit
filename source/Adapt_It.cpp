@@ -31962,6 +31962,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strUserID_Archived = m_strThingieID;
     m_strFullname_Archived = _T("KBUser");
     m_strPassword_Archived = m_strThingieLarim;
+    // BEW 22Jan24 added. Name of the file to be lodged in the current running executable's folder,
+    // to store a new (foreign, not kbadmin) username, fullname, password, and useradmin set to 1,
+    // when a new user who is to be given all permissions so as to be able to log in to MariaDB 
+    // and preserved as a file of this name, until contents changed, or file deleted. The function
+    // which creates this file, on behalf of a new foreign username, is: bool GrantPermissionsFile_Create();
+    m_foreignUserPermissionsFilename = _T("PermissionsUserFullnamePwd");
 
 	return TRUE;
 }
@@ -32025,6 +32031,56 @@ wxString CAdapt_ItApp::GetDistFolder()
 
 //#endif
 
+ // BEW added 22Jan24
+bool CAdapt_ItApp::GrantPermissionsFile_Create(wxString& newUser, wxString& newFullname, wxString& newPwd)
+{
+    // sanity checks go here, which include (a) a kbserver is running, (b) it's host is known (need ipAddr),  
+    // (c) newUser, newFullname and newPwd strings are all nonempty in the caller 
+    // (we always give a newUser useradmin permission == 1 if the file is created, else 0 if the file is not created
+    // - whereby default access is provided by kbadmin, KBUser, kbauth so such newUsers are able to enter src/tgt pairs
+    // to the entry table), (d) kbadmin, KBUser, kbauth values are accessible and unchanged (need credentials that 
+    // work in order to be authorized to do a CREATE USER command), (e) app's member bool m_bIsKBServerProject 
+    // must have been set TRUE. helpers.cpp 12,388 approx, has some old code which does these checks - grab and tweak
+    bool bAdaptionsKbActive = KbAdaptRunning();
+    bool bGlossesKbActive = KbGlossRunning();
+    if (!(bAdaptionsKbActive || bGlossesKbActive))
+    {
+        // At least one of these must be running, typically an adaptations one 
+        wxMessageBox(_("A kbserver is not yet running. Do 'Setup Or Remove Knowledge Base Sharing...' on the Advanced menu."), _("Error"),
+            wxICON_ERROR | wxOK);
+        return FALSE;
+    }
+    // Check for a local host - i.e. the ipAddr where MariaDB server is lodged (it will be in an Ubuntu VM or a linux machine)
+    wxString host_ipaddr = m_chosenIpAddr; // would be empty if no discovery has been done
+    if (m_chosenIpAddr.IsEmpty())
+    {
+        // Try see if the basic config file has an ipAddr stored from an earlier session, use it if so
+        if (!m_strKbServerIpAddr.IsEmpty())
+        {
+            host_ipaddr = m_strKbServerIpAddr;
+        }
+        else
+        {
+            // No ipAddress is available. Tell the user to do "Discover KBservers" on the Advanced menu 
+            wxMessageBox(_("A computer running a kbserver was not discovered. Do 'Discover KBservers' on the Advanced menu."), _("Error"),
+                wxICON_ERROR | wxOK);
+            return FALSE;
+        }
+    }
+
+
+
+ 
+
+
+
+
+
+
+// TODO - more, when I return from HAY
+
+    return TRUE; // all went well
+}
 
 // BEW added 11Mar20 for making m_finalSrcPuncts string for use in ParseInlineEndMarker()
 wxString CAdapt_ItApp::MakeSourceFinalPuncts(wxString srcPuncts) // does not include a space
