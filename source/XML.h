@@ -360,6 +360,13 @@ bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB), const wxString& progressTi
 void FromDocVersion4ToDocVersionCurrent( SPList* pList, CSourcePhrase*& pSrcPhrase, 
 										bool bIsEmbedded, int docVersion);
 
+// whm 27Jan2024 added. 
+// convert from doc version 5's m_filteredInfo being stored on the current pSrcPhrase
+// to pLastSrcPhrase where m_filteredInfo is now stored - always on a prior source
+// phrase from the location the filtered info was taken in the input text.
+// See definition for details.
+void FromDocVersion5ToDocVersionCurrent(CSourcePhrase* pSrcPhrase);
+
 // convert from doc version 5's various filtered content storage members, back to the
 // legacy doc version 4 storage regime, where filtered info and endmarkers (for
 // non-filtered info) were all stored on m_markers. This function must only be called on a

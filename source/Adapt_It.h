@@ -1612,6 +1612,14 @@ struct USFMAnalysis
 	bool keepWithNext;	// addition for version 3
 };
 
+// whm 20Jan2024 added enum for PostFunctionExecutionBranchingType
+enum PostFunctionExecutionBranchingType
+{
+	noBranching,
+	break_from_loop,
+	continue_to_top_of_loop
+};
+
 // whm added 31Aug10 for User Workflow Profiles support
 
 enum VersionComparison
@@ -3699,6 +3707,7 @@ public:
 	wxColour	m_reTranslnTextColor;
 	wxColour	m_tgtDiffsTextColor;
 	wxColour	m_AutoInsertionsHighlightColor;
+	wxColour	m_NormalTargetBackgroundColor; // whm 12Jan2024 added for distinguishing target line - extremely light grey
 	wxColour	m_GuessHighlightColor; // whm added 1Nov10 for Guesser support
 	wxColour	m_freeTransDefaultBackgroundColor; // it will be light pastel green
 				// (set in app constructor)

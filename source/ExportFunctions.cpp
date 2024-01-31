@@ -1771,7 +1771,7 @@ void DoExportAsType(enum ExportType exportType)
 	// filter option settings specify otherwise.
 
 	// Rebuild the text and apply the output filter to it.
-	bool bIsFiltered = FALSE; // initializations
+	//bool bIsFiltered = FALSE; // initializations
 	wxString footnote = _T("\\f ");
 	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 
@@ -1863,9 +1863,9 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to
 														   // \z... markers for Paratext
-#if defined(_DEBUG)
-			wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
-#endif
+//#if defined(_DEBUG)
+//			wxLogDebug(_T("case SourceTextExport: line %d, source=%s"), __LINE__, source.c_str());
+//#endif
 		}
 	} // end of case sourceTextExport:
 		break;
@@ -17457,6 +17457,14 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		wxString aBreak; aBreak = wxEmptyString;
 		if (pSrcPhrase->m_nSequNumber > 0)
 		{
+
+#if defined(_DEBUG)
+			if (pSrcPhrase->m_nSequNumber == 392)
+			{
+				int halt_here = 0; wxUnusedVar(halt_here);
+			}
+		
+#endif
 			aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
 			/* uncomment out, ifyou want to see what aBreak is, shown on every line of the Output in debug mode
 #ifdef _DEBUG
@@ -17524,9 +17532,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		// placeholders
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 #if defined(_DEBUG)
-		wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
-			__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 0)
+		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
+		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
+		if (pSrcPhrase->m_nSequNumber >= 16298)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -17567,9 +17575,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// held over until the loop "sees" the next CSourcePhrase instance, it is
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
-#if defined(_DEBUG)
-				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
+//#if defined(_DEBUG)
+//				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+//#endif
 
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
@@ -17706,9 +17714,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
-#if defined(_DEBUG)
-			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromMergerMakeSstr str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
+//#if defined(_DEBUG)
+//			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromMergerMakeSstr str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+//#endif
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
 			source << str;
@@ -17766,7 +17774,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 30)
+			if (pSrcPhrase->m_nSequNumber >= 16298)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
@@ -17774,9 +17782,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
-#if defined(_DEBUG)
-			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromSingleMakeSstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
+//#if defined(_DEBUG)
+//			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromSingleMakeSstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+//#endif
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
 			spacelessPuncts = MakeSpacelessPunctsString(gpApp, sourceLang); // sourceLang is enum value 0, targetLan is 1
@@ -17853,9 +17861,18 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// chapters or books - the legacy code would output \v 1 followed by newline,
 			// but Paratext has \v 1 followed by space, then the newline - so test for
 			// m_key empty, and if so, add a space to str here and don't trim it off below
+			// whm 17Jan2024 Previous code added aSpace to str here. However for 
+			// usfm-only conteneless markers returned from the FromSingleMakeSstr() 
+			// function above, will already have a space suffixed to the str here.
+			// In exports of source text, there should actually be no following 
+			// space on the contentless marker. Therefore, I'm remove the final
+			// space from the str when pSrcPhrase->m_key is empty.
+			// 
+			// will already have a final space.
 			if (pSrcPhrase->m_key.IsEmpty())
 			{
-				str += aSpace; // needs to be a latin space, no ZWSP here
+				//str += aSpace; // needs to be a latin space, no ZWSP here
+				str.Trim(TRUE); // trim space from right end
 			}
 
 			// if we return ']' bracket, we don't want a preceding space
@@ -17873,9 +17890,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			{
 				// Control usually goes thru here
 				source << str;
-#if defined(_DEBUG)
-				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-#endif
+//#if defined(_DEBUG)
+				//wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
+//#endif
 			}
 			str.Empty();
 		}
@@ -17883,9 +17900,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
-#if defined(_DEBUG)
-	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, (int)source.Length(), source.c_str());
-#endif
+//#if defined(_DEBUG)
+//	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, (int)source.Length(), source.c_str());
+//#endif
 
 	// update length
 	return source.Length();

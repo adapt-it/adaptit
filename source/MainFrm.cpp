@@ -4448,6 +4448,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 				return;
 			}
 		}
+		
 		// restore focus to the targetBox, if it is visible
         if (pApp->m_pTargetBox != NULL)
         {
@@ -4456,10 +4457,18 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
                 // whm 17May2020 Note: The following call of SetFocusAndSetSelectionAtLanding() gets called
                 // early on AFTER the closure of a modal dialog, AND BEFORE a bogus ENTER key press is passed on
                 // to the CPhraseBox::OnKeyUp() handler.
-//BEW 14Dec20 commented out wxLogDebug(_T("In CMainFrame::OnActivate call SetFocusAndSetSelectionAtLanding()"));
+#if defined(_DEBUG)				
+				if (pApp->m_pTargetBox->IsShownOnScreen())
+				{
+					wxLogDebug(_T("In CMainFrame::OnActivate IsShownOnScreen() is TRUE")); // whm 25Jan2024 added
+				}
+#endif
+				// BEW 14Dec20 commented out 
+				wxLogDebug(_T("In CMainFrame::OnActivate calling SetFocusAndSetSelectionAtLanding()")); // whm 25Jan2024 added back
                 pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
         }
+		
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -8905,6 +8914,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp->m_pActivePile != NULL);
 
 	// do a scroll if needed
+	wxLogDebug(_T("In CMainFrame::OnRemovalsComboSelChange() line %d; calling ScrollIntoView()"), __LINE__); // whm 25Jan2024 added
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 	// place cursor at end of the inserted text

@@ -3993,6 +3993,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell* pCell, int selector)
 	// would be tested for here within the PlacePhraseBox() routine. I think the test that BEW added
 	// on 16Aug23 should probably be removed. At least the flag should be properly initialized now
 	// to a FALSE value while the execution is not "within the empty markers loop".
+	// whm 17Jan2024 as of this date m_bWithinEmptyMkrsLoop is always FALSE since there is no more
+	// markers loop, nor EnterEmptyMkrsLoop() function to set it TRUE. Hence the 
+	// m_bWithinEmptyMkrsLoop boolen should be remove from the Doc and the enclosing if test below
+	// removed from the enclosed if ... else code blocks.
 	if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
 	{
 		if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())

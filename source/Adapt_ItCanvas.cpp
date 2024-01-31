@@ -968,7 +968,9 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					int xLeft;
 					int xRight;
 					wxRect pileRect = pPile->GetPileRect();
-					xLeft = pileRect.GetLeft();
+					// whm 27Jan2024 changed the green wedge to be at upper right for LTR text
+					// and at upper left for RTL text, so the xLeft values are reversed below
+					xLeft = pileRect.GetRight(); // xLeft = pileRect.GetLeft();
 
                     // if the Unicode application and we are laying out RTL, the wedge will
                     // be at the other end of the pile - so if this is the case, then set
@@ -976,7 +978,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					#ifdef _RTL_FLAGS
 					if (gbRTL_Layout)
 					{
-						xLeft = pileRect.GetRight();
+						xLeft = pileRect.GetLeft(); //xLeft = pileRect.GetRight();
 					}
 					#endif
                     // BEW changed 16Jul05 to make the clickable rectangle a pixel wider all
@@ -1068,24 +1070,40 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                     // note info stored yet
 u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 					{
+						// whm 27Jan2024 changed the note icon to be at upper right for LTR text
+						// and at upper left for RTL text, so the xLeft values are reversed below.
+						// Note: The original code is commented out with the new code below it.
+						// 
 						// this pile has a note, so check if the click was in the note
 						// icon's rectangle
 						int xLeft;
 						int xRight;
 						wxRect pileRect = pPile->GetPileRect();
 						xLeft = pileRect.GetLeft();
-						#ifdef _RTL_FLAGS
+						//#ifdef _RTL_FLAGS
+						//if (gbRTL_Layout)
+						//{
+						//	xLeft = pileRect.GetRight() + 6;
+						//}
+						//else
+						//{
+						//	xLeft -= 13;
+						//}
+						//#else
+						//	xLeft -= 13;
+						//#endif
+#ifdef _RTL_FLAGS
 						if (gbRTL_Layout)
 						{
-							xLeft = pileRect.GetRight() + 6;
+							xLeft -= 13;
 						}
 						else
 						{
-							xLeft -= 13;
+							xLeft = pileRect.GetRight() + 6;
 						}
-						#else
-							xLeft -= 13;
-						#endif
+#else
+						xLeft = pileRect.GetRight() + 6;
+#endif
 						xRight = xLeft + 10; // at least 9,  but an extra one to make it
 											 // easier to hit
 						ptNoteTopLeft.x = xLeft ;
@@ -1468,6 +1486,12 @@ x:					CCell* pCell = 0;
 					}
 					else
 					{
+						// whm 17Jan2024 note: There is no longer an empty markers loop, and
+						// the Doc's m_bWithinEmptyMkrsLoop flag is always FALSE, so the following
+						// if test is always going to be FALSE. Even so the variable 
+						// m_bWithinEmptyMkrsLoop would have been significant only during
+						// TokenizeText() parsing, and would not be useful here in the OnLButtonDown()
+						// method at the time vertical edit is in progress!
 						if (!pApp->GetDocument()->m_bWithinEmptyMkrsLoop)
 						{
 							wxMessageBox(_(
@@ -2212,6 +2236,7 @@ x:					CCell* pCell = 0;
                             pApp->m_pTargetBox->m_Translation = sp->m_adaption;
 							sp->m_targetStr = sp->m_adaption;
 
+							wxLogDebug(_T("*** OnLButtonDown() line %d, calling PlacePhraseBox()"), __LINE__); // whm 25Jan2024 added
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
 							// will be done at the landing location
@@ -2226,6 +2251,7 @@ x:					CCell* pCell = 0;
 							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1882);
 #endif
 
+							wxLogDebug(_T("*** OnLButtonDown() line %d, calling PlacePhraseBox()"), __LINE__); // whm 25Jan2024 added
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
 								// will be done at the landing location
@@ -2242,6 +2268,7 @@ x:					CCell* pCell = 0;
 							// PlacePhraseBox() call if that is the case
 							if (pApp->m_nOldSequNum == -1)
 							{
+								wxLogDebug(_T("*** OnLButtonDown() line %d, calling PlacePhraseBox()"), __LINE__); // whm 25Jan2024 added
 								pView->PlacePhraseBox(pCell, 2); // selector = 2 (meaning
 									// KB access is not done at the leaving location, but
 									// is done at the landing location
@@ -2264,6 +2291,7 @@ x:					CCell* pCell = 0;
 
 								pApp->m_bLandingBox = TRUE;
 
+								wxLogDebug(_T("*** OnLButtonDown() line %d, calling PlacePhraseBox()"), __LINE__); // whm 25Jan2024 added
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
@@ -2282,7 +2310,8 @@ x:					CCell* pCell = 0;
                             pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
                         }
 
-                        ScrollIntoView(pApp->m_nActiveSequNum);
+						wxLogDebug(_T("*** In Canvas OnLButtonDown() line %d; calling SetFocusAndSetSelection() and ScrollIntoView()"), __LINE__); // whm 25Jan2024 added	
+						ScrollIntoView(pApp->m_nActiveSequNum);
 					}
 
 					// restore default button image, and m_bCopySourcePunctuation to TRUE

@@ -24511,7 +24511,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 24Oct14, the footnote and/or crossreference marker set, according to the usage of
     // nested markers in the USFM 2.4 standard, do not ever take + (ie. are not ever nested)
     // and so no markers like \+f \+ft ... \+x etc do not occur
-    m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
+    m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* "); // whm 22Jan2024 m_FootnoteMarkers is never used
     m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
 
     // whm 8Jul12 added these wxArrayString elements
@@ -24549,6 +24549,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
+    // whm 24Jan2024 Note: The m_inlineBindingMarkers set below lacks 5 markers that the m_charFormatMkrs set has: \\png \\addpn \\qt \\sls and \\sup
+    // TODO: Why the difference? The comment above m_charFormatMkrs below seems to indicate that they are the same set just named differently.
     m_inlineBindingMarkers = _T("\\add \\bk \\tl \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\fk \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     // BEW 31May23, before this date, checking for the matching end marker was done as a hack, better to have the above set as its own set of ending ones
     m_inlineBindingEndMarkers = _T("\\add* \\bk* \\dc* \\k* \\lit* \\nd* \\ord* \\pn* \\sig* \\em* \\bd* \\it* \\fk* \\bdit* \\no* \\sc* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
@@ -24558,7 +24560,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //OLDm_charFormatEndMkrs = _T("\\qac* \\qs* \\nd* \\tl* \\dc* \\bk* \\pn* \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* \\png* \\addpn* \\sup* \\nd* \\+nd* ");
 
     // BEW 5Jun23 these two are just renamed m_inlineBindingMarkers and m_inlineBindingEndMarkers, because the charFormat versions lacked several, especially embedded ones
-    m_charFormatMkrs = _T("\\add \\fk \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\pb \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
+    m_charFormatMkrs = _T("\\add \\fk \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     m_charFormatEndMkrs = _T("\\add* \\fk* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
 
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
@@ -24616,8 +24618,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_identificationMkrs = _T("\\id \\usfm \\ide \\sts \\rem \\toc \\toc1 \\toc2 \\toc3 \\toc4 \\toca \\toca1 \\toca2 \\toca3 \\toca4 ");
     // whm 6Jan2024 in m_paragraphMkrs below I added a number of paragraph type markers that should be 
     // included here:
-    // These added ones include: \\pi \\ph \\phi and \\ps (i.e., this used in Hezekiah test text in USFM docs)
-    m_paragraphMkrs = _T("\\p \\m \\po \\pr \\cls \\pmo \\pm \\pmc \\pmr \\pi \\pi1 \\pi2 \\pi3 \\pi4 \\mi \\nb \\pc \\ph \\ph1 \\ph2 \\ph3 \\ph4 \\phi \\b \\ps ");
+    // These added ones include: \\pi \\ph \\phi \\d and \\ps (i.e., this used in Hezekiah test text in USFM docs)
+    m_paragraphMkrs = _T("\\p \\m \\po \\pr \\cls \\pmo \\pm \\pmc \\pmr \\pi \\pi1 \\pi2 \\pi3 \\pi4 \\mi \\nb \\pc \\ph \\ph1 \\ph2 \\ph3 \\ph4 \\phi \\b \\d \\ps ");
 
     // the following characters must never be in a SFM or USFM marker (we'll have the XML
     // metacharacters, and curly quotes for now - we can add more later if we need to)
@@ -25008,21 +25010,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //int endTest = 1;
 
     // testing of RemoveMultipleSpaces()
-    //wxString testMultiSpInitial = _T("  This is a test string with multiple spaces initially");
-    //wxString testMultiSpFinal = _T("This is a test string with multiple spaces initially  ");
-    //wxString testMultiSpMedial = _T("This is a test string with multiple spaces        medially");
-    //wxString testMultiSpAll = _T("        ");
-    //wxString testMultiSpNull = _T("");
-    //wxString testMultiSpNone = _T("Thisisateststringwithnospacesinthestringatall");
-    //wxString result1,result2,result3,result4,result5,result6;
-    //result1 = RemoveMultipleSpaces(testMultiSpInitial);
-    //result2 = RemoveMultipleSpaces(testMultiSpFinal);
-    //result3 = RemoveMultipleSpaces(testMultiSpMedial);
-    //result4 = RemoveMultipleSpaces(testMultiSpAll);
-    //result5 = RemoveMultipleSpaces(testMultiSpNull);
-    //result6 = RemoveMultipleSpaces(testMultiSpNone);
-
-    // end of testing of RemoveMultipleSpaces()
+    // moved down in OnInit() after Doc creation
+    // since RemoveMultipleSpaces() needs use of the Doc's IsMarker()
 
     /*
     // test of ChangeFilenameExtensionTo() and ChangeFilenameExtension2() function
@@ -31014,6 +31003,69 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // **** test code fragments here ****
 
+    /*
+    // whm 15Jan2024 testing of RemoveMultipleSpaces()
+    wxString testMultiSpBtwnEOLandMkr = _T("This is a test string\r\n with multiple\n spaces\r\n  \\Mkr by a backslash\r  \\Mkr");
+    wxString testMultiSpWithBS = _T("This is a test string with multiple spaces  \\followed by a backslash  \\");
+    wxString testMultiSpInitial = _T("  This is a test string with multiple spaces initially");
+    wxString testMultiSpFinal = _T("This is a test string with multiple spaces finally  ");
+    wxString testMultiSpMedial = _T("This is a test string with multiple spaces        medially");
+    wxString testMultiSpAll = _T("        ");
+    wxString testMultiSpNull = _T("");
+    wxString testMultiSpNone = _T("Thisisateststringwithnospacesinthestringatall");
+    wxString result1, result2, result3, result4, result5, result6;
+    result1 = RemoveMultipleSpaces(testMultiSpBtwnEOLandMkr);
+    result1 = RemoveMultipleSpaces(testMultiSpWithBS);
+    result1 = RemoveMultipleSpaces(testMultiSpInitial);
+    result2 = RemoveMultipleSpaces(testMultiSpFinal);
+    result3 = RemoveMultipleSpaces(testMultiSpMedial);
+    result4 = RemoveMultipleSpaces(testMultiSpAll);
+    result5 = RemoveMultipleSpaces(testMultiSpNull);
+    result6 = RemoveMultipleSpaces(testMultiSpNone);
+    int halt_here = 1; wxUnusedVar(halt_here);
+    // end of testing of RemoveMultipleSpaces()
+    // All tests successful
+    */
+
+     /*
+    // whm 15Jan2024 testing of IsEmptyMkr() function
+    int nPeriodsInWhitesLen = 0;
+    int nWhitesLen = 0;
+    bool bHasBogusPeriods = FALSE;
+    int nLen;
+    wxArrayString testEmptyMkrsstrArr;
+    testEmptyMkrsstrArr.Add(_T("\\v 3\r\n\\p ..\r\n\\anyMkr"));
+    testEmptyMkrsstrArr.Add(_T("\\p ..\r\n\\anyMkr"));
+    testEmptyMkrsstrArr.Add(_T("\\p\r\n\\anyMkr"));
+    testEmptyMkrsstrArr.Add(_T("\\p\r\n"));
+    testEmptyMkrsstrArr.Add(_T("\\p\r\nAnd Jesus said."));
+    testEmptyMkrsstrArr.Add(_T("\\p\r\n... and Jesus said."));
+    testEmptyMkrsstrArr.Add(_T("\\p And Jesus said."));
+    testEmptyMkrsstrArr.Add(_T("\\p"));
+
+    int nTot = (int)testEmptyMkrsstrArr.GetCount();
+    wxString testStr;
+    for (int i = 0; i < nTot; i++)
+    {
+        testStr = testEmptyMkrsstrArr.Item(i);
+        nLen = (int)testStr.Length();
+        const wxChar* pBuf = testStr.GetData();
+        nLen = (int)testStr.Length();
+        wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
+        wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06
+        wxChar* ptr = (wxChar*)pBuf;
+        bool bIsEmptyMkr = GetDocument()->IsEmptyMkr(ptr, pEnd, bHasBogusPeriods, nWhitesLen,  nPeriodsInWhitesLen);
+        wxUnusedVar(bIsEmptyMkr);
+        int dummyInt = 0; wxUnusedVar(dummyInt);
+        SPList* pNewList = this->m_pSourcePhrases;
+        GetDocument()->TokenizeText(0, pNewList, testStr, nLen);
+    }
+    int break_here = 0; wxUnusedVar(break_here);
+    // whm 15Jan2024 test succeded.
+     */
+
+
+
     // Test the FilteredMaterialContainsMoreThanOneItem() function used twice in ReconstituteAfterFilteringChange() 
     //bool bOK;
     //// test with empty filterStuff string
@@ -33222,6 +33274,7 @@ void CAdapt_ItApp::InitializeFonts()
     m_AutoInsertionsHighlightColor = wxColour(203, 151, 255); // solid light purple "16750539"
     m_GuessHighlightColor = wxColour(255, 180, 128); //wxColour(255,128,0); // pastel orange background for Guess - whm added 1Nov10
     m_freeTransTextColor = wxColour(100, 0, 100); // dark purple - fixed not user selectable
+    m_NormalTargetBackgroundColor = wxColour(241, 241, 241); // whm 12Jan2024 added - extremely light grey
 
                                                   // color used for read-only text controls displaying static text info button face color
     sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
