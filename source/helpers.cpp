@@ -462,14 +462,14 @@ wxColour Int2wxColour(int colourInt)
 unsigned int Btoi(CBString& digits)
 {
 	int len = digits.GetLength();
-	int pos;
+	int nPos;
 	unsigned int n = 0;
 	char c;
 	unsigned int posValue = 1;
 	digits.MakeReverse();
-	for (pos = 1; pos <= len; pos++)
+	for (nPos = 1; nPos <= len; nPos++)
 	{
-		c = digits[pos-1];
+		c = digits[nPos -1];
 		if (c == '1')
 			n += posValue;
 		// get the next positionValue
@@ -1359,17 +1359,17 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 	// BEW added 15Aug07, to handle moving final endmarkers to the end of
 	// the split off part, when otherwise the splitting would divide
 	// a marker .... endmarker matched pair (eg. footnote)
-	SPList::Node* pos = MainList->Item(FirstIndexToKeep);
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pMainList = MainList->Item(FirstIndexToKeep);
+	wxASSERT(pos_pMainList != NULL);
 
 	// Jonathan's original code block (note: FirstIndexToKeep is only
 	// used as a counter so as to determine when to quit the loop, it
 	// is not used for accessing list members)
 	while (FirstIndexToKeep != 0 && MainList->GetCount() > 0)
 	{
-		pos = MainList->GetFirst();
-		CSourcePhrase* pSrcPhrase = pos->GetData();
-		MainList->DeleteNode(pos);
+		pos_pMainList = MainList->GetFirst();
+		CSourcePhrase* pSrcPhrase = pos_pMainList->GetData();
+		MainList->DeleteNode(pos_pMainList);
 		rv->Append(pSrcPhrase);
 		--FirstIndexToKeep;
 	}
@@ -3166,11 +3166,11 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
 {
 		int nIteratorSN = nInitialSequNum;
-		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN);
-		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail,
+		SPList::Node* pos_pSP = pSrcPhrases->Item(nIteratorSN);
+		wxASSERT(pos_pSP != NULL); // we'll assume FindIndex() won't fail,
 							   // so just ASSERT for a debug mode check
-		CSourcePhrase* pSrcPhrase = pos->GetData(); // this has the \bt marker
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = pos_pSP->GetData(); // this has the \bt marker
+		pos_pSP = pos_pSP->GetNext();
 		int offset = -1;
 		wxString collectedStr = pSrcPhrase->GetCollectedBackTrans();
 		if (collectedStr.IsEmpty())
@@ -3215,16 +3215,16 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 			// pSrcPhrase... first reinitialize the booleans
 			bAdaptionInCollectedStr = FALSE;
 			bGlossInCollectedStr = FALSE;
-			if (pos == NULL)
+			if (pos_pSP == NULL)
 			{
 				// there isn't a "next" pSrcPhrase to check, so a return is forced
 				return TRUE; // still unresolved, so default to returning TRUE
 			}
 			else
 			{
-				//pSrcPhrase = (CSourcePhrase*)pSrcPhrases->GetNext(pos);
-				pSrcPhrase = pos->GetData();
-				pos = pos->GetNext();
+				//pSrcPhrase = (CSourcePhrase*)pSrcPhrases->GetNext(pos_pSP);
+				pSrcPhrase = pos_pSP->GetData();
+				pos_pSP = pos_pSP->GetNext();
 			}
 			offset = -1;
 		} while (counter <= 30); // increased value from 5 to 30, 7Sep10 BEW
@@ -4634,8 +4634,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// and the caller tests that it is not word1~word2 conjoined by fixed space -
 	// the latter is stored as a pseudo merger, and is handled within FromSingleMakeTstr()
 	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
-	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
-	wxASSERT(pos != 0);
+	SPList::Node* pos_pSPsubList = pSrcPhraseSublist->GetFirst();
+	wxASSERT(pos_pSPsubList != 0);
 	SPList::Node* posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
 	bool bHasInternalMarkers = FALSE;
@@ -4895,22 +4895,22 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	wxString endMarkersStr_forLoop;
 	wxString lastWordBreak; // needed, because pNextSrcPhrase will be NULL when we are looking
 							// for an appropriate wordbreak to insert before the last word
-	while (pos != NULL)
+	while (pos_pSPsubList != NULL)
 	{
-		if (pos == posLast)
+		if (pos_pSPsubList == posLast)
 		{
 			bLast = TRUE;
 		}
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSPsubList->GetData();
+		pos_pSPsubList = pos_pSPsubList->GetNext();
 		lastWordBreak = pSrcPhrase->GetSrcWordBreak();
 
 		// BEW 21Jul14, we add the word delimiter from the 'next' CSourcePhrase,
 		// but we'll have to use the penultimate delimiter for the last word - use lastWordBreak
 		CSourcePhrase* pNextSrcPhrase = NULL;
-		if (pos != NULL)
+		if (pos_pSPsubList != NULL)
 		{
-			pNextSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pNextSrcPhrase = (CSourcePhrase*)pos_pSPsubList->GetData();
 		}
 
 		// get the filtered stuff only for the non-first CSourcPhrase instance, because we
@@ -5641,8 +5641,8 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
 	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
-	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
-	wxASSERT(pos != 0);
+	SPList::Node* pos_pSPsubList = pSrcPhraseSublist->GetFirst();
+	wxASSERT(pos_pSPsubList != 0);
 	SPList::Node* posLast;
 	posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
@@ -5740,10 +5740,10 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
     // needs markers and endmarkers added, and any filtered info for both is returned via
     // markersPrefix
     // BEW comment 11Oct10, filtered info is now ignored, for glosses export
-	while (pos != NULL)
+	while (pos_pSPsubList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSPsubList->GetData();
+		pos_pSPsubList = pos_pSPsubList->GetNext();
 
 		// get the filtered stuff only for the non-first CSourcPhrase instance, because we
 		// got it already for the first, before we entered the loop, and we don't want a
@@ -5793,7 +5793,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 			if (!endMarkersStr.IsEmpty())
 			{
 				// we've endmarkers we have to deal with
-				if (pos != NULL)
+				if (pos_pSPsubList != NULL)
 				{
 					// not at the list's end, so these endmarkers are medial, but we only
 					// need to ensure that they are added to Sstr, m_pMedialMarkers is
@@ -6052,8 +6052,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
 	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
-	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
-	wxASSERT(pos != 0);
+	SPList::Node* pos_pSPsubList = pSrcPhraseSublist->GetFirst();
+	wxASSERT(pos_pSPsubList != 0);
 	SPList::Node* posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
 
@@ -6085,14 +6085,14 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	wxString beforeStr;
 	wxString afterStr;
 	bool bAddedSomething = FALSE;
-	while (pos != NULL)
+	while (pos_pSPsubList != NULL)
 	{
-		if (pos == posLast)
+		if (pos_pSPsubList == posLast)
 		{
 			bLast = TRUE;
 		}
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSPsubList->GetData();
+		pos_pSPsubList = pos_pSPsubList->GetNext();
 
 		// filtered info can only be on the first, and it's copied to pMergedSrcPhrase
 		// anyway, so get it from the latter (if present)
@@ -7279,7 +7279,7 @@ bool IsUsfmDocument(SPList* pList, bool* pbIsEither)
 	{
 		bThreeRanges = FALSE;
 	}
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pList = pList->GetFirst();
 	// set up the ranges, based on doc size (as number of CSourcePhrase instances)
 	size_t rangeIndex;
 	size_t rangeEndIndex;
@@ -7305,8 +7305,8 @@ bool IsUsfmDocument(SPList* pList, bool* pbIsEither)
 		size_t index = 0;
 		for (index = start; index <= end; index++)
 		{
-			pos = pList->Item(index);
-			CSourcePhrase* pSrcPhrase = pos->GetData();
+			pos_pList = pList->Item(index);
+			CSourcePhrase* pSrcPhrase = pos_pList->GetData();
 
 			// count indicators of USFM
 			size_t usfmIndicators = EvaluateMarkerSetForIndicatorCount(pSrcPhrase, UsfmOnly);
@@ -8748,14 +8748,14 @@ bool IsContainedByRetranslation(int	nFirstSequNum,
 	wxASSERT(pList != NULL);
 	CSourcePhrase* pSrcPhrase;
 
-	SPList::Node* pos = pList->Item(nFirstSequNum);
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->Item(nFirstSequNum);
+	wxASSERT(pos_pList != NULL);
 	int count = 0;
 	bool bFoundEnd = FALSE;
-	while(pos != NULL)
+	while(pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		count++;
 		if (pSrcPhrase->m_bEndRetranslation)
@@ -8773,9 +8773,9 @@ bool IsContainedByRetranslation(int	nFirstSequNum,
 	// lies within the retranslation, so get the bounds
 	nSequNumFirst = nFirstSequNum;
 	int nFirst = nFirstSequNum+1;
-	pos = pList->Item(nFirstSequNum);
-a:	pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetPrevious();
+	pos_pList = pList->Item(nFirstSequNum);
+a:	pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+	pos_pList = pos_pList->GetPrevious();
 	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 	{
 		nSequNumFirst = --nFirst;
@@ -8784,9 +8784,9 @@ a:	pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	nSequNumLast = nFirstSequNum + count - 1;
 	int nLast = nFirstSequNum + count - 1;
 b:	nLast += 1;
-	pos = pList->Item(nLast);
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetNext();
+	pos_pList = pList->Item(nLast);
+	pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+	pos_pList = pos_pList->GetNext();
 	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bBeginRetranslation)
 	{
 		nSequNumLast = nLast;
@@ -8801,13 +8801,13 @@ b:	nLast += 1;
 bool IsNullSrcPhraseInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
-	SPList::Node* pos = pList->GetFirst();
-	if (pos == NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	if (pos_pList == NULL)
 		return FALSE; // there isn't any selection
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bNotInKB)
 			return TRUE;
 	}
@@ -8818,13 +8818,13 @@ bool IsNullSrcPhraseInSelection(SPList* pList)
 bool IsRetranslationInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
-	SPList::Node* pos = pList->GetFirst();
-	if (pos == NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	if (pos_pList == NULL)
 		return FALSE; // there isn't any selection
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bRetranslation)
 			return TRUE;
 	}
@@ -8836,13 +8836,13 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 {
 	//wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	CSourcePhrase* pSrcPhrase;
-	SPList::Node* pos = pList->GetFirst();
-	if (pos == NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	if (pos_pList == NULL)
 		return FALSE; // there isn't any selection
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
 			return TRUE;
 	}
@@ -9559,12 +9559,12 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	}
 	int len2 = searchStr.Len();
 	offset += len2; // offset now points at the start of printName
-	int pos = offset;
+	int nPos = offset;
 	wxString aTab = _T("\t");
-	offset = FindFromPos(*pTempStr, aTab, pos + 1);
-	wxASSERT(offset != wxNOT_FOUND && offset > pos);
-	// the printName is the text between locations pos to offset
-	wxString s(*pTempStr, pos, offset - pos);
+	offset = FindFromPos(*pTempStr, aTab, nPos + 1);
+	wxASSERT(offset != wxNOT_FOUND && offset > nPos);
+	// the printName is the text between locations nPos to offset
+	wxString s(*pTempStr, nPos, offset - nPos);
 	printName = s;
 	if (pTempStr != NULL) // whm 11Jun12 added NULL test
 		delete pTempStr;
@@ -11247,13 +11247,13 @@ bool IsSubstringWithin(wxString& testStr, wxString& strItems)
 SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase,
 	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)
 {
-	SPList::Node* pos = pList->Find(pOriginalSrcPhrase);
-	if (pos == NULL)
-		return pos;
+	SPList::Node* pos_pList = pList->Find(pOriginalSrcPhrase);
+	if (pos_pList == NULL)
+		return pos_pList;
 	int sequNum = pOriginalSrcPhrase->m_nSequNumber;
-	SPList::Node* nextPos = pos;
+	SPList::Node* nextPos = pos_pList;
 	nextPos->GetNext(); // we insert before this Node (this may not exist, if so, append)
-	pList->DeleteNode(pos); // removes the Node* from the list
+	pList->DeleteNode(pos_pList); // removes the Node* from the list
 	if (bDeleteOriginal)
 	{
 		gpApp->GetDocument()->DeleteSingleSrcPhrase(pOriginalSrcPhrase,bDeletePartnerPileToo);
@@ -11261,16 +11261,16 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 	if (nextPos == NULL)
 	{
 		// at list end, so do an append
-		pos = pList->Append(pNewSrcPhrase);
+		pos_pList = pList->Append(pNewSrcPhrase);
 
 	}
 	else
 	{
 		// insert before nextPos
-		pos = pList->Insert(nextPos,pNewSrcPhrase);
+		pos_pList = pList->Insert(nextPos,pNewSrcPhrase);
 	}
 	pNewSrcPhrase->m_nSequNumber = sequNum;
-	return pos;
+	return pos_pList;
 }
 */
 
@@ -11338,11 +11338,11 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 
 void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
 {
-	SPList::Node* pos= pList->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pList= pList->GetFirst();
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		pArray->Add(pSrcPhrase);
 #if defined(ShowConversionItems) && defined(_DEBUG)
 		wxLogDebug(_T("from SPList:  m_chapterVerse: %s   sequNum: %d   m_srcPhrase: %s"),
@@ -12252,8 +12252,8 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 void ShowSPandPile(int atSequNum, int whereTis)
 {
 	SPList* pList = gpApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->Item(atSequNum);
-	CSourcePhrase* pSrcPhrase = pos->GetData();
+	SPList::Node* pos_pList = pList->Item(atSequNum);
+	CSourcePhrase* pSrcPhrase = pos_pList->GetData();
 	CLayout* pLayout = gpApp->m_pLayout;
 	PileList* pPiles = pLayout->GetPileList();
 	PileList::Node* posPiles = pPiles->Item(atSequNum);

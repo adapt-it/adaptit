@@ -298,7 +298,7 @@ bool CEarlierTranslationDlg::IsMarkedForVerse(CSourcePhrase* pSrcPhrase)
 	}
 }
 
-void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPhrase, SPList* WXUNUSED(pList))
+void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos_pSPList, CSourcePhrase* pSrcPhrase, SPList* WXUNUSED(pList))
 {
 	// we've found the start of the verse, so extract its source and target text strings
 	m_strBeginChVerse = pSrcPhrase->m_chapterVerse;
@@ -316,10 +316,10 @@ void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPh
 	m_nCurLastSequNum = pSrcPhrase->m_nSequNumber; // a safe default, until set again below
 
 	// accumulate the rest until the end of the verse
-	while (pos != NULL)
+	while (pos_pSPList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pSPList->GetData();
+		pos_pSPList = pos_pSPList->GetNext();
 		if (pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_pMedialMarkers->GetCount() == 0)
 		{
 			// no possibility of a new verse starting, so accumulate this one's strings
@@ -446,7 +446,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 		::wxBell();
 		return;
 	}
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 
 	// find the nominated chapter and verse, if possible, using the wxString for chapt:verse;
 	// if it fails, assume a range & try again with integers
@@ -455,18 +455,18 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 	if (m_nChapter == 0)
 	{
 		// special case, either its non-scripture, or a chapterless book like 2John
-		pos = pList->GetFirst();
-		wxASSERT(pos != NULL);
+		pos_pList = pList->GetFirst();
+		wxASSERT(pos_pList != NULL);
 
 		// first, assume it's a chapterless book like 2 John, try find the verse
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			wxASSERT(pSrcPhrase);
 			if (pSrcPhrase->m_chapterVerse == m_verse)
 			{
-				ScanVerse(pos,pSrcPhrase,pList);
+				ScanVerse(pos_pList,pSrcPhrase,pList);
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
@@ -504,16 +504,16 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 	else
 	{
 		// there are chapter markers, so look for chapter & verse
-		pos = pList->GetFirst();
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		pos_pList = pList->GetFirst();
+		wxASSERT(pos_pList != NULL);
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			wxASSERT(pSrcPhrase);
 			if (pSrcPhrase->m_chapterVerse == m_chapterVerse)
 			{
-				ScanVerse(pos,pSrcPhrase,pList);
+				ScanVerse(pos_pList,pSrcPhrase,pList);
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
@@ -531,12 +531,12 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 
 		// verse not found, so try again, this time assuming we may have the wanted ch & verse within
 		// a range in the text, such as 3-7, or 3,4 etc.
-		pos = pList->GetFirst();
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		pos_pList = pList->GetFirst();
+		wxASSERT(pos_pList != NULL);
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			wxASSERT(pSrcPhrase);
 
 			int chapter;
@@ -554,7 +554,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 				&& (nWantedVerse >= firstVerse && nWantedVerse <= lastVerse))
 			{
 
-				ScanVerse(pos,pSrcPhrase,pList);
+				ScanVerse(pos_pList,pSrcPhrase,pList);
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
@@ -615,7 +615,7 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(pList);
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 	CSourcePhrase* pSrcPhrase;
 
 	int nIndex = m_nExpansionIndex + 1;
@@ -654,13 +654,13 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 
 			// get the position of this element, and its source phrase; then iterate over the
 		// rest until the start of the verse is found
-		pos = pList->Item(nFinalSequNum);
-		wxASSERT(pos != 0);
+		pos_pList = pList->Item(nFinalSequNum);
+		wxASSERT(pos_pList != 0);
 
-		while (pos != 0)
+		while (pos_pList != 0)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetPrevious();
+			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetPrevious();
 			wxASSERT(pSrcPhrase);
 
 			// accumulate the source and target strings
@@ -729,10 +729,10 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 
 		// get the position of this element, and its source phrase; then iterate over the
 		// rest until the end of the verse is found, or the end of the document
-		pos = pList->Item(nNextSequNum);
-		wxASSERT(pos != 0);
-		pSrcPhrase = (CSourcePhrase*)pos->GetData(); // should have non-empty m_chapterVerse
-		pos = pos->GetNext();
+		pos_pList = pList->Item(nNextSequNum);
+		wxASSERT(pos_pList != 0);
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // should have non-empty m_chapterVerse
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 		if (!pSrcPhrase->m_chapterVerse.IsEmpty())
 		{
@@ -771,10 +771,10 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 		m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
 		m_follContext[nIndex] = pSrcPhrase->m_nSequNumber;
 
-		while (pos != 0)
+		while (pos_pList != 0)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			wxASSERT(pSrcPhrase);
 
 			if (!pSrcPhrase->m_chapterVerse.IsEmpty() || IsMarkedForVerse(pSrcPhrase)
@@ -842,7 +842,7 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(pList);
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 	CSourcePhrase* pSrcPhrase;
 
 	int nIndex = m_nExpansionIndex - 1;
@@ -877,16 +877,16 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 
 	// accumulate the verses
 	int sn = nFirstSequNum;
-	pos = pList->Item(sn);
-	wxASSERT(pos != 0);
+	pos_pList = pList->Item(sn);
+	wxASSERT(pos_pList != 0);
 	m_srcText.Empty();
 	m_tgtText.Empty();
 
 	bool bIsFirst = TRUE;
-	while (pos != 0 && sn <= nLastSequNum)
+	while (pos_pList != 0 && sn <= nLastSequNum)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData(); // may have non-empty m_chapterVerse
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // may have non-empty m_chapterVerse
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 
 		if (!pSrcPhrase->m_chapterVerse.IsEmpty())

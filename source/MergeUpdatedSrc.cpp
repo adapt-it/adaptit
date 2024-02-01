@@ -229,12 +229,12 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 			if (bHasFixedSpace)
 			{
 				// it's a conjoining - separate the two words
-				SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+				SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
 				int index;
 				for (index = 0; index < 2; index++)
 				{
-					CSourcePhrase* pSP = pos->GetData();
-					pos = pos->GetNext();
+					CSourcePhrase* pSP = pos_pSavedWords->GetData();
+					pos_pSavedWords = pos_pSavedWords->GetNext();
 					aWordToken = pSP->m_srcPhrase;
 					int offset = oldSrcKeysStr.Find(aWordToken);
 					if (offset == wxNOT_FOUND)
@@ -552,12 +552,12 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 			{
 				// it's a pair of conjoined (by fixed space, ~ symbol) CSourcePhrase
 				// instances
-				SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+				SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
 				int indx;
 				for (indx = 0; indx < 2; indx++)
 				{
-					CSourcePhrase* pSP = pos->GetData();
-					pos = pos->GetNext();
+					CSourcePhrase* pSP = pos_pSavedWords->GetData();
+					pos_pSavedWords = pos_pSavedWords->GetNext();
 					aWordToken = pSP->m_srcPhrase;
 					int offset = uniqueKeysStr.Find(aWordToken);
 					if (offset != wxNOT_FOUND)
@@ -3108,12 +3108,12 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 	CSourcePhrase* pPrevSrcPhrase = NULL;
 	CRetranslation* pRetranslation = gpApp->GetRetranslation();
 	// we assume that a chopped off retranslation does not commence the document
-	SPList::Node* pos = pMergedList->GetFirst();
-	pPrevSrcPhrase = pos->GetData();
-	pos = pos->GetNext();
-	for (index = 1; pos != NULL && index < count; index++)
+	SPList::Node* pos_pList = pMergedList->GetFirst();
+	pPrevSrcPhrase = pos_pList->GetData();
+	pos_pList = pos_pList->GetNext();
+	for (index = 1; pos_pList != NULL && index < count; index++)
 	{
-		pSrcPhrase = pos->GetData();
+		pSrcPhrase = pos_pList->GetData();
         // check the pair pPrevSrcPhrase and pSrcPhrase; if the former has m_bRetranslation
         // FALSE and the latter has it TRUE and with m_bBeginRetranslation FALSE, then we
         // have a retranslation with its start chopped off
@@ -3126,11 +3126,11 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
             // (which also clears out its target text words), our algorithm automatically
             // handles any auto-inserted padding placeholders & removes them, & and fixes
             // the doc
-			SPList::Node* posLocal = pos;
+			SPList::Node* posLocal = pos_pList;
 			CSourcePhrase* pSP = posLocal->GetData(); // same as pSrcPhrase
 			CSourcePhrase* pKickoffSP = pSP;
 			pSP->m_bBeginRetranslation = TRUE; // give it a valid start flag
-			SPList::Node* posEnd = pos;
+			SPList::Node* posEnd = pos_pList;
 			int first = pMergedList->IndexOf(pSP);
 			while (posLocal != NULL &&  pSP->m_bRetranslation
 				&& (pSP->m_bRetranslation && !pSP->m_bEndRetranslation)
@@ -3174,11 +3174,11 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
             // CSourcePhrase instances may have been removed (e.g. placeholders following a
             // partial retranslation), so get an updated count value before iterating
 			count = pMergedList->GetCount();
-			// restart the iterations from a safe location - the pos value corresponding
+			// restart the iterations from a safe location - the pos_pList value corresponding
 			// to the value stored in first is suitable; & pPrevSrcPhrase still points at
 			// the instance stored at the previous position to that one
 			index = first;
-			pos = pMergedList->Item(first);
+			pos_pList = pMergedList->Item(first);
 		}
 		else
         // deal with retranslations which have their end chopped off; because the caller
@@ -3206,8 +3206,8 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			// the user's edits didn't also chop off the start of the retranslation, but
 			// that will have been handled beforehand (above), so probably the initiap pSP
 			// will have m_bBeginRetranslation set TRUE, but we won't count on it being so)
-			SPList::Node* posLocal = pos;
-			SPList::Node* posAfter = pos;
+			SPList::Node* posLocal = pos_pList;
+			SPList::Node* posAfter = pos_pList;
 			posLocal = posLocal->GetPrevious(); // get the one on which pPrevSrcPhrase is stored
 			CSourcePhrase* pSP = posLocal->GetData(); // same as pPrevSrcPhrase
 			pSP->m_bEndRetranslation = TRUE; // give it a valid end flag
@@ -3275,12 +3275,12 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			// in the unlikely event that a CSourcePhrase got removed, update count, and
 			// continue looping from the location where pSrcPhrase is
 			count = pMergedList->GetCount();
-			pos = pMergedList->Item(first);
+			pos_pList = pMergedList->Item(first);
 		}
 		// iterate in the outer loop which scans over all of pMergedList
 		pPrevSrcPhrase = pSrcPhrase;
-		pos = pos->GetNext();
-	} // end of for loop: for (index = 1; pos != NULL && index < count; index++)
+		pos_pList = pos_pList->GetNext();
+	} // end of for loop: for (index = 1; pos_pList != NULL && index < count; index++)
 }
 
 // Checks for an indicator of left-association: returns TRUE if one is found. Otherwise
@@ -3842,14 +3842,14 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 	//wxString spaceStr = _T(" ");
 
 	wxArrayPtrVoid arrRangeOfOldOnes;
-	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pSavedWords = pMergedSP->m_pSavedWords->GetFirst();
+	while (pos_pSavedWords != NULL)
 	{
 		// BEW 21Jul14, no need to copy over to these the arrNew instance's m_srcWordBreak
 		// member, because we only use these old ones in order to get their m_adaption
 		// and m_targetStr member values to copy them to pNewSrcPhrase in the loop further below
-		arrRangeOfOldOnes.Add(pos->GetData());
-		pos = pos->GetNext();
+		arrRangeOfOldOnes.Add(pos_pSavedWords->GetData());
+		pos_pSavedWords = pos_pSavedWords->GetNext();
 	}
 
 	keyFromInstances.Empty(); // initialize
@@ -4059,11 +4059,11 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 	// member because we have to delete these before we can append the new copies we've
 	// just constructed in the caller
 	wxArrayPtrVoid arrRangeOfOldOnes;
-	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pSavedWords = pMergedSP->m_pSavedWords->GetFirst();
+	while (pos_pSavedWords != NULL)
 	{
-		arrRangeOfOldOnes.Add(pos->GetData());
-		pos = pos->GetNext();
+		arrRangeOfOldOnes.Add(pos_pSavedWords->GetData());
+		pos_pSavedWords = pos_pSavedWords->GetNext();
 	}
 	int index;
 	int count = pMergedSP->m_pSavedWords->GetCount();
@@ -4279,11 +4279,11 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                         // individual words in pOldSrcPhrase and then check for a match
                         // with two successive new CSourcePhrase instances' m_srcPhrase values
 						int newStartingIndex = newIndex - numWords + 1;
-						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-						wxASSERT(pos != NULL);
-						wxString word1 = pos->GetData()->m_srcPhrase;
-						pos = pos->GetNext();
-						wxString word2 = pos->GetData()->m_srcPhrase;
+						SPList::Node* pos_pSavedWords = pOldSrcPhrase->m_pSavedWords->GetFirst();
+						wxASSERT(pos_pSavedWords != NULL);
+						wxString word1 = pos_pSavedWords->GetData()->m_srcPhrase;
+						pos_pSavedWords = pos_pSavedWords->GetNext();
+						wxString word2 = pos_pSavedWords->GetData()->m_srcPhrase;
 						wxString newWord1 = arrNew.Item(newStartingIndex)->m_srcPhrase;
 						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_srcPhrase;
 						if (word1 == newWord1 && word2 == newWord2)
@@ -4835,11 +4835,11 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                         // individual words in pOldSrcPhrase and then check for a match
                         // with two successive new CSourcePhrase instances' m_srcPhrase values
 						int newStartingIndex = newIndex;
-						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-						wxASSERT(pos != NULL);
-						wxString word1 = pos->GetData()->m_srcPhrase;
-						pos = pos->GetNext();
-						wxString word2 = pos->GetData()->m_srcPhrase;
+						SPList::Node* pos_pSavedWords = pOldSrcPhrase->m_pSavedWords->GetFirst();
+						wxASSERT(pos_pSavedWords != NULL);
+						wxString word1 = pos_pSavedWords->GetData()->m_srcPhrase;
+						pos_pSavedWords = pos_pSavedWords->GetNext();
+						wxString word2 = pos_pSavedWords->GetData()->m_srcPhrase;
 						wxString newWord1 = arrNew.Item(newStartingIndex)->m_srcPhrase;
 						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_srcPhrase;
 						if (word1 == newWord1 && word2 == newWord2)
@@ -6204,12 +6204,12 @@ int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartI
 			{
 				// we have two or more words so get them from the stored original
 				// CSourcePhrase instances
-				SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
-				while (pos != NULL)
+				SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
+				while (pos_pSavedWords != NULL)
 				{
-					CSourcePhrase* pSPhr = pos->GetData();
+					CSourcePhrase* pSPhr = pos_pSavedWords->GetData();
 					pWordGroupArray->Add(pSPhr->m_srcPhrase);
-					pos = pos->GetNext();
+					pos_pSavedWords = pos_pSavedWords->GetNext();
 					wordCount += 1;
 				}
 				if (wordCount >= nGroupSize)
@@ -6805,11 +6805,11 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
                 // unmatched
 				wxString word1;
 				wxString word2;
-				SPList::Node* pos = pNewSrcPhrase->m_pSavedWords->GetFirst();
-				wxASSERT(pos != NULL);
-				CSourcePhrase* pSP1 = pos->GetData();
-				pos = pos->GetNext();
-				CSourcePhrase* pSP2 = pos->GetData();
+				SPList::Node* pos_pSavedWords = pNewSrcPhrase->m_pSavedWords->GetFirst();
+				wxASSERT(pos_pSavedWords != NULL);
+				CSourcePhrase* pSP1 = pos_pSavedWords->GetData();
+				pos_pSavedWords = pos_pSavedWords->GetNext();
+				CSourcePhrase* pSP2 = pos_pSavedWords->GetData();
 				word1 = pSP1->m_srcPhrase;
 				word2 = pSP2->m_srcPhrase;
 				if (word == word1)
@@ -6916,11 +6916,11 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// arrOld's fixedspace pseudo-merger
 			wxString word1;
 			wxString word2;
-			SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-			wxASSERT(pos != NULL);
-			CSourcePhrase* pSP1 = pos->GetData();
-			pos = pos->GetNext();
-			CSourcePhrase* pSP2 = pos->GetData();
+			SPList::Node* pos_pSavedWords = pOldSrcPhrase->m_pSavedWords->GetFirst();
+			wxASSERT(pos_pSavedWords != NULL);
+			CSourcePhrase* pSP1 = pos_pSavedWords->GetData();
+			pos_pSavedWords = pos_pSavedWords->GetNext();
+			CSourcePhrase* pSP2 = pos_pSavedWords->GetData();
 			word1 = pSP1->m_srcPhrase;
 			word2 = pSP2->m_srcPhrase;
 			// test for a match of word1 with what is at the match location in arrNew
@@ -6968,14 +6968,14 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			int numWords = pOldSrcPhrase->m_nSrcWords; // see note above, can be greater than expected
 			wxArrayString arrKeys; // store the individual word tokens here
 			// BEW 24Jun13, use this loop to get the key strings safely, even empty ones
-			SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pSavedWords = pOldSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos_pSavedWords != NULL)
 			{
-				CSourcePhrase* pSP = pos->GetData();
+				CSourcePhrase* pSP = pos_pSavedWords->GetData();
 				wxString aKey = pSP->m_srcPhrase; // accept empty ones, shouldn't happen, but could if
 							// a newbie user typed detached punctuation like a comma or period etc
 				arrKeys.Add(aKey);
-				pos = pos->GetNext();
+				pos_pSavedWords = pos_pSavedWords->GetNext();
 			}
 			// find the index for the word which matches the one passed in
 			int i;
@@ -7946,9 +7946,9 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			int oldNextIndex = oldIndex + 1;
 			CSourcePhrase* pOldNextSP = arrOld.Item(oldNextIndex); // it's gotta be there
 
-			SPList::Node* pos = pNewSP->m_pSavedWords->GetFirst();
+			SPList::Node* pos_pSavedWords = pNewSP->m_pSavedWords->GetFirst();
 			SPList::Node* posLast = pNewSP->m_pSavedWords->GetLast();
-			CSourcePhrase* pWordFirstSP = pos->GetData();
+			CSourcePhrase* pWordFirstSP = pos_pSavedWords->GetData();
 			CSourcePhrase* pWordLastSP = posLast->GetData();
 
 			// handle the arrNew's conjoined CSourcePhrase's embedded CSourcePhrases first;
@@ -8060,9 +8060,9 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			CSourcePhrase* pNewWordLast = posNewLast->GetData();
 
 			// we also need the equivalent instances from pOldSP...
-			SPList::Node* pos = pOldSP->m_pSavedWords->GetFirst();
+			SPList::Node* pos_pSavedWords = pOldSP->m_pSavedWords->GetFirst();
 			SPList::Node* posLast = pOldSP->m_pSavedWords->GetLast();
-			CSourcePhrase* pWordFirst = pos->GetData();
+			CSourcePhrase* pWordFirst = pos_pSavedWords->GetData();
 			CSourcePhrase* pWordLast = posLast->GetData();
 
 			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption
@@ -8134,9 +8134,9 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			int newNextIndex = newIndex + 1;
 			CSourcePhrase* pNewNextSP = arrNew.Item(newNextIndex); // it's gotta be there
 
-			SPList::Node* pos = pOldSP->m_pSavedWords->GetFirst();
+			SPList::Node* pos_pSavedWords = pOldSP->m_pSavedWords->GetFirst();
 			SPList::Node* posLast = pOldSP->m_pSavedWords->GetLast();
-			CSourcePhrase* pWordFirstSP = pos->GetData();
+			CSourcePhrase* pWordFirstSP = pos_pSavedWords->GetData();
 			CSourcePhrase* pWordLastSP = posLast->GetData();
 
 			// handle the arrOld's conjoined CSourcePhrase's embedded CSourcePhrases first;

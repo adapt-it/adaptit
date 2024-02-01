@@ -76,7 +76,7 @@ protected:
 	void OnCancel(wxCommandEvent& WXUNUSED(event)); // necessary since EarlierTranslationDlg is modeless - must call Destroy
 	void OnClose(wxCloseEvent& WXUNUSED(event));
 	bool IsMarkedForVerse(CSourcePhrase* pSrcPhrase);
-	void ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPhrase, SPList* WXUNUSED(pList));
+	void ScanVerse(SPList::Node*& pos_pSPList, CSourcePhrase* pSrcPhrase, SPList* WXUNUSED(pList));
 	void EnableMoreButton(bool bEnableFlag);
 	void EnableLessButton(bool bEnableFlag);
 	void EnableJumpButton(bool bEnableFlag);

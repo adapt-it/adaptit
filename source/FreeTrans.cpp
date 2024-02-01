@@ -353,15 +353,15 @@ bool CFreeTrans::IsFreeTransInArray(SPArray* pSPArray)
 bool CFreeTrans::IsFreeTransInList(SPList* pSPList)
 {
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* pos = pSPList->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pList = pSPList->GetFirst();
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = pos->GetData();
+		pSrcPhrase = pos_pList->GetData();
 		if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
 		{
 			return TRUE;
 		}
-		pos = pos->GetNext();
+		pos_pList = pos_pList->GetNext();
 	}
 	// didn't find the flag value TRUE anywhere, nor free trans text member non-empty
 	return FALSE;
@@ -5094,19 +5094,19 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		{
 			// we have to move the box
 			CSourcePhrase* pSrcPhr = m_pApp->m_pActivePile->GetSrcPhrase();
-			SPList::Node* pos = pSrcPhrases->Find(pSrcPhr);
-			wxASSERT(pos);
-			SPList::Node* savePos = pos;
+			SPList::Node* pos_pSP = pSrcPhrases->Find(pSrcPhr);
+			wxASSERT(pos_pSP);
+			SPList::Node* savePos = pos_pSP;
 			if (pSrcPhr->m_bBeginRetranslation)
 			{
 				// we are at the start of the section
 				nCountForwards = 1;
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // counted this one
-				pos = pos->GetNext();
-				while (pos != NULL)
+				pSrcPhr = (CSourcePhrase*)pos_pSP->GetData(); // counted this one
+				pos_pSP = pos_pSP->GetNext();
+				while (pos_pSP != NULL)
 				{
-					pSrcPhr = (CSourcePhrase*)pos->GetData();
-					pos = pos->GetNext();
+					pSrcPhr = (CSourcePhrase*)pos_pSP->GetData();
+					pos_pSP = pos_pSP->GetNext();
 					nCountForwards++;
 					if (pSrcPhr->m_bEndRetranslation)
 						break;
@@ -5118,12 +5118,12 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			{
 				nSaveActiveSequNum = pSrcPhr->m_nSequNumber + 1;
 				nCountBackwards = 1;
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // counted this one
-				pos = pos->GetPrevious();
-				while (pos != NULL)
+				pSrcPhr = (CSourcePhrase*)pos_pSP->GetData(); // counted this one
+				pos_pSP = pos_pSP->GetPrevious();
+				while (pos_pSP != NULL)
 				{
-					pSrcPhr = (CSourcePhrase*)pos->GetData();
-					pos = pos->GetPrevious();
+					pSrcPhr = (CSourcePhrase*)pos_pSP->GetData();
+					pos_pSP = pos_pSP->GetPrevious();
 					nCountBackwards++;
 					if (pSrcPhr->m_bBeginRetranslation)
 						break;
@@ -5134,25 +5134,25 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			{
 				// somewhere in the middle of the retranslation span
 				nCountForwards = 1;
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // counted this one
-				pos = pos->GetNext();
-				while (pos != NULL)
+				pSrcPhr = (CSourcePhrase*)pos_pSP->GetData(); // counted this one
+				pos_pSP = pos_pSP->GetNext();
+				while (pos_pSP != NULL)
 				{
-					pSrcPhr = (CSourcePhrase*)pos->GetData();
-					pos = pos->GetNext();
+					pSrcPhr = (CSourcePhrase*)pos_pSP->GetData();
+					pos_pSP = pos_pSP->GetNext();
 					nCountForwards++;
 					if (pSrcPhr->m_bEndRetranslation)
 						break;
 				}
 				nSaveActiveSequNum = pSrcPhr->m_nSequNumber + 1;
-				pos = savePos; // restore original position
+				pos_pSP = savePos; // restore original position
 				nCountBackwards = 0;
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // already counted
-				pos = pos->GetPrevious();
-				while (pos != NULL)
+				pSrcPhr = (CSourcePhrase*)pos_pSP->GetData(); // already counted
+				pos_pSP = pos_pSP->GetPrevious();
+				while (pos_pSP != NULL)
 				{
-					pSrcPhr = (CSourcePhrase*)pos->GetData();
-					pos = pos->GetPrevious();
+					pSrcPhr = (CSourcePhrase*)pos_pSP->GetData();
+					pos_pSP = pos_pSP->GetPrevious();
 					nCountBackwards++;
 					if (pSrcPhr->m_bBeginRetranslation)
 						break;
@@ -5224,11 +5224,11 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		SPList* pList = m_pApp->m_pSourcePhrases;
 		if (pList->GetCount() > 0)
 		{
-			SPList::Node* pos = pList->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pList = pList->GetFirst();
+			while (pos_pList != NULL)
 			{
-				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-				pos = pos->GetNext();
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+				pos_pList = pos_pList->GetNext();
 				if (pSrcPhrase->m_bHasFreeTrans)
 				{
 					// set the flag on the app
@@ -5266,16 +5266,16 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	// initialize variables needed for the scan over the document's
 	// sourcephrase instances
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pList = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
 
     // do the loop, removing the free translations, their filter marker wrappers also, and
     // clearing the document's free translation flags on the CSourcePhrase instances
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 
 		// clear the flags
 		pSrcPhrase->m_bHasFreeTrans = FALSE;
@@ -5408,20 +5408,20 @@ bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 	CSourcePhrase* pSrcPhrase = NULL;
 
 	// find the first pSrcPhrase in the span which has m_bStartFreeTrans TRUE
-	SPList::Node* pos = pSrcPhrases->Item(nStartingFreeTransSequNum);
+	SPList::Node* pos_pSP = pSrcPhrases->Item(nStartingFreeTransSequNum);
 	SPList::Node* posBoundary = pSrcPhrases->Item(nEndingFreeTransSequNum);
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	wxASSERT(pos_pSP != NULL);
+	while (pos_pSP != NULL)
 	{
-		if (pos == posBoundary)
+		if (pos_pSP == posBoundary)
 		{
 			// we have tested the last one in the span, so must exit this loop having
 			// not found an instance where a free translation starts; and so we exit the
 			// whole function as there can be no free translation to be dealt with
 			return FALSE;
 		}
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = pos_pSP->GetData();
+		pos_pSP = pos_pSP->GetNext();
 		if (pSrcPhrase->m_bStartFreeTrans)
 		{
 			return pSrcPhrase->m_bSectionByVerse; // send the stored value to caller
@@ -9185,11 +9185,11 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 		SPList* pList = m_pApp->m_pSourcePhrases;
 		if (pList->GetCount() > 0)
 		{
-			SPList::Node* pos = pList->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pList = pList->GetFirst();
+			while (pos_pList != NULL)
 			{
-				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-				pos = pos->GetNext();
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+				pos_pList = pos_pList->GetNext();
 				if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 				{
 					bBTfound = TRUE;
@@ -9225,16 +9225,16 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	// initialize variables needed for the scan over the document's
 	// sourcephrase instances
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pList = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
 
 	// do the loop, halting to store each collection at appropriate (unfiltered)
 	// SF markers
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 		{
 			continue;
@@ -9396,7 +9396,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 	// BEW changed 02Jan06 to have the code ignore instances with TextType of footnote or
 	// crossReference
 	bHalted_at_bt_mkr = FALSE;
-	iteratorPos = savePos; // restore POSITION for the pLastSrcPhrase instance,
+	iteratorPos = savePos; // restore position for the pLastSrcPhrase instance,
 						   // which is to start the loop
 	while (iteratorPos != NULL)
 	{
@@ -9471,7 +9471,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 					strCollect.Empty();
 
                     // collect this one's content before iterating, because
-                    // iteratorPos is already pointing at the next POSITION
+                    // iteratorPos is already pointing at the next position
 					strCollect = bUseAdaptationsLine ?
 										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 

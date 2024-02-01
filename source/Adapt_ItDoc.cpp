@@ -990,8 +990,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 			{
 				// do the test only if Book Mode is turned on
 				wxString strIDMarker = _T("\\id");
-				int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
-				if (pos != -1)
+				int nPos = (*gpApp->m_pBuffer).Find(strIDMarker);
+				if (nPos != -1)
 				{
 					// the marker is in the file, so we need to go ahead with the check, but first
 					// work out what the current book folder is and then what its associated code is
@@ -1003,7 +1003,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// the next 3 characters as the code
 					const wxChar* pStr = gpApp->m_pBuffer->GetData();
 					wxChar* ptr = (wxChar*)pStr;
-					ptr += pos;
+					ptr += nPos;
 					ptr += 4; // advance beyond \id and whatever white space character is next
 					while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
 					{
@@ -1589,18 +1589,18 @@ bool CAdapt_ItDoc::OnNewDocument()
 #if defined(_DEBUG) && !defined(NOLOGS) //&& defined(FWD_SLASH_DELIM)
 			if (pApp->m_bFwdSlashDelimiter)
 			{
-				SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+				SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
 				CSourcePhrase* pSP;
 				do
 				{
-					pSP = pos->GetData();
+					pSP = pos_pSP->GetData();
 					wxString bracketed = _T('[');
 					bracketed += pSP->GetSrcWordBreak();
 					bracketed += _T(']');
 					wxLogDebug(_T("SrcPhrase: %s  sequnum  %d   [m_srcWordBreak] =  %s"),
 						pSP->m_srcPhrase.c_str(), pSP->m_nSequNumber, bracketed.c_str());
-					pos = pos->GetNext();
-				} while (pos != NULL);
+					pos_pSP = pos_pSP->GetNext();
+				} while (pos_pSP != NULL);
 			}
 #endif
 			// Get any unknown markers stored in the m_markers member of the Doc's
@@ -3952,7 +3952,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 
 	// process through the list of CSourcePhrase instances, building an xml element from
 	// each
-	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+	SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
 
 	// Branch and loop according to which doc version number is wanted. For a File / Save
 	// it is VERSION_NUMBER's docVersion, also that is true for a Save As... in which the
@@ -3967,7 +3967,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		wxString endMarkersStr; endMarkersStr.Empty();
 		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
 		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
 			if (bShowWaitDlg)
 			{
@@ -3984,7 +3984,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 					}
 				}
 			}
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
 			// get a deep copy, so that we can change the data to what is compatible with
 			// doc version 4 without corrupting the pSrcPhrase which remains in doc
 			// version 5
@@ -4008,7 +4008,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
 				&inlineBindingEndMkrs);
 
-			pos = pos->GetNext();
+			pos_pSP = pos_pSP->GetNext();
 			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
 			DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
 			DoWrite(f, aStr);
@@ -4024,7 +4024,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		int countHowmany;
 		countHowmany = 0;
 #endif
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
 			if (bShowWaitDlg)
 			{
@@ -4041,7 +4041,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 					}
 				}
 			}
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
 #if defined (_DEBUG) && !defined(NOLOGS)
 			countHowmany++;
 			if (countHowmany < howmany)
@@ -4050,7 +4050,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 					__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_markers.c_str());
 			}
 #endif
-			pos = pos->GetNext();
+			pos_pSP = pos_pSP->GetNext();
 			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
 			DoWrite(f, aStr);
 		}
@@ -4246,11 +4246,11 @@ bool CAdapt_ItDoc::DoAbsolutePathFileSave(wxString absPath)
 			// to whatever is the current value of m_docVersionCurrent
 			DoWrite(f, aStr);
 			// Process the list of CSourcePhrase instances
-			SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
+			while (pos_pSP != NULL)
 			{
-				pSrcPhrase = (CSourcePhrase*)pos->GetData();
-				pos = pos->GetNext();
+				pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+				pos_pSP = pos_pSP->GetNext();
 				aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
 				DoWrite(f, aStr);
 			}
@@ -5217,7 +5217,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	DoWrite(f, aStr);
 
 	// add the list of sourcephrases
-	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+	SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
 
 	if (m_bLegacyDocVersionForSaveAs)
 	{
@@ -5226,9 +5226,9 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		wxString endMarkersStr; endMarkersStr.Empty();
 		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
 		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
 			// get a deep copy, so that we can change the data to what is compatible
 			// with doc version 4 without corrupting the pSrcPhrase which remains in
 			// doc version 5
@@ -5239,7 +5239,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
 				&inlineBindingEndMkrs);
 
-			pos = pos->GetNext();
+			pos_pSP = pos_pSP->GetNext();
 			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
 			DeleteSingleSrcPhrase(pDeepCopy, FALSE); // FALSE means "don't try delete a partner pile"
 			DoWrite(f, aStr);
@@ -5247,10 +5247,10 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	}
 	else // use chose a normal docVersion 5 xml build
 	{
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			aStr = pSrcPhrase->MakeXML(1);
 			DoWrite(f, aStr);
 		}
@@ -6931,11 +6931,11 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 	DoWrite(f, aStr);
 
 	// add the list of sourcephrases
-	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
+	while (pos_pSP != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+		pos_pSP = pos_pSP->GetNext();
 		aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
 		DoWrite(f, aStr);
 	}
@@ -8021,10 +8021,10 @@ CPile* CAdapt_ItDoc::GetPile(const int nSequNum)
 		// bounds error, so return NULL
 		return (CPile*)NULL;
 	}
-	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of
+	PileList::Node* pos_pPle = pPiles->Item(nSequNum); // relies on parallelism of
 								// the m_pSourcePhrases and m_pileList lists
-	wxASSERT(pos != NULL);
-	return pos->GetData();
+	wxASSERT(pos_pPle != NULL);
+	return pos_pPle->GetData();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -8163,7 +8163,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
 		if (pSrcPhrases != NULL)
 		{
-			SPList::Node* pos = pSrcPhrases->GetFirst();
+			SPList::Node* pos_pSP = pSrcPhrases->GetFirst();
 			int sequnum = 0;
 			int originalSN = 0;
 			wxString srcStr;
@@ -8171,10 +8171,10 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			CSourcePhrase* pOriginalSP = NULL;
 			CSourcePhrase* pSrcPhrase = NULL; // parent ones, the ones laid out by RecalcLayout()
 			// now scan over the whole doc, showing the info needed
-			while (pos != NULL)
+			while (pos_pSP != NULL)
 			{
-				pSrcPhrase = pos->GetData();
-				pos = pos->GetNext();
+				pSrcPhrase = pos_pSP->GetData();
+				pos_pSP = pos_pSP->GetNext();
 				sequnum = pSrcPhrase->m_nSequNumber;
 				srcStr = pSrcPhrase->m_srcPhrase;
 //				wxLogDebug(_T("\n ********************* Parent CSourcePhrase *************************"));
@@ -8670,13 +8670,13 @@ void CAdapt_ItDoc::SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList*
 	{
 		if (pSrcPhrase->m_pSavedWords->GetCount() > 0)
 		{
-			SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos_pSavedWords != NULL)
 			{
-				CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-				pos = pos->GetNext();
-				SPList::Node* pos1 = pOtherList->Find(pSP);
-				if (pos1 != NULL)
+				CSourcePhrase* pSP = (CSourcePhrase*)pos_pSavedWords->GetData();
+				pos_pSavedWords = pos_pSavedWords->GetNext();
+				SPList::Node* pos_otherList = pOtherList->Find(pSP);
+				if (pos_otherList != NULL)
 					continue; // it's in the other list, so don't delete it
 				if (pSP->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
 					delete pSP->m_pSavedWords;
@@ -8762,7 +8762,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 ///             and the passed in pSrcPhrase retained unchanged
 /// \param		pView		-> pointer to the View
 /// \param		pList		-> pointer to m_pSourcePhrases (its use herein is deprecated)
-/// \param		pos			-> the iterator position locating the passed in pSrcPhrase
+/// \param		pos_callers	-> the iterator position locating the passed in pSrcPhrase
 ///                            pointer (its use herein is deprecated)
 /// \param		pSrcPhrase	<- pointer of the source phrase
 /// \param		fixesStr	-> (its use herein is deprecated, the caller adds to it if
@@ -8791,7 +8791,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// and return FALSE to have the caller put an appropriate entry in fixesStr
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
-	SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase,
+	SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos_callers), CSourcePhrase*& pSrcPhrase,
 	wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
 	// BEW added 5Apr05
@@ -9128,7 +9128,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// first pass will do all the needed unfilterings, the second pass will do the
 	// required new filterings - trying to do these tasks in one pass would be much more
 	// complicated and therefore error-prone.
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 	CSourcePhrase* pSrcPhrase = NULL;
 	CSourcePhrase* pLastSrcPhrase = NULL;
 	int nFound = -1;
@@ -9163,7 +9163,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				// a short span of filtered information; IsUnstructuredPlainText()
 				// makes use of it - to help with USFM3 attributes metadata hiding
 
-			pos = pList->GetFirst();
+			pos_pList = pList->GetFirst();
 			bool bDidSomeUnfiltering;
 			bool bIsFirstNode = TRUE;
 			bool bDidSomeUnfiltering_After;
@@ -9273,43 +9273,43 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			follPos = follPos;  // avoid gcc set but not used warning
 
 			// Unfiltering loop starts - each iteration deals with one CSourcePhrase instance
-			while (pos != NULL)
+			while (pos_pList != NULL)
 			{
 				// looping over a pSrcPhrase at a time
 				if (bIsFirstNode)
 				{
-					pSrcPhrase = (CSourcePhrase*)pos->GetData(); // Get pSrcPhrase
-					saveNextPos = pos; // We insert somewhere, before this location - stays fixed  while we do so
-					pos = pos->GetNext(); // moves the pointer/iterator to the next node, ready for iteration
+					pSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // Get pSrcPhrase
+					saveNextPos = pos_pList; // We insert somewhere, before this location - stays fixed  while we do so
+					pos_pList = pos_pList->GetNext(); // moves the pointer/iterator to the next node, ready for iteration
 					bIsFirstNode = FALSE; // skip this block for subsequent iterations
 					continue;
 				}
 				else
 				{
 					prevPos = saveNextPos; // RHS was set before moving to next Node ptr, so is 'previous' still
-					saveNextPos = pos; // now we  can update it to current Node
-					if (pos != NULL)
+					saveNextPos = pos_pList; // now we  can update it to current Node
+					if (pos_pList != NULL)
 					{
-						pSrcPhrase = (CSourcePhrase*)pos->GetData(); // Get pSrcPhrase
+						pSrcPhrase = (CSourcePhrase*)pos_pList->GetData(); // Get pSrcPhrase
 					}
 					else
 					{
 						break; // at doc  end
 					}
-					// Get pos ready for next iteration
-					pos = pos->GetNext(); // moves the pointer/iterator to the next node
-					if (pos != NULL)
+					// Get pos_pList ready for next iteration
+					pos_pList = pos_pList->GetNext(); // moves the pointer/iterator to the next node
+					if (pos_pList != NULL)
 					{
-						follPos = pos;
+						follPos = pos_pList;
 					}
 
 					// [BEW] The block above does this: (1) saveNextPos is where inserts happen before it
-					// (2) pSrcPhrase was obtained before pos moved move one past saveNextPos location
+					// (2) pSrcPhrase was obtained before pos_pList moved move one past saveNextPos location
 					// (3) there's not much need for prevPos, but we calculate it since it's used
 					//     for setting pLastSrcPhrase at appox line 7802 (now deprecated), and approx 
 					//     line 8480 for dealing with a merger
 				}
-	#if defined (_DEBUG) && !defined(NOLOGS)
+	#if defined (_DEBUG) //&& !defined(NOLOGS)
 				wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
 				if (!filteredInfo.IsEmpty())
 				{
@@ -9321,7 +9321,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 				}
-				if (pSrcPhrase->m_nSequNumber >= 4)
+				if (pSrcPhrase->m_nSequNumber >= 535)
 				{
 					int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 				}
@@ -9574,7 +9574,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// context, and so we can assume that some sourcephrase members are
 						// not set up correctly (eg. m_bSpecialText, and m_curTextType) so
 						// we'll have to use some of TokenizeText's processing code to get
-						// things set up right. (a POSITION pos2 value of zero is
+						// things set up right. (a position pos_partialList value of zero is
 						// sufficient test for being at the final sourcephrase, after the
 						// GetNext() call has obtained the final one)
 						// 
@@ -9599,15 +9599,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						wholeMkr.Trim(TRUE); // remove following space
 						int mkrLen = (int)wholeMkr.Length(); // we want the length including
 													// backslash for AnalyseMarker()
-						SPList::Node* pos2 = pSublist->GetFirst();
+						SPList::Node* pos_SubList = pSublist->GetFirst();
 						CSourcePhrase* pSPprevious = NULL;
-						while (pos2 != NULL)
+						while (pos_SubList != NULL)
 						{
 							//SPList::Node* savePos; // unused
-							//savePos = pos2;
-							CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-							pos2 = pos2->GetNext();
-							wxASSERT(pSP);
+							//savePos = pos_SubList;
+							CSourcePhrase* pSP_SubList = (CSourcePhrase*)pos_SubList->GetData();
+							pos_SubList = pos_SubList->GetNext();
+							wxASSERT(pSP_SubList);
 							nWhich++; // 0-based value for the iteration number
 							if (bIsInitial)
 							{
@@ -9615,13 +9615,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 								// etc correctly, taking context into account, for this 
 								// we need the pLastSrcPhrase pointer - but it is okay if 
 								// it is NULL/
-								// (Note: pSP is still in the temporary list pSublist,
+								// (Note: pSP_SubList is still in the temporary list pSublist,
 								// while pLastSrcPhrase is in the m_pSourcePhrases main
 								// list of the document.)
-								pSP->m_curTextType = verse; // assume verse unless AnalyseMarker changes it
-								pSP->m_bSpecialText = AnalyseMarker(pSP, pLastSrcPhrase, pBufStart, mkrLen, pSfm);
+								pSP_SubList->m_curTextType = verse; // assume verse unless AnalyseMarker changes it
+								pSP_SubList->m_bSpecialText = AnalyseMarker(pSP_SubList, pLastSrcPhrase, pBufStart, mkrLen, pSfm);
 
-								// [BEW comment] we have to handle the possibility that pSP 
+								// [BEW comment] we have to handle the possibility that pSP_SubList 
 								// might have a contentless marker, or actually something not 
 								// a marker somehow in m_markers, so do these below.
 								// 
@@ -9676,12 +9676,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									//  m_filteredInfo; but the unknown marker - being at
 									//  the tail of a set of CSourcePhrases comprising a
 									//  single one with no m_key content, does have
-									//  to go into the pSrcPhrase's (NOT pSP's)
+									//  to go into the pSrcPhrase's (NOT pSP_SubList's)
 									//  m_markers member - preceding what is already
 									//  there, and we must deal with preStr and
 									//  remainderStr here because we break out of the loop
 									//  at the end of this block
-									pSrcPhrase->m_markers = pSP->m_markers + pSrcPhrase->m_markers;
+									pSrcPhrase->m_markers = pSP_SubList->m_markers + pSrcPhrase->m_markers;
 									// handle the filtered info that remains, if any
 									wxString aString;
 									if (!preStr.IsEmpty())
@@ -9693,7 +9693,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									else
 										pSrcPhrase->SetFilteredInfo(_T(""));
 									nWhich = 0;
-									DeleteSingleSrcPhrase(pSP, FALSE); // don't leak memory;
+									DeleteSingleSrcPhrase(pSP_SubList, FALSE); // don't leak memory;
 										// & FALSE means don't delete a non-existent partner pile
 									pSublist->Clear();
 									break;
@@ -9712,7 +9712,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									// to m_srcPhrase, and remove punctuation etc and set
 									// up m_key, m_precPunct and m_follPunct.
 									SPList* pSublist2 = new SPList;
-									wxString unexpectedStr = pSP->m_markers;
+									wxString unexpectedStr = pSP_SubList->m_markers;
 									int count;
 									count = pView->TokenizeTextString(pSublist2, unexpectedStr,
 										pSrcPhrase->m_nSequNumber);
@@ -9730,11 +9730,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									// assumption, and if not -- well, we'll just add the
 									// append the extra strings and won't worry about
 									// punctuation except what's on the first element
-									pSP->m_markers.Empty();
-									pSP->m_srcPhrase = pSP2->m_srcPhrase;
-									pSP->m_key = pSP2->m_key;
-									pSP->m_precPunct = pSP2->m_precPunct;
-									pSP->m_follPunct = pSP2->m_follPunct;
+									pSP_SubList->m_markers.Empty();
+									pSP_SubList->m_srcPhrase = pSP2->m_srcPhrase;
+									pSP_SubList->m_key = pSP2->m_key;
+									pSP_SubList->m_precPunct = pSP2->m_precPunct;
+									pSP_SubList->m_follPunct = pSP2->m_follPunct;
 									// that should do it, but if there's more, well just
 									// add the text so we don't lose anything - user will
 									// have the option of editing what he sees afterwards
@@ -9742,8 +9742,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									{
 										pSP2 = (CSourcePhrase*)posX->GetData();
 										posX = posX->GetNext();
-										pSP->m_srcPhrase += PutSrcWordBreak(pSP2) + pSP2->m_srcPhrase;
-										pSP->m_key += PutSrcWordBreak(pSP2) + pSP2->m_key;
+										pSP_SubList->m_srcPhrase += PutSrcWordBreak(pSP2) + pSP2->m_srcPhrase;
+										pSP_SubList->m_key += PutSrcWordBreak(pSP2) + pSP2->m_key;
 									}
 									// delete all the elements in pSP2, and then delete
 									// the list itself
@@ -9757,7 +9757,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 								// comparing first two chars in mkr
 								// whm 31Oct2023 modified the following test and block. The reason
 								// is that it wrongly detects the \\fig marker in addition to detecting
-								// footnotes, and in such cases it makes the pSP for the \fig marker's 
+								// footnotes, and in such cases it makes the pSP_SubList for the \fig marker's 
 								// m_bFootnote = TRUE.
 								// The AnalyseMarker() call above should adequately handle footnote
 								// properties and assign its m_bFootnote member to TRUE.
@@ -9766,25 +9766,25 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 								if (wholeMkr != _T("\\fig") && wholeMkr.Left(2) == _T("\\f")) // is it PNG SFM or USFM footnote marker?
 								{
 									// if not already set, then do it here
-									if (!pSP->m_bFootnote)
-										pSP->m_bFootnote = TRUE;
+									if (!pSP_SubList->m_bFootnote)
+										pSP_SubList->m_bFootnote = TRUE;
 								}
 								
 								// completely redo the navigation text, so it accurately
 								// reflects what is in the m_markers member of the
 								// unfiltered section
-								// whm 31Oct2023 removed the following call to RedoNavigationText(pSP).
+								// whm 31Oct2023 removed the following call to RedoNavigationText(pSP_SubList).
 								// The reason for removal is that some markers like \fig will
-								// not have any content in their pSP's m_markers member. The
+								// not have any content in their pSP_SubList's m_markers member. The
 								// RedoNavigationText() function immediately returns an empty
 								// string when m_marker is empty. This then, wipes out the
 								// already correct m_inform value of markers like \fig. 
 								// Again, the AnalyseMarker() function call above should 
 								// accurately assign the m_inform member, and it should not 
 								// need a hack like RedoNavitationText().
-								//pSP->m_inform = RedoNavigationText(pSP); // whm 31Oct2023 removed
+								//pSP_SubList->m_inform = RedoNavigationText(pSP_SubList); // whm 31Oct2023 removed
 
-								pSPprevious = pSP; // set pSPprevious for the next iteration, for propagation
+								pSPprevious = pSP_SubList; // set pSPprevious for the next iteration, for propagation
 								bIsInitial = FALSE;
 							} // end of TRUE block for test: if (bIsInitial)
 
@@ -9794,12 +9794,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								// do propagation
 								wxASSERT(pSPprevious);
-								pSP->CopySameTypeParams(*pSPprevious);
+								pSP_SubList->CopySameTypeParams(*pSPprevious);
 							}
 
-							// for the last pSP instance, there could be an endmarker which
+							// for the last pSP_SubList instance, there could be an endmarker which
 							// follows it; if that is the case, we can assume the main
-							// list's sourcephrase which will follow this final pSP
+							// list's sourcephrase which will follow this final pSP_SubList
 							// instance after we've inserted pSublist into the main list,
 							// will already have its correct TextType and m_bSpecialText
 							// value set, and so we won't try change it (and won't call
@@ -9809,25 +9809,25 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							// propagation do its job. We will need to check if we have
 							// just unfiltererd a footnote, and if so, set the
 							// m_bFootnoteEnd flag.
-							if (pos2 == NULL || count == 1)
+							if (pos_SubList == NULL || count == 1)
 							{
-								// pSP is the final in pSublist, so do what needs to be
+								// pSP_SubList is the final in pSublist, so do what needs to be
 								// done for such an instance; (if there is only one
 								// instance in pSublist, then the first one is also the
 								// last one, so we check for that using the count == 1 test
-								// -- which is redundant really since pos2 should be NULL
+								// -- which is redundant really since pos_SubList should be NULL
 								// in that case too, but no harm is done with the extra
 								// test)
-								pSP->m_bBoundary = TRUE;
+								pSP_SubList->m_bBoundary = TRUE;
 								// rely on the foonote TextType having been propagated
-								if (pSP->m_curTextType == footnote)
-									pSP->m_bFootnoteEnd = TRUE;
+								if (pSP_SubList->m_curTextType == footnote)
+									pSP_SubList->m_bFootnoteEnd = TRUE;
 							}
 						} // end of while loop for pSublist elements
 
 						// [deprecated] BEW 30Sep19
 						// now insert the completed CSourcePhrase instances into the
-						// m_pSourcePhrases list preceding the SaveNextPos POSITION
+						// m_pSourcePhrases list preceding the SaveNextPos position
 						// 
 						// whm 31Oct2023 modified the routines below, because the unfiltering
 						// of markers was not inserting them at the correct soure phrase location
@@ -9858,12 +9858,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							}
 						}
 #endif
-						CSourcePhrase* pSP = NULL;
-						pos2 = pSublist->GetFirst();
-						while (pos2 != NULL)
+						CSourcePhrase* pSP_SubList = NULL;
+						pos_SubList = pSublist->GetFirst();
+						while (pos_SubList != NULL)
 						{
-							pSP = (CSourcePhrase*)pos2->GetData();
-							pos2 = pos2->GetNext();
+							pSP_SubList = (CSourcePhrase*)pos_SubList->GetData();
+							pos_SubList = pos_SubList->GetNext();
 
 							// wxList::Insert() inserts before specified position in the list
 							// BEW 30Sep19 refactoring changes are here...
@@ -9892,26 +9892,26 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							{
 								// There exists a fixed location CSourcePhrase before which we can
 								// insert
-								//pList->Insert(saveNextPos, pSP);
-								pList->Insert(insertPos, pSP);
+								//pList->Insert(saveNextPos, pSP_SubList);
+								pList->Insert(insertPos, pSP_SubList);
 							}
 							else
 							{
 								// We must append the unfiltered instances to the
 								// m_pSourcePhrases list
-								pList->Append(pSP);
+								pList->Append(pSP_SubList);
 							}
 							// m_pSourcePhrases will manage these unfiltered ones now
-						} // end of while (pos2 != NULL)
+						} // end of while (pos_SubList != NULL)
 
 						// whm 3Jan2024 modification.
-						// The pSP, if not NULL from above, is the last source phrase word of the 
+						// The pSP_SubList, if not NULL from above, is the last source phrase word of the 
 						// pSubList and that is where we need to store any followingFilteredMaterial 
 						// remaining from the pSrcPhrase where is was originally stored before the 
 						// current unfiltering operation.
-						if (pSP != NULL)
+						if (pSP_SubList != NULL)
 						{
-							pSP->SetFilteredInfo(remainderStr);
+							pSP_SubList->SetFilteredInfo(remainderStr);
 						}
 
 						// whm 3Jan2024 modification.
@@ -9969,6 +9969,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						{
 							bWeUnfilteredSomething = FALSE; // reset for next iteration of inner loop
 
+							// ahm 27Jan2024 The following code is not needed. The older way of
+							// handling filtered material actually didn't store filtered material
+							// on any merged word of a merger but on the overarching source phrase
+							// holding the merged words. The refactored filtering/unfiltering also
+							// doesn't need this block below.
+							/*
 							// BEW added 8Mar11, I forgot to remove the unfiltered info from
 							// the saved originals of a merger! If the pSrcPhrase at oldPos is
 							// a merger, then the first of the stored original list of
@@ -10008,6 +10014,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									}
 								}
 							}
+							*/
 
 							// do the setup for next iteration of the loop
 							preStr.Empty();
@@ -10230,7 +10237,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	} // end block for test bUnfilteringRequired
 
 	// reinitialize the variables we need
-	pos = NULL;
+	pos_pList = NULL;
 	pSrcPhrase = NULL;
 	wxString mkr; // whm 3Jan2024 temporarily added mkr initialization here
 	mkr.Empty();
@@ -10278,7 +10285,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		wxString endMkr;
 		endMkr.Empty();
 		bool bHasEndmarker = FALSE;
-		pos = pList->GetFirst();
+		pos_pList = pList->GetFirst();
 		SPList::Node* posStart = NULL; // location of first sourcephrase instance
 									   // being filtered out
 		SPList::Node* posEnd = NULL; // location of first sourcephrase instance
@@ -10321,7 +10328,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		// We are currently in the TRUE block if (bFilteringRequired)
 
 		// Filtering loop starts - each iteration deals with one CSourcePhrase instance
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
 			wholeMkr = wxEmptyString; // must start empty at each iteration
 
@@ -10330,8 +10337,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// starting from when it finds a marker which is to be filtered out in an
 			// instance's m_markers member - when that happens the loop takes up again at
 			// the sourcephrase immediately after the section just filtered out
-			SPList::Node* oldPos = pos;
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			SPList::Node* oldPos = pos_pList;
+			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 			#if defined (_DEBUG) && !defined(NOLOGS)
 			{
 				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 25)
@@ -10347,13 +10354,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// this to store filtered info from a previously unfiltered char attribute
 			// marker.
 			CSourcePhrase* pPrevSrcPhrase = NULL;
-			SPList::Node* prevPos = pos->GetPrevious();
+			SPList::Node* prevPos = pos_pList->GetPrevious();
 			if (prevPos != NULL)
 			{
 				pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
 			}
 
-			pos = pos->GetNext();
+			pos_pList = pos_pList->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			nCurActiveSequNum = gpApp->m_nActiveSequNum;
 
@@ -10696,7 +10703,7 @@ g:				bIsUnknownMkr = FALSE;
 					// the sublist, so put it there and then loop to get the rest
 
 				// Enter an inner loop which has as it's sole purpose finding which
-				// CSourcePhrase instance at pos or beyond is the last one for filtering out
+				// CSourcePhrase instance at pos_pList or beyond is the last one for filtering out
 				// as part of the current filterable span. In the loop we make deep copies in
 				// order to create a sublist of accepted within-the-span CSourcePhrase
 				// instances; we then use UpdateSequNumbers() to renumber from 0 those
@@ -10709,7 +10716,7 @@ g:				bIsUnknownMkr = FALSE;
 				// BEW 30Sep19, And that's where also, if needed, USFM3 attributes metadata in
 				// m_punctsPattern, gets restored from being hidden.
 
-				SPList::Node* pos2; // this is for tracking the 'next' location
+				SPList::Node* pos_partialList; // this is for tracking the 'next' location
 				CSourcePhrase* pSrcPhr; // we will look for a section-ending matching endmarker
 					// in this one, if we don't find one, we iterate and try the
 					// m_inlineNonbindingMarkers member of the next instance; if
@@ -10719,27 +10726,27 @@ g:				bIsUnknownMkr = FALSE;
 					// loop iteration, and if we fail to get correct halt location
 					// we call IsEndingSrcPhrase() to make various safety checks
 					// to try avoid span overrun and/or marker content overlap
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // avoids compiler warning
+				pSrcPhr = (CSourcePhrase*)pos_pList->GetData(); // avoids compiler warning
 
 				// The scanning loop for the matching endmarker commences
 				// note: execution breaks out when a halt location is determined
 				// or at end of document
-				for (pos2 = pos; pos2 != NULL; )
+				for (pos_partialList = pos_pList; pos_partialList != NULL; )
 				{
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
-					pSrcPhr = (CSourcePhrase*)pos2->GetData();
-					pos2 = pos2->GetNext(); // advance to next Node of the passed in pList
+					pSrcPhr = (CSourcePhrase*)pos_partialList->GetData();
+					pos_partialList = pos_partialList->GetNext(); // advance to next Node of the passed in pList
 					wxASSERT(pSrcPhr);
-					posEnd = pos2; // on exit of the loop, posEnd will be where
+					posEnd = pos_partialList; // on exit of the loop, posEnd will be where
 								   // pSrcPhraseNext is located, or NULL if we reached
 								   // the end of the document
-					if (pos2 == NULL)
+					if (pos_partialList == NULL)
 					{
 						pSrcPhraseNext = NULL;
 					}
 					else
 					{
-						pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
+						pSrcPhraseNext = (CSourcePhrase*)pos_partialList->GetData();
 					}
 
 					// Check for a loop halt to scanning caused by finding the required
@@ -10759,13 +10766,13 @@ g:				bIsUnknownMkr = FALSE;
 					{
 //						wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 						// whm 31Oct2023 correction. The following line gets pSrcPhr assigned to 
-						// the following source phrase at pos2 with the result that the source
+						// the following source phrase at pos_partialList with the result that the source
 						// phrase pSrcPhr that gets appended to the pSubList below is NOT the
 						// last word of the caption text being filtered, but the word of sacred
 						// text following it!! That is not what we want, so I'm commenting out
 						// the following line so that pSrcPhr remains the last word of caption
 						// text and gets appended as the last source phrase in pSubList.
-						//pSrcPhr = (CSourcePhrase*)pos2->GetData();
+						//pSrcPhr = (CSourcePhrase*)pos_partialList->GetData();
 
 						// halt here, this pSrcPhr is last in the filterable span
 						break;
@@ -10797,7 +10804,7 @@ g:				bIsUnknownMkr = FALSE;
 					CSourcePhrase* pSrcPhraseCopy = new CSourcePhrase(*pSrcPhr); // a shallow copy
 					pSrcPhraseCopy->DeepCopy(); // now it's a deep copy of pSrcPhrase
 					pSublist->Append(pSrcPhraseCopy);
-				} // end of for loop: for (pos2 = pos; pos2 != NULL; )
+				} // end of for loop: for (pos_partialList = pos_pList; pos_partialList != NULL; )
 #if defined (_DEBUG) && !defined(NOLOGS)
 				{
 					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
@@ -10862,15 +10869,15 @@ g:				bIsUnknownMkr = FALSE;
 					// So, we'll do a loop now to unlaterally empty every member from which we don't want
 					// any custom content to contribute to the value of strFilteredStuff that gets passed
 					// back from the rebuild call.
-					SPList::Node* pos4;
+					SPList::Node* pos_subList;
 					CSourcePhrase* pSrcPhr = NULL;
 					if (!pSublist->IsEmpty())
 					{
-						pos4 = pSublist->GetFirst();
-						while (pos4 != NULL)
+						pos_subList = pSublist->GetFirst();
+						while (pos_subList != NULL)
 						{
-							pSrcPhr = pos4->GetData();
-							pos4 = pos4->GetNext();
+							pSrcPhr = pos_subList->GetData();
+							pos_subList = pos_subList->GetNext();
 							pSrcPhr->SetFilteredInfo(_T(""));
 							pSrcPhr->SetCollectedBackTrans(_T(""));
 							pSrcPhr->SetNote(_T(""));
@@ -10961,19 +10968,19 @@ g:				bIsUnknownMkr = FALSE;
 				// filtered out), and delete their memory chunks; any adaptations on these are
 				// lost forever, but not from the KB unless the latter is rebuilt from the
 				// document contents at a later time
-				SPList::Node* pos3; // use this to save the old location so as to delete the
+				SPList::Node* pos_delNode; // use this to save the old location so as to delete the
 									// old node once the iterator has moved past it
 				int filterCount = 0;
-				for (pos2 = posStart; (pos3 = pos2) != posEnd; )
+				for (pos_partialList = posStart; (pos_delNode = pos_partialList) != posEnd; )
 				{
 					filterCount++;
-					CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-					pos2 = pos2->GetNext();
+					CSourcePhrase* pSP = (CSourcePhrase*)pos_partialList->GetData();
+					pos_partialList = pos_partialList->GetNext();
 					DeleteSingleSrcPhrase(pSP, TRUE); // don't leak memory, do also
 						// delete their partner piles, as the latter should exist for
 						// information unfiltered up to now and therefore was visible
 						// in the view
-					pList->DeleteNode(pos3);
+					pList->DeleteNode(pos_delNode);
 				}
 
 				// update the sequence numbers on the sourcephrase instances which remain in
@@ -11033,7 +11040,7 @@ g:				bIsUnknownMkr = FALSE;
 				// Construct m_inlineNonbindingMarkers on the first sourcephrase following 
 				// the filtered section if there is nonbinding marker content needing to be
 				// carried forward. A filtered section going as far as to the end of the 
-				// document will manifest by pos2 being NULL on exit of the relevant loop 
+				// document will manifest by pos_partialList being NULL on exit of the relevant loop 
 				// above. That CSourcePhrase after the filtered span should be pointed to
 				// by pUnfilteredSrcPhrase (defined below) if we are not at doc end.
 				// If we *are* at doc end, then preStr and remainderStr should be empty,
@@ -11164,11 +11171,11 @@ g:				bIsUnknownMkr = FALSE;
 					// enable iteration from this location
 					if (posEnd == NULL)
 					{
-						pos = NULL;
+						pos_pList = NULL;
 					}
 					else
 					{
-						pos = posEnd; // this could be the start of a consecutive section
+						pos_pList = posEnd; // this could be the start of a consecutive section
 									  // for filtering out
 					}
 					// update progress bar every 200 iterations (1000 is a bit too many)
@@ -11519,7 +11526,7 @@ g:				bIsUnknownMkr = FALSE;
 												// the sublist, so put it there and then loop
 												// to get the rest
 				// Enter an inner loop which has as it's sole purpose finding which
-				// CSourcePhrase instance at pos or beyond is the last one for filtering out
+				// CSourcePhrase instance at pos_pList or beyond is the last one for filtering out
 				// as part of the current filterable span. In the loop we make deep copies in
 				// order to create a sublist of accepted within-the-span CSourcePhrase
 				// instances; we then use UpdateSequNumbers() to renumber from 0 those
@@ -11536,7 +11543,7 @@ g:				bIsUnknownMkr = FALSE;
 				// Answer: note information is irreversibly lost. Free and / or collected back
 				// translation information halts parsing, so we retain those. (Legacy code
 				// didn't retain those though.)
-				SPList::Node* pos2; // this is the 'next' location
+				SPList::Node* pos_partialList; // this is the 'next' location
 				CSourcePhrase* pSrcPhr; // we look for a section-ending matching endmarker
 										// in this one, if we don't find one, we try the
 										// m_markers member of pSrcPhraseNext instead; if
@@ -11550,7 +11557,7 @@ g:				bIsUnknownMkr = FALSE;
 				// above, it's on the heap)
 				//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 				// Initialize pSrcPhr, to avoid a compiler warning after the loop
-				pSrcPhr = (CSourcePhrase*)pos->GetData(); // redundant, avoids the warning later
+				pSrcPhr = (CSourcePhrase*)pos_pList->GetData(); // redundant, avoids the warning later
 #if defined (_DEBUG) && !defined(NOLOGS)
 				{
 					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
@@ -11562,16 +11569,16 @@ g:				bIsUnknownMkr = FALSE;
 				}
 #endif
 
-				for (pos2 = pos; pos2 != NULL; )
+				for (pos_partialList = pos_pList; pos_partialList != NULL; )
 				{
-					pSrcPhr = (CSourcePhrase*)pos2->GetData();
+					pSrcPhr = (CSourcePhrase*)pos_partialList->GetData();
 
-					pos2 = pos2->GetNext(); // advance to next Node of the passed in pList
+					pos_partialList = pos_partialList->GetNext(); // advance to next Node of the passed in pList
 					wxASSERT(pSrcPhr);
-					posEnd = pos2; // on exit of the loop, posEnd will be where
+					posEnd = pos_partialList; // on exit of the loop, posEnd will be where
 									// pSrcPhraseNext is located, or NULL if we reached
 									// the end of the document
-					if (pos2 == NULL)
+					if (pos_partialList == NULL)
 					{
 						// BEW 20Sep19 deprecated comment
 						// we've come to the doc end, and that forces the span end too with
@@ -11587,7 +11594,7 @@ g:				bIsUnknownMkr = FALSE;
 					}
 					else
 					{
-						pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
+						pSrcPhraseNext = (CSourcePhrase*)pos_partialList->GetData();
 					}
 
 					// Check for a loop halt to scanning caused by finding the required
@@ -11634,7 +11641,7 @@ g:				bIsUnknownMkr = FALSE;
 					CSourcePhrase* pSrcPhraseCopy = new CSourcePhrase(*pSrcPhr); // a shallow copy
 					pSrcPhraseCopy->DeepCopy(); // now it's a deep copy of pSrcPhrase
 					pSublist->Append(pSrcPhraseCopy);
-				} // end of for loop: for (pos2 = pos; pos2 != NULL; )
+				} // end of for loop: for (pos_partialList = pos_pList; pos_partialList != NULL; )
 #if defined (_DEBUG) && !defined(NOLOGS)
 				{
 					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
@@ -11725,15 +11732,15 @@ g:				bIsUnknownMkr = FALSE;
 					// terminates at the end of the first iteration, so we want m_filteredInfo set already if
 					// that was the case.
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
-					SPList::Node* pos4;
+					SPList::Node* pos_subList;
 					CSourcePhrase* pSrcPhr = NULL;
 					if (!pSublist->IsEmpty())
 					{
-						pos4 = pSublist->GetFirst();
-						while (pos4 != NULL)
+						pos_subList = pSublist->GetFirst();
+						while (pos_subList != NULL)
 						{
-							pSrcPhr = pos4->GetData();
-							pos4 = pos4->GetNext();
+							pSrcPhr = pos_subList->GetData();
+							pos_subList = pos_subList->GetNext();
 							pSrcPhr->SetFilteredInfo(_T(""));
 							pSrcPhr->SetCollectedBackTrans(_T(""));
 							pSrcPhr->SetNote(_T(""));
@@ -11826,18 +11833,18 @@ g:				bIsUnknownMkr = FALSE;
 				// filtered out), and delete their memory chunks; any adaptations on these are
 				// lost forever, but not from the KB unless the latter is rebuilt from the
 				// document contents at a later time
-				SPList::Node* pos3; // use this to save the old location so as to delete the
+				SPList::Node* pos_delNode; // use this to save the old location so as to delete the
 									// old node once the iterator has moved past it
 				int filterCount = 0;
-				for (pos2 = posStart; (pos3 = pos2) != posEnd; )
+				for (pos_partialList = posStart; (pos_delNode = pos_partialList) != posEnd; )
 				{
 					filterCount++;
-					CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-					pos2 = pos2->GetNext();
+					CSourcePhrase* pSP = (CSourcePhrase*)pos_partialList->GetData();
+					pos_partialList = pos_partialList->GetNext();
 					DeleteSingleSrcPhrase(pSP, TRUE); // don't leak memory, do also delete their
 								// partner piles, as the latter should exist for information
 								// unfiltered up to now and therefore was visible in the view
-					pList->DeleteNode(pos3);
+					pList->DeleteNode(pos_delNode);
 				}
 
 				// update the sequence numbers on the sourcephrase instances which remain in
@@ -11901,7 +11908,7 @@ g:				bIsUnknownMkr = FALSE;
 				// and create a CSourcePhrase instance with empty key in order to be able to
 				// store the filtered content in its m_markers member, and add it to the tail
 				// of the doc. A filtered section at the end of the document will manifest by
-				// pos2 being NULL on exit of the above loop
+				// pos_partialList being NULL on exit of the above loop
 				// BEW 22Sep10, changes for docVersion 5:
 				// (1) preStr and remainderStr will need to be inserted at the start of the
 				// pUnfilteredSrcPhrase's m_markers member, if either or both are non-empty
@@ -12042,11 +12049,11 @@ g:				bIsUnknownMkr = FALSE;
 				// enable iteration from this location
 				if (posEnd == NULL)
 				{
-					pos = NULL;
+					pos_pList = NULL;
 				}
 				else
 				{
-					pos = posEnd; // this could be the start of a consecutive section
+					pos_pList = posEnd; // this could be the start of a consecutive section
 									// for filtering out
 				}
 				// update progress bar every 200 iterations (1000 is a bit too many)
@@ -12061,7 +12068,7 @@ g:				bIsUnknownMkr = FALSE;
 			} // end of else block for test: if (bMarkerInNonbindingSet)
 
 		} // end of while loop for scanning contents of successive pSrcPhrase instances
-		  // the test being:  while (pos != NULL)
+		  // the test being:  while (pos_pList != NULL)
 
 		// prepare for update of view... locate the phrase box approximately where it was,
 		// but if that is not a valid location then put it at the end of the doc
@@ -14743,11 +14750,11 @@ void CAdapt_ItDoc::ValidateNoteStorage()
 	SPList* pList = gpApp->m_pSourcePhrases;
 	if (pList == NULL || pList->IsEmpty())
 		return;
-	SPList::Node* pos = pList->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if ((pSrcPhrase->GetNote()).IsEmpty())
 		{
 			pSrcPhrase->m_bHasNote = FALSE;
@@ -20298,7 +20305,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 	// whm Note: if the first position node of pL is NULL finalType will not have been
 	// initialized (the while loop never entered) and a bogus value will get assigned to
-	// propagationType after the while loop. It may never happen that pos == NULL, but to
+	// propagationType after the while loop. It may never happen that pos_pL == NULL, but to
 	// be sure I'm initializing finalType to noType
 	finalType = noType;
 
@@ -20309,7 +20316,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 	USFMAnalysis* pUsfmAnalysis = NULL; // whm added 11Feb05
 
-	SPList::Node* pos = pL->GetFirst();
+	SPList::Node* pos_pL = pL->GetFirst();
 	bool bInvalidLast = FALSE;
 	if (pLastSrcPhrase == NULL) // MFC had == 0
 		bInvalidLast = TRUE; // only possible if user edited source text at the very
@@ -20317,10 +20324,10 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 							 // sourcephrase instance in the sublist
 	bool bStartDefaultTextTypeOnNextIteration = FALSE;
 	bool bSkipPropagation = FALSE;
-	while (pos != 0) // pos will be NULL if the pL list is empty
+	while (pos_pL != 0) // pos_pL will be NULL if the pL list is empty
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pL->GetData();
+		pos_pL = pos_pL->GetNext();
 		wxASSERT(pSrcPhrase);
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =,
 									  // so we must clear its contents first
@@ -20745,7 +20752,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 											   // below
 		gbSpecialText = pSrcPhrase->m_bSpecialText; // the value to be propagated at end of
 													// OnEditSourceText()
-	} // end of while (pos != 0) loop
+	} // end of while (pos_pL != 0) loop
 
 	// BEW added 01Oct06; handle an empty list situation (the above loop won't have been
 	// entered so finalType won't yet be set
@@ -22240,7 +22247,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	int nOldCount = 0;
 
 	// whatever initialization is needed
-	SPList::Node* pos;
+	SPList::Node* pos_pSP;
 	SPList::Node* oldPos;
 	CSourcePhrase* pSrcPhrase = NULL;
 	bool bNeedMessage = FALSE;
@@ -22249,12 +22256,12 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation, bool bChangedFilterin
 	bool bSuccessful;
 	if (bChangedPunctuation)
 	{
-		pos = gpApp->m_pSourcePhrases->GetFirst();
-		while (pos != NULL)
+		pos_pSP = gpApp->m_pSourcePhrases->GetFirst();
+		while (pos_pSP != NULL)
 		{
-			oldPos = pos;
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			oldPos = pos_pSP;
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 
 			// acts on ONE instance of pSrcPhrase only each time it loops, & it may add
 			// many to the list, or remove some, or leave number in the list unchanged
@@ -22553,18 +22560,18 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 		return;
 
 	// get the first
-	SPList::Node* pos = pList->Item(nFirstSequNum);
-	wxASSERT(pos != NULL);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetNext();
+	SPList::Node* pos_pList = pList->Item(nFirstSequNum);
+	wxASSERT(pos_pList != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+	pos_pList = pos_pList->GetNext();
 	wxASSERT(pSrcPhrase);
 	pSrcPhrase->m_nSequNumber = nFirstSequNum;
 	int index = nFirstSequNum;
 
-	while (pos != 0)
+	while (pos_pList != 0)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 		index++; // next sequence number
 		pSrcPhrase->m_nSequNumber = index;
@@ -23240,12 +23247,12 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 {
 	// DeleteListContentsOnly is a useful utility in the rebuilding of the doc
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pList = pList->GetFirst();
 	CSourcePhrase* pSrcPh;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPh = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPh = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		DeleteSingleSrcPhrase(pSrcPh, FALSE); // no need to bother to delete the
 											 // partner pile
 	}
@@ -23850,22 +23857,22 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 	int elementCount = gpApp->GetView()->TokenizeTargetTextString(pTempList, str, startingSequNum, TRUE);
 	elementCount = elementCount; // avoid compiler warning
 	wxASSERT(elementCount > 0); // there should be at least one CSourcePhrase instance in pTempList
-	SPList::Node* pos = pTempList->GetFirst();
+	SPList::Node* pos_pTempList = pTempList->GetFirst();
 	// what we do depends on whether a fixed-space conjoining is present or not
 	if (bHasFixedSpaceMkr)
 	{
 		// we assume ~ only conjoins a pair of words, not a series of three or more; and
 		// pTempList will then contain only one CSourcePhrase instance which is a
 		// pseudo-merger of the two conjoined parts, so m_nSrcWords == 2
-		SPList::Node* pos2 = pTempList->GetFirst();
-		CSourcePhrase* pSP = pos2->GetData();
+		SPList::Node* pos_partialList = pTempList->GetFirst();
+		CSourcePhrase* pSP = pos_partialList->GetData();
 		wxASSERT(pSP->m_nSrcWords == 2 && pTempList->GetCount() == 1);
-		SPList::Node* pos3 = pSP->m_pSavedWords->GetFirst();
-		CSourcePhrase* pWordSrcPhrase = pos3->GetData();
+		SPList::Node* pos_pSavedWord = pSP->m_pSavedWords->GetFirst();
+		CSourcePhrase* pWordSrcPhrase = pos_pSavedWord->GetData();
 		adaption = pWordSrcPhrase->m_key;
 		adaption += _T("~"); // fixed space marker
-		pos3 = pSP->m_pSavedWords->GetLast();
-		pWordSrcPhrase = pos3->GetData();
+		pos_pSavedWord = pSP->m_pSavedWords->GetLast();
+		pWordSrcPhrase = pos_pSavedWord->GetData();
 		adaption += pWordSrcPhrase->m_key;  // append the second word
 	}
 	else
@@ -23874,10 +23881,10 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 		// just a single CSourcePhrase instance in pTempList (exceptions will be when
 		// dealing with a merger, or the reparse of a single instance results in 2 or more
 		// due to the effect of the punctuation change)
-		SPList::Node* pos2 = pTempList->GetFirst();
-		while (pos2 != NULL)
+		SPList::Node* pos_partialList = pTempList->GetFirst();
+		while (pos_partialList != NULL)
 		{
-			CSourcePhrase* pSP = pos2->GetData();
+			CSourcePhrase* pSP = pos_partialList->GetData();
 			if (adaption.IsEmpty())
 			{
 				adaption = pSP->m_key;
@@ -23889,12 +23896,12 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 		}
 	}
 	// cleanup
-	pos = pTempList->GetFirst();
-	while (pos != NULL)
+	pos_pTempList = pTempList->GetFirst();
+	while (pos_pTempList != NULL)
 	{
-		pSPhr = pos->GetData();
+		pSPhr = pos_pTempList->GetData();
 		DeleteSingleSrcPhrase(pSPhr, FALSE); // there is no partner pile
-		pos = pos->GetNext();
+		pos_pTempList = pos_pTempList->GetNext();
 	}
 	pTempList->Clear();
 	if (pTempList != NULL) // whm 11Jun12 added NULL test
@@ -23913,9 +23920,9 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// \param		pView		-> a pointer to the View
 /// \param		pList		<- the list of source phrases of the current document
 ///                            (i.e. m_pSourcePhrases)
-/// \param		pos			-> the node location which stores the passed in pSrcPhrase
-/// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos Node
-///                            passed in as the previous parameter
+/// \param		pos_callers	-> the node location which stores the passed in pSrcPhrase
+/// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos_callers
+///                            Node passed in as the previous parameter
 /// \param		fixesStr	<- reference to the caller's storage string for accumulating
 ///							   a list of references to the locations where the rebuild
 ///							   potentially isn't quite fully right, for specific
@@ -23966,7 +23973,7 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// done in order to verify the results are acceptable - and edit if not.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
-	SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase,
+	SPList*& pList, SPList::Node* pos_callers, CSourcePhrase*& pSrcPhrase,
 	wxString& fixesStr)
 {
 	int nOriginalCount = pSrcPhrase->m_nSrcWords;
@@ -24269,7 +24276,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// if TRUE, it is one which is stored in the m_pSavedWords list of an unowned
 		// CSourcePhrase and so is not visible in the layout
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
-			pView, pList, pos, pSrcPhrase, fixesStr, pResultList, FALSE);
+			pView, pList, pos_callers, pSrcPhrase, fixesStr, pResultList, FALSE);
 
 		//#ifdef _DEBUG
 		//		wxLogDebug(_T("  17950 After ...One..., RETURNED bWasOK = %d  ,  pSrcPhrase sn = %d  m_srcPhrase = %s"),
@@ -26801,12 +26808,12 @@ void CAdapt_ItDoc::RemoveAutoFixList(AFList& afList)
 	// delete the contents of the pointer list, for adaptations mode
 	if (!afList.IsEmpty())
 	{
-		AFList::Node* pos = afList.GetFirst();
-		wxASSERT(pos != 0);
-		while (pos != 0)
+		AFList::Node* pos_afList = afList.GetFirst();
+		wxASSERT(pos_afList != 0);
+		while (pos_afList != 0)
 		{
-			AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
-			pos = pos->GetNext();
+			AutoFixRecord* pRec = (AutoFixRecord*)pos_afList->GetData();
+			pos_afList = pos_afList->GetNext();
 			if (pRec != NULL) // whm 11Jun12 added NULL test
 				delete pRec;
 		}
@@ -26819,12 +26826,12 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 	// delete the contents of the pointer list, for adaptations mode
 	if (!afgList.IsEmpty())
 	{
-		AFGList::Node* pos = afgList.GetFirst();
-		wxASSERT(pos != 0);
-		while (pos != 0)
+		AFGList::Node* pos_afgList = afgList.GetFirst();
+		wxASSERT(pos_afgList != 0);
+		while (pos_afgList != 0)
 		{
-			AutoFixRecordG* pRec = (AutoFixRecordG*)pos->GetData();
-			pos = pos->GetNext();
+			AutoFixRecordG* pRec = (AutoFixRecordG*)pos_afgList->GetData();
+			pos_afgList = pos_afgList->GetNext();
 			if (pRec != NULL) // whm 11Jun12 added NULL test
 				delete pRec;
 		}
@@ -27416,9 +27423,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		AutoFixRecord* pAutoFixRec = NULL;
 
 		SPList* pPhrases = pApp->m_pSourcePhrases;
-		SPList::Node* pos1;
-		pos1 = pPhrases->GetFirst();
-		wxASSERT(pos1 != NULL);
+		SPList::Node* pos_pPhrases;
+		pos_pPhrases = pPhrases->GetFirst();
+		wxASSERT(pos_pPhrases != NULL);
 		int counter = 0;
 		// loop over all CSourcePhrase instances in the m_pSourcePhrases list
 		// NOTE: in this loop, I'll have as many inconsistencies as possible fixed without
@@ -27428,12 +27435,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		// variable fits a given situation takes time and energy, and I don't want to have
 		// to do that thinking more than once
 
-		while (pos1 != NULL)
+		while (pos_pPhrases != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos_pPhrases->GetData();
 			key = pSrcPhrase->m_key;
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
-			pos1 = pos1->GetNext();
+			pos_pPhrases = pos_pPhrases->GetNext();
 			counter++;
 
 			pApp->nCount_NonDeleted = -1; // initialized to suit a pTU 'not found' result
@@ -29174,7 +29181,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			}
 			pAutoFixRec = NULL;
 
-		}// end of while (pos1 != NULL)
+		}// end of while (pos_pPhrases != NULL)
 
 	// mrh - The check on this file is done, so we need to save it.  The exact call depends on whether we're collaborating or not.
 
@@ -29358,9 +29365,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		bool bInconsistency = FALSE;
 
 		SPList* pPhrases = pApp->m_pSourcePhrases;
-		SPList::Node* pos1;
-		pos1 = pPhrases->GetFirst();
-		wxASSERT(pos1 != NULL);
+		SPList::Node* pos_pPhrases;
+		pos_pPhrases = pPhrases->GetFirst();
+		wxASSERT(pos_pPhrases != NULL);
 		int counter = 0;
 		// loop over all CSourcePhrase instances in the m_pSourcePhrases list
 		// NOTE: in this loop, I'll have as many inconsistencies as possible fixed without
@@ -29369,12 +29376,12 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		// later change my mind and want to code differently - as thinking of what enum
 		// variable fits a given situation takes time and energy, and I don't want to have
 		// to do that thinking more than once
-		while (pos1 != NULL)
+		while (pos_pPhrases != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos_pPhrases->GetData();
 			key = pSrcPhrase->m_key;
 			gloss = pSrcPhrase->m_gloss; // could be an empty string
-			pos1 = pos1->GetNext();
+			pos_pPhrases = pos_pPhrases->GetNext();
 			counter++;
 
 			// BEW added 23May16, to fix Mike's problem of lots of legacy upper-case-initial
@@ -30050,7 +30057,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 				delete pAutoFixGRec;
 			}
 			pAutoFixGRec = NULL;
-		}// end of while (pos1 != NULL)
+		}// end of while (pos_pPhrases != NULL)
 
 		// save document and KB
 		pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
@@ -30146,12 +30153,12 @@ bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase,
 	wxASSERT(pSrcPhrase != NULL);
 	if (pList->IsEmpty() || pRecTest == NULL)
 		return FALSE;
-	AFList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	AFList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != NULL)
 	{
-		AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
-		pos = pos->GetNext();
+		AutoFixRecord* pRec = (AutoFixRecord*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pRec->key == pSrcPhrase->m_key && pRec->oldAdaptation == pSrcPhrase->m_adaption)
 		{
 			if (pRec->incType == pRecTest->incType)
@@ -30192,12 +30199,12 @@ bool CAdapt_ItDoc::MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase,
 	wxASSERT(pSrcPhrase != NULL);
 	if (pList->IsEmpty() || pRecTest == NULL)
 		return FALSE;
-	AFGList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	AFGList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != NULL)
 	{
-		AutoFixRecordG* pRec = (AutoFixRecordG*)pos->GetData();
-		pos = pos->GetNext();
+		AutoFixRecordG* pRec = (AutoFixRecordG*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pRec->key == pSrcPhrase->m_key && pRec->oldGloss == pSrcPhrase->m_gloss)
 		{
 			if (pRec->incType == pRecTest->incType)
@@ -32366,10 +32373,10 @@ bool  CAdapt_ItDoc::CheckForAttrMarker(wxString& attrMkr, wxString& matchedMkr, 
 				// after the ch:vs reference; it will be 0:0 if no chapter:verse ref could
 				// be determined. This m_chapterVerseAttrSpan string is used only if
 				// a matching span-end marker was not found, and appears in the warning message
-				wxSPListNode* pos = gpApp->m_pSourcePhrases->GetLast();
-				if (pos != NULL)
+				wxSPListNode* pos_pSP = gpApp->m_pSourcePhrases->GetLast();
+				if (pos_pSP != NULL)
 				{
-					CSourcePhrase* pSrcPhrase_lastCompleted = pos->GetData();
+					CSourcePhrase* pSrcPhrase_lastCompleted = pos_pSP->GetData();
 					gpApp->m_chapterVerseAttrSpan = gpApp->GetView()->GetChapterAndVerse(pSrcPhrase_lastCompleted);
 #if defined (_DEBUG) && !defined(NOLOGS)
 					wxLogDebug(_T("%s() line %d  ch:vs= [%s] , <> For attributes caching, returning TRUE."),
@@ -32719,14 +32726,14 @@ void CAdapt_ItDoc::LogSequNumbers_LimitTo(int nLimit, SPList* pList)
 	sequNums[3] = -1;
 	sequNums[4] = -1;
 
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	int anIndex = -1;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		sp = (CSourcePhrase*)pos->GetData();
+		sp = (CSourcePhrase*)pos_pList->GetData();
 		anIndex++;
-		pos = pos->GetNext();
+		pos_pList = pos_pList->GetNext();
 		sequNums[anIndex] = sp->m_nSequNumber;
 	}
 	// Display to the developer
@@ -32858,8 +32865,8 @@ bool CAdapt_ItDoc::ForceSpanEnd(wxString& endMkr, CSourcePhrase* pSrcPhrase, boo
 // function in the placeholder insertion Update...() handler to disable using the two
 // buttons when control is within a footnote, extendeded footnote, or cross-ref span
 // The next three functions accomplish the above.
-// Note: pos = pos->GetPrevious() will work, but that pos cannot in the same function
-// be used to do pos = pos->GetNext(). I tried having one function with both scanning back
+// Note: pos_pList = pos_pList->GetPrevious() will work, but that pos_pList cannot in the same function
+// be used to do pos_pList = pos_pList->GetNext(). I tried having one function with both scanning back
 // and then scanning forwards, but that resulted in a C2440 error message. (Gloogling 
 // that was singularly unfruitful). So I split the work into the next two functions - 
 // one scans back, the other scans forward. That works sweetly.
@@ -32878,7 +32885,7 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 	wxASSERT(!pList->IsEmpty());
 	int nSequNum = pSrcPhrase->m_nSequNumber;
 
-	SPList::Node* pos = pList->Item(nSequNum);
+	SPList::Node* pos_pList = pList->Item(nSequNum);
 	SPList::Node* docStartPos = pList->GetFirst();
 
 	// Scan back to find the first srcPhrase's sequ number having one of \f \ef \x
@@ -32907,10 +32914,10 @@ bool CAdapt_ItDoc::FindBeginningOfSpanProhibitingPlaceholderInsertion(CSourcePhr
 	// back to find the first pSP of a candidate prohibited span
 	else
 	{
-		while (pos != docStartPos)
+		while (pos_pList != docStartPos)
 		{
-			pos = pos->GetPrevious();
-			pSP = pos->GetData();
+			pos_pList = pos_pList->GetPrevious();
+			pSP = pos_pList->GetData();
 			// Re-initialisations
 			m_markersBeginMkr = wxEmptyString;
 			bGotBeginMkr = FALSE;
@@ -32947,7 +32954,7 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 	int nSequNum = pSpanStart_SrcPhrase->m_nSequNumber;
 	wxASSERT(!matchEndMkr.IsEmpty());
 
-	SPList::Node* pos = pList->Item(nSequNum);
+	SPList::Node* pos_pList = pList->Item(nSequNum);
 	SPList::Node* docEndPos = pList->GetLast();
 
 	int spanEndSequNum = -1;   // initialise
@@ -32994,10 +33001,10 @@ bool CAdapt_ItDoc::FindEndOfSpanProhibitingPlaceholderInsertion(CSourcePhrase* p
 	// which halts the scan because a significant begin-marker prevented run-on
 	else
 	{
-		while (pos != docEndPos)
+		while (pos_pList != docEndPos)
 		{
-			pos = pos->GetNext();
-			pSP = pos->GetData();
+			pos_pList = pos_pList->GetNext();
+			pSP = pos_pList->GetData();
 			// Re-initialisations
 			bGotSpanEnd = FALSE;
 			bIsForbiddenEndMkr = FALSE;
@@ -33068,8 +33075,8 @@ bool CAdapt_ItDoc::IsWithinSpanProhibitingPlaceholderInsertion(CSourcePhrase* pS
 			SequNumSpanEnd = nSequNum;
 			return TRUE; // end is end of doc
 		}
-		SPList::Node* pos = pApp->m_pSourcePhrases->Item(nSequNum);
-		CSourcePhrase* pSpanStart_SrcPhrase = pos->GetData();
+		SPList::Node* pos_pSP = pApp->m_pSourcePhrases->Item(nSequNum);
+		CSourcePhrase* pSpanStart_SrcPhrase = pos_pSP->GetData();
 		wxASSERT(pSpanStart_SrcPhrase != NULL);
 		spanBeginMkr.Trim(); // ensure no white space at its end
 		wxString matchEndMkr = spanBeginMkr += _T('*');
@@ -33732,14 +33739,14 @@ CSourcePhrase* CAdapt_ItDoc::GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase)
 	if (sn > 0)
 	{
 		
-		SPList::Node* pos = pApp->m_pSourcePhrases->Item(sn);
+		SPList::Node* pos_pSP = pApp->m_pSourcePhrases->Item(sn);
 
-		pos = pos->GetPrevious();
-		if (pos == NULL)
+		pos_pSP = pos_pSP->GetPrevious();
+		if (pos_pSP == NULL)
 		{
 			return (CSourcePhrase*)NULL;
 		}
-		pSP = pos->GetData();
+		pSP = pos_pSP->GetData();
 		wxASSERT(pSP);
 	}
 	else
@@ -36201,23 +36208,23 @@ wxString CAdapt_ItDoc::GetAccumulatedKeys(SPList* pList, int indexFirst, int ind
 	strAccumulated = wxEmptyString;
 	int index;
 	index = indexFirst;
-	SPList::Node* pos = pList->Item(index);
+	SPList::Node* pos_pList = pList->Item(index);
 
 	CSourcePhrase* pSP;
 	wxString key;
-	pSP = (CSourcePhrase*)pos->GetData();
+	pSP = (CSourcePhrase*)pos_pList->GetData();
 	key = pSP->m_key;
 	wxChar chSpace;
 	chSpace = _T(' ');
 	strAccumulated << key;
 	strAccumulated << chSpace;
 
-	pos = pos->GetNext();
+	pos_pList = pos_pList->GetNext();
 	index++;
 
 	while (index < indexLast)
 	{
-		pSP = (CSourcePhrase*)pos->GetData();
+		pSP = (CSourcePhrase*)pos_pList->GetData();
 		key = pSP->m_key;
 		wxChar chSpace;
 		chSpace = _T(' ');
@@ -36225,7 +36232,7 @@ wxString CAdapt_ItDoc::GetAccumulatedKeys(SPList* pList, int indexFirst, int ind
 		strAccumulated << chSpace;
 
 		index++;
-		pos = pList->Item(index);
+		pos_pList = pList->Item(index);
 	}
 	return strAccumulated;
 }
@@ -43065,10 +43072,10 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 									pSrcPhrase_lastCompleted = NULL; // init
 									wxString chvs;
 									chvs = wxEmptyString; // init
-									wxSPListNode* pos = gpApp->m_pSourcePhrases->GetLast(); // last changes with every TText loop iteration
-									if (pos != NULL)
+									wxSPListNode* pos_pSP = gpApp->m_pSourcePhrases->GetLast(); // last changes with every TText loop iteration
+									if (pos_pSP != NULL)
 									{
-										pSrcPhrase_lastCompleted = pos->GetData();
+										pSrcPhrase_lastCompleted = pos_pSP->GetData();
 										chvs = gpApp->GetView()->GetChapterAndVerse(pSrcPhrase_lastCompleted);
 #if defined (_DEBUG) && !defined(NOLOGS)
 										wxLogDebug(_T("ParseWord() line %d Storing ch:vs: %s "), __LINE__, gpApp->m_chapterVerseAttrSpan.c_str());
@@ -43085,7 +43092,7 @@ wxLogDebug(_T("LEN+PTR line %d , m_markers= [%s], len %d , 20 at ptr= [%s]"), __
 										// was identified when parsing for the current pSrcPhrase
 										len += mkrLen;
 										ptr += mkrLen;
-									} // end of TRUE block for test: if (pos != NULL)
+									} // end of TRUE block for test: if (pos_pSP != NULL)
 									if (bIsBogusEndMkr)
 									{
 										// Now warn the user that the src file he's loading in
@@ -49738,7 +49745,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 #endif
 			// itemLen can arrive here with a value > 0 so protect ptr from incrementing past pEnd
-			if (itemLen > 0 && ptr + itemLen < pEnd)
+			//
+			// whm 29Jan2024 modified the following test. The second part ot the test && ptr + itemLen < pEnd should
+			// be && ptr + itemLen <= pEnd where <= is used instead of just < test. Otherwise it is possible when
+			// the string parsed was a word whose last char is at pEnd, the ptr would not be advanced and TokenizeText(0
+			// would then get into an infinite loop trying continually to parse that last word and ptr never getting
+			// incremented. Therefore, I've changed the < to <= in the second part of the test below.
+			if (itemLen > 0 && ptr + itemLen <= pEnd) //if (itemLen > 0 && ptr + itemLen < pEnd)
 			{
 				ptr += itemLen; // advance ptr over what we parsed
 			}
@@ -50698,8 +50711,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						/* BEW 17Jul23 we no longer support the legacy way of fixed space supporting code
 						if (IsFixedSpaceSymbolWithin(pSrcPhrase) )
 						{
-							SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetLast();
-							CSourcePhrase* pWord2 = pos->GetData();
+							SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetLast();
+							CSourcePhrase* pWord2 = pos_pSavedWords->GetData();
 							pWord2->m_bBoundary = TRUE;
 						}
 						*/
@@ -50721,8 +50734,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						/* BEW 17Jul23 we no longer support the legacy way of fixed space supporting code
 						if (IsFixedSpaceSymbolWithin(pSrcPhrase) )
 						{
-							SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetLast();
-							CSourcePhrase* pWord2 = pos->GetData();
+							SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetLast();
+							CSourcePhrase* pWord2 = pos_pSavedWords->GetData();
 							pWord2->m_bBoundary = TRUE;
 						}
 						*/
@@ -50838,7 +50851,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					(!bHasFilteredInfo && bHasNonEndMarkers && !gbVerticalEditInProgress))
 				{
 					CSourcePhrase* pWord2;
-					SPList::Node* pos;
+					SPList::Node* pos_pSavedWords;
 					if (bFreeTranslationIsCurrent)
 					{
 						// we default to always turning off a free translation section at the end
@@ -50853,8 +50866,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// the last child instance
 								if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
 								{
-									pos = pLastSrcPhrase->m_pSavedWords->GetLast();
-									pWord2 = pos->GetData();
+									pos_pSavedWords = pLastSrcPhrase->m_pSavedWords->GetLast();
+									pWord2 = pos_pSavedWords->GetData();
 									pWord2->m_bEndFreeTrans = TRUE;
 								}
 								break;
@@ -51002,9 +51015,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// ensure pSrcPhrase->m_srcPhrase has no trailing spaces (a few CR LFs at the end
 	// of the plain text input file find their way into the trailing text of the last
 	// pSrcPhrase's m_srcPhrase member - so easiest thing to do is just clobber them here
-	SPList::Node* pos = pList->GetLast();
+	SPList::Node* pos_pList = pList->GetLast();
 	CSourcePhrase* pSrcPhraseVeryLast = NULL;
-	pSrcPhraseVeryLast = pos->GetData();
+	pSrcPhraseVeryLast = pos_pList->GetData();
 	// whm 12Jan2024 modification.
 	// I observerd that the pSrcPhraseVeryLast could be undefined in some circumstances
 	// so I'm protecting the code below against that possibility.

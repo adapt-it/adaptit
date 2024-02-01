@@ -1040,13 +1040,13 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// m_bHasFreeTrans flag in the doc's m_pSourcePhrases list for this particular
 		// free translation section, and also the m_bStartFreeTrans and m_bEndFreeTrans
 		// flags at its beginning and end as well. And the m_free member's contents too
-		SPList::Node* pos = gpApp->m_pSourcePhrases->Item(gpApp->m_nSequNumBeingViewed);
-		wxASSERT(pos);
+		SPList::Node* pos_pSP = gpApp->m_pSourcePhrases->Item(gpApp->m_nSequNumBeingViewed);
+		wxASSERT(pos_pSP);
 		bool bIsFirst = TRUE;
-		while (pos)
+		while (pos_pSP)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			if (bIsFirst)
 			{
 				pSrcPhrase->SetFreeTrans(wxEmptyString);

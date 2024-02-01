@@ -461,12 +461,12 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		wxASSERT(m_pTgtUnit != NULL);
 		CRefString* pRefString;
-		TranslationsList::Node* pos = m_pTgtUnit->m_pTranslations->GetFirst();
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		TranslationsList::Node* pos_pTranslations = m_pTgtUnit->m_pTranslations->GetFirst();
+		wxASSERT(pos_pTranslations != NULL);
+		while (pos_pTranslations != NULL)
 		{
-			pRefString = (CRefString*)pos->GetData();
-			pos = pos->GetNext();
+			pRefString = (CRefString*)pos_pTranslations->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			// BEW 9July10, added test here
 			if (!pRefString->GetDeletedFlag())
 			{

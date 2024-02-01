@@ -4770,12 +4770,12 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 		pSrcPhrase->m_bUnused = FALSE;
 
 	// If the pList list is empty on entry, then the GetLast() call will return NULL
-	// rather than a valid pos value
+	// rather than a valid pos_pList value
 	wxString strModifiers = pSrcPhrase->m_markers;
 	wxString strModifiersCopy = strModifiers; // need a copy for the second call below
 				// if transferring to the last instance in m_pSavedWords of a merger
 	CSourcePhrase* pLastSrcPhrase = NULL;
-	// whm 27Jan2024 CAUTION. The pos node being assigned by the pList->GetLast() call 
+	// whm 27Jan2024 CAUTION. The pos_pList node being assigned by the pList->GetLast() call 
 	// below will be the very LAST node in the passed-in pList and NOT the previous 
 	// node in the pList as we've customarily used the label pLastSrcPhrase!
 	// I am assuming that BEW intended this to be the case for sending a "pLastSrcPhrase"
@@ -4791,7 +4791,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 	// gpLastSrcPhrase to keep it distince from the pLastSrcPhrase in this XML.cpp source
 	// file. This gpLastSrcPhrase is what I'll use to transfer the filtered info properly 
 	// to the previous source phrase that was created by these xml input routines. 
-	SPList::Node* pos = pList->GetLast();
+	SPList::Node* pos_pList = pList->GetLast();
 
     // The list, on entry, is either the m_pSavedWords SPList* member in CSourcePhrase, or
     // the m_pSourcePhrases list in the document CAdapt_ItDoc class
@@ -4816,7 +4816,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 	bool bDeleteOrphan = FALSE;
 	bool bDeleteWhenDone = FALSE;
 	bool bSomethingTransferred = FALSE;
-	if (pos != NULL)
+	if (pos_pList != NULL)
 	{
 		// there might be endmarkers, so deal with them; endmarkers, if they occur,
 		// will always be at the start of the pSrcPhrase->m_markers member in version 4,
@@ -4824,7 +4824,7 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 		// will end with an asterisk
 		bDeleteOrphan = FALSE;
 		bDeleteWhenDone = FALSE;
-		pLastSrcPhrase = pos->GetData();
+		pLastSrcPhrase = pos_pList->GetData();
 		bSomethingTransferred = TransferEndMarkers(pSrcPhrase, strModifiers, 
 												pLastSrcPhrase, bDeleteWhenDone);
 		if (bDeleteWhenDone)
@@ -4852,9 +4852,9 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			{
 				// this CSourcePhrase instance is a merger, so also transfer to its last
 				// saved instance in the m_pSavedWords list, use the copied string
-				SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
-				wxASSERT(pos != NULL);
-				CSourcePhrase* pLastInSublist = pos->GetData();
+				SPList::Node* pos_pSavedWords = pLastSrcPhrase->m_pSavedWords->GetLast();
+				wxASSERT(pos_pSavedWords != NULL);
+				CSourcePhrase* pLastInSublist = pos_pSavedWords->GetData();
 				wxASSERT(pLastInSublist != NULL);	
 				TransferEndMarkers(pSrcPhrase, strModifiersCopy, pLastInSublist,
 									bDeleteWhenDone); // don't want returned bool
@@ -5279,11 +5279,11 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 		// do the same (if the instance is a merger) to the listed original instances
 		if (pSrcPhrase->m_nSrcWords > 1)
 		{
-			SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos_pSavedWords != NULL)
 			{
-				CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
-				pos = pos->GetNext();
+				CSourcePhrase* pOriginalSrcPhrase = pos_pSavedWords->GetData();
+				pos_pSavedWords = pos_pSavedWords->GetNext();
 				if (HasParagraphMkr(pOriginalSrcPhrase->m_markers))
 				{
 					pOriginalSrcPhrase->m_bUnused = TRUE;
@@ -5307,14 +5307,14 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 	{
 		// it's a merger, so process the saved originals
 		int counter = 0;
-		SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
-		wxASSERT(pos != NULL);
+		SPList::Node* pos_pSavedWords = pSrcPhrase->m_pSavedWords->GetFirst();
+		wxASSERT(pos_pSavedWords != NULL);
 		bool bFirst = TRUE; // use this to get the passed in endmarkers, if any, inserted
 							// only at the start of the modified m_markers member of the
 							// first CSourcePhrase instance in this list
-		while (pos != NULL)
+		while (pos_pSavedWords != NULL)
 		{
-			CSourcePhrase* pOriginalSPh = pos->GetData();
+			CSourcePhrase* pOriginalSPh = pos_pSavedWords->GetData();
 			if (!pOriginalSPh->GetFollowingOuterPunct().IsEmpty())
 			{
 				pOriginalSPh->m_follPunct += pOriginalSPh->GetFollowingOuterPunct();
@@ -5368,8 +5368,8 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 							// because we want bFirst to remain TRUE on the first iteration
 							// so that the above "if (!bFirst) == TRUE" block is skipped on
 							// the first iteration
-			pos = pos->GetNext();
-		} // end of the while (pos != NULL) loop
+			pos_pSavedWords = pos_pSavedWords->GetNext();
+		} // end of the while (pos_pSavedWords != NULL) loop
 	} // end of TRUE block for test: if (pSrcPhrase->m_nSrcWords > 1)
 
 	// the passed in params 2,3, & 4, have been used, so now clear them, and get whatever
@@ -5860,9 +5860,9 @@ bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNext
 	{
 		// its a merger, so we've a bit more to do
 		SPList* pList = pThisOne->m_pSavedWords;
-		SPList::Node* pos = pList->GetLast();
-		wxASSERT(pos != NULL);
-		CSourcePhrase* pOriginalLast = pos->GetData();
+		SPList::Node* pos_pList = pList->GetLast();
+		wxASSERT(pos_pList != NULL);
+		CSourcePhrase* pOriginalLast = pos_pList->GetData();
 		pOriginalLast->SetEndMarkers(emptyStr);
 	}
 	// make the transfer
@@ -8436,7 +8436,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 	CAdapt_ItView* pView = gpApp->GetView();
 	SPList* pList = pSrcPhraseList;
 	wxASSERT(pSrcPhraseList != NULL);
-	SPList::Node* pos = NULL;
+	SPList::Node* pos_pList = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
 	SPList::Node* savePos = NULL;
 	SPList::Node* savePrevPos = NULL;
@@ -8463,26 +8463,26 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 	bool bDeletePreviousWhenDone = FALSE;
 	bool bDeleteFollowingWhenDone = FALSE;
 
-	pos = pList->GetFirst();
+	pos_pList = pList->GetFirst();
 	// scan the whole document, killing off orphans when found
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
 		// obtain current, previous and next CSourcePhrase instances (at doc start,
 		// previous will be NULL, at doc end next will be NULL)
-		pSrcPhrase = pos->GetData();
-		savePos = pos;
-		pos = pos->GetPrevious(); // returns NULL if doesn't exist
-		if (pos != NULL)
+		pSrcPhrase = pos_pList->GetData();
+		savePos = pos_pList;
+		pos_pList = pos_pList->GetPrevious(); // returns NULL if doesn't exist
+		if (pos_pList != NULL)
 		{
-			pPrevSrcPhrase = pos->GetData();
-			savePrevPos = pos;
+			pPrevSrcPhrase = pos_pList->GetData();
+			savePrevPos = pos_pList;
 		}
 		else 
 			pPrevSrcPhrase = NULL;
-		pos = savePos;
-		pos = pos->GetNext();
-		if (pos != NULL)
-			pFollSrcPhrase = pos->GetData();
+		pos_pList = savePos;
+		pos_pList = pos_pList->GetNext();
+		if (pos_pList != NULL)
+			pFollSrcPhrase = pos_pList->GetData();
 		else
 			pFollSrcPhrase = NULL;
 //#ifdef _DEBUG
@@ -8550,8 +8550,8 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 								if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
 								{
 									// it's a merger
-									SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
-									CSourcePhrase* pOriginalSPh = pos->GetData();
+									SPList::Node* pos_pSavedWords = pFollSrcPhrase->m_pSavedWords->GetFirst();
+									CSourcePhrase* pOriginalSPh = pos_pSavedWords->GetData();
 									pOriginalSPh->m_precPunct = precPuncts;
 								}
 								bDeleteCurrentWhenDone = TRUE;
@@ -8600,8 +8600,8 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 									if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
 									{
 										// it's a merger
-										SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
-										CSourcePhrase* pOriginalSPh = pos->GetData();
+										SPList::Node* pos_pSavedWords = pFollSrcPhrase->m_pSavedWords->GetFirst();
+										CSourcePhrase* pOriginalSPh = pos_pSavedWords->GetData();
 										pOriginalSPh->m_precPunct = precPuncts;
 									}
 									bDeleteCurrentWhenDone = TRUE;
@@ -8631,8 +8631,8 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 									if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
 									{
 										// it's a merger
-										SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
-										CSourcePhrase* pOriginalSPh = pos->GetData();
+										SPList::Node* pos_pSavedWords = pFollSrcPhrase->m_pSavedWords->GetFirst();
+										CSourcePhrase* pOriginalSPh = pos_pSavedWords->GetData();
 										pOriginalSPh->m_precPunct = precPuncts;
 									}
 									bDeleteCurrentWhenDone = TRUE;
@@ -8649,34 +8649,34 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		if (bDeleteFollowingWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pFollSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_follSP = pSrcPhraseList->Find(pFollSrcPhrase);
+			if (pos_follSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_follSP);
 				pDoc->DeleteSingleSrcPhrase(pFollSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 				
 				// when deleting the Node which is ahead of where pSrcPhrase was stored,
-				// the pos value which was left pointing at this Node now points at freed
-				// memory, so we have to reset pos. savePos, where pSrcPhrase (the current
+				// the pos_pList value which was left pointing at this Node now points at freed
+				// memory, so we have to reset pos_pList. savePos, where pSrcPhrase (the current
 				// location) was stored is still valid, so use that
-				pos = savePos;
+				pos_pList = savePos;
 				if (!bDeleteCurrentWhenDone)
 				{
-					// don't advance pos to beyond the deleted one if we still need
+					// don't advance pos_pList to beyond the deleted one if we still need
 					// to remove the current one - leave it where it is now, back on
 					// the current one
-					pos = pos->GetNext();
+					pos_pList = pos_pList->GetNext();
 				}
 			}
 		}
 		if (bDeletePreviousWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pPrevSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_prevSP = pSrcPhraseList->Find(pPrevSrcPhrase);
+			if (pos_prevSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_prevSP);
 				pDoc->DeleteSingleSrcPhrase(pPrevSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 			}
@@ -8684,10 +8684,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		if (bDeleteCurrentWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_foundSP = pSrcPhraseList->Find(pSrcPhrase);
+			if (pos_foundSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_foundSP);
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 			}
@@ -8695,10 +8695,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			{
 				// if we have just deleted the 'following' one, and now we've also
 				// deleted the former current one, two have gone - so the only valid
-				// iterator value left to which we can reset pos is savePrevPos
-				pos = savePrevPos;
+				// iterator value left to which we can reset pos_pList is savePrevPos
+				pos_pList = savePrevPos;
 				// now advance from there
-				pos = pos->GetNext();
+				pos_pList = pos_pList->GetNext();
 			}
 		}
 
@@ -8706,7 +8706,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		bDeleteCurrentWhenDone = FALSE;
 		bDeletePreviousWhenDone = FALSE;
 		bDeleteFollowingWhenDone = FALSE;
-	} // end of first loop: while (pos != NULL)
+	} // end of first loop: while (pos_pList != NULL)
 	pDoc->UpdateSequNumbers(0,NULL); // must do this to ensure sequential numbering
 
 
@@ -8718,26 +8718,26 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 	bDeletePreviousWhenDone = FALSE;
 	bDeleteFollowingWhenDone = FALSE;
 
-	pos = pList->GetFirst();
+	pos_pList = pList->GetFirst();
 	// scan the whole document, doing any needed ~ conjoinings
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
 		// obtain current, previous and next CSourcePhrase instances (at doc start,
 		// previous will be NULL, at doc end next will be NULL)
-		pSrcPhrase = pos->GetData();
-		savePos = pos;
-		pos = pos->GetPrevious(); // returns NULL if doesn't exist
-		if (pos != NULL)
+		pSrcPhrase = pos_pList->GetData();
+		savePos = pos_pList;
+		pos_pList = pos_pList->GetPrevious(); // returns NULL if doesn't exist
+		if (pos_pList != NULL)
 		{
-			pPrevSrcPhrase = pos->GetData();
-			savePrevPos = pos;
+			pPrevSrcPhrase = pos_pList->GetData();
+			savePrevPos = pos_pList;
 		}
 		else 
 			pPrevSrcPhrase = NULL;
-		pos = savePos;
-		pos = pos->GetNext();
-		if (pos != NULL)
-			pFollSrcPhrase = pos->GetData();
+		pos_pList = savePos;
+		pos_pList = pos_pList->GetNext();
+		if (pos_pList != NULL)
+			pFollSrcPhrase = pos_pList->GetData();
 		else
 			pFollSrcPhrase = NULL;
 //#ifdef _DEBUG
@@ -9368,34 +9368,34 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		if (bDeleteFollowingWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pFollSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_follSP = pSrcPhraseList->Find(pFollSrcPhrase);
+			if (pos_follSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_follSP);
 				pDoc->DeleteSingleSrcPhrase(pFollSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 				
 				// when deleting the Node which is ahead of where pSrcPhrase was stored,
-				// the pos value which was left pointing at this Node now points at freed
-				// memory, so we have to reset pos. savePos, where pSrcPhrase (the current
+				// the pos_pList value which was left pointing at this Node now points at freed
+				// memory, so we have to reset pos_pList. savePos, where pSrcPhrase (the current
 				// location) was stored is still valid, so use that
-				pos = savePos;
+				pos_pList = savePos;
 				if (!bDeleteCurrentWhenDone)
 				{
-					// don't advance pos to beyond the deleted one if we still need
+					// don't advance pos_pList to beyond the deleted one if we still need
 					// to remove the current one - leave it where it is now, back on
 					// the current one
-					pos = pos->GetNext();
+					pos_pList = pos_pList->GetNext();
 				}
 			}
 		}
 		if (bDeletePreviousWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pPrevSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_prevSP = pSrcPhraseList->Find(pPrevSrcPhrase);
+			if (pos_prevSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_prevSP);
 				pDoc->DeleteSingleSrcPhrase(pPrevSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 			}
@@ -9403,10 +9403,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		if (bDeleteCurrentWhenDone)
 		{
 			// FALSE means "don't try delete a partner pile" (there isn't one yet)
-			SPList::Node* pos2 = pSrcPhraseList->Find(pSrcPhrase);
-			if (pos2 != NULL)
+			SPList::Node* pos_foundSP = pSrcPhraseList->Find(pSrcPhrase);
+			if (pos_foundSP != NULL)
 			{
-				pSrcPhraseList->DeleteNode(pos2);
+				pSrcPhraseList->DeleteNode(pos_foundSP);
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 			}
@@ -9414,10 +9414,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			{
 				// if we have just deleted the 'following' one, and now we've also
 				// deleted the former current one, two have gone - so the only valid
-				// iterator value left to which we can reset pos is savePrevPos
-				pos = savePrevPos;
+				// iterator value left to which we can reset pos_pList is savePrevPos
+				pos_pList = savePrevPos;
 				// now advance from there
-				pos = pos->GetNext();
+				pos_pList = pos_pList->GetNext();
 			}
 		}
 
@@ -9425,7 +9425,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		bDeleteCurrentWhenDone = FALSE;
 		bDeletePreviousWhenDone = FALSE;
 		bDeleteFollowingWhenDone = FALSE;
-	} // end of loop: while (pos != NULL)
+	} // end of loop: while (pos_pList != NULL)
 	pDoc->UpdateSequNumbers(0,NULL); // must do this to ensure sequential numbering
 
 	// update navigation text
@@ -9501,7 +9501,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 	int glossEntriesCount = 0;
 	int definitionEntriesCount = 0;
 	int offset = -1; // where the search text was next matched
-	int pos = 0; // where to search forward from
+	int nPos = 0; // where to search forward from
 
 	bool bOpen = fileIn.Open(path, wxFile::read);
 	if (bOpen)
@@ -9530,15 +9530,15 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		while (offset != -1)
 		{
 			glossEntriesCount++;
-			pos = offset + 6;
-			offset = xmlStr.Find(glossStr, pos);
+			nPos = offset + 6;
+			offset = xmlStr.Find(glossStr, nPos);
 		}
 		offset = xmlStr.Find(definitionStr);
 		while (offset != -1)
 		{
 			definitionEntriesCount++;
-			pos = offset + 11;
-			offset = xmlStr.Find(definitionStr, pos);
+			nPos = offset + 11;
+			offset = xmlStr.Find(definitionStr, nPos);
 		}
 		if (glossEntriesCount > 0 && definitionEntriesCount == 0)
 		{
@@ -9580,17 +9580,17 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		// by "=" and then opening doublequote, after that is the srcLangCode we want
 		// and we only need find it once
 		offset = xmlStr.Find("<form");
-		pos = 0;
+		nPos = 0;
 		if (offset != -1)
 		{
 			// found one, now look for the "lang" attribute name
-			pos = offset;
-			offset = xmlStr.Find("lang",pos + 5);
+			nPos = offset;
+			offset = xmlStr.Find("lang", nPos + 5);
 			if (offset != -1)
 			{
 				// found it, now look for the opening doublequote
-				pos = offset + 4;
-				offset = xmlStr.Find('\"',pos);
+				nPos = offset + 4;
+				offset = xmlStr.Find('\"', nPos);
 				if (offset != -1)
 				{
 					// add 1 and we are at the start of the src language code
@@ -9629,12 +9629,12 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		}
 		offset = xmlStr.Find(searchStr);
 		int offset2 = -1; // use for secondary inner searches
-		pos = 0;
+		nPos = 0;
 		while (offset != -1)
 		{
 			// found the next one, now look for the "lang" attribute name
-			pos = offset + 6; // +6 is safe for both types of search string
-			offset2 = xmlStr.Find("lang", pos);
+			nPos = offset + 6; // +6 is safe for both types of search string
+			offset2 = xmlStr.Find("lang", nPos);
 			if (offset2 == -1)
 			{
 				// ignore this one
@@ -9646,8 +9646,8 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 			{
 				// found the following lang attribute name, now look for
 				// its doublequote opening char
-				pos = offset2 + 4;
-				offset2 = xmlStr.Find('\"', pos);
+				nPos = offset2 + 4;
+				offset2 = xmlStr.Find('\"', nPos);
 				if (offset2 == -1)
 				{
 					// we don't expect control will ever enter here, if it did

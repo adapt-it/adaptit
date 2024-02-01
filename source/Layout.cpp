@@ -1740,17 +1740,17 @@ void CLayout::SetPileAndStripHeight()
 
 void CLayout::RecalcPileWidths(PileList* pPiles)
 {
-	PileList::Node* pos = pPiles->GetFirst();
-	wxASSERT(pos != NULL);
+	PileList::Node* pos_pPiles = pPiles->GetFirst();
+	wxASSERT(pos_pPiles != NULL);
 	CPile* pPile = NULL;
-	while (pos != NULL)
+	while (pos_pPiles != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPiles->GetData();
 		wxASSERT(pPile != NULL);
 		pPile->m_nMinWidth = pPile->CalcPileWidth(); // the calculation of the gap for the phrase box is
 							  // handled within RecalcLayout(), so does not need to be
 							  // done here
-		pos = pos->GetNext();
+		pos_pPiles = pos_pPiles->GetNext();
 	}
 	SetPileAndStripHeight(); // it may be changing, eg to or from "See Glosses"
 }
@@ -1941,7 +1941,7 @@ void CLayout::DestroyStrips()
 
 void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromListToo)
 {
-	PileList::Node* pos;
+	PileList::Node* pos_pPileList;
 	int index;
 	pPile->SetStrip(NULL); // sets m_pOwningStrip to NULL
 	for (index = 0; index < MAX_CELLS; index++)
@@ -1951,11 +1951,11 @@ void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromLis
 	}
 	if (bRemoveFromListToo)
 	{
-		pos = pPileList->Find(pPile);
-		wxASSERT(pos != NULL);
-		// BEW 29Aug14, I think the Erase(pos) call should instead be DeleteNode(pos)
+		pos_pPileList = pPileList->Find(pPile);
+		wxASSERT(pos_pPileList != NULL);
+		// BEW 29Aug14, I think the Erase(pos_pPileList) call should instead be DeleteNode(pos_pPileList)
 		// so change to use that - this may remove a crash in OnButtonEditRetranslation()
-		pPileList->DeleteNode(pos);
+		pPileList->DeleteNode(pos_pPileList);
 	}
 	if (pPile != NULL) // whm 11Jun12 added NULL test
 		delete pPile;
@@ -1967,9 +1967,9 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 {
 if (m_pileList.IsEmpty())
 return; // needed because DestroyPileRange() can be called when nothing is set up yet
-PileList::Node* pos = m_pileList.Item(nFirstPile);
+PileList::Node* pos_pPileList = m_pileList.Item(nFirstPile);
 int index = nFirstPile;
-if (pos == NULL)
+if (pos_pPileList == NULL)
 {
 wxMessageBox(_T("nFirstPile index did not return a valid iterator in DestroyPileRange()"),
 _T(""), wxICON_STOP);
@@ -1979,11 +1979,11 @@ wxExit();
 CPile* pPile = 0;
 while (index <= nLastPile)
 {
-pPile = pos->GetData();
+pPile = pos_pPileList->GetData();
 wxASSERT(pPile != NULL);
 DestroyPile(pPile);
 index++;
-pos = pos->GetNext();
+pos_pPileList = pos_pPileList->GetNext();
 }
 }
 */
@@ -2025,14 +2025,14 @@ void CLayout::DestroyPiles()
 #endif
 		return; // needed because DestroyPiles() can be called when nothing is set up yet
 	}
-	PileList::Node* pos = m_pileList.GetLast();
-	wxASSERT(pos != NULL);
+	PileList::Node* pos_pPileList = m_pileList.GetLast();
+	wxASSERT(pos_pPileList != NULL);
 	CPile* pPile = NULL;
-	while (pos != NULL)
+	while (pos_pPileList != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPileList->GetData();
 		DestroyPile(pPile, &m_pileList, FALSE);
-		pos = pos->GetPrevious();
+		pos_pPileList = pos_pPileList->GetPrevious();
 	}
 	m_pileList.Clear(); // ensure there are no freed pointers left over
 }
@@ -2128,15 +2128,15 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 
 	CSourcePhrase* pSrcPhrase = NULL;
 	CPile* pPile = NULL;
-	SPList::Node* pos = pSrcPhrases->GetFirst();
+	SPList::Node* pos_pSPList = pSrcPhrases->GetFirst();
 	// Note: lack of memory could make the following loop fail in the release version if
 	// the user is processing a very large document - but recent computers should have
 	// plenty of RAM available, so we'll assume a low memory error will not arise; so keep
 	// the code lean
-	while (pos != NULL)
+	while (pos_pSPList != NULL)
 	{
 		// get the CSourcePhrase pointer from the passed in list
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pSrcPhrase = (CSourcePhrase*)pos_pSPList->GetData();
 		wxASSERT(pSrcPhrase != NULL);
 
 		// create the CPile instance
@@ -2153,7 +2153,7 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		m_pileList.Append(pPile);
 
 		// get ready for next iteration
-		pos = pos->GetNext();
+		pos_pSPList = pos_pSPList->GetNext();
 	}
 
 	// To succeed, the count of items in each list must be identical
@@ -2798,10 +2798,10 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 	int nActiveLocationStrip_Index = -1; // if it remains -1, then there was no match
 
 	CPile* pPile = NULL;
-	PileList::Node* pos = m_pileList.GetFirst();
-	while (pos != NULL)
+	PileList::Node* pos_pPileList = m_pileList.GetFirst();
+	while (pos_pPileList != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPileList->GetData();
 		wxASSERT(pPile != NULL);
 		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
 										  // be an adaptation cell, or a gloss cell
@@ -2816,7 +2816,7 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 			// add it to the array if not already within it
 			AddUniqueInt(&stripIndicesArray, itsStripIndex);
 		}
-		pos = pos->GetNext();
+		pos_pPileList = pos_pPileList->GetNext();
 	}
 
 	// when the loop finishes, the difference between the last and first strip indices
@@ -2844,13 +2844,13 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 {
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
-	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
-	wxASSERT(pos != NULL);
+	PileList::Node* pos_pPileList = m_pileList.Item(nIndexOfFirstPile);
+	wxASSERT(pos_pPileList != NULL);
 	CStrip* pStrip = NULL;
 
 	//loop to create the strips, add them to CLayout::m_stripArray
 	int nStripIndex = 0;
-	while (pos != NULL)
+	while (pos_pPileList != NULL)
 	{
 		pStrip = new CStrip(this);
 		pStrip->m_nStrip = nStripIndex; // set it's index
@@ -2860,7 +2860,7 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 		//	wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
 		//	 nStripIndex, nStripWidth);
 
-		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles
+		pos_pPileList = pStrip->CreateStrip(pos_pPileList, nStripWidth, gap);	// fill out with piles
 		/*
 		if (m_pApp->m_bIsPrinting)
 		{
@@ -2926,26 +2926,26 @@ CPile* CLayout::GetPile(int index)
 		// bounds error, so return NULL
 		return (CPile*)NULL;
 	}
-	PileList::Node* pos = m_pileList.Item(index);
-	wxASSERT(pos != NULL);
-	return pos->GetData();
+	PileList::Node* pos_pPileList = m_pileList.Item(index);
+	wxASSERT(pos_pPileList != NULL);
+	return pos_pPileList->GetData();
 }
 
 int CLayout::GetStripIndex(int nSequNum)
 {
-	PileList::Node* pos = m_pileList.Item(nSequNum); // relies on parallelism of
+	PileList::Node* pos_pPileList = m_pileList.Item(nSequNum); // relies on parallelism of
 													 // m_pSourcePhrases and m_pileList lists
-	wxASSERT(pos != NULL);
-	CPile* pPile = pos->GetData();
+	wxASSERT(pos_pPileList != NULL);
+	CPile* pPile = pos_pPileList->GetData();
 	return pPile->m_pOwningStrip->m_nStrip;
 }
 
 CStrip* CLayout::GetStrip(int nSequNum)
 {
-	PileList::Node* pos = m_pileList.Item(nSequNum); // relies on parallelism of
+	PileList::Node* pos_pPileList = m_pileList.Item(nSequNum); // relies on parallelism of
 													 // m_pSourcePhrases and m_pileList lists
-	wxASSERT(pos != NULL);
-	CPile* pPile = pos->GetData();
+	wxASSERT(pos_pPileList != NULL);
+	CPile* pPile = pos_pPileList->GetData();
 	return pPile->m_pOwningStrip;
 }
 
@@ -4498,14 +4498,14 @@ void CLayout::CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowMa
 /////////////////////////////////////////////////////////////////////////////////
 void CLayout::MakeAllPilesNonCurrent()
 {
-	PileList* pList = GetPileList();
-	PileList::Node* pos = pList->GetFirst();
+	PileList* pPileList = GetPileList();
+	PileList::Node* pos_pPileList = pPileList->GetFirst();
 	CPile* pPile = NULL;
-	while (pos != NULL)
+	while (pos_pPileList != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPileList->GetData();
 		pPile->SetIsCurrentFreeTransSection(FALSE);
-		pos = pos->GetNext();
+		pos_pPileList = pos_pPileList->GetNext();
 	}
 	// makes them ALL false
 }
@@ -4533,10 +4533,10 @@ void CLayout::MakeAllPilesNonCurrent()
 void CLayout::ClearAutoInsertionsHighlighting()
 {
 	CPile* pPile = NULL;
-	PileList::Node* pos = m_pileList.GetFirst();
-	while (pos != NULL)
+	PileList::Node* pos_pPileList = m_pileList.GetFirst();
+	while (pos_pPileList != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPileList->GetData();
 		wxASSERT(pPile != NULL);
 		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
 										  // be an adaptation cell, or a gloss cell
@@ -4544,7 +4544,7 @@ void CLayout::ClearAutoInsertionsHighlighting()
 		{
 			pCell->m_bAutoInserted = FALSE;
 		}
-		pos = pos->GetNext();
+		pos_pPileList = pos_pPileList->GetNext();
 	}
 }
 
@@ -4591,10 +4591,10 @@ void CLayout::SetAutoInsertionHighlightFlag(CPile* pPile)
 bool CLayout::AreAnyAutoInsertHighlightsPresent()
 {
 	CPile* pPile = NULL;
-	PileList::Node* pos = m_pileList.GetFirst();
-	while (pos != NULL)
+	PileList::Node* pos_pPileList = m_pileList.GetFirst();
+	while (pos_pPileList != NULL)
 	{
-		pPile = pos->GetData();
+		pPile = pos_pPileList->GetData();
 		wxASSERT(pPile != NULL);
 		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
 										  // be an adaptation cell, or a gloss cell
@@ -4603,7 +4603,7 @@ bool CLayout::AreAnyAutoInsertHighlightsPresent()
 			// we found a highlighted one
 			return TRUE;
 		}
-		pos = pos->GetNext();
+		pos_pPileList = pos_pPileList->GetNext();
 	}
 	// there are none hilighted
 	return FALSE;

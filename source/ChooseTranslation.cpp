@@ -364,13 +364,13 @@ void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum
 	CRefString* pRefString;
 	int nLocation = -1;
 	wxString str = wxEmptyString;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
 //	bool bWasReinserted = FALSE;		// BEW 14May18 -- commented out, I may need it if I reinstate the code at 338++
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (!pRefString->GetDeletedFlag())
 		{
 			// this one is not deleted, so show it to the user
@@ -489,7 +489,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		itemStr.Empty();
 	}
 	int nListIndex = (int)wxNOT_FOUND;
-	TranslationsList::Node* pos = NULL;
+	TranslationsList::Node* pos_pTranslations = NULL;
 
 	// change the order of the string in the list box
 	// BEW 28Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
@@ -522,8 +522,8 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
 		nListIndex = gpApp->pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
-		wxASSERT(pos != NULL);
+		pos_pTranslations = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		wxASSERT(pos_pTranslations != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
 		// value in the ListBox, and then insert the deleted label preceding the latter,
@@ -554,34 +554,34 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// instance to be moved earlier in the list, and moving it means we must move over
 		// each preceding deleted instance, if any, until we get to the location of the
 		// first preceding non-deleted element, and insert at that location
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pos_pTranslations != NULL);
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		TranslationsList::Node* posOld = pos_pTranslations; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
 		do {
             // jump over any deleted previous CRefString instances, break out when a
             // non-deleted one is found
-			pos = pos->GetPrevious();
-			aRefStrPtr = pos->GetData();
+			pos_pTranslations = pos_pTranslations->GetPrevious();
+			aRefStrPtr = pos_pTranslations->GetData();
 			if (!aRefStrPtr->GetDeletedFlag())
 			{
 				break;
 			}
-		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
+		} while(aRefStrPtr->GetDeletedFlag() && pos_pTranslations != NULL);
 
-		// pos now points at the first preceding non-deleted CRefString instance, which is
+		// pos_pTranslations now points at the first preceding non-deleted CRefString instance, which is
 		// the one before which we want to put pOldRefStr by way of insertion, but first
 		// delete the node containing the old location's instance
         gpApp->pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
-		wxASSERT(pos != NULL);
+		wxASSERT(pos_pTranslations != NULL);
 
         // now do the insertion, bringing the pCurTargetUnit's list into line with what the
         // listbox in the GUI shows to the user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the pos node position.
-		pos = gpApp->pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
-		if (pos == NULL)
+		pos_pTranslations = gpApp->pCurTargetUnit->m_pTranslations->Insert(pos_pTranslations,pRefString);
+		if (pos_pTranslations == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Up button failed to reinsert the translation being moved\n"),
@@ -644,7 +644,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		itemStr.Empty();
 	}
 	int nListIndex = (int)wxNOT_FOUND;
-	TranslationsList::Node* pos = NULL;
+	TranslationsList::Node* pos_pTranslations = NULL;
 
 	// change the order of the string in the list box
 	// BEW 30Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
@@ -689,8 +689,8 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
 		nListIndex = gpApp->pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
-		wxASSERT(pos != NULL);
+		pos_pTranslations = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		wxASSERT(pos_pTranslations != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
 		// value in the ListBox, and then insert the deleted label preceding the one which
@@ -729,29 +729,29 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
         // each following deleted instance, if any, until we get to the location of the
         // first following non-deleted element, move over it and then insert at that
         // location
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pos_pTranslations != NULL);
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		TranslationsList::Node* posOld = pos_pTranslations; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
 		do {
 			// jump over any deleted following CRefString instances, break when a
 			// non-deleted one is found
-			pos = pos->GetNext();
-			aRefStrPtr = pos->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
+			aRefStrPtr = pos_pTranslations->GetData();
 			if (!aRefStrPtr->GetDeletedFlag())
 			{
 				break;
 			}
-		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
+		} while(aRefStrPtr->GetDeletedFlag() && pos_pTranslations != NULL);
         // now advance over this non-deleted one -- this may make the iterator return NULL
         // if we are at the end of the list; then the insertion, bringing the
         // pCurTargetUnit's list into line with what the listbox in the GUI shows to the
         // user
         // Note: wxList::Insert places the item before the given item and the inserted item
-        // then has the pos node position
-		pos = pos->GetNext();
-		if (pos == NULL)
+        // then has the pos_pTranslations node position
+		pos_pTranslations = pos_pTranslations->GetNext();
+		if (pos_pTranslations == NULL)
 		{
 			// we are at the list's end
             gpApp->pCurTargetUnit->m_pTranslations->Append(pRefString);
@@ -759,7 +759,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			// we are at a CRefString instance, so we can insert before it
-            gpApp->pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
+            gpApp->pCurTargetUnit->m_pTranslations->Insert(pos_pTranslations,pRefString);
 		}
 		// delete the node containing the old location's instance
         gpApp->pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
@@ -767,8 +767,8 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// check the insertion or append got done right, a simple message will do (in
 		// English) for the developer if it didn't work - this error is unlikely to ever
 		// happen
-		pos = gpApp->pCurTargetUnit->m_pTranslations->Find(pRefString);
-		if (pos == NULL)
+		pos_pTranslations = gpApp->pCurTargetUnit->m_pTranslations->Find(pRefString);
+		if (pos_pTranslations == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Down button failed to reinsert the translation being moved\n"),
@@ -915,13 +915,13 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // Note: the global pCurTargetUnit is set to a target unit in either the glossing KB
     // (when glossing is ON) or to one in the normal KB when adapting, so we don't need to
     // test for the KB type here.
-	// BEW 25Jun10, because of the possible presence of deletions, we must get pos by a
+	// BEW 25Jun10, because of the possible presence of deletions, we must get pos_pTranslations by a
 	// find rather than rely on the selection index
 	int itemIndex = gpApp->pCurTargetUnit->FindRefString(str);
 	wxASSERT(itemIndex != wxNOT_FOUND);
-	TranslationsList::Node* pos = gpApp->pCurTargetUnit->m_pTranslations->Item(itemIndex);
-	wxASSERT(pos != NULL);
-	CRefString* pRefString = (CRefString*)pos->GetData();
+	TranslationsList::Node* pos_pTranslations = gpApp->pCurTargetUnit->m_pTranslations->Item(itemIndex);
+	wxASSERT(pos_pTranslations != NULL);
+	CRefString* pRefString = (CRefString*)pos_pTranslations->GetData();
 	wxASSERT(pRefString != NULL);
 
     // check that we have the right reference string instance; we must allow for equality

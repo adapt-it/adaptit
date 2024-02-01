@@ -1201,12 +1201,12 @@ int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxSt
 		strAlternateRef.SetChar(0,_T('0')); // produce the "0:verse" string for the alternative test
 	}
 
-	SPList::Node* pos = pDocList->GetFirst();
+	SPList::Node* pos_pList = pDocList->GetFirst();
 	CSourcePhrase* pSrcPhrase = NULL;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (!pSrcPhrase->m_chapterVerse.IsEmpty())
 		{
 			// there is content in the m_chapterVerse member, so check it out
@@ -4751,11 +4751,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		SPList* pList = pApp->m_pSourcePhrases;
 		if (pList->GetCount() > 0)
 		{
-			SPList::Node* pos = pList->GetFirst();
-			while (pos != NULL)
+			SPList::Node* pos_pList = pList->GetFirst();
+			while (pos_pList != NULL)
 			{
-				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-				pos = pos->GetNext();
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+				pos_pList = pos_pList->GetNext();
 				if (pSrcPhrase->m_bHasNote)
 				{
 					// set the flag on the app
@@ -7615,18 +7615,18 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		int snStart = nBegin;
 		int i;
 		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		wxString tgt;
 		wxString gloss;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			tgt = pos->GetData()->m_adaption;
-			gloss = pos->GetData()->m_gloss;
+			src = pos_pSP->GetData()->m_srcPhrase;
+			tgt = pos_pSP->GetData()->m_adaption;
+			gloss = pos_pSP->GetData()->m_gloss;
 			src += _T("/") + tgt;
 			src += _T("/") + gloss;
-			pos = pos->GetNext();
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  "); // note the list below, comma delimited, not one long string
@@ -7761,12 +7761,12 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		int snStart = 173; // update this number if using a different test span
 		int i;
 		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
+			src = pos_pSP->GetData()->m_srcPhrase;
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");  // note the list below, comma delimited, not one long string
@@ -7791,12 +7791,12 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		int snStart = 183; // at end of test span
 		int i;
 		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
+			src = pos_pSP->GetData()->m_srcPhrase;
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  "); // note the list below, comma delimited, not one long string
@@ -7825,12 +7825,12 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		int snStart = 173; // change this if using a different test span
 		int i;
 		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
+			src = pos_pSP->GetData()->m_srcPhrase;
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  "); // note the list below, comma delimited, not one long string
@@ -7993,12 +7993,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		wxArrayString arr;
 		int snStart = 234;
 		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
+			src = pos_pSP->GetData()->m_srcPhrase;
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
@@ -8174,12 +8174,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							wxArrayString arr;
 							int snStart = 234;
 							int i;
-							SPList::Node* pos = pSrcPhrases->Item(snStart);
+							SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 							wxString src;
 							for (i = 0; i < 30; i++)
 							{
-								src = pos->GetData()->m_srcPhrase;
-								pos = pos->GetNext();
+								src = pos_pSP->GetData()->m_srcPhrase;
+								pos_pSP = pos_pSP->GetNext();
 								arr.Add(src);
 							}
 							wxString spaces = _T("  ");
@@ -8219,12 +8219,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							wxArrayString arr;
 							int snStart = 234;
 							int i;
-							SPList::Node* pos = pSrcPhrases->Item(snStart);
+							SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 							wxString src;
 							for (i = 0; i < 30; i++)
 							{
-								src = pos->GetData()->m_srcPhrase;
-								pos = pos->GetNext();
+								src = pos_pSP->GetData()->m_srcPhrase;
+								pos_pSP = pos_pSP->GetNext();
 								arr.Add(src);
 							}
 							wxString spaces = _T("  ");
@@ -8321,12 +8321,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxArrayString arr;
 						int snStart = 234;
 						int i;
-						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 						wxString src;
 						for (i = 0; i < 30; i++)
 						{
-							src = pos->GetData()->m_srcPhrase;
-							pos = pos->GetNext();
+							src = pos_pSP->GetData()->m_srcPhrase;
+							pos_pSP = pos_pSP->GetNext();
 							arr.Add(src);
 						}
 						wxString spaces = _T("  ");
@@ -8363,12 +8363,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxArrayString arr;
 						int snStart = 234;
 						int i;
-						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 						wxString src;
 						for (i = 0; i < 30; i++)
 						{
-							src = pos->GetData()->m_srcPhrase;
-							pos = pos->GetNext();
+							src = pos_pSP->GetData()->m_srcPhrase;
+							pos_pSP = pos_pSP->GetNext();
 							arr.Add(src);
 						}
 						wxString spaces = _T("  ");
@@ -8410,12 +8410,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxArrayString arr;
 						int snStart = 234;
 						int i;
-						SPList::Node* pos = pSrcPhrases->Item(snStart);
+						SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 						wxString src;
 						for (i = 0; i < 30; i++)
 						{
-							src = pos->GetData()->m_srcPhrase;
-							pos = pos->GetNext();
+							src = pos_pSP->GetData()->m_srcPhrase;
+							pos_pSP = pos_pSP->GetNext();
 							arr.Add(src);
 						}
 						wxString spaces = _T("  ");
@@ -8770,12 +8770,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		wxArrayString arr;
 		int snStart = 234;
 		int i;
-		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		SPList::Node* pos_pSP = pSrcPhrases->Item(snStart);
 		wxString src;
 		for (i = 0; i < 30; i++)
 		{
-			src = pos->GetData()->m_srcPhrase;
-			pos = pos->GetNext();
+			src = pos_pSP->GetData()->m_srcPhrase;
+			pos_pSP = pos_pSP->GetNext();
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");

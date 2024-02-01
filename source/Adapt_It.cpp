@@ -4667,14 +4667,14 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
     // member of the UserProfileItem part of pUserProfiles
     if (pUserProfiles != NULL)
     {
-        ProfileItemList::Node* pos;
+        ProfileItemList::Node* pos_profileList;
         int count;
         int item_count = (int)pUserProfiles->profileItemList.GetCount();
         for (count = 0; count < item_count; count++)
         {
-            pos = pUserProfiles->profileItemList.Item(count);
+            pos_profileList = pUserProfiles->profileItemList.Item(count);
             UserProfileItem* pItem;
-            pItem = pos->GetData();
+            pItem = pos_profileList->GetData();
             if (pItem->itemType == _T("subMenu"))
             {
 
@@ -5332,14 +5332,14 @@ void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 {
     if (pUserProfiles != NULL)
     {
-        ProfileItemList::Node* pos;
+        ProfileItemList::Node* pos_profileList;
         int count;
         int item_count = (int)pUserProfiles->profileItemList.GetCount();
         for (count = 0; count < item_count; count++)
         {
-            pos = pUserProfiles->profileItemList.Item(count);
+            pos_profileList = pUserProfiles->profileItemList.Item(count);
             UserProfileItem* pItem;
-            pItem = pos->GetData();
+            pItem = pos_profileList->GetData();
             //wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
             if (pItem != NULL) // whm 11Jun12 added NULL test
                 delete pItem;
@@ -9243,11 +9243,11 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
         if (valReadOK && keyArray[ct] != _T("[UNASSIGNED]"))
         {
             bKeysPresent = TRUE;
-            int pos;
-            pos = keyArray[ct].Find(_T(':'));
-            wxASSERT(pos > 0 && pos <= 3);	// the language code number should represented
+            int nPos;
+            nPos = keyArray[ct].Find(_T(':'));
+            wxASSERT(nPos > 0 && nPos <= 3);	// the language code number should represented
                                             // as a three letter string between 231 and 255
-            wxString codeStr = keyArray[ct].Left(pos);
+            wxString codeStr = keyArray[ct].Left(nPos);
             foundCodesArray.Add(codeStr);
         }
         if (!valReadOK)
@@ -9281,15 +9281,15 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
         if (keyArray[ct].Find(subStr) != -1)
         {
             bAlreadyAssigned = TRUE;
-            int pos;
-            pos = keyArray[ct].Find(_T(':'));
-            wxASSERT(pos > 0 && pos <= 3); // whm 15May2023 the language code number should be represented as a three letter 
-                                            // string between 231 and 880 ??? wxLANGUAGE_USER_DEFINED is now 879 - will assert if pos > 3
-            wxString codeStr = keyArray[ct].Left(pos);
+            int nPos;
+            nPos = keyArray[ct].Find(_T(':'));
+            wxASSERT(nPos > 0 && nPos <= 3); // whm 15May2023 the language code number should be represented as a three letter 
+                                            // string between 231 and 880 ??? wxLANGUAGE_USER_DEFINED is now 879 - will assert if nPos > 3
+            wxString codeStr = keyArray[ct].Left(nPos);
             nCodeAssigned = wxAtoi(codeStr);
             // Update the path part (it may have been changed by the user).
             wxString tempStr = keyArray[ct];
-            int posPath = pos + subStr.Length();
+            int posPath = nPos + (int)subStr.Length();
             tempStr = tempStr.Left(posPath);
             tempStr = tempStr + localizationPath; // use the incoming (possibly
                                                   // updated) path
@@ -9584,12 +9584,12 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
         // Indicate "Yes" for adminModified if not already set to "Yes"
         if (adminModStr.Find(_T("Yes")) == wxNOT_FOUND)
         {
-            int pos = adminModStr.Find(_T("No"));
-            wxASSERT(pos != wxNOT_FOUND);
-            if (pos != wxNOT_FOUND)
+            int nPos = adminModStr.Find(_T("No"));
+            wxASSERT(nPos != wxNOT_FOUND);
+            if (nPos != wxNOT_FOUND)
             {
-                adminModStr.Remove(pos, 2);
-                adminModStr.insert(pos, _T("Yes"));
+                adminModStr.Remove(nPos, 2);
+                adminModStr.insert(nPos, _T("Yes"));
             }
         }
         composeXmlStr += _T("=\"") + adminModStr + _T("\"");
@@ -17676,15 +17676,15 @@ wxString CAdapt_ItApp::GetLanguageNameFromBinaryMoFile(wxString pathAndMoFileNam
         char strToFind[] = "\nLanguage: "; // length is 19 bytes plus null char = 20
         char* ptr;
         wxString languageFound;
-        int pos, len, outcome;
+        int nPos, len, outcome;
         len = strlen(strToFind); // strlen gets length of strToFind not including the terminating null
         ptr = pBuff;
         // scan through the buffer with ptr and use memcmp to compare strToFind with the
         // portion of the buffer starting at ptr
-        for (pos = 0; pos < fileLen - (len + 1); pos++) // stop len + 1 bytes short of end of buffer
+        for (nPos = 0; nPos < fileLen - (len + 1); nPos++) // stop len + 1 bytes short of end of buffer
         {
-            outcome = memcmp(strToFind, ptr + pos, len);
-            // outcome is 0 if strToFind is equal to the sequence of len chars starting at ptr+pos
+            outcome = memcmp(strToFind, ptr + nPos, len);
+            // outcome is 0 if strToFind is equal to the sequence of len chars starting at ptr+nPos
             if (outcome == 0)
             {
                 bFound = TRUE;
@@ -17696,9 +17696,9 @@ wxString CAdapt_ItApp::GetLanguageNameFromBinaryMoFile(wxString pathAndMoFileNam
             // the "X-Poedit-Language: " string was found in the mo file, so now copy bytes from
             // the end of "X-Poedit-Language: " to the following \n character
             int ct = 0;
-            while (pos < fileLen && *(ptr + pos + len + ct) != '\n')
+            while (nPos < fileLen && *(ptr + nPos + len + ct) != '\n')
             {
-                str += *(ptr + pos + len + ct);
+                str += *(ptr + nPos + len + ct);
                 ct++;
             }
         }
@@ -32774,14 +32774,14 @@ bool CAdapt_ItApp::IsZWSPinDoc(SPList* pList)
     wxChar zwsp = (wxChar)0x200B;
     if (pList->size() == 0)
         return FALSE;
-    SPList::Node* pos = pList->GetFirst();
+    SPList::Node* pos_pList = pList->GetFirst();
     CSourcePhrase* pSP = NULL;
     wxString srcWordBreak;
     int offset = wxNOT_FOUND;
-    while (pos != NULL)
+    while (pos_pList != NULL)
     {
-        pSP = pos->GetData();
-        pos = pos->GetNext();
+        pSP = pos_pList->GetData();
+        pos_pList = pos_pList->GetNext();
         srcWordBreak = pSP->GetSrcWordBreak();
         offset = srcWordBreak.Find(zwsp);
         if (offset != wxNOT_FOUND)
@@ -39815,14 +39815,14 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 		// turn the comma-separated fields into items in parallel wxArrayStrings & wxArrayInt
 		int offset = wxNOT_FOUND;
 		int fieldsCount = 4;
-		int pos;
+		int nPos;
 		wxString field = wxEmptyString;
 		wxString comma = _T(',');
 
 		// Inner loop, extracts each field, and assigns to the appropriate array
-		for (pos = 0; pos <= fieldsCount; pos++)
+		for (nPos = 0; nPos <= fieldsCount; nPos++)
 		{
-			switch (pos)
+			switch (nPos)
 			{
 			case 0:
             {
@@ -39832,7 +39832,7 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 #if defined (_DEBUG)
                 username = field;
                 wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber list_users = %d, username: %s , for field index: %d"),
-                    __FILE__, __FUNCTION__, __LINE__, list_users, username.c_str(), pos);
+                    __FILE__, __FUNCTION__, __LINE__, list_users, username.c_str(), nPos);
 #endif
                 m_mgrUsernameArr.Add(field);
                 // Shorten
@@ -39848,7 +39848,7 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 #if defined (_DEBUG)
                 fullname = field;
                 wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, fullname: %s , for field index: %d"),
-                    __FILE__, __FUNCTION__, __LINE__, list_users, fullname.c_str(), pos);
+                    __FILE__, __FUNCTION__, __LINE__, list_users, fullname.c_str(), nPos);
 #endif
                 m_mgrFullnameArr.Add(field);
                 // Shorten
@@ -39864,7 +39864,7 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
 #if defined (_DEBUG)
                 password = field;
                 wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, password: %s , for field index: %d"),
-                    __FILE__, __FUNCTION__, __LINE__, list_users, password.c_str(), pos);
+                    __FILE__, __FUNCTION__, __LINE__, list_users, password.c_str(), nPos);
 #endif
                 m_mgrPasswordArr.Add(field);
                 // Shorten
@@ -39894,11 +39894,11 @@ void CAdapt_ItApp::ConvertLinesToMgrArrays(wxArrayString& arrLines)
                 }
 
                 wxLogDebug(_T("%s::%s(),line %d: one arrLines line,funcNumber for enum list_users = %d, useradmin: %d , for field index: %d"),
-                    __FILE__, __FUNCTION__, __LINE__, list_users, useradmin, pos);
+                    __FILE__, __FUNCTION__, __LINE__, list_users, useradmin, nPos);
             }
 				break;
-			} // end of switch (pos)
-		} // end of for loop: for (pos = 0; pos <= fieldsCount; pos++)
+			} // end of switch (nPos)
+		} // end of for loop: for (nPos = 0; nPos <= fieldsCount; nPos++)
 
 #if defined (_DEBUG)
 		wxLogDebug(_T("%s::%s(), line %d : username = %s, fullname = %s, password = %s , useradmin = %d , for line index %d"),
@@ -47972,12 +47972,12 @@ bool CAdapt_ItApp::DocHasGlosses(SPList* pSPList)
 {
     bool bFound = FALSE;
     CSourcePhrase* pSrcPhrase = (CSourcePhrase*)NULL;
-    SPList::Node* pos = pSPList->GetFirst();
-    wxASSERT(pos != NULL);
-    while (pos != NULL)
+    SPList::Node* pos_pSPList = pSPList->GetFirst();
+    wxASSERT(pos_pSPList != NULL);
+    while (pos_pSPList != NULL)
     {
-        pSrcPhrase = (CSourcePhrase*)pos->GetData();
-        pos = pos->GetNext();
+        pSrcPhrase = (CSourcePhrase*)pos_pSPList->GetData();
+        pos_pSPList = pos_pSPList->GetNext();
         wxASSERT(pSrcPhrase);
         if (pSrcPhrase->m_bHasGlossingKBEntry)
         {
@@ -47993,12 +47993,12 @@ bool CAdapt_ItApp::DocHasFreeTranslations(SPList* pSPList)
 {
     bool bFound = FALSE;
     CSourcePhrase* pSrcPhrase = (CSourcePhrase*)NULL;
-    SPList::Node* pos = pSPList->GetFirst();
-    wxASSERT(pos != NULL);
-    while (pos != NULL)
+    SPList::Node* pos_pSPList = pSPList->GetFirst();
+    wxASSERT(pos_pSPList != NULL);
+    while (pos_pSPList != NULL)
     {
-        pSrcPhrase = (CSourcePhrase*)pos->GetData();
-        pos = pos->GetNext();
+        pSrcPhrase = (CSourcePhrase*)pos_pSPList->GetData();
+        pos_pSPList = pos_pSPList->GetNext();
         wxASSERT(pSrcPhrase);
         if (pSrcPhrase->m_bHasFreeTrans)
         {
@@ -51354,28 +51354,28 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
             ((CStatusBar*)m_pMainFrame->m_pStatusBar)->StartProgress(_("Transformations To Glosses"), msgDisplayed, nTotal);
 
             SPList* pPhrases = m_pSourcePhrases;
-            SPList::Node* pos1;
-            pos1 = pPhrases->GetFirst();
-            wxASSERT(pos1 != NULL);
+            SPList::Node* pos_pPhrases;
+            pos_pPhrases = pPhrases->GetFirst();
+            wxASSERT(pos_pPhrases != NULL);
             int counter = 0;
-            while (pos1 != NULL)
+            while (pos_pPhrases != NULL)
             {
-                SPList::Node* savePos = pos1;
-                CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-                pos1 = pos1->GetNext();
+                SPList::Node* savePos = pos_pPhrases;
+                CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pPhrases->GetData();
+                pos_pPhrases = pos_pPhrases->GetNext();
                 counter++;
 
                 // update the glossing or adapting KB for this source phrase
                 bool bRemoveIt = FALSE;
                 bRemoveIt = pView->TransformSourcePhraseAdaptationsToGlosses(
-                    this, savePos, pos1, pSrcPhrase);
+                    this, savePos, pos_pPhrases, pSrcPhrase);
 
                 // if it needs to be removed, do so; (any adjustments to flags which are
                 // needed will already have been done in the
                 // TransformSourcePhraseAdaptationsToGlosses( ) function)
                 if (bRemoveIt)
                 {
-                    // removing the one at savePos, so pos1 will remain valid since it is
+                    // removing the one at savePos, so pos_pPhrases will remain valid since it is
                     // next
                     pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
                     pPhrases->DeleteNode(savePos);
@@ -54170,7 +54170,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE unless there was a mismatch book ID or an invalid book ID in
 ///             which case returns FALSE
-/// \param      ol                                   <- pointer to the list of source
+/// \param      pOtherSPList                         <- pointer to the list of source
 ///                                                     phrases to be appended
 /// \param      curBookID                            -> the current book ID
 /// \param      IsLastAppendUsingThisMethodRightNow  -> TRUE when being called on the
@@ -54178,7 +54178,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 ///                                                     appended
 /// \remarks
 /// Called from: CJoinDialog::OnBnClickedJoinNow().
-/// Appends a list of source phrases (from ol) to the current Doc's list of source phrases,
+/// Appends a list of source phrases (from pOtherSPList) to the current Doc's list of source phrases,
 /// effectively joining two documents. Tests to make sure book IDs are valid and that they
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
@@ -54188,7 +54188,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// have any book ID to compare, so we just accept whatever ID is in the list being
 /// appended
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID,
+bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *pOtherSPList, wxString& curBookID,
     bool IsLastAppendUsingThisMethodRightNow)
 {
     // In AppendSourcePhrasesToCurrentDoc the bool input parameter will be true when this
@@ -54216,8 +54216,8 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
         lowerPassedInID.MakeLower(); // it's now lower case
         wxString appendingDoc_BookID;
         wxString lowerAppendingBookID;
-        SPList::Node* pos = ol->GetFirst();
-        CSourcePhrase* pFirstSrcPhrase = (CSourcePhrase*)pos->GetData();
+        SPList::Node* pos_otherList = pOtherSPList->GetFirst();
+        CSourcePhrase* pFirstSrcPhrase = (CSourcePhrase*)pos_otherList->GetData();
         wxASSERT(pFirstSrcPhrase);
         if (pFirstSrcPhrase->m_markers.Find(_T("\\id ")) == 0)
         {
@@ -54242,7 +54242,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 					// first, otherwise this leaks it all at aeach chapter Join
 					// TRUE in next call means 'delete partner pile also'
 					d->DeleteSingleSrcPhrase(pFirstSrcPhrase, TRUE);
-                    ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
+                    pOtherSPList->DeleteNode(pOtherSPList->GetFirst()); //pOtherSPList->RemoveHead();
                 }
             }
             else
@@ -54273,7 +54273,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
       // valid partner piles, and do a RecalcLayout() call here with the option
       // create_strips_and_piles in order for the rest of the code to work right in the
       // refactored design
-    SPList::Node* node = ol->GetFirst();
+    SPList::Node* node = pOtherSPList->GetFirst();
     while (node)
     {
         m_pSourcePhrases->Append(node->GetData());
@@ -54470,16 +54470,16 @@ wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      l   -> pointer to a list of source phrases
+/// \param      pList   -> pointer to a list of source phrases
 /// \remarks
 /// Called from: CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// SplitIntoChapters_Interactive().
-/// Deletes the source phrases from the list pointed to by l. Does nothing if there
-/// are no source phrases in l.
+/// Deletes the source phrases from the list pointed to by pList. Does nothing if there
+/// are no source phrases in pList.
 /// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
 /// (Warramiri - Matata) had a doc contents emptying experience
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
+void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *pList)
 {
 	m_bDocumentDestroyed = TRUE;
 
@@ -54488,15 +54488,15 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 	// BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
     // the DeleteSourcePhrases() function in the doc class for safe deletion code)
     CAdapt_ItDoc* pDoc = GetDocument();
-    if (!l->IsEmpty())
+    if (!pList->IsEmpty())
     {
 
 		// delete all the tokenizations of the source text
-        SPList::Node* pos = l->GetFirst();
-        while (pos != NULL)
+        SPList::Node* pos_pList = pList->GetFirst();
+        while (pos_pList != NULL)
         {
-            CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-            pos = pos->GetNext();
+            CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+            pos_pList = pos_pList->GetNext();
             pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // Note, it would be more efficient
             // to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
             // a call such as DestroyPiles(PileList* piles) -- but we don't have such a
@@ -54504,7 +54504,7 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
             // passed in above, would have to be calculated -- all of which could be done,
             // but the returns are diminished, so I'll not bother
         }
-        l->Clear();
+        pList->Clear();
     }
 	s_AutoSaveMutex.Unlock();
 }
@@ -54666,8 +54666,8 @@ wxString CAdapt_ItApp::GetBookIDFromDoc()
     // returning the code if it is a valid one -- according to the Paratext list of codes
     wxString id;
     id.Empty();
-    SPList::Node* pos = m_pSourcePhrases->GetFirst();
-    CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+    SPList::Node* pos_pSP = m_pSourcePhrases->GetFirst();
+    CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
     wxASSERT(pSrcPhrase);
     if (pSrcPhrase->m_markers.Find(_T("\\id ")) == -1)
     {
@@ -54741,8 +54741,8 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
     pSrcPhrase->m_bFirstOfType = TRUE;
 
     // insert this instance at the start of the document
-    SPList::Node* pos = pSrcPhrasesList->GetFirst();
-    pos = pSrcPhrasesList->Insert(pos, pSrcPhrase);
+    SPList::Node* pos_pSP = pSrcPhrasesList->GetFirst();
+    pos_pSP = pSrcPhrasesList->Insert(pos_pSP, pSrcPhrase);
     //pDoc->CreatePartnerPile(pSrcPhrase); // makes no sense, remove it (BEW 13Aug09)
     // bug discovered by Kent Schroeder
 }
@@ -56742,11 +56742,11 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // Be able to recover the fact that we are printing a selection.
         m_bPrintingSelection = TRUE;
 
-        CCellList::Node* pos = m_selection.GetFirst();
-        CCell* pCell = pos->GetData();
+        CCellList::Node* pos_pCellList = m_selection.GetFirst();
+        CCell* pCell = pos_pCellList->GetData();
         int nBeginSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
-        pos = m_selection.GetLast();
-        pCell = pos->GetData();
+        pos_pCellList = m_selection.GetLast();
+        pCell = pos_pCellList->GetData();
         int nEndSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 
         // The selection is about to be temporarily made the whole document, so we
@@ -56886,12 +56886,12 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
     // the working directory, first param is for default dialog style with resizable
     // border (see wxDirDialog for details)
     long style = wxDD_DEFAULT_STYLE | wxDD_CHANGE_DIR; // allow Create button in dialog
-    wxPoint pos = wxDefaultPosition;
+    wxPoint posn = wxDefaultPosition;
     // in the following call, which is a wx widget which can be called as below or as
     // ::wxDirSelector(...params...), if the user cancels from the browser window the
     // returned string is empty, otherwise it is the absolute path to whatever directory
     // was shown selected in the folder hierarchy when the OK button was pressed
-    wxString dir = wxDirSelector(msg, defaultPath, style, pos, (wxWindow*)pFrame);
+    wxString dir = wxDirSelector(msg, defaultPath, style, posn, (wxWindow*)pFrame);
     returnedPath = dir;
     if (dir == _T(""))
     {
@@ -62875,9 +62875,9 @@ bool CAdapt_ItApp::RestoreSelection(bool bRestoreCCellsFlagToo)
     CCell* pCell = NULL;
     CLayout* pLayout = m_pLayout;
     //PileList* pPileList = pLayout->GetPileList();
-    //PileList::Node* pos = pPileList->Find(m_savedSelectionAnchorIndex); // the position of the anchor pile;
-    //wxASSERT(pos != NULL);
-    //pPile = pos->GetData();
+    //PileList::Node* pos_PileList = pPileList->Find(m_savedSelectionAnchorIndex); // the position of the anchor pile;
+    //wxASSERT(pos_PileList != NULL);
+    //pPile = pos_PileList->GetData();
     pPile = pLayout->GetPile(m_savedSelectionAnchorIndex);
     pCell = pPile->GetCell(m_savedSelectionLine);
     m_pAnchor = pCell;
@@ -62895,13 +62895,13 @@ bool CAdapt_ItApp::RestoreSelection(bool bRestoreCCellsFlagToo)
     int index = m_savedSelectionAnchorIndex + 1;
     while (count < m_savedSelectionCount)
     {
-        //pos = pos->GetNext();
-        //if (pos == NULL)
+        //pos_PileList = pos_PileList->GetNext();
+        //if (pos_PileList == NULL)
         //{
         // we couldn't finish the restoration, leave what we'd done intact, but return FALSE
         //    return FALSE;
         //}
-        //pPile = pos->GetData();
+        //pPile = pos_PileList->GetData();
         pPile = pLayout->GetPile(index);
 
         pCell = pPile->GetCell(m_savedSelectionLine);
@@ -64865,14 +64865,14 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 	wxString matchMe = *pAdaption; // work with a copy of the passed in string
 	wxASSERT(pTU != NULL);
 	CRefString* pRefString;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
 	int nLocation = 0;
 	wxString str;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
+        pos_pTranslations = pos_pTranslations->GetNext();
 		//if (!pRefString->GetDeletedFlag())
 		if (pRefString->GetDeletedFlag())
 		{

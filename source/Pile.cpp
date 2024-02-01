@@ -449,12 +449,12 @@ int CPile::CalcPhraseBoxListWidth()
 			listWidth = 0; //  better to start from 0, than gpApp->m_nMinPileWidth;
 
 			wxString strNoAdaptation = _("<no adaptation>");
-			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-			wxASSERT(pos != NULL);
-			while (pos != NULL)
+			TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+			wxASSERT(pos_pTranslations != NULL);
+			while (pos_pTranslations != NULL)
 			{
-				pRefString = (CRefString*)pos->GetData();
-				pos = pos->GetNext();
+				pRefString = (CRefString*)pos_pTranslations->GetData();
+				pos_pTranslations = pos_pTranslations->GetNext();
 				if (!pRefString->GetDeletedFlag())
 				{
 					// this one is not deleted, so add it to the string array
@@ -1265,8 +1265,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 				// the following kludge works, so make it permanent code
 				PileList* pPileList = m_pLayout->GetPileList();
-				PileList::Node* pos = pPileList->GetLast();
-				CPile* pLastPile = pos->GetData();
+				PileList::Node* pos_pPileList = pPileList->GetLast();
+				CPile* pLastPile = pos_pPileList->GetData();
 				if (this == pLastPile)
 				{
 					// Chop off the bogus chars but only when the pile is the last one --

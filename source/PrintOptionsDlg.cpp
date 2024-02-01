@@ -471,14 +471,14 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 	// Scan the SrcPhrase structure to get certain information that we need upfront.
 	// This should work whether we have unstructured data or not
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	bool bFirst = TRUE;
 	bool bHasSectHdg = FALSE;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 		if (!pSrcPhrase->m_markers.IsEmpty())
 		{

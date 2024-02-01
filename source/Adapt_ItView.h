@@ -316,7 +316,7 @@ protected:
 	wxString	DoConsistentChanges(wxString& str);
 	wxString	DoSilConvert(const wxString& str);
 	wxString	DoGuess(const wxString& str, bool& bIsGuess);
-	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc,
+	bool		DoExtendedSearch(int selector, SPList::Node*& pos_callers, CAdapt_ItDoc* pDoc,
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
 	bool		DoSrcAndTgtFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,

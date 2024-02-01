@@ -417,8 +417,8 @@ bool AIPrintout::OnPrintPage(int page)
         {
             return FALSE;
         }
-        POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
-		// whm 27Oct11 added test to return FALSE if pos == NULL
+        POList::Node* pos_POList = pList->Item(pApp->m_nCurPage-1);
+		// whm 27Oct11 added test to return FALSE if pos_POList == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
 		// function can get triggered by the Linux system on that platform
 		// before App's m_nCurPage is calculated by OnPreparePrinting()'s
@@ -427,7 +427,7 @@ bool AIPrintout::OnPrintPage(int page)
 		// AIPrintout.cpp).
 		// BEW 28Oct11, the addition of m_bPagePrintInProgress should make the protection
 		// of the next 8 line block unneeded, but we retain it as a safety-first measure
-		if (pos == NULL)
+		if (pos_POList == NULL)
 		{
 			// Most likely this would be the result of a programming error
 			pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
@@ -436,7 +436,7 @@ bool AIPrintout::OnPrintPage(int page)
 			wxASSERT_MSG(FALSE,msg);
 			return FALSE; // note: this ends the printing job
 		}
-		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
+		PageOffsets* pOffsets = (PageOffsets*)pos_POList->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
         // for the page being printed - CStrip::Draw() needs this information in order to
@@ -932,8 +932,8 @@ bool AIPrintout::OnPrintPage(int page)
 		{
 			return FALSE;
 		}
-		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
-		// whm 27Oct11 added test to return FALSE if pos == NULL
+		POList::Node* pos_POList = pList->Item(pApp->m_nCurPage-1);
+		// whm 27Oct11 added test to return FALSE if pos_POList == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
 		// function can get triggered by the Linux system on that platform
 		// before App's m_nCurPage is calculated by OnPreparePrinting()'s
@@ -942,7 +942,7 @@ bool AIPrintout::OnPrintPage(int page)
 		// AIPrintout.cpp).
 		// BEW 28Oct11, the addition of m_bPagePrintInProgress should make the protection
 		// of the next 8 line block unneeded, but we retain it as a safety-first measure
-		if (pos == NULL)
+		if (pos_POList == NULL)
 		{
 			// Most likely this would be the result of a programming error
 			pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
@@ -952,7 +952,7 @@ bool AIPrintout::OnPrintPage(int page)
 			return FALSE; // note: this ends the printing job
 		}
 
-		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
+		PageOffsets* pOffsets = (PageOffsets*)pos_POList->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
         // for the page being printed - CStrip::Draw() needs this information in order to

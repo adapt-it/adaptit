@@ -152,7 +152,7 @@ fpos = pNewList->GetFirst(); pNewSrcPhrase = fpos->GetData(); <<< pNewSrcPhrase 
 CSourcePhrase* pSP = pos->GetData(); pos = pos->GetPrevious; <<< CSourcePhrase* pSP = (CSourcePhrase*)pSaved->GetPrev(pos);
 SPList::Node* pos = pList->Item(nFirstSequNum) <<< POSITION pos = pList->FindIndex(nFirstSequNum);
 CSourcePhrase* pSrcPhrase = pos->GetData();  <<< CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pList->GetAt(pos);
-POSITION pos = pSrcPhrases->GetHeadPosition()  <<< SPList::Node* pos1 = pPhrases->GetFirst();
+POSITION pos_SPList = pSrcPhrases->GetHeadPosition()  <<< SPList::Node* pos_SPList = pPhrases->GetFirst();
 [see example and notes in the View's RestoreOriginalMinPhrases() function] <<< pList->InsertAfter(savePos,pSP)
 pList->DeleteNode(pos); <<< pList->RemoveAt(pos);
 pList->Append(pSrcPhrase); <<<  pList->AddTail(pSrcPhrase);
@@ -160,7 +160,7 @@ for (SPList::Node *node = pAddList->GetFirst(); node; node = node->GetNext()) {p
 pList->Insert(pSrcPhrase); [Insert always adds to head of list] <<< pList->AddHead(pSrcPhrase);
 pList->Insert(pos,pSrcPhr); <<< pList->InsertBefore(pos,pSrcPhr);
 pApp->m_selection.Insert(pPrevCell); <<< pApp->m_selection.AddHead(pPrevCell);
-SPList::Node* pos1 = pOtherList->Find(pSP);  <<< POSITION pos1 = pOtherList->Find(pSP);
+SPList::Node* pos_otherList = pOtherList->Find(pSP);  <<< POSITION pos_otherList = pOtherList->Find(pSP);
 
 wxStringTokenizer tkz(wholeMkr); [see context] <<< wholeMkr = str.Tokenize(_T(" "),curPos);
 

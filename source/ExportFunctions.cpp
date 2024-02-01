@@ -2911,7 +2911,7 @@ void DoExportInterlinearRTF()
 	wxString Mkr;
 
 	CSourcePhrase* pSrcPhrase = NULL;
-	//SPList::Node* savePos = NULL; //POSITION savePos = NULL;
+	//SPList::Node* savePos = NULL;
 
 	// Scan the SrcPhrase structure to get certain information that we need upfront, before
 	// putting up the export interlinear dialog, or before constructing the RTF header items:
@@ -2920,13 +2920,13 @@ void DoExportInterlinearRTF()
 	// 3. Whether the document contains free translations, back translations and/or AI notes (also needed
 	//    before the RTF header is formed)
 	// This should work whether we have unstructured data or not
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	bool bFirst = TRUE;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase);
 		//if (!pSrcPhrase->m_markers.IsEmpty())
 		// In the following test, the 2nd param, bool bIgnoreEndMarkers, is default TRUE
@@ -5435,9 +5435,9 @@ void DoExportInterlinearRTF()
 
 	// START of MAIN LOOP SCANNING THROUGH ALL SOURCE PHRASES
 	// start at beginning of pList of SourcePhrases
-	pos = pList->GetFirst(); //pos = pList->GetHeadPosition();
-	wxASSERT(pos != NULL);
-	while (pos != NULL) // cycle through all SourcePhrases
+	pos_pList = pList->GetFirst(); //pos_pList = pList->GetHeadPosition();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != NULL) // cycle through all SourcePhrases
 	{
 		counter++;
 		if (counter % 200 == 0)
@@ -5446,7 +5446,7 @@ void DoExportInterlinearRTF()
 			pStatusBar->UpdateProgress(_("Export to Interlinear RTF"), counter, msgDisplayed);
 		}
 
-		//savePos = pos;
+		//savePos = pos_pList;
 
 		// reset
 		SrcStr.Empty();
@@ -5462,8 +5462,8 @@ void DoExportInterlinearRTF()
 		assocFreeMarkerText.Empty();
 		assocBTMarkerText.Empty();
 
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 
 		// handle output of Prelim material only, Ch:Vs range, & final material only cases
@@ -17353,8 +17353,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// original CSourcePhrase instances in the m_pSavedWords array in the merged
 	// sourcephrase we must examine all those originals in that sublist - but the first
 	// must be given special treatment.
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	source.Empty();
 	wxString tempStr;
 	// BEW added 16Jan08 A boolean added in support of adequate handling of markers which
@@ -17433,10 +17433,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// RebuildTargetText() function doesn't need all this extra apparatus.
 
 	bool bHasFilteredMaterial = FALSE; // initialise
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 
 #ifdef _DEBUG
 		if (pSrcPhrase->m_bUnused == TRUE)
@@ -17896,7 +17896,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			}
 			str.Empty();
 		}
-	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
+	}// end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
@@ -18100,8 +18100,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
 	}
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 
 	// Compose the output data & write it out, phrase by phrase,
 	// restoring standard format markers as appropriate....
@@ -18172,10 +18172,10 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 	// that is the CSourcePhrase instance on to which they are to be moved.
 
 	//bool bHasFilteredMaterial = FALSE;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
@@ -18420,7 +18420,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			glosses += str;
 			str.Empty();
 		} // end of block for a single CSourcePhrase instance
-	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
+	}// end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	glosses = DoFwdSlashConsistentChanges(removeAtPunctuation, glosses);
@@ -18484,8 +18484,8 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
 	}
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 
 	// Compose the output data & write it out, phrase by phrase, restoring standard format
 	// markers as appropriate...
@@ -18554,10 +18554,10 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	// that is the CSourcePhrase instance on to which they are to be moved.
 
 	bool bHasFilteredMaterial = FALSE;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
@@ -18784,7 +18784,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 			freeTrans += str;
 			str.Empty();
 		}
-	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
+	}// end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
 	// remove any marker or end-marker which has textType of 'none'
 	RemoveMarkersOfType(none, freeTrans);
@@ -19025,14 +19025,14 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	wxString targetstr; // accumulate the target text here
 
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != NULL)
 	{
-		SPList::Node* savePos = pos;
+		SPList::Node* savePos = pos_pList;
 		wxString str;
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
 		if (pSrcPhrase->m_nSequNumber >= 11) 
@@ -19080,7 +19080,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			// we then, still within the function, call the Placement dialog for any
 			// medial markers needing placement, and then set savePos to be the Node*
 			// immediately after the retranslation, or NULL if at end of doc
-			pos = DoPlacementOfMarkersInRetranslation(savePos, pList, str);
+			pos_pList = DoPlacementOfMarkersInRetranslation(savePos, pList, str);
 
 			// BEW 30Sep19  storage of USFM3 attributes metadata on any of the CSourcePhrase
 			// instances comprising a retranslation is strictly prohibited. (There is no way
@@ -19232,7 +19232,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 
 
-	}// end of while (pos != NULL)
+	}// end of while (pos_pList != NULL)
 
 	int textLen = targetstr.Length();
 	target = targetstr; // return all the text in one long wxString
@@ -19488,14 +19488,14 @@ bool IsDocWithParagraphMarkersOnly(SPList* pSrcPhrasesList)
 	// we scan only until we find some marker other than \p
 	bool bFoundParagraphMarker = FALSE; // use this to prevent unneeded
 										// finds after the first
-	SPList::Node* pos = NULL;
-	pos = pSrcPhrasesList->GetFirst();
+	SPList::Node* pos_pList = NULL;
+	pos_pList = pSrcPhrasesList->GetFirst();
 	int offset = wxNOT_FOUND;
 	int offset2 = wxNOT_FOUND;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxString markers = pSrcPhrase->m_markers;
 		if (!markers.IsEmpty())
 		{
@@ -21116,7 +21116,7 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 	int countFromPhrase = 0; // whm initialized to zero
 	SPList::Node* anchorPos = pList->Item(nAnchorSequNum);
 	wxASSERT(anchorPos);
-	SPList::Node* pos = anchorPos;
+	SPList::Node* pos_pList = anchorPos;
 	wxString phrase;
 	CSourcePhrase* pSrcPhrase;
 	pSrcPhrase = (CSourcePhrase*)anchorPos->GetData();
@@ -21141,10 +21141,10 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 	// sourcephrase in the current section of free translation, so process all
 	// sourcephrases in the section, but count only those which are not placeholders
 	// because those won't be in a source text export
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		if (bCountInTargetText)
 		{
@@ -21250,8 +21250,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	SPList* pSrcPhrases, wxString& Tstr)
 {
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	SPList::Node* pos = firstPos;
-	wxASSERT(pos != 0);
+	SPList::Node* pos_pList = firstPos;
+	wxASSERT(pos_pList != 0);
 	bool bHasInternalMarkers = FALSE; // assume none for default
 	SPList::Node* savePos = NULL; // whm initialized to NULL
 	wxString Sstr; // needed only for the placement dialog, not for returning to caller
@@ -21301,11 +21301,11 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	bool bFirst = TRUE;
 	wxString nBEMkrs; // for non-binding endmarkers
 	wxString bEMkrs; // for binding endmarkers
-	while (pos != 0)
+	while (pos_pList != 0)
 	{
-		savePos = pos; // savePos is what we return to the caller
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		savePos = pos_pList; // savePos is what we return to the caller
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		// break out of the loop if we reach the end of the retranslation, or if we reach
 		// the beginning of an immediately following (but different) retranslation
 		if (!pSrcPhrase->m_bRetranslation || ((pSrcPhrase->m_bRetranslation &&
@@ -21926,9 +21926,9 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			}
 		}
 
-		// if we got to the end of the file, pos will now be null, so we have to check and
+		// if we got to the end of the file, pos_pList will now be null, so we have to check and
 		// if it is, set savePos to null because it is savePos that we return to the caller
-		if (pos == 0)
+		if (pos_pList == 0)
 			savePos = NULL;
 	} // end of while loop
 

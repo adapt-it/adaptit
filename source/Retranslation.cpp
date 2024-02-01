@@ -148,31 +148,31 @@ bool CRetranslation::DoFindRetranslation(int nStartSequNum, int& nSequNum, int& 
 {
 	SPList* pList = m_pApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->Item(nStartSequNum); // starting POSITION
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->Item(nStartSequNum); // starting position
+	wxASSERT(pos_pList != NULL);
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* savePos = pos;
+	SPList::Node* savePos = pos_pList;
 
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 	if (pSrcPhrase->m_bBeginRetranslation && pSrcPhrase->m_bRetranslation)//BEW 30Mar21 added 2nd test
 	{
 		// we are at the start of a retranslation, so must access the next srcPhrase
 		// before we have a possibility of being out of it, or into the next retranslation
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		savePos = pos;
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		savePos = pos_pList;
+		pos_pList = pos_pList->GetNext();
 	}
 	// BEW 30Mar21  we need to search for where the next retranslation begins
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		savePos = pos;
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		savePos = pos_pList;
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bRetranslation && pSrcPhrase->m_bBeginRetranslation) // BEW 30Mar21 changed test to &&
 			break; // break at the beginning of next one
 	}
 	
-	if (pos == NULL)
+	if (pos_pList == NULL)
 	{
 		// we are at the end of the document
 		nSequNum = -1; // undefined
@@ -180,9 +180,9 @@ bool CRetranslation::DoFindRetranslation(int nStartSequNum, int& nSequNum, int& 
 		return FALSE;
 	}
 
-	pos = savePos;
-	wxASSERT(pos != NULL);
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	pos_pList = savePos;
+	wxASSERT(pos_pList != NULL);
+	pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 	// we found a retranslation
 	nSequNum = pSrcPhrase->m_nSequNumber;
 	nCount = 1;
@@ -272,16 +272,16 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	// OnRetranslationReport.
 
 	// compose the output data & write it out, phrase by phrase
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	bool bStartRetrans = TRUE;
 	bool bJustEnded = FALSE;
 	bool bStartOver = FALSE;
 	int counter = 0; // for progress indicator
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 		counter++;
 
@@ -429,14 +429,14 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 /////////////////////////////////////////////////////////////////////////////////
 bool CRetranslation::IsEndInCurrentSelection()
 {
-	CCellList::Node* pos = m_pApp->m_selection.GetLast();
-	CCell* pCell = (CCell*)pos->GetData();
-	pos = pos->GetPrevious();
+	CCellList::Node* pos_pCellList = m_pApp->m_selection.GetLast();
+	CCell* pCell = (CCell*)pos_pCellList->GetData();
+	pos_pCellList = pos_pCellList->GetPrevious();
 	bool bCurrentSection = TRUE;
-	while( pos != NULL)
+	while(pos_pCellList != NULL)
 	{
-		pCell = (CCell*)pos->GetData();
-		pos = pos->GetPrevious();
+		pCell = (CCell*)pos_pCellList->GetData();
+		pos_pCellList = pos_pCellList->GetPrevious();
 		CPile* pPile2 = pCell->GetPile();
 		if (pPile2->GetSrcPhrase()->m_bEndRetranslation)
 		{
@@ -458,8 +458,8 @@ bool CRetranslation::IsEndInCurrentSelection()
 // BEW 23Apr15, added support for / being uses as a whitespace type of word-breaking delimiter
 void CRetranslation::AccumulateText(SPList* pList, wxString& strSource, wxString& strAdapt)
 {
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	wxString str;
 	wxString str2;
 
@@ -469,11 +469,11 @@ void CRetranslation::AccumulateText(SPList* pList, wxString& strSource, wxString
 	// short document!), so we want the word delimiters only for subsequent ones. We'll
 	// therefore need a bool bFirst flag to support this protocol.
 	bool bFirst = TRUE;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
 		// accumulate the old retranslation's text
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		// BEW 21Jul14, add the
 		str = pSrcPhrase->m_targetStr;
 		if (bFirst)
@@ -712,10 +712,10 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 {
 	wxString str; str.Empty();
 	wxString str2; str2.Empty();
-	CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-	CCell* pCell = (CCell*)pos->GetData();
+	CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+	CCell* pCell = (CCell*)pos_pCellList->GetData();
 	CPile* pPile = pCell->GetPile(); // get the pile first in selection
-	pos = pos->GetNext(); // needed for our CCellList list
+	pos_pCellList = pos_pCellList->GetNext(); // needed for our CCellList list
 	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 
 	pList->Append(pSrcPhrase); // add first to the temporary list
@@ -744,11 +744,11 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 
     // fill the list, accumulating any translation text already in the selected source
     // phrases and also the original text (with punctuation) which is to be retranslated
-	while (pos != NULL)
+	while (pos_pCellList != NULL)
 	{
- 		CCell* pCell = (CCell*)pos->GetData();
+ 		CCell* pCell = (CCell*)pos_pCellList->GetData();
 		pPile = pCell->GetPile();
-		pos = pos->GetNext(); // needed for our list
+		pos_pCellList = pos_pCellList->GetNext(); // needed for our list
 		pSrcPhrase = pPile->GetSrcPhrase();
 		wxASSERT(pSrcPhrase);
 		pList->Append(pSrcPhrase);
@@ -848,11 +848,11 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 void CRetranslation::CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,
 										 bool bDoDeepCopy)
 {
-	SPList::Node* pos = pList->GetFirst(); // original list
-	while (pos != NULL)
+	SPList::Node* pos_pList = pList->GetFirst(); // original list
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pElement = (CSourcePhrase*)pos->GetData(); // original source phrase
-		pos = pos->GetNext();// needed for our list
+		CSourcePhrase* pElement = (CSourcePhrase*)pos_pList->GetData(); // original source phrase
+		pos_pList = pos_pList->GetNext();// needed for our list
 		CSourcePhrase* pNewSrcPhrase = new CSourcePhrase(*pElement); // uses operator=
 		wxASSERT(pNewSrcPhrase != NULL);
 		if (bDoDeepCopy)
@@ -881,16 +881,16 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 											bool bAlsoUpdateSublist)
 {
 	int nNumElements = 1;
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pList = pList->GetFirst();
 	int nTotalExtras = 0; // accumulate the total number of extras added by unmerging,
 						  // this will be used if the updating of the sublist is asked for
-	int nInitialSequNum = pos->GetData()->m_nSequNumber; // preserve this
+	int nInitialSequNum = pos_pList->GetData()->m_nSequNumber; // preserve this
 														 // for sublist updating
 	wxString emptyStr = _T("");
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		int nStartingSequNum = pSrcPhrase->m_nSequNumber;
 		nNumElements = 1;
 		if (pSrcPhrase->m_nSrcWords > 1)
@@ -939,10 +939,10 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
             // restored, so access these)
 			for (int i = nStartingSequNum; i <= nStartingSequNum + nExtras; i++)
 			{
-				// here POSITION pos is redefined in a subscope of the one above
-				SPList::Node* pos = pSrcPhrases->Item(i);
-				wxASSERT(pos != NULL);
-				CSourcePhrase* pSPh = (CSourcePhrase*)pos->GetData();
+				// here position pos_pList is redefined in a subscope of the one above
+				SPList::Node* pos_pSP = pSrcPhrases->Item(i);
+				wxASSERT(pos_pSP != NULL);
+				CSourcePhrase* pSPh = (CSourcePhrase*)pos_pSP->GetData();
 				pSPh->m_bHasKBEntry = FALSE;
 				if (bWantRetranslationFlagSet)
 				{
@@ -989,15 +989,15 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 		int nOldCount = pList->GetCount();
 		wxASSERT(nOldCount);
 		pList->Clear(); // clear the old list of pointer
-		// again POSITION pos is redefined in a subscope
-		SPList::Node* pos = pSrcPhrases->Item(nInitialSequNum);
+		// again position pos_pSP is redefined in a subscope
+		SPList::Node* pos_pSP = pSrcPhrases->Item(nInitialSequNum);
 		int nNewCount = nOldCount + nTotalExtras;
 		CSourcePhrase* pSrcPhrase = 0;
 		int index;
 		for (index = 0; index < nNewCount; index++)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			wxASSERT(pSrcPhrase);
 			pList->Append(pSrcPhrase);
 		}
@@ -1068,8 +1068,8 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 		if (j < nNewCount)
 		{
 			// there will be a retranslation word available only when j < nNewCount
-			SPList::Node* pos = pRetransList->Item(j);
-			CSourcePhrase* pIncompleteSrcPhrase = (CSourcePhrase*)pos->GetData();
+			SPList::Node* pos_pRetransList = pRetransList->Item(j);
+			CSourcePhrase* pIncompleteSrcPhrase = (CSourcePhrase*)pos_pRetransList->GetData();
 			wxASSERT(pIncompleteSrcPhrase != NULL);
 
             // copy the text across (these "source phrases" actually contain target text in
@@ -1137,8 +1137,8 @@ void CRetranslation::ConvertSublistToARetranslation(SPList* pList, wxString& tgt
 	long listCount = (long)pList->GetCount();
 	if (listCount == 0)
 		return;
-	SPList::Node* pos = pList->GetFirst();
-	CSourcePhrase* pSrcPhrase = pos->GetData();
+	SPList::Node* pos_pList = pList->GetFirst();
+	CSourcePhrase* pSrcPhrase = pos_pList->GetData();
 	SPList::Node* posEnd = pList->GetLast();
 	CSourcePhrase* pEndSrcPhrase = posEnd->GetData();
 	int lastSequNum = pEndSrcPhrase->m_nSequNumber;
@@ -1244,16 +1244,16 @@ void CRetranslation::ConvertSublistToARetranslation(SPList* pList, wxString& tgt
 	pSrcPhrase->m_targetStr = arrTgtText.Item(0);
 	pSrcPhrase->m_adaption = arrTgtNoPuncts.Item(0);
 	// get the second position; since it was a merger, this instance will always exist
-	pos = pos->GetNext();
+	pos_pList = pos_pList->GetNext();
 	i = 1;
 	do {
 		// fill out the send and later instances
-		pSrcPhrase = pos->GetData();
+		pSrcPhrase = pos_pList->GetData();
 		pSrcPhrase->m_targetStr = arrTgtText.Item(i);
 		pSrcPhrase->m_adaption = arrTgtNoPuncts.Item(i);
-		pos = pos->GetNext();
+		pos_pList = pos_pList->GetNext();
 		i++;
-	} while (pos != NULL && i < numElements);
+	} while (pos_pList != NULL && i < numElements);
 }
 */
 
@@ -1263,12 +1263,12 @@ void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 	// so nothing to do here
 	if (pSaveList->GetCount() > 0)
 	{
-		SPList::Node* pos = pSaveList->GetFirst();
-		wxASSERT(pos != 0);
-		while (pos != 0)
+		SPList::Node* pos_pSaveList = pSaveList->GetFirst();
+		wxASSERT(pos_pSaveList != 0);
+		while (pos_pSaveList != 0)
 		{
-			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSP = (CSourcePhrase*)pos_pSaveList->GetData();
+			pos_pSaveList = pos_pSaveList->GetNext();
 			if (pSP != NULL)
 			{
 				// don't want memory leaks
@@ -1439,12 +1439,12 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 // BEW 17Feb10, updated for support of doc version 5 (no changes needed)
 void CRetranslation::ClearSublistKBEntries(SPList* pSublist)
 {
-	SPList::Node* pos = pSublist->GetFirst();
+	SPList::Node* pos_pSubList = pSublist->GetFirst();
 	wxString emptyStr = _T("");
-	while (pos != NULL)
+	while (pos_pSubList != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSubList->GetData();
+		pos_pSubList = pos_pSubList->GetNext();
 
 		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr, useGlossOrAdaptationForLookup);
 		pSrcPhrase->m_bRetranslation = FALSE; // make sure its off
@@ -1456,19 +1456,19 @@ void CRetranslation::ClearSublistKBEntries(SPList* pSublist)
 // BEW 21Jul14, no changes needed for ZWSP support
 void CRetranslation::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum)
 {
-	SPList::Node* pos = pSrcPhrases->Item(nLocationSequNum);
-	wxASSERT(pos != 0);
-	SPList::Node* pos1 = pSublist->GetLast();
-	wxASSERT(pos1 != 0);
-	// Get a node called posNextHigher which points to the next node beyond pos
+	SPList::Node* pos_pSP = pSrcPhrases->Item(nLocationSequNum);
+	wxASSERT(pos_pSP != 0);
+	SPList::Node* pos_pSubList = pSublist->GetLast();
+	wxASSERT(pos_pSubList != 0);
+	// Get a node called posNextHigher which points to the next node beyond pos_pSP
 	// in pSrcPhrases and use its position in the Insert() call (which only inserts
 	// BEFORE the indicated position). The result should be that the insertions
 	// will get placed in the list the same way that MFC's InsertAfter() places them.
-	SPList::Node* newInsertBeforePos = pos->GetNext();
-	while (pos1 != 0)
+	SPList::Node* newInsertBeforePos = pos_pSP->GetNext();
+	while (pos_pSubList != 0)
 	{
-		CSourcePhrase* pSPhr = (CSourcePhrase*)pos1->GetData();
-		pos1 = pos1->GetPrevious();
+		CSourcePhrase* pSPhr = (CSourcePhrase*)pos_pSubList->GetData();
+		pos_pSubList = pos_pSubList->GetPrevious();
 		wxASSERT(pSPhr != NULL);
 		// wxList has no equivalent to InsertAfter(). The wxList Insert() method
 		// inserts the new node BEFORE the current position/node. To emulate what
@@ -1507,8 +1507,8 @@ void CRetranslation::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, i
 // BEW 16Feb10, no changes needed for support of doc version 5
 bool CRetranslation::IsConstantType(SPList* pList)
 {
-	SPList::Node* pos = pList->GetFirst();
-	if (pos == NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	if (pos_pList == NULL)
 	{
 		wxMessageBox(_T(
 		"Error accessing sublist in IsConstantType function\n"),
@@ -1516,13 +1516,13 @@ bool CRetranslation::IsConstantType(SPList* pList)
 		wxASSERT(FALSE);
 		return FALSE;
 	}
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetNext();
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+	pos_pList = pos_pList->GetNext();
 	TextType firstType = pSrcPhrase->m_curTextType;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		TextType type = pSrcPhrase->m_curTextType;
 		if (type != firstType)
 			return FALSE;
@@ -1548,13 +1548,13 @@ bool CRetranslation::IsConstantType(SPList* pList)
 void CRetranslation::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,
 								int nCurCount, int nStartingSequNum,SPList* pSublist)
 {
-	SPList::Node* pos = pSrcPhrases->Item(nStartingSequNum); // first one's position
+	SPList::Node* pos_pSP = pSrcPhrases->Item(nStartingSequNum); // first one's position
 	int count = 0;
-	while (pos != NULL && count < nCurCount)
+	while (pos_pSP != NULL && count < nCurCount)
 	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		SPList::Node* savePos = pos_pSP;
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+		pos_pSP = pos_pSP->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 
 		// BEW added 13Mar09 for refactor of layout; delete its partner pile too
@@ -1580,14 +1580,14 @@ void CRetranslation::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* p
                 // its a copy with a sublist, so see if any source phrase in the sublist is
                 // a match for the one we wish to delete; if it is, don't delete it, just
                 // remove its pointer from the m_pSourcePhrases list only
-				SPList* pL = pSP->m_pSavedWords;
-				wxASSERT(pL->GetCount() > 1);
-				SPList::Node* pos4 = pL->GetFirst();
-				wxASSERT(pos4 != 0);
-				while (pos4 != 0)
+				SPList* pSavedWordsList = pSP->m_pSavedWords;
+				wxASSERT(pSavedWordsList->GetCount() > 1);
+				SPList::Node* pos_pSavedWord = pSavedWordsList->GetFirst();
+				wxASSERT(pos_pSavedWord != 0);
+				while (pos_pSavedWord != 0)
 				{
-					CSourcePhrase* pSPhr = (CSourcePhrase*)pos4->GetData();
-					pos4 = pos4->GetNext();
+					CSourcePhrase* pSPhr = (CSourcePhrase*)pos_pSavedWord->GetData();
+					pos_pSavedWord = pos_pSavedWord->GetNext();
 					wxASSERT(pSPhr != 0);
 					if (pSPhr == pSrcPhrase)
 					{
@@ -1763,15 +1763,15 @@ void CRetranslation::GetRetranslationSourcePhrasesStartingAnywhere(
 			break;
 	}
 #if defined(_DEBUG)
-	SPList::Node* pos = pList->GetFirst();
+	SPList::Node* pos_pSP = pList->GetFirst();
 	int index = -1;
-	while (pos != NULL)
+	while (pos_pSP != NULL)
 	{
-		CSourcePhrase* pSrcPhrase = pos->GetData();
+		CSourcePhrase* pSrcPhrase = pos_pSP->GetData();
 		index++;
 		wxLogDebug(_T("GetRetranslationSourcePhrasesStartingAnywhere(): index = %d  m_key = %s"),
 			index, pSrcPhrase->m_key.c_str());
-		pos = pos->GetNext();
+		pos_pSP = pos_pSP->GetNext();
 	}
 #endif
 }
@@ -1779,12 +1779,12 @@ void CRetranslation::GetRetranslationSourcePhrasesStartingAnywhere(
 void CRetranslation::SetNotInKBFlag(SPList* pList,bool bValue)
 {
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != 0)
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != 0)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		pSrcPhrase->m_bNotInKB = bValue;
 	}
@@ -1793,12 +1793,12 @@ void CRetranslation::SetNotInKBFlag(SPList* pList,bool bValue)
 void CRetranslation::SetRetranslationFlag(SPList* pList,bool bValue)
 {
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != 0)
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != 0)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		pSrcPhrase->m_bRetranslation = bValue;
 	}
@@ -1877,7 +1877,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// there being any selection defined) - the lack of a selection then leaves pList (see
 	// below) empty of CSourcePhrases, and that in turn causes UnmergeMergersInSublist()
 	// to crash, because it assumes pList will be populated and it tries to access it's
-	// first CSourcePhrase instance - returns a NULL pointer for the pos SPList:Node*
+	// first CSourcePhrase instance - returns a NULL pointer for the pos_pList SPList:Node*
 	// calculation, and so the attempt to get the srcphrase gives an invalid access error.
 	// The error results from the CTRL+uparrow handler in OnSyskeyUp() in PhraseBox.cpp,
 	// which creates a 1-cell selection, for the placehandler pile just created. Best way
@@ -1928,8 +1928,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		int selCount = m_pApp->m_selection.GetCount();
 		if (selCount == 1)
 		{
-			CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-			CCell* pCell = (CCell*)pos->GetData();
+			CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+			CCell* pCell = (CCell*)pos_pCellList->GetData();
 			CPile* pPile = pCell->GetPile();
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bNullSourcePhrase || pSrcPhrase->m_key == _T("..."))
@@ -1969,10 +1969,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// this OnButtonRetranslation() handler to execute when no selection is present 
 	// means having to make some changes to this handler to prevent some crashes due
 	// to bad pointers.
-	// First, the pointer pos below is NULL when m_selection list is empty, and the
+	// First, the pointer pos_pCellList below is NULL when m_selection list is empty, and the
 	// nCount determined in the following line will be 0, and a crash will happen at 
-	// the pos->GetData() call due to trying to de-reference a NULL pointer in the
-	// (CCell*)pos->GetData() call below.
+	// the pos_pCellList->GetData() call due to trying to de-reference a NULL pointer in the
+	// (CCell*)pos_pCellList->GetData() call below.
 	// Other modifications need to be made further below including a crash scenario
 	// that has been present in the code since a BEW change made on 27Sep2022 (after 
 	// 10.7.0 was released), and has existed since that time. That crash happens when
@@ -1986,9 +1986,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// since BEW's changes made on 27Sep2022.
 	// 
 	// When m_selection is empty, we can't get pPile via the m_selection list, but
-	// we can get a pPile pointer for the current location whic is  stored within 
+	// we can get a pPile pointer for the current location whic is stored within 
 	// m_pApp->m_pActivePile.
-	CCellList::Node* pos = m_pApp->m_selection.GetFirst(); 
+	CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
 
 	int nCount = m_pApp->m_selection.GetCount(); // number of src phrase instances in selection
 	// BEW 6Sep22 note: this nCount value cannot be relied on, when the number of words in the 
@@ -2019,9 +2019,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	else
 	{
 
-		pCell = (CCell*)pos->GetData();
+		pCell = (CCell*)pos_pCellList->GetData();
 		pPile = pCell->GetPile(); // get the pile first in the selection
-		pos = pos->GetNext(); // needed for our CCellList to effect MFC's GetNext()
+		pos_pCellList = pos_pCellList->GetNext(); // needed for our CCellList to effect MFC's GetNext()
 	}
 
 	// BEW 6Sep22, get the CSourcePhrase* instance for the first (ie. anchor pile) and store the 
@@ -2046,10 +2046,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // punctuation transferred) and also accumulate the words in the source and target
         // text into string variables
 
-	// whm 3Oct2023 modified for doing a retranslation on a single unselected, non-merget 
+	// whm 3Oct2023 modified for doing a retranslation on a single unselected, non-merged 
 	// source word at the active location.
 	// we don't need to call GetSelectedSourcePhraseInstances() below, but just provide
-	// in pList the current source phrase and prodice strSource and strAdapt from that.
+	// in pList the current source phrase and produce strSource and strAdapt from that.
 	if (bDoUnselectedLocationRetranslation)
 	{
 		pList->Append(pActiveSrcPhrase);
@@ -2253,16 +2253,16 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// called first, in a loop, and then all will be well for the subsequent removal(s)
 		if (bDoneAlready == FALSE)
 		{
-			SPList::Node* pos = pList->GetFirst();
+			SPList::Node* pos_pList = pList->GetFirst();
 			CSourcePhrase* pSP = NULL;
-			while (pos != NULL)
+			while (pos_pList != NULL)
 			{
-				pSP = pos->GetData();
+				pSP = pos_pList->GetData();
 				if (pSP->m_bNullSourcePhrase)
 				{
 					m_pApp->GetPlaceholder()->UntransferTransferredMarkersAndPuncts(pSrcPhrases, pSP);
 				}
-				pos = pos->GetNext();
+				pos_pList = pos_pList->GetNext();
 			}
 			bDoneAlready = TRUE;
 		}
@@ -2342,8 +2342,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	bool bIsFirst = TRUE;
 	for (index = 0; index < count; index++)
 	{
-		SPList::Node* pos = pList->Item(index);
-		CSourcePhrase* pSPhr = (CSourcePhrase*)pos->GetData();
+		SPList::Node* pos_pList = pList->Item(index);
+		CSourcePhrase* pSPhr = (CSourcePhrase*)pos_pList->GetData();
 		wxASSERT(pSPhr != NULL);
 		// BEW 28Sep17 addition
 		if (bIsFirst && m_bSourceIsASingleWord)
@@ -2806,13 +2806,13 @@ CPile* CRetranslation::FindEndingPile(SPList* pSrcPhrases, CPile* pAnchorPile, i
 	CSourcePhrase* pSPhr = pAnchorPile->GetSrcPhrase();
 	// Method: get the sequNum of the anchor pile, add to that count-1 to get the ending sequNum,
 	// then convert that back to a CPile pointer
-	SPList::Node* pos;
-	pos = pSrcPhrases->Find(pSPhr);
-	if (pos != NULL)
+	SPList::Node* pos_pSP;
+	pos_pSP = pSrcPhrases->Find(pSPhr);
+	if (pos_pSP != NULL)
 	{
-		pSrcPhrase = pos->GetData();
+		pSrcPhrase = pos_pSP->GetData();
 	}
-	pos = pos->GetNext();
+	pos_pSP = pos_pSP->GetNext();
 	int anchorSN = pSrcPhrase->m_nSequNumber;
 	// Now add count - 1, to get the new sequNum for the last of the padded piles
 	int endSN = anchorSN + (count - 1);
@@ -2901,8 +2901,8 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 	for (indx = 0; indx < cnt; indx++)
 	{
 		pLastNonPlaceholder = pMySPh;
-		SPList::Node* pos = pList->Item(indx);
-		pMySPh = pos->GetData();
+		SPList::Node* pos_pList = pList->Item(indx);
+		pMySPh = pos_pList->GetData();
 		if (pMySPh->m_bNullSourcePhrase)
 		{
 			break;
@@ -2932,17 +2932,17 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 	// of the retranslation
 	m_bIsRetranslationCurrent = TRUE;
 
-	SPList::Node* pos = 0;
+	SPList::Node* pos_pList = 0;
 	bool bInSpan = FALSE; // default
 	if (m_pApp->m_pActivePile != NULL)
 	{
 		CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
-		pos = pList->GetFirst();
+		pos_pList = pList->GetFirst();
 		
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSP = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			if (pSP == pActiveSrcPhrase)
 			{
 				bInSpan = TRUE;
@@ -3022,8 +3022,8 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 
 	// any null source phrases have to be thrown away, and the layout recalculated after
 	// updating the sequence numbers of the source phrases remaining
-	pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	int nCount = pList->GetCount();
 
 	// BEW addition 08Sep08 for support of vertical editing
@@ -3077,11 +3077,11 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 		wxString endmarkersStr = _T("");
 		bool bEndHasEndMarkers = FALSE;
 		bool bEndIsAlsoFreeTransEnd = FALSE;
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			SPList::Node* savePos = pos;
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			SPList::Node* savePos = pos_pList;
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
 			// removed, only normal placeholders
 			if (pSrcPhrase->m_bNullSourcePhrase)
@@ -3101,9 +3101,9 @@ void CRetranslation::EditRetranslationByTgtClick(CSourcePhrase* pClickedSourcePh
 
 				// null source phrases in a retranslation are never stored in the KB, so we
 				// need only remove their pointers from the lists and delete them from the heap
-				SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
-				wxASSERT(pos1 != NULL); // it has to be there
-				pSrcPhrases->DeleteNode(pos1);	// remove its pointer from m_pSourcePhrases list
+				SPList::Node* pos_SrcPhrase = pSrcPhrases->Find(pSrcPhrase);
+				wxASSERT(pos_SrcPhrase != NULL); // it has to be there
+				pSrcPhrases->DeleteNode(pos_SrcPhrase);	// remove its pointer from m_pSourcePhrases list
 				// on the doc
 				// BEW added 13Mar09 for refactor of layout; delete its partner pile too
 				m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
@@ -3629,8 +3629,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	for (indx = 0; indx < cnt; indx++)
 	{
 		pLastNonPlaceholder = pMySPh;
-		SPList::Node* pos = pList->Item(indx);
-		pMySPh = pos->GetData();
+		SPList::Node* pos_pList = pList->Item(indx);
+		pMySPh = pos_pList->GetData();
 		if (pMySPh->m_bNullSourcePhrase)
 		{
 			break;
@@ -3663,16 +3663,16 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
     // m_adaption and m_targetStr members updated, so we must check for this condition and
     // if it obtains then we must first update everything at the active location before we
     // empty m_targetPhrase, etc.
-	SPList::Node* pos = 0;
+	SPList::Node* pos_pList = 0;
 	if (m_pApp->m_pActivePile != NULL)
 	{
 		CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
-		pos = pList->GetFirst();
+		pos_pList = pList->GetFirst();
 		bool bInSelection = FALSE;
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSP = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			if (pSP == pActiveSrcPhrase)
 			{
 				bInSelection = TRUE;
@@ -3787,8 +3787,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 
     // any null source phrases have to be thrown away, and the layout recalculated after
     // updating the sequence numbers of the source phrases remaining
-	pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	int nCount = pList->GetCount();
 
 	// BEW addition 08Sep08 for support of vertical editing
@@ -3837,11 +3837,11 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		wxString endmarkersStr = _T("");
 		bool bEndHasEndMarkers = FALSE;
 		bool bEndIsAlsoFreeTransEnd = FALSE;
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			SPList::Node* savePos = pos;
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			SPList::Node* savePos = pos_pList;
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
 			// removed, only normal placeholders
 			if (pSrcPhrase->m_bNullSourcePhrase)
@@ -3861,9 +3861,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 
 				// null source phrases in a retranslation are never stored in the KB, so we
 				// need only remove their pointers from the lists and delete them from the heap
-				SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
-				wxASSERT(pos1 != NULL); // it has to be there
-				pSrcPhrases->DeleteNode(pos1);	// remove its pointer from m_pSourcePhrases list
+				SPList::Node* pos_SrcPhrase = pSrcPhrases->Find(pSrcPhrase);
+				wxASSERT(pos_SrcPhrase != NULL); // it has to be there
+				pSrcPhrases->DeleteNode(pos_SrcPhrase);	// remove its pointer from m_pSourcePhrases list
 				// on the doc
 				// BEW added 13Mar09 for refactor of layout; delete its partner pile too
 				m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
@@ -4263,7 +4263,7 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	wxASSERT(posStart != NULL);
 	SPList::Node* posEnd = pSPList->Item(last);
 	wxASSERT(posEnd != NULL);
-	SPList::Node* pos; // iterator to range over the closed interval
+	SPList::Node* pos_pList; // iterator to range over the closed interval
 					   // [ posStart , posEnd ]
 
 
@@ -4271,7 +4271,7 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	wxASSERT(pList->IsEmpty());
 	pSrcPhrase = posStart->GetData();
 	pList->Append(pSrcPhrase);
-	pos = posStart;
+	pos_pList = posStart;
 	int width = last - first + 1; // for safety first use
 	if (posStart == posEnd)
 	{
@@ -4283,10 +4283,10 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	{
 		// there is at least a second CSourcePhrase instance in the retranslation
 		int count = 1;
-		while (pos != posEnd && count < width)
+		while (pos_pList != posEnd && count < width)
 		{
-			pos = pos->GetNext();
-			pSrcPhrase = pos->GetData();
+			pos_pList = pos_pList->GetNext();
+			pSrcPhrase = pos_pList->GetData();
 			count++; // for ensuring bound is not transgressed
 			pList->Append(pSrcPhrase); // the one at posEnd will be the last one
 									   // added before the loop exits
@@ -4321,8 +4321,8 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
     // any null source phrases have to be thrown away, and update the sequence numbers of
     // the CSourcePhrase instances remaining in pSPList - use initialSequNum value since we
     // should not assume that the first in pSPList will have value zero
-	pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	int nCount = pList->GetCount();
 	int nDeletions = 0; // number of null source phrases to be deleted
 	wxString endmarkersStr = _T("");
@@ -4332,11 +4332,11 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	wxString nonbindingEMkrs;
 	wxString follPunct;
 	wxString follOuterPunct;
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		SPList::Node* savePos = pos_pList;
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
@@ -4360,9 +4360,9 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
             // null source phrases in a retranslation are never stored in the KB, so we
             // need only remove their pointers from the lists and delete them from the heap
 			nDeletions++; // count it
-			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
-			wxASSERT(pos1 != NULL); // it has to be there
-			pSrcPhrases->DeleteNode(pos1); // remove its pointer from the passed in pSPList
+			SPList::Node* pos_SrcPhrase = pSrcPhrases->Find(pSrcPhrase);
+			wxASSERT(pos_SrcPhrase != NULL); // it has to be there
+			pSrcPhrases->DeleteNode(pos_SrcPhrase); // remove its pointer from the passed in pSPList
 
 			if (pSrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
 				delete pSrcPhrase->m_pMedialPuncts;
@@ -4408,8 +4408,8 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 		// handle transferring of m_endMarkers content and the other stuff, gathered from
 		// the last placeholder, back to the last non-placeholder it was earlier obtained
 		// from
-		SPList::Node* pos = pList->GetLast();
-		CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
+		SPList::Node* pos_pList = pList->GetLast();
+		CSourcePhrase* pSPend = (CSourcePhrase*)pos_pList->GetData();
 		if (bEndHasEndMarkers)
 		{
 			pSPend->SetEndMarkers(endmarkersStr);
@@ -4545,12 +4545,12 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	{
 		CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
 		pDoc->ResetPartnerPileWidth(pActiveSrcPhrase); // mark its strip as invalid
-		SPList::Node* pos = pList->GetFirst();
+		SPList::Node* pos_pList = pList->GetFirst();
 		bool bInSelection = FALSE;
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			CSourcePhrase* pSP = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			CSourcePhrase* pSP = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			if (pSP == pActiveSrcPhrase)
 			{
 				bInSelection = TRUE;
@@ -4601,13 +4601,13 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	strAdapt.Empty();
 	wxString str2; // a temporary storage string
 	str2.Empty();
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
+	while (pos_pList != NULL)
 	{
 		// accumulate the old retranslation's text
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		str2 = pSrcPhrase->m_targetStr;
 		if (strAdapt.IsEmpty())
 		{
@@ -4653,8 +4653,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 
     // any null source phrases have to be thrown away, and the layout recalculated after
     // updating the sequence numbers of the source phrases remaining
-	pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	int nCount = pList->GetCount();
 	int nDeletions = 0; // number of null source phrases to be deleted
     // BEW added 01Aug05, to support free translations -- removing null source phrases also
@@ -4686,11 +4686,11 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	wxString follPunct;
 	wxString follOuterPunct;
 	// end 12May11 additions
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		SPList::Node* savePos = pos_pList;
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
 		// removed, only normal placeholders
 		if (pSrcPhrase->m_bNullSourcePhrase)
@@ -4718,9 +4718,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
             // null source phrases in a retranslation are never stored in the KB, so we
             // need only remove their pointers from the lists and delete them from the heap
 			nDeletions++; // count it
-			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
-			wxASSERT(pos1 != NULL); // it has to be there
-			pSrcPhrases->DeleteNode(pos1); // remove its pointer from m_pSourcePhrases
+			SPList::Node* pos_SrcPhrase = pSrcPhrases->Find(pSrcPhrase);
+			wxASSERT(pos_SrcPhrase != NULL); // it has to be there
+			pSrcPhrases->DeleteNode(pos_SrcPhrase); // remove its pointer from m_pSourcePhrases
 			// list on the doc
 
 			// BEW added 13Mar09 for refactor of layout; delete its partner pile too
@@ -4777,8 +4777,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 
 		// handle transferring of m_endMarkers content and other stuff as per 12May11
 		// additions above
-		SPList::Node* pos = pList->GetLast();
-		CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
+		SPList::Node* pos_pList = pList->GetLast();
+		CSourcePhrase* pSPend = (CSourcePhrase*)pos_pList->GetData();
 		if (bEndHasEndMarkers)
 		{
 			pSPend->SetEndMarkers(endmarkersStr);
@@ -5877,12 +5877,12 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 		}
 		// if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
         // the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-		while (pos != NULL)
+		CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+		while (pos_pCellList != NULL)
 		{
-			CCell* pCell = (CCell*)pos->GetData();
+			CCell* pCell = (CCell*)pos_pCellList->GetData();
 			CPile* pPile = pCell->GetPile();
-			pos = pos->GetNext();
+			pos_pCellList = pos_pCellList->GetNext();
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bRetranslation)
 			{
@@ -5911,29 +5911,29 @@ int CRetranslation::CountRetransPiles(SPList* pList, int beginSequNum)
 {
 	int count = 0;
 	wxASSERT(pList != NULL);
-	SPList::Node* pos = pList->Item(beginSequNum); // starting POSITION
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->Item(beginSequNum); // starting position
+	wxASSERT(pos_pList != NULL);
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* savePos = pos;
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	SPList::Node* savePos = pos_pList;
+	pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 	if (pSrcPhrase->m_bRetranslation)
 	{
 		count = 1;
-		pos = pos->GetNext();
+		pos_pList = pos_pList->GetNext();
 		// this much we are assured of, the while loop which
 		// follows will scan for the remainder, incrementing count
 	}
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		savePos = pos;
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		savePos = pos_pList;
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bRetranslation)
 		{
 			count++;
-			if (pSrcPhrase->m_bEndRetranslation || pos == NULL)
+			if (pSrcPhrase->m_bEndRetranslation || pos_pList == NULL)
 			{
-				if (pos == NULL)
+				if (pos_pList == NULL)
 				{
 					// fix lack of proper end of the retranslation
 					pSrcPhrase->m_bEndRetranslation = TRUE; // the flag was unset at doc end

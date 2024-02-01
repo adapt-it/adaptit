@@ -2395,12 +2395,12 @@ x:					CCell* pCell = 0;
 				{
 	b:				if (pApp->m_selection.GetCount() != 0)
 					{
-						CCellList::Node* pos = pApp->m_selection.GetFirst();
+						CCellList::Node* pos_pCellList = pApp->m_selection.GetFirst();
 						CCell* pOldSel;
-						while (pos != NULL)
+						while (pos_pCellList != NULL)
 						{
-							pOldSel = (CCell*)pos->GetData();
-							pos = pos->GetNext();
+							pOldSel = (CCell*)pos_pCellList->GetData();
+							pos_pCellList = pos_pCellList->GetNext();
 							aDC.SetBackgroundMode(pApp->m_backgroundMode);
 							aDC.SetTextBackground(wxColour(255,255,255)); // white
 							pOldSel->DrawCell(&aDC, pLayout->GetSrcColor());
@@ -2546,8 +2546,8 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 			if (event.ShiftDown() && pApp->m_selection.GetCount() > 0)
 				goto a;
 
-			CCellList::Node* pos = pApp->m_selection.Find(pCell);
-			if (pos == NULL)
+			CCellList::Node* pos_pCellList = pApp->m_selection.Find(pCell);
+			if (pos_pCellList == NULL)
 			{
 				// cell is not yet in the selection, so add it
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);

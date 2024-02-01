@@ -509,18 +509,18 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // BEW 22Mar10, updated for support of doc version 5 (no changes needed)
 void CSourcePhrase::DeepCopy(void)
 {
-	SPList::Node* pos = m_pSavedWords->GetFirst(); //POSITION pos = m_pSavedWords->GetHeadPosition();
+	SPList::Node* pos_pSavedWords = m_pSavedWords->GetFirst(); 
 	CSourcePhrase* pSrcPhrase = NULL;
-	if (pos == NULL)
+	if (pos_pSavedWords == NULL)
 		return; // there are no saved CSourcePhrase instances to be copied
-	while (pos != NULL)
+	while (pos_pSavedWords != NULL)
 	{
-		// save the POSITION
-		SPList::Node* savePos = pos; //POSITION savePos = pos;
+		// save the position
+		SPList::Node* savePos = pos_pSavedWords;
 		// get a pointer to the next of the original CSourcePhrases of a merger
 		// (these never have any content in their m_pSavedWords member)
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = pos_pSavedWords->GetData();
+		pos_pSavedWords = pos_pSavedWords->GetNext();
 		// clone it using operator= (its m_pSavedWords SPList* is created but 
 		// the list is left empty)
 		CSourcePhrase* pSrcPhraseDuplicate = new CSourcePhrase(*pSrcPhrase);
@@ -538,8 +538,8 @@ void CSourcePhrase::DeepCopy(void)
 		// memory leak because the previous pointer being replaced is not deleted. In fact, 
 		// in the docs for CObList::SetAt() the example there shows that it should be 
 		// invoked as follows (customized for our code situation) to avoid memory leaks:
-		//    pSP = m_pSavedWords->GetAt( pos ); // Save the old pointer for deletion.
-		//    m_pSavedWords->SetAt( pos, pSrcPhraseDuplicate );  // Replace the element.
+		//    pSP = m_pSavedWords->GetAt( pos_pSavedWords ); // Save the old pointer for deletion.
+		//    m_pSavedWords->SetAt( pos_pSavedWords, pSrcPhraseDuplicate );  // Replace the element.
 		//    delete pSP;  // Deletion avoids memory leak.
 		// whm update: No, we musn't delete the other object pointer that is being replaced
 		// in this case.
@@ -775,7 +775,18 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// and for text which is RTL, the resulting phrase will be laid out RTL in the CEdit
 	// For version 3, allow for empty strings; but m_srcPhrase cannot be empty so we
 	// don't need a test here, but we do for the key
-	m_srcPhrase += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase; 
+	// 
+	// whm 27Jan2024 modified the next line and three if statements. When concatenating the 
+	// m_key, m_adaption, and m_targetStr we should just use a space character and never allow
+	// a LF \n char or CR \r character to become part of the concatenated string, because
+	// of a \n or \r get into one of these, it will cause the display to render part of the
+	// source text, target text, and even nav text on separate vertical lines which messes
+	// up the display - the part of the source text after an embedded \n will be rendered
+	// lower and be overwritted by the first part of the targtet text line, and the part of
+	// an m_adaption or m_targetStr will end up overwriting the bottom of the phrasebox.
+	// Therefore, I've changed the PutSrcWordBreak(pSrcPhrase) segments used below to 
+	// simply concatenate a plain space _T(" ") character instead.
+	m_srcPhrase += _T(" ") + pSrcPhrase->m_srcPhrase; // m_srcPhrase += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 
 	// ditto for the key string, for version 3 allow for empty strings
 	if (m_key.IsEmpty())
@@ -784,7 +795,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	}
 	else
 	{
-		m_key += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
+		m_key += _T(" ") + pSrcPhrase->m_key; //m_key += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
 	}
 
 	// do the same for the m_adaption and m_targetStr fields
@@ -792,14 +803,14 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_adaption = pSrcPhrase->m_adaption;
 	else
 	{
-			m_adaption += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_adaption;
+		m_adaption += _T(" ") + pSrcPhrase->m_adaption; //m_adaption += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_adaption;
 	}
 
 	if (m_targetStr.IsEmpty())
 		m_targetStr = pSrcPhrase->m_targetStr;
 	else
 	{
-			m_targetStr += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
+		m_targetStr += _T(" ") + pSrcPhrase->m_targetStr; //m_targetStr += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 	}
 
 	// likewise for the m_gloss field in VERSION_NUMBER == 3
@@ -818,6 +829,24 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
     // such a scenario, here we can just append the strings involved to give a behaviour
     // that makes sense (ie. accumulating two notes, or two free translations, etc if any
     // such should slip through our net of checks to prevent this)
+	//
+	// whm 27Jan2024 correction to above comment: 
+	// free translations, notes, collected back translations or filtered information are
+	// now allowed on any of the source phrases in a merger - we no longer filter or block
+	// an attempt to merge across a CSourcePhrase which carries such information. Even in 
+	// the old code it was possible during a filtering operation in which the user filters
+	// a marker next to a merged source phrase for that filtered information to become part
+	// of the new overarching (merged) source phrase. If the filtering process can do it we
+	// should I think allow the user to do so when selecting source phrases that may contain
+	// filtered info, and make a phrase out of those source phrases. Therefore the following
+	// code lines that concatenate filtered information into the overarching pSrcPhrase are
+	// good to keep here in this Merge() function, and the do "give a behaviour that makes
+	// sense". The use of PutSrcWordBreakFrTr() for m_freeTrans and m_note - but not for 
+	// m_collectedBackTrans or m_filteredInof (which have plain spaces) may be problematic
+	// but those shouldn't affect the display since they are not displayed in AI's main
+	// window. The space used for the concatenation of m_filteredInfo might affect whether 
+	// part of the filtered info - when it's unfiltered - gets displayed on a new line or
+	// not, but I don't think that is a big issue to be concerned about.
 	if (!pSrcPhrase->m_freeTrans.IsEmpty())
 		m_freeTrans = m_freeTrans + PutSrcWordBreakFrTr(pSrcPhrase) + pSrcPhrase->m_freeTrans;
 	if (!pSrcPhrase->m_note.IsEmpty())
@@ -1516,7 +1545,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"/>";
 			}
 		}
-		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// pos_pSavedWords above was a wxArrayString index position, but now we are dealing with a wxList structure
 		// and will use posSW as a node of the m_pSavedWords SPList.
 		nCount = m_pSavedWords->GetCount();
 		extraIndent = nTabLevel + 1;
@@ -1744,7 +1773,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"/>";
 			}
 		}
-		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// pos_pSavedWords above was a wxArrayString index position, but now we are dealing with a wxList structure
 		// and will use posSW as a node of the m_pSavedWords SPList.
 		nCount = m_pSavedWords->GetCount();
 		extraIndent = nTabLevel + 1;
@@ -2139,7 +2168,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"/>";
 			}
 		}
-		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// pos_pSavedWords above was a wxArrayString index position, but now we are dealing with a wxList structure
 		// and will use posSW as a node of the m_pSavedWords SPList.
 		nCount = m_pSavedWords->GetCount();
 		extraIndent = nTabLevel + 1;
@@ -2366,7 +2395,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				bstr += "\"/>";
 			}
 		}
-		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// pos_pSavedWords above was a wxArrayString index position, but now we are dealing with a wxList structure
 		// and will use posSW as a node of the m_pSavedWords SPList.
 		nCount = m_pSavedWords->GetCount();
 		extraIndent = nTabLevel + 1;

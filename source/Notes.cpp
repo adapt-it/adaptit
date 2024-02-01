@@ -169,9 +169,9 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 	{
 		// there is no Note at that location, so go ahead and create it there
 		CSourcePhrase* pToSrcPhrase = NULL;
-		SPList::Node* pos = pSrcPhrases->Item(nLocationSN);
-		wxASSERT(pos != NULL);
-		pToSrcPhrase = pos->GetData();
+		SPList::Node* pos_pSP = pSrcPhrases->Item(nLocationSN);
+		wxASSERT(pos_pSP != NULL);
+		pToSrcPhrase = pos_pSP->GetData();
 		pToSrcPhrase->SetNote(strNote);
 		pToSrcPhrase->m_bHasNote = TRUE;
 		// mark its owning strip as invalid
@@ -224,15 +224,15 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 		nEndAt = maxIndex;
 	}
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* pos = NULL;
+	SPList::Node* pos_pSP = NULL;
 	if (bDoEditSpanCheck)
 	{
-		pos = pSrcPhrases->Item(nStartAt);
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		pos_pSP = pSrcPhrases->Item(nStartAt);
+		wxASSERT(pos_pSP != NULL);
+		while (pos_pSP != NULL)
 		{
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
@@ -264,12 +264,12 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 		if (nNextEndAt > m_pApp->GetMaxIndex())
 			nNextEndAt = m_pApp->GetMaxIndex();
 		// now do the check of these
-		SPList::Node* pos = pSrcPhrases->Item(nNextStartAt);
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		SPList::Node* pos_pSP = pSrcPhrases->Item(nNextStartAt);
+		wxASSERT(pos_pSP != NULL);
+		while (pos_pSP != NULL)
 		{
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
@@ -296,12 +296,12 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 		if (nNextStartAt < 0)
 			nNextStartAt = 0;
 		// now do the check of these
-		SPList::Node* pos = pSrcPhrases->Item(nNextStartAt);
-		wxASSERT(pos != NULL);
-		while (pos != NULL)
+		SPList::Node* pos_pSP = pSrcPhrases->Item(nNextStartAt);
+		wxASSERT(pos_pSP != NULL);
+		while (pos_pSP != NULL)
 		{
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
@@ -326,16 +326,16 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 void CNotes::DeleteAllNotes()
 {
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
+	SPList::Node* pos_pList = pList->GetFirst();
+	wxASSERT(pos_pList != NULL);
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
 	
 	// do the deleting
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 		{
 			pSrcPhrase->SetNote(emptyStr);
@@ -404,19 +404,19 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxStri
 	wxASSERT(*pEnd == _T('\0')); // whm added
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); // we'll use the doc's functions 
 	// IsWhiteSpace() and ParseWhiteSpace()
-	WordList::Node* pos = pSearchList->GetFirst(); 
-	wxString nextWord = *pos->GetData(); // we've already matched this one, 
+	WordList::Node* pos_wordList = pSearchList->GetFirst(); 
+	wxString nextWord = *pos_wordList->GetData(); // we've already matched this one, 
 	// so the loop handles the rest
-	pos = pos->GetNext();
+	pos_wordList = pos_wordList->GetNext();
 	int nHowManyChars;
 	int nWordNum = 1;
 	int nLastWord = pSearchList->GetCount();
 	int nTotalChars = len; // count the total characters spanned in getting the match
-	while (pos != NULL)
+	while (pos_wordList != NULL)
 	{
 		// get the next search word, and its length
-		nextWord = *pos->GetData();
-		pos = pos->GetNext();
+		nextWord = *pos_wordList->GetData();
+		pos_wordList = pos_wordList->GetNext();
 		len = nextWord.Length();
 		nWordNum++; // count it
 		
@@ -509,7 +509,7 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxStri
 /// either forwards (or at the current location), or backwards, and return it in nFoundAt,
 /// or return -1 in nFoundAt if no note was found in the nominated direction.
 /// Note: while typically used with pList set to the app's m_pSourcePhrases list, in which
-/// the list indices always match the stored m_nSequNumber value in each POSITION's
+/// the list indices always match the stored m_nSequNumber value in each position's
 /// CSourcePhrase instance, the function can be used for arbitrary sublists of
 /// CSourcePhrase instances because it returns the stored m_nSequNumber value for the found
 /// note in the CSourcePhrase which stores it, not the index value in pList at which that
@@ -532,12 +532,12 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		nStartLoc = count - 1;
 	}
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* pos = pList->Item(nStartLoc);
-	if (pos == NULL)
+	SPList::Node* pos_pList = pList->Item(nStartLoc);
+	if (pos_pList == NULL)
 	{
 		// unexpected error, the location should be findable
 		errStr = _T(
-		"Error in helper function FindNote(); the POSITION value returned from ");
+		"Error in helper function FindNote(); the position value returned from ");
 		errStr += _T(
 		"FindIndex() was null. The current operation will be abandoned.");
 		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
@@ -546,22 +546,22 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 	if (bFindForwards)
 	{
 		// examine the starting location first
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 		{
-			// there is one at the current POSITION
+			// there is one at the current position
 			pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
 			nFoundAt = pSrcPhrase->m_nSequNumber;
 			return TRUE;
 		}
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 			{
-				// there is one at the current POSITION
+				// there is one at the current position
 				pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
@@ -571,16 +571,16 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 	else
 	{
 		// ignore the starting location
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetPrevious();
+		pSrcPhrase = pos_pList->GetData();
+		pos_pList = pos_pList->GetPrevious();
 		// search from the preceding location, backwards
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetPrevious();
+			pSrcPhrase = pos_pList->GetData();
+			pos_pList = pos_pList->GetPrevious();
 			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 			{
-				// there is one at the current POSITION
+				// there is one at the current position
 				pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
@@ -614,20 +614,20 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 	sn++; // start looking from the next pSrcPhrase in the list
 	
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 	CSourcePhrase* pSrcPhrase;
 	wxString noteContentStr;
 	int nFoundSequNum = -1;
 	
-	// get the starting POSITION from which to commence the scan
-	pos = pList->Item(sn); 
-	wxASSERT(pos != NULL);
+	// get the starting position from which to commence the scan
+	pos_pList = pList->Item(sn);
+	wxASSERT(pos_pList != NULL);
 	
 	// loop forward over the pSrcPhrase instances till once containing a note is found
-	while (pos != NULL)
+	while (pos_pList != NULL)
 	{
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		sn = pSrcPhrase->m_nSequNumber; // update sn
 		if (!pSrcPhrase->m_bHasNote) // support finding empty notes too, so just test the flag
 		{
@@ -804,7 +804,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 	// it
 	int nStartAt;
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* pos = NULL; //POSITION pos = NULL;
+	SPList::Node* pos_pSP = NULL;
 	CSourcePhrase* pNewOne = NULL; // for creation of deep copies on the heap
 	if (context == precedingContext)
 	{
@@ -815,21 +815,21 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			// there is no preceding context, so return
 			return TRUE;
 		}
-		pos = pSrcPhrases->Item(nStartAt); // initialize pos
-		if (pos == NULL)
+		pos_pSP = pSrcPhrases->Item(nStartAt); // initialize pos_pSP
+		if (pos_pSP == NULL)
 		{	
 			errStr = 
-			_T("FindIndex() failed in GetMovedNotesSpan(), preceding context, pos value is NULL.");
+			_T("FindIndex() failed in GetMovedNotesSpan(), preceding context, pos_pSP value is NULL.");
 			errStr += 
 			_T(" Abandoning the edit process. Will attempt to restore original document state.");
 			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
 			// count this CSourcePhrase instance if it has no Note stored in it
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetPrevious();
+			pSrcPhrase = pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetPrevious();
 			if (!pSrcPhrase->m_bHasNote)
 				nGapCount++;
 			// make a deep copy, and store it in the EditRecord
@@ -864,21 +864,21 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			// there is no following context, so return
 			return TRUE;
 		}
-		pos = pSrcPhrases->Item(nStartAt); // initialize pos
-		if (pos == NULL)
+		pos_pSP = pSrcPhrases->Item(nStartAt); // initialize pos_pSP
+		if (pos_pSP == NULL)
 		{	
 			errStr = 
-			_T("FindIndex() failed in GetMovedNotesSpan(), following context, pos value is NULL.");
+			_T("FindIndex() failed in GetMovedNotesSpan(), following context, pos_pSP value is NULL.");
 			errStr += 
 			_T(" Abandoning the edit process. Will attempt to restore original document state.");
 			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
-		while (pos != NULL)
+		while (pos_pSP != NULL)
 		{
 			// count this CSourcePhrase instance if it has no Note stored in it
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = pos_pSP->GetData();
+			pos_pSP = pos_pSP->GetNext();
 			if (!pSrcPhrase->m_bHasNote)
 				nGapCount++;
 			// make a deep copy, and store it in the EditRecord
@@ -926,8 +926,8 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 	int maxIndex = pSrcPhrases->GetCount() -1;
 	if (nNoteSN > maxIndex)
 		return FALSE; // beyond document's end, so certainly can't store a note there!!
-	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
-	CSourcePhrase* pSrcPhrase = pos->GetData();
+	SPList::Node* pos_pSP = pSrcPhrases->Item(nNoteSN);
+	CSourcePhrase* pSrcPhrase = pos_pSP->GetData();
 	return (!pSrcPhrase->GetNote().IsEmpty() || pSrcPhrase->m_bHasNote);
 }
 
@@ -946,9 +946,9 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit;
 	
-	SPList::Node* pos;
+	SPList::Node* pos_pList;
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	pos = pList->Item(nJumpOffSequNum);
+	pos_pList = pList->Item(nJumpOffSequNum);
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating back from the jump origin
 	int nBoxSequNum;
@@ -960,14 +960,14 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 	if (nNoteSequNum > 0)
 	{
 		// loop until the previous note's pSrcPhrase is found
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetPrevious();
+			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetPrevious();
 			if (pSrcPhrase->m_bHasNote)
 				break;
-			// if pos is NULL, no earlier one was found
-			if (pos == NULL)
+			// if pos_pSP is NULL, no earlier one was found
+			if (pos_pList == NULL)
 				return;
 		}
 		
@@ -1166,9 +1166,9 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 	wxTextCtrl* pEdit;
 	
 	// find the first note
-	SPList::Node* pos; 
+	SPList::Node* pos_pList;
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	pos = pList->Item(nJumpOffSequNum); 
+	pos_pList = pList->Item(nJumpOffSequNum);
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating forward from the jump origin
 	int nBoxSequNum;
@@ -1180,14 +1180,14 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 	if (nNoteSequNum <= m_pApp->GetMaxIndex())
 	{
 		// loop until the next note's pSrcPhrase is found
-		while (pos != NULL)
+		while (pos_pList != NULL)
 		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
+			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
+			pos_pList = pos_pList->GetNext();
 			if (pSrcPhrase->m_bHasNote)
 				break;
 			// return if at doc end without finding a note
-			if (pos == NULL)
+			if (pos_pList == NULL)
 				return;
 		}
 		
@@ -2057,9 +2057,9 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
-	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
-	CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
-	pos = pos->GetNext();
+	SPList::Node* pos_pSP = pSrcPhrases->Item(nNoteSN);
+	CSourcePhrase* pOriginalSrcPhrase = pos_pSP->GetData();
+	pos_pSP = pos_pSP->GetNext();
 	// check the original src phrase actually has a note
 	bool bOriginalHasANote = IsNoteStoredHere(pSrcPhrases, nNoteSN);
 	if (!bOriginalHasANote)
@@ -2068,14 +2068,14 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 		return FALSE;
 	}
 	// check there is a following CSourcePhrase instance 
-	if (pos == NULL)
+	if (pos_pSP == NULL)
 	{
 		// we are at the end of the document, so no destination CSourcePhrase exists
 		return FALSE;
 	}
 	// check there is no note on the following CSourcePhrase instance, 
 	// if there is, we can't shift the note to this instance
-	CSourcePhrase* pDestSrcPhrase = pos->GetData(); // MFC used GetAt(pos);
+	CSourcePhrase* pDestSrcPhrase = pos_pSP->GetData(); // MFC used GetAt(pos_pSP);
 	wxASSERT(pDestSrcPhrase != NULL);
 	if (pDestSrcPhrase->m_bHasNote || !pDestSrcPhrase->GetNote().IsEmpty())
 	{
@@ -2703,11 +2703,11 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-		while (pos != NULL)
+		CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+		while (pos_pCellList != NULL)
 		{
-			CPile* pPile = pos->GetData()->GetPile();
-			pos = pos->GetNext();
+			CPile* pPile = pos_pCellList->GetData()->GetPile();
+			pos_pCellList = pos_pCellList->GetNext();
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
@@ -3258,11 +3258,11 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 	{
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-		while (pos != NULL)
+		CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+		while (pos_pCellList != NULL)
 		{
-			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
-			pos = pos->GetNext();
+			CPile* pPile = ((CCell*)pos_pCellList->GetData())->GetPile();
+			pos_pCellList = pos_pCellList->GetNext();
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
@@ -3556,11 +3556,11 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	{
         // if the first sourcephrase in the selection does not have a note, enable the
         // button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-		while (pos != NULL)
+		CCellList::Node* pos_pCellList = m_pApp->m_selection.GetFirst();
+		while (pos_pCellList != NULL)
 		{
-			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
-			pos = pos->GetNext();
+			CPile* pPile = ((CCell*)pos_pCellList->GetData())->GetPile();
+			pos_pCellList = pos_pCellList->GetNext();
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
