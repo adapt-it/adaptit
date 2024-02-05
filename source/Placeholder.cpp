@@ -1800,11 +1800,11 @@ bool CPlaceholder::IsPlaceholderInSublist(SPList* pSublist)
 	if (pSublist->IsEmpty())
 		return FALSE;
 	CSourcePhrase* pSP = NULL;
-	SPList::Node* pos = pSublist->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pSubList = pSublist->GetFirst();
+	while (pos_pSubList != NULL)
 	{
-		pSP = pos->GetData();
-		pos = pos->GetNext();
+		pSP = pos_pSubList->GetData();
+		pos_pSubList = pos_pSubList->GetNext();
 		if (pSP->m_bNullSourcePhrase)
 			return TRUE;
 	}
@@ -1837,19 +1837,19 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 	wxString emptyStr = _T("");
 	CSourcePhrase* pPrevSrcPhrase = NULL;
 	CSourcePhrase* pSrcPhraseFollowing = NULL;
-	SPList::Node* pos = NULL;
-	pos = pSrcPhraseList->Find(pSrcPhrase);
-	SPList::Node* savePos = pos;
-	pos = pos->GetPrevious();
-	if (pos != NULL)
+	SPList::Node* pos_pSPList = NULL;
+	pos_pSPList = pSrcPhraseList->Find(pSrcPhrase);
+	SPList::Node* savePos = pos_pSPList;
+	pos_pSPList = pos_pSPList->GetPrevious();
+	if (pos_pSPList != NULL)
 	{
-		pPrevSrcPhrase = pos->GetData();
+		pPrevSrcPhrase = pos_pSPList->GetData();
 	}
-	pos = savePos;
-	pos = pos->GetNext();
-	if (pos != NULL)
+	pos_pSPList = savePos;
+	pos_pSPList = pos_pSPList->GetNext();
+	if (pos_pSPList != NULL)
 	{
-		pSrcPhraseFollowing = pos->GetData();
+		pSrcPhraseFollowing = pos_pSPList->GetData();
 	}
 	// untransfer for transfers made in a former left association
 	if (pPrevSrcPhrase != NULL)
@@ -1982,19 +1982,19 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 // has been refactored for support of ZWSP untransfers etc.
 bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 {
-	SPList::Node* pos = pSublist->GetFirst();
+	SPList::Node* pos_pSubList = pSublist->GetFirst();
 	SPList::Node* savePos = NULL;
-	if (pos == NULL)
+	if (pos_pSubList == NULL)
 		return FALSE; // something's wrong, make the caller abort the operation
 	CSourcePhrase* pSrcPhrase = NULL;
 	bool bHasPlaceholders = FALSE;
 	// the first loop just does the untransfers that are needed; because the caller
 	// ensures we don't have to do transfers to non-existing pSrcPhrase instances at
 	// either end, the loop is uncomplicated
-	while (pos != NULL)
+	while (pos_pSubList != NULL)
 	{
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
+		pSrcPhrase = pos_pSubList->GetData();
+		pos_pSubList = pos_pSubList->GetNext();
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
 			// It's a placeholder, so transfer data & set flag for the block which follows 
@@ -2006,12 +2006,12 @@ bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 	// sublist 
 	if (bHasPlaceholders)
 	{
-		pos = pSublist->GetLast();
-		while (pos != NULL)
+		pos_pSubList = pSublist->GetLast();
+		while (pos_pSubList != NULL)
 		{
-			savePos = pos;
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetPrevious();
+			savePos = pos_pSubList;
+			pSrcPhrase = pos_pSubList->GetData();
+			pos_pSubList = pos_pSubList->GetPrevious();
 			if (pSrcPhrase->m_bNullSourcePhrase)
 			{
 				m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
@@ -2264,7 +2264,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	count = 0;
 	while (removePos != NULL && count < nCount)
 	{
-		SPList::Node* pos2 = removePos; // save current position for RemoveAt call
+		SPList::Node* pos_toRemove = removePos; // save current position for RemoveAt call
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)removePos->GetData();
 		
 		// BEW added 13Mar09 for refactored layout
@@ -2276,7 +2276,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
         // in the next call, FALSE means 'don't delete the partner pile' (no need to
         // because we already deleted it a few lines above)
 		m_pView->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase,FALSE);
-		pList->DeleteNode(pos2);
+		pList->DeleteNode(pos_toRemove);
 
 		// BEW 11Oct10, limit the loop to one iteration, consistent with earlier changes
 		if (count > 1)
@@ -2428,12 +2428,12 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
 {
 	// refactored 16Apr09
 	// find the null source phrase in the sublist
-	SPList::Node* pos = pList->GetFirst();
-	while (pos != NULL)
+	SPList::Node* pos_pList = pList->GetFirst();
+	while (pos_pList != NULL)
 	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhraseCopy = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext(); 
+		SPList::Node* savePos = pos_pList;
+		CSourcePhrase* pSrcPhraseCopy = (CSourcePhrase*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhraseCopy != NULL);
 		if (pSrcPhraseCopy->m_bNullSourcePhrase)
 		{

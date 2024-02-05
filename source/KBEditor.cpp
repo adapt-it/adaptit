@@ -336,12 +336,12 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	if (pCurTgtUnit != NULL)
 	{
 		int countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
-		wxASSERT(pos != NULL);
+		TranslationsList::Node* pos_pTranslations = pCurTgtUnit->m_pTranslations->GetFirst();
+		wxASSERT(pos_pTranslations != NULL);
 		int countShowable = 0;
-		while (pos != NULL)
+		while (pos_pTranslations != NULL)
 		{
-			pCurRefString = (CRefString*)pos->GetData();
+			pCurRefString = (CRefString*)pos_pTranslations->GetData();
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
 			if (bDoAbaotem)
@@ -354,7 +354,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 			}
 #endif
 
-			pos = pos->GetNext();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			// ignore any CRefString instances which have m_bDeleted set to TRUE
 			if (!pCurRefString->GetDeletedFlag())
 			{
@@ -1773,9 +1773,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	CRefString* pTheRefStr = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nTransSel);
 	wxASSERT(pTheRefStr != NULL);
 	// now search for the same CRefString instance in pCurTgtUnit
-	TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Find(pTheRefStr);
-	wxASSERT(pos != NULL); // it must be there!
-	CRefString* pRefString = (CRefString*)pos->GetData();
+	TranslationsList::Node* pos_pTranslations = pCurTgtUnit->m_pTranslations->Find(pTheRefStr);
+	wxASSERT(pos_pTranslations != NULL); // it must be there!
+	CRefString* pRefString = (CRefString*)pos_pTranslations->GetData();
 	wxASSERT(pRefString == pTheRefStr); // verify we got it
 
 #if defined(_DEBUG) //&& defined(DUALS_BUG)
@@ -2069,34 +2069,34 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// each preceding deleted instance, if any, until we get to the location of the
 		// first preceding non-deleted element, and insert at that location
 		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 22Jun10
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
+		TranslationsList::Node* pos_pTranslations = pCurTgtUnit->m_pTranslations->Item(oldLocation);
+		wxASSERT(pos_pTranslations != NULL);
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString == pOldRefStr);
-		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		TranslationsList::Node* posOld = pos_pTranslations; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
 		do {
 			// jump over any deleted earlier CRefString instances, break when a
 			// non-deleted one is found
-			pos = pos->GetPrevious();
-			aRefStrPtr = pos->GetData();
+			pos_pTranslations = pos_pTranslations->GetPrevious();
+			aRefStrPtr = pos_pTranslations->GetData();
 			if (!aRefStrPtr->GetDeletedFlag())
 			{
 				break;
 			}
 		} while (aRefStrPtr->GetDeletedFlag());
 
-		// pos now points at the first previous non-deleted CRefString instance, which is
+		// pos_pTranslations now points at the first previous non-deleted CRefString instance, which is
 		// the one before which we want to put pOldRefStr by way of insertion, but first
 		// delete the node containing the old location's instance
 		pCurTgtUnit->m_pTranslations->DeleteNode(posOld);
-		wxASSERT(pos != NULL);
+		wxASSERT(pos_pTranslations != NULL);
 
 		// now do the insertion, bringing the pCurTgtUnit's list into line with what the
 		// listbox in the GUI shows to the user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the insertPos node position.
-		TranslationsList::Node* newPos = pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
+		TranslationsList::Node* newPos = pCurTgtUnit->m_pTranslations->Insert(pos_pTranslations,pRefString);
 		if (newPos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
@@ -2198,11 +2198,11 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		// second following non-deleted element, and insert before that location - but if
 		// we reach the end of the list, we just append
 		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 24Jun10
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
-		wxASSERT(pos != NULL);
-		pRefString = (CRefString*)pos->GetData();
+		TranslationsList::Node* pos_pTranslations = pCurTgtUnit->m_pTranslations->Item(oldLocation);
+		wxASSERT(pos_pTranslations != NULL);
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString  == pOldRefStr);
-		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		TranslationsList::Node* posOld = pos_pTranslations; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
 
 		// BEW 24Jun10, moving down becomes a two step process - first step is to loop
@@ -2214,8 +2214,8 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		do {
 			// jump over any deleted lower-down CRefString instances, break when a
 			// non-deleted one is found
-			pos = pos->GetNext();
-			aRefStrPtr = pos->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
+			aRefStrPtr = pos_pTranslations->GetData();
 			if (!aRefStrPtr->GetDeletedFlag())
 			{
 				break;
@@ -2223,8 +2223,8 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		} while (aRefStrPtr->GetDeletedFlag());
 		// now advance over this non-deleted one -- this may make the iterator return NULL
 		// if we are at the end of the list
-		pos = pos->GetNext();
-		if (pos == NULL)
+		pos_pTranslations = pos_pTranslations->GetNext();
+		if (pos_pTranslations == NULL)
 		{
 			// we are at the list's end
 			pCurTgtUnit->m_pTranslations->Append(pRefString);
@@ -2232,7 +2232,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		else
 		{
 			// we are at a CRefString instance, so we can insert before it
-			pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
+			pCurTgtUnit->m_pTranslations->Insert(pos_pTranslations,pRefString);
 		}
 
         // check the insertion or appending was done correctly - tell developer if not so,
@@ -2242,8 +2242,8 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
         // the KB Editor without saving (by calling OnClose()), and then the KB Editor can
         // be launched again without data loss from the KB and the user/developer can try
         // again
-		pos = pCurTgtUnit->m_pTranslations->Find(pRefString);
-		if (pos == NULL)
+		pos_pTranslations = pCurTgtUnit->m_pTranslations->Find(pRefString);
+		if (pos_pTranslations == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
@@ -2469,14 +2469,14 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 	pRefString->m_refCount = 1; // set the count, assuming this will be stored (it may not be)
 	pRefString->m_translation = translationStr; // set its translation string
 
-	TranslationsList::Node* pos = pTargetUnit->m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = pTargetUnit->m_pTranslations->GetFirst();
 	TranslationsList::Node* savePos; // in case we need to undelete (see below)
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		CRefString* pRefStr = (CRefString*)pos->GetData();
-		savePos = pos; // preserve old location
+		CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+		savePos = pos_pTranslations; // preserve old location
 
-		pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr != NULL);
 
 		// wx TODO: Compare this to changes made in ChooseTranslation dialog
@@ -3128,13 +3128,13 @@ safe:		wxString srcKey;
 		int countNonDeleted = 0;
                 wxUnusedVar(countNonDeleted); // whm added 25Jun2015 to avoid gcc "unused" warning
 		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
-		wxASSERT(pos != NULL);
+		TranslationsList::Node* pos_pTranslations = pCurTgtUnit->m_pTranslations->GetFirst();
+		wxASSERT(pos_pTranslations != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09
 		int countShowable = 0;
-		while (pos != NULL)
+		while (pos_pTranslations != NULL)
 		{
-			pCurRefString = (CRefString*)pos->GetData();
+			pCurRefString = (CRefString*)pos_pTranslations->GetData();
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
 			if (bDoAbaotem)
@@ -3147,7 +3147,7 @@ safe:		wxString srcKey;
 			}
 #endif
 
-			pos = pos->GetNext();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			// only put into the list CRefString instances which are not marked as deleted
 			if (!pCurRefString->GetDeletedFlag())
 			{
@@ -3447,15 +3447,15 @@ void CKBEditor::PopulateTranslationsListBox(CTargetUnit* pTgtUnit)
 	wxASSERT(pTgtUnit);
 	wxString s = _("<no adaptation>");
 	int countNonDeleted = pKB->CountNonDeletedRefStringInstances(pTgtUnit);
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTgtUnit->m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
 	int countShowable = 0;
 	CRefString* pRefStr = NULL;
 	int anIndex = -1;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		// only put into the list CRefString instances which are not marked as deleted
 		if (!pRefStr->GetDeletedFlag())
 		{

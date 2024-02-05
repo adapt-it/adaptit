@@ -261,11 +261,11 @@ enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptat
         // case be done
 		;
 	}
-	TranslationsList::Node *pos = pList->GetFirst();
-	while(pos != NULL)
+	TranslationsList::Node * pos_pList = pList->GetFirst();
+	while(pos_pList != NULL)
 	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pList->GetData();
+		pos_pList = pos_pList->GetNext();
 		wxASSERT(pRefStr != NULL);
 		if (pRefStr->m_translation == adaptation)
 		{
@@ -524,11 +524,11 @@ bool CKB::IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted,
 	CRefString* pRefString = NULL;
 	bItsPseudoDeleted = FALSE; // initialize to its default value
 	pRefStrDeleted = NULL;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = pos->GetData();
-		pos = pos->GetNext();
+		pRefString = pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (str.IsEmpty())
 		{
 			if (pRefString->m_translation.IsEmpty())
@@ -1419,15 +1419,15 @@ void  CKB::SyncForRemovedRefString(CPhraseBox* pTgtBox, CTargetUnit* pTgtUnit)
 
 	int itemIndex = -1; // initialise
 	CRefString* refStringPtr = NULL; // initialise 
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); // initialise the iterator
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTgtUnit->m_pTranslations->GetFirst(); // initialise the iterator
+	wxASSERT(pos_pTranslations != NULL);
 //	TranslationsList::Node* posSaved = NULL;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		refStringPtr = (CRefString*)pos->GetData();
+		refStringPtr = (CRefString*)pos_pTranslations->GetData();
 		itemIndex++;
-//		posSaved = pos;
-		pos = pos->GetNext();
+//		posSaved = pos_pTranslations;
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxString data = refStringPtr->m_translation;
 #if defined (SHOWSYNC)
 		wxString s = _("<no adaptation>"); // there may be one such in the list
@@ -1646,11 +1646,11 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	// that instance may contain CRefString instances marked as deleted. So matching any
 	// of these in the loop below has to be deemed a non-match, so that only matches with
 	// the m_bDeleted flag with value FALSE qualify as a match
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
-	while (pos != 0)
+	TranslationsList::Node* pos_pTranslations = pTgtUnit->m_pTranslations->GetFirst();
+	while (pos_pTranslations != 0)
 	{
-		CRefString* pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr);
 		if (adaptation == pRefStr->m_translation)
 		{
@@ -2304,11 +2304,11 @@ void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted)
 {
 	CRefString* pRefStr = NULL;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	while (pos_pTranslations != NULL)
 	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr != NULL);
 		wxString thePhrase = pRefStr->m_translation; // get the local KB's adapt'n or gloss
 		// does it match?
@@ -2409,12 +2409,12 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	// We also must try all possibilities, and count those with m_bDeleted set to FALSE so
 	// that if the count is greater than 1, we must return FALSE to the caller, and empty
 	// string as the adaptation value
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = pTgtUnit->m_pTranslations->GetFirst();
 	size_t count = 0;
-	while (pos != 0)
+	while (pos_pTranslations != 0)
 	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr);
 		// Do we handle <no adaptation> as a valid value? Yes, we must
 		if (!pRefStr->m_bDeleted)
@@ -2533,12 +2533,12 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// that instance may contain CRefString instances marked as deleted. So matching any
 	// of these in the loop below has to be deemed a non-match, so that only matches with
 	// the m_bDeleted flag with value FALSE qualify as a match
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = pTgtUnit->m_pTranslations->GetFirst();
 
-	while (pos != 0)
+	while (pos_pTranslations != 0)
 	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr);
 
 		// BEW 15Apr19 added, augment counter if it is not a deleted KB entry
@@ -4042,11 +4042,11 @@ void CKB::SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase)
 		TranslationsList* pList = pTgtUnit->m_pTranslations;
 		if (!pList->IsEmpty())
 		{
-			TranslationsList::Node* pos = pList->GetFirst();
-			while (pos != NULL)
+			TranslationsList::Node* pos_pTranslations = pList->GetFirst();
+			while (pos_pTranslations != NULL)
 			{
-				CRefString* pRefString = (CRefString*)pos->GetData();
-				pos = pos->GetNext();
+				CRefString* pRefString = (CRefString*)pos_pTranslations->GetData();
+				pos_pTranslations = pos_pTranslations->GetNext();
 				if (pRefString != NULL)
 				{
 					if (!pRefString->m_bDeleted)
@@ -4132,14 +4132,14 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			wxASSERT(pTgtUnit);
 			TranslationsList* pList = pTgtUnit->m_pTranslations;
 			wxASSERT(!pList->IsEmpty());
-			TranslationsList::Node* pos = pList->GetFirst();
+			TranslationsList::Node* pos_pTranslations = pList->GetFirst();
 			// BEW 18Jun10 the new code follows..., first, scan through all CRefString
 			// instances in the list and any with m_bDeleted set TRUE, undelete them; and
 			// the one which matches pRefString above must be given special tests
-			while (pos != NULL)
+			while (pos_pTranslations != NULL)
 			{
-				CRefString* pRefStr = (CRefString*)pos->GetData();
-				pos = pos->GetNext();
+				CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+				pos_pTranslations = pos_pTranslations->GetNext();
 				if (pRefStr == pRefString)
 				{
 					if (rsEntry == present_but_deleted)
@@ -4684,11 +4684,11 @@ bool CKB::StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSuppor
 								// stored (it may not be), count is 0 for <Not In KB>
 				pRefString->m_translation = strNot; // store "<Not In KB>" since we are
 													// in transliterate mode
-				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-				while (pos != NULL)
+				TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+				while (pos_pTranslations != NULL)
 				{
-					CRefString* pRefStr = (CRefString*)pos->GetData();
-					pos = pos->GetNext();
+					CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+					pos_pTranslations = pos_pTranslations->GetNext();
 					wxASSERT(pRefStr != NULL);
 
 					// does it match?
@@ -5383,11 +5383,11 @@ bool CKB::StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSuppor
 				pRefString->m_translation = tstr;
 
 			// we are storing either a gloss, or adaptation, or pseudo-adaption "<Not In KB>"
-			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-			while (pos != NULL)
+			TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+			while (pos_pTranslations != NULL)
 			{
-				CRefString* pRefStr = pos->GetData();
-				pos = pos->GetNext();
+				CRefString* pRefStr = pos_pTranslations->GetData();
+				pos_pTranslations = pos_pTranslations->GetNext();
 				wxASSERT(pRefStr != NULL);
 
 				// does it match?
@@ -6105,11 +6105,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
 			}
 
-			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-			while (pos != NULL)
+			TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+			while (pos_pTranslations != NULL)
 			{
-				CRefString* pRefStr = (CRefString*)pos->GetData();
-				pos = pos->GetNext();
+				CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+				pos_pTranslations = pos_pTranslations->GetNext();
 				wxASSERT(pRefStr != NULL);
 
 				// does it match?
@@ -6367,7 +6367,7 @@ void CKB::GetForceAskList(KPlusCList* pKeys)
 				}
 				catch (...)
 				{
-					break; // exit from this map, as we no longer can be sure of a valid pos
+					break; // exit from this map, as we no longer can be sure of a valid pos_pTranslations
 				}
 			}
 		}
@@ -6442,13 +6442,13 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr += s;
 	aStr += "\">\r\n";
 
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
 	CBString rsTabs;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
 		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		CBString bstr(pRefStr->m_translation);
 		InsertEntities(bstr);
 		intStr.Empty(); // needs to start empty, otherwise << will
@@ -6553,7 +6553,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 				aStr += "\"/>\r\n";
 			} // end of else block for test of both modifed and deleted dateTime stamps empty
 		} // end of else not Legacy 5.x.x format
-	} // end of loop: while (pos != NULL)
+	} // end of loop: while (pos_pTranslations != NULL)
 
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
@@ -6582,13 +6582,13 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr += s;
 	aStr += "\">\r\n";
 
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
 	CBString rsTabs;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
 		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		CBString bstr = m_pApp->Convert16to8(pRefStr->m_translation);
 		InsertEntities(bstr);
 		intStr.Empty(); // needs to start empty, otherwise << will
@@ -6693,7 +6693,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 				aStr += "\"/>\r\n";
 			} // end of else block for test of both modifed and deleted dateTime stamps empty
 		} // end of else not Legacy 5.x.x format
-	} // end of loop: while (pos != NULL)
+	} // end of loop: while (pos_pTranslations != NULL)
 
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
@@ -7347,13 +7347,13 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		nCumulativeTotal += m_pApp->m_pSourcePhrases->GetCount();
 
 		SPList* pPhrases = m_pApp->m_pSourcePhrases;
-		SPList::Node* pos1 = pPhrases->GetFirst();
+		SPList::Node* pos_pPhrases = pPhrases->GetFirst();
 		int counter = 0;
 		bool bThisDocChanged = FALSE;
-		while (pos1 != NULL)
+		while (pos_pPhrases != NULL)
 		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-			pos1 = pos1->GetNext();
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pPhrases->GetData();
+			pos_pPhrases = pos_pPhrases->GetNext();
 			counter++;
 
 			// update the glossing or adapting KB for this source phrase
@@ -7575,11 +7575,11 @@ void CKB::RemoveManuallyEnteredPlaceholdersFromKB()
 		TranslationsList* pList = pTgtUnit->m_pTranslations;
 		wxASSERT(pList);
 		CRefString* pRefStr = NULL;
-		TranslationsList::Node *pos = pList->GetFirst();
-		while (pos != NULL)
+		TranslationsList::Node *pos_pTranslations = pList->GetFirst();
+		while (pos_pTranslations != NULL)
 		{
-			pRefStr = (CRefString*)pos->GetData();
-			pos = pos->GetNext();
+			pRefStr = (CRefString*)pos_pTranslations->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			wxASSERT(pRefStr != NULL);
 
 			// clear the pRefString's contents and remove it from heap

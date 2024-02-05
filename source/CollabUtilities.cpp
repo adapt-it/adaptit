@@ -188,17 +188,6 @@ extern bool gbDoingInitialSetup;
 		int ct, tot;
 		tot = usfmStructureAndExtentArray.GetCount();
 
-#if defined(_DEBUG)
-		/* oops, this will crash the app with a bounds error if the file is small
-		int pos = 0;
-		wxString aTempStr;
-		for (pos = 308; pos < 320; pos++)
-		{
-			aTempStr = usfmStructureAndExtentArray.Item(pos);
-			wxLogDebug(_T("aTempStr:  %s  , pos = %d"), aTempStr.c_str(), pos);
-		}
-		*/
-#endif
 		wxString tempStr;
 		bool bChFound = FALSE;
 		bool bVsFound = FALSE;
@@ -3101,11 +3090,11 @@ extern bool gbDoingInitialSetup;
 				pStatusBar->UpdateProgress(_("Merging Documents..."), 8, msgDisplayed);
 
 				// now delete the list formed from the imported new version of the source text
-				SPList::Node* pos = pSourcePhrases->GetFirst();
-				while (pos != NULL)
+				SPList::Node* pos_pSP = pSourcePhrases->GetFirst();
+				while (pos_pSP != NULL)
 				{
-					CSourcePhrase* pSrcPhrase = pos->GetData();
-					pos = pos->GetNext();
+					CSourcePhrase* pSrcPhrase = pos_pSP->GetData();
+					pos_pSP = pos_pSP->GetNext();
 					pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 				}
 				pSourcePhrases->Clear();
@@ -3448,8 +3437,8 @@ extern bool gbDoingInitialSetup;
 				{
 					// The book ID was found in this token.
 					// Is this token a chapter containing type?
-					int pos = token.Find(_T(":"));
-					if (pos == wxNOT_FOUND)
+					int nPos = token.Find(_T(":"));
+					if (nPos == wxNOT_FOUND)
 					{
 						wholeBookTokenFound = TRUE;
 					}
@@ -3457,7 +3446,7 @@ extern bool gbDoingInitialSetup;
 					{
 						chapterTypeTokenFound = TRUE;
 						indexIntotempTokenArrayOfChapterType = ct;
-						chFoundParts = token.Mid(pos);
+						chFoundParts = token.Mid(nPos);
 						chFoundParts.Trim(TRUE);
 						chFoundParts.Trim(FALSE);
 					}
@@ -3742,8 +3731,8 @@ extern bool gbDoingInitialSetup;
 				{
 					// The book ID was found in this token.
 					// Is this token a chapter containing type?
-					int pos = token.Find(_T(":"));
-					if (pos == wxNOT_FOUND)
+					int nPos = token.Find(_T(":"));
+					if (nPos == wxNOT_FOUND)
 					{
 						wholeBookTokenFound = TRUE;
 					}
@@ -3751,7 +3740,7 @@ extern bool gbDoingInitialSetup;
 					{
 						chapterTypeTokenFound = TRUE;
 						indexIntotempTokenArrayOfChapterType = ct;
-						chFoundParts = token.Mid(pos);
+						chFoundParts = token.Mid(nPos);
 						chFoundParts.Trim(TRUE);
 						chFoundParts.Trim(FALSE);
 					}
@@ -11400,12 +11389,12 @@ extern bool gbDoingInitialSetup;
 					// copy the pointers over to the app's m_pSourcePhrases list (the document)
 					if (nHowMany > 0)
 					{
-						SPList::Node* pos = pSourcePhrases->GetFirst();
-						while (pos != NULL)
+						SPList::Node* pos_pSP = pSourcePhrases->GetFirst();
+						while (pos_pSP != NULL)
 						{
-							CSourcePhrase* pSrcPhrase = pos->GetData();
+							CSourcePhrase* pSrcPhrase = pos_pSP->GetData();
 							pApp->m_pSourcePhrases->Append(pSrcPhrase);
-							pos = pos->GetNext();
+							pos_pSP = pos_pSP->GetNext();
 						}
 						// now clear the pointers from pSourcePhrases list, but leave their memory
 						// alone, and delete pSourcePhrases list itself

@@ -800,11 +800,11 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 	}
 
 	// find position of the active pile's source phrase in the list
-	SPList::Node *pos;
+	SPList::Node *pos_pSP;
 
-	pos = pSourcePhrases->Item(nNewSequNum);
+	pos_pSP = pSourcePhrases->Item(nNewSequNum);
 
-	wxASSERT(pos != NULL);
+	wxASSERT(pos_pSP != NULL);
 	int index = 0;
 	int counter = 0;
 	CSourcePhrase* pSrcPhrase;
@@ -825,17 +825,17 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 		// pertains to how many words, less one, are indicated by m_nSourceWords, and
 		// counter needs to be set to the latter's value rather than to 1 as used to be
 		// the case
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
 		int theIndex = pSrcPhrase->m_nSrcWords - 1;
 		phrases[theIndex] = pSrcPhrase->m_key;
 		return counter = pSrcPhrase->m_nSrcWords;
 	}
-	while (pos != NULL && index < MAX_WORDS)
+	while (pos_pSP != NULL && index < MAX_WORDS)
 	{
-		// NOTE: MFC's GetNext(pos) retrieves the current pos data into
-		// pScrPhrase, then increments pos
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
+		// NOTE: MFC's GetNext(pos_pSP) retrieves the current pos_pSP data into
+		// pScrPhrase, then increments pos_pSP
+		pSrcPhrase = (CSourcePhrase*)pos_pSP->GetData();
+		pos_pSP = pos_pSP->GetNext();
 		if (pSrcPhrase->m_nSrcWords > 1 || !pSrcPhrase->m_adaption.IsEmpty() ||
 			pSrcPhrase->m_bNullSourcePhrase || pSrcPhrase->m_bRetranslation)
 			return counter; // don't build with this src phrase, it's a merged one, etc.
@@ -2741,11 +2741,11 @@ bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView)
 	const CCellList* pList = &pApp->m_selection;
 	if (pList->GetCount() == 0)
 		return bYes;
-	CCellList::Node* pos = pList->GetFirst();
-	while (pos != NULL)
+	CCellList::Node* pos_pCellList = pList->GetFirst();
+	while (pos_pCellList != NULL)
 	{
-		CCell* pCell = (CCell*)pos->GetData();
-		pos = pos->GetNext();
+		CCell* pCell = (CCell*)pos_pCellList->GetData();
+		pos_pCellList = pos_pCellList->GetNext();
 		//if (pCell->m_pPile == pActivePile)
 		if (pCell->GetPile() == pActivePile)
 		{
@@ -8470,8 +8470,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	// Populate the combobox's list contents with the translation or gloss strings 
     // stored in the global variable pCurTargetUnit (passed in as pTU).
     CRefString* pRefString;
-    TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-    wxASSERT(pos != NULL);
+    TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst();
+    wxASSERT(pos_pTranslations != NULL);
     // initialize the reference parameters
 	int nLocation = -1;
 	indexOfNoAdaptation = -1;
@@ -8497,14 +8497,14 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 	// reinsertion would just become a re-appending if the reinsertable item was 
 	// earlier last in the list) -- so, I think it would work seamlessly & as 
 	// expected by the user
-    while (pos != NULL)
+    while (pos_pTranslations != NULL)
     {
-        pRefString = (CRefString*)pos->GetData();
+        pRefString = (CRefString*)pos_pTranslations->GetData();
 #if defined(_DEBUG) && defined(DROPDOWN)
 		wxLogDebug(_T("PopulateDropDownList: %d, TopOfLoop, m_translation= %s , m_bDeleted= %d , m_refCount= %d"),
 			__LINE__, pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
 #endif
-        pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
         if (!pRefString->GetDeletedFlag())
         {
             // this one is not deleted, so show it to the user
@@ -8752,8 +8752,8 @@ void  CPhraseBox::RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, 
 	// Populate the combobox's list contents with the translation strings 
 	// stored in the global variable pCurTargetUnit (passed in as pTU).
 	CRefString* pRefString;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst(); // intialise iterator
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTU->m_pTranslations->GetFirst(); // intialise iterator
+	wxASSERT(pos_pTranslations != NULL);
 	// initialize the reference parameters
 	int nLocation = -1;
 	indexOfNoAdaptation = -1;
@@ -8771,10 +8771,10 @@ void  CPhraseBox::RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, 
 	// so as to restore the deleted item to it's former place.
 	bool bIsDeleted = FALSE; // initialise
 	wxString str = wxEmptyString; // initialise
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		// This is a real deletion (i.e removal from the local KB totally); however, the entry
 		// in the entry table will remain there, but pseudo-deleted - which is just a flag change
 		bIsDeleted = (bool)pRefString->GetDeletedFlag(); // 1 becomes TRUE,  0 becomes FALSE
@@ -9051,8 +9051,8 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	// m_bDeleted flag set TRUE. In this circumstance, matching this is to be regarded as
 	// a non-match, and the function then would need to return FALSE for a manual typing
 	// of the required adaptation (or gloss)
-	TranslationsList::Node* pos = pTargetUnit->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
+	TranslationsList::Node* pos_pTranslations = pTargetUnit->m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
 
 	wxASSERT(count > 0);
 	if (count > 1 || pTargetUnit->m_bAlwaysAsk)
@@ -9094,10 +9094,10 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 		// BEW 21Jun10, count has the value 1, but there could be deleted CRefString
 		// intances also, so we must search to find the first non-deleted instance
 		CRefString* pRefStr = NULL;
-		while (pos != NULL)
+		while (pos_pTranslations != NULL)
 		{
-			pRefStr = pos->GetData();
-			pos = pos->GetNext();
+			pRefStr = pos_pTranslations->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			if (!pRefStr->GetDeletedFlag())
 			{
 				// the adaptation string returned could be a "<Not In KB>" string, which

@@ -400,9 +400,9 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	wxString endMkr = _T("\\note*");
 
 	SPList* pList = gpApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->Item(gpApp->m_nSequNumBeingViewed);		
-	wxASSERT(pos != NULL);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();		
+	SPList::Node* pos_pList = pList->Item(gpApp->m_nSequNumBeingViewed);		
+	wxASSERT(pos_pList != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
 	wxASSERT(pSrcPhrase);
 
     // we prefer not to have empty notes (we can't categorically prevent them because the

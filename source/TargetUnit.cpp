@@ -91,12 +91,12 @@ CTargetUnit::CTargetUnit(const CTargetUnit &tu)
 	if (tu.m_pTranslations->IsEmpty())
 		return;
 	// WX Note: Shouldn't this return for cases where this == &tu ???
-	TranslationsList::Node* pos = tu.m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = tu.m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
-		CRefString* pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
+		CRefString* pRefStr = (CRefString*)pos_pTranslations->GetData();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		wxASSERT(pRefStr != NULL);
 		CRefString* pRefStrCopy = new CRefString(*pRefStr, this); // use copy constructor
 		m_pTranslations->Append(pRefStrCopy); // wx referencing it without this->
@@ -183,14 +183,14 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 	CRefString* pRefString = NULL;
 	int anIndex = -1;
 	wxString emptyStr; emptyStr.Empty();
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
 		anIndex++;
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (!pRefString->GetDeletedFlag())
 		{
 			wxString str = pRefString->m_translation;
@@ -213,13 +213,13 @@ CRefString* CTargetUnit::FindRefStringUndeleted(wxString& translationStr)
 {
 	CRefString* pRefString = NULL;
 	wxString emptyStr; emptyStr.Empty();
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (!pRefString->GetDeletedFlag())
 		{
 			wxString str = pRefString->m_translation;
@@ -251,14 +251,14 @@ int CTargetUnit::FindDeletedRefString(wxString& translationStr)
 	int anIndex = -1;
 	wxString str;
 	wxString emptyStr; emptyStr.Empty();
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
 		anIndex++;
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (pRefString->GetDeletedFlag() == TRUE)
 		{
 			str = pRefString->m_translation;
@@ -281,13 +281,13 @@ CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationS
 	CRefString* pRefString = NULL;
 	wxString str;
 	wxString emptyStr; emptyStr.Empty();
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext();
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (pRefString->GetDeletedFlag() == TRUE)
 		{
 			str = pRefString->m_translation;
@@ -319,11 +319,11 @@ void CTargetUnit::DeleteAllToPrepareForNotInKB()
 	TranslationsList* pList = m_pTranslations;
 	if (!pList->IsEmpty())
 	{
-		TranslationsList::Node* pos = pList->GetFirst();
-		while (pos != NULL)
+		TranslationsList::Node* pos_pTranslations = pList->GetFirst();
+		while (pos_pTranslations != NULL)
 		{
-			CRefString* pRefString = (CRefString*)pos->GetData();
-			pos = pos->GetNext();
+			CRefString* pRefString = (CRefString*)pos_pTranslations->GetData();
+			pos_pTranslations = pos_pTranslations->GetNext();
 			if (pRefString != NULL)
 			{
 				if (!pRefString->m_bDeleted)
@@ -389,8 +389,8 @@ bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
 		CRefString* pRefStr_NotInKB = NULL;
 		CRefString* pRefStr_Matched = NULL;
 		CRefString* pRefString;
-		TranslationsList::Node* pos = pList->GetFirst();
-		while (pos != NULL)
+		TranslationsList::Node* pos_pTranslations = pList->GetFirst();
+		while (pos_pTranslations != NULL)
 		{
 			// test all CRefString instances, or until posNotInKB and
 			// posMatched are both non-NULL
@@ -401,25 +401,25 @@ bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
 			}
 			else
 			{
-				pRefString = (CRefString*)pos->GetData();
+				pRefString = (CRefString*)pos_pTranslations->GetData();
 				if (pRefString != NULL)
 				{
 					if (pRefString->m_translation == notInKBStr)
 					{
-						posNotInKB = pos;
+						posNotInKB = pos_pTranslations;
 						pRefStr_NotInKB = pRefString; // may be deleted or not
 					}
 					else if (pRefString->m_translation == str)
 					{
-						posMatched = pos;
+						posMatched = pos_pTranslations;
 						pRefStr_Matched = pRefString;
 					}
 				}
 				// advance the iterator
-				pos = pos->GetNext();
+				pos_pTranslations = pos_pTranslations->GetNext();
 			} // end of else block for test: if (posNotInKB != NULL && posMatched != NULL)
 
-		} // end of loop: while (pos != NULL)
+		} // end of loop: while (pos_pTranslations != NULL)
 
 		if (posNotInKB != NULL)
 		{
@@ -555,15 +555,15 @@ void CTargetUnit::ValidateNotInKB()
 void CTargetUnit::EraseDeletions(enum ModifiedAction modChoice)
 {
 	CRefString* pRefString = NULL;
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
 	TranslationsList::Node* savepos = NULL;
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	wxASSERT(pos_pTranslations != NULL);
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = pos->GetData();
+		pRefString = pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		savepos = pos; // in case we need to delete this node
-		pos = pos->GetNext();
+		savepos = pos_pTranslations; // in case we need to delete this node
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (pRefString->GetDeletedFlag())
 		{
 			pRefString->DeleteRefString();
@@ -593,19 +593,19 @@ void CTargetUnit::EraseDeletions(enum ModifiedAction modChoice)
 bool CTargetUnit::EraseOneDeletion(void)
 {
 	CRefString* pRefString = NULL;
-	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	TranslationsList::Node* pos_pTranslations = m_pTranslations->GetFirst();
 	TranslationsList::Node* savepos = NULL;
-	wxASSERT(pos != NULL);
+	wxASSERT(pos_pTranslations != NULL);
 	// BEW 31Mar22, we have to loop over the pRefString instances to find the one
 	// with the flag m_bDeleted set TRUE, and effect a 'real deletion' of that one
 	// from the KB infrastructure
 	bool bDeletedOne = FALSE;
-	while (pos != NULL)
+	while (pos_pTranslations != NULL)
 	{
-		pRefString = pos->GetData();
+		pRefString = pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		savepos = pos; // in case we need to delete this node
-		pos = pos->GetNext();
+		savepos = pos_pTranslations; // in case we need to delete this node
+		pos_pTranslations = pos_pTranslations->GetNext();
 		if (pRefString->GetDeletedFlag())
 		{
 #if defined (_DEBUG) && defined (SHOWSYNC)

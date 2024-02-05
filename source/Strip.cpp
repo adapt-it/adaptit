@@ -123,9 +123,9 @@ void CStrip::Draw(wxDC* pDC)
 	{
 		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version,
 		// but remain positive in the wx version.
-		POList* pList = &m_pLayout->m_pApp->m_pagesList;
-		POList::Node* pos = pList->Item(m_pLayout->m_pApp->m_nCurPage-1);
-		// whm 27Oct11 added test to return if pos == NULL
+		POList* pPOList = &m_pLayout->m_pApp->m_pagesList;
+		POList::Node* pos_pOffset = pPOList->Item(m_pLayout->m_pApp->m_nCurPage-1);
+		// whm 27Oct11 added test to return if pos_pOffset == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
 		// function can get triggered by the Linux system on that platform
 		// before App's m_nCurPage is calculated by OnPreparePrinting()'s
@@ -135,9 +135,9 @@ void CStrip::Draw(wxDC* pDC)
 		// BEW 28Oct11, using m_bPagePrintInProgress in the above test, rather
 		// than the earlier m_bIsPrinting should make the next two lines be
 		// no longer needed, but they can remain for safety's sake
-		if (pos == NULL)
+		if (pos_pOffset == NULL)
 			return;
-		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
+		PageOffsets* pOffsets = (PageOffsets*)pos_pOffset->GetData();
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
 	}
@@ -179,7 +179,7 @@ void CStrip::Draw(wxDC* pDC)
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 19Aug18 refactored for supporting dropdown list phrasebox
 // whm 11Nov2022 refactored for new phrasebox sizing methodology and simplifications.
-PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
+PileList::Node* CStrip::CreateStrip(PileList::Node*& pos_PileList, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
 
@@ -209,7 +209,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
     // infinite loop of empty strips if the width of the first pile should happen to
     // exceed the strip's width; so we place the first unilaterally, regardless of its
     // width
-	pPile = (CPile*)pos->GetData();
+	pPile = (CPile*)pos_PileList->GetData();
 	// set the pile's m_pOwningStrip member
 	pPile->m_pOwningStrip = this;
 	if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
@@ -255,20 +255,20 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	// prepare for next iteration
 	nWidthOfPreviousPile = pileWidth;
 	pileIndex_InStrip++;
-	pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
+	pos_PileList = pos_PileList->GetNext(); // will be NULL if the pile just created was at doc end
 	nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
 	// if m_nFree went negative or zero, we can't fit any more piles, so declare
 	// the strip full
 	if (m_nFree <= 0)
 	{
 		m_bValid = TRUE;
-		return pos;
+		return pos_PileList;
 	}
 
 	// append second and later piles to the strip
-	while (pos != NULL  && m_nFree > 0)
+	while (pos_PileList != NULL  && m_nFree > 0)
 	{
-		pPile = (CPile*)pos->GetData();
+		pPile = (CPile*)pos_PileList->GetData();
 		wxASSERT(pPile != NULL);
 
 		// break out of the loop without including this pile in the strip if it is a
@@ -285,7 +285,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				// if we need to wrap, discontinue assigning piles to this strip (the
 				// nPileIndex_InList value is already correct for returning to caller)
 				m_bValid = TRUE;
-				return pos;
+				return pos_PileList;
 			}
 		}
 
@@ -354,7 +354,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			// the pile list's index for use in the next strip's creation
 			m_bValid = TRUE;
 			// This is the normal exit point for control, when creating strips
-			return pos;
+			return pos_PileList;
 		}
 
 		// set the pile's m_pOwningStrip member
@@ -365,7 +365,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		nWidthOfPreviousPile = pileWidth;
 
 		// advance the iterator for the CLayout's m_pileList list of pile pointers
-		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
+		pos_PileList = pos_PileList->GetNext(); // will be NULL if the pile just created was at doc end
 
 		// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
 		nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
@@ -376,7 +376,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	// case we must declare this strip filled and we are done.
 	m_bValid = TRUE;
 
-	return pos; // the iterator value where we start when we create the next strip
+	return pos_PileList; // the iterator value where we start when we create the next strip
 }
 
 // the following is an overrided version to be used when refilling emptied strips, for a
@@ -401,8 +401,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	// and a count of how many CPile pointer instances are to be placed; and a counter for
 	// how many get placed in the current strip - this value we return when the strip is
 	// full or we have run out of piles to be placed
-	PileList::Node* pos = m_pLayout->m_pileList.Item(nInitialPileIndex);
-	wxASSERT(pos);
+	PileList::Node* pos_PileList = m_pLayout->m_pileList.Item(nInitialPileIndex);
+	wxASSERT(pos_PileList);
 	int numPlaced = 0;
 	int pileIndex = nInitialPileIndex;
 
@@ -422,7 +422,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
     // infinite loop of empty strips if the width of the first pile should happen to
     // exceed the strip's width; so we place the first unilaterally, regardless of its
     // width
-	pPile = (CPile*)pos->GetData();
+	pPile = (CPile*)pos_PileList->GetData();
 	wxASSERT(pPile);
 	// set the pile's m_pOwningStrip member
 	pPile->m_pOwningStrip = this;
@@ -477,8 +477,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	// prepare for next iteration
 	nWidthOfPreviousPile = pileWidth;
 	pileIndex_InStrip++;
-	pos = pos->GetNext(); // will be NULL if the pile just placed was at doc end
-	if (pos == NULL)
+	pos_PileList = pos_PileList->GetNext(); // will be NULL if the pile just placed was at doc end
+	if (pos_PileList == NULL)
 	{
 		// no more piles available for placement, so return
 		m_bValid = TRUE;
@@ -495,9 +495,9 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	}
 
 	// append second and later piles to this strip
-	while (pos != NULL  && m_nFree > 0 && pileIndex <= nEndPileIndex)
+	while (pos_PileList != NULL  && m_nFree > 0 && pileIndex <= nEndPileIndex)
 	{
-		pPile = (CPile*)pos->GetData();
+		pPile = (CPile*)pos_PileList->GetData();
 		wxASSERT(pPile != NULL);
 
 		// break out of the loop without including this pile in the strip if it is a
@@ -606,7 +606,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			nWidthOfPreviousPile = pileWidth;
 
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
-			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
+			pos_PileList = pos_PileList->GetNext(); // will be NULL if the pile just created was at doc end
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
 			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 		}

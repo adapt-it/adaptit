@@ -209,7 +209,7 @@ void CLanguageCodesDlg_Single::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		// insert the whole lot into the wxListBox in one call of InsertItems to avoid the lengthy
 		// scrolling that happens on Mac with WX2.9.5. Also speeds up operation on Win/Lin.
 		wxArrayString as;
-		unsigned int pos = 0;	// Counter for current position in wxArrayString for its Insert()
+		unsigned int nPos = 0;	// Counter for current position in wxArrayString for its Insert()
 		as.Alloc(8380);			// There are 8376 lines in iso639-3codes.txt, so allocate enough
 								// space in one go for efficiency.
                                 // Skip over any BOM that might be present
@@ -234,7 +234,7 @@ void CLanguageCodesDlg_Single::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 				if (!tempLine.IsEmpty())
 				{
 					// GDLC 3SEP13 Use Insert() on the wxArrayString
-					as.Insert(tempLine, pos++);
+					as.Insert(tempLine, nPos++);
 					// pListBox->Append(tempLine);
 					tempLine.Empty();
 				}
@@ -254,7 +254,7 @@ void CLanguageCodesDlg_Single::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		// catch the last list item if the codes file does not end with a newline char
 		if (!tempLine.IsEmpty())
 		{
-			as.Insert(tempLine, pos);
+			as.Insert(tempLine, nPos);
 			// pListBox->Append(tempLine);
 
 		}

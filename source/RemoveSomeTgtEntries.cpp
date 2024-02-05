@@ -893,14 +893,14 @@ void RemoveSomeTgtEntries::PopulateOneTargetUnitGroupArray(SrcTgtUnitPair* pPair
 	m_src = pPair->src; // m_src is a scratch member variable for wxString
 	CTargetUnit* pTU = pPair->pTU;
 	wxString notInKBStr = _T("<Not In KB>");
-	TranslationsList::Node* pos = 0;
+	TranslationsList::Node* pos_pTranslations = 0;
 	CRefString* pRefString = NULL;
-	pos = pTU->m_pTranslations->GetFirst();
-	while (pos != 0)
+	pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	while (pos_pTranslations != 0)
 	{
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext(); // prepare for possibility of yet another
+		pos_pTranslations = pos_pTranslations->GetNext(); // prepare for possibility of yet another
 		m_nonsrc = pRefString->m_translation;
 		if (pRefString->GetDeletedFlag())
 		{
@@ -931,14 +931,14 @@ void RemoveSomeTgtEntries::PopulateOneTargetUnitUnsortedArray(SrcTgtUnitPair* pP
 	m_src = pPair->src; // m_src is a scratch member variable for wxString
 	CTargetUnit* pTU = pPair->pTU;
 	wxString notInKBStr = _T("<Not In KB>");
-	TranslationsList::Node* pos = 0;
+	TranslationsList::Node* pos_pTranslations = 0;
 	CRefString* pRefString = NULL;
-	pos = pTU->m_pTranslations->GetFirst();
-	while (pos != 0)
+	pos_pTranslations = pTU->m_pTranslations->GetFirst();
+	while (pos_pTranslations != 0)
 	{
-		pRefString = (CRefString*)pos->GetData();
+		pRefString = (CRefString*)pos_pTranslations->GetData();
 		wxASSERT(pRefString != NULL);
-		pos = pos->GetNext(); // prepare for possibility of yet another
+		pos_pTranslations = pos_pTranslations->GetNext(); // prepare for possibility of yet another
 		m_nonsrc = pRefString->m_translation;
 		if (pRefString->GetDeletedFlag())
 		{

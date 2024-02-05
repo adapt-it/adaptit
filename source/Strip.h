@@ -76,7 +76,7 @@ public:
 	void	GetFreeTransRect(wxRect& rect);
 	wxRect	GetFreeTransRect(); // overloaded version
 
-	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap); // return 
+	PileList::Node* CreateStrip(PileList::Node*& pos_PileList, int nStripWidth, int gap); // return 
 															// iterator of next for placement
 	// next version is overloaded, uses indices, and has nEndPileIndex for the index of
 	// the last pile which is to be placed in the emptied strips; this version used for filling
