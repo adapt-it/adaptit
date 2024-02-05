@@ -221,6 +221,7 @@ public:
 	*/
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
+	wxString    RemovePunctuationOnOneWord(wxString oneWord, wxString spacelessPunctsStr, int nIndex); // nIndex = 0 for src, 1 for tgt
 	wxString	ProvideMatchingEndBracketOrParenthesis(wxString keyTgtText);
 	void		RemoveSelection();
 

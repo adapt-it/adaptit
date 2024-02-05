@@ -42,6 +42,7 @@
 
 //#define _ENTRY_DUP_BUG
 #define SHOWSYNC // comment out to prevent logging for the kbserver calls using Leon's .exe functions
+//#define LOG_STORE; // comment out to prevent logging for StoreText() in 23 places, each prior to returning
 
 #include "KbServer.h"
 #include "Adapt_It.h"
@@ -4301,7 +4302,7 @@ bool CKB::DisallowCommaInKB(wxString key, wxString tgtPhrase)
 // adaptation. So we must check for commas and disallow such data to enter the local KB,
 // and warn the user of the data rejection.
 // BEW 7Sep22, refactored to use m_adaption as the tgtPhrase when glossing mode is turned on
-bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
+bool CKB::StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	bool bDidKbserver = FALSE;
 	// Disallow the saving if there is a comma in either src or tgt - except when the comma is
@@ -4313,18 +4314,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString kkey = pSrcPhrase->m_key;
 	wxString saveKey = kkey;
 	wxString saveTgtPhrase = tgtPhrase;
+
 #if defined (_DEBUG)
 	{
-		wxString boolvalue = gpApp->m_bInhibitMakeTargetStringCall ? _T("TRUE") : _T("FALSE");
-		wxLogDebug(_T("StoreText(pSrcPhrase, &targetPhrase, bSupportNoAdaptationButton) line %d, pApp->m_bInhibitMakeTargetStringCall is %s"),
-					__LINE__, boolvalue.c_str() );
-		wxString str2sg = _T("your(sg");
-		int offset = -1;
-		offset = tgtPhrase.Find(str2sg);
-		//if (offset != -1)
-		if (pSrcPhrase->m_nSequNumber >= 1)
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: starting StoreText() , kkey = [%s] , passed in tgtPhrase = [%s] , m_nSeqNumber = %d"), 
+			__LINE__, kkey.c_str(), tgtPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+#endif
+		if (pSrcPhrase->m_nSequNumber >= 44)
 		{
-			int halt_here = 1; wxUnusedVar(halt_here);
+			int halt_here = 1;
 		}
 	}
 #endif
@@ -4371,7 +4370,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pView->RemovePunctuation(pDoc, &kkey, 0);
 			bSrcCommaRemoved = TRUE; // when this and the one for tgt are TRUE, then we know bDisallow should stay FALSE
 #if defined (_DEBUG)
-			wxLogDebug(_T("StoreText line %d , after RemovePunctuation, kkey= [%s] , bSrcCommaRemoved = %d"),
+			wxLogDebug(_T("StoreText() line %d , after RemovePunctuation, kkey= [%s] , bSrcCommaRemoved = %d"),
 				__LINE__, kkey.c_str(), bSrcCommaRemoved);
 #endif
 		}
@@ -4394,7 +4393,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pView->RemovePunctuation(pDoc, &tgtPhrase, 1); // 1 means "use target punctuation set"
 			bTgtCommaRemoved = TRUE; // when TRUE, we know that bDisallow should stay FALSE
 #if defined (_DEBUG)
-			wxLogDebug(_T("StoreText line %d , after RemovePunctuation, tgtPhrase= [%s] , bTgtCommaRemoved = %d"),
+			wxLogDebug(_T("StoreText() line %d , after RemovePunctuation, tgtPhrase= [%s] , bTgtCommaRemoved = %d"),
 				__LINE__, tgtPhrase.c_str(), bTgtCommaRemoved);
 #endif
 		}
@@ -4409,16 +4408,28 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// Give the user a message box explaining the comma is not allowed in a KB entry
 		wxString key = pSrcPhrase->m_key;
 		bool bIsDisallowed = DisallowCommaInKB(key, saveTgtPhrase); wxUnusedVar(bIsDisallowed);
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at comma not removed, key = %s , translation = %s , bool bDidKbserver = %d"),
+			 __LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE;
 	}
 	if (bDisallow == TRUE)
 	{
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at comma disallow in, key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE; // the caller must treat this as a valid 'save' operation
 	}
 
 	// BEW 7Sep22 don't allow an empty 'src' (ie. m_adaption) when in glossing mode
 	if (gbIsGlossing && tgtPhrase.IsEmpty())
 	{
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at empty target , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE; // the caller must treat this as a valid 'save' operation
 	}
 
@@ -4481,6 +4492,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at placeholder , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE;
 	}
 //*/
@@ -4528,6 +4543,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at empty key , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE;
 	}
 	// BEW 7Sep22 the next test assumes adapting mode, so add subtest 2
@@ -4590,6 +4609,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		{
 			::wxBell();
 			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+			wxLogDebug(_T("StoreText() line %d: at more than MAX_WORDS , key = %s , translation = %s , bool bDidKbserver = %d"),
+				__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 			return TRUE;
 		}
 
@@ -4696,10 +4719,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					pRefString->DeleteRefString(); // don't leak memory
 				}
 				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+				wxLogDebug(_T("StoreText() line %d: at bMatched FALSE , key = %s , translation = %s , bool bDidKbserver = %d"),
+					__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 				return TRUE;
 			}
 		}
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: at end  transliteration block , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE;
 	} // end of block for processing a store when transliterating using SILConverters transliterator
 
@@ -4780,6 +4811,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
 //#endif
+			// BEW 2Feb24 restore inhibition, because when StoreText() is called from within the code for
+			// Restore Knowledge Base, the Make...() call calls a heap of stuff that clobbers the Restoration.
+			// Need a new member boolean in App, m_bDoingKBRestoration, so that caller will do the inhibition
+			// only when needed.
 			if (!m_pApp->m_bInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
@@ -4800,6 +4835,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->m_bForceAsk = FALSE; // also must be cleared prior to next save attempt
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 		gbMatchedKB_UCentry = FALSE;
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: in retranslation m_bHasKBEntry is FALSE , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, pSrcPhrase->m_key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE; // the caller must treat this as a valid 'save' operation
 	}
 
@@ -4872,10 +4911,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
-//	if (sn >= 4)
-//	{
-//		int halt_here = 1;
-//	}
 
 	// continue the storage operation  
 	// BEW 7Sep22 refactored to handle use of m_adaption in glossing mode
@@ -4891,8 +4926,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// In glossing mode
 		unchangedkey = pSrcPhrase->m_adaption; // this never gets case change (need this for lookups)
 		key = AutoCapsMakeStorageString(pSrcPhrase->m_adaption); // key might be made lower case
-	}
-															
+	}														
 
 	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
 	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
@@ -4916,11 +4950,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// was done above just after entry
 			if (tgtPhrase.IsEmpty())
 			{
-//				if (sn >= 4)
-//				{
-//					int halt_here = 1;
-//				}
-
 				// we just won't store anything if the target phrase has no content, when
 				// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
 				// then we skip this block so that we can store an empty string as a valid
@@ -4935,14 +4964,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
 					gbMatchedKB_UCentry = FALSE;
 					m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+					wxLogDebug(_T("StoreText() line %d: target text empty , key = %s , translation = %s , bool bDidKbserver = %d"),
+						__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 					return TRUE; // make caller think all is well
 				}
 			}
 		} // end of TRUE block for test: if (!gbIsGlossing)
-//		if (sn >= 4)
-//		{
-//			int halt_here = 1;
-//		}
 
 		// we didn't return, so continue on to create a new CTargetUnit for storing to
 		pTU = new CTargetUnit;
@@ -5017,7 +5046,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// mode, key will be m_key, and m_translation will be m_adaption
 					int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
 					wxUnusedVar(rv);
-#if defined (SHOWSYNC)
+#if defined (SHOWSYNC) && defined(LOG_STORE)
 					wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 						rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
@@ -5077,6 +5106,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 		}
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+		wxLogDebug(_T("StoreText() line %d: stored a longer legal key , key = %s , translation = %s , bool bDidKbserver = %d"),
+			__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 		return TRUE;
 	} // end of TRUE block for test: if (m_pMap[nMapIndex]->empty())
 	else // the block below is for when the map is not empty
@@ -5116,6 +5149,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// save to KB, this will be cleared by OnCheckKBSave, preserving user choice)
 			gbMatchedKB_UCentry = FALSE;
 			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+			wxLogDebug(_T("StoreText() line %d: skipped bad element , key = %s , translation = %s , bool bDidKbserver = %d"),
+				__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 			return FALSE;
 		}
 
@@ -5140,6 +5177,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
 					gbMatchedKB_UCentry = FALSE;
 					// don't make any change to pSrcPhrase's flag values
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+					wxLogDebug(_T("StoreText() line %d: bFound FALSE so skip , key = %s , translation = %s , bool bDidKbserver = %d"),
+						__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 					return TRUE; // make caller think all is well
 				}
 			}
@@ -5200,7 +5241,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
 							int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
 							wxUnusedVar(rv);
-#if defined (SHOWSYNC)
+#if defined (SHOWSYNC) && defined(LOG_STORE)
 							wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 								rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
@@ -5252,6 +5293,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+			wxLogDebug(_T("StoreText() line %d: storing longer src , key = %s , translation = %s , bool bDidKbserver = %d"),
+				__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 			return TRUE;
 		}
 		else // we found one
@@ -5451,6 +5496,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			if (bMatched)
 			{
 				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+				wxLogDebug(_T("StoreText() line %d: after while loop end , key = %s , translation = %s , bool bDidKbserver = %d"),
+					__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 				return TRUE;
 			}
 			else
@@ -5483,6 +5532,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 					m_pApp->m_bForceAsk = FALSE;
 					gbMatchedKB_UCentry = FALSE;
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+					wxLogDebug(_T("StoreText() line %d: at tgt is <Not In KB> , key = %s , translation = %s , bool bDidKbserver = %d"),
+						__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 					return TRUE; // all is well
 				}
 				else // either we are glossing; or we are adapting
@@ -5514,6 +5567,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							pRefString = (CRefString*)NULL;
 							gbMatchedKB_UCentry = FALSE;
 							// don't change any of the flags on pSrcPhrase
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+							wxLogDebug(_T("StoreText() line %d: at empty tgtPhrase , key = %s , translation = %s , bool bDidKbserver = %d"),
+								__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#endif
 							return TRUE; // make caller think all is well
 						}
 					}
@@ -5559,7 +5616,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
 								int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
 								wxUnusedVar(rv);
-#if defined (SHOWSYNC)
+#if defined (SHOWSYNC) && defined(LOG_STORE)
 								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
 									rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
@@ -5612,16 +5669,15 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								// BEW 23Mar22. Moved CreateEntry code from OnIdle() back to here
 								int rv = pKbSvr->CreateEntry(pKbSvr, key, pRefString->m_translation);
 								wxUnusedVar(rv);
-#if defined (SHOWSYNC)
-								wxLogDebug(_T("%s::%s() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), __FILE__, __FUNCTION__, __LINE__,
-									rv, key.c_str(), pRefString->m_translation.c_str());
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+								wxLogDebug(_T("StoreText() line %d: rv = %d , key = %s , translation = %s , for CreateEntry"), 
+									__LINE__, rv, key.c_str(), pRefString->m_translation.c_str());
 #endif
 								bDidKbserver = TRUE;
 							}
 						}
 					}
 //#endif
-
 				} // end of else block for test: if (!m_bGlossingKB && pRefStr->m_translation == strNot)
 			} // end of else block for test: if (bMatched)
 		} // end of else block for test: if(!bFound) i.e. we actually matched a stored pTU
@@ -5630,9 +5686,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
 							   // to the current store operation only
 	gbMatchedKB_UCentry = FALSE;
-#if defined (SHOWSYNC)
-	wxLogDebug(_T("%s::%s() line %d: exiting StoreText() , key = %s , translation = %s , bool bDidKbserver = %d"), __FILE__, __FUNCTION__, __LINE__,
-		key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
+#if defined (SHOWSYNC) && defined(LOG_STORE)
+	wxLogDebug(_T("StoreText() line %d: exiting StoreText() , key = %s , translation = %s , bool bDidKbserver = %d"), 
+		__LINE__, key.c_str(), tgtPhrase.c_str(), (int)bDidKbserver);
 #endif
 	return TRUE;
 }
@@ -7150,11 +7206,23 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 
 			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-            //m_pApp->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
-												  // dialogs from showing
+
+			// BEW 2Feb24 restored the inhibition, for this particular context. DO NOT COMMENT OUT the
+			// m_bInhibitMakeTargetStringCall boolean under any circumstances. It is vital here.
+			if (m_pApp->m_bDoingKBRestoration)
+			{
+				m_pApp->m_bInhibitMakeTargetStringCall = TRUE; // prevent MakeTargetStringIncludingPunctuation()
+						// from fouling up the storing of correct values in the redoing of storage
+			}								  // dialogs from showing
 			bool bOK = StoreText(pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE =
 													// support storing empty adaptation
             m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
+
+			// BEW 5Feb24 check that pSrcPhrase has m_bHasKBentry set TRUE, if not, set it
+			if (!pSrcPhrase->m_bHasKBEntry)
+			{
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+			}
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...
@@ -7194,6 +7262,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	CAdapt_ItView* pView = m_pApp->GetView();
 	wxASSERT(pDoc);
 	wxASSERT(pView);
+	m_pApp->m_bDoingKBRestoration = TRUE;
 
 	// whm 25Aug11 Note: The caller of DoKBRestore() [OnFileRestoreKb()] had its own
 	// wxProgressDialog based on the range of source phrases for saving the current
@@ -7297,6 +7366,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 				errorStr.Empty(); // for next iteration
 			}
 		}
+
 		// whm added 27Apr09 to save any changes made by RedoStorage above
 		// BEW 20Apr12, the OnFileSave() call, if collaboration mode is currently on, will
 		// try to transfer data to PT or BE, but the document is not currently properly
@@ -7348,6 +7418,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		}
 	}
 	pStatusBar->FinishProgress(_("DoKBRestore"));
+
+	m_pApp->m_bDoingKBRestoration = FALSE; // this should be FALSE when not doing KB restoration
 
 	// BEW 20Apr12, added !bDontDoIt -- see comment above for why
 	if (bAnyDocChanged && !bDontDoIt)

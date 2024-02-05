@@ -2875,6 +2875,7 @@ class CAdapt_ItApp : public wxApp
 	bool m_bToolbarButtons[50];		// which buttons to display on the toolbar
 public:
 	wxString RemovePathPrefix(wxString cmdLine, wxString& pathPrefix);
+	bool m_bDoingKBRestoration;
 
 private:
 

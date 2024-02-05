@@ -24035,6 +24035,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     nCalcPileWidth_entryCount = 0; // to assist in wxLogDebug call in CalcPileWidth on doc entry - Bill says there are too many entries
     nCallCount2 = 0;
+    m_bDoingKBRestoration = FALSE; // init, for use with File command, Restore Knowledge Base's call of StoreText()
+        // if TRUE, then set m_bInhibitMakeTargetStringCall be set TRUE, because MakeTarget...() call does heaps of
+        // stuff which prevents StoreText from doing it's restoration correctly
 
 //#if defined (_KBSERVER)
 	// incremental download default interval (5 seconds) - but will be overridden

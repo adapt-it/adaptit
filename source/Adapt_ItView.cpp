@@ -653,6 +653,8 @@ bool gbAdaptBeforeGloss = TRUE; // TRUE (default) if adaptationsStep is to be do
 /// effect if it can count off at least this number of free translation words within the
 /// current section being algorithmically checked
 #define NUM_WORDS_IMPLYING_VERSE_SECTIONING 15
+// Comment out next line to suppress logging when restoring the KB from File menu's Restore Knowledge Base()
+//#define LOG_RESTORE
 
 /// This global provides a persistent location during the current session for storage of
 /// vertical edit information
@@ -14227,20 +14229,42 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// BEW 19Feb2020 Various refactorings to handle things like you[sg] or you(sg)
 /// as target text, whether or not src punctuation is to follow, and whether or
 /// or not ( ) [ and ] are punctuation characters. (Initiated by Roland Fumey's problems)
+/// 
+/// BEW 3Feb24 refactoring to remove use of ParseWord(), remove support for special handling
+/// for ( ) [ and ] - these go according to whether they are puncts listed, or not listed, and
+/// so are removed, or retained, respectively. Also removing fixed space ( ~ ) conjoining 
+/// support, because ~ is NOT a punctuation character and we no longer separate a conjoined
+/// pair of words into two parts. These changes were prompted by the fact that 
+/// File > Restore Knowledge Base's code makes an utter mess of a good KB - destroying the
+/// meanings of every entries target text.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-
-	bool bHasFixedSpaceSymbol = IsFixedSpaceSymbolWithin(*pStr);
-	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE;
-
 	if (pStr->IsEmpty())
 	{
 		return;
 	}
+	wxUnusedVar(pDoc);
 
-	wxString spacelessPunctsStr;
+	wxString spacelessPunctsStr = wxEmptyString;
+	//int offset = wxNOT_FOUND;
+	wxString str = *pStr; // get a convenient local copy
+	wxString word1 = wxEmptyString; // could be a phrase, of course i.e. spaces allowed
+	wxString phrase = wxEmptyString;
+	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE;
+
+	wxArrayString wordsArr; // auto initialises to empty
+	wxString delimiters = _T(" "); // delimit using Latin space, we want an array of words (with their 
+								   // puncts attached, if present)
+	bool bStoreEmptyStringsToo = FALSE;
+	long numWords = SmartTokenize(delimiters, str, wordsArr, bStoreEmptyStringsToo);
+	if (numWords > 1)
+	{
+		// set the phrase for potential call of its value further down
+		phrase = *pStr;
+	}
+
 	if (bTgtPuncts)
 	{
 		spacelessPunctsStr = pApp->m_strSpacelessTargetPuncts;
@@ -14249,363 +14273,156 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	{
 		spacelessPunctsStr = pApp->m_strSpacelessSourcePuncts;
 	}
-
-
-	wxString strLeftBracket(_T('['));
-	wxString strRightBracket(_T(']'));
-	bool bLeftBracketIsPunct = FALSE;
-	bool bRightBracketIsPunct = FALSE;
-	int offset = wxNOT_FOUND;
-	offset = spacelessPunctsStr.Find(strLeftBracket);
-	if (offset >= 0)
+	//offset = wxNOT_FOUND;
+	
+	if (numWords > 1) // was a test for bHasFixedSpaceSymbol which is no longer relevant
 	{
-		bLeftBracketIsPunct = TRUE;
-	}
+		// it's a phrase - this will require a processing loop here for the individual words
+		wxLogDebug(_T("RemovePunctuation() line %d , phrase= [%s]  numWords= %d"), __LINE__, phrase.c_str(), (int)numWords);
 
-    wxUnusedVar(bLeftBracketIsPunct);
-
-	offset = spacelessPunctsStr.Find(strRightBracket);
-	if (offset >= 0)
-	{
-		bRightBracketIsPunct = TRUE;
-	}
-	// first handle test of no punctuation where we have conjoined words using ~ fixed
-	// space
-	wxString str = *pStr; // get a convenient local copy
-#if defined (_DEBUG)
-	if (!str.IsEmpty())
-		wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d]"), __LINE__, str.c_str(), (int)str.Last());
-#endif
-
-
-	offset = wxNOT_FOUND;
-	wxString word1;
-	wxString word2;
-	offset = str.Find(_T('~'));
-	if (bHasFixedSpaceSymbol)
-	{
-		// it's a conjoined word pair - so separate into two parts and test each
-		// separately
-		word1 = str.Left(offset);
-		word2 = str.Mid(offset + 1); // exclude ~ from the tests below
-		if ((FindOneOf(word1, spacelessPunctsStr) == wxNOT_FOUND) &&
-			(FindOneOf(word2, spacelessPunctsStr) == wxNOT_FOUND))
+		// Here handle when wordsArr contains a space-delimited phrase of 2 or more words
+		int nEntriesCount = wordsArr.GetCount();
+		wxASSERT(nEntriesCount > 1);
+		wxString strAccumulate = wxEmptyString;
+		wxString space = _T(" ");
+		int index;
+		wxString aSubstring = wxEmptyString;
+		for (index = 0; index < nEntriesCount; index++)
 		{
-			// there are no punctuation chars in the substrings
-			return;
+			aSubstring = wordsArr.Item(index);
+			if (!aSubstring.IsEmpty())
+			{
+				strAccumulate += aSubstring + space;
+			}
 		}
+		strAccumulate.Trim(); // remove the final space at phrase end
+		*pStr = strAccumulate;
 	}
 	else
 	{
-		// not conjoined; test for no punctuation, if so, then we can return immediately
-		word1 = *pStr;
-		word2.Empty();
-		if (FindOneOf(word1, spacelessPunctsStr) == wxNOT_FOUND)
-		{
-			// there are no punctuation chars in the string (but there may be spaces),
-			// so the caller can use the string immediately
-#if defined (_DEBUG)
-			if (!str.IsEmpty())
-				wxLogDebug(_T("MakeTgtStrInclPunct line %d , STRING= [%s]  LASTCHAR= [%d] RETURNING"), __LINE__, str.c_str(), (int)str.Last());
+		// not a phrase, so test for no punctuation, if there is none, then we can return immediately,
+		// otherwise remove from before or after or both, then return
+		wxString oneWord = *pStr;
+		oneWord = RemovePunctuationOnOneWord(oneWord, spacelessPunctsStr, nIndex);
+		*pStr = oneWord;
+	} // end of else block for test: if (numWords > 1)
+
+	wxUnusedVar(bTgtPuncts); // LOG_RESTORE is #defined at line 657 in Adapt_ItView.cpp
+	if (bTgtPuncts)
+	{
+#if defined (_DEBUG) && defined (LOG_RESTORE)
+		wxLogDebug(_T("RemovePunctuation() line %d , removing from TARGET string= [%s]"), __LINE__, (*pStr).c_str());
 #endif
-			return;
+	}
+	else
+	{
+#if defined (_DEBUG) && defined (LOG_RESTORE)
+		wxLogDebug(_T("RemovePunctuation() line %d , removing from SOURCE string= [%s]"), __LINE__, (*pStr).c_str());
+#endif
+	}
+}
+
+// nIndex = 0 for src, 1 for tgt -- nIndex will be the way to handle any processsing difference that requires
+// knowing whether the caller is dealing with source text (nIndex is 0) or target text (nIndex is 1)
+wxString CAdapt_ItView::RemovePunctuationOnOneWord(wxString oneWord, wxString spacelessPunctsStr, int nIndex)
+{
+	wxString word1 = oneWord;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (word1.IsEmpty())
+	{
+		return oneWord;
+	}
+	wxUnusedVar(pApp);
+	wxChar* ptr;
+	wxChar* pEnd;
+	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE; // I'll leave this here, and keep the formal param nIndex
+		// but don't really need it, except for logging whether or not it's target text - and I'll do that in caller
+	int offset = wxNOT_FOUND;
+	wxString strFinal = wxEmptyString; // return resulting string with no puncts before or after word/s, in this 
+
+	wxString tempStr = wxEmptyString; // to hold parsed over puncts before they get thrown away
+	//wxLogDebug(_T("RemovePunctuation() line %d , initial string= [%s]"), __LINE__, word1.c_str());
+
+	// Remove pre-word punctuation. We do so by parsing here over any initial puncts,
+	// put them in tempStr, get its length, and use that to advance ptr to point past them 
+	const wxChar* pBuffStart = word1.GetData();
+	ptr = (wxChar*)pBuffStart;
+	pEnd = ptr + word1.Length(); // points to null
+
+	// Note, protect source text which is a placeholder, it has the string _T("...") and we
+	// must not remove those periods. We advance ptr past them by returning _T("...")
+	if (bTgtPuncts == FALSE)
+	{
+		// dealing with source text
+		if (word1 == _T("..."))
+		{
+			return word1;
 		}
 	}
 
-	wxString strFinal; // accumulate here for returning final result to the caller
-	wxString strFinal2; // for use when ~ is in the passed in string, for stripping
-						// from word2
-	strFinal2.Empty();
-	bool bIsInlineNonbindingMkr = FALSE;
-	bool bIsInlineBindingMkr = FALSE;
-	const wxChar* pBuffStart = word1.GetData();
-	wxChar* ptr = (wxChar*)pBuffStart;
-	wxChar* pEnd = ptr + word1.Len(); // points to null
-	wxASSERT(*pEnd == _T('\0'));
-	int itemLen = 0;
-	CSourcePhrase* pSrcPhrase = NULL; // temporarily needed to store our data on
-	wxString theWord;
-	// BEW 19Nov22, I've built a test function for testing, in a spanning loop, if the wxChar pointed
-	// at is one of ( or { or [  These opening ones, if occuring word medial, (like in "word(something" followed by ')'
-	// somewhere later), must not be removed if there's no puntuation on either side. The new function is
-	// called IsParenBraceBracketWordInternal() and returns TRUE if one is detected which should be kept.
-	//bool bKeepPBBracket = FALSE; // initialise
-
-	// the following are for word2 when bHasFixedSpaceSymbol is TRUE
-	const wxChar* pBuffStart2 = word2.GetData();
-	wxChar* ptr2 = (wxChar*)pBuffStart2;
-	wxChar* pEnd2 = ptr2 + word2.Len(); // points to null
-	wxASSERT(*pEnd2 == _T('\0'));
-	CSourcePhrase* pSrcPhrase2 = NULL;
-	wxString theWord2;
-    // do word1 -- it could be a sequence of words with or without punctuation, or the
-    // first word of a conjoined ~ word pair with or without punctuation, or just a single
-    // word with or without some punctuation
-	wxString lastWhiteSpaceChar; // BEW 21Jul14 for ZWSP support, a string, 
-								 // but store only a wxChar in it
-
-	while (ptr < pEnd)
+	// This loop removes initial puncts. (For any puncts at end of word1, do another loop
+	// over a reversal of word1 - (word1 will be shortened if some were found)
+	do {
+		offset = spacelessPunctsStr.Find(*ptr);
+		if (offset != wxNOT_FOUND)
+		{
+			tempStr += *ptr;
+		}
+		else
+		{
+			// ptr is not pointing to a punctuation character, so it's
+			// time to break out of the loop
+			break;
+		}
+		ptr++;
+	} while (ptr < pEnd);
+	// If some pre-word puncts were found, now shorten word1 to not have them. Be careful,
+	// a sequence of one or more puncts with no "word" content, would be reduced to an
+	// empty string - we need to protect against getting hung up in an infinite loop.
+	if (tempStr == word1)
 	{
-        // we are dealing with target text, but ParseWord() will treat it as source
-		// text; we just have to make the appropriate adjustments after the parse. We use
-		// the appropriate punctuation string though.
-		pSrcPhrase = new CSourcePhrase;
+		// The string was just punctuation characters, so return these to avoid any
+		// possibility of an infinite loop
+		return word1;
+	}
+	else
+	{
+		// There is non-punctuation content after one or more initial puncts, so
+		// shortent word1 to not have those initial puncts
+		int nTempLen = tempStr.Length();
+		word1 = word1.Mid(nTempLen);
+		wxASSERT(!word1.IsEmpty());
 
-		// in the next call, because there are no inline markers to worry about,
-		// m_follOuterPunct will always be empty, and any following puncts will only
-		// be in m_follPunct
-		// BEW 29Feb20, legacy ParseWord() has been split into ParsePreWord() followed
-		// by ParseWord(). The former deals with pre-word or pre-phrase punctuation and
-		// begin-markers; the following call expects ptr to be pointing at the first non-
-		// punctuation character, and it deals with all post-word or post-phrase
-		// punctuation and end-markers. So, if the user types pre-word punctuation manually,
-		// parsing with ParseWord() will not detect the manually typed initial puncts, and
-		// they will stay unremoved and so enter the KB at a StoreText() call. We've gotta
-		// prevent this from happening. We do so by parsing here over any initial puncts,
-		// put them in a containing temporary wxString, get its length, and use that to
-		// advance ptr to point past them at entry to ParseWord() below.
+		// Now reverse word1, and do the same process to remove any post-word punctuation
+		word1 = MakeReverse(word1);
 
-		wxChar* pAux = ptr; // pAux is starting ptr for the parse
-		wxString temp = wxEmptyString;
+		const wxChar* pBuffStart = word1.GetData();
+		ptr = (wxChar*)pBuffStart;
+		pEnd = ptr + word1.Length(); // points to null
+
+		// This loop removes final puncts. (Temporarily at the reversed string's beginning)
+		tempStr.Empty();
 		do {
-			offset = spacelessPunctsStr.Find(*pAux);
+			offset = spacelessPunctsStr.Find(*ptr);
 			if (offset != wxNOT_FOUND)
 			{
-				temp += *pAux;
+				tempStr += *ptr;
 			}
 			else
 			{
-				// pAux is not pointing to a punctuation character, so it's
+				// ptr is not pointing to a punctuation character, so it's
 				// time to break out of the loop
 				break;
 			}
-			pAux++;
-		} while (pAux < pEnd);
-		// Now, get the length of temp
-		itemLen = temp.Len();
-		// Now advance ptr to start the ParseWord() parse at the first 
-		// word-building character
-		ptr = ptr + (size_t)itemLen;
-		itemLen = 0; // re-initialise
-/*/
-#if defined (_DEBUG)
-		if (bTgtPuncts && (pSrcPhrase->m_nSequNumber == 0))
-		{
-			int halt_here = 1;
-		}
-#endif
-*/
-		// BEW 18Feb20 check if [ and ] are punctuation characters, or word-building
-		// and sort out what's punctuation and what's not
-		itemLen = pDoc->ParseWord(ptr, pBuffStart2, pEnd, pSrcPhrase, spacelessPunctsStr,
-					pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
-					bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
-		theWord = pSrcPhrase->m_key; // could be empty, and would be if itemLen returned is 0
-
-		// BEW 17Oct22 use length of theWord, itemLen may be 1 or more than that due to
-		// one or more post-word punctuation characters (e.g. a parenthensis, or similar stuff).
-		// But our use of ParseWord() here is only in order to strip off prior or following
-		// puncts from any of the 1 or more words in pSrcPhrase, so we are intested only in
-		// the m_adaption value - and the stripped off puncts, if any, are blown away when
-		// DeleteSingleSrcPhrase(pSrcPhrase) further down, is called
-		int wordLen = theWord.Length();
-		if (itemLen > wordLen)
-		{
-			itemLen = wordLen;
-		}
-		// BEW 17Feb22 legacy code follows
-		if (itemLen > 0)
-		{
-			// update ptr to point at next part of string to be parsed, or at pEnd
-			ptr += itemLen;
-		}
-		else
-		{
-			// BEW 17Feb20 addition to handle Roland Fumey's data, such as you[sg]
-			// because ParseWord() when ptr gets to the [ will not have incremented
-			// ptr because itemLen was returned as zero. This leads to an infinite
-			// loop unless we provide loop break-out correcting code here so that
-			// ptr exits at the matching ] or at space if the user forgets to supply
-			// the matching ]   Thanks to Bill for his analysis of the situation!
-			bool bAfterLeftBracket = FALSE;
-			if ((itemLen == 0) && (ptr < pEnd))
-			{
-				// ParseWord() did not advance ptr & there's more - check it out
-				if (*ptr == _T('['))
-				{
-					bAfterLeftBracket = TRUE;
-					theWord += _T('[');
-					ptr++; // advance past the [ punctuation character
-					pAux++; // advance this too
-				}
-			}
-
-			// Deal with whatever comes next, allow spaces to be present.
-			// Loop to find where to break from loop with ptr at an appropriate place
-			// ie. pointing at ] or at the end of the buffer; and accumulating
-			// any additional characters parsed over in theWord
-
-			// Inner loops, one for when [ was encountered, the other for when it wasn't
-			if (bAfterLeftBracket && (itemLen == 0))
-			{
-				// scan to halt spot
-				while (ptr < pEnd && *ptr != _T(']'))
-				{
-					//bKeepPBBracket = pApp->GetDocument()->IsOpenParenBraceBracketWordInternal(ptr, pEnd, spacelessPunctsStr); // <<-- don't need it
-					ptr++; // Advance over the scanned character
-					itemLen++;
-				}  // end of while loop
-				// If control gets to here, ptr has halted at a ']' character,
-				// or at buffer end
-				wxString endingStr(pAux, itemLen);
-				theWord += endingStr;
-			}
-			else
-			{
-				// There was no [ so just accumulate to buffer end, but check
-				// for a closing parenthesis ')' immediately prior to pEnd, and if
-				// there, back up to point at it (at outer loop end)
-				while (ptr < pEnd)
-				{
-					//bKeepPBBracket = pApp->GetDocument()->IsOpenParenBraceBracketWordInternal(ptr, pEnd, spacelessPunctsStr); <<-- don't need it
-					ptr++; // Advance over the scanned character
-					itemLen++;
-
-				}
-				wxString endingStr(pAux, itemLen);
-				theWord += endingStr;
-			}
-		} // end of else block for test: if (itemLen > 0)
-
-//#if defined(FWD_SLASH_DELIM)
-		// BEW added 23Apr15, because when supporting / as a word-breaking 
-		// character for certain east asian languages, / will be the first
-		// whitespace and we want to store that; if any other whitespace
-		// follows, we don't want that - but do want to parse over it. So
-		// I'll recode for this here.
-		// BEW 17Feb20 ParseWord() has been split into ParsePreWord() which
-		// handles preword stuff, and a following (smaller) ParseWord() - the
-		// latter now almost exclusively just handles post-word parsing.
-		// It may not be necessary to now handle forward slash delimitation
-		// in the following block, as it should have been handled earlier in
-		// ParsePreWord(); but it should be safe to still use the block unchanged
-		// because, after all, it's just dealing with white space and that
-		// should not upset the caller of RemovePunctuation()
-		if (pApp->m_bFwdSlashDelimiter)
-		{
-			bool bItsWhite = pDoc->IsWhiteSpace(ptr);
-			wxString firstWhiteSpace;
-			if (bItsWhite)
-			{
-				// BEW 16Dec22 use *(ptr - 1), not *ptr
-				firstWhiteSpace = *(ptr - 1); 
-				while (pDoc->IsWhiteSpace(ptr))
-				{
-					ptr++;
-				} // skip over the whitespaces
-				// Put the first whitespace into the m_srcWordBreak of pSrcPhrase, so that
-				// PutSrcWordBreak() can access it below
-				wxString wdbrkStr(firstWhiteSpace);
-				pSrcPhrase->SetSrcWordBreak(wdbrkStr);
-			}
-		}
-		else
-		{
-			// Legacy code
-			// BEW 21Jul14 changed to use IsWhiteSpace() for the test
-			//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
-			lastWhiteSpaceChar.Empty(); // initialize to an empty string
-			while (pDoc->IsWhiteSpace(ptr))
-			{
-				lastWhiteSpaceChar = *ptr;
-				ptr++;
-			} // skip initial whitespaces, store the last such (if any)
-			// Put the last whitespace into the m_srcWordBreak of pSrcPhrase, so that
-			// PutSrcWordBreak() can access it below
-			wxString wdbrkStr(lastWhiteSpaceChar);
-			pSrcPhrase->SetSrcWordBreak(wdbrkStr);
-		}
-
-		if (strFinal.IsEmpty())
-		{
-			strFinal = theWord;
-		}
-		else
-		{
-			strFinal += PutSrcWordBreak(pSrcPhrase) + theWord;
-		}
-		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
-
-		// BEW add Bill's safety escape test, so we won't ever get into
-		// an infinite loop if ptr does not advance for some strange reason
-		if ((pBuffStart == ptr) || (ptr == pEnd))
-		{
-			// If ptr did not advance, or is pointing at buffer end, check
-			// strFinal for empty - if it is, put str contents in it which
-			// causes whatever string was input by pStr to be returned unchanged
-			if (strFinal.IsEmpty())
-			{
-				strFinal = str; // probably empty too, but it's our 
-								// best hope for something to return
-			}
-			break;
-		}
-	} // end of while loop: while (ptr < pEnd)
-
-	// One further check.. if ] is not a punctuation character, then it is word-building
-	// and will go into the KB at a StoreText() call and will not be removed by
-	// RemovePunctuation() beforehand. But if it is a punctuation character, then the
-	// above ParseWord() call should have removed it from m_key. Just in case this somehow
-	// did not happen, I'll check here for ] terminating strFinal, when ] is punctuation,
-	// and if there - I'll shorten strFinal to not end with the ]
-	if (bRightBracketIsPunct)
-	{
-		int len = strFinal.Len();
-		if (len > 0)
-		{
-			wxString last = strFinal.GetChar(len - 1);
-			if (last != _T("") && last == _T("]"))
-			{
-				strFinal = strFinal.Left(len - 1);
-				// pCurSrcPhrase->m_follPunct = _T("]") + pCurSrcPhrase->m_follPunct; <- not needed
-			}
-		}
+			ptr++;
+		} while (ptr < pEnd);
+		// Shorten
+		nTempLen = tempStr.Length();
+		word1 = word1.Mid(nTempLen);
+		wxASSERT(!word1.IsEmpty());
+		word1 = MakeReverse(word1); // restore normal order
 	}
-	*pStr = strFinal; // copy result to caller
-
-	// if there is a conjoined pair, deal with word2 in the loop below and append to *pStr
-	// before the latter is returned to the caller
-	if (bHasFixedSpaceSymbol)
-	{
-		itemLen = 0;
-		while (ptr2 < pEnd2)
-		{
-			// we are dealing with target text, but ParseWord() will treat it as source
-			// text; we just have to make the appropriate adjustments after the parse
-			pSrcPhrase2 = new CSourcePhrase;
-
-			// in the next call, because there are no inline markers to worry about,
-			// m_follOuterPunct will always be empty, and any following puncts will only
-			// be in m_follPunct
-			itemLen = pDoc->ParseWord(ptr2, pBuffStart2, pEnd2, pSrcPhrase2, spacelessPunctsStr,
-						pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
-						bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
-			theWord2 = pSrcPhrase2->m_key;
-
-			// update ptr to point at next part of string to be parsed
-			ptr2 += itemLen;
-			// BEW 21Jul14, for ZWSP support - we'll assume that there will be no
-			// whitespace after the ~ marker, and so skip any such, and just append theWord2
-			while (pDoc->IsWhiteSpace(ptr2)) { ptr2++; } // skip initial whitespace, but shouldn't be any
-			strFinal2 = theWord2;
-			pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase2);
-		} // end of while loop: while (ptr2 < pEnd2)
-		if (!strFinal2.IsEmpty())
-		{
-			*pStr += _T('~');
-			*pStr += strFinal2;
-		}
-	}
+	return word1;
 }
 
 // BEW added 19Feb20 Look for what comes from the KB which should, in a correctly
