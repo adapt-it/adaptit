@@ -427,7 +427,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 	//		SelectAnchorOnly(); // reduce to just the anchor, before we rebuild the selection
 	//		CClientDC aDC(this); // make a device context
 	//		OnPrepareDC(&aDC); // get origin adjusted
-	//		COLORREF oldBkColor = aDC.SetBkColor(RGB(255,255,0)); // yellow
+	//		COLORREF oldBkColor = aDC.SetBkColor(RGB(235,245,40)); // yellow
 
 	//    The View's SelectAnchorOnly(...) in the following calling sequence:
 	//		CClientDC aDC(this); // make a device context
@@ -1721,7 +1721,7 @@ x:					CCell* pCell = 0;
 										if (!pCurCell->IsSelected())
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
-											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
 											pCurCell->SetSelected(TRUE);
 
@@ -1756,7 +1756,7 @@ x:					CCell* pCell = 0;
 										if (!pCurCell->IsSelected())
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
-											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
 											pCurCell->SetSelected(TRUE);
 
@@ -1852,7 +1852,7 @@ x:					CCell* pCell = 0;
 										if (!pCurCell->IsSelected())
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
-											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
 											pCurCell->SetSelected(TRUE);
 
@@ -1888,7 +1888,7 @@ x:					CCell* pCell = 0;
 										if (!pCurCell->IsSelected())
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
-											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
 											pCurCell->SetSelected(TRUE);
 
@@ -2414,7 +2414,7 @@ x:					CCell* pCell = 0;
 					// then do the new selection
 	a:				pApp->m_bSelectByArrowKey = FALSE;
 					aDC.SetBackgroundMode(pApp->m_backgroundMode);
-					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+					aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 					pCell->DrawCell(&aDC, pLayout->GetSrcColor());
 					pCell->SetSelected(TRUE);
 
@@ -2551,7 +2551,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 			{
 				// cell is not yet in the selection, so add it
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);
-				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+				aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 				pApp->m_bSelectByArrowKey = FALSE;
 				pCell->DrawCell(&aDC, pLayout->GetSrcColor());
 				pCell->SetSelected(TRUE);

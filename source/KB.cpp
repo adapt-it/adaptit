@@ -42,7 +42,7 @@
 
 //#define _ENTRY_DUP_BUG
 #define SHOWSYNC // comment out to prevent logging for the kbserver calls using Leon's .exe functions
-//#define LOG_STORE; // comment out to prevent logging for StoreText() in 23 places, each prior to returning
+#define LOG_STORE // comment out to prevent logging for StoreText() in 23 places, each prior to returning
 
 #include "KbServer.h"
 #include "Adapt_It.h"

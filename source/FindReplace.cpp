@@ -2585,7 +2585,7 @@ a:			CCell* pCell = 0;
 				// then do the new selection, start with the anchor cell
 
 				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
-				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+				aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 				pAnchorCell->DrawCell(&aDC, gpApp->m_pLayout->GetSrcColor());
 				gpApp->m_bSelectByArrowKey = FALSE;
 				pAnchorCell->SetSelected(TRUE);

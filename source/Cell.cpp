@@ -652,7 +652,7 @@ void CCell::Draw(wxDC* pDC)
 		oldBkColor = pDC->GetTextBackground(); // whatever it is
 		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is
 																	 // set to wxSOLID
-		pDC->SetTextBackground(wxColour(255,255,0)); // yellow
+		pDC->SetTextBackground(wxColour(235,245,40)); // yellow
 	}
 	else
 	{

@@ -3178,7 +3178,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			// then do the new selection, start with the anchor cell
 			wxColour oldBkColor = aDC.GetTextBackground();
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 			wxColour textColor = pAnchorCell->GetColor();
 			pAnchorCell->DrawCell(&aDC,textColor);
 			pApp->m_bSelectByArrowKey = FALSE;

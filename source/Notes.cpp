@@ -3182,7 +3182,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary 
 					// client device context for this view window
 					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
-					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+					aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 					pCell->DrawCell(&aDC, m_pLayout->GetSrcColor());
 					pCell->SetSelected(TRUE);
 				}
@@ -3481,7 +3481,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary client 
 					// device context for this view window
 					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
-					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+					aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 					pCell->DrawCell(&aDC, m_pLayout->GetTgtColor());
 					pCell->SetSelected(TRUE);
 				}

@@ -672,7 +672,7 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
 				// Draw a darker rectangle around the chart cell containing the typedChar which also has
 				// a yellow background fill.
 				//dc.SetBackgroundMode(wxSOLID);
-				//dc.SetTextBackground(wxColour(255,255,0)); // yellow background
+				//dc.SetTextBackground(wxColour(235,245,40)); // yellow background
 				//dc.Clear();
 				//dc.SetBackground(wxBrush(wxColour(255,255,125), wxBRUSHSTYLE_SOLID)); // yellow brush for the rectangle's fill color
 #if wxCHECK_VERSION(2,9,0)					

@@ -2984,7 +2984,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 			// then do the new selection, start with the anchor cell
 
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 			pAnchorCell->DrawCell(&aDC, pApp->m_pLayout->GetSrcColor());
 			pApp->m_bSelectByArrowKey = FALSE;
 			pAnchorCell->SetSelected(TRUE);
@@ -13016,7 +13016,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		{
 			wxASSERT(pNextCell != NULL);
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 			pNextCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
 			pNextCell->SetSelected(TRUE); // set m_bSelected to TRUE
 
@@ -13044,7 +13044,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		pApp->m_bSelectByArrowKey = TRUE;
 		pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
-		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+		aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
 		pCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
 		pCell->SetSelected(TRUE);
@@ -13227,7 +13227,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		{
 			wxASSERT(pPrevCell != NULL);
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 			CPile* pPrevPile = pPrevCell->GetPile();
 
 			if (pApp->m_bRespectBoundaries)
@@ -13257,7 +13257,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		pApp->m_bSelectByArrowKey = TRUE;
 		pApp->m_curDirection = toleft;
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
-		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+		aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
 		pCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
 		pCell->SetSelected(TRUE);
@@ -20002,7 +20002,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 
 	// then do the new selection
 	aDC.SetBackgroundMode(pApp->m_backgroundMode);
-	aDC.SetTextBackground(wxColour(255,255,0));// yellow
+	aDC.SetTextBackground(wxColour(235,245,40));// yellow
 	pApp->m_bSelectByArrowKey = FALSE;
 	pCell->SetSelected(TRUE);
 	pCell->DrawCell(&aDC, pCell->GetColor());
@@ -20134,7 +20134,7 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 		if (!pCurCell->IsSelected())
 		{
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 			pCurCell->DrawCell(&aDC, pCurCell->GetColor());
 			pCurCell->SetSelected(TRUE);
 
@@ -25081,7 +25081,7 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); // make a device context
 	canvas->DoPrepareDC(aDC); // get origin adjusted
 	aDC.SetBackgroundMode(pApp->m_backgroundMode);
-	aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+	aDC.SetTextBackground(wxColour(235,245,40)); // yellow
 
 	int cellIndex = pAnchor->GetCellIndex();
 	CCell* pCell = pAnchor;
