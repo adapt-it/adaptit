@@ -1529,7 +1529,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurSP->m_key.c_str(), pCurSP->m_adaption.c_str());
 #if defined(_DEBUG)
 	{	
-		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 1)
+		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 17)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -1563,7 +1563,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		wxLogDebug(_T("PhrBox::MoveToNextPile(), line %d, sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
 			__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 			pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -1641,7 +1641,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	else
 	{
 #if defined(_DEBUG)
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -1676,7 +1676,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			pOldActiveSrcPhrase->m_nSequNumber, pCurPile, pOldActiveSrcPhrase->m_key.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), 
 			pOldActiveSrcPhrase->m_targetStr.c_str(), pOldActiveSrcPhrase->m_gloss.c_str());
 
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 0)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -1700,7 +1700,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// since we are moving, make sure the default m_bSaveToKB value is set
 	pApp->m_bSaveToKB = TRUE;
 #if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -1715,8 +1715,8 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// This suggests that the pCurPile value passed in has advance to the next pile, hmm changing
 	// sn = 2 to not be 2.4, but twofour it worked right - at least with GetNextPile()...
 	//GetNextPile() or if necessary GetImmediateNextPile() and see what happens
-	#if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 1)
+#if defined(_DEBUG)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -1744,6 +1744,13 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	{
 		pView->OnToggleEnablePunctuationCopy(event);
 	}
+#if defined(_DEBUG)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+	{
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+	}
+#endif
+
 	if (pNewPile == NULL)
 	{
 		// we deem vertical editing current step to have ended if control gets into this

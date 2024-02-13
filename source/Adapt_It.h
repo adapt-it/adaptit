@@ -3140,7 +3140,7 @@ public:
 	wxString m_rootPassword_Archived;
 	// BEW 22Jan24 added strings for granting permissions in context of kbserver for a foreign new user
 	wxString m_foreignUserPermissionsFilename; // set it to _T("PermissionsUserFullnamePwd") at end of OnInit()
-	bool GrantPermissionsFile_Create(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added 22Jan24
+	bool CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added 22Jan24
 
 
 	// When a new user is added to the user table, successfully, make the new username, fullname, password

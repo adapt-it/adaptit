@@ -32087,7 +32087,7 @@ wxString CAdapt_ItApp::GetDistFolder()
 //#endif
 
  // BEW added 22Jan24
-bool CAdapt_ItApp::GrantPermissionsFile_Create(wxString& newUser, wxString& newFullname, wxString& newPwd)
+bool CAdapt_ItApp::CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd)
 {
     // sanity checks go here, which include (a) a kbserver is running, (b) it's host is known (need ipAddr),  
     // (c) newUser, newFullname and newPwd strings are all nonempty in the caller 

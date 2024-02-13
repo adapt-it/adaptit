@@ -9838,7 +9838,7 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_USER_INFO, _("You are adding a new user to the KBserver database. Here you need to type in the following information:  1. username  2. fullname  3. username's password. You also need to tick the checkbox if the new user is permitted to add more users.  If permission is not granted, the new user can use the KBserver, but not add more users. "), wxDefaultPosition, wxSize(480,80), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_USER_INFO, _("Adding a new user to the KBserver database. Type in the following:  1. a username  2.  a fullname  3. a password.  If the new user is permitted to add more users, click the checkbox Permit Adding More Users.   If you want the new user to have the authority to control all KBserver actions, click the checkbox Create User With All Permissions. You can tick both checkboxes, or one, or none. "), wxDefaultPosition, wxSize(480,80), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
@@ -9877,18 +9877,38 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_USERS_PWD, wxT(""), wxDefaultPosition, wxSize(250,-1), 0 );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item1->Add( item9, 0, wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
-    wxCheckBox *item12 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSION, _("Grant Permission"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStdDialogButtonSizer *item13 = new wxStdDialogButtonSizer;
-    { wxButton *button = new wxButton( parent, wxID_OK );
-      button->SetDefault();
-      item13->AddButton( button ); }
-    item13->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item13->Realize();
-    item1->Add( item13, 0, wxGROW|wxALL, 5 );
+    item13->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_ALL_PERMISSIONS, _("Create User With All Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Create new use, grant all permissions, lodge in Manager's user list") );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( 22, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item15 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSION, _("Permit Adding More Users"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( 18, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxSize(60,-1), 0 );
+    item16->SetDefault();
+    item13->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(60,-1), 0 );
+    item17->SetToolTip( _("Do not create a new user with all permissions") );
+    item13->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxALL, 5 );
 

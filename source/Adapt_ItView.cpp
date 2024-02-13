@@ -16699,8 +16699,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	{
 		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d, str= [%s], pSrcPhrase->m_key = [%s] , , pSrcPhrase->m_targetStr = [%s] , input targetStr= %s"),
 			__LINE__, pSrcPhrase->m_nSequNumber, str.c_str(), pSrcPhrase->m_key.c_str(),  pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 1)
+		if (pSrcPhrase->m_nSequNumber >= 17)
 		{
+
 
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
