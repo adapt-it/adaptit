@@ -219,6 +219,10 @@ wxString  AbbreviateColonSeparatedVerses(const wxString str);
 bool      EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 wxString  MakeUNNNN_Hex(wxString& chStr); // BEW 17Dec22 need this because 41MATBVM is showing what
 				// looks like a space between curly end quotes, but doing equality test with latin space, fails
+// whm 2Feb2024 added following function that appends sppendingStr to receivingStr ensuring that there
+// is singular whitespace between the two strings. Excess whitespace is removed from the right end of the
+// receivingStr. The receivingStr is returned to caller by reference and the appendingStr is not changed.
+void	  AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr);
 
 // BEW removed this version of ExtractSubstring() as it's looking like I won't need it
 //wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);
@@ -372,18 +376,17 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 			// The goal is to determine readable data which tells me what puncts go with which
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
-wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
-							bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
-							wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText);
+wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters
+wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 alternate for testing
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
 							bool& bAddedSomething); // like ExportFunctions.cpp's
-					// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
-					// filtered information, nor the m_markers member; because this
-					// function is used in FromMergerMakeSstr() which accesses those
-					// members externally to such a call as this
+			// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
+			// filtered information, nor the m_markers member; because this
+			// function is used in FromMergerMakeSstr() which accesses those
+			// members externally to such a call as this
 bool	  IsBareMarkerInArray(wxString& bareMkr, wxArrayString& arr);
 bool	  IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);

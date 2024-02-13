@@ -45,10 +45,17 @@ class CAdapt_ItView; // forward ref
 
 // main export functions:
 wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
-wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
-					 bool& bAddedSomething, bool bIncludeNote,
-					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine); // BEW created 11Oct10
-wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
+
+// whm 12Feb2024 Revised to remove the treatment of filtered information in this
+// AppendSrcPhraseBeginningInfo() function and move it to the AppendSrcPhraseEndingInfo()
+// function since the unfiltering of filtered information now should come last after
+// my refactoring to store it on a previous pSrcPhrase.
+wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
+					 bool& bAddedSomething); // BEW created 11Oct10 
+//wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
+wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
+	bool& bAddedSomething, bool bIncludeNote,
+	bool bDoCountForFreeTrans, bool bCountInTargetTextLine);
 void		DoExportAsType(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
@@ -83,7 +90,7 @@ wxString	PrepareUniqueFilenameForExport(wxString exportFilename, bool bDoAlways,
 int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 
 // below are supporting functions for the above main export functions:
-int		RebuildSourceText(wxString& srcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
+int		RebuildSourceText(wxString& srcText, RebuildTextType rebuildType, SPList* pList = NULL); // 2nd param for rebuilding from any list
 //int			RebuildSourceText(wxString* psrcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
 
 wxString	RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType, bool bFilterCustomMarkers = TRUE);

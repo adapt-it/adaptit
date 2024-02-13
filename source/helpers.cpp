@@ -2208,6 +2208,102 @@ wxString  NormalizeChVsRefToInitialVsOfAnyBridge(wxString bridgedRef)
 }
 
 
+// whm 2Feb2024 added following function that appends sppendingStr to receivingStr ensuring that there
+// is singular whitespace between the two strings. Excess whitespace is removed from the right end of the
+// receivingStr. The receivingStr is returned to caller by reference and the appendingStr is not changed.
+// The "singlual" whitespace that ends up between the strings depends on what whitespace is already at 
+// /backright end of the receivingStr and the front/left end of the appendingStr. If either string has
+// EOL whitespace (\r, \n, or \r\n) or a mixture of latin space and EOL chars, then the singular whitespace
+// that is placed between the strings is "\r\n". If one or both strings have only non-EOL space between
+// them, a single non-EOL space at the back/right end of the receivingStr will be used between the strings
+// when appendingStr is concatenated to the receivingStr. If a mixture of non-EOL whitespace is found
+// on the back/right end of the receivingStr, and the appendingStr doesn't have EOL whitespace, then
+// any single non-EOL, non-Latin whitespace character is used to join the strings. Multiple whitespace
+// characters present (other than "\r\n") will be reduced to "singular" whitespace. 
+// This function is mainly used in export routines such as BuildSourceText(), FromMergerMakeSstr(),
+// FromSingleMakeSstr(), etc.
+void AppendStringToStringWithSingularMedialWhiteSpace(wxString& receivingStr, wxString appendingStr)
+{
+	int lenReceivingStr = (int)receivingStr.Length();
+	int lenAppendingStr = (int)appendingStr.Length();
+	wxString receivingStrRightEndWhitespace; receivingStrRightEndWhitespace.Empty();
+	wxString appendingStrLeftEndWhitespace; appendingStrLeftEndWhitespace.Empty();
+	wxString appendingStrMinusLeftEndWhitespace; appendingStrMinusLeftEndWhitespace.Empty();
+	wxChar LF = _T('\n');
+	wxChar CR = _T('\r');
+	wxChar SP = _T(' ');
+	wxString EOL = _T("\r\n");
+	bool bReceivingHasEOL = FALSE;
+	bool bAppendingHasEOL = FALSE;
+	wxChar receivingNLSP = SP; // assigned regular SP unless non-Latin non-EOL whitespace is found below
+	wxChar appendingNLSP = SP; // "  "  "
+	if (lenReceivingStr > 0)
+	{
+		// Search for whitespace from right end to left end
+		for (int i = lenReceivingStr - 1; i >= 0; i--)
+		{
+			const wxChar ch = receivingStr[i];
+			if (IsWhiteSpace(&ch))
+			{
+				if (ch == LF || ch == CR)
+					bReceivingHasEOL = TRUE;
+				receivingStrRightEndWhitespace = ch + receivingStrRightEndWhitespace;
+				if (ch != SP && ch != LF && ch != CR)
+				{
+					if (receivingNLSP == SP)
+						receivingNLSP = ch; // will be the last one (back end) if multiple are present
+				}
+			}
+			else
+				break; // stop at first non-whitespace ch
+		}
+	}
+	if (lenAppendingStr > 0)
+	{
+		for (int i = 0; i < lenAppendingStr; i++)
+		{
+			const wxChar ch = appendingStr[i];
+			if (IsWhiteSpace(&ch))
+			{
+				if (ch == LF || ch == CR)
+					bAppendingHasEOL = TRUE;
+				appendingStrLeftEndWhitespace += ch;
+				if (ch != SP && ch != LF && ch != CR)
+				{
+					if (appendingNLSP == SP)
+						appendingNLSP = ch; // will be the first one (front end) if multiple are present
+				}
+			}
+			else
+				break; // stop at first non-whitespace ch
+		}
+	}
+	wxString finalSingularWhitespace; finalSingularWhitespace.Empty();
+	// if either input string has EOL char(s) give preference to EOL "\r\n".
+	if (bReceivingHasEOL || bAppendingHasEOL)
+	{
+		finalSingularWhitespace = EOL;
+	}
+	else
+	{
+		// neither input strings have EOL chars. We would give preference to any
+		// non-Latin space if present in existing whitespace, otherwise we use
+		// a plain Latin space SP _T(" ").
+		if (appendingNLSP != SP)
+			finalSingularWhitespace = appendingNLSP;
+		else if (receivingNLSP != SP)
+			finalSingularWhitespace = receivingNLSP;
+		else
+			finalSingularWhitespace = SP;
+		
+	}
+	// Truncate the receivingStr so that its back/right end has no whitespace of any kind on it.
+	receivingStr.Truncate(lenReceivingStr - (int)receivingStrRightEndWhitespace.Length());
+	appendingStrMinusLeftEndWhitespace = appendingStr.Mid(appendingStrLeftEndWhitespace.Length());
+	// Now append to the truncated receivingStr the finalSingularWhitespace and appendingStrMinusLeftEndWhitespace
+	receivingStr << finalSingularWhitespace << appendingStrMinusLeftEndWhitespace;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with
 ///		the first character in the string and ending when a character is found in the inputStr
@@ -6085,6 +6181,14 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	wxString beforeStr;
 	wxString afterStr;
 	bool bAddedSomething = FALSE;
+#if defined(_DEBUG)
+	
+	if (pMergedSrcPhrase->m_nSequNumber == 165) // || pMergedSrcPhrase->m_nSequNumber == 565)
+	{
+		int break_here = 1; wxUnusedVar(break_here);
+	}
+#endif
+
 	while (pos_pSPsubList != NULL)
 	{
 		if (pos_pSPsubList == posLast)
@@ -6120,20 +6224,29 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
             // saved original (non-merged) last pSrcPhrase we are currently looking at
 			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
 
+			str << pSrcPhrase->m_key; // whm 5Feb2024 move here from below
+
 			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
 			// is FALSE, for last 3 params
-			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething,
-													TRUE,TRUE, FALSE);
+			// whm 12Feb2024. TODO: The following AppendSrcPhaseBeginningInfo() returns 
+			// filtered information in the beforeStr. However, the filtered information
+			// is now to be added last, so the AppendSrcPhraseBeginningInfo() should not
+			// return the filtered info in beforeStr. The filtered info should be added to
+			// the str BELOW at the end of the AppendSrcPhraseEndingInfo() function call 
+			// below.
+			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething);; //,
+													// TRUE,TRUE, FALSE);
 			if (bAddedSomething)
 			{
 				str << beforeStr;
 				beforeStr.Empty();
 			}
-			str << pSrcPhrase->m_key;
+			// str << pSrcPhrase->m_key; // whm 5Feb2024 moved to before the AppendSrcPhraseBeginningInfo() call
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pMergedSrcPhrase);
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pMergedSrcPhrase, bAddedSomething,
+													TRUE, TRUE, FALSE);
 			if (!afterStr.IsEmpty())
 			{
 				str << afterStr;
@@ -6150,9 +6263,21 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 		{
 			bFirst = FALSE; // prevent this block from being re-entered
 
-			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
+			// whm 5Feb2024 added test. If markerStr is not empty add the word break
+			// otherwise the space after the markerStr will be the break
+			if (markersStr.IsEmpty())
+			{
+				str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
+			}
 
 			beforeStr.Empty();
+			// whm 5Feb2024 comment:
+			// The purpose of the GetSrcPhraseBeginningInfo() call below is to be (from BEW comments):
+			// "A useful utility which ignores filtered information and m_markers, but collects, in
+			// sequence, other punctuation and marker information which precedes the phrase. This
+			// material is stored in m_inlineNonbindingMarkers, m_precPunct, and
+			// m_inlineBindingEndMarkers, in that order."
+			// Hence it should be called BEFORE  the str << pSrcPhrase->m_key assignment below.
 			beforeStr = GetSrcPhraseBeginningInfo(beforeStr, pMergedSrcPhrase, bAddedSomething);
 			if (bAddedSomething)
 			{
@@ -6161,7 +6286,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 			}
 			str << pSrcPhrase->m_key;
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase);
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething,
+				TRUE, TRUE, FALSE);
 			if (!afterStr.IsEmpty())
 			{
 				str << afterStr;
@@ -6180,20 +6306,23 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 			// pSrcPhrase we are currently looking at
 			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
 
+			str << pSrcPhrase->m_key; // whm 5Feb2024 move here from below
+
 			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
 			// is FALSE, for last 3 params
-			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething,
-													TRUE,TRUE, FALSE);
+			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething); // ,
+													//TRUE,TRUE, FALSE);
 			if (bAddedSomething)
 			{
 				str << beforeStr;
 				beforeStr.Empty();
 			}
-			str << pSrcPhrase->m_key;
+			//str << pSrcPhrase->m_key; // whm 5Feb2024 moved to before the AppendSrcPhraseBeginningInfo() call
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase);
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething,
+				TRUE, TRUE, FALSE);
 			if (!afterStr.IsEmpty())
 			{
 				str << afterStr;
@@ -6864,15 +6993,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// string in an export from what's been stored in m_tgtMkrPattern.
 		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
-			wxString xrefStr;
-			wxString mMarkersStr;
-			wxString otherFiltered;
-			bool bAttachFiltered = FALSE;
-			bool bAttach_m_markers = TRUE;
-			wxString Sstr = FromSingleMakeSstr(pSingleSrcPhrase, bAttachFiltered,
-				bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE); // need Sstr
-					// for the dialog; and we pass it to AutoPlaceSomeMarkers(), but the latter
-					// currently does not use it internally (one day, it might)
+			wxString Sstr = FromSingleMakeSstr(pSingleSrcPhrase); // whm 5Feb2024 removed unused paramters
+					// need Sstr for the dialog; and we pass it to AutoPlaceSomeMarkers(), 
+					// but the latter currently does not use it internally (one day, it might)
 #if defined (_DEBUG)
 			{
 				int SstrLen = Sstr.Length();
@@ -7617,49 +7740,26 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 /// return      The recomposed source text string, including punctuation and markers, but
 ///             which members are included is controlled by booleans passed in
 /// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
-/// bAttachFilteredInfo     ->  if TRUE, cross reference and other filtered info, if present
-///                             are returned in the recomposed source text string (note,
-///                             cross reference is returned after m_markers material, if
-///                             any, and the remaining filtered material before m_markers
-///                             material (if any))
-/// bAttach_m_markers       ->  include any m_markers information in the returned string
-///                             (sometimes the caller has already got the m_markers info
-///                             and so we need to be able to suppress having it returned
-///                             again)
-/// mMarkersStr             <-  contents of m_markers member, unilaterally returned (or empty)
-/// xrefStr                 <-  filtered \x .... \x* information, including markers, if
-///                             any such is stored in the m_filteredInfo member; unilaterally
-///                             returned
-/// filteredInfoStr         <-  the contents of m_filteredInfo member, with any cross reference
-///                             information (ie. \x ....\x*) removed; or an empty string if there
-///                             is no filtered info. Unilaterally returned
-/// bDoCount				->  Whether or not to count the words in any free translation (now deprecated 22Jun15)
-/// bCountInTargetText      ->  Whether or do the count of words, in source text line or tgt text line (now deprecated 22Jun15)
 /// BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
 /// BEW refactored 22Jun15, so that no filtered information is returned.
 /// Because of this refactoring, the bAttachFilteredInfo, even if passed in TRUE, will have
 /// no filtered info to attach; similarly, xrefStr will be empty always, likewise filteredInfoStr
 /// whm 3Jan2024 reverse refactored BEW's 22Jun15 refactoring to incorporate filtered info in 
 /// RebuildSourceText() which requires filtered information to be returned again from this function.
-wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
-				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
-				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
+/// whm 5Feb2024 simplified and removed unused parameters.
+wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-	wxUnusedVar(bCountInTargetText); // BEW added 22Jun15
-	wxUnusedVar(bDoCount); // BEW added 22Jun15
-	wxUnusedVar(bAttach_m_markers); // 5May23 unreferenced, no longer needed
-	wxUnusedVar(bAttachFilteredInfo); // 5May23 unreferenced, no longer needed // whm 3Jan2024 reinstated
-	wxUnusedVar(mMarkersStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
-	wxUnusedVar(filteredInfoStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
-	wxUnusedVar(xrefStr); // 8May23 no longer needed // whm 3Jan2024 reinstated
+
+#define _Use_Original_BEW_Coding
+
 	bool bEndPunctsModified = FALSE; // init
 	wxString pattern; pattern = wxEmptyString; // init
 
 	wxString Sstr;
 	wxString aSpace = _T(" ");
-	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
+	wxString  markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
 
 	// whm 3Jan2024 observations comparing old and new versions of FromSingleMakeSstr():
 	// 
@@ -7698,7 +7798,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 267)
+	if (pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -7771,8 +7871,10 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 //	}
 //#endif
 
-	/*
-	// the following is the first part of BEW's original ordering	
+
+#if defined(_Use_Original_BEW_Coding)
+	// the following is BEW's original coding of FromSingleMakeSstr() as of about 11Aug2023
+
 	extras = pDoc->RemoveEndMkrsFromExtras(extras);
 	bool bIsOK = FALSE; // init
 	int extrasLen = -1; // init - if bAllMated is TRUE, extrasLen should be zero, and residue empty
@@ -7785,8 +7887,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	// For option (b) in comment above, the matching algorithm removes each matched up char pair (it
 	// handles ">>" as a special case), reducing extras to empty, or to just one or more whitespace chars
 	// - which we skip over as they are not puncts, so if extrasLen gets reduced to 0 then matchups succeeded
-	
-	// whm 24Jan2024 reorderd elements composing the srcStr value (see below)
+
 	// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, if so, start of srcStr
 	// with that value
 	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
@@ -7797,7 +7898,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	{
 		// The contents of m_srcSinglePattern are the correct post-word mix of puncts and endmarkers, or,
 		// there were no word-final puncts (but endMkrs may have been squirreled away on pSingleSrcPhrase)
-		// and if so, they will be there in m_srcSinglePattern anyway 
+		// and if so, they will be there in m_srcSinglePattern anyway
 		// (bEndPunctsModified stays FALSE when control has entered this block)
 		srcStr += pSingleSrcPhrase->m_srcSinglePattern;
 	}
@@ -7811,7 +7912,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		if (bEndPunctsModified)
 		{
 			// Put here an algorithm which can handle punctuation changes. There are only three? ways for the
-			// user to be able to change source text puncts. 
+			// user to be able to change source text puncts.
 			// (1) Make the appropriate source text words pSrcPhrase be selected, or at active location,
 			// and Select the option "Edit Source Text" - the user can then type a different word, or different
 			// puncts, or both in the dialog that pops up. (Markers won't be seen, and should NOT be manually
@@ -7833,32 +7934,72 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			// function contains a Placement dialog which we may need to call if the inventory of ending
 			// punctuations differs from those in m_srcSinglePattern (at same sequNum)
 
+
 			// This is a function which matches by positions, since equality tests won't work
 			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
-			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText); wxUnusedVar(bUpdatedOK); // avoid compiler warning variable initialized but not referenced
+			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText);
+			wxUnusedVar(bUpdatedOK);
+
 		}
 		else
 		{
 			// If no manual puncts changed, then what's gone wrong could be anything, but most likely there
 			// is a residue which is not empty - such as when there are extra puncts added. So just return
 			// m_srcSinglePattern 'as is' with any residual puncts appended - could fluke a correct result
-			srcStr = pSingleSrcPhrase->m_srcSinglePattern; 
+			srcStr = pSingleSrcPhrase->m_srcSinglePattern;
 			if (!residue.IsEmpty())
 			{
 				srcStr << residue;
 			}
 		}
-		// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, 
+		// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member,
 		//if so, insert that value ahead of whatever srcStr currently is
 		if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
 		{
 			srcStr = pSingleSrcPhrase->m_precPunct + srcStr;
 		}
 	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
-	*/
+
+	// now add the prefix string material if it is not empty
+	wxString prefixStr = wxEmptyString;
+	if (!bEndPunctsModified)
+	{
+		if (!markersStr.IsEmpty())
+		{
+			// prefix it, it may have markers like \s, \s1, \p, \v etc
+			prefixStr = markersStr;
+		}
+		// Next, there could be inline nonbinding beginMkr like \wj
+		wxString strNonbinding = pSingleSrcPhrase->GetInlineNonbindingMarkers();
+		if (!strNonbinding.IsEmpty())
+		{
+			prefixStr << strNonbinding;
+		}
+		// Next, sometimes there may even be character formatting beginMkr(s)
+		wxString strBinding = pSingleSrcPhrase->GetInlineBindingMarkers();
+		if (!strBinding.IsEmpty())
+		{
+			prefixStr << strBinding;
+		}
+		// Now whatever we have, (could be empty) prefix to srcStr
+		if (!prefixStr.IsEmpty())
+		{
+			srcStr = prefixStr + srcStr;
+		}
+	} // end of TRUE block for test: if (!bEndPuntsModified)
+	else
+	{
+// TODO if needed when end puncts were modified
+
+	} // end of else block for test: if (!bEndPuntsModified)
+
+
+#elif
+
+	
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 20182)
+	if (pSingleSrcPhrase->m_nSequNumber >= 17981)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -7909,13 +8050,38 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	// handles ">>" as a special case), reducing extras to empty, or to just one or more whitespace chars
 	// - which we skip over as they are not puncts, so if extrasLen gets reduced to 0 then matchups succeeded
 
+	// whm 5Feb2024 modified/updated. BEW's original code from 2014 unilaterally set srcStr to START with
+	// pSingleSrcPhrase->m_precPunct after the Qm_srcPhrasePunctsPresentAndNoResidue() call above
+	// 
+	// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, if so, start of srcStr
+	// with that value
+	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+	{
+		srcStr = pSingleSrcPhrase->m_precPunct;
+	}
+
 	if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 	{
 		// The contents of m_srcSinglePattern are the correct post-word mix of puncts and endmarkers, or,
 		// there were no word-final puncts (but endMkrs may have been squirreled away on pSingleSrcPhrase)
 		// and if so, they will be there in m_srcSinglePattern anyway 
 		// (bEndPunctsModified stays FALSE when control has entered this block)
-		srcStr += pSingleSrcPhrase->m_srcSinglePattern;
+		// 
+		// whm 4Feb2024 note: the suffixing of the m_srcSinglePattern value works OK, except when we're
+		// dealing with a chapter marker that occurs just BEFORE a filtered marker such as \s or \s1. 
+		// In such cases the chapter marker gets put before the m_srcSinglePattern word instead of AFTER 
+		// it. So, to fix that issue I'm adding a test for filtered information, and if so, it prefixes 
+		// the pSingleSrcPhrase->m_srcSinglePattern word to srcStr, instead of suffixing it.
+		// Also, in this case we should remove any space from the srcStr (markers).
+		if (HasFilteredInfo(pSingleSrcPhrase))
+		{
+			srcStr = pSingleSrcPhrase->m_srcSinglePattern + srcStr;
+			srcStr.Trim(); // remove space at right end
+		}
+		else
+		{
+			srcStr += pSingleSrcPhrase->m_srcSinglePattern;
+		}
 	}
 	else
 	{
@@ -7972,6 +8138,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		}
 	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
 
+#endif // of #if defined (_Use_Original_BEW_Coding)
+
 	// 24Jan2024 Testing of Hezekiah input file indicates that the LAST item appended to srcStr
 	// should be the filtered material - which makes sense since the filtered material is now
 	// stored on the source phrase preceding the location from which the filtered material was
@@ -7980,21 +8148,24 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	MkrAndAssocTextList.Clear();
 	wxArrayString FilterableMkrsList;
 	FilterableMkrsList.Clear();
+	wxArrayString markersPrecedingFilteredOnes;
+	markersPrecedingFilteredOnes.Clear();
 	// whm 5Jan2024 addition. AI now holds filtered material on the preceding source 
 	// phrase, which means that filtered material being unfiltered should come suffixed to 
 	// the srcStr (m_srcSinglePattern) as determined above.
 	
 	// Get the filtered material from pSingleSrcPhrase and process it into a wxArrayString
 	// of markers and associated text. We'll use a function that already does that job as
-	// one part of its work - the Doc's GetFilterableMarkersFromString() function.
+	// one part of its work - the Doc's GetFilteredAndSweptUpMarkersFromString() function.
 	wxString filteredMaterialStr = pSingleSrcPhrase->GetFilteredInfo();
 	if (!filteredMaterialStr.IsEmpty())
 	{
-		// Use the Doc's GetFilterableMarkersFromString() function which returns a
+		// Use the Doc's GetFilteredAndSweptUpMarkersFromString() function which returns a
 		// list of filtered markers with filter brackets and assoc text included, then
 		// call RemoveAnyFilterBracketsFromString() below when processing the array items.
-		pDoc->GetFilterableMarkersFromString(filteredMaterialStr,
-			MkrAndAssocTextList, 
+		pDoc->GetFilteredAndSweptUpMarkersFromString(filteredMaterialStr,
+			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
+			MkrAndAssocTextList,
 			FilterableMkrsList); // this one isn't used here
 
 		// whm 22Jan2024 added. 
@@ -8003,18 +8174,19 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		// Knowing which would make it easier to determine whether there should be an 
 		// initial space for a character marker, or an EOL for a paragraph marker that
 		// can be insterted before each marker string within the filteredMaterialStr.
-		// We will call GetMarkersAndEndMarkersFromString() to get an array list of the markers
-		// in filteredMaterialStr. We then examine each array string element, extract its
-		// marker, lookup the type using LookupSFM() whether it's character or paragraph
-		// marker, then prefix the marker string with a space (if character) or EOL (if
-		// paragraph). We construct a string from each marker string to save back to the
-		// filteredMaterialStr.
+		// We called GetMarkersAndEndMarkersFromString() above to get an array list of the 
+		// filtered markers in filteredMaterialStr. We then examine each array string element, 
+		// extract its marker, lookup the Stytype using LookupSFM() whether it's character 
+		// or paragraph marker, then prefix the marker string with a space (if character) or 
+		// EOL (if paragraph). We then grab any swept up markers that exist in the parallel
+		// array markersPrecedingFilteredOnes and prefix it to the unfiltered itemStr and
+		// finally construct a string from each itemStr to save back to the filteredMaterialStr.
 		wxString endMarkers = _T("");
 		wxString tempStr; tempStr.Empty(); // build the final filteredMaterialStr in tempStr
+		wxString precMkrStr; precMkrStr.Empty();
+		wxString itemStr; itemStr.Empty();
 		USFMAnalysis* pUsfmAnalysis;;
 		StyleType styType;
-		// Note: The function below doesn't include assoc text in the returned MkrList.
-		//pDoc->GetMarkersAndEndMarkersFromString(&MkrList, filteredMaterialStr, endMarkers);
 		int arrTot = (int)MkrAndAssocTextList.GetCount();
 		for (int i = 0; i < arrTot; i++)
 		{
@@ -8023,7 +8195,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			bool bIsEndMkr = FALSE;
 			bool bIsBeginMkr = FALSE;
 			wxString wholeMkr; wholeMkr.Empty();
-			wxString itemStr = MkrAndAssocTextList.Item(i);
+			itemStr = MkrAndAssocTextList.Item(i);
+			precMkrStr = markersPrecedingFilteredOnes.Item(i); // usually an empty string but may have swept up marker(s)
 			itemStr = pDoc->RemoveAnyFilterBracketsFromString(itemStr);
 			itemStr.Trim(FALSE); // remove any initial whitespace
 			itemStr.Trim(TRUE); // remove any final whitespace - below it will get either a \r\n or space
@@ -8090,7 +8263,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			}
 		} // end of for (int i = 0; i < arrTot; i++)
 
-		filteredMaterialStr = tempStr;
+		filteredMaterialStr = precMkrStr + tempStr; // prefix up any preceding swept up marker
 		filteredMaterialStr.Trim(); // remove any space at end of the filtered material
 
 		srcStr += filteredMaterialStr;
@@ -8160,6 +8333,476 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	Sstr.Trim(FALSE); // remove any intial whitespace(s)
 	return Sstr;
 }
+
+// whm 6Feb2024 An alternate version of original FromSingleMakeSstr().
+// This version uses code adapted from the FromMergerMakeSstr() which I
+// think is a simpler way of handling the creation of strings from 
+// individual source phrases.
+// This version also leaves out the machinations involving the calculation of
+// extras using the Qm_srcPhrasePunctsPresentAndNoResidue() function and
+// its oblique processing. I don't think that we need to account for a
+// users changes made to punctuation in order to get accurate rebuilds of
+// source text when called by RebuildSourceText(). 
+// TODO: If removing the Qm_srcPhrasePunctsPresentAndNoResidue() function 
+// is a concern, we can force a File > Save to ensure that the xml doc 
+// represents the current state of the in-memory pSrcPhrases. 
+wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
+	//bool bEndPunctsModified = FALSE; // init
+	wxString pattern; pattern = wxEmptyString; // init
+
+	wxString Sstr;
+	wxString aSpace = _T(" ");
+	wxString markersStr = pSingleSrcPhrase->m_markers; // prefix is at end
+
+	// whm 3Jan2024 observations comparing old and new versions of FromSingleMakeSstr():
+	// 
+	// ORDER OF COMPONENTS OF RETURNED Sstr (in the OLDER code model):
+	// 1. Note: markersPrefix (includes filtered info, which is last to be prefixed on Sstr), followed by a space
+	// 2. If bIsFixedSpaceConjoined (wrd1 + ~ + wrd2), wrd1 and wrd2 are separately processes as follows:
+	//    wrd1 prefixed by any wrd1's inlineBindingMarkers, and suffixed by any wrd1's inlineBindingEndMarkers, then suffixed by any wrd1's m_follPunct.
+	//    wrd2 prefixed by any wrd2's inlineBindingMarkers, and suffixed by any wrd2's inlineBindingEndMarkers, then prefixed by any wrd2's m_precPunct
+	//    Then srcStr = wrd1 + ~ + wrd2 (where wrd1 and wrd2 were augmented as above.
+	// 3. If no conjoining, srcStr is prefixed by pSingleSrcPhrase's inlineBindingMarkers, and suffixed by pSingleSrcPhrase's inlineBindingEndMarkers
+	// 4. srcStr is prefixed by pSingleSrcPhrase's m_precPunct, and suffixed by pSingleSrcPhrase's m_follPunct
+	// 5. srcStr is assigned to Sstr
+	// 6. Sstr is prefixed by any pSingleSrcPhrase's inlineNonbindingMarkers.
+
+	// ORDER OF COMPONENTS OF RETURNED Sstr (in this NEWER code model before whm refactoring - no filtered material was included):
+	// 1. Return only _T("\\") if m_key is empty and m_srcPhrase is _T("\\"), 
+	//    Return m_markers + _T("\\") if m_markers is not empty when m_key is empty and m_srcPhrase is _T("\\").
+	//    If m_key not empty, the following components contribute to returned Sstr:
+	//	  2. pSingleSrcPhrase->m_srcSinglePattern is updated if m_key has changed due to a src text edit - making
+	//    the m_key value different, or PT source text project has been user-edited to change the m_key spelling.
+	//    If m_key has not changed, the following components contribute to returned Sstr:
+	//    3. GetPostwordExtras() gets any post-word extras (stuff after the m_key) from m_srcSinglePattern, which may 
+	//    be puncts, markers, or whitespaces, but any end markers are removed by the RemoveEndMkrsFromExtras() call.
+	//    The extras value is only used as input ref var to Qm_srcPhrasePunctsPresentAndNoResidue()
+	// 4. srcStr begins with any m_precPunct assigned to it
+	// 5. srcStr has m_srcSinglePattern suffixed to it whenever extras is empty and no residue.
+	//    If extras/residue is not empty, and bEndPunctsModified is TRUE, Sstr is recreated by a
+	//    call to UpdateSingleSrcPattern(...,Sstr...) function.
+	//     srcStr = pSingleSrcPhrase->m_srcSinglePattern + any residue suffixed.
+	//    Then any m_precPunct is prefixed to srcStr.
+	// 6. If bEndPunctsModified is FALSE, any non-empty markersStr is assigned to a prefixStr
+	//    Then strNonbinding markers if any are suffixed to prefixStr.
+	//    Then strBinding markers, if any are suffixed to prefixStr.
+	// 7. The prefixStr is prefixed to srcStr, which is finally assigned to Sstr, trimmed and returned.
+
+	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
+
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 368) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	{
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+	}
+#endif
+	// BEW 4Apr23, if there is a isolated backslash in the document, m_key will be empty, 
+	// but m_srcPhrase will be _T("\\"), we want to keep the backslash in the exported
+	// source text, so test and set srcStr to it
+	if (pSingleSrcPhrase->m_key.IsEmpty() && pSingleSrcPhrase->m_srcPhrase == _T("\\"))
+	{
+		srcStr = _T("\\");
+		if (!pSingleSrcPhrase->m_markers.IsEmpty())
+		{
+			srcStr = pSingleSrcPhrase->m_markers + srcStr;
+		}
+		Sstr = srcStr;
+		return Sstr;
+	}
+	// 5May23 new code goes here
+	wxString extras = wxEmptyString;
+	//wxString strSaveExtras; // whm 24Jan2024 unused
+	//strSaveExtras = wxEmptyString; // init
+
+	// BEW 10May23, pSrcPhrase (docVersion == 10) has a new wxString, m_oldKey which stores
+	// the key parsed in the doc ParseWords() call. m_srcSinglePattern has the m_key value at that
+	// time. If a src text edit is later done - making the m_key value different, or PT source text project
+	// has been user-edited to change the m_key spelling, then we don't want the m_oldKey value to
+	// be constant; instead since m_key may be different, we need to compare the new value with what's
+	// in m_oldKey, and if different, use the new value - and make the appropriate value changes within
+	// pSrcPhrase->m_srcSinglePattern and m_oldKey, to comply with the new value as well. Do it here, so
+	// that the key is up-to-date before we start examining puncts and markers which are before or after it.
+	wxString currSrcSinglePattern = pSingleSrcPhrase->m_srcSinglePattern;
+	wxString currKey = pSingleSrcPhrase->m_oldKey;
+	wxString newKey = pSingleSrcPhrase->m_key;
+	wxString newSrcSinglePattern = wxEmptyString;
+	if (newKey != currKey)
+	{
+		// There has been a value change to the m_key member, do the updating required
+		int oldKeyLen = currKey.Length();
+		wxString rightBit = currSrcSinglePattern.Mid(oldKeyLen); // keep rightBit (may be empty), chuck old key
+		newSrcSinglePattern = newKey + rightBit;
+		pSingleSrcPhrase->m_srcSinglePattern = newSrcSinglePattern; // it's now updated
+		pSingleSrcPhrase->m_oldKey = newKey; // it's now updated
+	}
+
+	/*
+	// FromSingleMakeSstr accesses the new member in CSourcePhrase, m_srcSinglePattern, 
+	// not the other four new ones; the one to read for the source pattern is the 2nd param of next call
+	extras = pDoc->GetPostwordExtras(pSingleSrcPhrase, pSingleSrcPhrase->m_srcSinglePattern);
+
+	// the following is BEW's original coding of FromSingleMakeSstr() as of about 11Aug2023
+
+	extras = pDoc->RemoveEndMkrsFromExtras(extras);
+	bool bIsOK = FALSE; // init
+	int extrasLen = -1; // init - if bAllMated is TRUE, extrasLen should be zero, and residue empty
+	wxString residue = wxEmptyString; // init
+	// Next call will return TRUE if (a) extras was empty, so m_srcSinglePattern suffices; or (b) there
+	// were one or more final puncts (possibly mixed with endmarkers), and matching those in pSrcPhrase
+	// successfully with those in extras, with no residue left over, happens - in which case
+	// m_srcSinglePattern suffices then also
+	bIsOK = pDoc->Qm_srcPhrasePunctsPresentAndNoResidue(pSingleSrcPhrase, extras, extrasLen, residue, bEndPunctsModified); // endMkrsOnly);
+	// For option (b) in comment above, the matching algorithm removes each matched up char pair (it
+	// handles ">>" as a special case), reducing extras to empty, or to just one or more whitespace chars
+	// - which we skip over as they are not puncts, so if extrasLen gets reduced to 0 then matchups succeeded
+
+	// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member, if so, start of srcStr
+	// with that value
+	if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+	{
+		srcStr = pSingleSrcPhrase->m_precPunct;
+	}
+	if (bIsOK && extrasLen == 0 && residue.IsEmpty())
+	{
+		// The contents of m_srcSinglePattern are the correct post-word mix of puncts and endmarkers, or,
+		// there were no word-final puncts (but endMkrs may have been squirreled away on pSingleSrcPhrase)
+		// and if so, they will be there in m_srcSinglePattern anyway
+		// (bEndPunctsModified stays FALSE when control has entered this block)
+		srcStr += pSingleSrcPhrase->m_srcSinglePattern;
+	}
+	else
+	{
+		// When if (bIsOK && extrasLen == 0 && residue.IsEmpty()) is FALSE... then matching by string equality
+		// for puncts in matching positions failed to reduce the residue to empty. Matchup failure(s) will
+		// cause bEndPunctsModified to be TRUE. That's not a problem if the before and after count of puncts
+		// to be matched up is the same - we can programmatically make likely correct substitutions by
+		// position using the function UpdateSingleSrcPattern() below.
+		if (bEndPunctsModified)
+		{
+			// Put here an algorithm which can handle punctuation changes. There are only three? ways for the
+			// user to be able to change source text puncts.
+			// (1) Make the appropriate source text words pSrcPhrase be selected, or at active location,
+			// and Select the option "Edit Source Text" - the user can then type a different word, or different
+			// puncts, or both in the dialog that pops up. (Markers won't be seen, and should NOT be manually
+			// typed in the dialog, they are inviolate constant substrings in the doc's USFM structure).
+			// Collaboration does not have to be active to do this, in fact, collaboration suppresses this option
+			// and requires changes be made instead in the source text in Paratext (or Bibledit).
+			// (2) In a collaboration, the user can enter the source text project in Paratext (or Bibledit)
+			// and there type a different word or different punctuations or both. The collaboration will call
+			// OnSingleMakeTstr() which internally calls OnSingleMakeSstr() which will cause new values (if
+			// changed) be put into m_follPunct and perhaps also into m_inlineBindingEndMarkers and/or into
+			// m_inlineNonbindingEndMarkers (though puncts after markers like \wj* etc are very unlikely).
+			// If the number of puncts has not changed, then we can use the new set without a Placement dlg,
+			// but if the inventory is fewer or more, the only way to be sure of accuracy is to do Placement
+			// dlg; however, that can be avoided by use of UpdateSingleSrcPattern() below - but that function
+			// has some guesswork at where final puncts are to be distributed.
+			// (3) If the user, in the phrasebox, manually adds end puncts which differ at least in 1 place
+			// from those in pSrcPhrase->m_srcSinglePattern (at same sequ num). Doing that should also then
+			// result in view's MakeTargetStringIncludingPuctuation() using the changed punc(s), and that
+			// function contains a Placement dialog which we may need to call if the inventory of ending
+			// punctuations differs from those in m_srcSinglePattern (at same sequNum)
+
+
+			// This is a function which matches by positions, since equality tests won't work
+			bool bTokenizingTargetText = FALSE; // needed for next call, so we use src spacelessPuncts
+			bool bUpdatedOK = pDoc->UpdateSingleSrcPattern(pSingleSrcPhrase, Sstr, bTokenizingTargetText);
+			wxUnusedVar(bUpdatedOK);
+
+		}
+		else
+		{
+			// If no manual puncts changed, then what's gone wrong could be anything, but most likely there
+			// is a residue which is not empty - such as when there are extra puncts added. So just return
+			// m_srcSinglePattern 'as is' with any residual puncts appended - could fluke a correct result
+			srcStr = pSingleSrcPhrase->m_srcSinglePattern;
+			if (!residue.IsEmpty())
+			{
+				srcStr << residue;
+			}
+		}
+		// BEW 13Jul23, must not forget that there could be non-empty m_precPunct member,
+		//if so, insert that value ahead of whatever srcStr currently is
+		if (!pSingleSrcPhrase->m_precPunct.IsEmpty())
+		{
+			srcStr = pSingleSrcPhrase->m_precPunct + srcStr;
+		}
+	} // end of else block for test: if (bIsOK && extrasLen == 0 && residue.IsEmpty())
+	*/
+	/*
+	// now add the prefix string material if it is not empty
+	wxString prefixStr = wxEmptyString;
+	if (!bEndPunctsModified)
+	{
+		if (!markersStr.IsEmpty())
+		{
+			// prefix it, it may have markers like \s, \s1, \p, \v etc
+			prefixStr = markersStr;
+		}
+		// Next, there could be inline nonbinding beginMkr like \wj
+		wxString strNonbinding = pSingleSrcPhrase->GetInlineNonbindingMarkers();
+		if (!strNonbinding.IsEmpty())
+		{
+			prefixStr << strNonbinding;
+		}
+		// Next, sometimes there may even be character formatting beginMkr(s)
+		wxString strBinding = pSingleSrcPhrase->GetInlineBindingMarkers();
+		if (!strBinding.IsEmpty())
+		{
+			prefixStr << strBinding;
+		}
+		// Now whatever we have, (could be empty) prefix to srcStr
+		if (!prefixStr.IsEmpty())
+		{
+			srcStr = prefixStr + srcStr;
+		}
+	} // end of TRUE block for test: if (!bEndPuntsModified)
+	else
+	{
+		// TODO if needed when end puncts were modified
+
+	} // end of else block for test: if (!bEndPuntsModified)
+	*/
+
+	// Below is snippet from FromMergerMakeSstr():
+	//wxString aSpace = _T(" ");
+	//wxString markersStr;
+	wxString endMarkersStr;
+	// BEW 22Jun15 we retain freeTransStr, noteStr, collBackTransStr, filteredInfoStr
+	// because these are parameter in lower down function calls; those function calls
+	// are made in other types of export, so our approach here is to let these strings
+	// be populated, but then clear them to empty before their contents can be used
+	wxString freeTransStr;
+	wxString noteStr;
+	wxString collBackTransStr;
+	wxString filteredInfoStr;
+	wxString beforeStr;
+	wxString afterStr;
+	bool bAddedSomething = FALSE;
+	// it's helpful to keep the various inline markers as encountered, so we can easily
+
+				// empty the scratch strings
+	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
+		collBackTransStr, filteredInfoStr);
+	// get the other string information we want, putting it in the scratch strings
+	//			GetMarkersAndFilteredStrings(pMergedSrcPhrase, markersStr, endMarkersStr,
+	//							freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
+	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
+		freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
+	if (!filteredInfoStr.IsEmpty())
+	{
+		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+	}
+
+	// whm 5Feb2024 added test. If markerStr is not empty add the word break
+	// otherwise the space after the markerStr will be the break
+	if (markersStr.IsEmpty())
+	{
+		srcStr << PutSrcWordBreak(pSingleSrcPhrase); // add the wordbreak
+	}
+
+	beforeStr.Empty();
+	// whm 5Feb2024 comment:
+	// The purpose of the GetSrcPhraseBeginningInfo() call below is to be (from BEW comments):
+	// "A useful utility which ignores filtered information and m_markers, but collects, in
+	// sequence, other punctuation and marker information which precedes the phrase. This
+	// material is stored in m_inlineNonbindingMarkers, m_precPunct, and
+	// m_inlineBindingEndMarkers, in that order."
+	// Hence it should be called BEFORE  the str << pSrcPhrase->m_key assignment below.
+	//			beforeStr = GetSrcPhraseBeginningInfo(beforeStr, pMergedSrcPhrase, bAddedSomething);
+	beforeStr = GetSrcPhraseBeginningInfo(beforeStr, pSingleSrcPhrase, bAddedSomething);
+	//beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSingleSrcPhrase, bAddedSomething,
+	//										TRUE, TRUE, FALSE);
+	if (bAddedSomething)
+	{
+		srcStr << beforeStr;
+		beforeStr.Empty();
+	}
+	srcStr << pSingleSrcPhrase->m_key;
+	afterStr.Empty();
+	afterStr = AppendSrcPhraseEndingInfo(afterStr, pSingleSrcPhrase, bAddedSomething,
+		TRUE, TRUE, FALSE);
+	if (!afterStr.IsEmpty())
+	{
+		srcStr << afterStr;
+		afterStr.Empty();
+	}
+	srcStr.Trim();
+	// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
+	// but rather put either space or special space preceding the material
+	// in the caller
+	//str << aSpace;
+
+	// Above is snippet from FromMergerMakeSstr():
+
+	if (!markersStr.IsEmpty())
+	{
+		//if (pDoc->m_bCurrentlyFiltering)
+		//{
+			srcStr = markersStr + srcStr;
+		//}
+		//else
+		//{
+		//	// Add markers like \c n
+		//	srcStr += markersStr;
+		//}
+	}
+
+	// whm 13Feb2024 removed the addition of filteredInfoStr here. The addition
+	// of filtered information is taken care of by the AppendSrcPhraseEndingInfo()
+	// function call above.
+	//if (!filteredInfoStr.IsEmpty())
+	//{
+	//	srcStr += filteredInfoStr;
+	//}
+
+	/*
+	// 24Jan2024 Testing of Hezekiah input file indicates that the LAST item appended to srcStr
+	// should be the filtered material - which makes sense since the filtered material is now
+	// stored on the source phrase preceding the location from which the filtered material was
+	// removed when filtered.
+	wxArrayString MkrAndAssocTextList;
+	MkrAndAssocTextList.Clear();
+	wxArrayString FilterableMkrsList;
+	FilterableMkrsList.Clear();
+	wxArrayString markersPrecedingFilteredOnes;
+	markersPrecedingFilteredOnes.Clear();
+	// whm 5Jan2024 addition. AI now holds filtered material on the preceding source 
+	// phrase, which means that filtered material being unfiltered should come suffixed to 
+	// the srcStr (m_srcSinglePattern) as determined above.
+
+	// Get the filtered material from pSingleSrcPhrase and process it into a wxArrayString
+	// of markers and associated text. We'll use a function that already does that job as
+	// one part of its work - the Doc's GetFilteredAndSweptUpMarkersFromString() function.
+	wxString filteredMaterialStr = pSingleSrcPhrase->GetFilteredInfo();
+	if (!filteredMaterialStr.IsEmpty())
+	{
+		// Use the Doc's GetFilteredAndSweptUpMarkersFromString() function which returns a
+		// list of filtered markers with filter brackets and assoc text included, then
+		// call RemoveAnyFilterBracketsFromString() below when processing the array items.
+		pDoc->GetFilteredAndSweptUpMarkersFromString(filteredMaterialStr,
+			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
+			MkrAndAssocTextList,
+			FilterableMkrsList); // this one isn't used here
+
+		// whm 22Jan2024 added. 
+		// For best whitespace in exports it would be good to know if the initial marker 
+		// in the filteredMaterialStr is a character-type marker or a paragraph marker. 
+		// Knowing which would make it easier to determine whether there should be an 
+		// initial space for a character marker, or an EOL for a paragraph marker that
+		// can be insterted before each marker string within the filteredMaterialStr.
+		// We called GetMarkersAndEndMarkersFromString() above to get an array list of the 
+		// filtered markers in filteredMaterialStr. We then examine each array string element, 
+		// extract its marker, lookup the Stytype using LookupSFM() whether it's character 
+		// or paragraph marker, then prefix the marker string with a space (if character) or 
+		// EOL (if paragraph). We then grab any swept up markers that exist in the parallel
+		// array markersPrecedingFilteredOnes and prefix it to the unfiltered itemStr and
+		// finally construct a string from each itemStr to save back to the filteredMaterialStr.
+		wxString endMarkers = _T("");
+		wxString tempStr; tempStr.Empty(); // build the final filteredMaterialStr in tempStr
+		wxString precMkrStr; precMkrStr.Empty();
+		wxString itemStr; itemStr.Empty();
+		USFMAnalysis* pUsfmAnalysis;;
+		StyleType styType;
+		// Note: The function below doesn't include assoc text in the returned MkrList.
+		//pDoc->GetMarkersAndEndMarkersFromString(&MkrList, filteredMaterialStr, endMarkers);
+		int arrTot = (int)MkrAndAssocTextList.GetCount();
+		for (int i = 0; i < arrTot; i++)
+		{
+			// Note: The GetMarkersAndEndMarkersFromString() makes separate items for the end markers,
+			// so we will exclude those from the StyleType considerations below
+			bool bIsEndMkr = FALSE;
+			bool bIsBeginMkr = FALSE;
+			wxString wholeMkr; wholeMkr.Empty();
+			itemStr = MkrAndAssocTextList.Item(i);
+			precMkrStr = markersPrecedingFilteredOnes.Item(i); // usually an empty string but may have swept up marker(s)
+			itemStr = pDoc->RemoveAnyFilterBracketsFromString(itemStr);
+			itemStr.Trim(FALSE); // remove any initial whitespace
+			itemStr.Trim(TRUE); // remove any final whitespace - below it will get either a \r\n or space
+			int length = (int)itemStr.Len();
+			// Set up the pointers we need for scanning itemStr's data buffer
+			const wxChar* pBuffStart = itemStr.GetData();
+			wxChar* ptr = (wxChar*)pBuffStart; // for iterating forward
+			wxChar* pEnd = ptr + (size_t)length; // points to null
+			bIsBeginMkr = pDoc->IsBeginMarker(ptr, pEnd, wholeMkr, bIsEndMkr); // returns wholMkr
+			if (bIsBeginMkr)
+			{
+				wxString bareMkr; bareMkr.Empty();
+				int posMkr = itemStr.Find(_T("\\")); // all filteredMaterial should have a marker 
+				int posSp = itemStr.Find(_T(" ")); // begin markers should have a following space
+				if (posSp == wxNOT_FOUND)
+				{
+					// suffix the itemStr with a space
+					itemStr += _T(" ");
+					posSp = itemStr.Find(_T(" ")); // update posSp now that it has a final space
+				}
+				bareMkr = itemStr.Mid(posMkr, posSp - posMkr);
+				bareMkr = bareMkr.Remove(0, 1);
+				pUsfmAnalysis = pDoc->LookupSFM(bareMkr);
+				if (pUsfmAnalysis != NULL)
+				{
+					styType = pUsfmAnalysis->styleType;
+					// possible styTypes found in actual text (not RTF output) are (with Sp or EOL)
+					//	EOL - paragraph, x for many usfm markers - most don't have end markers
+					//	Sp  - character, x for many usfm markers - all that have end markers
+					//	Sp - footnote_text, only for \x \f \fe
+					//	EOL - horiz_rule, only for \ie and \hr markers and also for \_horiz_rule marker
+
+					switch (styType)
+					{
+					case footnote_text: // fall through to character
+					case character:
+					{
+						tempStr += _T(" ") + itemStr;
+						break;
+					}
+					case horiz_rule: // fall through to paragraph
+					case paragraph:
+					{
+						tempStr += _T("\r\n") + itemStr;
+						break;
+					}
+					default:
+					{
+						// any other known markers that might appear with different styType
+						tempStr += _T("\r\n") + itemStr;
+						break;
+					}
+					} // end of switch (styType)
+				}
+				else
+				{
+					// it was a filtered unknown marker so put it on a new line in exports
+					tempStr += _T("\r\n") + itemStr;
+				}
+			}
+			else
+			{
+				; // ignore end markers in MkrList
+			}
+		} // end of for (int i = 0; i < arrTot; i++)
+
+		filteredMaterialStr = precMkrStr + tempStr; // prefix up any preceding swept up marker
+		filteredMaterialStr.Trim(); // remove any space at end of the filtered material
+
+		srcStr += filteredMaterialStr;
+	}
+	*/
+
+#if defined (_DEBUG)
+	if (pSingleSrcPhrase->m_nSequNumber >= 19)
+	{
+		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
+	}
+#endif
+
+	Sstr = srcStr;
+	Sstr.Trim(FALSE); // remove any intial whitespace(s)
+	return Sstr;
+}
+
 
 /* BEW 11Sep23 deprecated, it does nothing useful - I did not implement the B E N stuff
 // BEW 10Jul23 added. Analysis for coping with manual punctuation changes, to reduce 

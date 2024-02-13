@@ -660,7 +660,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	case sourceTextExport:
 	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
-		nTextLength = RebuildSourceText(text);  // BEW 29Mar23 this fails, m_str is NULL
+		nTextLength = RebuildSourceText(text, RebuildFullExportText);  // BEW 29Mar23 this fails, m_str is NULL
 	}
 		break;
 	case glossesTextExport:
@@ -1790,7 +1790,7 @@ void DoExportAsType(enum ExportType exportType)
 	{
 	case sourceTextExport:
 	{
-		nTextLength = RebuildSourceText(source, pList);
+		nTextLength = RebuildSourceText(source, RebuildFullExportText, pList);
 		nTextLength = nTextLength; // avoid gcc warning set but not used warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
@@ -16980,14 +16980,21 @@ wxString GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 // other filtered information, if present, goes before it; so we must look for xref stuff
 // and locate it properly in the string for output.
 // BEW created 11Oct10
+// whm 12Feb2024 Revised to remove the treatment of filtered information in this
+// AppendSrcPhraseBeginningInfo() function and move it to the AppendSrcPhraseEndingInfo()
+// function since the unfiltering of filtered information now should come last after
+// my refactoring to store it on a previous pSrcPhrase.
 wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
-					 bool& bAddedSomething, bool bIncludeNote,
-					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
+					 bool& bAddedSomething)
 {
 	bAddedSomething = FALSE;
-	bAddedSomething = HasFilteredInfo(pSrcPhrase);
-	wxString xrefStr; xrefStr.Empty();
-	wxString otherFiltered; otherFiltered.Empty();
+	// whm 12Feb2024 moved the addition of filtered info from this AppendSrcPhraseBeginningInfo() function 
+	// to the AppendSrcPhraseEndingInfo() function since it should be the last thing added to 
+	// appendHere.
+
+//	bAddedSomething = HasFilteredInfo(pSrcPhrase);
+	//wxString xrefStr; xrefStr.Empty();
+	//wxString otherFiltered; otherFiltered.Empty();
 	wxString temp;
 	wxString mMarkers;
 	wxString aSpace = _T(' ');
@@ -16996,23 +17003,63 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 	// this is only used if reconstructing a free translation with wrapping
 	// \free and \free* markers) internally; TRUE means 'do the word
 	// count', final FALSE is for bIncludeNote
-	if (bAddedSomething)
-	{
-		// entry here means there is something filtered to be collected (includes custom
-		// ai stuff, such as free trans, note if requested, collected back trans, as well
-		// as the standard filtered stuff in m_filteredInfo)
-		temp = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans,
-												bCountInTargetTextLine, bIncludeNote);
-		SeparateOutCrossRefInfo(temp, xrefStr, otherFiltered);
-	}
+	//if (bAddedSomething)
+	//{
+	//	// entry here means there is something filtered to be collected (includes custom
+	//	// ai stuff, such as free trans, note if requested, collected back trans, as well
+	//	// as the standard filtered stuff in m_filteredInfo)
+	//	temp = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans,
+	//											bCountInTargetTextLine, bIncludeNote);
+	//	SeparateOutCrossRefInfo(temp, xrefStr, otherFiltered);
+	//}
+
 	if (!pSrcPhrase->m_markers.IsEmpty())
 	{
 		mMarkers = pSrcPhrase->m_markers;
 		bAddedSomething = TRUE;
 	}
+
 	// get the above stuff into proper USFM order, xrefs must go after m_markers content
+	// whm 5Feb2024 changed the ordering of the elements below since we now store filtered
+	// information on a previous source phrase, and now when building source text it must
+	// be added LAST after all other elements are suffixed to appendHere. This is only done
+	// when m_markers was NOT empty.
 	if (bAddedSomething)
 	{
+		// The following moved up from below.
+		if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+		{
+			appendHere += pSrcPhrase->GetInlineNonbindingMarkers();
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->m_precPunct.IsEmpty())
+		{
+			wxString puncts = pSrcPhrase->m_precPunct;
+			puncts.Trim(); // ensure no bogus space can follow the preceding puncts
+			appendHere += puncts;
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+		{
+			wxString binders = pSrcPhrase->GetInlineBindingMarkers();
+			binders.Trim(FALSE); // ensure no bogus space precedings an
+								 // inline binding beginmarker
+			appendHere += binders;
+			bAddedSomething = TRUE;
+		}
+
+		if (!mMarkers.IsEmpty())
+		{
+			// whm 5Feb2024 modified. Since filtered information is stored on a previous
+			// source phrase now, when it is unfiltered here in this contributing function
+			// for rebuiding the source text, it needs to come last. Therefore, mMarkers
+			// should come BEFORE the filtered information rather than AFTER it.
+			// The filtered info is now in appendHere, so prefix mMarkers to it.
+			appendHere = mMarkers + appendHere; //appendHere += mMarkers;
+		}
+
+
+		/*
 		if (!xrefStr.IsEmpty())
 		{
 			if (!otherFiltered.IsEmpty())
@@ -17023,8 +17070,13 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 			appendHere += aSpace;
 			if (!mMarkers.IsEmpty())
 			{
-				appendHere += mMarkers;
-			}
+				// whm 5Feb2024 modified. Since filtered information is stored on a previous
+				// source phrase now, when it is unfiltered here in this contributing function
+				// for rebuiding the source text, it needs to come last. Therefore, mMarkers
+				// should come BEFORE the filtered information rather than AFTER it.
+				// The filtered info is now in appendHere, so prefix mMarkers to it.
+				appendHere = mMarkers + appendHere; //appendHere += mMarkers;
+ 			}
 			appendHere.Trim();
 			appendHere += aSpace;
 			appendHere += xrefStr;
@@ -17040,11 +17092,19 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 			appendHere += aSpace;
 			if (!mMarkers.IsEmpty())
 			{
-				appendHere += mMarkers;
+				// whm 5Feb2024 modified. Since filtered information is stored on a previous
+				// source phrase now, when it is unfiltered here in this contributing function
+				// for rebuiding the source text, it needs to come last. Therefore, mMarkers
+				// should come BEFORE the filtered information rather than AFTER it.
+				// The filtered info is now in appendHere, so prefix mMarkers to it.
+				appendHere = mMarkers + appendHere; //appendHere += mMarkers;
 			}
 		}
+		*/
 	}
 
+	/* 
+	// whm 5Feb2024. This material is now moved up above treatment of filtered information
 	if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetInlineNonbindingMarkers();
@@ -17065,6 +17125,7 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 		appendHere += binders;
 		bAddedSomething = TRUE;
 	}
+	*/
 	return appendHere;
 }
 
@@ -17073,27 +17134,50 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 // order, and any of such which is non-empty is appended, with no spaces added anywhere (to
 // comply with good USFM markup standards) to the passed in appendHere string, which is
 // then returned to the caller.
-wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase)
+// whm 12Feb2024 Revised to include the treatment of filtered information in this
+// AppendSrcPhraseEndingInfo() function instead of the earlier called 
+// AppendSrcPhraseBeginningInfo() function since the unfiltering of filtered 
+// information now should come last after my refactoring to store filtered ifno
+// on a previous pSrcPhrase.
+wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
+	bool& bAddedSomething, bool bIncludeNote,
+	bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
+	
 {
+	wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
+	filteredInfo = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans,
+												bCountInTargetTextLine, bIncludeNote);
 	if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
+		bAddedSomething = TRUE;
 	}
 	if (!pSrcPhrase->m_follPunct.IsEmpty())
 	{
 		appendHere += pSrcPhrase->m_follPunct;
+		bAddedSomething = TRUE;
 	}
 	if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetEndMarkers();
+		bAddedSomething = TRUE;
 	}
 	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetFollowingOuterPunct();
+		bAddedSomething = TRUE;
 	}
 	if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetInlineNonbindingEndMarkers();
+		bAddedSomething = TRUE;
+	}
+	// whm 12Feb2024 moved the addition of filtered info from the AppendSrcPhraseBeginningInfo()
+	// function to this function since it should be the last thing added to appendHere.
+	if (!filteredInfo.IsEmpty())
+	{
+		appendHere += filteredInfo;
+		bAddedSomething = TRUE;
 	}
 	return appendHere;
 }
@@ -17303,11 +17387,16 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
 // will have the same EOLs across the board, and not have mixed EOLs with some being
 // LF and some being CRLF.
-int RebuildSourceText(wxString& source, SPList* pUseThisList)
+int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
 	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
 #endif
+
+	if (rebuildType == RebuildFilteringSegment)
+	{
+
+	}
 
 	wxString str; // local wxString in which to build the source text substrings
 
@@ -17432,7 +17521,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// non-placeholder - whether or not it has had information moved to it. That's why the
 	// RebuildTargetText() function doesn't need all this extra apparatus.
 
-	bool bHasFilteredMaterial = FALSE; // initialise
+	//bool bHasFilteredMaterial = FALSE; // initialise
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
@@ -17459,7 +17548,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		{
 
 #if defined(_DEBUG)
-			if (pSrcPhrase->m_nSequNumber == 392)
+			if (pSrcPhrase->m_nSequNumber == 391)
 			{
 				int halt_here = 0; wxUnusedVar(halt_here);
 			}
@@ -17516,25 +17605,18 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		} // end of TRUE block for test: if (pSrcPhrase->m_nSequNumber > 0)
 		if (!aBreak.IsEmpty())
 		{
-			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
-			if (aBreak == _T('\n'))
-			{
-				str += _T("\r\n"); // change LF to CRLF
-			}
-			else
-			{
-				str += aBreak;
-			}
-			source << str; // do it now, as str is emptied in a few places further below
+			str += aBreak;
+			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//source << str; // do it now, as str is emptied in a few places further below
 			str.Empty();
 		}
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders
-		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
+//		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 #if defined(_DEBUG)
 		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 16298)
+		if (pSrcPhrase->m_nSequNumber == 97)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -17549,6 +17631,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// without the populatiing of any of the local wxString variables above
  			if (!bMarkersOnPlaceholder)
 			{
+				bool bAddedSomething = FALSE;
 				// markers placement from a preceding placeholder is not pending, so from
 				// this placeholder gather any filtered information, and m_markers and
 				// endmarkers - and set the flag if there are some from a right
@@ -17557,7 +17640,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// append the relevant material directly to source parameter.
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
-				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
+				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase, bAddedSomething,
+					TRUE, TRUE, FALSE);
 
 				// now deal with the beginning-stuff, which isn't immediately placeable:
 				// 2nd, 3rd & 4th booleans as follows:
@@ -17565,7 +17649,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// bool bDoCountForFreeTrans is TRUE
 				// bool bCountInTargetTextLine is FALSE
 				strCollectedBeginnings = AppendSrcPhraseBeginningInfo(strCollectedBeginnings,
-								pSrcPhrase, bMarkersOnPlaceholder, FALSE, TRUE, FALSE);
+					pSrcPhrase, bMarkersOnPlaceholder); // , FALSE, TRUE, FALSE);
 				// if bMarkersOnPlaceholder returns TRUE from the above call, it means that
 				// there was earlier right association of the placeholder and it then
 				// picked up by transfer from the following non-placeholder CSourcePhrase
@@ -17632,63 +17716,74 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
 			// because we don't gather those info types in the above function
-			wxString xrefStr;
-			wxString otherFiltered;
-			if (bHasFilteredMaterial)
-			{
-				// get the filtered stuff, FALSE means that any word-counting required by
-				// getting a free translation and its span, the counting will be done in
-				// the source text words, not the target text ones; TRUE means 'do the
-				// word count'; and 4th param, bIncludeNote which is default TRUE, here
-				// will take its default value because this pSrcPhrase isn't a
-				// placeholder, and so there may be a note here filtered away.
-				tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
-				// separate out the cross reference info & markers
-				SeparateOutCrossRefInfo(tempStr, xrefStr, otherFiltered);
-				// any filtered info (other than cross reference) goes first
-				if (!otherFiltered.IsEmpty())
-					str << otherFiltered;
-				tempStr.Empty();
-				str.Trim();
-				// handle m_markers, we delay xrefStr placement as it depends on what is
-				// within the m_markers member
-				if (!pSrcPhrase->m_markers.IsEmpty())
-				{
-					tempStr = pSrcPhrase->m_markers;
-					// BEW changed 2Jun06, to prevent unwanted space insertion before \f,
-					// \fe or \x, so we do it adding a space before tempStr provided one
-					// of those markers is not at the start of tempStr
-					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
-					if (!xrefStr.IsEmpty())
-					{
-						// markers must precede cross reference info
-						str += tempStr;
-						str += xrefStr;
-						xrefStr.Empty();
-					}
-					else
-					{
-						// xrefString is empty
-						str += tempStr;
-					}
-					tempStr.Empty();
-				}
-				else
-				{
-					// m_markers is empty, but we still have to place xrefStr if it is
-					// non-empty
-					if (!xrefStr.IsEmpty())
-					{
-						str += xrefStr;
-						xrefStr.Empty();
-					}
-				}
-				str.Trim();
-				str += aSpace; // end it with a space when it's marker material
-				source << str;
-			} // end of TRUE block for test: if (bHasFilteredMaterial)
-			else
-			{
+			//wxString xrefStr;
+			//wxString otherFiltered;
+
+			// whm 5Feb2024 removed the if(bHasFilteredMaterial) block below.
+			// Filtered material is handled adequately within the FromMergerMakeSstr()
+			// function below.
+			//
+			//if (bHasFilteredMaterial)
+			//{
+			//	// get the filtered stuff, FALSE means that any word-counting required by
+			//	// getting a free translation and its span, the counting will be done in
+			//	// the source text words, not the target text ones; TRUE means 'do the
+			//	// word count'; and 4th param, bIncludeNote which is default TRUE, here
+			//	// will take its default value because this pSrcPhrase isn't a
+			//	// placeholder, and so there may be a note here filtered away.
+			//	tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
+			//	// separate out the cross reference info & markers
+			//	SeparateOutCrossRefInfo(tempStr, xrefStr, otherFiltered);
+			//	// any filtered info (other than cross reference) goes first
+			//	if (!otherFiltered.IsEmpty())
+			//		str << otherFiltered;
+			//	tempStr.Empty();
+			//	str.Trim();
+			//	// handle m_markers, we delay xrefStr placement as it depends on what is
+			//	// within the m_markers member
+			//	if (!pSrcPhrase->m_markers.IsEmpty())
+			//	{
+			//		tempStr = pSrcPhrase->m_markers;
+			//		// BEW changed 2Jun06, to prevent unwanted space insertion before \f,
+			//		// \fe or \x, so we do it adding a space before tempStr provided one
+			//		// of those markers is not at the start of tempStr
+			//		tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
+			//		if (!xrefStr.IsEmpty())
+			//		{
+			//			// markers must precede cross reference info
+			//			str += tempStr;
+			//			str += xrefStr;
+			//			xrefStr.Empty();
+			//		}
+			//		else
+			//		{
+			//			// xrefString is empty
+			//			str += tempStr;
+			//		}
+			//		tempStr.Empty();
+			//	}
+			//	else
+			//	{
+			//		// m_markers is empty, but we still have to place xrefStr if it is
+			//		// non-empty
+			//		if (!xrefStr.IsEmpty())
+			//		{
+			//			str += xrefStr;
+			//			xrefStr.Empty();
+			//		}
+			//	}
+			//	str.Trim();
+			//	str += aSpace; // end it with a space when it's marker material
+			//	// whm 2Jan2024 modification. When source ends with whitespace and str begins
+			//	// with whitespace, we should remove the whitespace from the end of the accumulated
+			//	// source - since I thnk a word-break char is most appropriately preserved at the
+			//	// beginning of the str being added.
+			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//	//source << str;
+			//} // end of TRUE block for test: if (bHasFilteredMaterial)
+			//else
+			//{
+			
 				// handle m_markers
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
@@ -17707,9 +17802,16 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 					}
 					tempStr.Empty();
 				}
-				source << str;
+				// 
+				// whm 2Jan2024 modification. When source ends with whitespace and str begins
+				// with whitespace, we should remove the whitespace from the end of the accumulated
+				// source - since I thnk a word-break char is most appropriately preserved at the
+				// beginning of the str being added.
+				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+				//source << str;
 				//textFile.AddLine(str);
-			} // end of else block for test: if (bHasFilteredMaterial)
+			//} // end of else block for test: if (bHasFilteredMaterial)
+				
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
@@ -17719,7 +17821,13 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 //#endif
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
-			source << str;
+			// 
+			// whm 2Jan2024 modification. When source ends with whitespace and str begins
+			// with whitespace, we should remove the whitespace from the end of the accumulated
+			// source - since I thnk a word-break char is most appropriately preserved at the
+			// beginning of the str being added.
+			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//source << str;
 			str.Empty();
 		}
 		else
@@ -17752,39 +17860,28 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				bMarkersOnPlaceholder = FALSE;
 			}
 			tempStr.Empty();
-			source << str;
+			// 
+			// whm 2Jan2024 modification. When source ends with whitespace and str begins
+			// with whitespace, we should remove the whitespace from the end of the accumulated
+			// source - since I thnk a word-break char is most appropriately preserved at the
+			// beginning of the str being added.
+			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+			//source << str;
 			str.Empty();
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
 			// non-binding markers, endmarkers, outer punct, as needed
-			wxString xrefStr;
-			wxString mMarkersStr;
-			wxString otherFiltered;
-			bool bAttachFiltered;
-			if (bHasFilteredMaterial)
-			{
-				bAttachFiltered = TRUE;
-			}
-			else
-			{
-				bAttachFiltered = FALSE;
-			}
-			bool bAttach_m_markers = TRUE;
-			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
-			// words in the source text of the free translation section, if any)
 			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 16298)
+			if (pSrcPhrase->m_nSequNumber >= 168)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 			}
 #endif
 
-			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
-									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
-//#if defined(_DEBUG)
-//			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromSingleMakeSstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-//#endif
+			str = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters
+
+
 /* BEW 17May CreateOldSrcBitsArr works correctly, it was put here only to test it - leave until we move it elsewhere for needed use
 			wxString spacelessPuncts; // make the string for sourceLang
 			spacelessPuncts = MakeSpacelessPunctsString(gpApp, sourceLang); // sourceLang is enum value 0, targetLan is 1
@@ -17889,14 +17986,19 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			else
 			{
 				// Control usually goes thru here
-				source << str;
+				// whm 2Jan2024 modification. When source ends with whitespace and str begins
+				// with whitespace, we should remove the whitespace from the end of the accumulated
+				// source - since I thnk a word-break char is most appropriately preserved at the
+				// beginning of the str being added.
+				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
+				//source << str;
 //#if defined(_DEBUG)
 				//wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 //#endif
 			}
 			str.Empty();
-		}
-	}// end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
+		} // end of else block, i.e., it's a single word sourcephrase
+	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
@@ -17971,7 +18073,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	}
 	case sourceTextExport:
 	{
-		nTextLength = RebuildSourceText(usfmText, pList);
+		nTextLength = RebuildSourceText(usfmText, RebuildFullExportText, pList);
 	}
 		break;
 	} // end of switch(exportType)

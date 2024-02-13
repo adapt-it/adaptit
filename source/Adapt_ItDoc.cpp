@@ -5531,28 +5531,28 @@ bool CAdapt_ItDoc::ThisMarkerMustRelocateBeforeOfAfterAdjacentMarker(SPList::Nod
 				// ReconstituteAfterFilteringChange(), and return its pList node position 
 				// in the prePos reference parameter.
 				// We can combine any m_markers and m_filteredInfo strings together, since
-				// the GetFilterableMarkersFromString() function called below internally
+				// the GetFilteredAndSweptUpMarkersFromString() function called below internally
 				// calls the GetMarkersAndEndMarkersFromString() function which knows how to
 				// deal with any \~FILTER ... \~FILTER* markers that may be enclosing a
 				// candidate marker within the previous marker's m_filteredInfo member.
-				// Our GetFilterableMarkersFromString() function ensures that the return
+				// Our GetFilteredAndSweptUpMarkersFromString() function ensures that the return
 				// filterableMkrs array only contains whole markers, and not any 
 				// associated text that would be present together with a marker enclosed
 				// within \~FILTER ...\~FILTER* markers.
-				wxArrayString filterableMkrsArray;
-				filterableMkrsArray.Clear(); // need to start each location check with empty array
+				wxArrayString filteredMkrsArray;
+				filteredMkrsArray.Clear(); // need to start each location check with empty array
 				wxArrayString filteredMkrsArrayWithFilterBrackets;
 				filteredMkrsArrayWithFilterBrackets.Clear();
 				bool bInsertAtThisPos = FALSE;
 				wxString markerStr = ptempSP->m_markers + ptempSP->GetFilteredInfo();
-				GetFilterableMarkersFromString(markerStr, filteredMkrsArrayWithFilterBrackets, filterableMkrsArray);
-				size_t fm_ct = filterableMkrsArray.GetCount();
+				GetFilteredAndSweptUpMarkersFromString(markerStr, filteredMkrsArrayWithFilterBrackets, filteredMkrsArray);
+				size_t fm_ct = filteredMkrsArray.GetCount();
 				wxString mkrToCheck;
 				if (fm_ct > 0)
 				{
 					for (int i = 0; i < (int)fm_ct; i++)
 					{
-						mkrToCheck = filterableMkrsArray.Item(i);
+						mkrToCheck = filteredMkrsArray.Item(i);
 						if (occursUnderStr.Find(mkrToCheck) != wxNOT_FOUND)
 						{
 							bInsertAtThisPos = TRUE;
@@ -5868,7 +5868,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	if (fileProcess == createFromSPList)
 	{
 		int textLen;
-		textLen = RebuildSourceText(inputBuffer, pList);
+		textLen = RebuildSourceText(inputBuffer, RebuildFullExportText, pList);
 		if (textLen == 0 || inputBuffer.IsEmpty() || pList->IsEmpty())
 		{
 			// Not likely to happen so an English message is OK.
@@ -5993,7 +5993,10 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	return TRUE;
 }
 
-
+// whm 8Feb2024 verified that this function needs no revision for when the filteredStuff
+// input into the function contains swept up markers prefixed to one or more of the
+// filtered markers enclosed by \~FILTER ...\~FILTER* brackets. It works well whether
+// such swept up markers are present or not.
 bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuff)
 {
 	// Check whether filteredStuff has more than one filtered item.
@@ -6023,86 +6026,392 @@ bool CAdapt_ItDoc::FilteredMaterialContainsMoreThanOneItem(wxString filteredStuf
 	return FALSE;
 }
 
-// whm 10Nov2023 added. Gets a list of markers from the input string tempMkrs.
+// whm 8Feb2024 added.
+// This function gets the filtered info "segments" contained in filterStr.
+// The "segments" contain the usual filtered info enclosed by \~FILTER ...\~FILTER*
+// brackets. As of this date those "segments" may be prefixed by swept up markers
+// that prefix a given segment. For example, now a segment may be comething like:
+//   \c 11 \~FILTER \s Jon ta alomwa suni oro lau tan ala atou Jises\~FILTER*
+// which has the swept up marker "\\c 11 " prefixing the bracketed filtered material.
+wxArrayString CAdapt_ItDoc::GetFilteredInfoSegments(wxString filterStr)
+{
+	wxArrayString segmentsArr;
+	segmentsArr.Clear();
+	int posEndFilterBracket = -1;
+	wxString remainingStr = filterStr; // start with the whole string
+	wxString endFilterBracket = _T("\\~FILTER*");
+	int nLenEndnFilterBracket = (int)endFilterBracket.Length();
+	posEndFilterBracket = remainingStr.Find(endFilterBracket);
+	while (posEndFilterBracket != wxNOT_FOUND)
+	{
+		wxString tempStr;
+		tempStr = remainingStr.Mid(0, posEndFilterBracket + nLenEndnFilterBracket);
+		segmentsArr.Add(tempStr);
+		remainingStr = remainingStr.Mid(posEndFilterBracket + nLenEndnFilterBracket);
+		posEndFilterBracket = remainingStr.Find(endFilterBracket);
+	}
+	return segmentsArr;
+}
+
+// whm 10Nov2023 added and revised 8Feb2024. Gets a list of markers and marker info
+// contained in 3 parallel arrays from the input string filterStr.
+// The filterStr input string should be one or more filtered strings encased with
+// \~FILTER ... \~FILTER* brackets that are concatenated together typically coming
+// from a m_filteredInfo member (via GetFilteredInfo() call).
+// The filterStr string may have preceding markers occurring BEFORE a given filtered
+// string enclosed by the filter brackets. These would be one or more markers which 
+// are swept up during the filtering process by ReconstituteAfterFilteringChange(),
+// and if existing are NOT enclosed within the following \~FILTER ... \~FILTER* 
+// string. Any such swept up markers found are stored within the parallel 
+// markersPrecedingFilteredOnes array. Even when no such swept up markers exist
+// before a filtered string, the markersPrecedingFilteredOnes array item stores an
+// empty string for that situation. This is in order to keep all 3 arrays in
+// parallel for use by the caller.
 // This function makes a call to GetMarkersAndEndMarkersFromString() which returns
-// a wxArrayString of markers via the filterableMkrsArray in its third 
+// a wxArrayString of markers via the filteredMkrsArray in its third 
 // reference parameter. 
-// The filtered marker including \~FILTER and \~FILTER* brackets is returned
-// in the filteredMkrsArrayWithFilterBrackets in its second reference parameter.
+// The filtered marker - including its \~FILTER and \~FILTER* brackets - is 
+// returned in the filteredMkrsArrayWithFilterBrackets reference parameter.
+// The markersPrecedingFilteredOnes() will contain any swept up markers that
+// preceed the filtered marker or empty string for any filtered marker that does
+// not have preceding swept up markers.
+// The filteredMkrsArray array simply contains augmented whole markers. Note
+// that are taken from inside the filtered brackets \~FILTER ...\~FILTER*.
+// The filteredMkrsArray array doesn't not contain any of the swept up markers 
+// that might preceed the filtered material. They go into the 
+// markersPrecedingFilteredOnes array instead.
+// All 3 arrays returned by reference from this function should always contain
+// the same number of elements and are always in parallel.
 // This function is called from the ReorderFilterMaterialUsingUsfmStructData()
 // function.
-// The input string tempMkrs can be a plain wxString of markers (from m_markers),
-// or it can also have a string of filtered markers concatenated to it which 
-// has one or more sub-strings embedded within \~FILTER ... \~FILTER* markers.
-// We remove any associated text that would be following markers in the 
-// wxArrayString returned from GetMarkersAndEndMarkersFromString() when it encounters
-// markers that are embedded within \~FILTER ... \~FILTER* markers.
-// This function then looks up each marker using the LookupSFM() function which 
-// returns a pAnalysis struct of that marker. For each marker whose 
+// The input string filterStr is expected to contain filtered markers that are
+// concatenated into the whole temMkrs string. The filtered markers will be
+// embedded within \~FILTER ... \~FILTER* markers. Some of these may be preceded
+// by swept up markers that were placed there by the 
+// ReconstituteAfterFilteringChange() function or by TokenizeText() during initial 
+// parsing of the document.
+// We make a temporary copy of the marker that is embedded within the filter
+// brackets \~FILTER ... \~FILTER* and look it up using the LookupSFM() function 
+// which returns a pAnalysis struct of that marker. For each marker whose 
 // pAnalysis->userCanSetFilter is TRUE the function returns it as an item within
-// its returned wxArrayString. The returned wxArrayString then contains any/all
-// filterable markers that were found, each padded with final space. 
-void CAdapt_ItDoc::GetFilterableMarkersFromString(wxString tempMkrs, 
-	wxArrayString& filteredMkrsArrayWithFilterBrackets, wxArrayString& filterableMkrsArray)
+// its returned filteredMkrsArray wxArrayString. The parallel arrays then 
+// contains any/all filterable markers (and swept up markers) that were found
+// returning the three arrays by reference to the caller.
+void CAdapt_ItDoc::GetFilteredAndSweptUpMarkersFromString(wxString filterStr, 
+	wxArrayString& markersPrecedingFilteredOnes,
+	wxArrayString& filteredMkrsArrayWithFilterBrackets, 
+	wxArrayString& filteredMkrsArray)
 {
-	filterableMkrsArray.Clear();
-	if (!tempMkrs.IsEmpty())
+	markersPrecedingFilteredOnes.Clear();
+	filteredMkrsArrayWithFilterBrackets.Clear();
+	filteredMkrsArray.Clear();
+
+	if (!filterStr.IsEmpty())
 	{
-		// Collect all marker(s) found in tempMkrs, check each marker, and 
+		// Collect all marker(s) found in filterStr, check each marker, and 
 		// return only those that are "filterable", that is, those whose 
 		// pUsfmAnalysis->userCanSetFilter == TRUE.
 		wxArrayString MkrList; 
 		wxString endMarkers = _T("");
-		GetMarkersAndEndMarkersFromString(&MkrList, tempMkrs, endMarkers);
-		size_t ct = MkrList.GetCount();
-		if (ct > 0)
+		// Here below is the revised coding as of 8Feb2024.
+		// 
+		// Populates 3 parallel wxArrayString arrays from the input string tfilterStrempMkrs which
+		// contains mainly filtered markers within filter brackets |~FILTER ...\~FILTER*, 
+		// and may contain swept up markers preceding those filtered markers. 
+		// The markers are maintained to be parallel wxArrayString arrays.
+		// The filterStr string might look something like this (broken up into one filtered 
+		// segment per line for easier reading):
+		// \~FILTER \ms Jises, iy are lau handru?\~FILTER*
+		// \~FILTER \mr (Kalan 11:1-16:20)\~FILTER*
+		// \c 11 \~FILTER \s Jon ta alomwa suni oro lau tan ala atou Jises\~FILTER*
+		// \~FILTER \r (Luk 7:18-35)\~FILTER*
+		//int nLen = filterStr.Length();
+		// Break up the filterStr string into filter segments with any swept up markers
+		// remaining at the beginning of each filtered segment
+		wxString beginFilterBracket = _T("\\~FILTER");
+		int posBeginFilterBracket = -1;
+		wxString tempFilteredStr;
+		wxString tempPreFilteredMkrs;
+		wxArrayString segmentsArr;
+		// Get the filterStr's filtered "segments". A given segment may now have a swept up
+		// marker like \c 11 prefixing the bracketed filtered material.
+		segmentsArr = GetFilteredInfoSegments(filterStr);
+		int totSegments = (int)segmentsArr.GetCount();
+
+		for (int i = 0; i < totSegments; i++)
 		{
-			for (int i = 0; i < (int)ct; i++)
+			wxString sweptUpStuff;
+			tempFilteredStr = segmentsArr.Item(i);
+			posBeginFilterBracket = tempFilteredStr.Find(beginFilterBracket);
+			if (posBeginFilterBracket > 0)
 			{
-				wxString mkr = MkrList.Item(i);
-				mkr.Trim(TRUE);
-				mkr.Trim(FALSE);
-				// Need to remove any "\~FILTER" from mkr string
-				int fOffset = mkr.Find(_T("\\~FILTER"));
-				if (fOffset != wxNOT_FOUND)
-				{
-					mkr = mkr.Mid(8);
-					// The \~FILTER bracket will usually be followed by a space, remove the space too
-					mkr.Trim(FALSE); // trim any initial space(s) remaining before marker
-				}
-				// Note: The marker may be a chapter or verse number followed by a number. The code
-				// below will remove the number, but that doesn't matter here since we are eliminating
-				// markers from consideration which are not filterable. Chapter and verse markers are not
-				// filterable.
-				int offset = mkr.Find(_T(" ")); // check for a space after the mkr
-				if (offset > 0)
-				{
-					// There is a space within the marker string which indicates the marker is followed
-					// by its associated text - as would be the case for markers taken from a filtered
-					// string enclosed by \~FILTER ... \~FILTER* markers - , so remove the associated 
-					// text, leaving only the marker.
-					mkr = mkr.Mid(0, offset);
-					mkr.Trim();
-				}
-				// Is mkr filterable? Call LookupSFM() to find out.
-				wxString bareMkr = mkr.Mid(1); // remove the backslash
-				USFMAnalysis* pAnalysis = LookupSFM(bareMkr);
-				if (pAnalysis != NULL && pAnalysis->userCanSetFilter == TRUE)
-				{
-					// the mkr is "filterable" so add it to the filterableMkrsArray
-					mkr += _T(" "); // pad the mkr with a final space
-					filterableMkrsArray.Add(mkr);
-					filteredMkrsArrayWithFilterBrackets.Add(MkrList.Item(i));
-				}
-				// Although the incoming string tempMkrs could be composed of a mix of
-				// markers and markers with associated text, we've ensured above that 
-				// the filterableMkrsArray only contains whole markers that are filterable
-				// and are padded with following spaces.
+				// Get any sweptUpStuff from the tempFilteredStr - the stuff BEFORE the beginFilterBracket
+				sweptUpStuff = tempFilteredStr.Mid(0, posBeginFilterBracket);
 			}
-			//return filterableMkrsArray;
+			else
+				sweptUpStuff = wxEmptyString;
+			markersPrecedingFilteredOnes.Add(sweptUpStuff);
+			wxString filteredStrMinusSweptUpStuff;
+			filteredStrMinusSweptUpStuff.Empty();
+			if (!sweptUpStuff.IsEmpty())
+			{
+				// There was some sweptUpStuff so remove it then store actual filtered material
+				int lenSUS = (int)sweptUpStuff.Length();
+				filteredStrMinusSweptUpStuff = tempFilteredStr.Mid(lenSUS);
+				filteredMkrsArrayWithFilterBrackets.Add(filteredStrMinusSweptUpStuff);
+			}
+			else
+			{
+				// There was no sweptUpStuff so just store the actual filtered material
+				filteredMkrsArrayWithFilterBrackets.Add(tempFilteredStr);
+				filteredStrMinusSweptUpStuff = tempFilteredStr;
+			}
+			// Now populate the filteredMkrsArray with just the marker from inside the filtered material
+			// now stored in filteredStrMinusSweptUpStuff
+			wxString mkr; mkr.Empty();
+			mkr = GetMarkerFromWithinOneFilteredString(filteredStrMinusSweptUpStuff);
+			filteredMkrsArray.Add(mkr);
 		}
+		int nCount1 = (int)markersPrecedingFilteredOnes.GetCount();
+		int nCount2 = (int)filteredMkrsArrayWithFilterBrackets.GetCount();
+		int nCount3 = (int)filteredMkrsArray.GetCount();
+		wxASSERT(nCount1 == nCount2);
+		wxASSERT(nCount2 == nCount3);
+		int break_here = 1; wxUnusedVar(break_here);
 	}
-	//return filterableMkrsArray;
+}
+
+// whm 8Feb2024 added. 
+// This function gets the marker that is after the augmented begin filter bracket  "\\~FILTER "
+// inside the input filteredMkrString that represents ONE filtered string enclosed by 
+// \~FILTER ...\~FILTER* markers.
+// Note: There should not be any prefixed swept up markers on filteredMkrString.
+// This function is called from: GetFilteredAndSweptUpMarkersFromString()
+wxString CAdapt_ItDoc::GetMarkerFromWithinOneFilteredString(wxString filteredMkrString)
+{
+	wxString tempStr = filteredMkrString;
+	wxString augBeginFilterBracket = _T("\\~FILTER ");
+	wxString backslash = _T("\\");
+	wxString space = _T(" ");
+	int posFilterBeginBracket = (int)tempStr.Find(augBeginFilterBracket);
+	if (posFilterBeginBracket != wxNOT_FOUND)
+	{
+		tempStr = tempStr.Mid(posFilterBeginBracket + augBeginFilterBracket.Length());
+		int posBackslash = tempStr.Find(backslash);
+		wxString bareMkr = tempStr.Mid(posBackslash + 1);
+		int posSpace = bareMkr.Find(space);
+		bareMkr = bareMkr.Mid(0, posSpace);
+		// Add the backslash and space back to the bare marker
+		tempStr = backslash + bareMkr;
+	}
+	return tempStr;
+}
+
+// whm 10Feb2024 added for use in the TokenizeText() function.
+// This function is called when ptr is pointing at some whitespace in the input
+// text. It looks forward in the input text to see if the next filterable marker
+// that occurs in the text is currently designated to be filtered. 
+// If the next marker following the whitespace is a \c n or \v n marker the
+// scanning continues over any whitespace until either non-marker text is encountered
+// or a following marker. If that following marker is one to be filtered, then
+// all the stuff scanned/parsed up to the found marker-to-be-filtered is parsed over
+// and returned in the wxString sweptUpStuff reference parameter, and the length
+// of the parsed over material is returned in the reference parameter nLenSweptUpStuff,
+// and the function returns TRUE value.
+// Any non-marker text word(s) encountered - or pEnd - in the forward scanning 
+// halts the scanning and returns a FALSE value with empty reference parameters. 
+// Since markers like \c n, \v n, \p, etc, are non-filterable, this function 
+// parses over them in its search for a following marker to be filtered, and includes
+// any \c n or \v n markers within the returned sweptUpStuff.
+// Getting any existing swept up stuff put into m_filteredInfo, with it prefixed 
+// to its following filtered and bracketed marker is important to the 
+// RebuildSourceText() function.
+// Note: While parsin and iterating ptr to check for a following marker to be filtered,
+// we may encounter spurious periods that follow an empty marker such as \p ... etc.
+// Hence, we need to build any sweptUpStuff piecemeal to allow for skipping of such
+// spurious periods.
+bool CAdapt_ItDoc::IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* 
+	pEnd, wxString& sweptUpStuff, int& nLenSweptUpStuff)
+{
+	bool bFoundMkrToBeFiltered = FALSE;
+	wxChar* pAux = ptr;
+	int lenSweptStuff = 0;
+	wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
+	wxString tempStr; tempStr.Empty();
+	// When this function is called in TokenizeText() ptr should be pointing
+	// at whitespace, so we'll parse the whitespace.
+	while (pAux <= pEnd)
+	{
+		int wsLen = 0;
+		wsLen = ParseWhiteSpace(pAux);
+		lenSweptStuff += wsLen;
+		// build the sweptUpStuff we've parsed over so far
+		AppendItem(tempSweptUpMaterial, tempStr, pAux, wsLen);
+		pAux += wsLen;
+		int ctVerse = 0; // unused here
+		if (IsChapterMarker(pAux) || IsVerseMarker(pAux, ctVerse))
+		{
+			int lenChVs = 0;
+			lenChVs = ParseMarker(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			lenChVs = ParseWhiteSpace(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			// parse the following number and increment
+			lenChVs = ParseNumber(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+			// A chapter or verse marker is probably followed by whitespace so parse that too
+			lenChVs = ParseWhiteSpace(pAux);
+			lenSweptStuff += lenChVs;
+			AppendItem(tempSweptUpMaterial, tempStr, pAux, lenChVs);
+			pAux += lenChVs;
+		}
+		else if (IsMarker(pAux))
+		{
+			int lenMkr = 0;
+			lenMkr = ParseMarker(pAux);
+			// Don't increment lenSweptStuff here, but below in the while loop
+			// We don't know if this marker will be stored in tempSweptUpMaterial until we
+			// determine that both of these conditions are TRUE:
+			// 1. It IS NOT a marker-to-be-filtered, and 
+			// 2. It IS an empty marker
+			// Hence, we delay the AppendItem(tempSweptUpMaterial, tempStr, pAux, lenSweptStuff) 
+			// call to the IsEmptyMkr() TRUE block below.
+			wxString augWholeMkr = wxString(pAux, lenMkr);
+			augWholeMkr += _T(" ");
+			if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+			{
+				// The marker we're pointing at is a marker designated to be filtered
+				// We don't parse it here but the caller will do it; here we just set
+				// the return bool to TRUE.
+				bFoundMkrToBeFiltered = TRUE;
+				// This marker is NOT to be included within the swept up material. Instead
+				// the caller will deal with filtering it.
+				break; // No need to go further beyond this marker
+			}
+			else
+			{
+				// pAux is pointing at some kind of not-to-be filtered marker and NOT at 
+				// whitespace at this point.
+				// There could be one or more contentless markers preceding a marker
+				// currently being filtered. If so they should also be swept up here.
+				bool bHasBogusPeriods = FALSE;
+				int nWhitesLenIncludingBogusPeriods = 0;
+				int nPeriodsInWhitesLen = 0;
+				int accumItemLen = 0; // accumulate item len value for pass through while loop
+				//wxString tempSweptUpMaterial; tempSweptUpMaterial.Empty();
+				wxChar* tempAux = pAux; // preserve pAux for use after the while loop below
+				bool bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+				while (bIsEmptyMkr && tempAux < pEnd)
+				{
+					// We parsed the marker intially above to get an augWholeMkr value
+					// but we didn't increment pAux or lenSweptStuff there. Since we are now
+					// within a while loop, parse the marker again here and this time we
+					// increment pAux, lenSweptStuff, and add any tempSweptUpMaterial.
+					int onePassItemLen = 0;
+					onePassItemLen = ParseMarker(tempAux);
+					// Append the marker to the tempSweptUpMaterial
+					AppendItem(tempSweptUpMaterial, tempStr, tempAux, onePassItemLen);
+					wxString augWholeMkr = wxString(tempAux, onePassItemLen);
+					augWholeMkr += _T(" ");
+					tempAux += onePassItemLen;
+					// A contentless marker could be a marker like \p \m and other markers
+					// that are not followed by non-marker text. These will be part of any
+					// swept up material, but only as long as they are actually followed by
+					// a marker that is currently being filtered - otherwise TokenizeText()
+					// will put them into the current source phrase's m_markers member.
+					// Deal with any spurious periods 
+					if (bHasBogusPeriods)
+					{
+						// There is likely a space between the marker and the bogus periods.
+						// We should NOT include this space and NOT include the periods within
+						// the tempSweepUpMaterial. However, we add the length of the space
+						// to the onPassItemLen
+						int whiteSpLen = ParseWhiteSpace(tempAux);
+						// Here we don't append the whitespace to tempSweptUpMaterial
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+						int nPeriods = 0;
+						IteratePtrPastBogusPeriods(tempAux, pEnd, nPeriods); // iterates pAux but not lenSweptStuff
+						// Since we are returning to the caller a value for nLenSweptUpStuff which
+						// needs to include the length of the periods, even though the actual
+						// periods are not included within our returned value for sweptUpStuff.
+						// The caller may use the nLenSweptUpStuff to move its ptr value past
+						// the sweptUpStuff and periods too. So in this case
+						onePassItemLen += nPeriods;
+						whiteSpLen = ParseWhiteSpace(tempAux); // this whitespace we add to tempSweptUpMaterial.
+						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+					}
+					else
+					{
+						int whiteSpLen = ParseWhiteSpace(tempAux);
+						// Append the whitespace to the tempSweptUpMaterial
+						AppendItem(tempSweptUpMaterial, tempStr, tempAux, whiteSpLen);
+						tempAux += whiteSpLen;
+						onePassItemLen += whiteSpLen;
+					}
+					// Is this marker one to be filtered? If so we're done. If not we continue
+					// with the while loop iteration.
+					if (gpApp->gCurrentFilterMarkers.Find(augWholeMkr) != wxNOT_FOUND)
+					{
+						// The marker we're pointing at is a marker designated to be filtered
+						// We don't parse it here but the caller will do it; here we just set
+						// the return bool to TRUE.
+						bFoundMkrToBeFiltered = TRUE;
+						// This marker is NOT to be included within the swept up material. Instead
+						// the caller will deal with filtering it.
+						break; // No need to go further beyond this marker
+					}
+					// If we get here the augWholeMkr above was not to be filtered, so we 
+					// continue to iterate
+					// The pAux pointer is now pointing past any whitespace that followed
+					// the augWholeMkr above - could be another marker or non-marker text.
+					accumItemLen += onePassItemLen;
+					bIsEmptyMkr = IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen);
+				} // end of while (IsEmptyMkr(tempAux, pEnd, bHasBogusPeriods, nWhitesLenIncludingBogusPeriods, nPeriodsInWhitesLen))
+				int mkrLen = ParseMarker(tempAux); // The marker at tempAux is not empty, so we don't add it to the tempSweptUpMaterial
+				wxString augmkr = wxString(tempAux, mkrLen);
+				augmkr += _T(" ");
+				if (gpApp->gCurrentFilterMarkers.Find(augmkr) != wxNOT_FOUND)
+				{
+					bFoundMkrToBeFiltered = TRUE;
+					pAux += accumItemLen; // move pAux to point past the marker at tempAux
+					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+					break; // since the marker at tempAux is not an empty marker we can break out of the while loop
+
+				}
+				else
+				{
+					pAux += accumItemLen; // move pAux to point past the marker at tempAux
+					lenSweptStuff += accumItemLen; // add the accumItemLen but not the mkrLen
+					break; 
+				}
+			}
+		}
+		else
+		{
+			// what follows the whitespace is non-marker material so just return FALSE
+			bFoundMkrToBeFiltered = FALSE;
+			return FALSE;
+		}
+	} // end of while (pAux <= pEnd)
+
+	if (bFoundMkrToBeFiltered)
+	{
+		sweptUpStuff = tempSweptUpMaterial; // does NOT include any bogus periods found in the swept up material
+		nLenSweptUpStuff = lenSweptStuff; // includes the length of any bogus periods found in the swept up material
+		// Note: It is up to the caller in TokenizeText() to advance ptr past the tempSweptUpMaterial
+		// by using the returned nLenSweptUpStuff
+	}
+
+	return 	bFoundMkrToBeFiltered;
 }
 
 void CAdapt_ItDoc::RestoreCurrentDocVersion()
@@ -8814,29 +9123,9 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	// setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
 	// regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
-	wxString mMarkersStr;
-	wxString xrefStr;
-	wxString filteredInfoStr;
-	// BEW 21Jan11, changed to reconstruct srcPhrase using FromSingleMakeSstr() - which
-	// will generate any binding markers, non-binding inline markers, and punctuation from
-	// what is stored in pSrcPhrase, in their correct places
-	bool bAttachFilteredInfo = TRUE;
-	bool bAttach_m_markers = TRUE;
-	bool bDoCount = FALSE;
-	bool bCountInTargetText = FALSE;
 
-	//#ifdef _DEBUG
-		//int halt_here = 0;
-		//if (pSrcPhrase->m_nSequNumber >= 24921) // was 397 when [Apos was in the \x ... \x* xref
-		//if (pSrcPhrase->m_nSequNumber >= 2497) // was 1921 when debugging for the heap corruption bug
-		//{
-		//	halt_here = 1;
-		//}
-		//wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5076  pSrcPhrase sn = %d  m_srcPhrase = %s"),
-		//				pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
-	//#endif
-	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers,
-		mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);
+	srcPhrase = FromSingleMakeSstr(pSrcPhrase); // 5Feb2024 removed unused parameters
+
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
 	{
@@ -9322,7 +9611,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 				}
-				if (pSrcPhrase->m_nSequNumber >= 535)
+				if (pSrcPhrase->m_nSequNumber >= 422)
 				{
 					int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 				}
@@ -9373,14 +9662,29 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// Now extract the filter string itself, and in the process of getting it, also get its 
 						// previous substring preStr, and following remainderStr if they exist. They will all still 
 						// be bracketed by \~FILTER ...\~FILTER*
+						// whm 8Feb2024 this block revised to take into account that theFilteredInfo might be 
+						// prefixed with one or more swept up markers.
+						// 
+						// TODO: Use GetFilteredInfoSegments() function here
+
 						wxString wholeMkrWithFilterBrackets;
 						int posFilteredMkrEndBracket;
 						wholeMkrWithFilterBrackets = theFilteredInfo.Mid(posFilteredMkr);
 						preStr = theFilteredInfo.Mid(0, posFilteredMkr);
+						// whm 5Feb2024 added. To protect against assigning whitespace only in a SetFilteredInfo(preStr)
+						// call I'm trimming off any initial whitespace on preStr
+						preStr.Trim(FALSE); // whm 5Feb2024 added
 						posFilteredMkrEndBracket = wholeMkrWithFilterBrackets.Find(filterEndMkr);
 						if (posFilteredMkrEndBracket != wxNOT_FOUND)
 						{
 							remainderStr = wholeMkrWithFilterBrackets.Mid(posFilteredMkrEndBracket + filterEndMkr.Length());
+							// whm 5Feb2024 addition. Trim the remainderStr to remove any whitespace. If remainderStr only
+							// consists of whitespace, then we don't want it to add just whitespace in the SetFilteredInfo()
+							// call farther below. If the m_filteredInfo then just contains whitespace it will cause the 
+							// green wedge to appear for the location making the user think there is filtered info there
+							// when there isn't; and if the bogus green wedge is clicked on the ViewFilteredMaterialDlg's
+							// InitDialog() method can generate an assert/crash.  
+							remainderStr.Trim(); // whm 5Feb2024 added
 							wholeMkrWithFilterBrackets = wholeMkrWithFilterBrackets.Mid(0, posFilteredMkrEndBracket + filterEndMkr.Length());
 						}
 						
@@ -9840,9 +10144,27 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// material.
 						
 						SPList::Node* insertPos = NULL;
-						// We can simply insert the marker-being-unfiltered at the usual
-						// saveNextPos->GetNext() insertPos.
+						// We can simply insert the marker-being-unfiltered's p_subList of
+						// source phrases at the usual saveNextPos position  determined by
+						// calling insertPos = aveNextPos->GetNext().
+						// 
+						// whm 2Feb2024 further modification. However, it is possible that 
+						// the next source phrase could be a placeholder source phrase because 
+						// the filtered marker being unfiltered might be the last word of a 
+						// retranslation that has placeholders following it. In this case we 
+						// need to get an insertPos that is the first source phrase following 
+						// any/all placeholder(s). Or, if the end of the document is at that 
+						// location we will simply Append the p_subList items to pList. 
+						// Therefore we need to scan source phrases bypassing any/all that
+						// have their m_bNullSourcePhrase flag TRUE until that flag becomes
+						// FALSE, or we reach the end source phrse of the document.
+						CSourcePhrase* ptempSP; 
 						insertPos = saveNextPos->GetNext();
+						while (insertPos != NULL && insertPos->GetData()->m_bNullSourcePhrase == TRUE)
+						{
+							ptempSP = insertPos->GetData();
+							insertPos = insertPos->GetNext();
+						}
 
 #if defined(_DEBUG)
 						// whm 31Oct2023 Debug block for inspection of source phrases at insertPos
@@ -10317,7 +10639,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		bool bMarkerInNonbindingSet = FALSE;
 #if defined (_DEBUG)
 		{
-			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
+			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 565)
 			{
 				int halt_here = 1;
 				wxUnusedVar(halt_here);
@@ -10340,9 +10662,9 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			// the sourcephrase immediately after the section just filtered out
 			SPList::Node* oldPos = pos_pList;
 			pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
-			#if defined (_DEBUG) && !defined(NOLOGS)
+			#if defined (_DEBUG) //&& !defined(NOLOGS)
 			{
-				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 25)
+				if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 417)
 				{
 					int halt_here = 1;
 					wxUnusedVar(halt_here);
@@ -10613,7 +10935,7 @@ g:				bIsUnknownMkr = FALSE;
 
 			if (bMarkerInNonbindingSet)
 			{
-				// whm 24Oct2023 Note: The only binding markers are the inline ones:
+				// whm 24Oct2023 Note: The only non-binding markers are the inline ones:
 				// _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig ")
 				// and the only filterable one of the above is the \fig marker - the \fig
 				// marker being the only one that has the property userCanSetFilter="1".
@@ -10624,7 +10946,7 @@ g:				bIsUnknownMkr = FALSE;
 				// begin marker to filter out, from m_inlineNonbindingMarkers member.
 				// So we will simply set preStr and remainderStr to empty (we won't try
 				// any fancy stuff, such as to move preceding stored markers to the 
-				// pUnfilteredSrcPhrase defined later below - first in the post-span list,
+				// pPrevSrcPhrase defined later below - first in the post-span list,
 				// they should not be present anyway, and if so, let them die).
 				preStr = wxEmptyString;
 				remainderStr = wxEmptyString;
@@ -10696,8 +11018,11 @@ g:				bIsUnknownMkr = FALSE;
 				// string, rather than a sequence of CSourcePhrase instances, any adaptations
 				// will be thrown away irrecoverably. USFM3 attributes metadata restoration,
 				// if needed, will take place later outside this function. 
-				filteredStr = filterMkr; // add the \~FILTER beginning marker
-				filteredStr += _T(' '); // add space
+				// whm 8Feb2024 delay adding the filterMkr  adn _T(' ') to filteredStr until
+				// later below, since there may be swept up markers to add to filteredStr first
+				// before adding the filterMkr
+				//filteredStr = filterMkr; // add the \~FILTER beginning marker
+				//filteredStr += _T(' '); // add space
 				CSourcePhrase* pSrcPhraseFirst = new CSourcePhrase(*pSrcPhrase);
 				pSrcPhraseFirst->DeepCopy();
 				pSublist->Append(pSrcPhraseFirst); // we've already got the first to go in
@@ -10896,7 +11221,7 @@ g:				bIsUnknownMkr = FALSE;
 
 					// end of addition done on 9Apr15
 					// BEW changed 29Mar23, pass in pointer, not a reference
-					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, RebuildFilteringSegment, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 
@@ -10946,11 +11271,28 @@ g:				bIsUnknownMkr = FALSE;
 				//	\\ms Jises akohok sisi-in ma iy imek, ano iy amak ja
 				// Note: wholeMkr still holds the whole marker we are currently filtering out, so use it 
 				// to find the index into strFilteredStuff of that marker
-				int indx = strFilteredStuff.Find(wholeMkr);
-				if (indx != wxNOT_FOUND)
+				// 
+				// whm 8Feb2024 modification update. BEW and I decided that the filtered information should
+				// retain the swept up markers like the "\\c 11\r\n" part mentioned above, instead of
+				// purging it from the filtered information. We now leave it prefixed to the filtered info
+				// and enclose the actual marker-being-filtered and its associated text within the filtered
+				// bracket markers. The will allow us to later determine where the swept up markers should
+				// be placed when rebuilding the source text.
+				int posWholeMkr = (int)strFilteredStuff.Find(wholeMkr);
+				// First get the swept up stuff before the wholeMkr since we'll keep it outside the filter
+				// begin marker \~FILTER
+				wxString sweptUpStr = wxEmptyString; 
+				if (posWholeMkr != wxNOT_FOUND)
 				{
-					strFilteredStuff = strFilteredStuff.Mid(indx);
+					// Separate any swept up preceding material from the strFilteredStuff that's going to 
+					// be enclosed in the filter bracket markers.
+					sweptUpStr = strFilteredStuff.Mid(0, posWholeMkr);
+					strFilteredStuff = strFilteredStuff.Mid(posWholeMkr);
 				}
+
+				filteredStr += sweptUpStr; // sweptUpStr is empty when no swept up material is present
+				filteredStr = filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
+				filteredStr += _T(' '); // add space
 				filteredStr += strFilteredStuff;
 				// We are done with wholeMkr for this filtering span, so clear it, likewise strFilteredStuff
 				wholeMkr = wxEmptyString;
@@ -11043,162 +11385,208 @@ g:				bIsUnknownMkr = FALSE;
 				// carried forward. A filtered section going as far as to the end of the 
 				// document will manifest by pos_partialList being NULL on exit of the relevant loop 
 				// above. That CSourcePhrase after the filtered span should be pointed to
-				// by pUnfilteredSrcPhrase (defined below) if we are not at doc end.
+				// by pPrevSrcPhrase (defined below) if we are not at doc end.
 				// If we *are* at doc end, then preStr and remainderStr should be empty,
 				// and we need do nothing with them.
 				// BEW 30Sep19 changes
-				// (1) define pUnfilteredSrcPhrase
+				// (1) define pPrevSrcPhrase
 				// 
 				// (2) filteredStr has to be appropriately stored, it no longer is embedded in
-				// pUnfilteredSrcPhrase's m_markers member, but at the START of its
+				// pPrevSrcPhrase's m_markers member, but at the START of its
 				// m_filteredInfo member (to preserve the order of source text information
 				// across filtering/unfiltering changes)
 				// (3) the new storage for already filtered stuff being carried forward, the
 				// string strFilteredStuffToCarryForward, has to be handled here too (it
 				// could, of course, be an empty string)
-				CSourcePhrase* pUnfilteredSrcPhrase = NULL;
-				if (posEnd != NULL)
+				// 
+				// whm 2Feb2024 added. Here we need to ensure that the pPrevSrcPhrase
+				// is not a placeholder source phrase that is at the end of a retranslation.
+				// If it is a placeholder, we need to iterate back to a previous source phrase
+				// that is not a placeholder. This is similar to what was necessary when
+				// unfiltering a filtered marker and text that was stored on a source phrase
+				// that was followed by one or more placeholders and we iterated to following
+				// source phrase until we came to a non-placeholder source phrase and inserted
+				// the marker and its text's sublist there.
+				// There is a parallel block later below to iterate past placeholder source 
+				// phrases in the block where bIsMarkerInNonbindingSet is FALSE.
+				CSourcePhrase* pPrevSrcPhrase = NULL;
+				CSourcePhrase* ptempSP;
+				if (prevPos != NULL)
 				{
-					// get the first sourcephrase instance following the filtered section
-					pUnfilteredSrcPhrase = (CSourcePhrase*)posEnd->GetData();
-
-					// whm Note: The parallel section outside the if (bMarkerInNonbindingSet)
-					// farther below has code to prepend markers into m_markers, but this is
-					// not needed here within the if (bMarkerInNonbindingSet) block since such
-					// markers don't store stuff within their m_markers member.
-
-					// insert any already filtered stuff we needed to carry forward before the newly
-					// filtered material (because if it was unfiltered, it would appear in the
-					// view before pUnfilteredSrcPhrase, and so we must retain that order)
-					if (!strFilteredStuffToCarryForward.IsEmpty())
+					ptempSP = prevPos->GetData();
+					if (ptempSP->m_bNullSourcePhrase != TRUE)
 					{
-						filteredStr = strFilteredStuffToCarryForward + filteredStr;
-					}
-					// we've carried the already filtered info forward, so make sure it goes no further
-					strFilteredStuffToCarryForward.Empty();
-
-					// whm 24Oct2023 added. Here would seem to be the proper place to carry forward 
-					// any existingFilteredInfo that was found during the processing of the current
-					// filtered marker, prefixing it now to the filteredStr before it gets stored
-					// in the appropriate source phrase.
-					if (!existingFilteredInfo.IsEmpty())
-					{
-						// whm 24Oct2023 devised a smarter way to know where to put the newly filtered 
-						// filterStr within the string that goes into the m_filteredInfo member. When there 
-						// already exists one or more filtered markers within existingFilteredInfo, we now
-						// have a more precise method of ordering multiple adjacent filtered markers - see 
-						// the ReorderFilterMaterialUsingUsfmStructData() function call below and the
-						// comments preceding it.
-						filteredStr = filteredStr + existingFilteredInfo;
-					}
-
-					// Insert the newly filtered material (and any carried forward filtered info
-					// which we inserted above) to the start of m_filteredInfo on the CSourcePhrase
-					// which follows the filtered out section - that one might have filtered material
-					// already, so we have to check and take the appropriate branch.
-					wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
-
-					// whm 6Nov2023 we want to store to the pPrevSrcPhrase rather than on the 
-					// pUnfilteredSrcPhrase. The if and else blocks below now store the filteredStr
-					// on pPrevSrcPhrase instead of pUnfilteredSrcPhrase.
-					// 
-					// whm 15Nov2023 update to the previous strategy, which was not sufficiently robust 
-					// for when multiple adjacent markers are filtered. Before storing the filteredStuff,
-					// we need to ensure that we have the correct order of multiple instances of filtered 
-					// info that may be within the filteredStuff string. This is important as it needs to
-					// reflect what the original ordering of the filtered markers was in the original
-					// document, otherwise when RebuildSourceText() is called to export the source text
-					// the markers won't be in their correct ordering. 
-					// 
-					// We insert the filteredStr prefixing it on the filteredStuff string. However, the
-					// order of markers can't be positivley determined as to where exactly the inserted 
-					// material should go within filteredStuff. Therefore, we call the 
-					// ReorderFilterMaterialUsingUsfmStructData() function which consults the 
-					// Doc's m_UsfmStructArr array, and determine from it what the order of any adjacent
-					// filtered markers should be, and if needed, reorders the incoming filteredStuff
-					// string of markers to the order they existed within the original m_UsfmStructArr
-					// array.
-					// The ReorderFilterMaterialUsingUsfmStructData() guarantees that we preserve the 
-					// relative ordering of the adjacent filtered markers in filteredStuff.
-					filteredStuff = filteredStr + filteredStuff; // inserted at start of string, but it may need reordering
-					// To avoid un-needed warnings, test filteredStuff to see if more than one filtered 
-					// item is in filteredStuff. If it only has a single filtered item reordering isn't
-					// necessary, and even if the .usfmstruct apparratus is not enabled, we need not
-					// warn the user about it.
-					if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
-					{
-						if (m_bUsfmStructEnabled)
-						{
-							wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
-							filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
-						}
-						else
-						{
-							// Give a warning message to the user
-							wxString msg = _("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
-							wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-							gpApp->LogUserAction(msg);
-
-						}
-					}
-					// Store it back on the pPrevSrcPhrase CSourcePhrase.
-					pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
-
-					// These should be empty already, but make sure
-					preStr.Empty();
-					remainderStr.Empty();
-
-					// Turn off the boolean for dealting with filtering nonbinding begin mkr
-					bMarkerInNonbindingSet = FALSE;
-
-					//strFilteredStuffToCarryForward.Empty(); //empty this too
-
-					// get the navigation text set up correctly
-					// 
-					// whm 31Oct2023 removed the following call to RedoNavigationText(pUnfilteredSrcPhrase).
-					// The reason for removal is that some markers like \fig will
-					// not have any content in their pSP's m_markers member. The
-					// RedoNavigationText() function was apparently created when filtered info
-					// was stored in m_markers. It is not helpful anymore since it immediately 
-					// returns an empty string when m_marker is empty. This then, wipes out the
-					// already correct m_inform value of markers like \fig. 
-					// Here we are within the TRUE block of if (bMarkerInNonbindingSet) so
-					// we can assume that pPrevSrcPhrase now has filtered info within its
-					// m_filteredInfo member, and it will be marked by a green caret above this
-					// pPrevSrcPhrase. Also its m_inform will still be intact and should display
-					// accordingly.
-					//pUnfilteredSrcPhrase->m_inform = RedoNavigationText(pUnfilteredSrcPhrase);
-
-					// enable iteration from this location
-					if (posEnd == NULL)
-					{
-						pos_pList = NULL;
+						pPrevSrcPhrase = prevPos->GetData();
 					}
 					else
 					{
-						pos_pList = posEnd; // this could be the start of a consecutive section
-									  // for filtering out
-					}
-					// update progress bar every 200 iterations (1000 is a bit too many)
-
-					++nOldCount;
-					if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
-					{
-						msgDisplayed = progMsg.Format(progMsg, nOldCount, nOldTotal);
-						pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
-					}
-#if defined (_DEBUG) && !defined(NOLOGS)
-					{
-						if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
+						while (prevPos != NULL && prevPos->GetData()->m_bNullSourcePhrase == TRUE)
 						{
-							int halt_here = 1;
-							wxUnusedVar(halt_here);
-							wxString mmkrs = pSrcPhrase->m_markers;
+							ptempSP = prevPos->GetData();
+							prevPos = prevPos->GetPrevious();
+						}
+						if (prevPos != NULL)
+						{
+							pPrevSrcPhrase = prevPos->GetData();
+						}
+						else
+						{
+							// prevPos is NULL meaning that we are at the very beginning of the document.
+							// This shouldn't ordinarily happen with usfm scripture text since it
+							// would have an \id line with at least a 3-letter scripture book code.
+							// However, we need to do something reasonable in this case. Probably best
+							// would be to set prevPos to the following source phrase and dump the
+							// filtered marker there.
+							prevPos = prevPos->GetNext();
+							pPrevSrcPhrase = prevPos->GetData();
 						}
 					}
-#endif
 
-				} // end of TRUE block for test: if (posEnd != NULL)
+				}
+				if (prevPos == NULL)
+				{
+					// prevPos is NULL meaning that we are at the very beginning of the document.
+					// This shouldn't ordinarily happen with usfm scripture text since it
+					// would have an \id line with at least a 3-letter scripture book code.
+					// However, we need to do something reasonable in this case. Probably best
+					// would be to set prevPos to the following source phrase and dump the
+					// filtered marker there.
+					prevPos = prevPos->GetNext();
+					pPrevSrcPhrase = prevPos->GetData();
+				}
+				wxASSERT(pPrevSrcPhrase != NULL);
+
+				// whm Note: The parallel section outside the if (bMarkerInNonbindingSet)
+				// farther below has code to prepend markers into m_markers, but this is
+				// not needed here within the if (bMarkerInNonbindingSet) block since such
+				// markers don't store stuff within their m_markers member.
+
+				// insert any already filtered stuff we needed to carry forward before the newly
+				// filtered material (because if it was unfiltered, it would appear in the
+				// view before pPrevSrcPhrase, and so we must retain that order)
+				if (!strFilteredStuffToCarryForward.IsEmpty())
+				{
+					filteredStr = strFilteredStuffToCarryForward + filteredStr;
+				}
+				// we've carried the already filtered info forward, so make sure it goes no further
+				strFilteredStuffToCarryForward.Empty();
+
+				// whm 24Oct2023 added. Here would seem to be the proper place to carry forward 
+				// any existingFilteredInfo that was found during the processing of the current
+				// filtered marker, prefixing it now to the filteredStr before it gets stored
+				// in the appropriate source phrase.
+				if (!existingFilteredInfo.IsEmpty())
+				{
+					// whm 24Oct2023 devised a smarter way to know where to put the newly filtered 
+					// filterStr within the string that goes into the m_filteredInfo member. When there 
+					// already exists one or more filtered markers within existingFilteredInfo, we now
+					// have a more precise method of ordering multiple adjacent filtered markers - see 
+					// the ReorderFilterMaterialUsingUsfmStructData() function call below and the
+					// comments preceding it.
+					filteredStr = filteredStr + existingFilteredInfo;
+				}
+
+				existingFilteredInfo.Empty();
+
+				// Insert the newly filtered material (and any carried forward filtered info
+				// which we inserted above) to the start of m_filteredInfo on the CSourcePhrase
+				// which follows the filtered out section - that one might have filtered material
+				// already, so we have to check and take the appropriate branch.
+				wxString filteredStuff = pPrevSrcPhrase->GetFilteredInfo();
+
+				// whm 15Nov2023 update to the previous strategy, which was not sufficiently robust 
+				// for when multiple adjacent markers are filtered. Before storing the filteredStuff,
+				// we need to ensure that we have the correct order of multiple instances of filtered 
+				// info that may be within the filteredStuff string. This is important as it needs to
+				// reflect what the original ordering of the filtered markers was in the original
+				// document, otherwise when RebuildSourceText() is called to export the source text
+				// the markers won't be in their correct ordering. 
+				// 
+				// We insert the filteredStr prefixing it on the filteredStuff string. However, the
+				// order of markers can't be positivley determined as to where exactly the inserted 
+				// material should go within filteredStuff. Therefore, we call the 
+				// ReorderFilterMaterialUsingUsfmStructData() function which consults the 
+				// Doc's m_UsfmStructArr array, and determine from it what the order of any adjacent
+				// filtered markers should be, and if needed, reorders the incoming filteredStuff
+				// string of markers to the order they existed within the original m_UsfmStructArr
+				// array.
+				// The ReorderFilterMaterialUsingUsfmStructData() guarantees that we preserve the 
+				// relative ordering of the adjacent filtered markers in filteredStuff.
+				filteredStuff = filteredStr + filteredStuff; // inserted at start of string, but it may need reordering
+				// To avoid un-needed warnings, test filteredStuff to see if more than one filtered 
+				// item is in filteredStuff. If it only has a single filtered item reordering isn't
+				// necessary, and even if the .usfmstruct apparratus is not enabled, we need not
+				// warn the user about it.
+				if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
+				{
+					if (m_bUsfmStructEnabled)
+					{
+						wxString ChVs = pView->GetChapterAndVerse(pPrevSrcPhrase);
+						filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+					}
+					else
+					{
+						// Give a warning message to the user
+						wxString msg = _("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+						wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+						gpApp->LogUserAction(msg);
+
+					}
+				}
+				// Store it back on the pPrevSrcPhrase CSourcePhrase.
+				pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
+
+				// These should be empty already, but make sure
+				preStr.Empty();
+				remainderStr.Empty();
+
+				// Turn off the boolean for dealting with filtering nonbinding begin mkr
+				bMarkerInNonbindingSet = FALSE;
+
+				// get the navigation text set up correctly
+				// 
+				// whm 31Oct2023 removed the following call to RedoNavigationText(pPrevSrcPhrase).
+				// The reason for removal is that some markers like \fig will
+				// not have any content in their pSP's m_markers member. The
+				// RedoNavigationText() function was apparently created when filtered info
+				// was stored in m_markers. It is not helpful anymore since it immediately 
+				// returns an empty string when m_markers is empty which then, wipes out the
+				// already correct m_inform value of markers like \fig. 
+				// Here we are within the TRUE block of if (bMarkerInNonbindingSet) so
+				// we can assume that pPrevSrcPhrase now has filtered info within its
+				// m_filteredInfo member, and it will be marked by a green caret above this
+				// pPrevSrcPhrase. Also its m_inform will still be intact and should display
+				// accordingly.
+				//pPrevSrcPhrase->m_inform = RedoNavigationText(pPrevSrcPhrase);
+
+				// enable iteration from this location
+				if (posEnd == NULL)
+				{
+					pos_pList = NULL;
+				}
+				else
+				{
+					pos_pList = posEnd; // this could be the start of a consecutive section
+									// for filtering out
+				}
+				// update progress bar every 200 iterations (1000 is a bit too many)
+
+				++nOldCount;
+				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+				{
+					msgDisplayed = progMsg.Format(progMsg, nOldCount, nOldTotal);
+					pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
+				}
+#if defined (_DEBUG) && !defined(NOLOGS)
+				{
+					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
+					{
+						int halt_here = 1;
+						wxUnusedVar(halt_here);
+						wxString mmkrs = pSrcPhrase->m_markers;
+					}
+				}
+#endif
 
 			} // end of TRUE block for test: if (bMarkerInNonbindingSet)
 			else
@@ -11276,8 +11664,8 @@ g:				bIsUnknownMkr = FALSE;
 				// with \~FILTER and \~FILTER* in the m_markers member, but rather move it to
 				// the end of the m_filteredInfo member and provide \~FILTER and \~FILTER*
 				// bracketing markers for it there instead.
-				int itsLen = wholeMkr.Length();
-				int nOffsetToNextBit = filterableMkrOffset + itsLen;
+				int wholeMkrLen = wholeMkr.Length();
+				int nOffsetToNextBit = filterableMkrOffset + wholeMkrLen;
 				// whm 16Sep2022 moved the assignment of nFound before the if test in order to
 				// utilize the value of nFound in the else/else if part which determines what
 				// to do when a marker like \fv follows \f within the m_markers member.
@@ -11320,11 +11708,11 @@ g:				bIsUnknownMkr = FALSE;
 
 					// whm added ensure buffer ends with null char
 					wxChar* pEnd;
-					pEnd = (wxChar*)ptr + itsLen;
+					pEnd = (wxChar*)ptr + wholeMkrLen;
 					wxASSERT(*pEnd == _T('\0'));
 					pEnd = pEnd; // avoid warning
 					wxString temp;
-					temp = GetFilteredItemBracketed(ptr, itsLen); // temp lacks a final space
+					temp = GetFilteredItemBracketed(ptr, wholeMkrLen); // temp lacks a final space
 					temp += _T(' '); // add the required trailing space
 
 					// BEW 21Sep10, new code needed here for docVersion 5 - we have to remove
@@ -11417,13 +11805,20 @@ g:				bIsUnknownMkr = FALSE;
 					;
 				}
 
+#if defined(_DEBUG)
+				if (pSrcPhrase->m_nSequNumber == 168)
+				{
+					int break_here = 0; wxUnusedVar(break_here);
+				}
+#endif
+
 				preStr = markersStr.Left(filterableMkrOffset); // this stuff we
 					// accumulate for later on -- it will later go to the CSourcePhrase
 					// which follows the instances about to be filtered out; in
 					// docVersion 5 I can't think of anything that might be in preStr
 					// and so it is likely to always be empty, but just in case it
 					// isn't, we must preserve whatever is there & transfer it
-				remainderStr = markersStr.Mid(filterableMkrOffset + itsLen); // this stuff is whatever
+				remainderStr = markersStr.Mid(filterableMkrOffset + wholeMkrLen); // this stuff is whatever
 					// stuff follows the one we are about to filter, -- there may
 					// be other following markers - such as \p or \v etc which need
 					// to be accumulated and forwarded to the CSourcePhrase which
@@ -11431,7 +11826,7 @@ g:				bIsUnknownMkr = FALSE;
 					// 5, remainderStr won't ever have any filtered content data,
 					// but only markers and possibly a verse or chapter number)
 					// We retain anything which remains following our found marker
-					//remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
+					//remainderStr = remainderStr.Mid(wholeMkrLen); // wholeMkrLen is the length of wholeMkr
 				remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces
 											// remain, then this will empty remainderStr
 											// 
@@ -11499,7 +11894,7 @@ g:				bIsUnknownMkr = FALSE;
 					bBoxAfter = TRUE;
 				}
 				nStartLocation = pSrcPhrase->m_nSequNumber;
-				// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's
+				// NOTE: we'll deal with preStr when we set up pPrevSrcPhrase's
 				// m_markers member later on; likewise for anything still in remainderStr
 
 				// whm 24Oct2023 added a wxString existingFilteredInfo to deal with any 
@@ -11519,8 +11914,9 @@ g:				bIsUnknownMkr = FALSE;
 				// we can commence to build filteredStr now (Note: because filtering stores a
 				// string, rather than a sequence of CSourcePhrase instances, any adaptations
 				// will be thrown away irrecoverably.
-				filteredStr = filterMkr; // add the \~FILTER beginning marker
-				filteredStr += _T(' '); // add space
+				// whm 8Feb2024 delay adding filterMkr and _T(' ") until later.
+				//filteredStr = filterMkr; // add the \~FILTER beginning marker
+				//filteredStr += _T(' '); // add space
 				CSourcePhrase* pSrcPhraseFirst = new CSourcePhrase(*pSrcPhrase);
 				pSrcPhraseFirst->DeepCopy();
 				pSublist->Append(pSrcPhraseFirst); // we've already got the first to go in
@@ -11760,7 +12156,7 @@ g:				bIsUnknownMkr = FALSE;
 					m_bCurrentlyFiltering = TRUE;
 
 					// end of addition done on 9Apr15
-					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, RebuildFilteringSegment, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
 
 					// BEW 30Sep19 the above RebuildSourceText() will, embedded in it,
@@ -11800,30 +12196,36 @@ g:				bIsUnknownMkr = FALSE;
 				//	\\ms Jises akohok sisi-in ma iy imek, ano iy amak ja
 				// Note: wholeMkr still holds the whole marker we are currently filtering out, so use it 
 				// to find the index into strFilteredStuff of that marker
-				int indx = strFilteredStuff.Find(wholeMkr);
-				if (indx != wxNOT_FOUND)
+				// 
+				// whm 8Feb2024 modification update. BEW and I decided that the filtered information should
+				// retain the swept up markers like the "\\c 11\r\n" part mentioned above, instead of
+				// purging it from the filtered information. We now leave it prefixed to the filtered info
+				// and enclose the actual marker-being-filtered and its associated text within the filtered
+				// bracket markers. The will allow us to later determine where the swept up markers should
+				// be placed when rebuilding the source text.
+				int posWholeMkr = (int)strFilteredStuff.Find(wholeMkr);
+				// First get the swept up stuff before the wholeMkr since we'll keep it outside the filter
+				// begin marker \~FILTER
+				wxString sweptUpStr = wxEmptyString;
+				if (posWholeMkr != wxNOT_FOUND)
 				{
-					strFilteredStuff = strFilteredStuff.Mid(indx);
+					// Separate any swept up preceding material from the strFilteredStuff that's going to 
+					// be enclosed in the filter bracket markers.
+					sweptUpStr = strFilteredStuff.Mid(0, posWholeMkr);
+					strFilteredStuff = strFilteredStuff.Mid(posWholeMkr);
 				}
 
-
+				filteredStr = sweptUpStr; // sweptUpStr is empty when no swept up material is present
+				filteredStr += filterMkr; // add the \~FILTER beginning marker - after any sweptUpStr
+				filteredStr += _T(' '); // add space
 				filteredStr += strFilteredStuff;
-#if defined (_DEBUG) && !defined(NOLOGS)
-				{
-					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
-					{
-						int halt_here = 1;
-						wxUnusedVar(halt_here);
-						wxString mmkrs = pSrcPhrase->m_markers;
-					}
-				}
-#endif
+				// We are done with wholeMkr for this filtering span, so clear it, likewise strFilteredStuff
+				wholeMkr = wxEmptyString;
+				strFilteredStuff = wxEmptyString;
 
 				// add the bracketing end filtermarker \~FILTER*
 				filteredStr.Trim(); // don't need a final space before \~FILTER*
 				filteredStr += filterMkrEnd; // adds \~FILTER*
-
-				//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 
 				// delete the sublist's deep copied CSourcePhrase instances
 				bool bDoPartnerPileDeletionAlso = FALSE; // there are no partner piles to delete
@@ -11853,16 +12255,6 @@ g:				bIsUnknownMkr = FALSE;
 				UpdateSequNumbers(0);
 				nAfterLocation = nStartLocation;
 				nStartLocation = nStartLocation > 0 ? nStartLocation - 1 : 0;
-#if defined (_DEBUG) && !defined(NOLOGS)
-				{
-					if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 2)
-					{
-						int halt_here = 1;
-						wxUnusedVar(halt_here);
-						wxString mmkrs = pSrcPhrase->m_markers;
-					}
-				}
-#endif
 
 				// we can now work out what adjustment is needed
 				// 1. if the active location was before the filter section, no adjustment is
@@ -11912,24 +12304,29 @@ g:				bIsUnknownMkr = FALSE;
 				// pos_partialList being NULL on exit of the above loop
 				// BEW 22Sep10, changes for docVersion 5:
 				// (1) preStr and remainderStr will need to be inserted at the start of the
-				// pUnfilteredSrcPhrase's m_markers member, if either or both are non-empty
+				// pPrevSrcPhrase's m_markers member, if either or both are non-empty
 				// (they'll almost certainly be both empty)
 				// (2) filteredStr has to be appropriately stored, it no longer is embedded in
-				// pUnfilteredSrcPhrase's m_markers member, but at the START of its
+				// pPrevSrcPhrase's m_markers member, but at the START of its
 				// m_filteredInfo member (to preserve the order of source text information
 				// across filtering/unfiltering changes)
 				// (3) the new storage for already filtered stuff being carried forward, the
 				// string strFilteredStuffToCarryForward, has to be handled here too (it
 				// could, of course, be an empty string)
-				CSourcePhrase* pUnfilteredSrcPhrase = NULL;
+				// 
+				// whm 2Feb2024 removed. The following code is not needed as it was designed
+				// when filtered information was saved on a following source phrase and moreover
+				// it didn't account for the possibility of of encountering a placeholder.
+				/*
+				CSourcePhrase* pPrevSrcPhrase = NULL;
 				if (posEnd == NULL)
 				{
-					pUnfilteredSrcPhrase = new CSourcePhrase;
+					pPrevSrcPhrase = new CSourcePhrase;
 
 					// force it to at least display an asterisk in nav text area to alert the
 					// user to its presence
-					pUnfilteredSrcPhrase->m_bNotInKB = TRUE;
-					pList->Append(pUnfilteredSrcPhrase);
+					pPrevSrcPhrase->m_bNotInKB = TRUE;
+					pList->Append(pPrevSrcPhrase);
 				}
 				else
 				{
@@ -11939,30 +12336,149 @@ g:				bIsUnknownMkr = FALSE;
 					// and its associated text to the source phrase instance BEFORE the
 					// filtered section, which source phrase we've set elsewhere to be
 					// pPrevSrcPhrase.
-					//pUnfilteredSrcPhrase = (CSourcePhrase*)posEnd->GetData();
-					pUnfilteredSrcPhrase = pPrevSrcPhrase;
+					// whm 2Feb2024 see revision below.
+					//pPrevSrcPhrase = (CSourcePhrase*)posEnd->GetData();
+					pPrevSrcPhrase = pPrevSrcPhrase;
 				}
-				wxASSERT(pUnfilteredSrcPhrase);
+				wxASSERT(pPrevSrcPhrase);
+				*/
+				// whm 4Feb2024 Below is code that determines the follPos and the 
+				// pFollSrcPhrase - being the source phrase that immediately follows the
+				// position/location subsequent to the removal of the filtered marker and its
+				// associated text. We can get the follPos node and its source phrase data 
+				// now that the sublist of filtered SPs have been removed from the pList and 
+				// the sequ numbers have been updated. We can get the follPos node by calling 
+				// GetNext() of the prePos node. The determination of pFollSrcPhrase is here
+				// conditional - we may or may not need to use it below. 
+				// See more notes/comments below where we assign preStr to the m_markers 
+				// member.
+				SPList::Node* follPos = prevPos->GetNext();
+				CSourcePhrase* pFollSrcPhase = NULL;
+				if (follPos != NULL)
+					pFollSrcPhase = follPos->GetData();
+				// whm 2Feb2024 added. Here we need to ensure that the pPrevSrcPhrase
+				// is not a placeholder source phrase that is at the end of a retranslation.
+				// If it is a placeholder, we need to iterate back to a previous source phrase
+				// that is not a placeholder. This is similar to what was necessary when
+				// unfiltering a filtered marker and text that was stored on a source phrase
+				// that was followed by one or more placeholders and we iterated to following
+				// source phrase until we came to a non-placeholder source phrase and inserted
+				// the marker and its text's sublist there.
+				// There is a parallel block earlier above to iterate past placeholder source 
+				// phrases in the block where bIsMarkerInNonbindingSet is TRUE.
+				CSourcePhrase* pPrevSrcPhrase = NULL;
+				CSourcePhrase* ptempSP;
+				if (prevPos != NULL)
+				{
+					ptempSP = prevPos->GetData();
+					if (ptempSP->m_bNullSourcePhrase != TRUE)
+					{
+						pPrevSrcPhrase = prevPos->GetData();
+					}
+					else
+					{
+						while (prevPos != NULL && prevPos->GetData()->m_bNullSourcePhrase == TRUE)
+						{
+							ptempSP = prevPos->GetData();
+							prevPos = prevPos->GetPrevious();
+						}
+						if (prevPos != NULL)
+						{
+							pPrevSrcPhrase = prevPos->GetData();
+						}
+						else
+						{
+							// prevPos is NULL meaning that we are at the very beginning of the document.
+							// Thsi shouldn't ordinarily happen with usfm scripture text since it
+							// would have an \id line with at least a 3-letter scripture book code.
+							// However, we need to do something reasonable in this case. Probably best
+							// would be to set prevPos to the following source phrase and dump the
+							// filtered marker there.
+							prevPos = prevPos->GetNext();
+							pPrevSrcPhrase = prevPos->GetData();
+						}
+					}
+				}
+				if (prevPos == NULL)
+				{
+					// prevPos is NULL meaning that we are at the very beginning of the document.
+					// This shouldn't ordinarily happen with usfm scripture text since it
+					// would have an \id line with at least a 3-letter scripture book code.
+					// However, we need to do something reasonable in this case. Probably best
+					// would be to set prevPos to the following source phrase and dump the
+					// filtered marker there.
+					prevPos = prevPos->GetNext();
+					pPrevSrcPhrase = prevPos->GetData();
+				}
+				wxASSERT(pPrevSrcPhrase != NULL);
 
 				// fill its m_markers with the material it needs to store,
 				// in the correct order
-				tempStr = pUnfilteredSrcPhrase->m_markers; // hold this stuff temporarily,
+				tempStr = pPrevSrcPhrase->m_markers; // hold this stuff temporarily,
 								// as we must later add it to the end of everything else
 				tempStr.Trim(FALSE); // this is easier than the above line
-				pUnfilteredSrcPhrase->m_markers = preStr; // any previously assumulated
+
+				// whm 4Feb2024 NOTE. The storage of m_markers from preStr in the
+				// pPrevSrcPhrase location can result in loss of ordering information,
+				// that we will need when it comes to unfiltereing and rebuilding the source
+				// text. For example, consider the following original source text lines:
+				//		\ms Jesus brought Good News for all people
+				//		\c 1
+				//		\s1 The Preaching of John the Baptist
+				//		\p
+				//		\v 1 This is the Good News about \em Jesus Christ\em*, the Son of God.
+				// And, suppose we then filter the \s1 marker and its text. 
+				// m_markers content: 
+				// pPrevSrcPhrase->m_markers is: 
+				//	"\\c 1\r\n\\p\r\n\\v 1 ", and
+				// pPrevSrcPhrase->m_filteredInfo is: 
+				//	"\\~FILTER \\s1 The Preaching of John the Baptist\\~FILTER*"
+				// When the \s1 marker was filtered we lost the ordering information, namely that
+				// the \s1 marker and its associated text was ordered between the "\\c 1\r\n"
+				// and \\p\r\n\\v1 parts of the original input text. To properly unfilter and/or
+				// rebuild the source text, we need to regain that lost ordering information so 
+				// that for proper:
+				//    Unfiltering we put the "\\c 1\r\n" first part of m_markers on the 
+				// the FIRST word of the \s1 associated text "The", but we need to put the 
+				// second \\p\r\n\\v1 part on the first word of \v 1 "This"
+				// 
+				// whm 8Feb2024 update to above comment: BEW and I decided that it would be good
+				// to actually leave the swept up material - the "\\c 1\r\n" part mentioned above,
+				// WITHIN the m_filteredInfo member, but PREFIXED to the filtered marker that it
+				// was associated with, i.e., the \s1 marker above. Hence upon filtering the s1 
+				// marker and its associated text would be stored as:
+				//   "\\c 1\r\n\\~FILTER \\s1 The Preaching of John the Baptist\\~FILTER*"
+				// in which the \\c 1\r\n" part is stored OUTSIDE the filter brackets.
+
+				// whm 8Feb2024 modified. Since we are now storing in m_filteredInfo the swept up 
+				// markers prefixing them to the filter-bracketed marker-being-filtered, we do 
+				// not want to store such swept up material in m_markers where it just looses all
+				// ordering information. Therefore, we should remove the swept up stuff from the
+				// preStr below before storing preStr into m_markers.
+				// TODO: I'm commenting out the next line until tests show that we need to
+				// just remove swept up stuff from preStr. When filtering the \s1 marker
+				// preStr was "\\c 1\r\n" which was equivalent to the swept up part, but what
+				// about when there is other bracketed filtered stuff within preStr???
+				// Also when testing this by filtering \s1 in the Hezekiah doc, it was clear that
+				// the RebuildSourceText() call above wasn't producing a correct string
+				// TODO
+				//pPrevSrcPhrase->m_markers = preStr; // any previously assumulated
 															// filtered info, or markers
+				// whm 8Feb2024 TODO: Determine if the adjustment to m_markers below and
+				// addition of tempStr is still necessary
+				// 
 				// BEW 22Sep10 added next 3 lines
-				pUnfilteredSrcPhrase->m_markers.Trim();
-				pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
-				pUnfilteredSrcPhrase->m_markers += remainderStr;
-				pUnfilteredSrcPhrase->m_markers.Trim(FALSE); // delete contents
+				pPrevSrcPhrase->m_markers.Trim();
+				pPrevSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+				pPrevSrcPhrase->m_markers += remainderStr;
+				pPrevSrcPhrase->m_markers.Trim(FALSE); // delete contents
 													// if only spaces are present
 				if (!tempStr.IsEmpty())
 				{
-					pUnfilteredSrcPhrase->m_markers.Trim();
-					pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+					pPrevSrcPhrase->m_markers.Trim();
+					pPrevSrcPhrase->m_markers += _T(" "); //ensure an intervening space
 					// append whatever was originally on this srcPhrase::m_markers member
-					pUnfilteredSrcPhrase->m_markers += tempStr;
+					pPrevSrcPhrase->m_markers += tempStr;
 				}
 
 				// insert any already filtered stuff we needed to carry forward before the newly
@@ -12002,7 +12518,7 @@ g:				bIsUnknownMkr = FALSE;
 				// which we appended above) to the start of m_filteredInfo on the CSourcePhrase
 				// which follows the filtered out section - that one might have filtered material
 				// already, so we have to check and take the appropriate branch.
-				wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
+				wxString filteredStuff = pPrevSrcPhrase->GetFilteredInfo();
 
 				// whm 15Nov2023 update to the previous strategy, which was not sufficiently robust 
 				// for when multiple adjacent markers are filtered. Before storing the filteredStuff,
@@ -12023,18 +12539,42 @@ g:				bIsUnknownMkr = FALSE;
 				// The ReorderFilterMaterialUsingUsfmStructData() guarantees that we preserve the 
 				// relative ordering of the adjacent filtered markers in filteredStuff.
 				filteredStuff = filteredStr + filteredStuff;
+				// To avoid un-needed warnings, test filteredStuff to see if more than one filtered 
+				// item is in filteredStuff. If it only has a single filtered item reordering isn't
+				// necessary, and even if the .usfmstruct apparratus is not enabled, we need not
+				// warn the user about it.
 				if (FilteredMaterialContainsMoreThanOneItem(filteredStuff))
 				{
-					wxString ChVs = pView->GetChapterAndVerse(pUnfilteredSrcPhrase);
-					filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
-				}
-				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
+					if (m_bUsfmStructEnabled)
+					{
+						wxString ChVs = pView->GetChapterAndVerse(pPrevSrcPhrase);
+						filteredStuff = ReorderFilterMaterialUsingUsfmStructData(filteredStuff, ChVs, m_UsfmStructArr);
+					}
+					else
+					{
+						// Give a warning message to the user
+						wxString msg = _("Adapt It could not set up the Usfm Struct Array or the .usfmstruct file.\n\nThis may affect the ability of Adapt It to filter or unfilter adjacent markers in correct sequence.");
+						wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+						gpApp->LogUserAction(msg);
 
+					}
+				}
+				// Store it back on the pPrevSrcPhrase CSourcePhrase.
+				pPrevSrcPhrase->SetFilteredInfo(filteredStuff);
+
+				// These should be empty already, but make sure
 				preStr.Empty();
 				remainderStr.Empty();
 
 				// get the navigation text set up correctly
-				pUnfilteredSrcPhrase->m_inform = RedoNavigationText(pUnfilteredSrcPhrase);
+				// whm 2Feb2024 Note: In the bMarkerInNonbindingSet section farther 
+				// above the RedoNavigationText() call was commented out because for \fig
+				// markers being filtered will not have any content in their PSP's
+				// m_markers member, and the RedoNavigationText() function immediately
+				// returns an empty string when m_markers is empty which then, wipes out the
+				// already correct m_inform value of markers like \fig.
+				// However, here it doesn't seem to have negative effects.
+				pPrevSrcPhrase->m_inform = RedoNavigationText(pPrevSrcPhrase);
 
 #if defined (_DEBUG) && !defined(NOLOGS)
 				{
@@ -22770,6 +23310,9 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 /// \param		pSrcPhraseNext	-> the CSourcePhrase instance whose m_markers member contains the
 ///								   stuff we are wanting to check out for a halt condition; it's
 ///								   the instance AFTER the actively being checked instance
+/// \param		filterInfo		<- collect and return any encountered filtered information to
+///								   the caller, so the caller can use it to carry it forward 
+///								   when needed. 
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange().
 /// Implements the protocol for determining when to stop scanning in a variety of
@@ -34239,10 +34782,27 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 // This function takes an existing string filterStr of filtered material and if there are
 // multiple filtered markers in filterStr, it checks the ordering of the markers against
 // the first set of markers encountered following the ChVs context of the m_UsfmStrucArr array.
-// It reorders the marker material within filterStr if necessary to make the filtered material
-// ordering conform with the ordering of the corresponding markers within the m_UsfmStructArr 
-// array. The ChVs input parameter simply allows the comparison of markers to begin at the
-// chapter and verse where the marker being filtered/unfiltered is located.
+// Each filtered element within the filterStr may have one or more markers and/or EOL chars 
+// prefixing it as in the following example (one continuous string spread over 4 lines below
+// for clarity):
+// filterStr == "
+// \\~FILTER \\ms Jises, iy are lau handru?\\~FILTER*
+// \\~FILTER \\mr (Kalan 11:1-16:20)\\~FILTER*
+// \\c 11 \\~FILTER \\s Jon ta alomwa suni oro lau tan ala atou Jises\\~FILTER*
+// \\~FILTER \\r (Luk 7:18-35)\\~FILTER*"
+// in which the "\\c 11" chapter marker was swept up in the filtering process of the "\\s ..."
+// marker when \s was filtered in ReconstituteAfterFilteringChange() function.
+// Any such swept up marker should always remain associated with and prefixed to the following
+// filtered marker during its storage in m_filteredInfo and when the marker (\s in this case)
+// and associated text are unfiltered. Hence, in the above case, the \c 11 marker should be
+// unfiltered along with the \s marker when it is unfiltered, both in 
+// ReconstituteAfterFilteringChange() and when rebuilding the source text. This ensures that
+// a correct ordering is kept for these swept up markers when they are unfiltered.
+// 
+// This function reorders the marker material within filterStr if necessary to make the 
+// filtered material ordering conform with the ordering of the corresponding markers within 
+// the m_UsfmStructArr array. The ChVs input parameter simply allows the comparison of markers 
+// to begin at the chapter and verse where the marker being filtered/unfiltered is located.
 // This function does the following:
 // 1. To narrow down its search, it first locates the chapter:verse reference using
 //    the context indicated by the ChVs incoming parameter. This is necessary since
@@ -34253,19 +34813,35 @@ void CAdapt_ItDoc::UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString us
 //    the position of identical markers within the filterStr, until all markers in the
 //    filterStr have been found and their relative positions determined. 
 // 3. If the positions are sequential, no reordering is needed and the incoming filterStr
-//    is simply returned unchanged.
+//    is simply returned unchanged to the caller.
 // 4. If one or more filtered markers are out of order, as compared to their occurring
 //    sequence within the m_UsfmStructArr array, the filtered marker strings are reordered 
-//    to the order needed to conform to the markers in the m_UsfmStructArr array.
-// 5  When reordering is required, it is done by prefixing to the original m_UsfmStructArr item
-//    a zero padded index number representing index location of the bracketed number, as found
-//    in the original m_UsfmStructArr array, prefixing it to the item in the 
-//    filteredMkrsArrayWithFilterBrackets array, and then sorting the array. Once the 
-//    filteredMkrsArrayWithFilterBrackets array is sorted with the standard .Sort() method
-//    the zero padded index number is removed from the items in the
-//    filteredMkrsArrayWithFilterBrackets array, and the newOrderedStr is returned to the
-//    caller.
+//    to the order needed to conform to the markers in the m_UsfmStructArr array, i.e., the
+//    order the markers were in the original input text when the document was first created.
+// 5. The parts of the filtered strings (and any swept up markers preceding them) are 
+//    separated into 3 parallel wxArrayString arrays: markersPrecedingFilteredOnes,
+//    filteredMkrsArrayWithFilterBrackets and filteredMkrsArray. These arrays should always
+//    have the same number of elements even though the markersPredcedingFilteredOnes is likely 
+//    to have most if not all of its array string elements be empty strings (it will only 
+//    have a non-empty string element when the filtered string has a swept up marker such as
+//    a \c n marker and/or other markers that immediately preceded the filtered marker that
+//    follows it.
+// 6. A check is made to see if the filterabelMkrsArray elements are in the same sequential
+//    order as the markers in the same part of the usfmstruct file. If the ordering is out-of
+//    order, then reordering is required, otherwise the function simply returns the filterStr
+//    unchanged.
+// 7. When reordering is required, it is done by prefixing to the first two parallel arrays'
+//    items a zero padded index number (6-digit field) representing index location line 
+//    number, as found in the original m_UsfmStructArr array, prefixing it to the item in the 
+//    filteredMkrsArrayWithFilterBrackets array, and the markersPrecedingFilteredOnes array,
+//    and then sorting the array using the wxArrayString::Sort() method. 
+// 8. Once the two parallel arrays have been sorted into ascending order the zero padded index 
+//    number is removed from the items in the filteredMkrsArrayWithFilterBrackets and 
+//    array, and the markersPrecedingFilteredOnes array, and newOrderedStr is returned to the
+//    caller having the reordered filtered elements (including their preceding swept up markers).
 // This function is called in two locations within the ReconstituteAfterFilteringChange() function.
+// whm 8Feb2024 revised to ensure that this function works OK when filterStr contains filtered
+// material that may have one or more swept up markers preceding a \~FILTER ...\~FILTER* element.
 wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr)
 {
 	wxString newOrderedStr;
@@ -34323,23 +34899,41 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 		}
 		lineIndex++;
 	}
+	// whm 12Feb2024 added the following after noticing that markers at the beginning of
+	// the first chapter line including \ms \mr and \s when all filtered, were not being
+	// reordered. The reason was that ChVs was "0:0" which set bRefFound to FALSE and had
+	// the lineIndex at the end of the file. The solution is when incoming ChVs is "0:0"
+	// we unilaterally set bRefFound to TRUE and set the lineIndex to a value near the
+	// beginning of the file - at lineIndex 1 just past the \id line.
+	if (ChVs == _T("0:0"))
+	{
+		// We haven't seen a \c or \v marker yet and so ChVe is "0:0"
+		bRefFound = TRUE;
+		lineIndex = 1; // Start the scan at line 1 (just past any \id line)
+
+	}
 	// We expect that the m_UsfmStructArr array would contain both a chapter and a verse 
 	// reference, or at least a chapter marker.
 	if (bRefFound || (!bRefFound && bChFound))
 	{
 		// Get the markers from filterStr. 
-		wxArrayString filterableMkrsArray;
-		filterableMkrsArray.Clear();
+		wxArrayString markersPrecedingFilteredOnes;
+		markersPrecedingFilteredOnes.Clear();
+		wxArrayString filteredMkrsArray;
+		filteredMkrsArray.Clear();
 		wxArrayString filteredMkrsArrayWithFilterBrackets;
 		filteredMkrsArrayWithFilterBrackets.Clear();
 		wxArrayInt IndexPosOfMkrInStructArr;
 		IndexPosOfMkrInStructArr.Clear();
-		// The GetFilterableMarkersFromString() function creates two arrays, one with the filtered indicating
+		// The GetFilteredAndSweptUpMarkersFromString() function creates two arrays, one with the filtered indicating
 		// bracketed markers \~FILTER ... \~FILTER* called filteredMkrsArrayWithFilterBrackets, and the
-		// other parallel array filterableMkrsArray which only contains the whole markers.
+		// other parallel array filteredMkrsArray which only contains the whole markers.
 		// Here the two arrays should always be in parallet, with the same number of items, and the items
 		// in the same order, the order they were found in the incoming filterStr.
-		GetFilterableMarkersFromString(filterStr, filteredMkrsArrayWithFilterBrackets, filterableMkrsArray);
+		GetFilteredAndSweptUpMarkersFromString(filterStr, 
+			markersPrecedingFilteredOnes, // this array contains swept up markers that order before the filteredMkrsArrayWithFilterBrackets
+			filteredMkrsArrayWithFilterBrackets, 
+			filteredMkrsArray);
 		// Continue scanning from lineIndex position determined above, down through the m_UsfmStructArr 
 		// array, checking successive m_UsfmStructArr's array markers for their existence in filterStr. 
 		// When the marker is found in m_UsfmStructArr at a particular index position, record that index 
@@ -34348,12 +34942,12 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 		// this zero-padded string number to the corresponding filteredMkrsArrayWithFilterBrackets array 
 		// for subsequent sorting of the array of \~FILTER ... \~FILTER* elements using the built-in 
 		// wxStringArray::Sort() command. 
-		size_t ct = filterableMkrsArray.GetCount();
-		if (ct > 0)
+		size_t countFilteredMkrsArray = filteredMkrsArray.GetCount();
+		if (countFilteredMkrsArray > 0)
 		{
-			for (int i = 0; i < (int)ct; i++)
+			for (int i = 0; i < (int)countFilteredMkrsArray; i++)
 			{
-				wxString mkr = filterableMkrsArray.Item(i);
+				wxString mkr = filteredMkrsArray.Item(i);
 				mkr.Trim(TRUE);
 				mkr.Trim(FALSE);
 				bMkrFound = FALSE;
@@ -34386,19 +34980,45 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 						IndexPosOfMkrInStructArr.Add(tempLineIndex);
 						wxString paddedBracketMkr;
 						paddedBracketMkr = filteredMkrsArrayWithFilterBrackets.Item(i);
+						wxString paddedPrecOnes;
+						paddedPrecOnes = markersPrecedingFilteredOnes.Item(i);
 						wxString padding = wxString::Format("%06d", tempLineIndex);
-						// Prefix the padding to the array item
+						// Prefix the padding to the parallel arrays' items
 						paddedBracketMkr = padding + paddedBracketMkr;
+						paddedPrecOnes = padding + paddedPrecOnes;
 #if defined(_DEBUG)
 						wxLogDebug(_T("Mkr index: %d padded value = %s paddedBracketMkr = %s"), tempLineIndex, padding.c_str(), paddedBracketMkr.c_str());
 #endif
-						// Replace the item with its padded counterpart
+						// Replace the item in the parallel arrays with its padded counterpart
 						filteredMkrsArrayWithFilterBrackets.RemoveAt(i);
 						filteredMkrsArrayWithFilterBrackets.Insert(paddedBracketMkr, i);
+						markersPrecedingFilteredOnes.RemoveAt(i);
+						markersPrecedingFilteredOnes.Insert(paddedPrecOnes, i);
+
 						bMkrFound = TRUE;
 					}
 					tempLineIndex++;
 				}
+			}
+			// whm 3Feb2024 modification/addition. Need a sanity check here. While filtering a \fig marker
+			// after having un-filtered it, I got a crash due to IndexPosOfMkrInStructArr.Item(i) below
+			// being "out of range", i.e., the number of items in the array was 1 but the 
+			// countFilteredMkrsArray in the for loop below was 2. The number of items in the 
+			// IndexPosOfMkrInStructArray should always be the same as set in the while block above. 
+			// However, to avoid an out of bounds error, we should check if the number of items in the 
+			// array countIndexPosOfMkrInStructArr is equal to the countFilteredMkrsArray value; if not 
+			// we will set the bNeededReordering flag to FALSE and log the situation to flag to the 
+			// programmer that womething went wrong.
+			size_t countIndexPosOfMkrInStructArr = IndexPosOfMkrInStructArr.GetCount();
+			if (countIndexPosOfMkrInStructArr != countFilteredMkrsArray)
+			{
+				// Soomething went wrong above. We need to bail out of the function without attempting to
+				// reorder the markers.
+				wxString msg = _T("***ARRAY INDEX OUT OF RANGE: In ReorderFilterMaterialUsingUsfmStructData().\n   The countIndexPosOfMkrInStructArr was %d but the countFilteredMkrsArray was %d\n   filterStr was: %s\n***Unable to Reorder filter markers!");
+				msg = msg.Format(msg, countIndexPosOfMkrInStructArr, countFilteredMkrsArray, filterStr.c_str());
+				wxLogDebug(msg);
+				gpApp->LogUserAction(msg);
+				return filterStr;
 			}
 			// Check whether the position values in the IndexPosOfMkrInArr are in sequential order or not.
 			// If they are in sequential order we don't need to do any reordering and can set bNeededReordering
@@ -34407,7 +35027,7 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 			// in filterStr to agree with the ordering of the markers in the m_UsfmStructArr array.
 			int nLastPosValue = -1;
 			int nCurrPosValue = 0;
-			for (int i = 0; i < (int)ct; i++)
+			for (int i = 0; i < (int)countFilteredMkrsArray; i++)
 			{
 				nCurrPosValue = IndexPosOfMkrInStructArr.Item(i);
 				if (nCurrPosValue < nLastPosValue)
@@ -34420,32 +35040,42 @@ wxString CAdapt_ItDoc::ReorderFilterMaterialUsingUsfmStructData(wxString filterS
 			if (bNeededReordering)
 			{
 				wxLogDebug(_T("Filter string needs reordering!"));
-				// Sort the filteredMkrsArrayWithFilterBrackets array. It sorts to the correct ordering
-				// due to the prefixed number index string padded with leading zeros. The order after
-				// sorting represents their index within the larger m_UsfmStructArr array.
+				// Sort the filteredMkrsArrayWithFilterBrackets and markersPrecedingFilteredOnes arrays. 
+				// The Sort commend sorts to the correct ordering due to the prefixed number index string 
+				// padded with leading zeros. The order after sorting represents their index order within 
+				// the larger m_UsfmStructArr array.
 				filteredMkrsArrayWithFilterBrackets.Sort();
+				markersPrecedingFilteredOnes.Sort();
 				
 #if defined(_DEBUG)
 				wxString filterItem;
-				for (int i = 0; i < (int)ct; i++)
+				wxString precMkrItem;
+				for (int i = 0; i < (int)countFilteredMkrsArray; i++)
 				{
 					filterItem = filteredMkrsArrayWithFilterBrackets.Item(i);
-					wxLogDebug(_T("filterItem %d is: %s"), i, filterItem.c_str());
+					precMkrItem = markersPrecedingFilteredOnes.Item(i);
+					wxLogDebug(_T("filterItem %d is: %s precMkrItem is: %s"), i, filterItem.c_str(), precMkrItem.c_str());
 				}
 #endif
 				// Finally, remove the zero-padded prefix on the bracketed filtered items
 				// and create the newOrderedStr
-				for (int i = 0; i < (int)ct; i++)
+				for (int i = 0; i < (int)countFilteredMkrsArray; i++)
 				{
 					wxString paddedBracketMkr;
 					paddedBracketMkr = filteredMkrsArrayWithFilterBrackets.Item(i);
+					wxString paddedPrecMkr;
+					paddedPrecMkr = markersPrecedingFilteredOnes.Item(i);
 					wxString unPaddedStr = paddedBracketMkr.Mid(6);
+					wxString unPaddedMkrStr = paddedPrecMkr.Mid(6);
 #if defined(_DEBUG)
 					wxLogDebug(_T("unPaddedStr = %s"), unPaddedStr.c_str());
 #endif
 					filteredMkrsArrayWithFilterBrackets.RemoveAt(i);
 					filteredMkrsArrayWithFilterBrackets.Insert(unPaddedStr, i);
-					newOrderedStr += unPaddedStr;
+					markersPrecedingFilteredOnes.RemoveAt(i);
+					markersPrecedingFilteredOnes.Insert(unPaddedMkrStr, i);
+
+					newOrderedStr  = newOrderedStr + unPaddedMkrStr + unPaddedStr;
 				}
 			}
 			else
@@ -36393,10 +37023,15 @@ bool CAdapt_ItDoc::IsEmptyMkr(wxChar* pChar, wxChar* pEnd,
 
 // whm 17Jan2024 added to iterate the ptr past bogus periods when the ptr is
 // pointing at a period.
-void CAdapt_ItDoc::IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd)
+void CAdapt_ItDoc::IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd, int& nPeriods)
 {
+	int numP = 0;
 	while (ptr < pEnd && *ptr == _T('.'))
+	{
 		ptr++;
+		numP++;
+	}
+	nPeriods = numP;
 }
 
 /*
@@ -44793,8 +45428,32 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// BEW 30Dec22 make sure a Doc member variables are initialised to FALSE
 	m_bWidowedParenth = FALSE;
 	m_bWidowedBracket = FALSE;
-	//bool bParsedNewlineBeforeVerseMarker; // BEW added 10Apr23 // whm 22Aug2023 note: this bool is never used
-	//wxUnusedVar(bParsedNewlineBeforeVerseMarker); // avoid gcc warning set but not used warning
+	// whm 10Feb2024 The following variables are used to help determine if there is a following
+	// filtereable marker which is to be filtered during this Tokenizing of the input text. 
+	// If a filterable marker follows and it is currently to be filtered, any intervening
+	// chapter or verse, any/all whitespace and/or non-filterable, non-content markers that
+	// may be surrounding the chapter or verse marker becomes swept up material that is to
+	// be prefixed to the upcoming marker-to-be-filtered marker and associated text, all
+	// of which will be stored in the m_filteredInfo member. For example, let's assume
+	// the ptr is pointing at the following:
+	//   "\r\n\\c 2\r\n\\s1 Godzilla on the rampage!..."
+	// In this example case the ptr is pointing at whitespace "\r\n" that occurs before a chapter 
+	// \c 2 marker, AND the following filterable marker and associated text is (with preceding 
+	// whitespace) "\r\n\\s1 Godzilla on the rampage!". We collect all the stuff preceding the
+	// marker-to-be-filtered - including whitespace and any chapter/verse or empty markers - and 
+	// store that stuff in sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, and set the 
+	// boolean value bParseSweptUpMatterBeforeMarkerToBeFiltered to inform TokenizeText() that
+	// there is swept up stuff to be handled.
+	// We store the sweptUpStuff... along with the following marker-being-filtered in the
+	// current pSrcPhrase->m_filteredInfo member - the sweptUpStuff prefixed to the bracketed
+	// to-be-filtered marker and its associated text, and set the boolean value 
+	// bParseSweptUpMatterBeforeMarkerToBeFiltered to TRUE.
+	// These variables are set by the IsNextFilterableMkrToBeFiltered() function call below in 
+	// the outer while (ptr < pEnd) loop between the if (IsWhiteSpace(ptr)) and 
+	// itemLen = ParseWhiteSpace(ptr) calls.
+	wxString sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered; // whm 10Feb2024 added.
+	sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+	bool bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE; // whm 10Feb2024 modified var name
 	bool bContinueTwice;
 	bContinueTwice = FALSE;
 	// whm 17Jan2024 changed the following variable name. I need a more definitive and self-documenting
@@ -44831,7 +45490,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		pSrcPhrase->bHasPostWordMetadata = FALSE; // BEW 19Oct23 initialize to FALSE, else bogus "204" counts as a TRUE value
 
-		//bParsedNewlineBeforeVerseMarker = FALSE; // initialise // whm 22Aug2023 note: this bool is never used
+		//bParsedNewlineBeforeChapterOrVerseMarker = FALSE; // initialise // whm 22Aug2023 note: this bool is never used
 		//m_firstVerseNum.Empty(); // must start out empty for each new pSrcPhrase  & set its
 					// value when the inner parsing loop first comes to tokBuffer with a \v mkr,
 					// then when loop iterations come to the next tokBuffer (or m_markers) with
@@ -44844,13 +45503,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxLogDebug(_T("\nTokenizeText() START while LOOP, line %d : new sequNum= %d , pointsAt->%s"),
 			__LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
 
-		// whm 7Jul2023 testing
-		if (pSrcPhrase->m_nSequNumber == 441)
-		{
-			int haltHere = -1;
-			haltHere = haltHere;
-		}
-		// whm 7Jul2023 testing
 #endif
 #if defined (_DEBUG) && !defined(NOLOGS)
 		if (pSrcPhrase->m_nSequNumber >= 17)
@@ -44975,8 +45627,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxString mypointsAt = wxString(ptr, 16);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		wxLogDebug(_T("pSrcPhrase->m_nSequNumber %d"),pSrcPhrase->m_nSequNumber);
-		if (pSrcPhrase->m_nSequNumber >= 17) // 441) // whm break
+//		wxLogDebug(_T("pSrcPhrase->m_nSequNumber %d"),pSrcPhrase->m_nSequNumber);
+		if (pSrcPhrase->m_nSequNumber >= 565) // 441) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -45012,10 +45664,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		precWordDelim.Empty(); // BEW added 10Jul14, it should be emptied before we break
 							   // out each 'next' parsed word
 #if defined (_DEBUG) //&& !defined(NOLOGS) // && defined (LOGMKRS)
-		mypointsAt = wxString(ptr, 20);
+		mypointsAt = wxString(ptr, 6);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 28) // whm break
+		//if (pSrcPhrase->m_nSequNumber >= 565) // whm break
+		if (mypointsAt.Find(_T(" later")) != wxNOT_FOUND) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -45029,12 +45682,53 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// the \n if we don't record the fact that if here gets parsed over.
 		if (IsWhiteSpace(ptr))
 		{
-			// advance pointer past the white space (\n or inter-word spaces, of whatever kind, now
-			// have to be stored on the pSrcPhrase, so they can be restored at export, so add
-			// code below, with precWordDelim as the intermediate storage wxString, and add it
-			// to pSrcPhrase->m_srcWordBreak wxString
-			//wxChar chWhat;
-			itemLen = ParseWhiteSpace(ptr);
+
+			// whm 10Feb2024 The following variables and IsNextFilterableMkrToBeFiltered() function
+			// call are used to help determine if there is a following filtereable marker which is 
+			// to be filtered during this Tokenizing of the input text. 
+			// If a filterable marker follows and it is currently to be filtered, any intervening
+			// chapter or verse, any/all whitespace and/or non-filterable, non-content markers that
+			// may be surrounding the chapter or verse marker becomes swept up material that is to
+			// be prefixed to the upcoming marker-to-be-filtered marker and associated text, all
+			// of which will be stored in the m_filteredInfo member. For example, let's assume
+			// the ptr is pointing at the following:
+			//   "\r\n\\c 2\r\n\\s1 Godzilla on the rampage!..."
+			// In this example case the ptr is pointing at whitespace "\r\n" that occurs before a chapter 
+			// \c 2 marker, AND the following filterable marker and associated text is (with preceding 
+			// whitespace) "\r\n\\s1 Godzilla on the rampage!". We collect all the stuff preceding the
+			// marker-to-be-filtered - including whitespace and any chapter/verse or empty markers - and 
+			// store that stuff in sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, and set the 
+			// boolean value bParseSweptUpMatterBeforeMarkerToBeFiltered to inform TokenizeText() that
+			// there is swept up stuff to be handled.
+			// We store the sweptUpStuff... along with the following marker-being-filtered in the
+			// current pSrcPhrase->m_filteredInfo member - the swept up stuff returned in the
+			// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered reference parameter are then to be
+			// prefixed to the bracketed to-be-filtered marker and its associated text, and in such cases
+			// the function sets the boolean value bParseSweptUpMatterBeforeMarkerToBeFiltered to TRUE.
+			// These variables are initialized below just before the IsNextFilterableMkrToBeFiltered() 
+			// function call here in the outer while (ptr < pEnd) loop between the if (IsWhiteSpace(ptr)) 
+			// and itemLen = ParseWhiteSpace(ptr) calls.
+			// When the IsNextFilterableMkrToBeFiltered() function returns TRUE, the nLenSweptUpStuff is 
+			// assigned to itemLen so that the ptr will advance past any swept up material in the
+			// ptr += itemLen; call below.
+			int nLenSweptUpStuff = 0;
+			sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+			if (IsNextFilterableMkrToBeFiltered(ptr, pEnd, sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered, nLenSweptUpStuff))
+			{
+				bParseSweptUpMatterBeforeMarkerToBeFiltered = TRUE; // whm 10Feb2024 modified var name
+				itemLen = nLenSweptUpStuff; // advance ptr to point past the swept up stuff and point at following marker to be filtered
+			}
+			else
+			{
+				// The ptr still points at the whitespace so parse it.
+				// [BEW] advance pointer past the white space (\n or inter-word spaces, of whatever kind, now
+				// have to be stored on the pSrcPhrase, so they can be restored at export, so add
+				// code below, with precWordDelim as the intermediate storage wxString, and add it
+				// to pSrcPhrase->m_srcWordBreak wxString
+				//wxChar chWhat;
+				itemLen = ParseWhiteSpace(ptr);
+
+			}
 			// int cnt = 0; // see comment below for reason to remove the cnt variable
 			// 
 			// whm 22Aug2023 Note: The if (itemLen == 1) test below misses all instances where
@@ -45043,44 +45737,40 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// Also, the bParseNewlineBeforeVerseMarker bool within the following test is never
 			// tested for or used in code anywhere else within the code base so setting it to
 			// a TRUE value here is pointless. I'm commenting the if test block below from the
-			// code, but if bParsedNewlineBeforeVerseMarker needs to be reinstated and actually
-			// used elsewhere I'm providing farther below my revision that would set the bool
-			// TRUE that accounts for EOL of '\n' or "\r\n" BEFORE A VERSE MARKER (see below)
-			// Moreover the value set for cnt = 1 in the else if block will never happen, and 
-			// isn't really needed since itemLen will be 2 for "\r\n" EOL.
-			// Therefor we can do away with the if (itemLen == 1) test below entirely and just
-			// increment the ptr below by the itemLen value
+			// code.
 			/*
 			if (itemLen == 1)
 			{
-				bParsedNewlineBeforeVerseMarker = FALSE; // init to false  // whm 22Aug2023 note: this bool is never used
+				bParsedNewlineBeforeChapterOrVerseMarker = FALSE; // init to false  // whm 22Aug2023 note: this bool is never used
 				if (*ptr == _T('\n') && *(ptr + 1) == gSFescapechar && *(ptr + 2) == _T('v') && *(ptr + 3) == _T(' '))
 				{
 					// set the bool true for a sequence ptr ->"\n\\v "  and use the boolean when parsing \v<space>
 					// and we want to get the \n into m_markers without a Trim() removing it or changing it to space
-					bParsedNewlineBeforeVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
+					bParsedNewlineBeforeChapterOrVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
 				}
 				else if ( (*ptr == _T('\r')) && (*(ptr+1) == _T('\n')) && *(ptr + 2) == gSFescapechar 
 						&& *(ptr + 3) == _T('v') && *(ptr + 4) == _T(' '))
 				{
-					bParsedNewlineBeforeVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
+					bParsedNewlineBeforeChapterOrVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
 					cnt = 1;
 				}
 			}
 			*/
 			// whm 17Jan2024 modified to ptr += itemLen;
+			// whm 10Feb2024 comment: itemLen will point past whitespace, or past any swept up whitespace and
+			// markers from the IsNextFilterableMkrToBeFiltered() call above.
 			//ptr += (itemLen + cnt); // in Windows, before backslash might be \r\n 
 			ptr += itemLen;
 
 			/*
-			// Here below is a test that will set bParsedNewlineBeforeVerseMarker to TRUE when
+			// Here below is a test that will set bParsedNewlineBeforeChapterOrVerseMarker to TRUE when
 			// a \v marker immediately follows an EOL of '\n' or "\r\n"
-			bParsedNewlineBeforeVerseMarker = FALSE; // initialize for every test // whm 22Aug2023 note: this bool is never used
+			bParsedNewlineBeforeChapterOrVerseMarker = FALSE; // initialize for every test // whm 22Aug2023 note: this bool is never used
 			if ((itemLen == 1 && *ptr == _T('\n') && *(ptr + 1) == gSFescapechar && *(ptr + 2) == _T('v') && *(ptr + 3) == _T(' ')) 
 				|| (itemLen == 2 && *ptr == _T('\r') && *(ptr + 1) == _T('\n') && *(ptr + 2) == gSFescapechar && *(ptr + 3) == _T('v') && *(ptr + 4) == _T(' ')) )
 			{
 				// Set the bool TRUE if ptr points at: "\n\\v " or "\r\n\\v "
-				bParsedNewlineBeforeVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
+				bParsedNewlineBeforeChapterOrVerseMarker = TRUE; // whm 22Aug2023 note: this bool is never used
 			}
 			*/
 
@@ -47106,7 +47796,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// IteratePtrPastBogusPeriods(ptr) here. The precWordDelim setting 2 lines
 							// is done farther below after a parse of space/EOLs after any periods are
 							// skipped over.
-							IteratePtrPastBogusPeriods(ptr, pEnd);
+							int nPeriods = 0;
+							IteratePtrPastBogusPeriods(ptr, pEnd, nPeriods);
 
 							/*
 							if (pAux < pEnd && *(pAux + 1) == period)
@@ -47471,7 +48162,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// whm 17Jan2024 added IteratePtrPastBogusPeriods(ptr) here and 
 					// remove if block below, except retain the precWordDelim setting 2 lines
 					// inside the if block.
-					IteratePtrPastBogusPeriods(ptr, pEnd);
+					int nPeriods = 0;
+					IteratePtrPastBogusPeriods(ptr, pEnd, nPeriods);
 
 					// Store the "\\v versenum " text in pSrcPhrase->m_markers
 					wxString save_m_markers; // preserve what we parsed over,
@@ -49620,6 +50312,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// the gCurrentFilterMarkers list
 							if (pLastSrcPhrase != NULL)
 							{
+								if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
+								{
+									// There is swept up material to prefix to the bracketed filtered marker
+									// That was determined by the IsNextFilterableMkrToBeFiltered() earlier
+									// in TokenizeText(). 
+									// The swept up material may contain whitespace, and/or other markers such as
+									// \c n, \v n \p and other empty markers that are contained in the variable:
+									// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
+									// Here we prefix that swept up material to strCacheDelayedFilteredContent
+									// before the pLastSrcPhrase->AddToFilteredInto() call below.
+									strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered + strCacheDelayedFilteredContent;
+									// We now reset the variables
+									sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+									bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
+								}
 								//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 								pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
 							}
@@ -50001,7 +50708,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// whm 17Jan2024 added IteratePtrPastBogusPeriods(ptr) here and 
 					// remove if block below, except retain the precWordDelim setting 2 lines
 					// inside the if block.
-					IteratePtrPastBogusPeriods(ptr, pEnd);
+					int nPeriods = 0;
+					IteratePtrPastBogusPeriods(ptr, pEnd, nPeriods);
 
 					if (bIsVerseMkrParsed && IsAnsiDigit(*ptr))
 					{
@@ -50255,7 +50963,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 			//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			//	pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber >= 198)
+			if (pSrcPhrase->m_nSequNumber == 760)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}

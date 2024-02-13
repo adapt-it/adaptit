@@ -31070,17 +31070,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 
     // Test the FilteredMaterialContainsMoreThanOneItem() function used twice in ReconstituteAfterFilteringChange() 
-    //bool bOK;
-    //// test with empty filterStuff string
-    //wxString filterStuff = _T("");
-    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
-    //// test with only one item in filterStuff
-    //filterStuff = _T("\\~FILTER \\s This is a subheading\\~FILTER*");
-    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
-    //// test with more than one item in filterStuff
-    //filterStuff = _T("\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*");
-    //bOK = GetDocument()->FilteredMaterialContainsMoreThanOneItem(filterStuff);
-    //bOK = bOK;
+    /*
+    bool bOK;
+    // test with empty filterStuff string
+    wxString filterStuff = _T("");
+    CAdapt_ItDoc* pDoc = GetDocument();
+    bOK = pDoc->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    // test with only one item in filterStuff
+    filterStuff = _T("\\~FILTER \\s This is a subheading\\~FILTER*");
+    bOK = pDoc->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    // test with more than one item in filterStuff
+    filterStuff = _T("\\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*");
+    bOK = pDoc->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    // test with more than one item in filterStuff and filterStuff has a swept up marker prefixed to first filtered item
+    filterStuff = _T("\\c 11 \\~FILTER \\ms This is a major subheading\\~FILTER*\\~FILTER \\mr This is a major section reference\\~FILTER*");
+    bOK = pDoc->FilteredMaterialContainsMoreThanOneItem(filterStuff);
+    bOK = bOK;
+    */
 
     /*
     // Test the ReorderFilterMaterialUsingUsfmStructData() function
@@ -31101,11 +31107,44 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     test_UsfmStructArr.Add(_T("\\r:43:1"));     // 6
     test_UsfmStructArr.Add(_T("\\p:0:0"));      // 7
     test_UsfmStructArr.Add(_T("\\v 1:127:0"));  // 8
+    */
+
+    /*
+    // Test the ReorderFilterMaterialUsingUsfmStructData() function
+    // Make up a couple instances of a filterStr to input into the function, one with a wrong order and another with
+    // a correct order according to the test_UsfmStructArr containing the noral correct ordering.
+    wxString filteredStuffInOrder = _T("\\~FILTER \\fig The Jordan looked nothing like downtown Tokyo|src=\"Tokyo_scene02.jpg\" size=\"span\" ref=\"2.0\"\\fig*\\~FILTER*\\~FILTER \\s1 The Spirit comes down on Jesus\\~FILTER*");
+    wxString filteredStuffWrongOrder = _T("\\~FILTER \\s1 The Spirit comes down on Jesus\\~FILTER*\\~FILTER \\fig The Jordan looked nothing like downtown Tokyo|src=\"Tokyo_scene02.jpg\" size=\"span\" ref=\"2.0\"\\fig*\\~FILTER*");
+    wxString filteredStuffInOrderWithSweptMkr = _T("\\ c 11\\~FILTER \\fig The Jordan looked nothing like downtown Tokyo|src=\"Tokyo_scene02.jpg\" size=\"span\" ref=\"2.0\"\\fig*\\~FILTER*\\~FILTER \\s1 The Spirit comes down on Jesus\\~FILTER*");
+    wxString filteredStuffWrongOrderWithSweptMkr = _T("\\ c 11\\~FILTER \\s1 The Spirit comes down on Jesus\\~FILTER*\\~FILTER \\fig The Jordan looked nothing like downtown Tokyo|src=\"Tokyo_scene02.jpg\" size=\"span\" ref=\"2.0\"\\fig*\\~FILTER*");
+    wxString ChVs = _T("10:52");
+    // Make up a test version of m_UsfmStructArr that has 4 adjacent filterable markers in their normal correct ordering
+    wxArrayString test_UsfmStructArr;
+    test_UsfmStructArr.Clear();                 // index
+    test_UsfmStructArr.Add(_T("\\c 10:0:0"));   // 0
+    test_UsfmStructArr.Add(_T("\\v 52:155:0")); // 1
+    test_UsfmStructArr.Add(_T("\\c 11:0:0"));   // 2
+    test_UsfmStructArr.Add(_T("\\v 8:45:0"));   // 3
+    test_UsfmStructArr.Add(_T("\\s:54:0"));     // 4
+    test_UsfmStructArr.Add(_T("\\r:32:1"));     // 5
+    test_UsfmStructArr.Add(_T("\\p:0:0"));      // 6
+    test_UsfmStructArr.Add(_T("\\v 9:116:0"));  // 7
+    test_UsfmStructArr.Add(_T("\\fig:91:1"));   // 8
+    test_UsfmStructArr.Add(_T("\\fig*:1:0"));   // 9
+    test_UsfmStructArr.Add(_T("\\s1:30:0"));    // 10
+    test_UsfmStructArr.Add(_T("\\v 10:111:0")); // 11
+    test_UsfmStructArr.Add(_T("\\v 11:79:0"));  // 12
+    test_UsfmStructArr.Add(_T("\\free:55:1"));  // 13
+    test_UsfmStructArr.Add(_T("\\free*:0:0"));  // 14
     filteredStuffInOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffInOrder, ChVs, test_UsfmStructArr);
     int debugBreak = -1;
     filteredStuffWrongOrder = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffWrongOrder, ChVs, test_UsfmStructArr);
     debugBreak = -1; wxUnusedVar(debugBreak);
-    */
+    filteredStuffInOrderWithSweptMkr = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffInOrderWithSweptMkr, ChVs, test_UsfmStructArr);
+    debugBreak = -1; wxUnusedVar(debugBreak);
+    filteredStuffWrongOrderWithSweptMkr = GetDocument()->ReorderFilterMaterialUsingUsfmStructData(filteredStuffWrongOrderWithSweptMkr, ChVs, test_UsfmStructArr);
+    debugBreak = -1; wxUnusedVar(debugBreak);
+    */ 
 
     /*
     // whm 8Jan2024 testing two functions GetMarkersAndFollowingWhiteSpaceFromString()
@@ -31673,7 +31712,116 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm testing whitespace chars above
     */
 
+    // whm 2Feb2024 testing the AppendStringToStringWithSingularMedialWhiteSpace() function.
+    /*
+    wxString receivingStr;
+    wxString appendingStr;
+    wxString ts = wxChar(0x2009); // 8201 THIN SPACE
+    wxString nbsp = wxChar(0x00A0); // 160 NBSP standard Non-Breaking Space
+    //receivingStr = _T("This is receivingStr\r ");
+    //appendingStr = _T("  now appending appendingStr");
+    //AppendStringToStringWithSingularMedialWhiteSpace(receivingStr, appendingStr);
+    //receivingStr = _T("This is receivingStr ") + xch;
+    //appendingStr = _T("  now appending appendingStr");
+    //AppendStringToStringWithSingularMedialWhiteSpace(receivingStr, appendingStr);
+    receivingStr = _T("This is receivingStr ");
+    appendingStr = nbsp + ts + _T(" now appending appendingStr");
+    AppendStringToStringWithSingularMedialWhiteSpace(receivingStr, appendingStr);
+    int break_here = 0; wxUnusedVar(break_here);
+    */
 
+    // whm testing BELOW GetFilteredAndSweptUpMarkersFromString()
+    /*
+    wxString tempMkrs = _T("\\~FILTER \\ms Jises, iy are lau handru?\\~FILTER*\\~FILTER \\mr (Kalan 11:1-16:20)\\~FILTER*\\c 11 \\~FILTER \\s Jon ta alomwa suni oro lau tan ala atou Jises\\~FILTER*\\~FILTER \\r (Luk 7:18-35)\\~FILTER*");
+    wxArrayString markersPrecedingFilteredOnes;
+    wxArrayString filteredMkrsArrayWithFilterBrackets;
+    wxArrayString filteredMkrsArray;
+    markersPrecedingFilteredOnes.Clear();
+    filteredMkrsArrayWithFilterBrackets.Clear();
+    filteredMkrsArray.Clear();
+    CAdapt_ItDoc* pDoc;
+    pDoc = GetDocument();
+    pDoc->GetFilteredAndSweptUpMarkersFromString(tempMkrs,
+        markersPrecedingFilteredOnes,
+        filteredMkrsArrayWithFilterBrackets,
+        filteredMkrsArray);
+    int break_here = 0; wxUnusedVar(break_here);
+
+    // Test with an empty string for sanity check
+    tempMkrs = _T("");
+    markersPrecedingFilteredOnes;
+    filteredMkrsArrayWithFilterBrackets;
+    filteredMkrsArray;
+    markersPrecedingFilteredOnes.Clear();
+    filteredMkrsArrayWithFilterBrackets.Clear();
+    filteredMkrsArray.Clear();
+    pDoc = GetDocument();
+    pDoc->GetFilteredAndSweptUpMarkersFromString(tempMkrs,
+        markersPrecedingFilteredOnes,
+        filteredMkrsArrayWithFilterBrackets,
+        filteredMkrsArray);
+    break_here = 0; wxUnusedVar(break_here);
+
+    // Test with a filtered string with no preceding marker data for sanity check
+    tempMkrs = _T("\\~FILTER \\ms Jises, iy are lau handru?\\~FILTER*\\~FILTER \\mr (Kalan 11:1-16:20)\\~FILTER*\\~FILTER \\s Jon ta alomwa suni oro lau tan ala atou Jises\\~FILTER*\\~FILTER \\r (Luk 7:18-35)\\~FILTER*");
+    markersPrecedingFilteredOnes;
+    filteredMkrsArrayWithFilterBrackets;
+    filteredMkrsArray;
+    markersPrecedingFilteredOnes.Clear();
+    filteredMkrsArrayWithFilterBrackets.Clear();
+    filteredMkrsArray.Clear();
+    pDoc = GetDocument();
+    pDoc->GetFilteredAndSweptUpMarkersFromString(tempMkrs,
+        markersPrecedingFilteredOnes,
+        filteredMkrsArrayWithFilterBrackets,
+        filteredMkrsArray);
+    break_here = 0; wxUnusedVar(break_here);
+    // Testing results good.
+    // whm testing ABOVE GetFilteredAndSweptUpMarkersFromString()
+    */
+
+    /*
+    // whm Testing IsNextFilterableMkrToBeFiltered() BELOW
+    // wxChar* ptr, wxChar*, pEnd, wxString& sweptUpStuff, int& nLenSweptUpStuff)
+    wxArrayString testLinesArray;
+    testLinesArray.Clear();
+    wxString testStr;
+    testLinesArray.Add(_T("\r\nSome Text.\\r (Hez. 1:20-25)")); // whitespace followed by text and \r filtered by default
+    testLinesArray.Add(_T("\r\n")); // whitespace at end of file buffer
+    testLinesArray.Add(_T("\r\n\\p\r\n\\s1 Godzilla on the rampage!")); // \p present \s1 not filtered by default, but filterable by user
+    testLinesArray.Add(_T("\r\n\\p\r\n\\p ...\r\n\\r (Hez. 1:20-25)")); // two \p markers present second one with ... \r filtered by default
+    testLinesArray.Add(_T("\r\n\\c 2\r\n\\mr Hezekiah2 1:20-29")); // \mr filters by default by TokenizeText()
+    testLinesArray.Add(_T("\r\n\\v 28\r\n\\r (Hez. 1:20-25)")); // \r filters by default by TokenizeText()
+    testLinesArray.Add(_T(" \\r (Hez. 1:20-25)")); // with regular space before \r filtered by default
+    testLinesArray.Add(_T("\\r (Hez. 1:20-25)")); // \r filtered by default, but no preceding whitespace
+    CAdapt_ItDoc* pDoc = GetDocument();
+    wxString sweptUpStuff; sweptUpStuff.Empty();
+    int nTot = (int)testLinesArray.GetCount();
+    int nLenSweptUpStuff = 0;
+    bool bOK;
+    int nLen = 0;
+    for (int i = 0; i < nTot; i++)
+    {
+        sweptUpStuff.Empty();
+        nLenSweptUpStuff = 0;
+        testStr = testLinesArray.Item(i);
+        nLen = (int)testStr.Length();
+        const wxChar* pBuf = testStr.GetData();
+        nLen = (int)testStr.Length();
+        wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
+        wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06
+        wxChar* ptr = (wxChar*)pBuf;
+        bOK = pDoc->IsNextFilterableMkrToBeFiltered(ptr, pEnd, sweptUpStuff, nLenSweptUpStuff);
+        ptr += nLenSweptUpStuff; 
+        // Check that ptr points to appropriate char in the testStr
+        int break_point = 0; wxUnusedVar(break_point);
+
+        // For later test using TokenizeText:
+        //SPList* pNewList = this->m_pSourcePhrases;
+        //GetDocument()->TokenizeText(0, pNewList, testStr, nLen);
+    }
+    // whm Testing IsNextFilterableMkrToBeFiltered() ABOVE
+    */
 
 #if wxMAC_USE_CORE_GRAPHICS
     wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));

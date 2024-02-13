@@ -16699,7 +16699,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	{
 		wxLogDebug(_T("MakeTgtStrIncPunc() line %d: sn= %d, str= [%s], pSrcPhrase->m_key = [%s] , , pSrcPhrase->m_targetStr = [%s] , input targetStr= %s"),
 			__LINE__, pSrcPhrase->m_nSequNumber, str.c_str(), pSrcPhrase->m_key.c_str(),  pSrcPhrase->m_targetStr.c_str(), targetStr.c_str());
-		if (pSrcPhrase->m_nSequNumber >= 17)
+		if (pSrcPhrase->m_nSequNumber >= 73)
 		{
 
 
@@ -28372,13 +28372,6 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 	}
 
 	wxString srcStr; // collect in this
-	// Next three needed for the calls, but we don't use them, because the information is
-	// already placed in the returned string with markers where they need to be etc. The
-	// two booleans we pass in as TRUE, meaning "attach any filtered info to the returned
-	// string" and "attach any m_markers content to the returned string".
-	wxString unused_mMarkers; // any m_markers content
-	wxString unused_xRef;	// any \x .... \x* content (only that, or empty string)
-	wxString unused_filtdInfo; // any content from m_filteredInfo, with \x ... \x* removed
 	int length = 0;
 	pos_pSP = pSublist->GetFirst(); // re-initialize pos_pSP to start of sublist
 	wxASSERT(pos_pSP != NULL);
@@ -28398,11 +28391,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			else
 			{
-				// FALSE and FALSE is bDoCount and bCountInTargetText; we are not
-				// interested in the wordcounting because any free translations have been
-				// removed already when this function is called from OnEditSourceText()
-				srcStr = FromSingleMakeSstr(pSrcPhrase, TRUE, TRUE, unused_mMarkers,
-											unused_xRef, unused_filtdInfo, FALSE, FALSE);
+				srcStr = FromSingleMakeSstr(pSrcPhrase); // whm 5Feb2024 removed unused parameters
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and

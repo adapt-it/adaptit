@@ -400,8 +400,14 @@ public:
 						pInputBuffer, SPList* pList = NULL);
 	bool			m_bUsfmStructEnabled;
 	bool			FilteredMaterialContainsMoreThanOneItem(wxString filteredStuff);
-	void			GetFilterableMarkersFromString(wxString tempMkrs, 
-						wxArrayString& filteredMkrsArrayWithFilterBrackets, wxArrayString& filterableMkrsArray);
+	wxArrayString   GetFilteredInfoSegments(wxString filterStr); // whm 8Feb2024 added
+	void			GetFilteredAndSweptUpMarkersFromString(wxString tempMkrs, // whm 8Feb2024 revised
+						wxArrayString& markersPrecedingFilteredOnes,
+						wxArrayString& filteredMkrsArrayWithFilterBrackets, 
+						wxArrayString& filteredMkrsArray);
+	wxString		GetMarkerFromWithinOneFilteredString(wxString filteredMkrString); // whm 8Feb2024 added
+	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
+		wxString& sweptUpStuff, int& nLenSweptUpStuff);
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
 	wxString		ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr);
 	int				GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int aboveThisValue);
@@ -836,7 +842,7 @@ public:
 	int nPeriodsInWhitesLen;
 	bool IsEmptyMkr(wxChar* pChar, wxChar* pEnd, 
 		bool& bHasBogusPeriods, int& nWhitesLenIncludingBogusPeriods, int& nPeriodsInWhitesLen);
-	void IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd); 
+	void IteratePtrPastBogusPeriods(wxChar*& ptr, wxChar* pEnd, int& nPeriods); 
 	bool m_bWithinEmptyMkrsLoop; // set TRUE on entry, FALSE on exit; init to FALSE at top of TokText()
 
 
