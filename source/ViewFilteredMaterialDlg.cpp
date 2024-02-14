@@ -333,7 +333,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 #endif
 
 	wxString markerStr;
-	wxString tempStr, bareMkrStr, tempMkr;
+	wxString tempStr, bareMkrStr, tempMkr; tempStr.Empty(); bareMkrStr.Empty(); tempMkr.Empty();
 
 	// Locate the appropriate source phrase whose filtering members are being
 	// displayed/edited. Its m_nSequNumber is stored in the m_nSequNumBeingViewed global
@@ -588,7 +588,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 
     // Change the text in the wxTextCtrl to correspond to the marker clicked
     // on in the Marker list box 
-    tempStr = assocTextArrayBeforeEdit.Item(indexIntoMarkersLB);
+	// whm 5Feb2024 added protection against trying to access an item on a
+	// possible empty array
+	if (assocTextArrayBeforeEdit.GetCount() > 0)
+		tempStr = assocTextArrayBeforeEdit.Item(indexIntoMarkersLB);
 	pMkrTextEdit->ChangeValue(tempStr);
 
     // Look up the marker description of first item in the bareMarkerArray and place the

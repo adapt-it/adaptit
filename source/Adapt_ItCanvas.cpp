@@ -697,6 +697,7 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
 			if (pSP != NULL)
 			{
+
 				pSP->m_adaption.Empty();
 				pSP->m_targetStr.Empty();
 			}

@@ -973,6 +973,12 @@ enum ExportType
 	freeTransTextExport
 };
 
+enum RebuildTextType
+{
+	RebuildFullExportText,
+	RebuildFilteringSegment
+};
+
 enum KBExportSaveAsType
 {
 	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
