@@ -3941,6 +3941,10 @@ public:
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
 	int      m_newUserDlg_newuserpermission;
+	int      m_newUserDlg_allpermissions;
+	// BEW 13Feb24 added next two, in support of newer NewUserCredentialsDlg
+	bool m_bCreateUserByMenuItem; // TRUE when the NewUserCredentialsDlg is active
+	bool m_bGrantAllPermissions;  // TRUE if the user clicked the checkbox for granting "ALL PERMISSIONS'
 
 /*
 // Don't use an enum, int values are simpler

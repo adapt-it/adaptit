@@ -91,11 +91,17 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pNewFullnameCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_FULLNAME);
 	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
 	m_pCheck_GrantPermission = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
-	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked
+	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked, RHSide checkbox
+	m_pCheck_AllPermissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ALL_PERMISSIONS);
+	m_pCheck_AllPermissions->SetValue(FALSE); // start off unticked, LHSide checkbol
+
 	wxString empty = wxEmptyString;
 	m_pNewUsernameCtrl->ChangeValue(empty);
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
+
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_bCreateUserByMenuItem = TRUE;
 }
 
 void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
@@ -104,6 +110,8 @@ void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
 	m_pNewUsernameCtrl->ChangeValue(empty);
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
+	m_pCheck_AllPermissions->SetValue(FALSE);
+	m_pCheck_GrantPermission->SetValue(FALSE);
 	event.Skip();
 }
 
@@ -128,17 +136,21 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	// so that the KBSharingMgrTabbedDlg can pick them up for it's support of adding a new user
 	CAdapt_ItApp* pApp = &wxGetApp();
 	/* 
-	use these:
+	use these (member variables of AI.cpp):
 	wxString m_newUserDlg_newusername;
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
 	int      m_newUserDlg_newuserpermission;
+	int      m_newUserDlg_allpermissions; // BEW added 13Feb24
 	*/
 	pApp->m_newUserDlg_newusername = strNewUser;
 	pApp->m_newUserDlg_newfullname = strNewFullname;
 	pApp->m_newUserDlg_newpassword = strNewPassword;
 	bool bPermission = m_pCheck_GrantPermission->GetValue();
 	pApp->m_newUserDlg_newuserpermission = (bPermission == TRUE) ? 1 : 0;
+	bool bGrantAll = m_pCheck_AllPermissions->GetValue();
+	pApp->m_newUserDlg_allpermissions = (bGrantAll == TRUE) ? 1 : 0;
 
+	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off
 	event.Skip();
 }
