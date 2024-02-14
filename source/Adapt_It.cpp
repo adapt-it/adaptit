@@ -20355,6 +20355,9 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             if (dlg.ShowModal() == wxID_OK)
             {
                 // Dialog succeeded, so get the values that were typed in
+
+// TODO tweak for handline user choice for AllPermissions -- likewise, further below
+
                 tempStr = dlg.strNewUser;
                 commandLine += tempStr + comma;
 
@@ -20375,6 +20378,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 dlg.strNewFullname.Empty();
                 dlg.strNewPassword.Empty();
                 dlg.m_pCheck_GrantPermission->SetValue(FALSE);
+                dlg.m_pCheck_AllPermissions->SetValue(FALSE);
             }
 
             if (commandLine.IsEmpty()) 

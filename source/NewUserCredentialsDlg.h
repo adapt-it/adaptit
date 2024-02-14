@@ -41,6 +41,7 @@ public:
 	wxString strNewFullname;
 	wxString strNewPassword;
 	wxCheckBox* m_pCheck_GrantPermission;
+	wxCheckBox* m_pCheck_AllPermissions;
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
