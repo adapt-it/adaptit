@@ -17521,7 +17521,6 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 	// non-placeholder - whether or not it has had information moved to it. That's why the
 	// RebuildTargetText() function doesn't need all this extra apparatus.
 
-	//bool bHasFilteredMaterial = FALSE; // initialise
 	while (pos_pList != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
@@ -17610,9 +17609,6 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 			//source << str; // do it now, as str is emptied in a few places further below
 			str.Empty();
 		}
-		// BEW added to following block 16Jan09, for handling relocated markers on
-		// placeholders
-//		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 #if defined(_DEBUG)
 		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
@@ -17622,6 +17618,8 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 		}
 #endif
 
+		// BEW added to following block 16Jan09, for handling relocated markers on
+		// placeholders
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
 			// markers placement from a preceding placeholder may be pending but there may
@@ -17659,10 +17657,6 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 				// held over until the loop "sees" the next CSourcePhrase instance, it is
 				// almost certainly the next one, since there's no need for the user to
 				// manually insert two placeholders in sequence.
-//#if defined(_DEBUG)
-//				wxLogDebug(_T("Rebuild SRC: line %d, sn=%d,  str=%s"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-//#endif
-
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
 			// If bMarkersOnPlaceholder was set TRUE on the last iteration, then if a
@@ -17716,109 +17710,35 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
 			// because we don't gather those info types in the above function
-			//wxString xrefStr;
-			//wxString otherFiltered;
-
-			// whm 5Feb2024 removed the if(bHasFilteredMaterial) block below.
-			// Filtered material is handled adequately within the FromMergerMakeSstr()
-			// function below.
-			//
-			//if (bHasFilteredMaterial)
-			//{
-			//	// get the filtered stuff, FALSE means that any word-counting required by
-			//	// getting a free translation and its span, the counting will be done in
-			//	// the source text words, not the target text ones; TRUE means 'do the
-			//	// word count'; and 4th param, bIncludeNote which is default TRUE, here
-			//	// will take its default value because this pSrcPhrase isn't a
-			//	// placeholder, and so there may be a note here filtered away.
-			//	tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
-			//	// separate out the cross reference info & markers
-			//	SeparateOutCrossRefInfo(tempStr, xrefStr, otherFiltered);
-			//	// any filtered info (other than cross reference) goes first
-			//	if (!otherFiltered.IsEmpty())
-			//		str << otherFiltered;
-			//	tempStr.Empty();
-			//	str.Trim();
-			//	// handle m_markers, we delay xrefStr placement as it depends on what is
-			//	// within the m_markers member
-			//	if (!pSrcPhrase->m_markers.IsEmpty())
-			//	{
-			//		tempStr = pSrcPhrase->m_markers;
-			//		// BEW changed 2Jun06, to prevent unwanted space insertion before \f,
-			//		// \fe or \x, so we do it adding a space before tempStr provided one
-			//		// of those markers is not at the start of tempStr
-			//		tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
-			//		if (!xrefStr.IsEmpty())
-			//		{
-			//			// markers must precede cross reference info
-			//			str += tempStr;
-			//			str += xrefStr;
-			//			xrefStr.Empty();
-			//		}
-			//		else
-			//		{
-			//			// xrefString is empty
-			//			str += tempStr;
-			//		}
-			//		tempStr.Empty();
-			//	}
-			//	else
-			//	{
-			//		// m_markers is empty, but we still have to place xrefStr if it is
-			//		// non-empty
-			//		if (!xrefStr.IsEmpty())
-			//		{
-			//			str += xrefStr;
-			//			xrefStr.Empty();
-			//		}
-			//	}
-			//	str.Trim();
-			//	str += aSpace; // end it with a space when it's marker material
-			//	// whm 2Jan2024 modification. When source ends with whitespace and str begins
-			//	// with whitespace, we should remove the whitespace from the end of the accumulated
-			//	// source - since I thnk a word-break char is most appropriately preserved at the
-			//	// beginning of the str being added.
-			//	AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-			//	//source << str;
-			//} // end of TRUE block for test: if (bHasFilteredMaterial)
-			//else
-			//{
-			
-				// handle m_markers
-				if (!pSrcPhrase->m_markers.IsEmpty())
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				tempStr = pSrcPhrase->m_markers;
+				// BEW changed 2Jun06, to prevent unwanted space insertion before \f,
+				// \fe or \x, so we do it adding a space before tempStr provided one
+				// of those markers is not at the start of tempStr
+				tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
+				str += tempStr;
+				// BEW 21Jul14, after a begin-marker or begin-markers there is always
+				// a space, even in texts where ZWSP is used, so we test and add one
+				// here if it is needed
+				if (!tempStr.IsEmpty() && tempStr.GetChar(tempStr.Len() - 1) != aSpace)
 				{
-					tempStr = pSrcPhrase->m_markers;
-					// BEW changed 2Jun06, to prevent unwanted space insertion before \f,
-					// \fe or \x, so we do it adding a space before tempStr provided one
-					// of those markers is not at the start of tempStr
-					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
-					str += tempStr;
-					// BEW 21Jul14, after a begin-marker or begin-markers there is always
-					// a space, even in texts where ZWSP is used, so we test and add one
-					// here if it is needed
-					if (!tempStr.IsEmpty() && tempStr.GetChar(tempStr.Len() - 1) != aSpace)
-					{
-						str << aSpace;
-					}
-					tempStr.Empty();
+					str << aSpace;
 				}
-				// 
-				// whm 2Jan2024 modification. When source ends with whitespace and str begins
-				// with whitespace, we should remove the whitespace from the end of the accumulated
-				// source - since I thnk a word-break char is most appropriately preserved at the
-				// beginning of the str being added.
-				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
-				//source << str;
-				//textFile.AddLine(str);
-			//} // end of else block for test: if (bHasFilteredMaterial)
+				tempStr.Empty();
+			}
+			// 
+			// whm 2Jan2024 modification. When source ends with whitespace and str begins
+			// with whitespace, we should remove the whitespace from the end of the accumulated
+			// source - since I thnk a word-break char is most appropriately preserved at the
+			// beginning of the str being added.
+			AppendStringToStringWithSingularMedialWhiteSpace(source, str);
 				
 			// reconstitute the source text from the merger originals; anything from the
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
-//#if defined(_DEBUG)
-//			wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, FromMergerMakeSstr str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-//#endif
+
 			// BEW 30Sep19 Mergers over hidden USFM3 atributes metadata is forbidden, so
 			// there is no need to check for it here
 			// 
@@ -17990,11 +17910,8 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 				// with whitespace, we should remove the whitespace from the end of the accumulated
 				// source - since I thnk a word-break char is most appropriately preserved at the
 				// beginning of the str being added.
-				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
 				//source << str;
-//#if defined(_DEBUG)
-				//wxLogDebug(_T("Rebuild SRC: line %d, sn=%d, str= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
-//#endif
+				AppendStringToStringWithSingularMedialWhiteSpace(source, str);
 			}
 			str.Empty();
 		} // end of else block, i.e., it's a single word sourcephrase
@@ -18002,9 +17919,6 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
-//#if defined(_DEBUG)
-//	wxLogDebug(_T("Rebuild SRC: line %d, returning Length() = %d , source= [%s]"), __LINE__, (int)source.Length(), source.c_str());
-//#endif
 
 	// update length
 	return source.Length();
@@ -18043,13 +17957,6 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	mkr = _T("bt");
 	arrCustomBareMkrs.Add(mkr);
 	int nTextLength;
-
-	//size_t numLines;
-	//numLines = 0;
-	//wxString strContent;
-	//strContent = wxEmptyString;
-	//size_t index;
-	//wxString strAccum;
 
 	switch(exportType)
 	{

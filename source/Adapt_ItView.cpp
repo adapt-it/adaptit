@@ -28391,7 +28391,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			else
 			{
-				srcStr = FromSingleMakeSstr(pSrcPhrase); // whm 5Feb2024 removed unused parameters
+				srcStr = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and

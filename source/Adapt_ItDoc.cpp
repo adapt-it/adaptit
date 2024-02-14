@@ -9124,7 +9124,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	// regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
 
-	srcPhrase = FromSingleMakeSstr(pSrcPhrase); // 5Feb2024 removed unused parameters
+	srcPhrase = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
 
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
@@ -34559,6 +34559,7 @@ int CAdapt_ItDoc::ScanToNextMarker(wxChar* pChar, wxChar* pEnd)
 // incoming string is at the beginning of the fromThisStr. However, when it consists of "\\fig <m_key>"
 // that assumption is NOT correct, hence this function needs to be able to ingnore the marker string
 // "\\fig " and determine if there are "extras" in the actual m_key part of the incoming string.
+// whm 13Feb2024 This GetPostwordExtras() is no longer used in the refactored FromSingleMakeSstr2() function.
 wxString CAdapt_ItDoc::GetPostwordExtras(CSourcePhrase* pSrcPhrase, wxString fromThisStr)
 {
 	wxString extras = wxEmptyString;
