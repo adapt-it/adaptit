@@ -28027,7 +28027,7 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 /// BEW 23Mar10 updated for support of doc version 5 (some changes were needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
 /// BEW 11Oct10, extensively changed, to use the protocols built into FromMergerMakeStr()
-/// and FromSingleMakeSstr(), and also to handle placeholders within the span better (the
+/// and FromSingleMakeSstr2(), and also to handle placeholders within the span better (the
 /// old code just ignored them, but if info had been transferred to the placeholder that
 /// would be inadequate, a better solution is (after having collected the old adaptations
 /// and glosses - which has been done by the time this function is called) to get the span
@@ -28124,7 +28124,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			else
 			{
-				srcStr = FromSingleMakeSstr(pSrcPhrase); // whm 5Feb2024 removed unused parameters
+				srcStr = FromSingleMakeSstr2(pSrcPhrase); // whm 5Feb2024 removed unused parameters - now calls FromSingleMakeSstr2()
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
