@@ -9092,7 +9092,7 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// the ReconstituteAfterPunctuationChange() function for the owning srcPhrase with
 /// m_nSrcWords > 1. For the return value, see ReconstituteAfterPunctuationChange()'s
 /// return value - same deal applies here.
-/// BEW 11Oct10 (actually 21Jan11) modified to use FromSingleMakeSstr(), and to use the
+/// BEW 11Oct10 (actually 21Jan11) modified to use FromSingleMakeSstr2(), and to use the
 /// TokenizeText() parser - but using target text and punctuation in order to obtain the
 /// punctuation-less target text
 /// BEW 8Mar11, changed so as not to try inserting new CSourcePhrase instances if the
@@ -10376,7 +10376,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				// will be a [[after_......^]] substring immediately preceding each filtered \mkr which
 				// we need to separate from the marker content; and we need to unfilter in a loop because
 				// there could be several markers to be unfiltered. Third, we have to build a post-word
-				// string (rather like helpers::FromSingleMakeSstr) initially (before unfiltering) with
+				// string (rather like helpers::FromSingleMakeSstr2) initially (before unfiltering) with
 				// inline binding endmarkers, puncts from m_punct, inline non-binding endmarkers,
 				// puncts from m_follOuterPunct - doing this as a once off, then in a loop find where
 				// to insert each unfiltered string without the \~FILTER & \~FILTER* markers in their
@@ -24506,7 +24506,7 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// BEW ammended definition and coded the function
 /// whm added to wxWidgets build 4Apr05
 /// BEW 11Oct10 (actually 13Jan11)added code to base reparse on returned string from the
-/// function FromSingleMakeSstr() (rather than on m_srcPhrase, because the latter would
+/// function FromSingleMakeSstr2() (rather than on m_srcPhrase, because the latter would
 /// ignore the stored inline markers etc); and also added code to use an overload of
 /// TokenizeTextString() to parse the old m_targetStr adaptation, (whenever an adaptation
 /// is present of course, this function has to be able to operate on unadapted
@@ -34554,7 +34554,7 @@ int CAdapt_ItDoc::ScanToNextMarker(wxChar* pChar, wxChar* pEnd)
 // where the fromThisStr that is coming in from a m_srcSinglePatter that has a marker at the 
 // beginning of the string, such as "\\fig At" that will be the case when we're rebuilding the source 
 // text at the time a previously unfiltered \fig marker is now being filtered again, and the function
-// call FromSingleMakeSstr() calls this GetPostwordExtras() function.
+// call FromSingleMakeSstr2() calls this GetPostwordExtras() function.
 // Before this change the calculation of the key length keyLen assumes that the m_key part of the
 // incoming string is at the beginning of the fromThisStr. However, when it consists of "\\fig <m_key>"
 // that assumption is NOT correct, hence this function needs to be able to ingnore the marker string
@@ -35651,7 +35651,7 @@ bool CAdapt_ItDoc::Qm_srcPhrasePunctsPresentAndNoResidue(CSourcePhrase* pSrcPhra
 }
 
 // BEW added 10May23 for updating m_srcSinglePattern when puncts have changes
-// When this function gets called within FromSingleMakeSstr(), m_srcSinglePattern's oldKey value will
+// When this function gets called within FromSingleMakeSstr2(), m_srcSinglePattern's oldKey value will
 // already have been updated to whatever is the new m_key value; so it's the rest we deal with here
 // BEW 7Sep23 added wxString ref Sstr to signature, since we build a Sstr internally, we need to
 // pass it back to the caller for the caller to store and/or use 

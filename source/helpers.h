@@ -206,7 +206,8 @@ bool	  IsEndOfLine(wxChar* pChar, int& nCount); // BEW created 29Aug23 - maybe u
 int       Parse_NonEol_WhiteSpace(wxChar *pChar);
 int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool      Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
-wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs);
+// ehm 14Feb2024 the following declaration is repeated below so I'm commenting this one out.
+//wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs);
 
 void      ParseChVsFromReference(wxString RefStr, wxString& ChStr, wxString& VsStr); // whm 25Oct2022 added
 wxString  GetChVsRefFromActiveLocation();
@@ -367,7 +368,7 @@ wxString  RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created
 wxString  FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText);
 wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
-							bool bCountInTargetText);
+							bool bCountInTargetText, bool& bLastTstrOnlyContentWasPunct);
 bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxString& CopiedTstr, wxString tgtWord);
 			// created 1Sep23 to analyse the contents of an Sstr like: ten10\em*;\f*?”\wj*  in order to
 			// generate a sequence of wxString 3-substring lines, to store in the passed in arrItems.
@@ -376,8 +377,8 @@ bool	  AnalyseSstr(wxString s, wxArrayString& arrItems, wxString separator, wxSt
 			// The goal is to determine readable data which tells me what puncts go with which
 			// endMkrs - so that I can avoid having to show a Placement dlg to do the job
 
-wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters
-wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 alternate for testing
+wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 removed unused parameters - no longer used
+wxString  FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase); // whm 5Feb2024 - this one is now the only one used in the app
 wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);

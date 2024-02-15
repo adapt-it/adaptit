@@ -17134,6 +17134,7 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 // order, and any of such which is non-empty is appended, with no spaces added anywhere (to
 // comply with good USFM markup standards) to the passed in appendHere string, which is
 // then returned to the caller.
+// 
 // whm 12Feb2024 Revised to include the treatment of filtered information in this
 // AppendSrcPhraseEndingInfo() function instead of the earlier called 
 // AppendSrcPhraseBeginningInfo() function since the unfiltering of filtered 
@@ -17879,7 +17880,7 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 			// but Paratext has \v 1 followed by space, then the newline - so test for
 			// m_key empty, and if so, add a space to str here and don't trim it off below
 			// whm 17Jan2024 Previous code added aSpace to str here. However for 
-			// usfm-only conteneless markers returned from the FromSingleMakeSstr() 
+			// usfm-only conteneless markers returned from the FromSingleMakeSstr2() 
 			// function above, will already have a space suffixed to the str here.
 			// In exports of source text, there should actually be no following 
 			// space on the contentless marker. Therefore, I'm remove the final
@@ -19034,6 +19035,12 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	wxString targetstr; // accumulate the target text here
 
+	// whm 15Feb2024 added following boolean to track when a previous target string was
+	// empty except for some preceding punctuation/markers.
+	// This boolean is now a reference parameter in the FromSingleMakeTstr() function to
+	// inform RebuildTargetText()  whether to suppress the insertion of aBreak below.
+	bool bLastTstrOnlyContentWasPunct = FALSE;
+
 	SPList::Node* pos_pList = pList->GetFirst();
 	wxASSERT(pos_pList != NULL);
 	while (pos_pList != NULL)
@@ -19044,7 +19051,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos_pList = pos_pList->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-		if (pSrcPhrase->m_nSequNumber >= 11) 
+		if (pSrcPhrase->m_nSequNumber == 831) 
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -19072,15 +19079,39 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		if (!aBreak.IsEmpty())
 		{
 			// whm 19Sept2023 modified to use CRLF instead of only LF when rebuilding the text.
-			if (aBreak == _T('\n'))
+			// whm 15Feb2024 added test for bLastTstrOnlyContentWasPunct before adding aBreak.
+			if (bLastTstrOnlyContentWasPunct == FALSE)
 			{
-				targetstr += _T("\r\n"); // change LF to CRLF
+				// Only add aBreak if bLastTstrOnlyContentWasPunct was FALSE, otherwise we
+				// would be adding aBreak between a preceding punctuation/quote mark that
+				// was present on a previous SP where user indicated <no adaptation> as a
+				// translation for that previous SP, but where that previous SP has some kind
+				// of preceding punctuation.
+				if (aBreak == _T('\n'))
+				{
+					targetstr += _T("\r\n"); // change LF to CRLF
+				}
+				else
+				{
+					targetstr += aBreak;
+				}
 			}
 			else
 			{
-				targetstr += aBreak;
+				// We must reset the bLastTstrOnlyContentWasPunct to FALSE so that normal
+				// insertion of aBreak between target words/phrases will continue.
+				bLastTstrOnlyContentWasPunct = FALSE;
 			}
 		}
+		else
+		{
+			// aBreak was empty so aBreak was not added for this SP.
+			// if bLastTstrOnlyContentWasPunct was set TRUE we need to reset it before
+			// continuing.
+			if (bLastTstrOnlyContentWasPunct)
+				bLastTstrOnlyContentWasPunct = FALSE;
+		}
+
 		if (pSrcPhrase->m_bRetranslation)
 		{
 			// in the following call, str gets assigned internal markers
@@ -19140,7 +19171,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
 				// (of words in the free translation section, if any such section), and
 				// second TRUE is bCountInTargetText
-				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE);
+				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE, bLastTstrOnlyContentWasPunct);
 #if defined(_DEBUG)
 				wxLogDebug(_T("Rebuild TGT: line %d, sn=%d, FromSingleMakeTstr= [%s]"), __LINE__, pSrcPhrase->m_nSequNumber, str.c_str());
 #endif
