@@ -19085,19 +19085,21 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
 		{
             wxString filename = wxEmptyString; // init
-            if (m_bAddUser2UserTable)
-            {
-                filename = _T("add_foreign_users.dat");
-            }
-            else
-            {
-                filename = _T("add_foreign_KBUsers.dat");
-            }
+
+            
+            //if (m_bAddUser2UserTable)
+            //{
+            filename = _T("add_foreign_users.dat"); // BEW 15Feb24 use just this for both GUI and Mgr ways to add a user
+            //}
+            //else
+            //{
+            //    filename = _T("add_foreign_KBUsers.dat");
+            //}
 
 			DeleteOldDATfile(filename, execFolderPath);
 			//MoveBlankDatFile(filename, dataFolderPath, execFolderPath);
 			ConfigureMovedDatFile(funcNumber, filename, execFolderPath);
-			// The .exe with the C code for doing the SQL etc, has to be
+			// The .exe with the C code ( or .py) for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it should be in
 			// the _DATA_KB_SHARING folder, as per Bill's stipulation of where to
             // store the external executable files
@@ -20223,9 +20225,8 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 #if defined (_DEBUG)
     wxLogDebug(_T("ConfigureMovedDatFile() CALLED, line %d  funcNumber %d execFolderPath %s"), __LINE__, funcNumber, execFolderPath.c_str());
 #endif
-	// Put a copy of execFolderPath into app's m_curExecPath member, so that
-	// CallExecute() can grab it when needed
-	m_curExecPath = execFolderPath;
+	// Set m_curExecPath member, so that CallExecute() can grab it when needed
+    m_curExecPath = execFolderPath; // in caller, add PathSeparator to app's m_appInstallPathOnly
 
 	wxString filePath = execFolderPath + filename;
 	if (funcNumber == 0) // beginning of const int's set, a do-nothing value
@@ -20248,7 +20249,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
     // I'm taking for the present. As I work on more do_......exe functions, the avoidance test
     // at line 19,525 may get more subtests added; or I may just remove it entirely from here
     wxString dateTimeNow = wxEmptyString;
-    if (funcNumber != create_entry)
+    if (funcNumber != create_entry) // create_entry is switch case value 4
     {
         dateTimeNow = GetDateTimeNow(forXHTML);
     }
@@ -20356,7 +20357,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             {
                 // Dialog succeeded, so get the values that were typed in
 
-// TODO tweak for handline user choice for AllPermissions -- likewise, further below
+                // TODO tweak for handling user choice for AllPermissions -- likewise, further below
 
                 tempStr = dlg.strNewUser;
                 commandLine += tempStr + comma;
@@ -20381,8 +20382,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 dlg.m_pCheck_AllPermissions->SetValue(FALSE);
             }
 
-            if (commandLine.IsEmpty()) 
+            if (commandLine.IsEmpty())
+            {
+                m_bGrantAllPermissions = FALSE;
+                m_bCreateUserByMenuItem = FALSE;
                 return;
+            }
         }
         else 
 		{
@@ -22158,14 +22163,8 @@ void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
     wxString datFilename = wxEmptyString; // init
-    if (m_bAddUser2UserTable)
-    {
-        datFilename = _T("add_foreign_users.dat");
-    }
-    else
-    {
-        datFilename = _T("add_foreign_KBUsers.dat");
-    }
+    datFilename = _T("add_foreign_users.dat");
+
 	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
@@ -39804,9 +39803,115 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 //#if defined (_KBSERVER)
 
+// BEW 15Feb24, refactoring. The dialog with the checkbox option: Create User With All Permissions comes first,
+// so that if that checkbox is ticked, code for calling do_create_user_grant_all.py is done; and the else block
+// will be for that checkbox not clicked, and there copy legacy code for do_add_foreign_kbusers.exe (or .py later)
+//is called. We can't know which is the case until the dialog is finished and values extracted from it.
 void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
     m_bAddUser2UserTable = TRUE;
+    wxString commandLine = wxEmptyString; // init
+    wxString strPython = _T("python3"); // put before a *.py executable, instead of a large *.exe made by PyInstaller
+    wxString comma = _T(","); wxString one = _T("1"); wxString zero = _T("0");
+    commandLine = this->m_strKbServerIpAddr + comma; // applies to either GUI or Mgr way
+    wxString tempStr = wxEmptyString;
+    this->m_bGrantAllPermissions = FALSE; // init
+    int m_nAddUsersCount = 0; // init (we can only add one at a time)
+    
+    // BEW 15Feb24, put up the NewUsercredentiasDlg for user to input the needed credentials
+    NewUserCredentialsDlg dlg(this->GetMainFrame());
+    dlg.Center();
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        // Dialog succeeded, so get the values that were typed in.
+        // Here we must choose between creating with all permissions, versus not doing that
+        // DoOK() has checked an refused progress to here if any of the string fields are empty;
+        // and set the app members at .h 3940-3947 m_newUserDlg_newusename etc specified in the dlg
+         //bool bGrantAllPermissions = dlg.m_pCheck_AllPermissions->GetValue();
+        if (this->m_newUserDlg_allpermissions == 1)
+        {
+            // The user wants his/her nominated user, (and fullname) and password, and useradmin value set
+            // to 1, regardless of the value of the right side's checkbox, to be able to do everything
+            // that kbadmin, KBUser, kbauth could do. And the new user will then be put in m_strUserID,
+            // etc, (and a new line lodged in the Manager), so that the new user becomes the active one,
+            // will all privileges - so that his or her entries go to the entry table with that new name
+            // (and associated new fullname) - the new password is stored in the Manager where it's 
+            // protected somewhat. In this block we ensure that do_create_user_grant_all.py gets called
+
+            // Make the command line. It's a .py function, so insert into the finished commandLine, at
+            // it's start, "python3". So far, we've just got the ipAddr value set.
+            tempStr = m_strUserID;
+            commandLine += tempStr + comma;
+            tempStr = m_strFullname;
+            commandLine += tempStr + comma;
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO  this block is new stuff
+        }
+        else
+        {
+            // The legacy code applies, the new user will have user-list presence in the KB Sharing Manager,
+            // and useradmin (1 or 0 according to the value of the RHS checkbox. But m_strUserID will not
+            // be changed (if it is kbadmin, it stay as that, or as whatever fully privileged user was in
+            // operation)
+            tempStr = dlg.strNewUser;
+            commandLine += tempStr + comma;
+
+            tempStr = dlg.strNewFullname;
+            commandLine += tempStr + comma;
+
+            tempStr = dlg.strNewPassword;
+            commandLine += tempStr + comma;
+
+            bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
+            commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+
+
+
+
+
+
+
+
+
+
+// TODO  move legacy code up, a copy and paste, not cut and paste, as the legacy code will also apply for button Add User
+
+        }
+    }
+    else
+    {
+        // User cancelled
+        commandLine.Empty();
+        dlg.strNewUser.Empty();
+        dlg.strNewFullname.Empty();
+        dlg.strNewPassword.Empty();
+        dlg.m_pCheck_GrantPermission->SetValue(FALSE);
+        dlg.m_pCheck_AllPermissions->SetValue(FALSE);
+
+        commandLine.Empty();
+        this->m_bGrantAllPermissions = FALSE;
+        this->m_bCreateUserByMenuItem = FALSE;
+        return; // nothing changes
+    }
+
+
+
+
+
+
+
+
 
 	// Prepare the .dat input dependency: "add_foreign_users.dat" file, into
 	// the execPath folder, ready for the system() call, or wxShell() call, below

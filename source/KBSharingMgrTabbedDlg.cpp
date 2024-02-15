@@ -1461,14 +1461,14 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	m_pApp->m_temp_password = strPassword;
 	m_pApp->m_temp_useradmin_flag = strUseradmin;
 	wxString ipAddr = m_pApp->m_chosenIpAddr;
-	//wxString datFilename = _T("add_foreign_users.dat"); <<-- BEW 2Jan24, wrong name for the .dat having the commandLine
-	wxString datFilename = _T("add_foreign_KBUsers.dat");
+	wxString datFilename = _T("add_foreign_users.dat");
+	//wxString datFilename = _T("add_foreign_KBUsers.dat"); use only 1 name for GUI or Mgr
 
-	wxString resultFile = _T("add_foreign_KBUsers_results.dat");
+	wxString resultFile = _T("add_foreign_users_results.dat");
 
-	m_pApp->m_bAddUser2UserTable = FALSE; // BEW added 2Jan24, if left unset, it will have value 205 which is a bogus TRUE
-				// which then results in the code for the GUI way of creating a new user being called. Setting FALSE
-				// means that values will come from user page's text controls and possibly also the checkbox, if ticked
+	m_pApp->m_bAddUser2UserTable = FALSE; // BEW 15Feb24, this bool is for differentiating between
+		// adding a user by the GUI menu choice (if TRUE), or the Mgr's Add User button (FALSE). There's
+		// no need to differentiate with two .dat files which use the a commandLine of one structure
 	bool result = FALSE; // initialize
 
 	wxString DBUsername = m_pApp->m_strUserID;
