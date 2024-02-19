@@ -660,7 +660,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	case sourceTextExport:
 	{
 		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
-		nTextLength = RebuildSourceText(text, RebuildFullExportText);  // BEW 29Mar23 this fails, m_str is NULL
+		nTextLength = RebuildSourceText(text);  // BEW 29Mar23 this fails, m_str is NULL
 	}
 		break;
 	case glossesTextExport:
@@ -1790,7 +1790,7 @@ void DoExportAsType(enum ExportType exportType)
 	{
 	case sourceTextExport:
 	{
-		nTextLength = RebuildSourceText(source, RebuildFullExportText, pList);
+		nTextLength = RebuildSourceText(source, pList);
 		nTextLength = nTextLength; // avoid gcc warning set but not used warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
@@ -17148,6 +17148,13 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
 	filteredInfo = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans,
 												bCountInTargetTextLine, bIncludeNote);
+	// whm 18Feb2024 added. The GetFilteredStuffAsUnfiltered() call above adds a space
+	// to the string it returns - even when there is no filtered stuff to return. This
+	// means filteredInfo contains a single space at this point when there really is no
+	// filtered information. To remedy this I'm calling .Trim(FALSE) to trim off any
+	// initial space, which shouldn't hurt even when there is filtered info returned
+	filteredInfo.Trim(FALSE); // trim of any leading space
+
 	if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
 	{
 		appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
@@ -17388,16 +17395,11 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // whm 19Sept2023 modified to change EOLs from just LF to CRLF so that exported text
 // will have the same EOLs across the board, and not have mixed EOLs with some being
 // LF and some being CRLF.
-int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUseThisList)
+int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 #if defined(_DEBUG)
 	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
 #endif
-
-	if (rebuildType == RebuildFilteringSegment)
-	{
-
-	}
 
 	wxString str; // local wxString in which to build the source text substrings
 
@@ -17613,7 +17615,7 @@ int RebuildSourceText(wxString& source, RebuildTextType rebuildType, SPList* pUs
 #if defined(_DEBUG)
 		//wxLogDebug(_T("\nRebuild SRC: line %d, sn=%d, bHasFilteredMaterial= %d,  pSrcPhrase->m_srcPhrase= [%s]"),
 		//	__LINE__, pSrcPhrase->m_nSequNumber, (int)bHasFilteredMaterial, pSrcPhrase->m_srcPhrase.c_str());
-		if (pSrcPhrase->m_nSequNumber == 97)
+		if (pSrcPhrase->m_nSequNumber == 36)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -17981,7 +17983,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	}
 	case sourceTextExport:
 	{
-		nTextLength = RebuildSourceText(usfmText, RebuildFullExportText, pList);
+		nTextLength = RebuildSourceText(usfmText, pList);
 	}
 		break;
 	} // end of switch(exportType)

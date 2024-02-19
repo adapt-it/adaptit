@@ -4981,6 +4981,11 @@ public:
 	wxString m_EmbeddedIgnoreEndMarkers;
 	wxString m_charFormatMkrs;
 	wxString m_charFormatEndMkrs;
+
+	// whm 17Feb2024 added the following two usfm marker sets for processing old bar codes
+	wxString m_usfmFormatBeginMkrSet; // _T("\\bd \\it \\em \\sc ");
+	wxString m_usfmFormatEndMkrSet;  // _T("\\bd* \\it* \\em* \\sc* ");
+
 	int	FindLastBackslash(wxString beginMkrs); // BEW 22Apr20, within m_markers string, returns offset
 	wxString FindLastBeginMkr(wxString beginMkrs, int offset); // BEW 22Apr20
 	wxString m_verseTypeMkrs;

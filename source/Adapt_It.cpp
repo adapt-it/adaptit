@@ -24609,6 +24609,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_bTextTypeChangePending = FALSE; // initialise
 
+    // whm 17Feb2024 added the following marker usfm marker set for processing old bar codes
+    m_usfmFormatBeginMkrSet = _T("\\bd \\it \\em \\sc ");
+    m_usfmFormatEndMkrSet = _T("\\bd* \\it* \\em* \\sc* ");
 
 	// BEW 22Apr20, following fast access strings are for setting TextType values
 	m_verseTypeMkrs = _T("\\v \\m \\va \\vp \\ca \\cl \\cp \\cd \\lh \\li1 \\li2 \\li3 \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 ");

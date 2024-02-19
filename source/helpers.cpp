@@ -4830,11 +4830,6 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	//						pSrcPhrases, otherFiltered, collBackTransStr,
 	//						freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
-	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
-
 	// BEW 11Oct10, the initial stuff is now more complex, so we just can't insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
 	// string, strInitialStuff in which to build the stuff which precedes m_targetStr and
@@ -4847,7 +4842,12 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// It is used in From MergerMakeTstr(), FromSingleMakeTstr() and FromSingleMakeSstr() and
 	// in each case, it must not return filtered info, so the internal tweaks apply in all calls
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
-						bAttachFilteredInfo, bAttach_m_markers);
+												bAttachFilteredInfo, bAttach_m_markers);
+	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	// make sure it ends with a space
+	markersPrefix.Trim();
+	markersPrefix << aSpace;
+
 	// for Sstr, which we only show to the user so he/she has the source to guide what is
 	// done in the target by manual editing in the placement dialog, we don't include any
 	// of the filtered info, so just put markersStr into Sstr

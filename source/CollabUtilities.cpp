@@ -11691,7 +11691,7 @@ extern bool gbDoingInitialSetup;
 		wxString footnote = _T("\\f ");
 		wxString filteredMkrs = pApp->gCurrentFilterMarkers;
 
-		nTextLength = RebuildSourceText(source, RebuildFullExportText); // BEW 29Mar23 need to pass 1st param by pointer, not reference
+		nTextLength = RebuildSourceText(source); // BEW 29Mar23 need to pass 1st param by pointer, not reference
 		wxUnusedVar(nTextLength); // avoid warning
 
 		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
