@@ -90,7 +90,7 @@ wxString	PrepareUniqueFilenameForExport(wxString exportFilename, bool bDoAlways,
 int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 
 // below are supporting functions for the above main export functions:
-int		RebuildSourceText(wxString& srcText, RebuildTextType rebuildType, SPList* pList = NULL); // 2nd param for rebuilding from any list
+int		RebuildSourceText(wxString& srcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
 //int			RebuildSourceText(wxString* psrcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
 
 wxString	RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType, bool bFilterCustomMarkers = TRUE);

@@ -533,6 +533,10 @@ public:
 	bool			IsOpenParenthesisAhead2(wxChar* pChar, wxChar* pEnd); // BEW 5Nov20 added for ParseWord(): .<space>(<space>nxtwrd 
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
+	bool			IsOldBarCodeAhead(wxChar* pChar, const wxChar* pBufStart, wxChar* pEnd, wxString& barCode); // whm 16Feb2024 added
+	int				ParseOldBarCodeAndReturnNewBarCode(wxChar* pChar, const wxChar* pBuffStart, wxString barCode, wxString& newUsfmCode); // whm 16Feb2024 added
+	int				ParseOldBarCode(wxChar* pChar, const wxChar* pBufStart, wxChar* pEnd, 
+									CSourcePhrase*& pSrcPhrase, bool& bProcessedOldBarCode); // whm 19Feb2024 added to consolidate above two functions
 	bool			IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn,
 	bool&           bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
 	bool			IsEndMarker(wxChar* pChar, wxChar* pEnd);
@@ -638,7 +642,8 @@ public:
 		bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
 		// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
 		bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
-		bool bTokenizingTargetText);
+		bool bTokenizingTargetText,
+		bool& bProcessedOldBarCode); // whm 18Feb2024 added. TRUE when ParseWord() has processed an old bar code
 
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);

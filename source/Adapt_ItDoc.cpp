@@ -5868,7 +5868,7 @@ bool CAdapt_ItDoc::SetupUsfmStructArrayAndFile(enum UsfmStructFileProcess filePr
 	if (fileProcess == createFromSPList)
 	{
 		int textLen;
-		textLen = RebuildSourceText(inputBuffer, RebuildFullExportText, pList);
+		textLen = RebuildSourceText(inputBuffer, pList);
 		if (textLen == 0 || inputBuffer.IsEmpty() || pList->IsEmpty())
 		{
 			// Not likely to happen so an English message is OK.
@@ -11221,7 +11221,7 @@ g:				bIsUnknownMkr = FALSE;
 
 					// end of addition done on 9Apr15
 					// BEW changed 29Mar23, pass in pointer, not a reference
-					int textLen = RebuildSourceText(strFilteredStuff, RebuildFilteringSegment, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
 					//wxLogDebug(_T("%s::%s() , line  %d  wholeMarker =  %s"), __FILE__, __FUNCTION__, __LINE__, wholeMkr.c_str());
 
@@ -12156,7 +12156,7 @@ g:				bIsUnknownMkr = FALSE;
 					m_bCurrentlyFiltering = TRUE;
 
 					// end of addition done on 9Apr15
-					int textLen = RebuildSourceText(strFilteredStuff, RebuildFilteringSegment, pSublist);
+					int textLen = RebuildSourceText(strFilteredStuff, pSublist);
 					wxUnusedVar(textLen); // to avoid a compiler warning
 
 					// BEW 30Sep19 the above RebuildSourceText() will, embedded in it,
@@ -18077,6 +18077,396 @@ bool CAdapt_ItDoc::IsOpenParenthesisAhead(wxChar* pChar, wxChar* pEnd)
 	// then the block is skipped and legacy code will operate to
 	// determine what's punctuation and where the word break will be	
 	return FALSE;
+}
+
+// whm 16Feb2024 added to detect any old bar code formatting markers in texts that predate the full
+// adoption of the USFM standard. We still have in our archives from 2021 Nyindrou SFM files that had
+// used old bar codes - thousands of them. 
+// While I think the Paratext repositories, and ebible.org website now probably have filtered out or
+// converted old bar codes, it is possilbe that some users might try to load bar code laden files into
+// Adapt It. 
+// This function detects the presence of bar codes and, if a bar code is found, it returns TRUE, and
+// also returns via its barCode reference parameter what bar code it found to the caller.
+// The bar codes detected by this function and their Usfm equivalents (more or less) are:
+// |b (bold) --> \bd 
+// |i (italic) --> \it
+// |sc (small caps) --> \sc
+// |u (underline) --> \em - assuming anything underlined is for emphasis
+// The usfm equivalent end markers should be returned when a particular bar code is canceled with |r:
+// \bd* for when |r cancels a |b - after a \bd begin code
+// \it* for when |r cancels a |i - - after a \it begin code
+// \sc* for when |r cancels a |sc - after a \sc begin code
+// \em* for when |r cancels a |u - after a \em begin code
+// The new Usfm scheme also has a \no ... \no* for return to normal text - when multiple formatting is
+// to be canceled at once. This however, I think is adequately covered by returning an end marker for
+// when |r is encountered in the text.
+// Note that the USFM standard also has a formatting markers for superscript \sup ...\sup* which didn't 
+// exist as a bar code, and so we don't expect to see a bar code for that.
+// A followup function ParseOldBarCodeAndReturnNewBarCode() can then be called which can automatically parse 
+// the old bar code and return the usfm equivalent usfm code to the caller via its newUsfmCode 
+// reference parameter.
+// This function is primarily used in the ParseWord() function at the point that ParseWord() detects the
+// presence of a bar '|' character at its pointer ptr.
+// The old bar codes generally did not have spaces required after the bar code and might be used right in
+// the middle of a word. This makes it a bit of a challenge for identifying a true bar code from other
+// possible uses of a vertical bar character found within text material, espeically the use of the vertical
+// bar character to separate text from meta data in attribute markers. To avoid confusing a vertical bar |
+// with its use in attribute markers, we need to scan backwards to see if the vertical bar is within an
+// attribute marker's span, that is if a preceding begin marker is an attribute matker like \w or \fig, etc.
+bool CAdapt_ItDoc::IsOldBarCodeAhead(wxChar* pChar, const wxChar* pBufStart, wxChar* pEnd, wxString& barCode) // whm 16Feb2024 added
+{
+	wxChar* ptr = pChar; // initialise
+	// When this function is called the caller's pointer ptr should be pointing directly at a '|' character.
+	
+	// First we need to bleed out any consideration of a '|' char that falls within a character
+	// attribute marker like \w ...\w*, \fig ...\fig*, or a linking marker like \jmp ...\jmp* which use
+	// the '|' char to delimit attribute/linking metadata from the normal text/caption of such markers.
+	// To bleed out such valid uses of the '|' character, we need to search back from the ptr location
+	// to see if the current '|' character is within a span delimited by:
+	//    a character attribute marker: \w ...\w*, \rb ...\rb*, \xt ...\xt*, \fig ...\fig*
+	//    a linking marker: \jmp ...\jmp*.
+	// So if when scanning back we come to \w, \rb, \xt, \fig, or \jmp we can assume that the '|' character
+	// is not to be cosidered part of an old-style bar code.
+	wxString mkr; mkr.Empty();
+	wxString augMkr; augMkr.Empty();
+	//wxString endMkr; endMkr.Empty();
+	//wxString lastFoundMkr; lastFoundMkr.Empty();
+	//bool bFoundFormatBeginMarker = FALSE;
+	bool bFoundCharAttributeBeginMarker = FALSE; // charAttributeMkrs = _T("\\fig \\jmp \\+jmp \\w \\rb \\qt-s \\qt-e ")
+	bool bFoundCharAttributeEndMarker = FALSE;
+	bool bKeepScanning = TRUE;
+	wxChar space = _T(' ');
+	wxString backslash = _T("\\");
+	//wxString usfmFormatBeginMkrSet = _T("\\bd \\it \\em \\sc ");
+	while (ptr >= pBufStart && bKeepScanning)
+	{
+		// Check for prior markers
+		if (*ptr == backslash)
+		{
+			// We're at a backslash so parse the marker to see what it is
+			int mkrLen;
+
+			mkrLen = ParseMarker(ptr);
+			mkr = wxString(ptr, mkrLen);
+			mkr.Trim();
+			augMkr = mkr + space;
+			bFoundCharAttributeEndMarker = charAttributeEndMkrs.Find(augMkr) != wxNOT_FOUND;
+			bFoundCharAttributeBeginMarker = charAttributeMkrs.Find(augMkr) != wxNOT_FOUND;
+			if (bFoundCharAttributeBeginMarker || bFoundCharAttributeEndMarker)
+			{
+				// The previous marker found was a either a begin or end attribute marker
+				// We stop scanning having detected a begin or end attribute marker
+				bKeepScanning = FALSE;
+			}
+		}
+		// keep scanning backwards in the buffer
+		ptr--; // point at previous char
+	} // end of while (ptr >= pBufStart && !bFoundFormatBeginMarker)
+
+	if (bFoundCharAttributeBeginMarker)
+	{
+		// The last attribute marker was a begin marker, which indicates our current
+		// bar '|' char being pointed at by ptr is being used within the current span 
+		// of an attribute/linking marker, and so we must return FALSE.
+		// Note: If we found an character attribute END marker we would know that any
+		// previous attribute marker span had already ended, and it would be safe to
+		// continue looking ahead below for an old bar code.
+		return FALSE;
+	}
+
+	// If we get to this point, we are certain that we have a bar char '|' that is NOT
+	// part of an character attribute marker span - as determined above - so we can 
+	// proceed now to scan forward to see whether it's an old bar code ahead of the 
+	// '|' character.
+	ptr = pChar; // reset the ptr to point again at the '|' character
+
+	// Look aheaad of the '|' character and see what follows the bar character.
+	// The longest bar codes are "|sc" and "\bi" so we can limit our forward
+	// scanning to the bar char and 2 additional characters or a maxBarCodeChars of 3.
+	int maxBarCodeChars = 3;
+	wxChar chBar = _T('|');
+	wxString barCodeFirstCharSet = _T("birsu"); // first letter of |b |i |r |sc |u
+	wxString barCodeSecondCharSet = _T("c"); // second letter of |sc
+	wxString barCodeStr; barCodeStr.Empty();
+	wxString debugStr; debugStr.Empty();
+	wxChar chAtPtr;
+	wxChar nextCh;
+
+	if (pEnd - (ptr + maxBarCodeChars) >= 0)
+	{
+		// We have at least 4 characters of text ahead to work with
+		debugStr = wxString(ptr, maxBarCodeChars);
+		debugStr = debugStr; // avoid gcc not used warning
+		int count = 1;
+		while (count < maxBarCodeChars)
+		{
+			chAtPtr = *ptr;
+			nextCh = *(ptr + 1);
+			if (count == 1) // the bar '|' char should be at count == 0
+			{
+				if (chAtPtr == chBar)
+				{
+					barCodeStr += chBar;
+				}
+				else
+				{
+					// ptr wasn't pointing initially at a bar '|' char so
+					// set barCode to wxEmptyString and return FALSE
+					barCode = wxEmptyString;
+					return FALSE;
+				}
+			}
+			if (count == 2) // the first character of a potential bar code, is it in barCodeFirstCharSet?
+			{
+				if (*ptr == space)
+				{
+					// a space follows the '|' char so it can't be a bar code but is an isolated '|' char
+					barCode = wxEmptyString;
+					return FALSE;
+				}
+				else if (IsOneOf(ptr, barCodeFirstCharSet))
+				{
+					// char at pointer is: b, i, r, s, or u
+					barCodeStr += *ptr; // add the first barcode char
+
+
+					if (barCodeSecondCharSet.Find(nextCh) == wxNOT_FOUND)
+					{
+						// No match for a 2-letter bar code, so it's a single-letter bar code
+						barCode = barCodeStr;
+						return TRUE;
+					}
+					else
+					{
+						// The nextCh is a match for a 2-letter bar code
+						barCodeStr += nextCh; // add the second barcode char
+						barCode = barCodeStr;
+						return TRUE;
+					}
+				}
+			}
+			count++;
+			ptr++; // increment to point to next ch
+		}
+	}
+	// if we get here no bar code was found or there were not maxBarCodeChars to work with
+	barCode = wxEmptyString;
+	return FALSE;
+}
+
+// whm 16Feb2024 added. This function is designed to be called after the bool IsOldBarCodeAhead() funcation 
+// defined above.
+// This function parses the old code and returns its length as int to caller. The new usfm equivalent code
+// is also returned via the newUsfmCode reference parameter.
+// Note: Special handling is required when the barCode parameter indicates that a |r code was found, since 
+// |r is the return to normal formatting for all the bar codes. If |r is in the barCode parameter, we search
+// backwards in the text to see what was the last USFM formatting begin marker that was used - and not 
+// cancelled by its equivalent formatting end marker. 
+// This function then returns the equivalent Usfm marker for the format - a Usfm begin marker for all 
+// incoming markers:
+// \bd for |b (bold)
+// \it for |i (italic)
+// \sc for |sc (small caps)
+// \em for |u (assuming anything underlined is for emphasis)
+// \bd* for when |r cancels a |b (\bd)
+// \it* for when |r cancels a |i (\it)
+// \sc* for when |r cancels a |sc (\sc)
+// \em* for when |r cancels a |u (\em)
+// The new Usfm scheme also has a \no ... \no* for return to normal text - when multiple formatting is
+// to be canceled at once. This however, I think is adequately covered by returning an end marker for
+// when |r is encountered in the text.
+// Finally, the USFM standard also has a formatting markers for superscript \sup ...\sup* which didn't exist 
+// as a bar code, and so we don't expect to see a bar code for that.
+int CAdapt_ItDoc::ParseOldBarCodeAndReturnNewBarCode(wxChar* pChar, const wxChar* pBufStart, wxString barCode, wxString& newUsfmCode)
+{
+	wxChar* ptr = pChar;
+	//wxChar backslash = _T('\\');
+	//wxChar asterisk = _T('*');
+	wxChar bar = _T('|');
+	//wxChar space = _T(' ');
+	//wxString usfmFormatBeginMkrSet = _T("\\bd \\it \\em \\sc ");
+	int lenBarCode = (int)barCode.Length();
+	// The newUsfmCode returned via ref parameter newUsfmCode should have a final space for
+	// storage in the m_inlineBindingMarkers member by the caller.
+	if (barCode == _T("|b"))
+	{
+		newUsfmCode = _T("\\bd ");
+	}
+	else if (barCode == _T("|i"))
+	{
+		newUsfmCode = _T("\\it ");
+	}
+	else if (barCode == _T("|r"))
+	{
+		// We've encountered a |r code which cancels the format specified for any/all of the formatting
+		// bar codes, including |b |i |u and |sc. The |r bar code itself doesn't tell us which one.
+		// it's canceling. It's equivalent will be a Usfm format END marker.
+		// So, to determing which Usfm end marker to return to caller, we have to look back in the input
+		// text to find the last bar code that set a format (|b |i |u or |sc), and determine the 
+		// equivalent Usfm end marker (\bd*, \it*, \em*, or \sc*) to assign to newUsfmCode for 
+		// return to the caller.
+		// We could scan back through the pSrcPhrases to do the same search for Usfm format markers that
+		// we stored previously in the pSrcPhrase's m_inlineBindingMarkers member, but I think it is simpler
+		// to scan back through the text we're processing - the bar codes are still in the text even through
+		// we've parsed over them and converted them to their corresponding Usfm equivalents which we've stored
+		// within the pSrcPhrases.
+		wxString barCode; barCode.Empty();
+		//wxString barCodeFirstCharSet = _T("birsu"); // first letter of |b |i |r |sc |u
+		//wxString barCodeSecondCharSet = _T("c"); // second letter of |sc
+		//wxString lastFoundMkr; lastFoundMkr.Empty();
+		bool bFoundFormatBeginMarker = FALSE;
+		wxChar firstCharAhead;
+		wxChar secondCharAhead;
+		// At the start of the backwards scan the ptr is pointing at the "|r" bar code, so
+		// we back up the ptr one char in the buffer so we're not pointing at the bar of "|r"
+		ptr--; 
+		while (ptr >= pBufStart && !bFoundFormatBeginMarker)
+		{
+			// Since we are scanning backwards in the input buffer towards pBufStart we need not
+			// concern ourselves with the pEnd of the buffer.
+			// Check for prior bar codes processed in this input text.
+			// Typically, we don't have to search far since often the format setting bar code is at the 
+			// beginning of the current word, or at the beginning of a previous word not much earlier in
+			// the input text.
+			if (*ptr == bar)
+			{
+				// We're at a bar, so get the bar code to see what it is. We can't call ParseOldBarCodeAndReturnNewBarCode()
+				// from within the same function without re-entrancy problems. So here we'll do it more directly
+				firstCharAhead = *(ptr + 1);
+				secondCharAhead = *(ptr + 2);
+
+				if (firstCharAhead == _T('b') || firstCharAhead == _T('i') || firstCharAhead == _T('u'))
+				{
+					barCode = wxString(bar) + wxString(firstCharAhead);
+					bFoundFormatBeginMarker = TRUE;
+				}
+				else if (firstCharAhead == _T('s') && secondCharAhead == _T('c'))
+				{
+					barCode = wxString(bar) + wxString(firstCharAhead) + wxString(secondCharAhead);
+					bFoundFormatBeginMarker = TRUE;
+				}
+			} // end of if (*ptr == bar)
+			// keep scanning backwards in the buffer
+			ptr--; // point at previous char
+		} // end of while (ptr >= pBufStart && !bFoundFormatBeginMarker)
+		if (bFoundFormatBeginMarker)
+		{
+			// Set newUsfmCode to the Usfm end marker form. End markers don't have a final space for
+			// storage by the caller in m_indlineBindingEndMarkers
+			if (barCode == _T("|i"))
+				newUsfmCode = _T("\\it*");
+			else if (barCode == _T("|b"))
+				newUsfmCode = _T("\\bd*");
+			else if (barCode == _T("|u"))
+				newUsfmCode = _T("\\em*");
+			else if (barCode == _T("|sc"))
+				newUsfmCode = _T("\\sc*");
+		}
+		else
+		{
+			// We didn't find a bar code preceding the current |r bar code
+			// Probably the safest thing to do here is to return an empty string
+			newUsfmCode = wxEmptyString;
+		}
+	}
+	else if (barCode == _T("|u"))
+	{
+		newUsfmCode = _T("\\em ");
+
+	}
+	else if (barCode == _T("|sc"))
+	{
+		newUsfmCode = _T("\\sc ");
+
+	}
+	else
+	{
+		// an unrecognized code was passed into this function as barCode
+		lenBarCode = 0;
+		newUsfmCode = wxEmptyString;
+	}
+	return lenBarCode;
+}
+
+// whm 19Feb2024 added to consolidate above two function since this is called in several places
+// within ParseWord().
+// This function returns the parsed len to the caller that the caller needs to advance its
+// ptr value past the old bar code. 
+// The pSrcPhrase ref parameter may get bar code equivalents added to it's m_inlineBindingMarkers 
+// and/or m_inlineBindingEndMarkers members.
+// The bProcessedOldBarCode ref parameter signals to ParseWord() that an old bar code has been
+// processed.
+// See more details within the function below.
+int CAdapt_ItDoc::ParseOldBarCode(wxChar* pChar, const wxChar* pBufStart, wxChar* pEnd, 
+								CSourcePhrase*& pSrcPhrase, bool& bProcessedOldBarCode)
+{
+	// This function handles the parsing and upgrading of any old character formatting codes 
+	// to use the Usfm equivalent format markers.
+	// The old bar codes that were most common were: |b |i |r |sc |u
+	// I reworked the following code block to identify any old bar codes, parse over them, and
+	// convert them to their corresponding equivalent in Usfm markup, such as:
+	//	\em …\em* for emphasis text.
+	//	Syntax \em_text...\em*
+	//	\bd …\bd* bold text
+	//	Syntax \bd_text...\bd*
+	//	\it …\it* italic text
+	//	Syntax \it_text...\it
+	//	\bdit …\bdit* bold and italic text
+	//	Syntax \bdit_text...\bdit*
+	//	\no …\no* normal text
+	//	Syntax \no_text...\no*
+	//	May be used when a larger paragraph element is set in an alternate font style(e.g.italic), 
+	//    and a selected section of text should be displayed in normal text.
+	//	\sc …\sc* small - cap text
+	//	Syntax \sc_text...\sc *
+	//	\sup …\sup * superscript text
+	//	Typically for use in critical edition footnotes.
+	//
+	// Note: This function is called in several places within ParseAWord() where an old
+	// bar code might appear. 
+	// The function avoids processing a |r bar code when it is used it is part of a \free marker 
+	// that has a sequence "|@number@|" which is not part of an old bar code sequence.
+	wxChar chBar = _T('|');
+	wxChar asterisk = _T('*');
+	int nLenToReturn = 0;
+	wxChar* ptr = pChar;
+	if (*ptr == chBar && (ptr + 1) != pEnd && *(ptr + 1) != _T('@')) // if (*pAux == chBar)
+	{
+		// whm 16Feb2024 added code here to upgrade any old character format bar codes found to the
+		// Usfm equivalent codes..
+		wxString barCode; barCode.Empty();
+		wxString newUsfmCode; newUsfmCode.Empty();
+		int barLen = 0;
+		if (IsOldBarCodeAhead(ptr, pBufStart, pEnd, barCode))
+		{
+			barLen = ParseOldBarCodeAndReturnNewBarCode(ptr, pBufStart, barCode, newUsfmCode);
+			if (!newUsfmCode.IsEmpty())
+			{
+				// Store the newUsfmCode in pSrcPhrase
+				// Note: Generally it will be the Usfm BEGIN marker that will be stored at this 
+				// point in ParseWord().
+				if (newUsfmCode.Find(asterisk) != wxNOT_FOUND)
+					pSrcPhrase->SetInlineBindingEndMarkers(newUsfmCode);
+				else
+					pSrcPhrase->SetInlineBindingMarkers(newUsfmCode);
+				bProcessedOldBarCode = TRUE;
+			}
+		}
+		if (barLen > 0)
+		{
+			nLenToReturn += barLen; // increment the overall len value of ParaseWord()
+		}
+		// whm 19Feb2024 modified below. When ptr was pointing at a bar char that was not
+		// an old bar code (barLen was 0), we should NOT advance past the bar but allow 
+		// ParseWord() to deal with it.
+		//else
+		//{
+		//	// When no bar code was parsed and barLen was zero, we must advance part the '|'
+		//	nLenToReturn++;
+		//}
+		//// return to the caller ParseAWord()
+	} // end of TRUE block for test: if (*ptr == chBar && (ptr + 1) != pEnd && *(ptr + 1) != _T('@'))
+	return nLenToReturn;
 }
 
 // BEW 5Nov20 added for ParseWord(): ptr-> points at ).<space>(<space>nxtwrd, 
@@ -31840,7 +32230,6 @@ wxString CAdapt_ItDoc::ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxCh
 	bool bCanProceed = CanParseForward(ptr, spacelessPuncts, pEnd);
 	while (bNotWhitespace && bCanProceed && (*ptr != gSFescapechar) && (*ptr != bar) && (*ptr != zwsp) && !(ptr == pEnd))
 	{
-		// If there was nothing at ptr to cause a break, add *ptr to word and augment ptr
 		word += *ptr;
 		ptr++;
 		// By using IsWhiteSpace(ptr) I get automatic zwsp support
@@ -38825,7 +39214,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 	bool& bIsInlineNonbindingMkr,
 	bool& bIsInlineBindingMkr,
-	bool bTokenizingTargetText)
+	bool bTokenizingTargetText,
+	bool& bProcessedOldBarCode)
 {
 	wxUnusedVar(inlineNonbindingEndMrks); // avoid compiler warning unreferenced formal parameter
 
@@ -38842,6 +39232,8 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	pApp->bSkipOverParseAWord = FALSE; // init, if goes TRUE, we want a jump to around 34447
 	pApp->pSavePtr_forSkip = NULL; // use non NULL value for kickoff into code after ParseAWord()
 	pApp->nSaveLen_forSkip = 0; // init, if we jump with a diffent ptr value, gotta keep the len value agreeing
+
+	bProcessedOldBarCode = FALSE;
 
 	int len = 0;
 	wxChar* ptr = pChar;
@@ -39263,10 +39655,10 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						   
 						   
 //	wxLogDebug(_T(" ParseWord(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
-#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) //&& !defined(NOLOGS)
 	wxString pointsAt = wxString(ptr, 20);
 	wxLogDebug(_T("ParseWord() START, line %d : sequNum= %d , ptr->%s "), __LINE__, pSrcPhrase->m_nSequNumber, pointsAt.c_str());
-	if (pSrcPhrase->m_nSequNumber >= 4)
+	if (pSrcPhrase->m_nSequNumber == 57)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here);
 	}
@@ -39288,142 +39680,23 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 	// BEW 25Jul23 moved it up from following the ParseAWord() call, as unhandled bar info crashes
 	// ParseAWord(). Do it here as a bleeding functionality, if ptr points at a charAttributeMkr
 	// on entry.
+	//
+	// whm 19Feb2024 Update on BEW's above comments. The ParseOldBarCode() function call below
+	// replaces the code that BEW had that attempted to address word|word situation, and also
+	// handles any old formatting bar codes such as |b |i |u |sc and |r.
+
 	wxString theWord2;
 	theWord2 = wxEmptyString;
-	wxChar chBar = _T('|');
+
 	if (*ptr != gSFescapechar)
 	{
-		// whm 31Oct2023 modification needed. The if (*pAux == chBar) block below could never be TRUE 
-		// at its original location WITHIN the TRUE block of the outer else if (*ptr == gpEscapechar) block.
-		// Therefore, if (*pAux == chBar) block needs to be here, within this outer if (*ptr != gSFescapechar) 
-		// block if it is to be reachable. If left within its original location it's execution is
-		// skipped and that was leading to the "Warning: Unrecognized Markers..." message. Moreover,
-		// at its original location, the ScanToNextMarker() code within this block was never getting to 
-		// do its work.
-		// Hence, as of this date, I have moved the following if (*pAux == chBar) test and block to 
-		// here where it can be reached - and I've moved some initializations and done some 
-		// coding modifications to make it work here.
-		
-		// whm 31Oct2023 the following if (*ptr == chBar) block is no longer relevant for the
-		// parsing of hidden metadata within an charAttributeMarker. The (*ptr == chBar) block
-		// might, however, be executed in the event that the text has an isolated bar '|' character
-		// within the text for some other reason/purpose. 
-		// NOTE: I created a unit test to see how the existing code below handles the olde and usfm
-		// obsolete bar '|' character code markings such as |i this is italic|r, and this is |b bold|r
-		// etc. Results: when non-attribute markup is being processed, the bar '|' character and 
-		// everything past that point until a following marker gets put into the hidden storage location
-		// pSrcPhrase->m_punctsPattern. Clearly that kind of handling of a bar character is not desirable
-		// here within ParseWord() now that TokenizeText() handles char attribute marker metadata hiding.
-		// 
-		// TODO: Rework the following code block to be more forgiving and perhaps substitute some 
-		// appropriate usfm markup for the bar code character markup, such as:
-		//	\em …\em* for emphasis text.
-		//	Syntax \em_text...\em*
-		//	\bd …\bd* bold text
-		//	Syntax \bd_text...\bd*
-		//	\it …\it* italic text
-		//	Syntax \it_text...\it
-		//	\bdit …\bdit* boldand italic text
-		//	Syntax \bdit_text...\bdit*
-		//	\no …\no* normal text
-		//	Syntax \no_text...\no*
-		//	May be used when a larger paragraph element is set in an alternate font style(e.g.italic), 
-		//    and a selected section of text should be displayed in normal text.
-		//	\sc …\sc* small - cap text
-		//	Syntax \sc_text...\sc *
-		//	\sup …\sup * superscript text
-		//	Typically for use in critical edition footnotes.
-		// TODO: Above mods in the block below
-		// whm 17Jan2024 if the current marker is a \free marker it may be followed by "|@number@|"
-		// we don't want the block below to be entered
-		if (*ptr == chBar && (ptr + 1) != pEnd && *(ptr + 1) != _T('@')) // if (*pAux == chBar)
-		{
-			// whm 31Oct2023 The following code moved here from within the else if (*ptr == gSFescapechar)
-			// block below.
-			// 
-			// Remove any bad markup, such as word|word where 'word' is the same both sides of the bar,
-			// returning so that the bogus markup is parsed over but forgotten.
-			// Then, if bar is followed by some valid character attribute markup, process through to
-			// saving the contents in m_punctsPattern		
-			wxChar* pAux = ptr; // leave ptr pointing at the bar
-			wxChar* pWhitePtr = NULL;
-			wxChar* pBar = ptr; // BEW 6Jan23 need this for hunting to the next mkr
-			// we need to save the post-bar pointer location, for use in the code below. Use pAuxSave
-			wxChar* pAuxSave = ptr;
-			if (pAuxSave < pEnd)
-			{
-				pAuxSave++; // this is the start of the post-bar text
-			}
-			// Use pAux in this block, don't want to advance ptr if fixing the above markup error
-			// Advance pAux to the next whitespace, and set pWhitePtr to point at it
-			while ((pAux < pEnd) && !IsWhiteSpace(pAux))
-			{
-				pAux++;
-			}
-			pWhitePtr = pAux; // This is the space after theWord, perhaps - following code determines true or false
-
-			// make a string of what's between pAux and pWhitePtr
-			wxString afterStr = wxString(pAuxSave, (size_t)(pWhitePtr - pAuxSave));
-			// Now check if afterStr is identical to theWord. If so, we have bogus markup, and
-			// we can now fix it (parsing over the bar and afterStr and ignoring these in
-			// the len value to be returned to TokenizeText()
-			if (afterStr == theWord2)
-			{
-				// It's bogus markup. Fix it.
-				int theWord2Length = theWord2.Length();
-				if (len == 0)
-				{
-					// We've not counted the chars in theWord yet, so do so
-					len = theWord2Length;
-				}
-				wxASSERT(len == theWord2Length);
-				// Get ptr updated to point at pWhitePtr in the input text, and ptr in caller to
-				// also be beyound the "|ibaib" ( or whatever ), otherwise, returning from ParseWord()
-				// will start a new pSrcPhrase pointing at "|ibaib<space..... which will cause
-				// ParseAWord() to exit empty, and it's wxASSERT to trip (in Release version, a crash)
-				ptr = pWhitePtr;
-				len += (1 + len); // '1' included to get past the bar
-				return len; // go back to TokenizeText(), the bogus markup should now be fixed
-			}
-
-			// We are not correcting something like abaib|abaib, so scan to the end of endMkr (if the scan
-			// gets to a beginMkr, return the count, without including the beginMkr width)
-			ptr = pBar;
-			int nScannedWidth = ScanToNextMarker(pBar, pEnd);
-			if (nScannedWidth > 0)
-			{
-				// squirrel the span away in pSrcPhrase->m_punctsPattern, and set m_bUnused = TRUE
-				wxString contents = wxString(pBar, nScannedWidth);
-				len += nScannedWidth;
-				pSrcPhrase->m_punctsPattern = contents;
-				pSrcPhrase->m_bUnused = TRUE;
-				return len;
-			}
-			else
-			{
-				pSrcPhrase->m_punctsPattern.Empty();
-				// don't send len zero to TokenizeText. Since we started by pointing at a bar,
-				// increase len by 1, to give TokenizeText() a chance to advance without a crash
-				len += 1;
-				return len;
-			}
-
-		} // end of TRUE block for test: if (*pAux == chBar)
-		
-		// is there a bar, but with a word preceding? Set theWord to whatever precedes the bar
-		bool bWordNotParsed = FALSE;
-		theWord2 = ParseAWord(ptr, spacelessPuncts, pEnd, bWordNotParsed);
-		int theWord2Len;
-		theWord2Len = theWord2.Length();
-		wxChar chAfter = *(ptr + theWord2Len); // is it a bar?
-		// if chAfter is indeed a bar, we can check in the else if block for worthless markup 
-		// like abaib|abaib and remove it - thereby healing the doc of that kind of error
-		if (chAfter != chBar)
-		{
-			// unexpected, the only safe thing to do is to let the else if block deal with it,
-			// and we set theWord back to an empty string
-			theWord2.Empty();
-		}
+		// whm 19Feb2024 added.
+		// Handle any old char formatting bar code that might appear at this point.
+		// This replaces some old code that attempted to treat a word|word situation.
+		int itemLen;
+		itemLen = ParseOldBarCode(ptr, pBufStart, pEnd, pSrcPhrase, bProcessedOldBarCode);
+		ptr += itemLen;
+		len += itemLen;
 	}
 	else if (*ptr == gSFescapechar)
 	{
@@ -40594,12 +40867,12 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// a loop-halting condition (one of several). So what then? We here need to check for '[' (and
 					// also '{' or '(' being prior to the word - and parse over any such one, storing it in m_precPunct
 					// and advancing ptr by 1, and len by 1 too. Handle that here...
-#if defined (_DEBUG)  && !defined(NOLOGS) //&& defined(WHERE)
+#if defined (_DEBUG) // && !defined(NOLOGS) //&& defined(WHERE)
 					{
 						wxString pointsAt = wxString(ptr, 16);
 						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-						if (pSrcPhrase->m_nSequNumber >= 8)
+						if (pSrcPhrase->m_nSequNumber >= 56)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
 						}
@@ -41109,7 +41382,7 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 							wxString pointsAt = wxString(ptr, 16);
 							//wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
 							//	__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
-							if (pSrcPhrase->m_nSequNumber >= 451) // whm break
+							if (pSrcPhrase->m_nSequNumber >= 37) // whm break
 							{
 								int halt_here = 1; wxUnusedVar(halt_here);
 							}
@@ -41124,8 +41397,18 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 #endif
 
 						bool bWordNotParsed = FALSE;
-						strWord = ParseAWord(ptr, spacelessPuncts, pEnd, bWordNotParsed); // any foll puncts are included
 
+						// whm 19Feb2024 added the following to detect an isolated '|' character, one that
+						// is followed by a space. If an isolated bar is found it parses it and makes it
+						// into strWord. If not found, it allows the ParseAWord to execute normally.
+						if (*ptr == _T('|') && *(ptr + 1) == _T(' '))
+						{
+							strWord = _T("|");
+						}
+						else
+						{
+							strWord = ParseAWord(ptr, spacelessPuncts, pEnd, bWordNotParsed); // any foll puncts are included
+						}
 #if defined (_DEBUG) && !defined(NOLOGS) //&& defined(WHERE)
 						{
 							wxString pointsAt = wxString(ptr, 16);
@@ -41491,6 +41774,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					}
 #endif
 
+					// whm 19Feb2024 added.
+					// Handle any old char formatting bar code that might appear at this point
+					// before final punctuation.
+					// This replaces some old code that attempted to treat a word|word situation.
+					itemLen = ParseOldBarCode(ptr, pBufStart, pEnd, pSrcPhrase, bProcessedOldBarCode);
+					ptr += itemLen;
+					len += itemLen;
+
 					wxChar* pAux;
 					pAux = ptr;
 					// pAux may be pointing at one or more word-final puncts, get them if present
@@ -41528,6 +41819,21 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
 				}
 #endif
+
+				// whm 19Feb2024 added.
+				// Handle any old char formatting bar code that might appear at this point
+				// after final punctuation.
+				// This replaces some old code that attempted to treat a word|word situation.
+				itemLen = ParseOldBarCode(ptr, pBufStart, pEnd, pSrcPhrase, bProcessedOldBarCode);
+				ptr += itemLen;
+				len += itemLen;
+
+				// whm 16Feb2024 added test for ptr == pEnd. If there happens to be a bar code right at the end of 
+				// the buffer, we need to return from ParseWord() with the current len value
+				if (ptr == pEnd)
+				{
+					return len;
+				}
 
 				// BEW 11Jul23, added further test. After ParseAWord() has just parsed a word, and len and ptr
 				// have been updated so that ptr points at what immediately follows, it could be a beginMkr.
@@ -45468,6 +45774,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bIsInlineNonbindingMkr = FALSE;
 	bool bIsInlineBindingMkr = FALSE;
 	bool bIsCharAttrMkr = FALSE;
+	bool bProcessedOldBarCode = FALSE;
 
 	// BEW 13Jul11, added support via bool bEmptyUSFM flag, for parsing to CSourcePhrase
 	// instances the kind of empty usfm generated by Paratext, \v 1 \v 2 \v 3 etc.
@@ -51026,7 +51333,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 			//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			//	pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber == 760)
+			if (pSrcPhrase->m_nSequNumber == 47)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -51095,7 +51402,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,
-				bTokenizingTargetText);
+				bTokenizingTargetText,
+				bProcessedOldBarCode);
 
 			//		wxLogDebug(_T(" TokenizeText(), line %d , sn= %d , m_bIsWithinUnfilteredInlineSpan = %d"), __LINE__, pSrcPhrase->m_nSequNumber, (int)m_bIsWithinUnfilteredInlineSpan);
 
@@ -51187,6 +51495,90 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				//if (docVersion >= 10 && pSrcPhrase->m_nSrcWords < 2)
 				if (pSrcPhrase->m_nSrcWords < 2)
 				{
+					// whm 18Feb2024 added. Check if ParseWord() processed an old bar code
+					if (bProcessedOldBarCode)
+					{
+						// When ParseWord() has processed an old bar code, we need to make some adjustments
+						// to pSrcPhrase members to properly account for the conversion of old bar codes to the
+						// new Usfm marker equivalents.
+						// Since strWordAndExtras is constructed using MakeWordAndExtras() above using the ptr
+						// and itemLen from the input text, it will have the old bar code(s) present within its
+						// string (itemLen from ParseWord() included them so that ptr could advance past them).
+						// 1: We need to remove any starting/beginning old bar code from the beginning of the
+						// strWordAndExtras. The starting/beginning old bar code would normally be at the beginning
+						// of strWordAndExtras.
+						// 2. We need to change any ending old bar code, |r, to what ParseWord() stored in the
+						// pSrcPhrase's m_inlineNonBindingEndMarkers. The |r bar code would normally be at the
+						// end of the strWordAndExtras.
+						wxString inlineBindingMkrs = pSrcPhrase->GetInlineBindingMarkers();
+						wxString mkr; mkr.Empty();
+						wxString endMkrStr; endMkrStr.Empty();
+						bool bFound = FALSE;
+						// The possible begin markers are: \bd \it \em and \sc which are stored in the App's
+						// m_usfmFormatBeginMkrSet. 
+						wxArrayString mkrsArr; mkrsArr.Empty();
+						GetMarkersAndEndMarkersFromString(&mkrsArr, inlineBindingMkrs, endMkrStr);
+						int nTot = (int)mkrsArr.GetCount();
+						for (int i = 0; i < nTot; i++)
+						{
+							mkr = mkrsArr.Item(i);
+							mkr.Trim();
+							mkr += _T(" ");
+							// the m_usfmFormatBeginMkrSet = _T("\\bd \\it \\em \\sc ");
+							if (gpApp->m_usfmFormatBeginMkrSet.Find(mkr) != wxNOT_FOUND)
+							{
+								bFound = TRUE;
+							}
+						}
+						if (bFound)
+						{
+							wxString oldBarCode;
+							if (mkr == _T("\\bd "))
+								oldBarCode = _T("|b");
+							else if (mkr == _T("\\it "))
+								oldBarCode = _T("|i");
+							else if (mkr == _T("\\em "))
+								oldBarCode = _T("|u");
+							else if (mkr == _T("\\sc "))
+								oldBarCode = _T("|sc");
+							// Replace the oldBarCode within strWordAndExtras with an empty string
+							strWordAndExtras.Replace(oldBarCode, wxEmptyString);
+						}
+						if (strWordAndExtras.Find(_T("|r")) != wxNOT_FOUND)
+						{
+							wxString inlineBindingEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+							mkrsArr.Empty();
+							GetMarkersAndEndMarkersFromString(&mkrsArr, inlineBindingEndMkrs, endMkrStr);
+							int nTot = (int)mkrsArr.GetCount();
+							for (int i = 0; i < nTot; i++)
+							{
+								mkr = mkrsArr.Item(i);
+								mkr.Trim();
+								mkr += _T(" ");
+								// the m_usfmFormatBeginMkrSet = _T("\\bd \\it \\em \\sc ");
+								if (gpApp->m_usfmFormatEndMkrSet.Find(mkr) != wxNOT_FOUND)
+								{
+									bFound = TRUE;
+								}
+							}
+							if (bFound)
+							{
+								wxString oldBarCode;
+								if (mkr == _T("\\bd* "))
+									oldBarCode = _T("|b");
+								else if (mkr == _T("\\it* "))
+									oldBarCode = _T("|i");
+								else if (mkr == _T("\\em* "))
+									oldBarCode = _T("|u");
+								else if (mkr == _T("\\sc* "))
+									oldBarCode = _T("|sc");
+								// Replace the oldBarCode within strWordAndExtras with an empty string
+								mkr.Trim(); // no space after the end marker
+								strWordAndExtras.Replace(_T("|r"), mkr);
+							}
+						}
+					}
+
 					// It's not a merger, so store in pSrcPhrase's new m_srcSinglePattern member
 					pSrcPhrase->m_srcSinglePattern = strWordAndExtras; // the pSrcPhrase->m_key value will start the string
 					// BEW 10May23, exporting src text will call RebuildSourceText() and for user-edited m_key value we need

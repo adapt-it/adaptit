@@ -79,6 +79,7 @@
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
+#include "StatusBar.h"
 
 //#if defined (_KBSERVER)
 #include <stdio.h>
@@ -3484,7 +3485,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	// spaces.
 	if (rString == wxEmptyString)
 		return wxEmptyString;
-	
+
 	// Set up a write buffer pDestBuff which is the same size as rString.
 	// Then copy characters using pointers from the rString buffer to the atemp buffer (not
 	// advancing the pointer for where multiple spaces are adjacent to each other).
@@ -3536,11 +3537,11 @@ wxString RemoveMultipleSpaces(wxString& rString)
 			// Copy whatever we are pointing at and then advance
 			//debugStr = wxString(pDestBuff, (size_t)(pNew - pDestBuff));
 			*pNew++ = *pOld++; // copy chars from pOld buffer to pNew buffer and then advance pointers
+			
 		}
 		*pNew = (wxChar)0; // terminate the new buffer string with a null char
 		destString = wxString(pDestBuff, (size_t)(pNew - pDestBuff));
 
-		
 		// whm 12Jan2024 added routine below to remove all spaces after an EOL and before the 
 		// of a usfm or unknown marker. 
 		// Note: Since this block follows the preceding modifications of rString, we will start
@@ -3569,7 +3570,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 		wxStringBuffer pDestBuff2(destString, nLen2 + 1); // pDestBuff is the pointer to the write buffer
 		wxChar* pOld2 = pSourceBuffStart2;
 		wxChar* pNew2 = pDestBuff2;
-
+		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 		wxChar spaceCh2 = _T(' ');
 		wxChar eolCR2 = _T('\r');
 		wxChar eolLF2 = _T('\n');
@@ -3605,10 +3606,12 @@ wxString RemoveMultipleSpaces(wxString& rString)
 				itemLen = ParseWhiteSpace(pAux); // this parses past EOL and any following whitespace
 				wxString debugWhites = wxString(pAux, itemLen); wxUnusedVar(debugWhites);
 				pAux += itemLen; // point past the whites - past EOL(s) and any spaces
-				CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-				if (pDoc->IsMarker(pAux))
+				if (*pAux == _T('\\'))
 				{
-					bMarkerFollowsSpaceAfterEOL = TRUE;
+					if (pDoc->IsMarker(pAux))
+					{
+						bMarkerFollowsSpaceAfterEOL = TRUE;
+					}
 				}
 				if (bMarkerFollowsSpaceAfterEOL)
 				{
@@ -4830,11 +4833,6 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	//						pSrcPhrases, otherFiltered, collBackTransStr,
 	//						freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
-	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
-	// make sure it ends with a space
-	markersPrefix.Trim();
-	markersPrefix << aSpace;
-
 	// BEW 11Oct10, the initial stuff is now more complex, so we just can't insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
 	// string, strInitialStuff in which to build the stuff which precedes m_targetStr and
@@ -4847,7 +4845,12 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// It is used in From MergerMakeTstr(), FromSingleMakeTstr() and FromSingleMakeSstr() and
 	// in each case, it must not return filtered info, so the internal tweaks apply in all calls
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
-						bAttachFilteredInfo, bAttach_m_markers);
+												bAttachFilteredInfo, bAttach_m_markers);
+	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	// make sure it ends with a space
+	markersPrefix.Trim();
+	markersPrefix << aSpace;
+
 	// for Sstr, which we only show to the user so he/she has the source to guide what is
 	// done in the target by manual editing in the placement dialog, we don't include any
 	// of the filtered info, so just put markersStr into Sstr

@@ -146,9 +146,11 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	// IDS_WAIT_FOR_RTF_OUTPUT
 		//	WaitMsg = _("Please wait for Adapt It to output the RTF file. This may take a while...");
 		//	break;
-		//case 2:
-		//	WaitMsg = _("Please wait while Adapt It opens the document...");
-		//	break;
+		case 2:
+		{
+		WaitMsg = _("Please wait while Adapt It opens the document...");
+		}
+			break;
 		//case 3:
 		//	WaitMsg = _("Please wait while Adapt It processes filter changes...");
 		//	break;
@@ -199,9 +201,11 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//case 17:
 		//	WaitMsg = _("Please wait while the free translation is sent to Paratext...");
 		//	break;
-		//case 18:
-		//	WaitMsg = _("Please wait while the free translation is sent to Bibledit...");
-		//	break;
+		case 18:
+		{
+			WaitMsg = _("Please wait while Adapt It exports the source text...");
+		}
+			break;
 		//case 19:
 		//	WaitMsg = _("Exporting the translation...");
 		//	break;
