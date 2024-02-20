@@ -87,15 +87,18 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	pUsernameMsgTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
 	// and for the informal username text box
 	pInformalUsernameTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
+	// BEW 16Feb24 for the added dotty password wxTextCtrl
+	pPasswordTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_PASSWORD_CURRENT);
+
 	pUsernameMsgTextCtrl->SetBackgroundColour(pApp->sysColorBtnFace);
 	pUsernameTextCtrl = (AutoCorrectTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME);
 
 	usernameMsgTitle = _("Warning: No Unique Username");
-	invalidMsgTitle = _("Warning: Invalid username");
+	//invalidMsgTitle = _("Warning: Invalid username");
 	usernameMsg = _("You must supply a username in the Unique Username text box.");
 	usernameInformalMsgTitle = _("Warning: No Informal Username");
 	usernameInformalMsg = _("You must supply a fullname in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
-	m_invalidName = _("Invalid name. Please type something else.");
+	//m_invalidName = _("Invalid name. Please type something else.");
     // Transfer the m_strUserID username string (loaded from basic config file before
     // InitDialog() is called) to the pUsernameTextCtrl textbox where the user can do
     // nothing if it is correct, type something different if necessary, or if the box is
@@ -134,12 +137,17 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
         wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
+	/* 
+	//BEW 16Feb24 I think we should allow kbadmin, KBUser, and kbauth to be valid - as this pseudo person
+	// is already fully credentialled for ALL PERMISSIONS. Instead, put some code in the app that warns
+	// any attempt to update kbadmin to ALL PERMISSIONS, that that username is already fully able to do all things
 	else if (strBox1 == pApp->m_strThingieID)
 	{
 		gpApp->m_bUserDlgOrMessageRequested = TRUE;
 		wxMessageBox(m_invalidName, invalidMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
+	*/
 	else
 	{
 		m_finalUsername = pUsernameTextCtrl->GetValue();
@@ -158,6 +166,19 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	else
 	{
 		m_finalInformalUsername = pInformalUsernameTextCtrl->GetValue();
+	}
+
+	// BEW 16Feb24 Grab what's in the password text control - AI typically sets it from
+	// GUI addition of a new user and pwd, or from a listed user in the Manager's users list.
+	// But the value is editable to something different if the user thinks AI got the value
+	// wrong - s/he can type a correct value (if known, and typically only if there was some
+	// kbserver failure that made him or her think the password was not correct 'as is'
+	wxString strBox3 = pPasswordTextCtrl->GetValue();
+	if (!strBox3.IsEmpty())
+	{
+		gpApp->m_strPassword = strBox3; // setting the password from outside of UsernameInput dialog, set this m_strPassword member
+		gpApp->m_strPassword_Archived = strBox3; // put it here too - for the Mgr originating a new all permissions user
+		gpApp->m_newUserDlg_newpassword = strBox3; // and here too - as from the menu choice for adding a new user
 	}
 	event.Skip();
 }

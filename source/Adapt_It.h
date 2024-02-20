@@ -3146,8 +3146,19 @@ public:
 	wxString m_rootPassword_Archived;
 	// BEW 22Jan24 added strings for granting permissions in context of kbserver for a foreign new user
 	wxString m_foreignUserPermissionsFilename; // set it to _T("PermissionsUserFullnamePwd") at end of OnInit()
-	bool CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added 22Jan24
+	//bool CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added but not needed
 
+	// BEW 16Feb24, above is too much hard-coding of kbadmin and kbauth as password. The password to replace kbadmin
+	// when a user wants to grant someone other than kbadmin to have "All Permissions" needs to be settable
+	// programmatically (from Manager, or from GUI menu choice for adding a new user), and it needs to be
+	// seen as dots ( a wxDesigner option) in the Change Username dialog, where m_strUserID and m_strFullname
+	// are changable manually or programmatically.
+	// This calls for an additional member wxString:  m_strPassword, which can be seen as dots in Change Username,
+	// and stored in the app in m_strPassword, and can be resettable differently by the user if he or she suspects
+	// that the stored pwd is not the one associated with the seen m_strUserID and m_strFullname values. Then I can
+	// make the password handling simpler than hard-coding kbadmin, KBUser, and kbauth. We want the pasword associated
+	// with a differnt listed user, or new user, to be the one that operates instead of hard-coded kbauth
+	wxString m_strPassword; // never store the value in a config file, .ini file, or some other file anywhere
 
 	// When a new user is added to the user table, successfully, make the new username, fullname, password
 	// and useradmin value (1 or 0) get stored in the next 4 members. Then we can test for a ChangeUsername()
