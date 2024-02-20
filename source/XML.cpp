@@ -997,6 +997,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 
 		bOpenOK = file.Open(path,wxFile::read);
 	}
+	wxFileName fn(path);
 	if (bOpenOK)
 	{
 		gpApp->m_owner = NOOWNER;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
@@ -1022,12 +1023,12 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		// to avoid exceeding the maximum range for the dialog.
 		nTotal = nChunks;
 		wxString progMsg = _("Reading File %s - part %d of %d");
-		wxFileName fn(path);
-		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),nCurrChunk,nTotal);
+		//wxFileName fn(path);
 		// whm 25Aug11 added nProgMax
 		CStatusBar *pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
+			msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), nCurrChunk, nTotal);
 			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 		
@@ -1058,6 +1059,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		// whm 25Aug11 added nProgMax
 		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
+			msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), nCurrChunk, nTotal);
 			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 	}
@@ -1191,6 +1193,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		// whm 25Aug11 added nProgMax
 		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
+			msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), nCurrChunk, nTotal);
 			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 	}
@@ -1297,6 +1300,7 @@ r:		comp = strncmp(pPos,comment,4);
 			// whm 25Aug11 added nProgMax
 			if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 			{
+				msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), nCurrChunk, nTotal);
 				pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 			}
 			continue; // no more data to transfer
@@ -1340,6 +1344,7 @@ r:		comp = strncmp(pPos,comment,4);
 			// whm 25Aug11 added nProgMax
 			if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 			{
+				msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), nCurrChunk, nTotal);
 				pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 			}
 		}

@@ -1790,6 +1790,13 @@ void DoExportAsType(enum ExportType exportType)
 	{
 	case sourceTextExport:
 	{
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		// indicate we want the closing the document wait message
+		waitDlg.m_nWaitMsgNum = 18;	// 18 has  _("Please wait while Adapt It exports the source text...")
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+		waitDlg.Update();
+
 		nTextLength = RebuildSourceText(source, pList);
 		nTextLength = nTextLength; // avoid gcc warning set but not used warning
 
@@ -17417,6 +17424,17 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	}
 	wxASSERT(pList != NULL);
 
+	int nTotal = pList->GetCount();
+	wxString msgDisplayed;
+	wxString progMsg = _("Rebuilding Source Text - %d of %d Total words and phrases");
+	//wxFileName fn(exportName);
+	msgDisplayed = progMsg.Format(progMsg, 1, nTotal);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Rebuilding Source Text"), msgDisplayed, nTotal);
+	int counter = 0;
+
+
 	// BEW 5Apr23, (legacy commenting...) As we traverse the list of CSourcePhrase 
 	// instances, the special things we must be careful of are:
 	// 1. source phrase placeholders (we ignore these, but we don't
@@ -17539,6 +17557,13 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		}
 #endif
 
+		counter++;
+		if (counter % 200 == 0)
+		{
+			msgDisplayed = progMsg.Format(progMsg, counter, nTotal);
+			pStatusBar->UpdateProgress(_("Rebuilding Source Text"), counter, msgDisplayed);
+		}
+
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
 
@@ -17548,6 +17573,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		wxString aBreak; aBreak = wxEmptyString;
 		if (pSrcPhrase->m_nSequNumber > 0)
 		{
+
 
 #if defined(_DEBUG)
 			if (pSrcPhrase->m_nSequNumber == 391)
@@ -17919,6 +17945,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			str.Empty();
 		} // end of else block, i.e., it's a single word sourcephrase
 	} // end of while (pos_pList != NULL) for scanning whole document's CSourcePhrase instances
+
+	pStatusBar->FinishProgress(_("Rebuilding Source Text"));
 
 	source.Trim(); // trim the end
 	gpApp->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
