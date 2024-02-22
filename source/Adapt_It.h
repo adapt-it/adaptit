@@ -4961,6 +4961,8 @@ public:
 	wxString m_forbiddenInMarkers; // set contents in OnInit()
 	wxString m_prohibitiveBeginMarkers; // given contents in .cpp at 20,374++
 	wxString m_prohibitiveEndMarkers;   // ditto
+	wxString m_markersCanBeSweptUpByFilteredMarker; // whm 20Feb2024 added
+
 	bool     FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& beginMkr); // BEW 11Apr20
 	bool	 FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& endMkr);     // BEW 11Apr20
 

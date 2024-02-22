@@ -407,7 +407,7 @@ public:
 						wxArrayString& filteredMkrsArray);
 	wxString		GetMarkerFromWithinOneFilteredString(wxString filteredMkrString); // whm 8Feb2024 added
 	bool			IsNextFilterableMkrToBeFiltered(wxChar* ptr, wxChar* pEnd, // whm 10Feb2024 added
-		wxString& sweptUpStuff, int& nLenSweptUpStuff);
+						wxString& sweptUpStuff, int& nLenSweptUpStuff, bool& sweptStuffInclChOrVs);
 	void			UpdateCurrentFilterStatusOfUsfmStructFileAndArray(wxString usfmStructFileNameAndPath);
 	wxString		ReorderFilterMaterialUsingUsfmStructData(wxString filterStr, wxString ChVs, wxArrayString m_UsfmStructArr);
 	int				GetLowestIntInArrayAboveThisValue(wxArrayInt arrInt, int aboveThisValue);
@@ -471,6 +471,7 @@ public:
 								 // has a verseNum greater than this one. Use ParseNumberInStr(wxString strAtNumberStart) to help decide
 	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
+	bool			IsUnknownMarker(wxChar* pChar);
 	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
 	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
 	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);

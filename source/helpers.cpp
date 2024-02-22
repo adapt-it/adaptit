@@ -3476,6 +3476,7 @@ wxString ChangeWhitespaceToSingleSpace(wxString& rString)
 /// adds another block of code that removed all spaces between EOL char(s) and
 /// any following usfm/unknown marker. This later revision improves the form
 /// of texts and especially of exports.
+/// whm 21Feb2024 further revised to eliminate a space just before an EOL char.
 ///////////////////////////////////////////////////////////////////////////////
 wxString RemoveMultipleSpaces(wxString& rString)
 {
@@ -3543,7 +3544,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 		destString = wxString(pDestBuff, (size_t)(pNew - pDestBuff));
 
 		// whm 12Jan2024 added routine below to remove all spaces after an EOL and before the 
-		// of a usfm or unknown marker. 
+		// backslash of a usfm or unknown marker. 
 		// Note: Since this block follows the preceding modifications of rString, we will start
 		// the processing below with a new pSourceBuff buffer based on the destString created
 		// from the above code block, and a new pDestBuff to receive the processed string in
@@ -3570,6 +3571,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 		wxStringBuffer pDestBuff2(destString, nLen2 + 1); // pDestBuff is the pointer to the write buffer
 		wxChar* pOld2 = pSourceBuffStart2;
 		wxChar* pNew2 = pDestBuff2;
+		wxChar pPrevChar; 
 		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 		wxChar spaceCh2 = _T(' ');
 		wxChar eolCR2 = _T('\r');
@@ -3601,6 +3603,17 @@ wxString RemoveMultipleSpaces(wxString& rString)
 			// that buffer pointers have already iterated past when looking BACK.
 			if (*pOld2 == eolCR2 || *pOld2 == eolLF2)
 			{
+				// whm 21Feb2024 added a check to see if previous char before the EOL chars
+				// was a space. If so we backup the pNew2 pointer one char to eliminate that
+				// spurious space.
+				pPrevChar = *(pOld2 - 1);
+				if (pPrevChar == spaceCh2)
+				{
+					// a space just before and EOL char should be ignored, so since pNew2 has
+					// already advanced past the space just have it back up one char to eliminate
+					// the space from the destination buffer, and continue processing below
+					pNew2--;
+				}
 				wxChar* pAux = pOld2;
 				int itemLen;
 				itemLen = ParseWhiteSpace(pAux); // this parses past EOL and any following whitespace
@@ -3630,9 +3643,9 @@ wxString RemoveMultipleSpaces(wxString& rString)
 			}
 
 			// Copy whatever we are pointing at and then advance
-			debugStr2 = wxString(pDestBuff2, (size_t)(pNew2 - pDestBuff2));
+			//debugStr2 = wxString(pDestBuff2, (size_t)(pNew2 - pDestBuff2));
 			*pNew2++ = *pOld2++; // copy chars from pOld buffer to pNew buffer and then advance pointers
-			debugStr2 = wxString(pDestBuff2, (size_t)(pNew2 - pDestBuff2));
+			//debugStr2 = wxString(pDestBuff2, (size_t)(pNew2 - pDestBuff2));
 		}
 		*pNew2 = (wxChar)0; // terminate the new buffer string with a null char
 		destString = wxString(pDestBuff2, (size_t)(pNew2 - pDestBuff2));
@@ -14223,7 +14236,9 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 		{
 			// BEW 15Apr23 if s is '\n' then the TRUE block is entered, but then only space is returned
 			// unless a test is explicitly made in the TRUE block for newline. Add that code.
-			if (s == _T("\n"))
+			// whm 21Feb2024 modified first test below to includ \r so that an \r doesn't become
+			// a space, but \n.
+			if (s == _T("\n") || s == _T("\r"))
 			{
 				output = _T("\n");
 			}

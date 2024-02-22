@@ -24582,6 +24582,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_prohibitiveBeginMarkers = _T("\\f \\ef \\x \\ex "); // footnotes, extended footnotes, xrefs, extended xrefs
 	m_prohibitiveEndMarkers = _T("\\f* \\ef* \\x* \\ex* "); // footnotes, extended footnotes, xrefs, extended xrefs
 
+    // whm 20Feb2024 the following m_markersCanBeSweptUpByFilteredMarker set are markers that can be swept up by
+    // a following marker-to-be-filtered. There are many other markers that can be empty markers, but they should
+    // have their own source phrase if they are "empty" or "contentless" markers.
+    m_markersCanBeSweptUpByFilteredMarker = _T("\c \p \m \mi \nb \b \ib \ie \po ");
+
+
 	// BEW 22Apr20 (large) fast access strings for markers and endMarkers which have a
 	// bearing on the new TextType propagation system; I define a Blue set (verses and quotes)
 	// a Red beginMkr set (change type to Red [special] colour), a Red endMkr set (indicates
