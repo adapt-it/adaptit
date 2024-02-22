@@ -133,7 +133,7 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	if ( strBox1.IsEmpty() || strBox1 == NOOWNER )
 	{
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
@@ -159,7 +159,7 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	if ( strBox2.IsEmpty() || strBox2 == NOOWNER )
 	{
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
-        gpApp->m_bUserDlgOrMessageRequested = TRUE;
+        pApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
@@ -176,10 +176,14 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	wxString strBox3 = pPasswordTextCtrl->GetValue();
 	if (!strBox3.IsEmpty())
 	{
-		gpApp->m_strPassword = strBox3; // setting the password from outside of UsernameInput dialog, set this m_strPassword member
-		gpApp->m_strPassword_Archived = strBox3; // put it here too - for the Mgr originating a new all permissions user
-		gpApp->m_newUserDlg_newpassword = strBox3; // and here too - as from the menu choice for adding a new user
+		pApp->m_strPassword = strBox3; // setting the password from outside of UsernameInput dialog, set this m_strPassword member
+		pApp->m_strPassword_Archived = strBox3; // put it here too - for the Mgr originating a new all permissions user
+		pApp->m_newUserDlg_newpassword = strBox3; // and here too - as from the menu choice for adding a new user
 	}
+	// BEW 22Feb24 update the pApp members to the new values - (some may be the same, user may just be interested in fixing a typo)
+	pApp->m_strUserID = m_finalUsername;
+	pApp->m_strFullname = m_finalInformalUsername;
+	// new member, pApp->m_strPassword, is set ust above
 	event.Skip();
 }
 

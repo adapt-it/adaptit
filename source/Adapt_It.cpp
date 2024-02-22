@@ -39946,90 +39946,117 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
             // That completes the needed commandLine. It has to be stored in an appropriately named .dat
             // file, in the _DATA_KB_SHARING folder, just like was the case for other .dat input files,
             // so it will get moved to the executable's folder, using legacy code below
-            wxString execPath = this->m_appInstallPathOnly + PathSeparator;
-            wxString datFilename = _T("create_user_granting_all.dat");
-            wxString resultsFile = _T("create_user_granting_all_results.dat");
-            wxString resultsPath = execPath + resultsFile;
+             wxString datFilename = _T("create_user_granting_all.dat");
             wxString datPath = this->m_dataKBsharingPath + datFilename;
-
+ 
             bool bExists = ::FileExists(datPath);
-            wxTextFile f(datPath);
+            // use wxFile, not wxTextFile -- see code elsewhere for examples
             if (!bExists)
             {
-                // File does not exist yet in _DATA_KB_SHARING folder - create it and lodge with commandLine text in it
-                bool bOpened = f.Open(); 
-                if (bOpened)
+                // File does not exist yet in _DATA_KB_SHARING folder - create it and 
+                // lodge with commandLine text in it, convert commandLine text to raw utf8,
+                // and write it out
+                wxFile f(datPath, wxFile::write); // open datPath for writing
+                bool bOK = f.IsOpened();
+                wxASSERT(bOK);
+                // should be empty, but a Flush() ensures nothing is in it
+                f.Flush();
+                // The file descriptor is ready for adding our commandLine data, as utf8
+                if (bOK)
                 {
-                    f.AddLine(commandLine);
-                    f.Write();
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
                 }
-            }
+            } // end of TRUE block for test: if (!bExists)
             else
             {
-                // An earlier call to add users has left its input .dat file in _DATA_KB_SHARING folder, 
-                // so keep file but clear its contents then add our new commandLine & write it
-                bool bOpened = f.Open(datPath);
-                if (bOpened)
+                // datPath exists: An earlier call to add users has left its input .dat file in 
+                // _DATA_KB_SHARING folder, so flush its contents, and write the command line as utf8 as above
+                bool overwrite = TRUE;
+                wxFile f;
+                bool bSucceeds = f.Create(datPath, overwrite); // if succeeds, overwrites datPath contents
+                wxASSERT(bSucceeds);
+                if (bSucceeds)
                 {
-                    bool bIsOpened = f.IsOpened();
-                    if (!bIsOpened)
-                    {
-                        // file may exist but can't be opened, so can't go further
-                        
-                        f.Close();
-                        wxString msg = _T("In OnAddUsersToKBserver() input .dat file could not be opened in _DATA_KB_SHARING folder: %s");
-                        msg = msg.Format(msg, datFilename.c_str());
-                        LogUserAction(msg);
-                        return;
-                    }
-                    // clear old content
-                    f.Clear();
-                    // Now add commandLine as the only line
-                    f.AddLine(commandLine); // commandLine has any single quotes escaped
-                    f.Write();
-                    // don't f.Close() because it closes the file, frees memory and all changes are lost
-
-                    // Store a copy of path to it on app, for CallExecute() to use, if needed
-                    this->m_datPath = datPath;
+                    f.Flush(); // empties it
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
                 }
             } // end of else block for test: if (!bExists)
 
-            // Next, handle creating the results.dat file, remove old one if present, create new one empty
-            // because a successfull user addition will give it non-empty content, including the word "success"
-            bool bResultsExists = ::FileExists(resultsPath);
-            wxTextFile ff(resultsPath);
-            if (!bResultsExists)
+
+            // Next, create or open, for writing, a "create_user_granting_all_results.dat" file in the
+            // AI executable's folder (when developing, that means "in ...C:\ _ _ _ \Unicode Debug\"
+            // (or in Release build, \Unicode Release\ folder ). What's different from the above?
+            // (a) if present but empty, just close the file descriptor. (b) if present but has content,
+            // flush the content and write it out empty. The .py function will lodge results data in it.
+            wxString execPath = this->m_appInstallPathOnly + PathSeparator;
+            wxString resultsFile = _T("create_user_granting_all_results.dat");
+            wxString resultsPath = execPath + resultsFile;
+
+            bool bResultsExist = ::FileExists(resultsPath);
+            if (!bExists)
             {
-                // File does not exist yet - create it and leave it empty
-                bool bOpened = ff.Open();
-                if (bOpened)
+                // File does not exist yet in Unicode Debug folder, or Unicode Results folder if
+                // it's a Release build. Create it  
+
+                wxFile f(datPath, wxFile::write); // open datPath for writing
+                bool bOK = f.IsOpened();
+                wxASSERT(bOK);
+                // should be empty, but a Flush() ensures nothing is in it
+                f.Flush();
+                // The file descriptor is ready for adding our commandLine data, as utf8
+                if (bOK)
                 {
-                    ff.Clear();
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
                 }
-            }
+            } // end of TRUE block for test: if (!bExists)
             else
             {
-                // An earlier call to add users has left its input .dat file in exec folder, 
-                // so keep file but clear its contents
-                bool bOpened = ff.Open(resultsPath);
-                if (bOpened)
+                // datPath exists: An earlier call to add users has left its input .dat file in 
+                // _DATA_KB_SHARING folder, so flush its contents, and write the command line as utf8 as above
+                bool overwrite = TRUE;
+                wxFile f;
+                bool bSucceeds = f.Create(datPath, overwrite); // if succeeds, overwrites datPath contents
+                wxASSERT(bSucceeds);
+                if (bSucceeds)
                 {
-                    bool bIsOpened = ff.IsOpened();
-                    if (!bIsOpened)
-                    {
-                        // file may exist but can't be opened, so can't go further
-                        f.Close();
-                        wxString msg = _T("In OnAddUsersToKBserver() resultsPath .dat file could not be opened: %s");
-                        msg = msg.Format(msg, resultsPath.c_str());
-                        LogUserAction(msg);
-                        return;
-                    }
-                    // clear old content
-                    f.Clear();
-                    f.Write();
-                    // don't ff.Close() because it closes the file, frees memory and all changes are lost
+                    f.Flush(); // empties it
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
                 }
-            } // end of else block for test: if (!bResultsExists)
+            } // end of else block for test: if (!bExists)
+
+
+
+
+
+
+
+
+
+            // TO DO
 
             // Now the two .dat files are in the executable's folder. We now must get do_create_new_user_grant_all.py
             // from _DATA_KB_SHARING folder, to the execPath's folder, precede the .py with python3<space>, and
