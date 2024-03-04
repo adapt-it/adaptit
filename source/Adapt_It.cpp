@@ -1180,377 +1180,377 @@ const wxString defaultSFM[] =
     // which are defined in the Paratext usfm_sb.sty stylesheet. The extensions in usfm_sb.sty include study Bible marker extensions
     // that are not included in the standard usfm.sty that we've used in the past. All future revisions should be based on the
     // usfm_sb.sty file which includes all of the usfm.sty markers plus the bible study extensions added in this revision.
-    _T("id::File identification (BOOKID, FILENAME, EDITOR, MODIFICATION DATE)::1:1::::1::1:id:11::id - File - Identification:0:1:65535::::::0::::::__normal:id::1:"),
-    _T("ide::File encoding information:id:1::1::::1:::0::ide - File - Encoding:0:12:65535::::::0::::::__normal:ide:::"),
-    _T("h::Running header text for a book (basic):id:1:1::1::1:1:1:hdr:10::h - File - Header:0:9:::::::0::::::_vernacular_base:h:::"),
-    _T("h1::Running header text:id:1:::1::1:1:1:hdr:10::DEPRECATED h1 - File - Header:0:9:::::::1::::::h:h1:::"),
-    _T("h2::Running header text, left side of page:id:1:::1::1:1:1:hdr-left:10::DEPRECATED h2 - File - Left Header:0:9:::::::0::::::h1:h2:::"),
-    _T("h3::Running header text, right side of page:id:1:::1::1:1:1:hdr-rght:10::DEPRECATED h3 - File - Right Header:0:9:::::::2::::::h1:h3:::"),
-    _T("rem::Comments and remarks:id ide c:1::1:1::1:1:1:comment:34::rem - File - Remark:0:9:16711680::::::0::::::_notes_base:rem:::"),
-    _T("sts::Status of this file:id ide c:1::1:1::1:1:1:comment:34::rem - File - Status:0:9:16711680::::::0::::::_notes_base:sts:::"),
-    _T("restore::Project restore information:id:1::1::::1:::34::restore - File - Restore Information:0:12:16711680::::::0::::::__normal:restore:::"),
-    _T("lit::For a comment or note inserted for liturgical use:c:1::1:1::1:1:1:lit-note:34::lit - Special Text - Liturgical note:0:12:::1::::2::::::p:lit:1:1:"),
-    _T("nt::Note:::1:1:1::1:1:1:note:34::nt - Note:0:9:16711680::::::0::::::_notes_base:nt:::"),
-    _T("nc::Note centered:::1:1:1::1:1:1:note:34::nc - Note centered:0:9:16711680::::::1::::::nt:nc:::"),
-    _T("c::Chapter number (basic):id:1:1:::::1:1::1:1:c - Chapter Number:0:18:::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("ca:ca*:Second (alternate) chapter number (for coding dual versification; useful for places where different traditions of chapter breaks need to be supported in the same translation):c:1:::1:::1:::1::ca...ca* - Chapter Number - Alternate:1:16:2263842:1:::::0::::::::::"),
-    _T("cl::Chapter label used for translations that add a word such as 'Chapter' before chapter numbers (e.g. Psalms). The subsequent text is the chapter label.:id c ms ms1 ms2 ms3 mr:1:::1:::1:::1::cl - Chapter - Publishing Label:0:18:::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("cp::Published chapter number (chapter string that should appear in the published text):c:1:::1:::1:::1::cp - Chapter Number - Publishing Alternate:0:18:16711680::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("cd::Chapter Description (Publishing option D, e.g. in Russian Bibles):c:1:::1:::1:1:chapter descr:1::cd - Chapter - Description:0:11:::::::0:8:4::::_heading_base:p:1:1:"),
-    _T("v::A verse number (basic):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:1:::::1:1::1::v - Verse Number:1:10:16711935::1:::1:0::::::::::"),
-    _T("vt::Verse text::1:1:::::1:1::1::vt - Verse text vt:1:12::::::1:0::::::::::"),
-    _T("vn::Verse number::1:1:::::1:1::1::vn - Verse number vn:1:10:16711935::1:::1:0::::::::::"),
-    _T("va:va*:Second (alternate) verse number (for coding dual numeration in Psalms; see also NRSV Exo 22.1-4):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:::1:1:::::1::va...va* - Verse Number - Alternate:1:10:2263842::1:::1:0::::::::::"),
-    _T("vp:vp*:Published verse marker (verse string that should appear in the published text):cd lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:::1:1:::::1::vp...vp* - Verse Number - Publishing Alternate:1:10:16711680::1:::1:0::::::::::"),
-    _T("mt::The main title of the book (if single level):id:1:1::1::1:1:1:main title:4:1:mt - Title - Major Title Level 1:0:20:::1::::1:8:4::::_heading_base:c:1:1:"),
-    _T("mt1::The main title of the book (if multiple levels) (basic):id:1:::1::1:1:1:main title L1:4:1:mt1 - Title - Major Title Level 1:0:20:::1::::1:2:4::::_heading_base:c:1:1:"),
-    _T("mt2::A secondary title usually occurring before the main title (basic):id:1:::1::1:1:1:secondary title L2:5:1:mt2 - Title - Major Title Level 2:0:16::1:::::1::2::::_heading_base:mt:1:1:"),
-    _T("mt3::A secondary title occurring after the main title:id:1:::1::1:1:1:secondary title L3:5:1:mt3 - Title - Major Title Level 3:0:14:::1::::1:2:2::::_heading_base:c:1:1:"),
-    _T("mt4::A small secondary title sometimes occuring within parentheses:id:1:::1::1:1:1:secondary title L4:5:1:mt4 - Title - Major Title level 4:0:12:::::::1:2:2::::_heading_base:c:1:1:"),
-    _T("st::Secondary title:::1::1::1:1:1:secondary title:5:1:st - Secondary title:0:16:::1::::1::2::::_heading_base:mt:1:1:"),
-    _T("mte::The main title of the book repeated at the end of the book (if single level):c:1:::1::1:1:1:main title at end:4:1:mte - Title - [Uncommon] Major Title Ending Level 1:0:20:::1::::1:8:4::::_heading_base::1::"),
-    _T("mte1::The main title of the book repeated at the end of the book (if multiple levels):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tc1 tc2 tc3 tc4 s3 d:1:::1::1:1:1:main title at end L1:4:1:mte1 - Title - [Uncommon] Major Title Ending Level 1:0:20:::1::::1:8:4::::_heading_base::1::"),
-    _T("mte2::A secondary title occurring before or after the 'ending' main title:mte1:1:::1::1:1:1:secondary title at end L2:5:1:mte2 - Title - [Uncommon] Major Title Ending Level 2:0:16::1:::::1::2::::_heading_base::1::"),
-    _T("div::Division heading:::1::1::1:1:1:division head:3:1:div - Division heading:0:16:::1::::1:6:3::::s:dvrf:1:1:"),
-    _T("bn::Psalms book number:::1::1::1:1:1:Psalm book number:0:1:bn - Psalms book number:0:11:::1::::1:6:3::::s:br:1:1:"),
-    _T("ms::A major section division heading, level 1 (if single level) (basic):c esb:1:::1::1:1:1:major sect head:3:1:ms - Heading - Major Section Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("mse::A major section division ending heading, level 1 (if single level):c:1:::1::1:1:1:major sect ending:3:1:mse - Heading - Major Section Ending Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("ms1::A major section division heading, level 1 (if multiple levels):c:1:::1::1:1:1:major sect head L1:3:1:ms1 - Heading - Major Section Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("ms2::A major section division heading, level 2:c:1:::1::1:1:1:major sect head L2:3:1:ms2 - Heading - Major Section Level 2:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("ms2e::A major section division ending heading, level 2:c:1:::1::1:1:1:major sect ending L2:3:1:ms2e - Heading - Major Section Ending Level 2:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("ms3::A major section division heading, level 3:c:1:::1::1:1:1:major sect head L3:3:1:ms3 - Heading - Major Section Level 3:0:14::1:::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("ms3e::A major section division ending heading, level 3:c:1:::1::1:1:1:major sect ending L3:3:1:ms3e - Heading - Major Section Ending Level 3:0:14::1:::::1:16:4::::_heading_base:mr:1:1:"),
-    _T("s::A section heading, level 1 (if single level) (basic):c:1:1::1::1:1:1:sect head:3:1:s - Heading - Section Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("s1::A section heading, level 1 (if multiple levels):c:1:::1::1:1:1:sect head L1:3:1:s1 - Heading - Section Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("s1e::A section ending heading, level 1 (if multiple levels):c:1:::1::1:1:1:sect head ending L1:3:1:s1e - Heading - Section Ending Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
-    _T("s2::A section heading, level 2 (e.g. Proverbs 22-24):c:1:::1::1:1:1:sect head L2:3:1:s2 - Heading - Section Level 2:0:12::1:::::1:8:4::::_heading_base:p:1:1:"),
-    _T("s2e::A section ending heading, level 2:c:1:::1::1:1:1:sect head ending L2:3:1:s2e - Heading - Section Ending Level 2:0:12::1:::::1:8:4::::_heading_base:p:1:1:"),
-    _T("s3::A section heading, level 3 (e.g. Genesis 'The First Day'):c:1:::1::1:1:1:sect head L3:3:1:s3 - Heading - Section Level 3:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
-    _T("s3e::A section ending heading, level 3:c:1:::1::1:1:1:sect head ending L3:3:1:s3e - Heading - Section Ending Level 3:0:12::1:::::??:6:3::::_heading_base:p:1:1:"),
-    _T("s4::A section heading, level 4:c:1:::1::1:1:1:sect head L4:3:1:s4 - Heading - Section Level 4:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
-    _T("s4e::A section ending heading, level 4:c:1:::1::1:1:1:sect head ending L4:3:1:s4e - Heading - Section Ending Level 4:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
-    _T("sr::A section division references range heading:s s1 s2 s3 s4:1:::1::1:1:1:sect head range refs:3:1:sr - Heading - Section Range References:0:12:::1::::1::4::::_heading_base:p:1:1:"),
-    _T("sx::Extra heading 1:::1::1::1:1:1:sect head extra 1:3:1:sx - Extra heading 1:0:12:::1::::1:6:3::::_heading_base:p:1:1:"),
-    _T("sz::Extra heading 2:::1::1::1:1:1:sect head extra 2:3:1:sz - Extra heading 2:0:12::1:::::1:6:3::::_heading_base:p:1:1:"),
-    _T("sp::A heading, to identify the speaker (e.g. Job):c:1:1::1::1:1:1:speaker:0:1:sp - Label - Speaker:0:12::1:::::0:8:4::::_heading_base:q:1:1:"),
-    _T("d::A Hebrew text heading, to provide description (e.g. Psalms):c:1:::::1:1:1:descr title:1:1:d - Label - Descriptive Title - Hebrew Subtitle:0:12::1:::::1:4:4::::_heading_base:q:1:1:"),
-    _T("sd::Vertical space used to divide the text into sections, level 1 (if single level):c:1::1:::1:1:::6:1:sd - Label - Semantic Division Location - Level 1:0:12:::::::1:24:24::::_heading_base:sd:1::"),
-    _T("sd1::Vertical space used to divide the text into sections, level 1 (if single level):c:1::1:::1:1:::6:1:sd1 - Label - Semantic Division Location - Level 1:0:12:::::::1:24:24::::_heading_base:sd1:1::"),
-    _T("sd2::Vertical space used to divide the text into sections, level 2:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 2:0:12:::::::1:18:18::::_heading_base:sd2:1::"),
-    _T("sd3::Vertical space used to divide the text into sections, level 3:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 3:0:12:::::::1:12:12::::_heading_base:sd3:1::"),
-    _T("sd4::Vertical space used to divide the text into sections, level 4:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 4:0:12:::::::1:8:8::::_heading_base:sd4:1::"),
-    _T("di::Descriptive title (Hebrew subtitle):::1::::1:1:1:descr title:1:1:di - Descr title or Heb subtitle di:0:12::1:::::1:4:4::::_heading_base:q:1:1:"),
-    _T("hl::Hebrew letter:::1:::::1:::0::hl - Hebrew letter:0:12:::::::1:4:4::::_heading_base:q:1:1:"),
-    _T("r::Parallel reference(s) (basic):c s s1 s2 s3 s4:1:1:1:1::1:1:1:ref:33::r - Heading - Parallel References:0:12::1:::::1::4::::_heading_base:p:1:1:"),
-    _T("dvrf::Division reference:::1:1:1::1::1:div-ref:0::dvrf - Division ref:0:12::1:::::1::3::::_heading_base:p:1:1:"),
-    _T("mr::A major section division references range heading (basic):ms ms1 ms2 ms3:1::1:1::1::1:mjr-sect-refs:0::mr - Heading - Major Section Range References:0:12::1:::::1::4::::ms:p:1:1:"),
-    _T("br::Psalms book reference:::1:1:1::1::1:Ps-bk-ref:0::br - Psalms book ref:0:12::1:::::1::4::::r:c:1:1:"),
-    _T("x:x*:A list of cross references (basic):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 s s1 s2 s3 d:1::1:1:1:1:1:1:x-refs:33::x...x* - Cross Reference:4:10:::::::0::::::_notes_base:x:::"),
-    _T("xo:xo*:The cross reference origin reference (basic):x ex:1::1::1:1::1:origin-ref:33::xo - Cross Reference - Origin Reference:1:10:::1::::0::::::::::"),
-    _T("xop:xop*:Published cross reference origin reference (origin reference that should appear in the published text):x:1::1::1:1::1:origin-ref:33::xop - Cross Reference - Origin Reference Publishing Alternate:1:10:::::::0::::::::::"),
-    _T("xt:xt*:The cross reference target reference(s), protocanon only (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x ef efe ex NEST:1::1::1:1::1:tgt-ref:33::xt - Cross Reference - Target References:1:10:::::::0::::::::::"),
-    _T("xta:xta*:Cross reference target references added text:x:1::1::1:1::1:tgt-ref:33::xta - Cross Reference - Target References Added Text:1:10:::::::0::::::::::"),
-    _T("xk:xk*:A cross reference keyword:x ex:1::1::1:1::1:keyword:33::xk - Cross Reference - Keyword:1:10::1:::::0::::::::::"),
-    _T("xq:xq*:A cross-reference quotation from the scripture text:x ex:1::1::1:1::1:quote:33::xq - Cross Reference - Quotation:1:10::1:::::0::::::::::"),
-    _T("xot:xot*:Cross-reference target reference(s), Old Testament only:x ex:1::1::1:1::1:OldT-ref:33::xot...xot* - Cross Reference - OT Target Refs (optional):1:12:::::::0::::::::::"),
-    _T("xnt:xnt*:Cross-reference target reference(s), New Testament only:x ex:1::1::1:1::1:NewT-ref:33::xnt...xnt* - Cross Reference - NT Target Refs (optional):1:12:::::::0::::::::::"),
-    _T("xdc:xdc*:Cross-reference target reference(s), Deuterocanon only:x ex:1::1::1:1::1:deut-canon-ref:33::DEPRECATED xdc...xdc* - Cross Reference - DC Target Refs:1:10:::::::0::::::::::"),
-    _T("rr::Right margin reference:::1:1:1::1::1:rt-marg-ref:32::rr - Right margin ref:0:9::1:::::2::::::qr:rr:::"),
-    _T("rq:rq*:A cross-reference indicating the source text for the preceding quotation:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 NEST:1::1:1::1::1:x-ref to source:32::rq...rq* - Cross Reference - Inline Quotation References:1:10::1:::::2::::::::::"),
-    _T("@::Cross reference, origin reference:::1:1:1::1::1:x-refs orig:33::@ - Cross ref origin ref:1:10:::1::::0::::::::::"),
-    _T("xr::Cross reference target references:::1:1:1::1::1:x-refs tgt:33::xr - Cross ref target ref:1:10:::::::0::::::::::"),
-    _T("p::Paragraph text, with first line indent (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:paragraph:1:1:p - Paragraph - Normal - First Line Indent:0:12:::::::0:::::.125:_body_text:p:::"),
-    _T("pi::Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:para indented:1:1:pi - Paragraph - Indented - Level 1 - First Line Indent:0:12:::::::0:::.25:.25:.125:p:pi:::"),
-    _T("pi1::Paragraph text, level 1 indent (if multiple levels), with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L1:1:1:pi1 - Paragraph - Indented - Level 1 - First Line Indent:0:12:::::::0:::.25:.25:.125:pi:pi1:::"),
-    _T("pi2::Paragraph text, level 2 indent, with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L2:1:1:pi2 - Paragraph - Indented - Level 2 - First Line Indent:0:12:::::::0:::.5:.25:.125:pi1:pi2:::"),
-    _T("pi3::Paragraph text, level 3 indent, with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L3:1:1:pi3 - Paragraph - Indented - Level 3 - First Line Indent:0:12:::::::0:::.75:.25:.125:pi2:pi3:::"),
-    _T("pgi::Indented paragraph:::1:::::1:1:para indented:1:1:pgi - Indented paragraph:0:12:::::::0:::.25:.25:.125:p:pgi:::"),
-    _T("ph::Paragraph text, with level 1 hanging indent (if single level):c:1::::::1:1:para hang indent:1:1:DEPRECATED ph - Paragraph - Hanging Indent - Level 1:0:12:::::::0:::.5::-.25:_body_text:ph:::"),
-    _T("ph1::Paragraph text, with level 1 hanging indent (if multiple levels):c:1::::::1:1:para hang indent L1:1:1:DEPRECATED ph1 - Paragraph - Hanging Indent - Level 1:0:12:::::::0:::.5::-.25:ph:ph1:::"),
-    _T("ph2::Paragraph text, with level 2 hanging indent:c:1::::::1:1:para hang indent L2:1:1:DEPRECATED ph2 - Paragraph - Hanging Indent - Level 2:0:12:::::::0:::.75::-.25:ph1:ph2:::"),
-    _T("ph3::Paragraph text, with level 3 hanging indent:c:1::::::1:1:para hang indent L3:1:1:DEPRECATED ph3 - Paragraph - Hanging Indent - Level 3:0:12:::::::0:::1::-.25:ph2:ph3:::"),
-    _T("phi::Paragraph text, indented with hanging indent:c:1::::::1:1:para indent hang indent:1:1:DEPRECATED phi - Paragraph - Indented - Hanging Indent:0:12:::::::0:::1:::_body_text:phi:::"),
-    _T("m::Paragraph text, with no first line indent (may occur after poetry) (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:paragraph margin:1:1:m - Paragraph - Margin - No First Line Indent:0:12:::::::0::::::p:m:::"),
-    _T("po::Letter opening:c:1:1:::::1:1:paragraph:1:1:po - Paragraph - Letter Opening:0:12:::::::0:4:4:::.125:_body_text:po:::"),
-    _T("pr::Text refrain (paragraph text, right aligned):c:1:1:::::1:1:paragraph:1:1:pr - Paragraph - Text Refrain (right aligned):0:12:::::::2:::::.125:_body_text:pr:::"),
-    _T("pmo::Embedded text opening:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1::::::1:1:para embedded text opening:1:1:pmo - Paragraph - Embedded Text Opening:0:12:::::::0:::.25:.25::pm:pm:::"),
-    _T("mi::Paragraph text, indented, with no first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:para indent no 1st line indent:1:1:mi - Paragraph - Indented - No First Line Indent:0:12:::::::0:::.25:.25::pi:mi:::"),
-    _T("pc::Paragraph spanning chapters:::1:::::1:1:para spans chapters:1:1:pc - Paragraph spanning chapters:0:12:::::::0::::::m:pc:::"),
-    _T("pc::Paragraph text, centered (for Inscription):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para centered inscription:1:1:pc - Paragraph - Centered (for Inscription):0:12:::::::1::::::_body_text:pc:::"),
-    _T("pt::Preface title:::1::1::1:1:1:preface title:0:1:pt - Preface title:0:14:::1::::1::6::::_heading_base:pp:1:1:"),
-    _T("ps::Preface section heading:::1::1::1:1:1:preface sect head:0:1:ps - Preface sect heading:0:12:::1::::1:4:2::::s:pp:1:1:"),
-    _T("ps::Paragraph text, no break with next paragraph text at chapter boundary:c:1::::::1:1:para spans chapters:1:1:OBSOLETE ps - Paragraph - No Break with Next Paragraph:0:12:::::::0::::::m:ps:::"),
-    _T("psi::Paragraph text, indented, with no break with next paragraph text (at chapter boundary):c:1::::::1:1:para spans chapters indent:1:1:OBSOLETE psi - Paragraph - Indented - No Break with Next:0:12:::::::0:::.25:.25:.125:pi:pi:::"),
-    _T("pp::Preface paragraph:::1::1::1:1:1:preface paragraph:0:1:pp - Preface paragraph:0:10:::::::0:::::.125:p:pp:::"),
-    _T("pq::Preface poetry:::1::1::1:1:1:preface poetry:0:1:pq - Preface poetry:0:10:::::::0:::.5:::q:pq:::"),
-    _T("pm::Preface continue at margin:::1::1::1:1:1:preface at margin:0:1:pm - Preface continue at margin:0:10:::::::0::::::m:pm:::"),
-    _T("pm::Embedded text paragraph:m mi nb p pc ph phi pi pi1 pi2 pi3 pr psi q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:paragraph embedded text:1:1:pm - Paragraph - Embedded Text:0:12:::::::0:::.25:.25:.125:p:pm:::"),
-    _T("pmc::Embedded text closing:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:para embedded text closing:1:1:pmc - Paragraph - Embedded Text Closing:0:12:::::::0:::.25:.25::pm:pmc:::"),
-    _T("pmr::Embedded text refrain (e.g. Then all the people shall say, 'Amen!'):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr po q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:para embedded text refrain:1:1:pmr - Paragraph - Embedded Text Refrain:0:12:::::::2:::.25:.25::pm:p:::"),
-    _T("nb::Paragraph text, with no break from previous paragraph text (at chapter boundary) (basic):c:1::::::1:1:para no break:1:1:nb - Paragraph - No Break with Previous Paragraph:0:12:::::::0::::::m:p:::"),
-    _T("cls::Letter Closing:c:1::::::1:1:Letter closing:1::cls - Paragraph - Letter Closing:0:12:::::::2::::::p:cls:1::"),
-    _T("q::Poetry text, level 1 indent (if single level):c:1:1:::::1:1:poetry:2:1:q - Poetry - Indent Level 1 - Single Level Only:0:12:::::::0:::1.25::-1:_body_text:q:::"),
-    _T("q1::Poetry text, level 1 indent (if multiple levels) (basic):c:1::::::1:1:poetry L1:2:1:q1 - Poetry - Indent Level 1:0:12:::::::0:::1.25::-1:q:q1:::"),
-    _T("q2::Poetry text, level 2 indent (basic):c:1:1:::::1:1:poetry L2:2:1:q2 - Poetry - Indent Level 2:0:12:::::::0:::1.25::-.75:q:q2:::"),
-    _T("q3::Poetry text, level 3 indent:c:1:1:::::1:1:poetry L3:2:1:q3 - Poetry - Indent Level 3:0:12:::::::0:::1.25::-.5:q2:q3:::"),
-    _T("q4::Poetry text, level 4 indent:c:1:1:::::1:1:poetry L3:2:1:q4 - Poetry - Indent Level 4:0:12:::::::0:::1.25::-.25:q3:q4:::"),
-    _T("qc::Poetry text, centered:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:poetry centered:2:1:qc - Poetry - Centered:0:12:::::::1::::::q:qc:::"),
-    _T("qr::Poetry text, Right Aligned:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:poetry right margin:2:1:qr - Poetry - Right Aligned:0:12:::::::2::::::q:qr:::"),
-    _T("qa::Poetry text, Acrostic marker/heading:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:::1:::1:1:acrostic hdg:2:1:qa - Poetry - Acrostic Heading/Marker:0:12::1:::::0::::::_heading_base:q:1:1:"),
-    _T("qac:qac*:Poetry text, Acrostic markup of the first character of a line of acrostic poetry:q q1 q2 q3 q4 qc qr  NEST:1::::1::1:::2::qac...qac* - Poetry Text - Acrostic Letter:1:12::1:::::0::::::::::"),
-    _T("qs:qs*:Poetry text, Selah:q q1 q2 q3 q4 qc qr NEST:1::::1::1:::1::qs...qs* - Poetry Text - Selah:1:12::1:::::0::::::::::"),
-    _T("qm::Poetry, left margin:::1:::::1:1:poetry margin:2:1:qm - Poetry left margin:0:12:::::::0::::::q:qm:::"),
-    _T("qm::Poetry text, embedded, level 1 indent (if single level):m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed:2:1:qm - Poetry - Embedded Text - Indent Level 1 - Single Level Only:0:12:::::::0:::1::-.75:q:qm:::"),
-    _T("qm1::Poetry text, embedded, level 1 indent (if multiple levels):m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L1:2:1:qm1 - Poetry - Embedded Text - Indent Level 1:0:12:::::::0:::1::-.75:qm:qm1:::"),
-    _T("qm2::Poetry text, embedded, level 2 indent:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L2:2:1:qm2 - Poetry - Embedded Text - Indent Level 2:0:12:::::::0:::1::-.5:qm1:qm2:::"),
-    _T("qm3::Poetry text, embedded, level 3 indent:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L3:2:1:qm3 - Poetry - Embedded Text - Indent Level 3:0:12:::::::0:::1::-.25:qm2:qm3:::"),
-    _T("qd::A Hebrew musical performance annotation, similar in content to Hebrew descriptive title.:c:1::::::1:1:Hebrew note:2:1:qd - Poetry - Hebrew Note:0:12::1:::::0:::.25:::q:qd:1:1:"),
-    _T("f:f*:A Footnote text item (basic):c cp lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip:1:1::1:1:1:1:1:footnote:9::f...f* - Footnote:4:10:::::::0::::::_notes_base:f:::"),
-    _T("fe::Footnote (end):::1:::::1:::1::fe - Footnote end PNG:1:10:::::::0::::::::::"),
-    _T("fe:fe*:An Endnote text item:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 ms3 s s1 s2 s3 d ip:1:::1:1:1:1:1:endnote:9::fe...fe* - Endnote:4:10:::::::0::::::_notes_base:fe:::"),
-    _T("fr:fr*:The origin reference for the footnote (basic):f fe ef efe:1::::1:1:1:1:ref:9::fr - Footnote - Reference:1:10:::1::::0::::::::::"),
-    _T("fk:fk*:A footnote keyword (basic):f fe ef efe:1::::1:1:1:1:keyword:9::fk - Footnote - Keyword:1:10::1:1::::0::::::::::"),
-    _T("fq:fq*:A footnote scripture quote or alternate rendering (basic):f fe ef efe:1::::1:1:1:1:quote:9::fq - Footnote - Quotation or Alternate Rendering:1:10::1:::::0::::::::::"),
-    _T("fqa:fqa*:A footnote alternate rendering for a portion of scripture text:f fe ef efe:1::::1:1:1:1:alt-transln:9::fqa - Footnote - Alternate Translation Rendering:1:10::1:::::0::::::::::"),
-    _T("fl:fl*:A footnote label text item, for marking or 'labelling' the type or alternate translation being provided in the note.:f fe ef efe:1::::1:1:1:1:label:9::fl - Footnote - Label Text:1:10::1:1::::0::::::::::"),
-    _T("fw:fw*:A footnote witness list, for distinguishing a list of sigla representing witnesses in critical editions.:f fe:1::::1:1:1:1:witness list:9::fw - Footnote - Witness List:1:12:::::::0::::::::::"),
-    _T("fp:fp*:A Footnote additional paragraph marker:f fe ef efe:1::::1:1:1:1:new-paragr:9::fp - Footnote Paragraph Mark:1:10:::::::0::::::::::"),
-    _T("ft:ft*:Footnote text, Protocanon (basic):f fe ef efe:1::::1:1:1:1:fn-text:9::ft - Footnote - Text:1:10:::::::0::::::::::"),
-    _T("fdc:fdc*:Footnote text, applies to Deuterocanon only:f fe ef efe:1::::1:1:1:1:deut-canon:9::DEPRECATED fdc...fdc* - Footnote - DC text:1:10:::::::0::::::::::"),
-    _T("fv:fv*:A verse number within the footnote text:f fe ef efe:1::::1:1::1:verse#:9::fv...fv* - Footnote - Embedded Verse Number:1:10:::1:::1:0::::::::::"),
-    _T("fm:fm*:An additional footnote marker location for a previous footnote:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 s s1 s2 s3 d ip:1::::1:1::1:call-prev:9::fm - Footnote - Additional Caller to Previous Note:1:10::::::1:0::::::::::"),
-    _T("F::Footnote (end):::1:::::1:::1::F - Footnote end PNG:1:10:::::::0::::::::::"),
-    _T("qt:qt*:For Old Testament quoted text appearing in the New Testament (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1::1:1:Quotation:1::qt...qt* - Special Text - Quoted Text - OT in NT:1:12::1:::::0::::::::::"),
-    _T("nd:nd*:For name of deity (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::nd...nd* - Special Text - Name of Deity:1:12::::1:::0::::::::::"),
-    _T("tl:tl*:For transliterated words:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::tl...tl* - Special Text - Transliterated Word:1:12::1:::::0::::::::::"),
-    _T("dc:dc*:Deuterocanonical/LXX additions or insertions in the Protocanonical text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::dc...dc* - Special Text - Deuterocanonical/LXX Additions:1:12::1:::::0::::::::::"),
-    _T("bk:bk*:For the quoted name of a book:imt imt1 imt2 imt3 imt4 imte imte1 imte2 is is1 is2 ili ili1 ili2 ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::bk...bk* - Special Text - Quoted book title:1:12::1:::::0::::::::::"),
-    _T("sig:sig*:For the signature of the author of an Epistle:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::sig...sig* - Special Text - Author's Signature (Epistles):1:12::1:::::0::::::::::"),
-    _T("pn:pn*:For a proper name:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::pn...pn* - Special Text - Proper Name:1:12:::1:1:::0::::::::::"),
-    _T("png:png*:For a geographic proper name:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::png...png* - Special Text - Geographic Proper Name:1:12::::1:::0::::::::::"),
-    _T("wj:wj*:For marking the words of Jesus:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::wj...wj* - Special Text - Words of Jesus:1:12:255::::::0::::::::::"),
-    _T("k:k*:For a keyword:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::k...k* - Special Text - Keyword:1:12::1:1::::0::::::::::"),
-    _T("sls:sls*:To represent where the original text is in a secondary language or from an alternate text source:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::sls...sls* - Special Text - Secondary Language or Text Source:1:12::1:::::0::::::::::"),
-    _T("ord:ord*:For the text portion of an ordinal number:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::ord...ord* - Special Text - Ordinal number text portion:1:12::::::1:0::::::::::"),
-    _T("add:add*:For a translational addition to the text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:1:1:1:addl material:1::add...add* - Special Text - Translational Addition:1:12:2263842:1:1::::0::::::::::"),
-    _T("no:no*:A character style, use normal text:is ip ipi im imi ili ili1 ili2 imq ipq iex iq iot io1 io2 io3 io4 s s1 s2 s3 NEST:1::::1:::::1::no...no* - Character - Normal Text:1:12:::::::0::::::::::"),
-    _T("bd:bd*:A character style, use bold text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::bd...bd* - Character - Bold Text:1:12:::1::::0::::::::::"),
-    _T("it:it*:A character style, use italic text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::it...it* - Character - Italic Text:1:12::1:::::0::::::::::"),
-    _T("bdit:bdit*:A character style, use bold + italic text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::bdit...bdit* - Character - BoldItalic Text:1:12::1:1::::0::::::::::"),
-    _T("em:em*:A character style, use emphasized text style:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::em...em* - Character - Emphasized Text:1:12::1:::::0::::::::::"),
-    _T("sc:sc*:A character style, for small capitalization text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::sc...sc* - Character - Small Caps:1:12:::::1::0::::::::::"),
-    _T("sup:sup*:A character style, for superscript text. Typically for use in critical edition footnotes.:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::6::sup...sup* - Character - Superscript:1:10::::::1:0::::::::::"),
-    _T("pro:pro*:For indicating pronunciation in CJK texts:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST:1::1:1:1:::::6::DEPRECATED pro...pro* - Special Text - CJK Pronunciation:1:10:::::::0::::::::::"),
-    _T("imt::Introduction main title, level 1 (if single level) (basic):id:1:::1::1:1:1:intro main title:0:1:imt - Introduction - Major Title Level 1:0:14:::1::::1:8:4::::_intro_base:ip:1:1:"),
-    _T("imt1::Introduction major title, level 1 (if multiple levels):id:1:::1::1:1:1:intro major title L1:0:1:imt1 - Introduction - Major Title Level 1:0:14:::1::::1:8:4::::imt:ip:1:1:"),
-    _T("imt2::Introduction major title, level 2:id:1:::1::1:1:1:intro major title L2:0:1:imt2 - Introduction - Major Title Level 2:0:13::1:::::1:6:3::::imt1:ip:1:1:"),
-    _T("imt3::Introduction major title, level 3:id:1:::1::1:1:1:intro major title L3:0:1:imt3 - Introduction - Major Title Level 3:0:12:::1::::1:2:2::::imt2:ip:1:1:"),
-    _T("imt4::Introduction major title, level 4 (usually within parenthesis):id:1:::1::1:1:1:intro major title L4:0:1:imt4 - Introduction - Major Title Level 4:0:12::1:::::1:2:2::::imt3:ip:1:1:"),
-    _T("imte::Introduction major title at introduction end, level 1 (if single level):id:1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
-    _T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):id:1:::1::1:1:1:intro major title at end:0:1:imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
-    _T("imte2::Introduction major title at introduction end, level 2:id:1:::1::1:1:1:intro major title at end:0:1:imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1:8:4::::imt:ie:::"),
-    _T("is::Introduction section heading, level 1 (if single level) (basic):id:1:1::1::1:1:1:intro sect head:0:1:is - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::s:ip:1:1:"),
-    _T("is1::Introduction section heading, level 1 (if multiple levels):id:1:::1::1:1:1:intro sect head L1:0:1:is1 - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::is:ip:1:1:"),
-    _T("is2::Introduction section heading, level 2:id:1:::1::1:1:1:intro sect head L2:0:1:is2 - Introduction - Section Heading Level 2:0:12:::1::::1:8:4::::is1:ip:1:1:"),
-    _T("ip::Introduction prose paragraph (basic):id c:1:1::1::1:1:1:intro paragraph:0:1:ip - Introduction - Paragraph:0:10:::::::0:::::.125:_intro_base:ip:::"),
-    _T("ipi::Introduction prose paragraph, indented, with first line indent:id:1:1::1::1:1:1:intro paragraph indented:0:1:ipi - Introduction - Indented Para - first line indent:0:10:::::::0:::.25:.25:.125:ip:ipi:::"),
-    _T("ipq::Introduction prose paragraph, quote from the body text:id:1:::1::1:1:1:intro para quote:0:1:ipq - Introduction - Paragraph - quote from text:0:10::1:::::0:::.25:.25:.125:ip:ipq:::"),
-    _T("ipr::Introduction prose paragraph, right aligned:id:1:::1::1:1:1:intro para right align:0:1:ipr - Introduction - Paragraph - right aligned:0:10::1:::::2:::.25:.25::ip:ipr:::"),
-    _T("iq::Introduction poetry text, level 1 (if single level):id:1:1::1::1:1:1:intro poetry:0:1:iq - Introduction - Poetry Level 1:0:10::1:::::0:::1::-.75:ip:iq:::"),
-    _T("iq1::Introduction poetry text, level 1 (if multiple levels):id:1:::1::1:1:1:intro poetry L1:0:1:iq1 - Introduction - Poetry Level 1:0:10::1:::::0:::1::-.75:iq:iq1:::"),
-    _T("iq2::Introduction poetry text, level 2:id:1:1::1::1:1:1:intro poetry L2:0:1:iq2 - Introduction - Poetry Level 2:0:10::1:::::0:::1::-.5:iq:iq2:::"),
-    _T("iq3::Introduction poetry text, level 3:id:1:::1::1:1:1:intro poetry L3:0:1:iq3 - Introduction - Poetry Level 3:0:10::1:::::0:::1::-.25:iq:iq3:::"),
-    _T("im::Introduction prose paragraph, with no first line indent (may occur after poetry):id:1:1::1::1:1:1:intro para no indent:0:1:im - Introduction - Paragraph - no first line indent:0:10:::::::0::::::ip:im:::"),
-    _T("imi::Introduction prose paragraph text, indented, with no first line indent:id:1:1::1::1:1:1:intro para no indent:0:1:imi - Introduction - Indented Para - no first line indent:0:10:::::::0:::.25:.25::ipi:imi:::"),
-    _T("ili::A list entry, level 1 (if single level):id:1:::1::1:1:1:intro list L1:0:1:ili - Introduction - List Entry - Level 1:0:12:::::::0:::.625::-.375:_list_base:ili:::"),
-    _T("ili1::A list entry, level 1 (if multiple levels):id:1:::1::1:1:1:intro list L1:0:1:ili1 - Introduction - List Entry - Level 1:0:12:::::::0:::.5::-.25:ili:ili1:::"),
-    _T("ili2::A list entry, level 2:id:1:::1::1:1:1:intro list L2:0:1:ili2 - Introduction - List Entry - Level 2:0:12:::::::0:::.75::-.25:ili1:ili2:::"),
-    _T("imq::Introduction prose paragraph, quote from the body text, with no first line indent:id:1:::1::1:1:1:intro para quote no indent:0:1:imq - Introduction - Paragraph - quote from text - no first line indent:0:10::1:::::0:::.25:.25::imi:imq:::"),
-    _T("ib::Introduction blank line:id:1::1:1::1::::0:1:ib - Introduction - Blank Line:0:12:::::::0::::::_intro_base:ib:::"),
-    _T("iot::Introduction outline title (basic):id:1:::1::1:1:1:intro outline title:0:1:iot - Introduction - Outline Title:0:12:::1::::1:8:4::::imt:io1:1:1:"),
-    _T("io::Introduction outline text, level 1 (if single level):id:1:1::1::1:1:1:intro outline:0:1:io - Introduction - Outline Level 1:0:10:::::::0:::.5:::_intro_base:io:::"),
-    _T("io1::Introduction outline text, level 1 (if multiple levels) (basic):id:1:1::1::1:1:1:intro outline L1:0:1:io1 - Introduction - Outline Level 1:0:10:::::::0:::.5:::io:io1:::"),
-    _T("io2::Introduction outline text, level 2:id:1:1::1::1:1:1:intro outline L2:0:1:io2 - Introduction - Outline Level 2:0:10:::::::0:::.75:::io1:io2:::"),
-    _T("io3::Introduction outline text, level 3:id:1:1::1::1:1:1:intro outline L3:0:1:io3 - Introduction - Outline Level 3:0:10:::::::0:::1:::io2:io3:::"),
-    _T("io4::Introduction outline text, level 4:id:1:1::1::1:1:1:intro outline L4:0:1:io4 - Introduction - Outline Level 4:0:10:::::::0:::1.25:::io3:io4:::"),
-    _T("ior:ior*:Introduction references range for outline entry; for marking references separately:id io io1 io2 io3 io4 NEST:1:::1:1:1::::6::ior...ior* - Introduction - Outline References Range:1:10:::::::0::::::::::"),
-    _T("iex::Introduction explanatory or bridge text (e.g. explanation of missing book in Short Old Testament):id:1:::1::1:1:1:intro explain text:0:1:iex - Introduction - Explanatory or Bridge Text:0:10:::::::0:4:4:::.125:ip:iex:::"),
-    _T("iqt:iqt*:For quoted scripture text appearing in the introduction:id NEST:1:::1:1:1::::6::iqt...iqt* - Special Text - Quoted Scripture Text in Introduction:1:12::1:::::0::::::::::"),
-    _T("ie::Introduction ending marker:id:1::1:::1:1:::0::ie - Introduction - End Marker:8:12:::::::0:12:4:1.5:1.5::_intro_base:ie:::"),
-    _T("li::A list entry, level 1 (if single level):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item:1:1:li - List Entry - Level 1:0:12:::::::0:::.625::-.375:_list_base:li:::"),
-    _T("lh::List header (introductory remark):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list header:1:1:lh - List Header:0:12:::::::0:::::.125:_list_base:lh:1:1:"),
-    _T("lf::List footer (concluding remark):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list footer:1:1:lf - List Footer:0:12:::::::0::::::_list_base:lf:::"),
-    _T("lim::An embedded list entry, level 1 (if single level):c:1::::::1:1:embedded list item:1:1:lim - Embedded List Entry - Level 1:0:12:::::::0:::.75::-.375:_list_base:lim:::"),
-    _T("lim1::An embedded list entry, level 1 (if multiple levels):c:1::::::1:1:embedded list item:1:1:lim1 - Embedded List Entry - Level 1:0:12:::::::0:::.75::-.375:_list_base:lim1:::"),
-    _T("lim2::An embedded list entry, level 2:c:1::::::1:1:embedded list item:1:1:lim2 - Embedded List Entry - Level 2:0:12:::::::0:::1.0::-.375:_list_base:lim2:::"),
-    _T("lim3::An embedded list entry, level 3:c:1::::::1:1:embedded list item:1:1:lim3 - Embedded List Entry - Level 3:0:12:::::::0:::1.25::-.375:_list_base:lim3:::"),
-    _T("lim4::An embedded list entry, level 4:c:1::::::1:1:embedded list item:1:1:lim4 - Embedded List Entry - Level 4:0:12:::::::0:::1.5::-.375:_list_base:lim4:::"),
-    _T("litl:litl*:List entry total text:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:list item total:1:1:litl...litl* - List Entry - Total:1:12::1:::::0::::::::::"),
-    _T("lik:lik*:Structured list entry key text:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list key:1:1:lik...lik* - Structured List Entry - Key:1:12::1:::::0::::::::::"),
-    _T("liv:liv*:Structured list entry value 1 content (if single value):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv...liv* - Structured List Entry - Value 1:1:12:::::::0::::::::::"),
-    _T("liv1:liv1*:Structured list entry value 1 content (if multiple values):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::1::::1:1:structured list entry:1:1:liv1...liv1* - Structured List Entry - Value 1:1:12:::::::0::::::::::"),
-    _T("liv2:liv2*:Structured list entry value 2 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv2...liv2* - Structured List Entry - Value 2:1:12:::::::0::::::::::"),
-    _T("liv3:liv3*:Structured list entry value 3 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv3...liv3* - Structured List Entry - Value 3:1:12:::::::0::::::::::"),
-    _T("liv4:liv4*:Structured list entry value 4 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv4...liv4* - Structured List Entry - Value 4:1:12:::::::0::::::::::"),
-    _T("liv5:liv5*:Structured list entry value 5 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv5...liv5* - Structured List Entry - Value 5:1:12:::::::0::::::::::"),
-    _T("li1::A list entry, level 1 (if multiple levels):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L1:1:1:li1 - List Entry - Level 1:0:12:::::::0:::.5::-.25:li:li1:::"),
-    _T("li2::A list entry, level 2:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L2:1:1:li2 - List Entry - Level 2:0:12:::::::0:::.75::-.25:li1:li2:::"),
-    _T("li3::A list entry, level 3:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L3:1:1:li3 - List Entry - Level 3:0:12:::::::0:::1::-.25:li2:li3:::"),
-    _T("li4::A list entry, level 4:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L4:1:1:li4 - List Entry - Level 4:0:12:::::::0:::1.25::-.25:li3:li4:::"),
-    _T("qh::List or Genealogy:::1:::::1:1:list item:1:1:qh - List or Genealogy:0:12:::::::0:::.625::-.375:q:qh:::"),
-    _T("tr::A new table row:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:table row:1:1:tr - Table - Row:0:12:::::::0:::.5::-.25:_body_text:tr:::"),
-    _T("tr1::A table Row:c:1::::::1:1:table row L1:1:1:OBSOLETE tr1 - Table - Row - Level 1:0:12:::::::0:::.5::-.25:tr:tr1:::"),
-    _T("tr2::A table Row:c:1::::::1:1:table row L2:1:1:OBSOLETE tr2 - Table - Row - Level 2:0:12:::::::0:::.75::-.25:tr1:tr2:::"),
-    _T("th1::A table heading, column 1:tr:1::::::1:::1::th1 - Table - Column 1 Heading:1:12::1:::::0::::::::::"),
-    _T("th2::A table heading, column 2:tr:1::::::1:::1::th2 - Table - Column 2 Heading:1:12::1:::::0::::::::::"),
-    _T("th3::A table heading, column 3:tr:1::::::1:::1::th3 - Table - Column 3 Heading:1:12::1:::::0::::::::::"),
-    _T("th4::A table heading, column 4:tr:1::::::1:::1::th4 - Table - Column 4 Heading:1:12::1:::::0::::::::::"),
-    _T("th5::A table heading, column 5:tr:1::::::1:::1::th5 - Table - Column 5 Heading:1:12::1:::::0::::::::::"),
-    _T("th6::A table heading, column 6:tr:1::::::1:::1::th6 - Table - Column 6 Heading:1:12::1:::::0::::::::::"),
-    _T("th7::A table heading, column 7:tr:1::::::1:::1::th7 - Table - Column 7 Heading:1:12::1:::::0::::::::::"),
-    _T("th8::A table heading, column 8:tr:1::::::1:::1::th8 - Table - Column 8 Heading:1:12::1:::::0::::::::::"),
-    _T("th9::A table heading, column 9:tr:1::::::1:::1::th9 - Table - Column 9 Heading:1:12::1:::::0::::::::::"),
-    _T("th10::A table heading, column 10:tr:1::::::1:::1::th10 - Table - Column 10 Heading:1:12::1:::::0::::::::::"),
-    _T("th11::A table heading, column 11:tr:1::::::1:::1::th11 - Table - Column 11 Heading:1:12::1:::::0::::::::::"),
-    _T("th12::A table heading, column 12:tr:1::::::1:::1::th12 - Table - Column 12 Heading:1:12::1:::::0::::::::::"),
-    _T("thr1::A table heading, column 1, right aligned:tr:1::::::1:::1::thr1 - Table - Column 1 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr2::A table heading, column 2, right aligned:tr:1::::::1:::1::thr2 - Table - Column 2 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr3::A table heading, column 3, right aligned:tr:1::::::1:::1::thr3 - Table - Column 3 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr4::A table heading, column 4, right aligned:tr:1::::::1:::1::thr4 - Table - Column 4 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr5::A table heading, column 5, right aligned:tr:1::::::1:::1::thr5 - Table - Column 5 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr6::A table heading, column 6, right aligned:tr:1::::::1:::1::thr6 - Table - Column 6 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr7::A table heading, column 7, right aligned:tr:1::::::1:::1::thr7 - Table - Column 7 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr8::A table heading, column 8, right aligned:tr:1::::::1:::1::thr8 - Table - Column 8 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr9::A table heading, column 9, right aligned:tr:1::::::1:::1::thr9 - Table - Column 9 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr10::A table heading, column 10, right aligned:tr:1::::::1:::1::thr10 - Table - Column 10 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr11::A table heading, column 11, right aligned:tr:1::::::1:::1::thr11 - Table - Column 11 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("thr12::A table heading, column 12, right aligned:tr:1::::::1:::1::thr12 - Table - Column 12 Heading - Right Aligned:1:12::1:::::2::::::::::"),
-    _T("tc1::A table cell item, column 1:tr:1::::::1:::1::tc1 - Table - Column 1 Cell:1:12:::::::0::::::::::"),
-    _T("tc2::A table cell item, column 2:tr:1::::::1:::1::tc2 - Table - Column 2 Cell:1:12:::::::0::::::::::"),
-    _T("tc3::A table cell item, column 3:tr:1::::::1:::1::tc3 - Table - Column 3 Cell:1:12:::::::0::::::::::"),
-    _T("tc4::A table cell item, column 4:tr:1::::::1:::1::tc4 - Table - Column 4 Cell:1:12:::::::0::::::::::"),
-    _T("tc5::A table cell item, column 5:tr:1::::::1:::1::tc5 - Table - Column 5 Cell:1:12:::::::0::::::::::"),
-    _T("tc6::A table cell item, column 6:tr:1::::::1:::1::tc6 - Table - Column 6 Cell:1:12:::::::0::::::::::"),
-    _T("tc7::A table cell item, column 7:tr:1::::::1:::1::tc7 - Table - Column 7 Cell:1:12:::::::0::::::::::"),
-    _T("tc8::A table cell item, column 8:tr:1::::::1:::1::tc8 - Table - Column 8 Cell:1:12:::::::0::::::::::"),
-    _T("tc9::A table cell item, column 9:tr:1::::::1:::1::tc9 - Table - Column 9 Cell:1:12:::::::0::::::::::"),
-    _T("tc10::A table cell item, column 10:tr:1::::::1:::1::tc10 - Table - Column 10 Cell:1:12:::::::0::::::::::"),
-    _T("tc11::A table cell item, column 11:tr:1::::::1:::1::tc11 - Table - Column 11 Cell:1:12:::::::0::::::::::"),
-    _T("tc12::A table cell item, column 12:tr:1::::::1:::1::tc12 - Table - Column 12 Cell:1:12:::::::0::::::::::"),
-    _T("thc1::A table heading, column 1, center aligned:tr:1::::::1:::1::thc1 - Table - Column 1 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc2::A table heading, column 2, center aligned:tr:1::::::1:::1::thc2 - Table - Column 2 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc3::A table heading, column 3, center aligned:tr:1::::::1:::1::thc3 - Table - Column 3 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc4::A table heading, column 4, center aligned:tr:1::::::1:::1::thc4 - Table - Column 4 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc5::A table heading, column 5, center aligned:tr:1::::::1:::1::thc5 - Table - Column 5 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc6::A table heading, column 6, center aligned:tr:1::::::1:::1::thc6 - Table - Column 6 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc7::A table heading, column 7, center aligned:tr:1::::::1:::1::thc7 - Table - Column 7 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc8::A table heading, column 8, center aligned:tr:1::::::1:::1::thc8 - Table - Column 8 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc9::A table heading, column 9, center aligned:tr:1::::::1:::1::thc9 - Table - Column 9 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc11::A table heading, column 11, center aligned:tr:1::::::1:::1::thc11 - Table - Column 11 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("thc12::A table heading, column 12, center aligned:tr:1::::::1:::1::thc12 - Table - Column 12 Heading - Center Aligned:1:12::1:::::1::::::::::"),
-    _T("tcr1::A table cell item, column 1, right aligned:tr:1::::::1:::1::tcr1 - Table - Column 1 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr2::A table cell item, column 2, right aligned:tr:1::::::1:::1::tcr2 - Table - Column 2 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr3::A table cell item, column 3, right aligned:tr:1::::::1:::1::tcr3 - Table - Column 3 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr4::A table cell item, column 4, right aligned:tr:1::::::1:::1::tcr4 - Table - Column 4 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr5::A table cell item, column 5, right aligned:tr:1::::::1:::1::tcr5 - Table - Column 5 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr6::A table cell item, column 6, right aligned:tr:1::::::1:::1::tcr6 - Table - Column 6 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr7::A table cell item, column 7, right aligned:tr:1::::::1:::1::tcr7 - Table - Column 7 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr8::A table cell item, column 8, right aligned:tr:1::::::1:::1::tcr8 - Table - Column 8 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr9::A table cell item, column 9, right aligned:tr:1::::::1:::1::tcr9 - Table - Column 9 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr10::A table cell item, column 10, right aligned:tr:1::::::1:::1::tcr10 - Table - Column 10 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr11::A table cell item, column 11, right aligned:tr:1::::::1:::1::tcr11 - Table - Column 11 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("tcr12::A table cell item, column 12, right aligned:tr:1::::::1:::1::tcr12 - Table - Column 12 Cell - Right Aligned:1:12:::::::2::::::::::"),
-    _T("gm::Glossary main entry:::1::1::1:1:1:glossary main entry:0:1:gm - Glossary main entry:0:12:::::::0::::::_body_text:gp:::"),
-    _T("gs::Glossary subentry:::1::1::1:1:1:glossary subentry:0:1:gs - Glossary subentry:0:12:::::::0::::::gm:gp:::"),
-    _T("gd::Glossary definition:::1::1:1:1:1:1:glossary definition:0:1:gd - Glossary definition:1:12:::::::0::::::::::"),
-    _T("gp::Glossary paragraph:::1::1::1:1:1:glossary paragraph:0:1:gp - Glossary paragraph:0:12:::::::0::::::_body_text:gp:::"),
-    _T("tis::Topical index heading (level 1):::1::1:::1:1:topical index L1:0:1:tis - Topical index heading L1:0:12:::::::0::::::_heading_base:tpi:::"),
-    _T("tpi::Topical index heading (level 2):::1::1:::1:1:topical index L2:0:1:tpi - Topical index heading L2:0:12:::::::0::::::tis:tps:::"),
-    _T("tps::Topical index heading (level 3):::1::1:::1:1:topical index L3:0:1:tps - Topical index heading L3:0:12:::::::0::::::tpi:tir:::"),
-    _T("tir::Topical index reference:::1::1:::1:1:topical index reference:0:1:tir - Topical index ref:0:12:::::::0::::::_body_text:tir:::"),
-    _T("w:w*:A wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::w...w* - Peripheral Ref - Wordlist Entry:1:12:::::::0::::::::::"),
-    _T("wr:wr*:A Wordlist text item:ms s li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr tc1 tc2 tc3 tc4 f fe NEST:1::::1::1:::1::OBSOLETE wr...wr* - Auxiliary - Wordlist/Glossary Reference:1:12::1:::::0::::::::::"),
-    _T("wh:wh*:A Hebrew wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wh...wh* - Peripheral Ref - Hebrew Wordlist Entry:1:12:::::::0::::::::::"),
-    _T("wg:wg*:A Greek Wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wg...wg* - Peripheral Ref - Greek Wordlist Entry:1:12:::::::0::::::::::"),
-    _T("wa:wa*:An Aramaic Wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wa...wa* - Peripheral Ref - Aramaic Wordlist Entry:1:12:::::::0::::::::::"),
-    _T("ndx:ndx*:A subject index text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::6::ndx...ndx* - Peripheral Ref - Subject Index Entry:1:12:::::::0::::::::::"),
-    _T("periph::Periheral content division marker which should be followed by an additional division argument/title.::1:::1:::1:1:Periph matter div:0::periph - Peripherals - Content Division Marker:0:14:33023::1::::0:16:4::::_peripherals_base:periph:::"),
-    _T("p1::Front or back matter text paragraph, level 1 (if multiple levels):id:1:::1::1:1:1:Periph matter para L1:0:1:p1 - Periph - Front/Back Matter Paragraph Level 1:0:12:::::::0:::::.125:_peripherals_base:p1:::"),
-    _T("p2::Front or back matter text paragraph, level 2 (if multiple levels):id:1:::1::1:1:1:Periph matter para L2:0:1:p2 - Periph - Front/Back Matter Paragraph Level 2:0:12:::::::0:::.125::.125:_peripherals_base:p2:::"),
-    _T("k1::Concordance main entry text or keyword, level 1:id:1:::1::1:1:1:conc main entry/keyword L1:0:1:k1 - Periph - Concordance Keyword Level 1:0:12:::::::0::::::_peripherals_base:k1:::"),
-    _T("k2::Concordance main entry text or keyword, level 2:id:1:::1::1:1:1:conc main entry/keyword L2:0:1:k2 - Periph - Concordance Keyword Level 2:0:12:::::::0::::::_peripherals_base:k2:::"),
-    _T("xtSee:xtSee*:Concordance and Names Index markup for an alternate entry target reference.:p:1:::1:1::1:::0::xtSee - Concordance and Names Index - Alternate Entry Target Reference:1:12:16711680:1:::::0::::::::::"),
-    _T("xtSeeAlso:xtSeeAlso*:Concordance and Names Index markup for an additional entry target reference.:p:1:::1:1::1:::0::xtSeeAlso - Concordance and Names Index - Additional Entry Target Reference:1:12:16711680:1:::::0::::::::::"),
-    _T("pub::Front matter publication data:id:1:::1:::1:::0::OBSOLETE pub Peripherals - Front Matter Publication Data:0:10:::::::0::::::_peripherals_base:pub:::"),
-    _T("toc::Front matter table of contents:id:1:::1:::1:::0::OBSOLETE toc Peripherals - Front Matter Table of Contents:0:10:::::::0::::::_peripherals_base:toc:::"),
-    _T("toc1::Long table of contents text:h h1 h2 h3 id:1:::1::1:1:1:toc1:0::toc1 - File - Long Table of Contents Text:0:12:16384:1:1::::0::::::_peripherals_base:toc1:::"),
-    _T("toc2::Short table of contents text:h h1 h2 h3 id:1:::1::1:1:1:toc2:0::toc2 - File - Short Table of Contents Text:0:12:16384:1:::::0::::::_peripherals_base:toc2:::"),
-    _T("toc3::Book Abbreviation:h h1 h2 h3 id:1:::1::1:1:1:toc3:0::toc3 - File - Book Abbreviation:0:12:128:1:1::::0::::::_peripherals_base:toc3:::"),
-    _T("toca1::Alternative Language Long Table of Contents Text:h h1 h2 h3:1:::1:::1:::0::toca1 - File - Alternative Language Long Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca1:::"),
-    _T("toca2::Alternative language short table of contents text:h h1 h2 h3:1:::1:::1:::0::toca2 - File - Alternative Language Short Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca2:::"),
-    _T("toca3::Alternative language book Abbreviation:h h1 h2 h3:1:::1:::1:::0::toca3 - File - Alternative Language Book Abbreviation:0:10:8421504:1:::::0::::::_peripherals_base:toca3:::"),
-    _T("pref::Front matter preface:id:1:::1:::1:::0::OBSOLETE pref Peripherals - Front Matter Preface:0:10:::::::0::::::_peripherals_base:pref:::"),
-    _T("intro::Front matter introduction:id:1:::1:::1:::0::OBSOLETE intro Peripherals - Front Matter Introduction:0:10:::::::0::::::_peripherals_base:intro:::"),
-    _T("conc::Back matter concordance:id:1:::1:::1:::0::OBSOLETE conc Peripherals - Back Matter Concordance:0:10:::::::0::::::_peripherals_base:conc:::"),
-    _T("glo::Back matter glossary:id:1:::1:::1:::0::OBSOLETE glo Peripherals - Back Matter Glossary:0:10:::::::0::::::_peripherals_base:glo:::"),
-    _T("idx::Back matter index:id:1:::1:::1:::0::OBSOLETE idx Peripherals - Back Matter Index:0:10:::::::0::::::_peripherals_base:idx:::"),
-    _T("maps::Back matter map index:id:1:::1:::1:::0::OBSOLETE maps Peripherals - Back Matter Map Index:0:10:::::::0::::::_peripherals_base:maps:::"),
-    _T("cov::Other peripheral materials - cover:id:1:::1:::1:::0::OBSOLETE cov Peripherals - Other - Cover:0:10:::::::0::::::_peripherals_base:cov:::"),
-    _T("spine::Other peripheral materials - spine:id:1:::1:::1:::0::OBSOLETE spine Peripherals - Other - Spine:0:10:::::::0::::::_peripherals_base:spine:::"),
-    _T("pubinfo::Publication information - Lang,Credit,Version,Copies,Publisher,Id,Logo:id ide:1:::1:::1:::0::OBSOLETE pubinfo - Publication - Information:0:12:16711680::::::0::::::__normal:pubinfo:::"),
-    _T("pb::Page Break used for new reader portions and children's bibles where content is controlled by the page:c:1:::1:::1:1:new page:0:1:pb - Break - Page Break:0:12:::::::0::::::p:p:::"),
-    _T("b::Poetry text stanza break (e.g. stanza break) (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:::1:::1:1:stanza break:0::b - Poetry - Stanza Break (Blank Line):0:12:::::::0::::::_body_text:b:::"),
-    _T("hr::Horizontal rule:::1:1:::1:1:::0::hr - Horizontal rule:8:12:::::::0:4:4::::_body_text:hr:::"),
-    _T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip:1::1:1:1:1:1:1:figure:0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
-    _T("jmp:jmp*:For associating linking attributes to a span of text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::1:1:1::1:::0::jmp...jmp* - Link text:1:12:16711680:::1:::0::::::::::"),
-    _T("rb:rb*:Most often used to provide a reading / pronunciation guide in ideographic scripts:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST:1::::1::1:::1:1:rb...rb* - Special Text - Ruby Glossing:1:12:::::::0::::::::::"),
-    _T("loc::Picture location:::1:1::::1:::0::loc - Picture location:0:12:::::::0::::::_body_text:loc:::"),
-    _T("cap::Picture caption:::1:1:1::1:1:1:picture caption:0::cap - Picture caption:0:12:::::::0::::::_body_text:cap:::"),
-    _T("des::Picture description:::1:1:1:::1:::0::des - Picture description:0:12:::::::0::::::_body_text:des:::"),
-    _T("px::Paragraph extra 1:::1::1:::1:1:para extra 1:1:1:px - Paragraph extra 1:0:12:::::::0::::::p:px:::"),
-    _T("pz::Paragraph extra 2:::1::1:::1:1:para extra 2:1:1:pz - Paragraph extra 2:0:12:::::::0::::::p:pz:::"),
-    _T("qx::Poetry extra 1:::1::1:::1:1:poetry extra 1:2:1:qx - Poetry extra 1:0:12:::::::0::::::q:qx:::"),
-    _T("qz::Poetry extra 2:::1::1:::1:1:poetry extra 2:2:1:qz - Poetry extra 2:0:12:::::::0::::::q:qz:::"),
-    _T("addpn:addpn*:For chinese words to be dot underline and underline:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1::1:::1::DEPRECATED addpn...addpn* - Special Text for Chinese:1:12:2263842:1:1:1:::0::::::::::"),
-    _T("ef:ef*:A Study Note text item:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp:1::1:1:1:1:1:1:study note text item:34::ef...ef* - Study Note:1:12:::::::0::::::_notes_base:ef:::"),
-    _T("ex:ex*:List of study Bible extended cross references:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp:1:::1:1:1:1:1:ext xref list:34::ex...ex* - Study - Extended Cross Reference:1:12:::::::0::::::_notes_base:ex:::"),
-    _T("esb::Study Bible sidebar (mini article):id c:1:::1::1::1:study Bible sidebar:6::esb - Study - Sidebar (Mini Article):0:12:::::::0::::::::::"),
-    _T("esbe::Study Bible sidebar ending:id c esb:1:::1::1:1:1:study Bible sidebar end:6::esbe - Study - Sidebar Ending:0:12:::::::0::::::::::"),
-    _T("erq::Study Bible reflective questions:id c:1:::1::1::1:study Bible questions:6::erq - Study - Reflective Questions:0:12:::::::0::::::::::"),
-    _T("erqe::Study Bible reflective questions ending:id c erq:1:::1::1:1:1:study Bible questions end:6::erqe - Study - Reflective Questions Ending:0:12:::::::0::::::::::"),
-    _T("efm:efm*:ID or Caller for an extended (study) note. Used within a source project duplicte (target) text when autoring study material.::1::1::1:1:1:::0::efm - Study Note - ID/Caller:1:10:255::1::::0::::::::::"),
-    _T("cat:cat*:Study note category::1:::1:1:1:1:1:study note cat:0::cat - Study - Note Category:1:14:8388736::::::0::::::_notes_base:cat:::"),
-    _T("bt::Back-translation (and all \bt... initial forms)::1:1:1:::1::1:back-trans:0::bt - Back-translation:1:11:16711680::::::0::::::::::"),
-    _T("free:free*:Free translation::1:1:1:::1::1:free-trans:0::free - Free translation:1:11:4194500::::::0::::::::::"),
-    _T("note:note*:Adapt It note::1:1:1:::1::1:note:0::note - Adapt It note:1:10:16711680::::::0::::::::::"),
-    _T("__normal::Normal::1:1:1:::::::0::Normal:0:11:::::::0:::::::__normal:::"),
-    _T("_src_lang_interlinear::Source Language Interlinear Text::1:1:1:::::::0::Source Language:0:11:::::::0::::::__normal:_src_lang_interlinear::1:"),
-    _T("_tgt_lang_interlinear::Target Language Interlinear Text::1:1:1:::::::0::Target Language:0:11:::::::0::::::__normal:_tgt_lang_interlinear::1:"),
-    _T("_gls_lang_interlinear::Gloss Language Interlinear Text::1:1:1:::::::0::Gloss Language:0:11:::::::0::::::__normal:_gls_lang_interlinear::1:"),
-    _T("_nav_lang_interlinear::Navigation Language Interlinear Text::1:1:1:::::::0::Navigation Language:0:11:::::::0::::::__normal:_nav_lang_interlinear::1:"),
-    _T("_hdr_ftr_interlinear::Header-Footer Interlinear Text::1:1:1:::::::0::Hdr-Ftr Interlinear:7:9:::::::0::::::__normal:_hdr_ftr_interlinear:::"),
-    _T("_small_para_break::Small Paragraph Break::1:1:1:::::::0::Small Para Break:0:4:::::::0::::::__normal:_small_para_break:::"),
-    _T("_body_text::Body Text::1:1:1:::::::0::_BodyText_Base:0:11:::::::0::::::_vernacular_base:_body_text:::"),
-    _T("_heading_base::Heading Base::1:1:1:::1::::0::_Heading_Base:0:12:::::::1:6::.1:.1::_vernacular_base:_heading_base:1:1:"),
-    _T("_intro_base::Intro Base::1:1:1:::1::::0::_Intro_Base:0:11::1:::::0::::::_vernacular_base:_intro_base:::"),
-    _T("_list_base::List Base::1:1:1:::1::::0::_List_Base:0:12:::::::0::::::_vernacular_base:_list_base:::"),
-    _T("_notes_base::Notes Base::1:1:1:::1::::0::_Notes_Base:0:9:::::::0::::::_vernacular_base:_notes_base:::"),
-    _T("_peripherals_base::Peripherals Base::1:1:1:::1::::0::_Peripherals_Base:0:10:::::::0::::::_vernacular_base:_peripherals_base:::"),
-    _T("_vernacular_base::Vernacular Base::1:1:1:::::::0::_Vernacular_Base:0:11:::::::0::::::__normal:_vernacular_base:::"),
-    _T("_annotation_ref::Annotation Reference::1:1:1:::::::0::_annotation_reference:1:10:4210943:::::1:0::::::::::"),
-    _T("_annotation_text::Annotation Text::1:1:1:::::::0::_annotation_text:0:10:::::::0::::::__normal:_annotation_text:::"),
-    _T("_dft_para_font::Default Paragraph Font::1:1:1:::::::0::Default Paragraph Font:5:10:::::::0::::::::::"),
-    _T("_footnote_caller::Footnote Caller::1:1:1:::::::0::Footnote Caller:3:10:16711680:::::1:0::::::::::"),
-    _T("_normal_table::Normal Table::1:1:1:::::::0::Normal Table:2:10:::::::0:::::::_normal_table:::"),
-    _T("_table_grid::Table Grid::1:1:1:::::::0::Table Grid:2:10:::::::0::::::_normal_table:_table_grid:::"),
-    _T("_footer::Footer::1:1:1:::::::0::footer:6:10:::::::0::::::_body_text:_footer:::"),
-    _T("_header::Header::1:1:1:::::::0::header:7:9:::::::0::::::_body_text:_header:::"),
-    _T("_horiz_rule::Horizontal Rule::1:1:1:::::::0::Horizontal rule:8:10:::::::0:::::::_horiz_rule:::"),
-    _T("_single_boxed_para::Single Boxed Paragraph::1:1:1:::::::0::Single Boxed Paragraph:9:10:::::::0::::::__normal:_single_boxed_para:::"),
-    _T("_double_boxed_para::Double Boxed Paragraph::1:1:1:::::::0::Double Boxed Paragraph:9:10:::::::0::::::__normal:_double_boxed_para:::"),
-    _T("_unknown_para_style::Unknown Paragraph Style Marker::1:1:1:::::::0::Unknown Para Style Marker:0:12:255::::::0::::::_body_text:_unknown_para_style:::"),
-    _T("_unknown_char_style::Unknown Character Style Marker::1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::0::::::::::"),
-    _T("_hidden_note::Hidden Note::1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::0:2::::.3:p:_hidden_note:::")
+_T("id::File identification (BOOKID, FILENAME, EDITOR, MODIFICATION DATE)::1:1::::1::1:id:11::id - File - Identification:0:1:65535::::::0::::::__normal:id::1:"),
+_T("ide::File encoding information:id:1::1::::1:::0::ide - File - Encoding:0:12:65535::::::0::::::__normal:ide:::"),
+_T("h::Running header text for a book (basic):id:1:1::1::1:1:1:hdr:10::h - File - Header:0:9:::::::0::::::_vernacular_base:h:::"),
+_T("h1::Running header text:id:1:::1::1:1:1:hdr:10::DEPRECATED h1 - File - Header:0:9:::::::1::::::h:h1:::"),
+_T("h2::Running header text, left side of page:id:1:::1::1:1:1:hdr-left:10::DEPRECATED h2 - File - Left Header:0:9:::::::0::::::h1:h2:::"),
+_T("h3::Running header text, right side of page:id:1:::1::1:1:1:hdr-rght:10::DEPRECATED h3 - File - Right Header:0:9:::::::2::::::h1:h3:::"),
+_T("rem::Comments and remarks:id ide c:1::1:1::1:1:1:comment:34::rem - File - Remark:0:9:16711680::::::0::::::_notes_base:rem:::"),
+_T("sts::Status of this file:id ide c:1::1:1::1:1:1:comment:34::rem - File - Status:0:9:16711680::::::0::::::_notes_base:sts:::"),
+_T("restore::Project restore information:id:1::1::::1:::34::restore - File - Restore Information:0:12:16711680::::::0::::::__normal:restore:::"),
+_T("lit::For a comment or note inserted for liturgical use:c:1::1:1::1:1:1:lit-note:34::lit - Special Text - Liturgical note:0:12:::1::::2::::::p:lit:1:1:"),
+_T("nt::Note:::1:1:1::1:1:1:note:34::nt - Note:0:9:16711680::::::0::::::_notes_base:nt:::"),
+_T("nc::Note centered:::1:1:1::1:1:1:note:34::nc - Note centered:0:9:16711680::::::1::::::nt:nc:::"),
+_T("c::Chapter number (basic):id:1:1:::::1:1::1:1:c - Chapter Number:0:18:::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("ca:ca*:Second (alternate) chapter number (for coding dual versification; useful for places where different traditions of chapter breaks need to be supported in the same translation):c:1:::1:::1:::1::ca...ca* - Chapter Number - Alternate:1:16:2263842:1:::::0::::::::::"),
+_T("cl::Chapter label used for translations that add a word such as 'Chapter' before chapter numbers (e.g. Psalms). The subsequent text is the chapter label.:id c ms ms1 ms2 ms3 mr:1:::1:::1:::1::cl - Chapter - Publishing Label:0:18:::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("cp::Published chapter number (chapter string that should appear in the published text):c:1:::1:::1:::1::cp - Chapter Number - Publishing Alternate:0:18:16711680::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("cd::Chapter Description (Publishing option D, e.g. in Russian Bibles):c:1:::1:::1:1:chapter descr:1::cd - Chapter - Description:0:11:::::::0:8:4::::_heading_base:p:1:1:"),
+_T("v::A verse number (basic):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:1:::::1:1::1::v - Verse Number:1:10:16711935::1:::1:0::::::::::"),
+_T("vt::Verse text::1:1:::::1:1::1::vt - Verse text vt:1:12::::::1:0::::::::::"),
+_T("vn::Verse number::1:1:::::1:1::1::vn - Verse number vn:1:10:16711935::1:::1:0::::::::::"),
+_T("va:va*:Second (alternate) verse number (for coding dual numeration in Psalms; see also NRSV Exo 22.1-4):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:::1:1:::::1::va...va* - Verse Number - Alternate:1:10:2263842::1:::1:0::::::::::"),
+_T("vp:vp*:Published verse marker (verse string that should appear in the published text):cd lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 s3 d sp:1:::1:1:::::1::vp...vp* - Verse Number - Publishing Alternate:1:10:16711680::1:::1:0::::::::::"),
+_T("mt::The main title of the book (if single level):id:1:1::1::1:1:1:main title:4:1:mt - Title - Major Title Level 1:0:20:::1::::1:8:4::::_heading_base:c:1:1:"),
+_T("mt1::The main title of the book (if multiple levels) (basic):id:1:::1::1:1:1:main title L1:4:1:mt1 - Title - Major Title Level 1:0:20:::1::::1:2:4::::_heading_base:c:1:1:"),
+_T("mt2::A secondary title usually occurring before the main title (basic):id:1:::1::1:1:1:secondary title L2:5:1:mt2 - Title - Major Title Level 2:0:16::1:::::1::2::::_heading_base:mt:1:1:"),
+_T("mt3::A secondary title occurring after the main title:id:1:::1::1:1:1:secondary title L3:5:1:mt3 - Title - Major Title Level 3:0:14:::1::::1:2:2::::_heading_base:c:1:1:"),
+_T("mt4::A small secondary title sometimes occuring within parentheses:id:1:::1::1:1:1:secondary title L4:5:1:mt4 - Title - Major Title level 4:0:12:::::::1:2:2::::_heading_base:c:1:1:"),
+_T("st::Secondary title:::1::1::1:1:1:secondary title:5:1:st - Secondary title:0:16:::1::::1::2::::_heading_base:mt:1:1:"),
+_T("mte::The main title of the book repeated at the end of the book (if single level):c:1:::1::1:1:1:main title at end:4:1:mte - Title - [Uncommon] Major Title Ending Level 1:0:20:::1::::1:8:4::::_heading_base::1::"),
+_T("mte1::The main title of the book repeated at the end of the book (if multiple levels):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tc1 tc2 tc3 tc4 s3 d:1:::1::1:1:1:main title at end L1:4:1:mte1 - Title - [Uncommon] Major Title Ending Level 1:0:20:::1::::1:8:4::::_heading_base::1::"),
+_T("mte2::A secondary title occurring before or after the 'ending' main title:mte1:1:::1::1:1:1:secondary title at end L2:5:1:mte2 - Title - [Uncommon] Major Title Ending Level 2:0:16::1:::::1::2::::_heading_base::1::"),
+_T("div::Division heading:::1::1::1:1:1:division head:3:1:div - Division heading:0:16:::1::::1:6:3::::s:dvrf:1:1:"),
+_T("bn::Psalms book number:::1::1::1:1:1:Psalm book number:0:1:bn - Psalms book number:0:11:::1::::1:6:3::::s:br:1:1:"),
+_T("ms::A major section division heading, level 1 (if single level) (basic):c esb:1:::1::1:1:1:major sect head:3:1:ms - Heading - Major Section Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
+_T("mse::A major section division ending heading, level 1 (if single level):c:1:::1::1:1:1:major sect ending:3:1:mse - Heading - Major Section Ending Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
+_T("ms1::A major section division heading, level 1 (if multiple levels):c:1:::1::1:1:1:major sect head L1:3:1:ms1 - Heading - Major Section Level 1:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
+_T("ms2::A major section division heading, level 2:c:1:::1::1:1:1:major sect head L2:3:1:ms2 - Heading - Major Section Level 2:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
+_T("ms2e::A major section division ending heading, level 2:c:1:::1::1:1:1:major sect ending L2:3:1:ms2e - Heading - Major Section Ending Level 2:0:14:::1::::1:16:4::::_heading_base:mr:1:1:"),
+_T("ms3::A major section division heading, level 3:c:1:::1::1:1:1:major sect head L3:3:1:ms3 - Heading - Major Section Level 3:0:14::1:::::1:16:4::::_heading_base:mr:1:1:"),
+_T("ms3e::A major section division ending heading, level 3:c:1:::1::1:1:1:major sect ending L3:3:1:ms3e - Heading - Major Section Ending Level 3:0:14::1:::::1:16:4::::_heading_base:mr:1:1:"),
+_T("s::A section heading, level 1 (if single level) (basic):c:1:1::1::1:1:1:sect head:3:1:s - Heading - Section Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("s1::A section heading, level 1 (if multiple levels):c:1:::1::1:1:1:sect head L1:3:1:s1 - Heading - Section Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("s1e::A section ending heading, level 1 (if multiple levels):c:1:::1::1:1:1:sect head ending L1:3:1:s1e - Heading - Section Ending Level 1:0:12:::1::::1:8:4::::_heading_base:p:1:1:"),
+_T("s2::A section heading, level 2 (e.g. Proverbs 22-24):c:1:::1::1:1:1:sect head L2:3:1:s2 - Heading - Section Level 2:0:12::1:::::1:8:4::::_heading_base:p:1:1:"),
+_T("s2e::A section ending heading, level 2:c:1:::1::1:1:1:sect head ending L2:3:1:s2e - Heading - Section Ending Level 2:0:12::1:::::1:8:4::::_heading_base:p:1:1:"),
+_T("s3::A section heading, level 3 (e.g. Genesis 'The First Day'):c:1:::1::1:1:1:sect head L3:3:1:s3 - Heading - Section Level 3:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
+_T("s3e::A section ending heading, level 3:c:1:::1::1:1:1:sect head ending L3:3:1:s3e - Heading - Section Ending Level 3:0:12::1:::::??:6:3::::_heading_base:p:1:1:"),
+_T("s4::A section heading, level 4:c:1:::1::1:1:1:sect head L4:3:1:s4 - Heading - Section Level 4:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
+_T("s4e::A section ending heading, level 4:c:1:::1::1:1:1:sect head ending L4:3:1:s4e - Heading - Section Ending Level 4:0:12::1:::::0:6:3::::_heading_base:p:1:1:"),
+_T("sr::A section division references range heading:s s1 s2 s3 s4:1:::1::1:1:1:sect head range refs:3:1:sr - Heading - Section Range References:0:12:::1::::1::4::::_heading_base:p:1:1:"),
+_T("sx::Extra heading 1:::1::1::1:1:1:sect head extra 1:3:1:sx - Extra heading 1:0:12:::1::::1:6:3::::_heading_base:p:1:1:"),
+_T("sz::Extra heading 2:::1::1::1:1:1:sect head extra 2:3:1:sz - Extra heading 2:0:12::1:::::1:6:3::::_heading_base:p:1:1:"),
+_T("sp::A heading, to identify the speaker (e.g. Job):c:1:1::1::1:1:1:speaker:0:1:sp - Label - Speaker:0:12::1:::::0:8:4::::_heading_base:q:1:1:"),
+_T("d::A Hebrew text heading, to provide description (e.g. Psalms):c:1:::::1:1:1:descr title:1:1:d - Label - Descriptive Title - Hebrew Subtitle:0:12::1:::::1:4:4::::_heading_base:q:1:1:"),
+_T("sd::Vertical space used to divide the text into sections, level 1 (if single level):c:1::1:::1:1:::6:1:sd - Label - Semantic Division Location - Level 1:0:12:::::::1:24:24::::_heading_base:sd:1::"),
+_T("sd1::Vertical space used to divide the text into sections, level 1 (if single level):c:1::1:::1:1:::6:1:sd1 - Label - Semantic Division Location - Level 1:0:12:::::::1:24:24::::_heading_base:sd1:1::"),
+_T("sd2::Vertical space used to divide the text into sections, level 2:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 2:0:12:::::::1:18:18::::_heading_base:sd2:1::"),
+_T("sd3::Vertical space used to divide the text into sections, level 3:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 3:0:12:::::::1:12:12::::_heading_base:sd3:1::"),
+_T("sd4::Vertical space used to divide the text into sections, level 4:c:1::1:::1:1:::6:1:sd2 - Label - Semantic Division Location - Level 4:0:12:::::::1:8:8::::_heading_base:sd4:1::"),
+_T("di::Descriptive title (Hebrew subtitle):::1::::1:1:1:descr title:1:1:di - Descr title or Heb subtitle di:0:12::1:::::1:4:4::::_heading_base:q:1:1:"),
+_T("hl::Hebrew letter:::1:::::1:::0::hl - Hebrew letter:0:12:::::::1:4:4::::_heading_base:q:1:1:"),
+_T("r::Parallel reference(s) (basic):c s s1 s2 s3 s4:1:1:1:1::1:1:1:ref:33::r - Heading - Parallel References:0:12::1:::::1::4::::_heading_base:p:1:1:"),
+_T("dvrf::Division reference:::1:1:1::1::1:div-ref:0::dvrf - Division ref:0:12::1:::::1::3::::_heading_base:p:1:1:"),
+_T("mr::A major section division references range heading (basic):ms ms1 ms2 ms3:1::1:1::1::1:mjr-sect-refs:0::mr - Heading - Major Section Range References:0:12::1:::::1::4::::ms:p:1:1:"),
+_T("br::Psalms book reference:::1:1:1::1::1:Ps-bk-ref:0::br - Psalms book ref:0:12::1:::::1::4::::r:c:1:1:"),
+_T("x:x*:A list of cross references (basic):lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 s s1 s2 s3 d:1::1:1:1:1:1:1:x-refs:33::x...x* - Cross Reference:4:10:::::::0::::::_notes_base:x:::"),
+_T("xo:xo*:The cross reference origin reference (basic):x ex:1::1::1:1::1:origin-ref:33::xo - Cross Reference - Origin Reference:1:10:::1::::0::::::::::"),
+_T("xop:xop*:Published cross reference origin reference (origin reference that should appear in the published text):x:1::1::1:1::1:origin-ref:33::xop - Cross Reference - Origin Reference Publishing Alternate:1:10:::::::0::::::::::"),
+_T("xt:xt*:The cross reference target reference(s), protocanon only (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x ef efe ex NEST:1::1:1:1:1::1:tgt-ref:33::xt - Cross Reference - Target References:1:10:::::::0::::::::::"),
+_T("xta:xta*:Cross reference target references added text:x:1::1::1:1::1:tgt-ref:33::xta - Cross Reference - Target References Added Text:1:10:::::::0::::::::::"),
+_T("xk:xk*:A cross reference keyword:x ex:1::1::1:1::1:keyword:33::xk - Cross Reference - Keyword:1:10::1:::::0::::::::::"),
+_T("xq:xq*:A cross-reference quotation from the scripture text:x ex:1::1::1:1::1:quote:33::xq - Cross Reference - Quotation:1:10::1:::::0::::::::::"),
+_T("xot:xot*:Cross-reference target reference(s), Old Testament only:x ex:1::1::1:1::1:OldT-ref:33::xot...xot* - Cross Reference - OT Target Refs (optional):1:12:::::::0::::::::::"),
+_T("xnt:xnt*:Cross-reference target reference(s), New Testament only:x ex:1::1::1:1::1:NewT-ref:33::xnt...xnt* - Cross Reference - NT Target Refs (optional):1:12:::::::0::::::::::"),
+_T("xdc:xdc*:Cross-reference target reference(s), Deuterocanon only:x ex:1::1::1:1::1:deut-canon-ref:33::DEPRECATED xdc...xdc* - Cross Reference - DC Target Refs:1:10:::::::0::::::::::"),
+_T("rr::Right margin reference:::1:1:1::1::1:rt-marg-ref:32::rr - Right margin ref:0:9::1:::::2::::::qr:rr:::"),
+_T("rq:rq*:A cross-reference indicating the source text for the preceding quotation:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 NEST:1::1:1::1::1:x-ref to source:32::rq...rq* - Cross Reference - Inline Quotation References:1:10::1:::::2::::::::::"),
+_T("@::Cross reference, origin reference:::1:1:1::1::1:x-refs orig:33::@ - Cross ref origin ref:1:10:::1::::0::::::::::"),
+_T("xr::Cross reference target references:::1:1:1::1::1:x-refs tgt:33::xr - Cross ref target ref:1:10:::::::0::::::::::"),
+_T("p::Paragraph text, with first line indent (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:paragraph:1:1:p - Paragraph - Normal - First Line Indent:0:12:::::::0:::::.125:_body_text:p:::"),
+_T("pi::Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:para indented:1:1:pi - Paragraph - Indented - Level 1 - First Line Indent:0:12:::::::0:::.25:.25:.125:p:pi:::"),
+_T("pi1::Paragraph text, level 1 indent (if multiple levels), with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L1:1:1:pi1 - Paragraph - Indented - Level 1 - First Line Indent:0:12:::::::0:::.25:.25:.125:pi:pi1:::"),
+_T("pi2::Paragraph text, level 2 indent, with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L2:1:1:pi2 - Paragraph - Indented - Level 2 - First Line Indent:0:12:::::::0:::.5:.25:.125:pi1:pi2:::"),
+_T("pi3::Paragraph text, level 3 indent, with first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para indented L3:1:1:pi3 - Paragraph - Indented - Level 3 - First Line Indent:0:12:::::::0:::.75:.25:.125:pi2:pi3:::"),
+_T("pgi::Indented paragraph:::1:::::1:1:para indented:1:1:pgi - Indented paragraph:0:12:::::::0:::.25:.25:.125:p:pgi:::"),
+_T("ph::Paragraph text, with level 1 hanging indent (if single level):c:1::::::1:1:para hang indent:1:1:DEPRECATED ph - Paragraph - Hanging Indent - Level 1:0:12:::::::0:::.5::-.25:_body_text:ph:::"),
+_T("ph1::Paragraph text, with level 1 hanging indent (if multiple levels):c:1::::::1:1:para hang indent L1:1:1:DEPRECATED ph1 - Paragraph - Hanging Indent - Level 1:0:12:::::::0:::.5::-.25:ph:ph1:::"),
+_T("ph2::Paragraph text, with level 2 hanging indent:c:1::::::1:1:para hang indent L2:1:1:DEPRECATED ph2 - Paragraph - Hanging Indent - Level 2:0:12:::::::0:::.75::-.25:ph1:ph2:::"),
+_T("ph3::Paragraph text, with level 3 hanging indent:c:1::::::1:1:para hang indent L3:1:1:DEPRECATED ph3 - Paragraph - Hanging Indent - Level 3:0:12:::::::0:::1::-.25:ph2:ph3:::"),
+_T("phi::Paragraph text, indented with hanging indent:c:1::::::1:1:para indent hang indent:1:1:DEPRECATED phi - Paragraph - Indented - Hanging Indent:0:12:::::::0:::1:::_body_text:phi:::"),
+_T("m::Paragraph text, with no first line indent (may occur after poetry) (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:paragraph margin:1:1:m - Paragraph - Margin - No First Line Indent:0:12:::::::0::::::p:m:::"),
+_T("po::Letter opening:c:1:1:::::1:1:paragraph:1:1:po - Paragraph - Letter Opening:0:12:::::::0:4:4:::.125:_body_text:po:::"),
+_T("pr::Text refrain (paragraph text, right aligned):c:1:1:::::1:1:paragraph:1:1:pr - Paragraph - Text Refrain (right aligned):0:12:::::::2:::::.125:_body_text:pr:::"),
+_T("pmo::Embedded text opening:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1::::::1:1:para embedded text opening:1:1:pmo - Paragraph - Embedded Text Opening:0:12:::::::0:::.25:.25::pm:pm:::"),
+_T("mi::Paragraph text, indented, with no first line indent; often used for discourse:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:para indent no 1st line indent:1:1:mi - Paragraph - Indented - No First Line Indent:0:12:::::::0:::.25:.25::pi:mi:::"),
+_T("pc::Paragraph spanning chapters:::1:::::1:1:para spans chapters:1:1:pc - Paragraph spanning chapters:0:12:::::::0::::::m:pc:::"),
+_T("pc::Paragraph text, centered (for Inscription):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:para centered inscription:1:1:pc - Paragraph - Centered (for Inscription):0:12:::::::1::::::_body_text:pc:::"),
+_T("pt::Preface title:::1::1::1:1:1:preface title:0:1:pt - Preface title:0:14:::1::::1::6::::_heading_base:pp:1:1:"),
+_T("ps::Preface section heading:::1::1::1:1:1:preface sect head:0:1:ps - Preface sect heading:0:12:::1::::1:4:2::::s:pp:1:1:"),
+_T("ps::Paragraph text, no break with next paragraph text at chapter boundary:c:1::::::1:1:para spans chapters:1:1:OBSOLETE ps - Paragraph - No Break with Next Paragraph:0:12:::::::0::::::m:ps:::"),
+_T("psi::Paragraph text, indented, with no break with next paragraph text (at chapter boundary):c:1::::::1:1:para spans chapters indent:1:1:OBSOLETE psi - Paragraph - Indented - No Break with Next:0:12:::::::0:::.25:.25:.125:pi:pi:::"),
+_T("pp::Preface paragraph:::1::1::1:1:1:preface paragraph:0:1:pp - Preface paragraph:0:10:::::::0:::::.125:p:pp:::"),
+_T("pq::Preface poetry:::1::1::1:1:1:preface poetry:0:1:pq - Preface poetry:0:10:::::::0:::.5:::q:pq:::"),
+_T("pm::Preface continue at margin:::1::1::1:1:1:preface at margin:0:1:pm - Preface continue at margin:0:10:::::::0::::::m:pm:::"),
+_T("pm::Embedded text paragraph:m mi nb p pc ph phi pi pi1 pi2 pi3 pr psi q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:paragraph embedded text:1:1:pm - Paragraph - Embedded Text:0:12:::::::0:::.25:.25:.125:p:pm:::"),
+_T("pmc::Embedded text closing:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:para embedded text closing:1:1:pmc - Paragraph - Embedded Text Closing:0:12:::::::0:::.25:.25::pm:pmc:::"),
+_T("pmr::Embedded text refrain (e.g. Then all the people shall say, 'Amen!'):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr po q q1 q2 q3 q4 qc qr b s1 s2 s3 s4:1:::::1:1:1:para embedded text refrain:1:1:pmr - Paragraph - Embedded Text Refrain:0:12:::::::2:::.25:.25::pm:p:::"),
+_T("nb::Paragraph text, with no break from previous paragraph text (at chapter boundary) (basic):c:1::::::1:1:para no break:1:1:nb - Paragraph - No Break with Previous Paragraph:0:12:::::::0::::::m:p:::"),
+_T("cls::Letter Closing:c:1::::::1:1:Letter closing:1::cls - Paragraph - Letter Closing:0:12:::::::2::::::p:cls:1::"),
+_T("q::Poetry text, level 1 indent (if single level):c:1:1:::::1:1:poetry:2:1:q - Poetry - Indent Level 1 - Single Level Only:0:12:::::::0:::1.25::-1:_body_text:q:::"),
+_T("q1::Poetry text, level 1 indent (if multiple levels) (basic):c:1::::::1:1:poetry L1:2:1:q1 - Poetry - Indent Level 1:0:12:::::::0:::1.25::-1:q:q1:::"),
+_T("q2::Poetry text, level 2 indent (basic):c:1:1:::::1:1:poetry L2:2:1:q2 - Poetry - Indent Level 2:0:12:::::::0:::1.25::-.75:q:q2:::"),
+_T("q3::Poetry text, level 3 indent:c:1:1:::::1:1:poetry L3:2:1:q3 - Poetry - Indent Level 3:0:12:::::::0:::1.25::-.5:q2:q3:::"),
+_T("q4::Poetry text, level 4 indent:c:1:1:::::1:1:poetry L3:2:1:q4 - Poetry - Indent Level 4:0:12:::::::0:::1.25::-.25:q3:q4:::"),
+_T("qc::Poetry text, centered:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:poetry centered:2:1:qc - Poetry - Centered:0:12:::::::1::::::q:qc:::"),
+_T("qr::Poetry text, Right Aligned:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:1:::::1:1:poetry right margin:2:1:qr - Poetry - Right Aligned:0:12:::::::2::::::q:qr:::"),
+_T("qa::Poetry text, Acrostic marker/heading:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:::1:::1:1:acrostic hdg:2:1:qa - Poetry - Acrostic Heading/Marker:0:12::1:::::0::::::_heading_base:q:1:1:"),
+_T("qac:qac*:Poetry text, Acrostic markup of the first character of a line of acrostic poetry:q q1 q2 q3 q4 qc qr  NEST:1::::1::1:::2::qac...qac* - Poetry Text - Acrostic Letter:1:12::1:::::0::::::::::"),
+_T("qs:qs*:Poetry text, Selah:q q1 q2 q3 q4 qc qr NEST:1::::1::1:::1::qs...qs* - Poetry Text - Selah:1:12::1:::::0::::::::::"),
+_T("qm::Poetry, left margin:::1:::::1:1:poetry margin:2:1:qm - Poetry left margin:0:12:::::::0::::::q:qm:::"),
+_T("qm::Poetry text, embedded, level 1 indent (if single level):m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed:2:1:qm - Poetry - Embedded Text - Indent Level 1 - Single Level Only:0:12:::::::0:::1::-.75:q:qm:::"),
+_T("qm1::Poetry text, embedded, level 1 indent (if multiple levels):m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L1:2:1:qm1 - Poetry - Embedded Text - Indent Level 1:0:12:::::::0:::1::-.75:qm:qm1:::"),
+_T("qm2::Poetry text, embedded, level 2 indent:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L2:2:1:qm2 - Poetry - Embedded Text - Indent Level 2:0:12:::::::0:::1::-.5:qm1:qm2:::"),
+_T("qm3::Poetry text, embedded, level 3 indent:m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr b:1::::::1:1:poetry embed L3:2:1:qm3 - Poetry - Embedded Text - Indent Level 3:0:12:::::::0:::1::-.25:qm2:qm3:::"),
+_T("qd::A Hebrew musical performance annotation, similar in content to Hebrew descriptive title.:c:1::::::1:1:Hebrew note:2:1:qd - Poetry - Hebrew Note:0:12::1:::::0:::.25:::q:qd:1:1:"),
+_T("f:f*:A Footnote text item (basic):c cp lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip:1:1::1:1:1:1:1:footnote:9::f...f* - Footnote:4:10:::::::0::::::_notes_base:f:::"),
+_T("fe::Footnote (end):::1:::::1:::1::fe - Footnote end PNG:1:10:::::::0::::::::::"),
+_T("fe:fe*:An Endnote text item:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 ms3 s s1 s2 s3 d ip:1:::1:1:1:1:1:endnote:9::fe...fe* - Endnote:4:10:::::::0::::::_notes_base:fe:::"),
+_T("fr:fr*:The origin reference for the footnote (basic):f fe ef efe:1::::1:1:1:1:ref:9::fr - Footnote - Reference:1:10:::1::::0::::::::::"),
+_T("fk:fk*:A footnote keyword (basic):f fe ef efe:1::::1:1:1:1:keyword:9::fk - Footnote - Keyword:1:10::1:1::::0::::::::::"),
+_T("fq:fq*:A footnote scripture quote or alternate rendering (basic):f fe ef efe:1::::1:1:1:1:quote:9::fq - Footnote - Quotation or Alternate Rendering:1:10::1:::::0::::::::::"),
+_T("fqa:fqa*:A footnote alternate rendering for a portion of scripture text:f fe ef efe:1::::1:1:1:1:alt-transln:9::fqa - Footnote - Alternate Translation Rendering:1:10::1:::::0::::::::::"),
+_T("fl:fl*:A footnote label text item, for marking or 'labelling' the type or alternate translation being provided in the note.:f fe ef efe:1::::1:1:1:1:label:9::fl - Footnote - Label Text:1:10::1:1::::0::::::::::"),
+_T("fw:fw*:A footnote witness list, for distinguishing a list of sigla representing witnesses in critical editions.:f fe:1::::1:1:1:1:witness list:9::fw - Footnote - Witness List:1:12:::::::0::::::::::"),
+_T("fp:fp*:A Footnote additional paragraph marker:f fe ef efe:1::::1:1:1:1:new-paragr:9::fp - Footnote Paragraph Mark:1:10:::::::0::::::::::"),
+_T("ft:ft*:Footnote text, Protocanon (basic):f fe ef efe:1::::1:1:1:1:fn-text:9::ft - Footnote - Text:1:10:::::::0::::::::::"),
+_T("fdc:fdc*:Footnote text, applies to Deuterocanon only:f fe ef efe:1::::1:1:1:1:deut-canon:9::DEPRECATED fdc...fdc* - Footnote - DC text:1:10:::::::0::::::::::"),
+_T("fv:fv*:A verse number within the footnote text:f fe ef efe:1::::1:1::1:verse#:9::fv...fv* - Footnote - Embedded Verse Number:1:10:::1:::1:0::::::::::"),
+_T("fm:fm*:An additional footnote marker location for a previous footnote:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tc1 tc2 tc3 tc4 ms ms1 ms2 s s1 s2 s3 d ip:1::::1:1::1:call-prev:9::fm - Footnote - Additional Caller to Previous Note:1:10::::::1:0::::::::::"),
+_T("F::Footnote (end):::1:::::1:::1::F - Footnote end PNG:1:10:::::::0::::::::::"),
+_T("qt:qt*:For Old Testament quoted text appearing in the New Testament (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1::1:1:Quotation:1::qt...qt* - Special Text - Quoted Text - OT in NT:1:12::1:::::0::::::::::"),
+_T("nd:nd*:For name of deity (basic):ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::nd...nd* - Special Text - Name of Deity:1:12::::1:::0::::::::::"),
+_T("tl:tl*:For transliterated words:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::tl...tl* - Special Text - Transliterated Word:1:12::1:::::0::::::::::"),
+_T("dc:dc*:Deuterocanonical/LXX additions or insertions in the Protocanonical text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::dc...dc* - Special Text - Deuterocanonical/LXX Additions:1:12::1:::::0::::::::::"),
+_T("bk:bk*:For the quoted name of a book:imt imt1 imt2 imt3 imt4 imte imte1 imte2 is is1 is2 ili ili1 ili2 ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::bk...bk* - Special Text - Quoted book title:1:12::1:::::0::::::::::"),
+_T("sig:sig*:For the signature of the author of an Epistle:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::sig...sig* - Special Text - Author's Signature (Epistles):1:12::1:::::0::::::::::"),
+_T("pn:pn*:For a proper name:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::pn...pn* - Special Text - Proper Name:1:12:::1:1:::0::::::::::"),
+_T("png:png*:For a geographic proper name:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::png...png* - Special Text - Geographic Proper Name:1:12::::1:::0::::::::::"),
+_T("wj:wj*:For marking the words of Jesus:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::wj...wj* - Special Text - Words of Jesus:1:12:255::::::0::::::::::"),
+_T("k:k*:For a keyword:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::k...k* - Special Text - Keyword:1:12::1:1::::0::::::::::"),
+_T("sls:sls*:To represent where the original text is in a secondary language or from an alternate text source:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::sls...sls* - Special Text - Secondary Language or Text Source:1:12::1:::::0::::::::::"),
+_T("ord:ord*:For the text portion of an ordinal number:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:::::1::ord...ord* - Special Text - Ordinal number text portion:1:12::::::1:0::::::::::"),
+_T("add:add*:For a translational addition to the text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1:1:1:1:addl material:1::add...add* - Special Text - Translational Addition:1:12:2263842:1:1::::0::::::::::"),
+_T("no:no*:A character style, use normal text:is ip ipi im imi ili ili1 ili2 imq ipq iex iq iot io1 io2 io3 io4 s s1 s2 s3 NEST:1::::1:::::1::no...no* - Character - Normal Text:1:12:::::::0::::::::::"),
+_T("bd:bd*:A character style, use bold text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::bd...bd* - Character - Bold Text:1:12:::1::::0::::::::::"),
+_T("it:it*:A character style, use italic text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::it...it* - Character - Italic Text:1:12::1:::::0::::::::::"),
+_T("bdit:bdit*:A character style, use bold + italic text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::bdit...bdit* - Character - BoldItalic Text:1:12::1:1::::0::::::::::"),
+_T("em:em*:A character style, use emphasized text style:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::em...em* - Character - Emphasized Text:1:12::1:::::0::::::::::"),
+_T("sc:sc*:A character style, for small capitalization text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::1::sc...sc* - Character - Small Caps:1:12:::::1::0::::::::::"),
+_T("sup:sup*:A character style, for superscript text. Typically for use in critical edition footnotes.:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::::1:::::6::sup...sup* - Character - Superscript:1:10::::::1:0::::::::::"),
+_T("pro:pro*:For indicating pronunciation in CJK texts:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST:1::1:1:1:::::6::DEPRECATED pro...pro* - Special Text - CJK Pronunciation:1:10:::::::0::::::::::"),
+_T("imt::Introduction main title, level 1 (if single level) (basic):id:1:::1::1:1:1:intro main title:0:1:imt - Introduction - Major Title Level 1:0:14:::1::::1:8:4::::_intro_base:ip:1:1:"),
+_T("imt1::Introduction major title, level 1 (if multiple levels):id:1:::1::1:1:1:intro major title L1:0:1:imt1 - Introduction - Major Title Level 1:0:14:::1::::1:8:4::::imt:ip:1:1:"),
+_T("imt2::Introduction major title, level 2:id:1:::1::1:1:1:intro major title L2:0:1:imt2 - Introduction - Major Title Level 2:0:13::1:::::1:6:3::::imt1:ip:1:1:"),
+_T("imt3::Introduction major title, level 3:id:1:::1::1:1:1:intro major title L3:0:1:imt3 - Introduction - Major Title Level 3:0:12:::1::::1:2:2::::imt2:ip:1:1:"),
+_T("imt4::Introduction major title, level 4 (usually within parenthesis):id:1:::1::1:1:1:intro major title L4:0:1:imt4 - Introduction - Major Title Level 4:0:12::1:::::1:2:2::::imt3:ip:1:1:"),
+_T("imte::Introduction major title at introduction end, level 1 (if single level):id:1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):id:1:::1::1:1:1:intro major title at end:0:1:imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte2::Introduction major title at introduction end, level 2:id:1:::1::1:1:1:intro major title at end:0:1:imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1:8:4::::imt:ie:::"),
+_T("is::Introduction section heading, level 1 (if single level) (basic):id:1:1::1::1:1:1:intro sect head:0:1:is - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::s:ip:1:1:"),
+_T("is1::Introduction section heading, level 1 (if multiple levels):id:1:::1::1:1:1:intro sect head L1:0:1:is1 - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::is:ip:1:1:"),
+_T("is2::Introduction section heading, level 2:id:1:::1::1:1:1:intro sect head L2:0:1:is2 - Introduction - Section Heading Level 2:0:12:::1::::1:8:4::::is1:ip:1:1:"),
+_T("ip::Introduction prose paragraph (basic):id c:1:1::1::1:1:1:intro paragraph:0:1:ip - Introduction - Paragraph:0:10:::::::0:::::.125:_intro_base:ip:::"),
+_T("ipi::Introduction prose paragraph, indented, with first line indent:id:1:1::1::1:1:1:intro paragraph indented:0:1:ipi - Introduction - Indented Para - first line indent:0:10:::::::0:::.25:.25:.125:ip:ipi:::"),
+_T("ipq::Introduction prose paragraph, quote from the body text:id:1:::1::1:1:1:intro para quote:0:1:ipq - Introduction - Paragraph - quote from text:0:10::1:::::0:::.25:.25:.125:ip:ipq:::"),
+_T("ipr::Introduction prose paragraph, right aligned:id:1:::1::1:1:1:intro para right align:0:1:ipr - Introduction - Paragraph - right aligned:0:10::1:::::2:::.25:.25::ip:ipr:::"),
+_T("iq::Introduction poetry text, level 1 (if single level):id:1:1::1::1:1:1:intro poetry:0:1:iq - Introduction - Poetry Level 1:0:10::1:::::0:::1::-.75:ip:iq:::"),
+_T("iq1::Introduction poetry text, level 1 (if multiple levels):id:1:::1::1:1:1:intro poetry L1:0:1:iq1 - Introduction - Poetry Level 1:0:10::1:::::0:::1::-.75:iq:iq1:::"),
+_T("iq2::Introduction poetry text, level 2:id:1:1::1::1:1:1:intro poetry L2:0:1:iq2 - Introduction - Poetry Level 2:0:10::1:::::0:::1::-.5:iq:iq2:::"),
+_T("iq3::Introduction poetry text, level 3:id:1:::1::1:1:1:intro poetry L3:0:1:iq3 - Introduction - Poetry Level 3:0:10::1:::::0:::1::-.25:iq:iq3:::"),
+_T("im::Introduction prose paragraph, with no first line indent (may occur after poetry):id:1:1::1::1:1:1:intro para no indent:0:1:im - Introduction - Paragraph - no first line indent:0:10:::::::0::::::ip:im:::"),
+_T("imi::Introduction prose paragraph text, indented, with no first line indent:id:1:1::1::1:1:1:intro para no indent:0:1:imi - Introduction - Indented Para - no first line indent:0:10:::::::0:::.25:.25::ipi:imi:::"),
+_T("ili::A list entry, level 1 (if single level):id:1:::1::1:1:1:intro list L1:0:1:ili - Introduction - List Entry - Level 1:0:12:::::::0:::.625::-.375:_list_base:ili:::"),
+_T("ili1::A list entry, level 1 (if multiple levels):id:1:::1::1:1:1:intro list L1:0:1:ili1 - Introduction - List Entry - Level 1:0:12:::::::0:::.5::-.25:ili:ili1:::"),
+_T("ili2::A list entry, level 2:id:1:::1::1:1:1:intro list L2:0:1:ili2 - Introduction - List Entry - Level 2:0:12:::::::0:::.75::-.25:ili1:ili2:::"),
+_T("imq::Introduction prose paragraph, quote from the body text, with no first line indent:id:1:::1::1:1:1:intro para quote no indent:0:1:imq - Introduction - Paragraph - quote from text - no first line indent:0:10::1:::::0:::.25:.25::imi:imq:::"),
+_T("ib::Introduction blank line:id:1::1:1::1::::0:1:ib - Introduction - Blank Line:0:12:::::::0::::::_intro_base:ib:::"),
+_T("iot::Introduction outline title (basic):id:1:::1::1:1:1:intro outline title:0:1:iot - Introduction - Outline Title:0:12:::1::::1:8:4::::imt:io1:1:1:"),
+_T("io::Introduction outline text, level 1 (if single level):id:1:1::1::1:1:1:intro outline:0:1:io - Introduction - Outline Level 1:0:10:::::::0:::.5:::_intro_base:io:::"),
+_T("io1::Introduction outline text, level 1 (if multiple levels) (basic):id:1:1::1::1:1:1:intro outline L1:0:1:io1 - Introduction - Outline Level 1:0:10:::::::0:::.5:::io:io1:::"),
+_T("io2::Introduction outline text, level 2:id:1:1::1::1:1:1:intro outline L2:0:1:io2 - Introduction - Outline Level 2:0:10:::::::0:::.75:::io1:io2:::"),
+_T("io3::Introduction outline text, level 3:id:1:1::1::1:1:1:intro outline L3:0:1:io3 - Introduction - Outline Level 3:0:10:::::::0:::1:::io2:io3:::"),
+_T("io4::Introduction outline text, level 4:id:1:1::1::1:1:1:intro outline L4:0:1:io4 - Introduction - Outline Level 4:0:10:::::::0:::1.25:::io3:io4:::"),
+_T("ior:ior*:Introduction references range for outline entry; for marking references separately:id io io1 io2 io3 io4 NEST:1:::1:1:1::::6::ior...ior* - Introduction - Outline References Range:1:10:::::::0::::::::::"),
+_T("iex::Introduction explanatory or bridge text (e.g. explanation of missing book in Short Old Testament):id:1:::1::1:1:1:intro explain text:0:1:iex - Introduction - Explanatory or Bridge Text:0:10:::::::0:4:4:::.125:ip:iex:::"),
+_T("iqt:iqt*:For quoted scripture text appearing in the introduction:id NEST:1:::1:1:1::::6::iqt...iqt* - Special Text - Quoted Scripture Text in Introduction:1:12::1:::::0::::::::::"),
+_T("ie::Introduction ending marker:id:1::1:::1:1:::0::ie - Introduction - End Marker:8:12:::::::0:12:4:1.5:1.5::_intro_base:ie:::"),
+_T("li::A list entry, level 1 (if single level):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item:1:1:li - List Entry - Level 1:0:12:::::::0:::.625::-.375:_list_base:li:::"),
+_T("lh::List header (introductory remark):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list header:1:1:lh - List Header:0:12:::::::0:::::.125:_list_base:lh:1:1:"),
+_T("lf::List footer (concluding remark):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list footer:1:1:lf - List Footer:0:12:::::::0::::::_list_base:lf:::"),
+_T("lim::An embedded list entry, level 1 (if single level):c:1::::::1:1:embedded list item:1:1:lim - Embedded List Entry - Level 1:0:12:::::::0:::.75::-.375:_list_base:lim:::"),
+_T("lim1::An embedded list entry, level 1 (if multiple levels):c:1::::::1:1:embedded list item:1:1:lim1 - Embedded List Entry - Level 1:0:12:::::::0:::.75::-.375:_list_base:lim1:::"),
+_T("lim2::An embedded list entry, level 2:c:1::::::1:1:embedded list item:1:1:lim2 - Embedded List Entry - Level 2:0:12:::::::0:::1.0::-.375:_list_base:lim2:::"),
+_T("lim3::An embedded list entry, level 3:c:1::::::1:1:embedded list item:1:1:lim3 - Embedded List Entry - Level 3:0:12:::::::0:::1.25::-.375:_list_base:lim3:::"),
+_T("lim4::An embedded list entry, level 4:c:1::::::1:1:embedded list item:1:1:lim4 - Embedded List Entry - Level 4:0:12:::::::0:::1.5::-.375:_list_base:lim4:::"),
+_T("litl:litl*:List entry total text:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:list item total:1:1:litl...litl* - List Entry - Total:1:12::1:::::0::::::::::"),
+_T("lik:lik*:Structured list entry key text:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list key:1:1:lik...lik* - Structured List Entry - Key:1:12::1:::::0::::::::::"),
+_T("liv:liv*:Structured list entry value 1 content (if single value):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv...liv* - Structured List Entry - Value 1:1:12:::::::0::::::::::"),
+_T("liv1:liv1*:Structured list entry value 1 content (if multiple values):li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::1::::1:1:structured list entry:1:1:liv1...liv1* - Structured List Entry - Value 1:1:12:::::::0::::::::::"),
+_T("liv2:liv2*:Structured list entry value 2 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv2...liv2* - Structured List Entry - Value 2:1:12:::::::0::::::::::"),
+_T("liv3:liv3*:Structured list entry value 3 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv3...liv3* - Structured List Entry - Value 3:1:12:::::::0::::::::::"),
+_T("liv4:liv4*:Structured list entry value 4 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv4...liv4* - Structured List Entry - Value 4:1:12:::::::0::::::::::"),
+_T("liv5:liv5*:Structured list entry value 5 content:li li1 li2 li3 li4 lim lim1 lim2 lim3 lim4 NEST:1::::1::1:1:structured list entry:1:1:liv5...liv5* - Structured List Entry - Value 5:1:12:::::::0::::::::::"),
+_T("li1::A list entry, level 1 (if multiple levels):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L1:1:1:li1 - List Entry - Level 1:0:12:::::::0:::.5::-.25:li:li1:::"),
+_T("li2::A list entry, level 2:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L2:1:1:li2 - List Entry - Level 2:0:12:::::::0:::.75::-.25:li1:li2:::"),
+_T("li3::A list entry, level 3:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L3:1:1:li3 - List Entry - Level 3:0:12:::::::0:::1::-.25:li2:li3:::"),
+_T("li4::A list entry, level 4:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:list item L4:1:1:li4 - List Entry - Level 4:0:12:::::::0:::1.25::-.25:li3:li4:::"),
+_T("qh::List or Genealogy:::1:::::1:1:list item:1:1:qh - List or Genealogy:0:12:::::::0:::.625::-.375:q:qh:::"),
+_T("tr::A new table row:c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1::::::1:1:tbl row:1:1:tr - Table - Row:0:12:::::::0:::.5::-.25:_body_text:tr:::"),
+_T("tr1::A table Row:c:1::::::1:1:tbl row L1:1:1:OBSOLETE tr1 - Table - Row - Level 1:0:12:::::::0:::.5::-.25:tr:tr1:::"),
+_T("tr2::A table Row:c:1::::::1:1:tbl row L2:1:1:OBSOLETE tr2 - Table - Row - Level 2:0:12:::::::0:::.75::-.25:tr1:tr2:::"),
+_T("th1::A table heading, column 1:tr:1::::::1:1:tbl hdg c1:1::th1 - Table - Column 1 Heading:1:12::1:::::0::::::::::"),
+_T("th2::A table heading, column 2:tr:1::::::1:1:tbl hdg c2:1::th2 - Table - Column 2 Heading:1:12::1:::::0::::::::::"),
+_T("th3::A table heading, column 3:tr:1::::::1:1:tbl hdg c3:1::th3 - Table - Column 3 Heading:1:12::1:::::0::::::::::"),
+_T("th4::A table heading, column 4:tr:1::::::1:1:tbl hdg c4:1::th4 - Table - Column 4 Heading:1:12::1:::::0::::::::::"),
+_T("th5::A table heading, column 5:tr:1::::::1:1:tbl hdg c5:1::th5 - Table - Column 5 Heading:1:12::1:::::0::::::::::"),
+_T("th6::A table heading, column 6:tr:1::::::1:1:tbl hdg c6:1::th6 - Table - Column 6 Heading:1:12::1:::::0::::::::::"),
+_T("th7::A table heading, column 7:tr:1::::::1:1:tbl hdg c7:1::th7 - Table - Column 7 Heading:1:12::1:::::0::::::::::"),
+_T("th8::A table heading, column 8:tr:1::::::1:1:tbl hdg c8:1::th8 - Table - Column 8 Heading:1:12::1:::::0::::::::::"),
+_T("th9::A table heading, column 9:tr:1::::::1:1:tbl hdg c9:1::th9 - Table - Column 9 Heading:1:12::1:::::0::::::::::"),
+_T("th10::A table heading, column 10:tr:1::::::1:1:tbl hdg c10:1::th10 - Table - Column 10 Heading:1:12::1:::::0::::::::::"),
+_T("th11::A table heading, column 11:tr:1::::::1:1:tbl hdg c11:1::th11 - Table - Column 11 Heading:1:12::1:::::0::::::::::"),
+_T("th12::A table heading, column 12:tr:1::::::1:1:tbl hdg c12:1::th12 - Table - Column 12 Heading:1:12::1:::::0::::::::::"),
+_T("thr1::A table heading, column 1, right aligned:tr:1::::::1:1:tbl hdg c1r:1::thr1 - Table - Column 1 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr2::A table heading, column 2, right aligned:tr:1::::::1:1:tbl hdg c2r:1::thr2 - Table - Column 2 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr3::A table heading, column 3, right aligned:tr:1::::::1:1:tbl hdg c3r:1::thr3 - Table - Column 3 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr4::A table heading, column 4, right aligned:tr:1::::::1:1:tbl hdg c4r:1::thr4 - Table - Column 4 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr5::A table heading, column 5, right aligned:tr:1::::::1:1:tbl hdg c5r:1::thr5 - Table - Column 5 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr6::A table heading, column 6, right aligned:tr:1::::::1:1:tbl hdg c6r:1::thr6 - Table - Column 6 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr7::A table heading, column 7, right aligned:tr:1::::::1:1:tbl hdg c7r:1::thr7 - Table - Column 7 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr8::A table heading, column 8, right aligned:tr:1::::::1:1:tbl hdg c8r:1::thr8 - Table - Column 8 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr9::A table heading, column 9, right aligned:tr:1::::::1:1:tbl hdg c9r:1::thr9 - Table - Column 9 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr10::A table heading, column 10, right aligned:tr:1::::::1:1:tbl hdg c10r:1::thr10 - Table - Column 10 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr11::A table heading, column 11, right aligned:tr:1::::::1:1:tbl hdg c11r:1::thr11 - Table - Column 11 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("thr12::A table heading, column 12, right aligned:tr:1::::::1:1:tbl hdg c12r:1::thr12 - Table - Column 12 Heading - Right Aligned:1:12::1:::::2::::::::::"),
+_T("tc1::A table cell item, column 1:tr:1::::::1:1:tbl cell c1:1::tc1 - Table - Column 1 Cell:1:12:::::::0::::::::::"),
+_T("tc2::A table cell item, column 2:tr:1::::::1:1:tbl cell c2:1::tc2 - Table - Column 2 Cell:1:12:::::::0::::::::::"),
+_T("tc3::A table cell item, column 3:tr:1::::::1:1:tbl cell c3:1::tc3 - Table - Column 3 Cell:1:12:::::::0::::::::::"),
+_T("tc4::A table cell item, column 4:tr:1::::::1:1:tbl cell c4:1::tc4 - Table - Column 4 Cell:1:12:::::::0::::::::::"),
+_T("tc5::A table cell item, column 5:tr:1::::::1:1:tbl cell c5:1::tc5 - Table - Column 5 Cell:1:12:::::::0::::::::::"),
+_T("tc6::A table cell item, column 6:tr:1::::::1:1:tbl cell c6:1::tc6 - Table - Column 6 Cell:1:12:::::::0::::::::::"),
+_T("tc7::A table cell item, column 7:tr:1::::::1:1:tbl cell c7:1::tc7 - Table - Column 7 Cell:1:12:::::::0::::::::::"),
+_T("tc8::A table cell item, column 8:tr:1::::::1:1:tbl cell c8:1::tc8 - Table - Column 8 Cell:1:12:::::::0::::::::::"),
+_T("tc9::A table cell item, column 9:tr:1::::::1:1:tbl cell c9:1::tc9 - Table - Column 9 Cell:1:12:::::::0::::::::::"),
+_T("tc10::A table cell item, column 10:tr:1::::::1:1:tbl cell c10:1::tc10 - Table - Column 10 Cell:1:12:::::::0::::::::::"),
+_T("tc11::A table cell item, column 11:tr:1::::::1:1:tbl cell c11:1::tc11 - Table - Column 11 Cell:1:12:::::::0::::::::::"),
+_T("tc12::A table cell item, column 12:tr:1::::::1:1:tbl cell c12:1::tc12 - Table - Column 12 Cell:1:12:::::::0::::::::::"),
+_T("thc1::A table heading, column 1, center aligned:tr:1::::::1:1:tbl hdg c1c:1::thc1 - Table - Column 1 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc2::A table heading, column 2, center aligned:tr:1::::::1:1:tbl hdg c2c:1::thc2 - Table - Column 2 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc3::A table heading, column 3, center aligned:tr:1::::::1:1:tbl hdg c3c:1::thc3 - Table - Column 3 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc4::A table heading, column 4, center aligned:tr:1::::::1:1:tbl hdg c4c:1::thc4 - Table - Column 4 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc5::A table heading, column 5, center aligned:tr:1::::::1:1:tbl hdg c5c:1::thc5 - Table - Column 5 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc6::A table heading, column 6, center aligned:tr:1::::::1:1:tbl hdg c6c:1::thc6 - Table - Column 6 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc7::A table heading, column 7, center aligned:tr:1::::::1:1:tbl hdg c7c:1::thc7 - Table - Column 7 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc8::A table heading, column 8, center aligned:tr:1::::::1:1:tbl hdg c8c:1::thc8 - Table - Column 8 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc9::A table heading, column 9, center aligned:tr:1::::::1:1:tbl hdg c9c:1::thc9 - Table - Column 9 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc11::A table heading, column 11, center aligned:tr:1::::::1:1:tbl hdg c11c:1::thc11 - Table - Column 11 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("thc12::A table heading, column 12, center aligned:tr:1::::::1:1:tbl hdg c12c:1::thc12 - Table - Column 12 Heading - Center Aligned:1:12::1:::::1::::::::::"),
+_T("tcr1::A table cell item, column 1, right aligned:tr:1::::::1:1:tbl cell c1r:1::tcr1 - Table - Column 1 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr2::A table cell item, column 2, right aligned:tr:1::::::1:1:tbl cell c2r:1::tcr2 - Table - Column 2 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr3::A table cell item, column 3, right aligned:tr:1::::::1:1:tbl cell c3r:1::tcr3 - Table - Column 3 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr4::A table cell item, column 4, right aligned:tr:1::::::1:1:tbl cell c4r:1::tcr4 - Table - Column 4 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr5::A table cell item, column 5, right aligned:tr:1::::::1:1:tbl cell c5r:1::tcr5 - Table - Column 5 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr6::A table cell item, column 6, right aligned:tr:1::::::1:1:tbl cell c6r:1::tcr6 - Table - Column 6 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr7::A table cell item, column 7, right aligned:tr:1::::::1:1:tbl cell c7r:1::tcr7 - Table - Column 7 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr8::A table cell item, column 8, right aligned:tr:1::::::1:1:tbl cell c8r:1::tcr8 - Table - Column 8 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr9::A table cell item, column 9, right aligned:tr:1::::::1:1:tbl cell c9r:1::tcr9 - Table - Column 9 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr10::A table cell item, column 10, right aligned:tr:1::::::1:1:tbl cell c10r:1::tcr10 - Table - Column 10 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr11::A table cell item, column 11, right aligned:tr:1::::::1:1:tbl cell c11r:1::tcr11 - Table - Column 11 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("tcr12::A table cell item, column 12, right aligned:tr:1::::::1:1:tbl cell c12r:1::tcr12 - Table - Column 12 Cell - Right Aligned:1:12:::::::2::::::::::"),
+_T("gm::Glossary main entry:::1::1::1:1:1:glossary main entry:0:1:gm - Glossary main entry:0:12:::::::0::::::_body_text:gp:::"),
+_T("gs::Glossary subentry:::1::1::1:1:1:glossary subentry:0:1:gs - Glossary subentry:0:12:::::::0::::::gm:gp:::"),
+_T("gd::Glossary definition:::1::1:1:1:1:1:glossary definition:0:1:gd - Glossary definition:1:12:::::::0::::::::::"),
+_T("gp::Glossary paragraph:::1::1::1:1:1:glossary paragraph:0:1:gp - Glossary paragraph:0:12:::::::0::::::_body_text:gp:::"),
+_T("tis::Topical index heading (level 1):::1::1:::1:1:topical index L1:0:1:tis - Topical index heading L1:0:12:::::::0::::::_heading_base:tpi:::"),
+_T("tpi::Topical index heading (level 2):::1::1:::1:1:topical index L2:0:1:tpi - Topical index heading L2:0:12:::::::0::::::tis:tps:::"),
+_T("tps::Topical index heading (level 3):::1::1:::1:1:topical index L3:0:1:tps - Topical index heading L3:0:12:::::::0::::::tpi:tir:::"),
+_T("tir::Topical index reference:::1::1:::1:1:topical index reference:0:1:tir - Topical index ref:0:12:::::::0::::::_body_text:tir:::"),
+_T("w:w*:A wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::w...w* - Peripheral Ref - Wordlist Entry:1:12:::::::0::::::::::"),
+_T("wr:wr*:A Wordlist text item:ms s li li1 li2 li3 li4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr q q1 q2 q3 q4 qc qr tc1 tc2 tc3 tc4 f fe NEST:1::::1::1:::1::OBSOLETE wr...wr* - Auxiliary - Wordlist/Glossary Reference:1:12::1:::::0::::::::::"),
+_T("wh:wh*:A Hebrew wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wh...wh* - Peripheral Ref - Hebrew Wordlist Entry:1:12:::::::0::::::::::"),
+_T("wg:wg*:A Greek Wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wg...wg* - Peripheral Ref - Greek Wordlist Entry:1:12:::::::0::::::::::"),
+_T("wa:wa*:An Aramaic Wordlist text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::1::wa...wa* - Peripheral Ref - Aramaic Wordlist Entry:1:12:::::::0::::::::::"),
+_T("ndx:ndx*:A subject index text item:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe ef efe erq esb x ex NEST:1::::1::1:::6::ndx...ndx* - Peripheral Ref - Subject Index Entry:1:12:::::::0::::::::::"),
+_T("periph::Periheral content division marker which should be followed by an additional division argument/title.::1:::1:::1:1:Periph matter div:0::periph - Peripherals - Content Division Marker:0:14:33023::1::::0:16:4::::_peripherals_base:periph:::"),
+_T("p1::Front or back matter text paragraph, level 1 (if multiple levels):id:1:::1::1:1:1:Periph matter para L1:0:1:p1 - Periph - Front/Back Matter Paragraph Level 1:0:12:::::::0:::::.125:_peripherals_base:p1:::"),
+_T("p2::Front or back matter text paragraph, level 2 (if multiple levels):id:1:::1::1:1:1:Periph matter para L2:0:1:p2 - Periph - Front/Back Matter Paragraph Level 2:0:12:::::::0:::.125::.125:_peripherals_base:p2:::"),
+_T("k1::Concordance main entry text or keyword, level 1:id:1:::1::1:1:1:conc main entry/keyword L1:0:1:k1 - Periph - Concordance Keyword Level 1:0:12:::::::0::::::_peripherals_base:k1:::"),
+_T("k2::Concordance main entry text or keyword, level 2:id:1:::1::1:1:1:conc main entry/keyword L2:0:1:k2 - Periph - Concordance Keyword Level 2:0:12:::::::0::::::_peripherals_base:k2:::"),
+_T("xtSee:xtSee*:Concordance and Names Index markup for an alternate entry target reference.:p:1:::1:1::1:::0::xtSee - Concordance and Names Index - Alternate Entry Target Reference:1:12:16711680:1:::::0::::::::::"),
+_T("xtSeeAlso:xtSeeAlso*:Concordance and Names Index markup for an additional entry target reference.:p:1:::1:1::1:::0::xtSeeAlso - Concordance and Names Index - Additional Entry Target Reference:1:12:16711680:1:::::0::::::::::"),
+_T("pub::Front matter publication data:id:1:::1:::1:::0::OBSOLETE pub Peripherals - Front Matter Publication Data:0:10:::::::0::::::_peripherals_base:pub:::"),
+_T("toc::Front matter table of contents:id:1:::1:::1:::0::OBSOLETE toc Peripherals - Front Matter Table of Contents:0:10:::::::0::::::_peripherals_base:toc:::"),
+_T("toc1::Long table of contents text:h h1 h2 h3 id:1:::1::1:1:1:toc1:0::toc1 - File - Long Table of Contents Text:0:12:16384:1:1::::0::::::_peripherals_base:toc1:::"),
+_T("toc2::Short table of contents text:h h1 h2 h3 id:1:::1::1:1:1:toc2:0::toc2 - File - Short Table of Contents Text:0:12:16384:1:::::0::::::_peripherals_base:toc2:::"),
+_T("toc3::Book Abbreviation:h h1 h2 h3 id:1:::1::1:1:1:toc3:0::toc3 - File - Book Abbreviation:0:12:128:1:1::::0::::::_peripherals_base:toc3:::"),
+_T("toca1::Alternative Language Long Table of Contents Text:h h1 h2 h3:1:::1:::1:::0::toca1 - File - Alternative Language Long Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca1:::"),
+_T("toca2::Alternative language short table of contents text:h h1 h2 h3:1:::1:::1:::0::toca2 - File - Alternative Language Short Table of Contents Text:0:10:8421504:1:::::0::::::_peripherals_base:toca2:::"),
+_T("toca3::Alternative language book Abbreviation:h h1 h2 h3:1:::1:::1:::0::toca3 - File - Alternative Language Book Abbreviation:0:10:8421504:1:::::0::::::_peripherals_base:toca3:::"),
+_T("pref::Front matter preface:id:1:::1:::1:::0::OBSOLETE pref Peripherals - Front Matter Preface:0:10:::::::0::::::_peripherals_base:pref:::"),
+_T("intro::Front matter introduction:id:1:::1:::1:::0::OBSOLETE intro Peripherals - Front Matter Introduction:0:10:::::::0::::::_peripherals_base:intro:::"),
+_T("conc::Back matter concordance:id:1:::1:::1:::0::OBSOLETE conc Peripherals - Back Matter Concordance:0:10:::::::0::::::_peripherals_base:conc:::"),
+_T("glo::Back matter glossary:id:1:::1:::1:::0::OBSOLETE glo Peripherals - Back Matter Glossary:0:10:::::::0::::::_peripherals_base:glo:::"),
+_T("idx::Back matter index:id:1:::1:::1:::0::OBSOLETE idx Peripherals - Back Matter Index:0:10:::::::0::::::_peripherals_base:idx:::"),
+_T("maps::Back matter map index:id:1:::1:::1:::0::OBSOLETE maps Peripherals - Back Matter Map Index:0:10:::::::0::::::_peripherals_base:maps:::"),
+_T("cov::Other peripheral materials - cover:id:1:::1:::1:::0::OBSOLETE cov Peripherals - Other - Cover:0:10:::::::0::::::_peripherals_base:cov:::"),
+_T("spine::Other peripheral materials - spine:id:1:::1:::1:::0::OBSOLETE spine Peripherals - Other - Spine:0:10:::::::0::::::_peripherals_base:spine:::"),
+_T("pubinfo::Publication information - Lang,Credit,Version,Copies,Publisher,Id,Logo:id ide:1:::1:::1:::0::OBSOLETE pubinfo - Publication - Information:0:12:16711680::::::0::::::__normal:pubinfo:::"),
+_T("pb::Page Break used for new reader portions and children's bibles where content is controlled by the page:c:1:::1:::1:1:new page:0:1:pb - Break - Page Break:0:12:::::::0::::::p:p:::"),
+_T("b::Poetry text stanza break (e.g. stanza break) (basic):c esb ms ms1 ms2 s s1 s2 s3 s4 ip:1:::1:::1:1:stanza break:0::b - Poetry - Stanza Break (Blank Line):0:12:::::::0::::::_body_text:b:::"),
+_T("hr::Horizontal rule:::1:1:::1:1:::0::hr - Horizontal rule:8:12:::::::0:4:4::::_body_text:hr:::"),
+_T("fig:fig*:Illustration [Columns to span, height, filename, caption text]:lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip:1::1:1:1:1:1:1:figure:0::fig...fig* - Auxiliary - Figure/Illustration/Map:1:12:::::::0::::::::::"),
+_T("jmp:jmp*:For associating linking attributes to a span of text:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe x NEST:1::1:1:1:1:1:1:jump link:0::jmp...jmp* - Link text:1:12:16711680:::1:::0::::::::::"),
+_T("rb:rb*:Most often used to provide a reading / pronunciation guide in ideographic scripts:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 sp tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 ms ms1 ms2 s s1 s2 s3 d ip f fe NEST:1::::1::1:::1:1:rb...rb* - Special Text - Ruby Glossing:1:12:::::::0::::::::::"),
+_T("loc::Picture location:::1:1::::1:::0::loc - Picture location:0:12:::::::0::::::_body_text:loc:::"),
+_T("cap::Picture caption:::1:1:1::1:1:1:picture caption:0::cap - Picture caption:0:12:::::::0::::::_body_text:cap:::"),
+_T("des::Picture description:::1:1:1:::1:::0::des - Picture description:0:12:::::::0::::::_body_text:des:::"),
+_T("px::Paragraph extra 1:::1::1:::1:1:para extra 1:1:1:px - Paragraph extra 1:0:12:::::::0::::::p:px:::"),
+_T("pz::Paragraph extra 2:::1::1:::1:1:para extra 2:1:1:pz - Paragraph extra 2:0:12:::::::0::::::p:pz:::"),
+_T("qx::Poetry extra 1:::1::1:::1:1:poetry extra 1:2:1:qx - Poetry extra 1:0:12:::::::0::::::q:qx:::"),
+_T("qz::Poetry extra 2:::1::1:::1:1:poetry extra 2:2:1:qz - Poetry extra 2:0:12:::::::0::::::q:qz:::"),
+_T("addpn:addpn*:For chinese words to be dot underline and underline:ip im ipi imi ipq imq ipr iq iq1 iq2 iq3 io io1 io2 io3 io4 ms ms1 ms2 s s1 s2 s3 s4 cd sp d lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qd qm qm1 qm2 qm3 cls tr th1 th2 th3 th4 thr1 thr2 thr3 thr4 tc1 tc2 tc3 tc4 tcr1 tcr2 tcr3 tcr4 f fe NEST:1::::1::1:::1::DEPRECATED addpn...addpn* - Special Text for Chinese:1:12:2263842:1:1:1:::0::::::::::"),
+_T("ef:ef*:A Study Note text item:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp:1::1:1:1:1:1:1:study note text item:34::ef...ef* - Study Note:1:12:::::::0::::::_notes_base:ef:::"),
+_T("ex:ex*:List of study Bible extended cross references:c lh li li1 li2 li3 li4 lf lim lim1 lim2 lim3 lim4 m mi nb p pc ph phi pi pi1 pi2 pi3 pr pmo pm pmc pmr po q q1 q2 q3 q4 qc qr qm qm1 qm2 qm3 qs sp tc1 tc2 tc3 tc4 mt mt1 mt2 mt3 ms ms1 ms2 ms3 s s1 s2 s3 d ip cp:1:::1:1:1:1:1:ext xref list:34::ex...ex* - Study - Extended Cross Reference:1:12:::::::0::::::_notes_base:ex:::"),
+_T("esb::Study Bible sidebar (mini article):id c:1:::1::1::1:study Bible sidebar:6::esb - Study - Sidebar (Mini Article):0:12:::::::0::::::::::"),
+_T("esbe::Study Bible sidebar ending:id c esb:1:::1::1:1:1:study Bible sidebar end:6::esbe - Study - Sidebar Ending:0:12:::::::0::::::::::"),
+_T("erq::Study Bible reflective questions:id c:1:::1::1::1:study Bible questions:6::erq - Study - Reflective Questions:0:12:::::::0::::::::::"),
+_T("erqe::Study Bible reflective questions ending:id c erq:1:::1::1:1:1:study Bible questions end:6::erqe - Study - Reflective Questions Ending:0:12:::::::0::::::::::"),
+_T("efm:efm*:ID or Caller for an extended (study) note. Used within a source project duplicte (target) text when autoring study material.::1::1::1:1:1:::0::efm - Study Note - ID/Caller:1:10:255::1::::0::::::::::"),
+_T("cat:cat*:Study note category::1:::1:1:1:1:1:study note cat:0::cat - Study - Note Category:1:14:8388736::::::0::::::_notes_base:cat:::"),
+_T("bt::Back-translation (and all \bt... initial forms)::1:1:1:::1::1:back-trans:0::bt - Back-translation:1:11:16711680::::::0::::::::::"),
+_T("free:free*:Free translation::1:1:1:::1::1:free-trans:0::free - Free translation:1:11:4194500::::::0::::::::::"),
+_T("note:note*:Adapt It note::1:1:1:::1::1:note:0::note - Adapt It note:1:10:16711680::::::0::::::::::"),
+_T("__normal::Normal::1:1:1:::::::0::Normal:0:11:::::::0:::::::__normal:::"),
+_T("_src_lang_interlinear::Source Language Interlinear Text::1:1:1:::::::0::Source Language:0:11:::::::0::::::__normal:_src_lang_interlinear::1:"),
+_T("_tgt_lang_interlinear::Target Language Interlinear Text::1:1:1:::::::0::Target Language:0:11:::::::0::::::__normal:_tgt_lang_interlinear::1:"),
+_T("_gls_lang_interlinear::Gloss Language Interlinear Text::1:1:1:::::::0::Gloss Language:0:11:::::::0::::::__normal:_gls_lang_interlinear::1:"),
+_T("_nav_lang_interlinear::Navigation Language Interlinear Text::1:1:1:::::::0::Navigation Language:0:11:::::::0::::::__normal:_nav_lang_interlinear::1:"),
+_T("_hdr_ftr_interlinear::Header-Footer Interlinear Text::1:1:1:::::::0::Hdr-Ftr Interlinear:7:9:::::::0::::::__normal:_hdr_ftr_interlinear:::"),
+_T("_small_para_break::Small Paragraph Break::1:1:1:::::::0::Small Para Break:0:4:::::::0::::::__normal:_small_para_break:::"),
+_T("_body_text::Body Text::1:1:1:::::::0::_BodyText_Base:0:11:::::::0::::::_vernacular_base:_body_text:::"),
+_T("_heading_base::Heading Base::1:1:1:::1::::0::_Heading_Base:0:12:::::::1:6::.1:.1::_vernacular_base:_heading_base:1:1:"),
+_T("_intro_base::Intro Base::1:1:1:::1::::0::_Intro_Base:0:11::1:::::0::::::_vernacular_base:_intro_base:::"),
+_T("_list_base::List Base::1:1:1:::1::::0::_List_Base:0:12:::::::0::::::_vernacular_base:_list_base:::"),
+_T("_notes_base::Notes Base::1:1:1:::1::::0::_Notes_Base:0:9:::::::0::::::_vernacular_base:_notes_base:::"),
+_T("_peripherals_base::Peripherals Base::1:1:1:::1::::0::_Peripherals_Base:0:10:::::::0::::::_vernacular_base:_peripherals_base:::"),
+_T("_vernacular_base::Vernacular Base::1:1:1:::::::0::_Vernacular_Base:0:11:::::::0::::::__normal:_vernacular_base:::"),
+_T("_annotation_ref::Annotation Reference::1:1:1:::::::0::_annotation_reference:1:10:4210943:::::1:0::::::::::"),
+_T("_annotation_text::Annotation Text::1:1:1:::::::0::_annotation_text:0:10:::::::0::::::__normal:_annotation_text:::"),
+_T("_dft_para_font::Default Paragraph Font::1:1:1:::::::0::Default Paragraph Font:5:10:::::::0::::::::::"),
+_T("_footnote_caller::Footnote Caller::1:1:1:::::::0::Footnote Caller:3:10:16711680:::::1:0::::::::::"),
+_T("_normal_table::Normal Table::1:1:1:::::::0::Normal Table:2:10:::::::0:::::::_normal_table:::"),
+_T("_table_grid::Table Grid::1:1:1:::::::0::Table Grid:2:10:::::::0::::::_normal_table:_table_grid:::"),
+_T("_footer::Footer::1:1:1:::::::0::footer:6:10:::::::0::::::_body_text:_footer:::"),
+_T("_header::Header::1:1:1:::::::0::header:7:9:::::::0::::::_body_text:_header:::"),
+_T("_horiz_rule::Horizontal Rule::1:1:1:::::::0::Horizontal rule:8:10:::::::0:::::::_horiz_rule:::"),
+_T("_single_boxed_para::Single Boxed Paragraph::1:1:1:::::::0::Single Boxed Paragraph:9:10:::::::0::::::__normal:_single_boxed_para:::"),
+_T("_double_boxed_para::Double Boxed Paragraph::1:1:1:::::::0::Double Boxed Paragraph:9:10:::::::0::::::__normal:_double_boxed_para:::"),
+_T("_unknown_para_style::Unknown Paragraph Style Marker::1:1:1:::::::0::Unknown Para Style Marker:0:12:255::::::0::::::_body_text:_unknown_para_style:::"),
+_T("_unknown_char_style::Unknown Character Style Marker::1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::0::::::::::"),
+_T("_hidden_note::Hidden Note::1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::0:2::::.3:p:_hidden_note:::")
 
 
     /*
@@ -24176,11 +24176,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUserHitEnterOrTab = FALSE; // default, set TRUE if Enter or Tab keypress detected
 				// within CPhraseBox::OnKeyUp()
 	// Initialise the next 4 to FALSE - meaning "legacy filtering & unfiltering applies)
-	m_bExt_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
-	m_bMkr_x_NotFiltered = FALSE;  //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
-	m_bExt_ef_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
-	m_bUnfiltering_ef_Filtered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
-	m_bUnfiltering_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
+    // 
+    // whm 26Feb2024 the following 4 boolean are no longer used in code.
+	//m_bExt_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
+	//m_bMkr_x_NotFiltered = FALSE;  //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
+	// whm 26Feb2024 The following m_bExt_ef_NotFiltered is set FALSE, but never used in code, so is now removed
+    //m_bExt_ef_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
+	//m_bUnfiltering_ef_Filtered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
+	//m_bUnfiltering_ex_NotFiltered = FALSE; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
 //#if defined(_KBSERVER)
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
@@ -24517,9 +24520,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // markers like \ft* \fk* \fq* etc are no longer supported, similarly for cross ref markers
     // BEW 24Oct14, the footnote and/or crossreference marker set, according to the usage of
     // nested markers in the USFM 2.4 standard, do not ever take + (ie. are not ever nested)
-    // and so no markers like \+f \+ft ... \+x etc do not occur
+    // and so no markers like \+f \+ft ... \+x etc occur
     m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* "); // whm 22Jan2024 m_FootnoteMarkers is never used
-    m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
+    // whm 29Feb2024 added \xop \xop* \xta and \xta* to the following string:
+    m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* \\xop \\xop* \\xta \\xta* "); 
 
     // whm 8Jul12 added these wxArrayString elements
     m_crossRefMarkerSet.Add(_T("\\x ")); // include the parent cross reference marker
@@ -24530,6 +24534,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_crossRefMarkerSet.Add(_T("\\xot "));
     m_crossRefMarkerSet.Add(_T("\\xnt "));
     m_crossRefMarkerSet.Add(_T("\\xdc "));
+    // whm 29Feb2024 the following two were omitted, but should be present
+    m_crossRefMarkerSet.Add(_T("\\xop "));
+    m_crossRefMarkerSet.Add(_T("\\xta "));
 
     // whm 8Jul12 added these wxArrayString elements
     m_footnoteMarkerSet.Add(_T("\\f ")); // include the parent footnote marker
@@ -24551,8 +24558,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 11Oct10, we need this fast-access string for improving punctuation support when
     // inline markers are in the immediate context (since endmarkers for inline markers
     // should be handled within ParseWord(), we'll have two strings
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* ");
-    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig ");
+    // 
+    // whm 23Feb2024 comment: I don't see any explicit evidence in the USFM3 docs that \\+fig or \\+fig* 
+    // exist they could exist according to the definition of "nested markup" at:
+    // https://ubsicap.github.io/usfm/characters/nesting.html#indicating-that-a-character-marker-is-nested
+    // The only explicit examples I can find are for the inline binding marker \+nd ...\+nd* where 
+    // the \+nd* end marker is optional - closed by the parent end marker, a documented example for
+    // \+jmp ... \+jmp embedded within an extended footnote \ef ... \+jmp ...\+jmp* ... \ef*.
+    // 
+    // If the following two inline nonbinding marker set include \fig ...\fig* and \+fig ...\+fig*, I think
+    // they should also include the \jmp ...\jmp* and \+jmp ...\+jmp* ones too, so I'm adding them as of 23Feb2024.
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* \\jmp* \\+jmp* "); // whm 23Feb2024 added \\jmp* and \\+jmp*
+    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig \\jmp \\+jmp "); // whm 23Feb2024 added \\jmp and \\+jmp
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
@@ -24569,12 +24586,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW 5Jun23 these two are just renamed m_inlineBindingMarkers and m_inlineBindingEndMarkers, because the charFormat versions lacked several, especially embedded ones
     m_charFormatMkrs = _T("\\add \\fk \\bk \\dc \\k \\lit \\nd \\tl \\ord \\pn \\png \\addpn \\qt \\sig \\sls \\em \\bd \\it \\bdit \\no \\sc \\sup \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs \\cat ");
     m_charFormatEndMkrs = _T("\\add* \\fk* \\bk* \\dc* \\k* \\lit* \\nd* \\tl* \\ord* \\pn* \\png* \\addpn* \\qt* \\sig* \\sls* \\em* \\bd* \\it* \\bdit* \\no* \\sc* \\sup* \\pb* \\ndx* \\pro* \\w* \\wg* \\wh* \\qs* \\+add* \\+bk* \\+dc* \\+k* \\+lit* \\+nd* \\+ord* \\+pn* \\+sig* \\+em* \\+bd* \\+it* \\+bdit* \\+no* \\+sc* \\+pb* \\+ndx* \\+pro* \\+w* \\+wg* \\+wh* \\+qs* \\cat* ");
+    
+    // whm 22Feb2024 the following >m_charAttributeMkrs sets defined below should include the \xt and \xt* markers.
+    // I've as of this date added the \xt and \xt* markers to the next two sets.
+    // USFM 3 defines two uses for the \xt marker:
+    // 1. The \xt marker is a cross reference character attribute marker which, when embedded within \x ...\x*
+    //    can take an optional \xt* end marker, but never in this embedded form takes a | character and attributes.
+    // 2. The \xt marker is a cross reference linking attribute marker which, when NOT embedded within \x ...\x*
+    //    requires an end marker \xt*, and ALWAYS must have a bar | character separating its attributes.
+    // within its associated text to separate its linking attributes.
+    m_charAttributeMkrs = _T("\\fig \\jmp \\+jmp \\w \\xt \\rb \\qt-s \\qt-e "); // _T("\\fig \\jmp \\+jmp \\w \\rb \\qt-s \\qt-e "); 
+    m_charAttributeEndMkrs = _T("\\fig* \\jmp* \\+jmp* \\w* \\xt* \\rb* \\qt-s\\* \\qt-e\\* \\* "); // _T("\\fig* \\jmp* \\+jmp* \\w* \\rb* \\qt-s\\* \\qt-e\\* \\* ");
 
     m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
     // whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
     // Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
     m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
-	m_bIsEmbeddedJmpMkr = FALSE; // BEW 13Mar20 added - to differentiate \+jmp from \jmp behaviours; initialise
+
+    // whm 23Feb2024 renamed the following from m_bIsEmbeddedJmpMkr to m_bIsEmbeddedFigOrJmpMkr
+    m_bIsEmbeddedFigOrJmpMkr = FALSE; // BEW 13Mar20 added - to differentiate \+jmp from \jmp and \+fig from \fig behaviours; initialise
 
 	// BEW 10Apr20 Fast access strings to be used only for "prohibitive" matching, so as
 	// to determine spans which wrap the active location - where such spans prohibit
@@ -24585,7 +24615,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 20Feb2024 the following m_markersCanBeSweptUpByFilteredMarker set are markers that can be swept up by
     // a following marker-to-be-filtered. There are many other markers that can be empty markers, but they should
     // have their own source phrase if they are "empty" or "contentless" markers.
-    m_markersCanBeSweptUpByFilteredMarker = _T("\c \p \m \mi \nb \b \ib \ie \po ");
+    m_markersCanBeSweptUpByFilteredMarker = _T("\\c \\p \\m \\mi \\nb \\b \\ib \\ie \\po ");
 
 
 	// BEW 22Apr20 (large) fast access strings for markers and endMarkers which have a
@@ -24601,7 +24631,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // function fails to recognize \fe* as an end marker which ends up causing the failure of \fe* to be
     // added to the pSrcPhrase->m_endMarkers member, and ultimately to the dropping out of a following
     // verse number (\v 12 in the Hezekiah text parse).
-	m_RedEndMarkers = _T("\\f* \\fe* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
+    // whm 29Feb2024 corrected omission by adding \\xo* end marker to following m_RedEndMarkers string
+	m_RedEndMarkers = _T("\\f* \\fe* \\ef* \\x* \\ex* \\ior* \\iqt* \\rq* \\esbe \\cat* \\fv* \\fr* \\ft* \\fdc* \\fm* \\fk* \\fq* \\fqa* \\ fl* \\fw* \\fp* \\xo* \\xop* \\xot* \\xnt* \\xdc* \\xr* ");
     
 	m_BlueBeginMarkers = _T("\\c \\v \\p \\m \\ca \\va \\vp \\sls \\tl \\cl \\cp \\cd \\q \\q1 \\q2 \\q3 \\q4 \\qr \\qc \\qs \\qa \\qac \\qm \\qm1 \\qm2 \\qm3 \\qm4 \\qd \\lf \\lim1 \\lim2 \\lim3 \\litl \\lik \\liv \\liv1 \\liv2 \\liv3 \\tr \\th1 \\th2 \\th3 \\th4 \\thr1 \\thr2 \\thr3 \\thr4 \\tc1 \\tc2 \\tc3 \\tc4 \\tcr1 \\tcr2 \\tcr3 \\tcr4 \\b ");
 
@@ -35153,6 +35184,21 @@ enum Reparse reparseDoc)
     countBeforeEdit = countBeforeEdit; // avoid warning
     countAfterEdit = countAfterEdit; // avoid warning
 
+    // whm 29Feb204 added. We need to determine the filter status of the \x and \xt markers
+    // before the edit in the filter page, so we can use this information to adjust the
+    // filter status of the \xt marker properly after the filtering changes have been done
+    // by the TokenizeText() call below.
+    wxString xMkr = _T("\\x ");
+    wxString xtMkr = _T("\\xt ");
+    int indexOfXTmarker;
+    int indexOfXmarker;
+    indexOfXTmarker = FindArrayStringUsingSubString(xtMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+    indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
+    m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
+    m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
+    m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
+    m_bMkr_x_WasUnfilteredBeforeFilteringChange = !m_bMkr_x_WasFilteredBeforeFilteringChange;
+
     int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
     // m_filterFlagsDoc CUIntArray contain data for both known and unknown markers. The
@@ -35286,6 +35332,115 @@ enum Reparse reparseDoc)
                         // a dummy line to avoid a compiler warning
             nNewSrcPhraseCount = nNewSrcPhraseCount;
 
+            // whm 29Feb2024 added. Now that the TokenizeText() call here in DoUsfmFilterChanges() 
+            // call has completed, we need to make an adjustment if the \x and/or \xt markers were 
+            // filtered/unfiltered in the above filtering change.
+            // At this point, if \x is present in the strMarkersToBeUnfiltered, \xt will also be
+            // present in strMarkersToBeUnfiltered (to ensure that \xt got unfiltered along with all
+            // of its sibling embedded \x?? forms when it occurred within within the \x ...\x* span). 
+            // So we can't really tell by looking at the marker inventories in the
+            // strMarkersToBeUnfiltered nor the strMarkersToBeFiltered strings to determine if we 
+            // need to restore the filter status of \xt or not. We have to find out what the filter 
+            // status of the \xt marker was BEFORE this current filtering process and compare that 
+            // with which marker(s) were actually designated in the filter page to be unfiltered
+            // and/or filtered for the above filtering change that was just completed.
+            //  
+            // On the App are now two strings that inform us as to what markers were to be filtered/
+            // unfiltered during this change. They are: markersChangedToBeUnfiltered and
+            // markersChangedToBeFiltered and were assigned to only contain any markers whose filter
+            // status was explicitly changed by the user in the filter page. 
+            // 
+            // I also set above two App boolean flags m_bMkr_xt_WasFilteredBeforeFilteringChange and
+            // m_bMkr_x_WasFilteredBeforeFilteringChange to inform us of the filter status of the
+            // \x and \xt markers BEFORE this current filtering action was done.
+            // 
+            // Restoring the filter status of the \xt marker here is somewhat of a hack, but 
+            // necessitated by the USFM gurus deciding to make the \xt marker do double duty and be 
+            // able to also function as a stand-alone marker. That works for Paratext because 
+            // Paratext doesn't attempt to hide certain markers for adaptation purposes!
+            // 
+            // Our strategy for handling this situation are:
+            // When \x has just been UNFILTERED (its checkbox was unticked):
+            //	1. If the App's markersChangedToBeUnfiltered string has \x but NOT \xt, and the boolean 
+            //     flag marker_XT_wasFilteredBeforeThisChange is TRUE, then we know that the unfiltering
+            //     process of \x alone, has similarly changed the filter status of \xt to unfiltered
+            //     even though \xt was not explicitly unticked to become unfiltered by the user.
+            //     We must fix this situation by restoring \xt's filter status back to filtered so that
+            //     the \xt check box in the filter page will also be ticked when next shown to the user.
+            // When \x and \xt have BOTH just been UNFILTERED (their checkboxes were both unticked):
+            //  2. If the App's markersChangedToBeUnfiltered string now has \x AND \xt, then both the 
+            //     \x and \xt markers were intended to be unfiltered by the user, and nothing 
+            //     needs to be changed by this hack. The check boxes are both unticked which is what
+            //     the user expects, and the filter status of both is unfiltereed (unticked).
+            // When \x has just been FILTERED (its checkbox was ticked):
+            //  3. If the App's markersChangedToBeFiltered string now has \x and NOT \xt, and the boolean
+            //     flag m_bMkr_xt_WasFilteredBeforeFilteringChange is FALSE, then we know that the filtering
+            //     process of \x alone, also has similarly changed the filter status of \xt to filtered
+            //     even though \xt was not explicitly ticked to become filtered by the user.
+            //     We must fix this situation by restoring \xt's filter status back unfiltered so that
+            //     the \xt check box in the filter page will also be unticked when next shown to the user.
+            // When \x and \xt have BOTH just been FILTERED (their checkboxes were both ticked):
+            //  4. If the App's markersChangedToBeFiltered string now has \x AND \xt, then both the 
+            //     \x and \xt markers were intended to be filtered by the user, and nothing
+            //     needs to be changed by this hack. The check boxes are both ticked which is what
+            //     the user expects, and the filter status of both is filtered (ticked).
+            // Situations 2 and 4 above need no further action here.
+            // For situations 1 and 3 above, the following code treats those situations.
+            //
+            bool bMkr_X_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(xMkr) != wxNOT_FOUND;
+            bool bMkr_X_WasJustFiltered = markersChangedToBeFiltered.Find(xMkr) != wxNOT_FOUND;
+            bool bMkr_XT_WasNotToBeUnfiltered = markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND;
+            bool bMkr_XT_WasNotToBeFiltered = markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND;
+            bool bFilterChangeInvolvedXorXT = FALSE;
+            // Situation 1: The App's markersChangedToBeUnfiltered string has \x but NOT \xt, and 
+            // the boolean flag m_bMkr_xt_wasFilteredBeforeThisChange is TRUE.
+            if (bMkr_X_WasJustUnfiltered
+                && bMkr_XT_WasNotToBeUnfiltered 
+                && m_bMkr_xt_WasFilteredBeforeFilteringChange)
+            {
+                // The \x marker has just been UNFILTERED (its checkbox was unticked) and the \xt marker
+                // was NOT to be unfiltered, and \xt was filtered before the above filtering change.
+                // In this situation we need to add the \xt marker back to the strMarkersToBeUnfiltered 
+                // string and call ResetUSFMFilterStructs() below with strMarkersToBeUnfiltered as 3rd 
+                // parameter.
+                if (strMarkersToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
+                {
+                    strMarkersToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                }
+                if (strMarkersToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
+                {
+                    strMarkersToBeFiltered += xtMkr;
+                }
+                bFilterChangeInvolvedXorXT = TRUE;
+            }
+            // Situation 3: The App's markersChangedToBeFiltered string now has \x and NOT \xt, and 
+            // the boolean flag bMkr_XT_WasNotToBeUnfiltered is FALSE.
+            if (bMkr_X_WasJustFiltered
+                && bMkr_XT_WasNotToBeFiltered
+                && m_bMkr_xt_WasUnfilteredBeforeFilteringChange)
+            {
+                // The \x marker has just been FILTERED (its checkbox was ticked) and the \xt marker
+                // was NOT to be filtered, and \xt was unfiltered before the above filtering change.
+                // In this situation we need to remove the "\xt " marker from the strMarkersToBeUFiltered 
+                // string and call ResetUSFMFilterStructs() below with strMarkersToBeFiltered as 2nd 
+                // parameter.
+                if (strMarkersToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
+                {
+                    strMarkersToBeFiltered.Replace(xtMkr, wxEmptyString);
+                }
+                if (strMarkersToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
+                {
+                    strMarkersToBeUnfiltered += xtMkr;
+                }
+                bFilterChangeInvolvedXorXT = TRUE;
+
+            }
+            if (bFilterChangeInvolvedXorXT)
+            {
+                pDoc->ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, strMarkersToBeFiltered,
+                    strMarkersToBeUnfiltered);
+            }
+
             // BEW added 29Jul09, use the saved value when the CSourcePhrase which is the
             // active location hasn't changed (the m_strFiltering_SrcText_AtNewLocation
             // string is set at the end of the GetSafePhraseBoxLocationUsingList()
@@ -35345,6 +35500,7 @@ enum Reparse reparseDoc)
             pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit[index])
         {
             bFilterChangeInProj = TRUE;
+            // whm 29Feb2024 collect
         }
     }
 
@@ -55715,41 +55871,111 @@ int CAdapt_ItApp::FindArrayStringUsingSubString(const wxString& subStr, wxArrayS
     return -1;
 }
 
+// whm 29Feb2024 modified to properly handle the \xt marker's dual-status as an
+// embedded marker within a \x ...\x* span, and as a stand-alone \xt ...\xt* marker.
+// 
+// The legacy protocols for filtering and unfiltering of footnote type markers is
+// unchanged by the modifications of this date.
+// The filtering and unfiltering of cross-reference "parent" \x ...\x* markers is 
+// complicated by the fact that Usfm3 allows the \xt ...\xt* marker to be a 
+// stand-alone marker that has a vertical bar followed by linking info. 
+// Filtering protocols are fairly easy for \x and \xt and what gets ADDED to markerStr.
+// It's the unfiltering protocols that are more complex due to \xt marker's dual roles
+// as both a stand-alone marker and an embedded marker for \x.
+//  
+// FILTERING and ADDING markers to markerStr:
+//    When \x is filtered by the app/user the \x marker and all of its embedded content
+// are totally hidden, and all of \x's embedded markers except for \xt are ADDED to the
+// markerStr. The \xt marker is not added to markerStr here in the "cleanup" code, but 
+// only when \xt is filtered - which normally happens by default on input parsing, and 
+// later is done explicitly by the user via ReconstituteAfterFilteringChange()'s - if 
+// \xt was previously unfiltered and is being then being re-filtered.
+//    So, when \xt is filtered by the app/user, the \xt marker is then added to the 
+// markerStr. The \xt marker will then be present in markerStr, but ONLY when \xt is 
+// itself in a filtered state.
+// 
+// UNFILTERING and REMOVING markers from markerStr:
+//    When the user/App unfilters an \x marker it should NOT remove any \xt marker 
+// that may be present in the markerStr, but ONLY REMOVE \x and all other cross ref 
+// embedded/inline markers, i.e., remove \x and \xo \xk \xq \xot \xnt \xdc, but 
+// NOT \xt if \xt is present in markerStr (its presence ALWAYS means the stand-alone
+// maker \xt is in a filtered state and should remain there until the stand-alone
+// marker \xt itself is actually unfiltered.
+//    When the user/App unfilters the \xt ...\xt* stand alone marker it should 
+// REMOVE the \xt marker from markerStr. This removal should always be done if 
+// present, even if the \x marker is currently in a filtered state. This will help 
+// correct any strFilterMarkersSavedInDoc for an existing document that was created 
+// by a previous version before these protocols went into effect.
+// This function is called by the Doc's RestoreDocParamsOnInput() function, 
+// and by the App's GetProjectSettingsConfiguration() funtion. 
+// The RestoreDocParamsOnInput() function itself is called by XML.cpp's AtDocAttr()
+// when attrName == xml_others, i.e., "others" the field in the xml doc's 
+// <Settings ... /> field that lists all of the doc's filtered markers.
+// The App's GetProjectSettingsConfiguration() is called by the GetConfigurationFile()
+// function which is called by GetProjectConfiguration(). Finally the 
+// GetProjectConfiguration() function is called by:
+//   Doc's DoUnpackDocument()
+//   CollabUtilities.cpp's HookupToExistingAIProject()
+//   OpenExistingProjectDlg's OnOK() and OnDblclkListboxAdaptions() methods
+// Hence, this CleanupFilterMarkerOrphansInString() function is called at all AI 
+// document openings - whether collab or non-collab - to update the input parameter
+// string strFilterMarkersSavedInDoc.
 wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMarkersSavedInDoc)
 {
     // Check for existence of parent markers \x, \f and \fe in markerStr
     wxString markerStr = strFilterMarkersSavedInDoc;
-    bool bCrossRefMkrExists = markerStr.Find(_T("\\x ")) != wxNOT_FOUND;
+    bool bCrossRef_X_MkrExists = markerStr.Find(_T("\\x ")) != wxNOT_FOUND; // whm 29Feb2024 renamed
     bool bFootNoteMkrExists = markerStr.Find(_T("\\f ")) != wxNOT_FOUND;
     bool bEndNoteMkrExists = markerStr.Find(_T("\\fe ")) != wxNOT_FOUND;
     // Add or remove markers as necessary to achieve consistency between
     // the \x, \f, and \fe parent markers and their associated content
     // markers.
-    if (bCrossRefMkrExists)
+    if (bCrossRef_X_MkrExists)
     {
         // \x exists in the input string
-        // ensure that the content markers also exist
+        // Ensure that the \x? content markers also exist, but don't ensure
+        // \xt exists just for cleanup purposes (see note below).
         // Note: AddFilterMarkerToString() only adds the marker if it doesn't
-        // already exist
+        // already exist.
         AddFilterMarkerToString(markerStr, _T("\\xo "));
         AddFilterMarkerToString(markerStr, _T("\\xk "));
         AddFilterMarkerToString(markerStr, _T("\\xq "));
-        AddFilterMarkerToString(markerStr, _T("\\xt "));
+        // whm 29Feb2024 modified. We no longer add the \xt
+        // marker to markerStr just because \x is present in
+        // markerStr.
+        // For cleanup purposes, only the other embedded 
+        // cross-ref markers are added (if not already present) 
+        // when x is already there.
+        //AddFilterMarkerToString(markerStr, _T("\\xt "));
         AddFilterMarkerToString(markerStr, _T("\\xot "));
         AddFilterMarkerToString(markerStr, _T("\\xnt "));
         AddFilterMarkerToString(markerStr, _T("\\xdc "));
+        // whm 29Feb2024 the following two were omitted, but should be present
+        AddFilterMarkerToString(markerStr, _T("\\xop "));
+        AddFilterMarkerToString(markerStr, _T("\\xta "));
+
     }
     else
     {
         // \x doesn't exist in the input string
-        // ensure that no content markers exist either
+        // Rnsure that no cross-ref content markers exist either,
+        // except don't remove \xt for cleanup purposes when \x doesn't 
+        // exist (see note below).
         RemoveFilterMarkerFromString(markerStr, _T("\\xo "));
         RemoveFilterMarkerFromString(markerStr, _T("\\xk "));
         RemoveFilterMarkerFromString(markerStr, _T("\\xq "));
-        RemoveFilterMarkerFromString(markerStr, _T("\\xt "));
+        // whm 29Feb2024 modified. We no longer remove the \xt
+        // marker from markerStr if it exists there, at least
+        // for "cleanup" purposes. The \xt marker should only
+        // be removed in other code when the stand-alone \xt
+        // marker is being unfiltered by the user.
+        //RemoveFilterMarkerFromString(markerStr, _T("\\xt "));
         RemoveFilterMarkerFromString(markerStr, _T("\\xot "));
         RemoveFilterMarkerFromString(markerStr, _T("\\xnt "));
         RemoveFilterMarkerFromString(markerStr, _T("\\xdc "));
+        // whm 29Feb2024 the following two were omitted, but should be present
+        RemoveFilterMarkerFromString(markerStr, _T("\\xop "));
+        RemoveFilterMarkerFromString(markerStr, _T("\\xta "));
     }
     if (bFootNoteMkrExists || bEndNoteMkrExists)
     {

@@ -3662,6 +3662,10 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	//return destString;
 }
 
+// whm 29Feb2024 modified. 
+// The modification: We don't wan't the \xt marker to be removed from the filterMkrStr when 
+// RemoveFilterMarkerFromString() is called with \x as the wholeMarker passed in. We only want
+// \xt removed from the filterMkrStr when \xt itself is passed in as wholeMarker to be removed.
 void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 {
 	// if the wholeMarker already exists in filterMkrStr, remove it.
@@ -3673,6 +3677,10 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 	wholeMarker += _T(' ');
 	// whm modified 8Jul12. If wholeMarker is \x , \f , or \fe remove it and any associated
 	// content markers.
+	// whm 28Feb2024 modification. Since we now show the \xt ...\xt* (stand alone) marker as a
+	// separate entry within the filter lists in CUSFMFilterPageCommon, we should NOT try to
+	// remove the \xt marker from the filterMkrStr when wholeMarker is "\\x " is being removed
+	// from the filterMkrStr list at unfiltering of \x. 
 	if (wholeMarker == _T("\\x "))
 	{
 		// Remove the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
@@ -3686,11 +3694,22 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 		for (i = 0; i < nTot; i++)
 		{
 			marker = gpApp->m_crossRefMarkerSet.Item(i);
+			
 			posn = filterMkrStr.Find(marker);
-			wxASSERT(posn != wxNOT_FOUND);
-			if (posn != wxNOT_FOUND)
+			//wxASSERT(posn != wxNOT_FOUND); // asserting here no longer appropriate
+			// whm 29Feb2024 added the marker != _T("\\xt ") to the test below, since \xt will
+			// now only be present when the stand-alone version of \xt is filtered. When \xt is
+			// not filtered \xt should not be present in filterMkrStr even when \x is filtered
+			// (see the case when wholeMarker is _T("\\xt ") in the added else if block below).
+			if (marker != _T("\\xt ") && posn != wxNOT_FOUND)
 				filterMkrStr.Remove(posn, marker.Length());
 		}
+	}
+	else if (wholeMarker == _T("\\xt "))
+	{
+		int posn = filterMkrStr.Find(wholeMarker);
+		if (posn != wxNOT_FOUND)
+			filterMkrStr.Remove(posn, wholeMarker.Length());
 	}
 	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
 	{
@@ -3728,6 +3747,15 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 	}
 }
 
+// whm 29Feb2024 correction and modified. 
+// The correction: The array total nTot was gotten from m_crossRefMarkerSet, but it used that
+// nTot to access the m_footnoteMarkerSet array. Ouch!! Fortunately there were more elements in
+// the m_footnoteMarkerSet (12) than in the m_crossRefMarkerSet (8) so no out-of-bounds error occurs, 
+// but it couldn't really set the proper cross-ref markers in filterMkrStr; it just attempted to put
+// a subset of footnote markers into filterMkrStr. 
+// The modification: We don't wan't the \xt marker to be added to the filterMkrStr when 
+// AddFilterMarkerToString() is called with \x as the wholeMarker passed in. We only want
+// \xt added to the filterMkrStr when \xt itself is passed in as wholeMarker.
 void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 {
 	// if the wholeMarker does not already exist in filterMkrStr, append it.
@@ -3740,8 +3768,8 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 
 	if (wholeMarker == _T("\\x "))
 	{
-		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
-		// to the filterMkrStr.
+		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xot \xnt \xdc,
+		// but NOT \xt to the filterMkrStr.
 		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
 		// plus all of the associated content markers; each includes the initial backslash and following
 		// space.
@@ -3750,8 +3778,11 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 		wxString marker;
 		for (i = 0; i < nTot; i++)
 		{
-			marker = gpApp->m_footnoteMarkerSet.Item(i);
-			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
+			marker = gpApp->m_crossRefMarkerSet.Item(i); // marker = gpApp->m_footnoteMarkerSet.Item(i); // whm 29Feb2024 correction here!
+			// whm 29Feb2024 added marker != _T("\\xt") to the following test. We only want \xt added 
+			// to the filterMkrStr when \xt itself is passed in as wholeMarker (see the added else if
+			// block below where that is taken care of).
+			if (marker != _T("\\xt ") && filterMkrStr.Find(marker) == wxNOT_FOUND)
 			{
 				// The wholeMarker doesn't already exist in the string, so append it.
 				// NOTE: By appending a marker to the filter marker string we are creating a
@@ -3759,10 +3790,29 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 				// means of the == or != operators. Comparison of such filter marker strings will now
 				// necessarily require a special function StringsContainSameMarkers() be used
 				// in every place where marker strings are compared.
+				// whm comment on above NOTE: We could sort the marker elements of the string
+				// after the addition of marker to make string comparisons easier, but it is
+				// probably not worth it.
 				filterMkrStr += marker;
 			}
 		}
 
+	}
+	else if (wholeMarker == _T("\\xt ")) // whm 29Feb2024 added this else if block to handle \xt
+	{
+		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
+		{
+			// The wholeMarker \xt doesn't already exist in the string, so append it.
+			// NOTE: By appending a marker to the filter marker string we are creating a
+			// string that can no longer be compared with other filter marker strings by
+			// means of the == or != operators. Comparison of such filter marker strings will now
+			// necessarily require a special function StringsContainSameMarkers() be used
+			// in every place where marker strings are compared.
+			// whm comment on above NOTE: We could sort the marker elements of the string
+			// after the addition of marker to make string comparisons easier, but it is
+			// probably not worth it.
+			filterMkrStr += marker;
+		}
 	}
 	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
 	{
@@ -5992,7 +6042,8 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 				// override of LookupSFM() requires an argument which is a bare marker which is not
 				// the case here.
 				USFMAnalysis* pSfm =  pDoc->LookupSFM(wxStringBuffer(mkr,mkr.Length())); //pDoc->LookupSFM((wxChar*)mkr.GetData());
-				if (mkr == _T("\\fig"))
+				// whm 23Feb2024 added second test || mkr == _T("\\jmp"). If \fig is to be excluded \jmp should be too.
+				if (mkr == _T("\\fig") || mkr == _T("\\jmp")) // if (mkr == _T("\\fig"))
 				{
 					// exclude this one from acceptance
 					;

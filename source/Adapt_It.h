@@ -3092,6 +3092,14 @@ public:
                 // was-current document after reading the other documents for the join
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
+	
+	// whm 29Feb2024 added the following wxString values to track which filtering
+	// markers were changed (selected/unselected) during a session in the USFM and
+	// Filtering tab of preferences.
+	wxString markersChangedToBeFiltered;
+	wxString markersChangedToBeUnfiltered;
+
+
 
 	// whm 23Aug2021 added the following for AutoCorrect feature support
 	// The following hash map is used to map typed sub-strings of target text to 
@@ -4945,7 +4953,8 @@ public:
 				// inline, but which do not bind more closely than punctuation
 				// (these are \wj \qt \sls \tl \fig; and their endmarkers are a separate
 				// wxString member -- see next line)
-	bool	 m_bIsEmbeddedJmpMkr; // BEW 13Mar20 added - to differentiate \+jmp from \jmp behaviours
+	// whm w23Feb2024 renamed m_bIsEmbeddedJmpMkr below to m_bIsEmbeddedFigOrJmpMkr
+	bool	 m_bIsEmbeddedFigOrJmpMkr; // BEW 13Mar20 added - to differentiate \+jmp from \jmp and \+fig from \fig behaviours
 				// (see extended comment regarding need for this, lines 15,600-15,635 of ParsePreWord())
 	wxString m_FootnoteMarkers;
 	wxString m_CrossReferenceMarkers;
@@ -4966,12 +4975,29 @@ public:
 	bool     FindProhibitiveBeginMkr(CSourcePhrase* pSrcPhrase, wxString& beginMkr); // BEW 11Apr20
 	bool	 FindProhibitiveEndMkr(CSourcePhrase* pSrcPhrase, wxString& endMkr);     // BEW 11Apr20
 
-	bool	 m_bExt_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
-	bool	 m_bExt_ef_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
-	bool	 m_bMkr_x_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
-	bool	 m_bUnfiltering_ef_Filtered; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
-	bool	 m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
+	// whm 26Feb2024 removed the m_bExt_ex_NotFiltered and m_bMkr_x_NotFiltered globals below.
+	// The IsAttributeMarker() now check the gCurrentFilterMarkers directly for the filter status.
+	//bool	 m_bExt_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ex ... \ex* is being parsed in
+	// whm 26Feb2024 The following m_bExt_ef_NotFiltered is set FALSE, but never used in code, so is now removed
+	//bool	 m_bExt_ef_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \ef ... \ef* is being parsed in
+	//bool	 m_bMkr_x_NotFiltered; //BEW 18Apr20, TRUE when unfiltered \x ... \x* is being parsed in
+	// whm 26Feb2024 the following m_bUInfiltering_ef_Filtered is never used in code, so is now removed
+	//bool	 m_bUnfiltering_ef_Filtered; //BEW 18Apr20, TRUE when unfiltered filtered \ef ... \ef*
+	// whm 26Feb2024 the following m_bUnfiltering_ex_NotFiltered is set FALSE, but never used in code, so is now removed
+	//bool	 m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
+
+	// whm 29Feb2024 added the following 2 booleans to track the status of the \x and \xt marker before
+	// a filtering session using the filter page in Preferences.
+	bool	m_bMkr_x_WasFilteredBeforeFilteringChange;
+	bool	m_bMkr_xt_WasFilteredBeforeFilteringChange;
+	bool	m_bMkr_x_WasUnfilteredBeforeFilteringChange;
+	bool	m_bMkr_xt_WasUnfilteredBeforeFilteringChange;
+
 	wxString m_chapterVerseAttrSpan; // BEW 18Apr20, store nearest earlier ch:vs ref for error message
+
+	// whm 22Feb2024 moved the following two here to the App from the Doc, and renaming them m_...
+	wxString m_charAttributeMkrs;
+	wxString m_charAttributeEndMkrs;
 
 	// BEW 22Apr20 marker and endmarker sets for the new way to handle text colouring & TextType
 	// propagation, and type-changing decisions

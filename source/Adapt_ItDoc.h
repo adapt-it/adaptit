@@ -608,7 +608,7 @@ public:
 						wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
-	bool			m_bIsInFigSpan;
+	bool			m_bIsInInlineNonbindingSpan;
 	int				nFirstSequNumOfSpan; // used for \fig .... \fig* span
 
 	wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
@@ -855,14 +855,18 @@ public:
 
 protected:
 
-	wxChar* m_ptr;
-	wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
+	// whm 28Feb2024 removed the following wxChar* pointers - these are too dangerous to have 
+	// floating around on the Doc class undefined outside specific functions.
+	//wxChar* m_ptr;
+	//wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
 					  // m_ptr is not wanted
-	size_t   m_nBeginMkrLen; // includes the trailing whitespace character (typically latin space)
-	size_t   m_nEndMarkerLen; // includes the trailing asterisk
-	size_t   m_nSpanLength; // the length of the span of characters to be skipped
+	size_t m_nBeginAttrMkrLen; // includes the trailing whitespace character (typically latin space)
+	size_t m_nEndAttrMarkerLen; // includes the trailing asterisk
+	size_t m_nVisibleTextSpanLength; // the length of the visible caption/word(s) text between 
+		// the attribute marker and the bar char delimiter. whm 28Feb2024 added.
+	size_t m_nHiddenDataSpanLength; // the length of the span of characters to be skipped
 		// over in the input text stream, so that AI no longer "sees" the metadata while
-		// running its tokenizing function
+		// running its tokenizing function. Includes the bar char in the length.
 	wxString m_cachedAttributeData;  // store everything from the first bar (strBar) to the
 		// end of the matching endmarker here. The CSourcePhrase which gets to
 		// store the hidden stuff cached here may not be the current one - it 
@@ -898,6 +902,7 @@ protected:
 								  // set taking attributes, store here
 	wxString m_strAttrEndMkr;	  // if an end-marker is found which is one of the 
 								  // set taking attributes, store here
+								  // 
 	wxString m_strMatchedMkr;	  // after parsing a marker, store it here temporarily
 	int m_nCachePileSequNum;	  // BEW 20Sep22, the m_nSequNumber value for the pile on 
 								  // which to cache the attributes data (hiding it from sight)
