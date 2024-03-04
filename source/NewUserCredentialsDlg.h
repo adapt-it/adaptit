@@ -40,8 +40,8 @@ public:
 	wxString strNewUser;
 	wxString strNewFullname;
 	wxString strNewPassword;
-	wxCheckBox* m_pCheck_GrantPermission;
-	wxCheckBox* m_pCheck_AllPermissions;
+	wxCheckBox* m_pCheck_GrantPermission; // for useradmin 1 or 0
+	wxCheckBox* m_pCheck_Grant_Permissions; // for MariaDB user, whether (1) or not (0) to grant access permissions
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);

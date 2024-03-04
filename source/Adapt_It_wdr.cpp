@@ -9899,8 +9899,8 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item13->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_ALL_PERMISSIONS, _("Create User With All Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Create new use, grant all permissions, lodge in Manager's user list") );
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSIONS, _("Grant Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Create new user, grant permissions, lodge in Manager's user list") );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item13->Add( 22, 20, 0, wxALIGN_CENTER|wxALL, 5 );

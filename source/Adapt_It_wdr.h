@@ -1198,7 +1198,7 @@ const int ID_TEXT_NEW_FULLNAME = 10913;
 const int ID_TEXTCTRL_NEW_FULLNAME = 10914;
 const int ID_TEXT_USERS_PASSWORD = 10915;
 const int ID_TEXTCTRL_NEW_USERS_PWD = 10916;
-const int ID_CHECKBOX_ALL_PERMISSIONS = 10917;
+const int ID_CHECKBOX_GRANT_PERMISSIONS = 10917;
 const int ID_CHECKBOX_GRANT_PERMISSION = 10918;
 wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 

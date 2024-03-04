@@ -13420,7 +13420,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// Check that needed language codes are defined for source, target, and if
 				// a glossing kb share is also wanted, that source and glosses codes are
 				// set too. Get them set up if not so.
-				bool bUserCancelled = FALSE;
+				bool bUserCancelled = FALSE; wxUnusedVar(bUserCancelled);
 				// BEW 27Jan22 When logging in, it's likely there is no pwd value saved in frame's 
 				// SetKBSvrPassword(pwd); but if authenticating, and the app's current value of 
 				// m_strUserID matches what this dialog shows, and the dlg's m_strNormalPassword has

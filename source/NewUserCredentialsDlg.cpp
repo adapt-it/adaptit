@@ -92,8 +92,8 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
 	m_pCheck_GrantPermission = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
 	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked, RHSide checkbox
-	m_pCheck_AllPermissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ALL_PERMISSIONS);
-	m_pCheck_AllPermissions->SetValue(FALSE); // start off unticked, LHSide checkbox
+	m_pCheck_Grant_Permissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSIONS);
+	m_pCheck_Grant_Permissions->SetValue(FALSE); // start off unticked, LHSide checkbox
 
 	wxString empty = wxEmptyString;
 	m_pNewUsernameCtrl->ChangeValue(empty);
@@ -110,7 +110,7 @@ void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
 	m_pNewUsernameCtrl->ChangeValue(empty);
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
-	m_pCheck_AllPermissions->SetValue(FALSE);
+	m_pCheck_Grant_Permissions->SetValue(FALSE);
 	m_pCheck_GrantPermission->SetValue(FALSE);
 	event.Skip();
 }
@@ -165,8 +165,8 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	pApp->m_newUserDlg_newpassword = strNewPassword;
 	bool bPermission = m_pCheck_GrantPermission->GetValue();
 	pApp->m_newUserDlg_newuserpermission = (bPermission == TRUE) ? 1 : 0;
-	bool bGrantAll = m_pCheck_AllPermissions->GetValue();
-	pApp->m_newUserDlg_allpermissions = (bGrantAll == TRUE) ? 1 : 0;
+	bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
+	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0;
 
 	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off
 	event.Skip();
