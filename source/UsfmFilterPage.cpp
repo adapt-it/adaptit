@@ -144,10 +144,21 @@ void CUsfmFilterPageCommon::DoSetDataAndPointers()
 	tempFilterMarkersBeforeEditDoc = gpApp->gCurrentFilterMarkers;
 	tempFilterMarkersAfterEditDoc = tempFilterMarkersBeforeEditDoc;
 
+	// whm 29Feb2024 added the following initializations to determine the filtered state of 
+	// the \x and \xt markers BEFORE any filtering change made by the user during this session
+	// of the Filter page.
+	marker_X_wasFilteredBeforeThisChange = tempFilterMarkersBeforeEditDoc.Find(_T("\\x ")) != wxNOT_FOUND;
+	marker_XT_wasFilteredBeforeThisChange = tempFilterMarkersBeforeEditDoc.Find(_T("\\xt ")) != wxNOT_FOUND;
+
 	// fill the Project's local filter markers strings (before and after edit) from those on the App
 	tempFilterMarkersBeforeEditProj = gpApp->gProjectFilterMarkersForConfig;
 	tempFilterMarkersAfterEditProj = tempFilterMarkersBeforeEditProj;
 
+	// whm 29Feb2024 added the following wxString values to track which filtering
+	// markers were changed (selected/unselected) during a session in the USFM and
+	// Filtering tab of preferences.
+	tempMarkersChangedToBeFiltered.Empty(); // = gpApp->markersChangedToBeFiltered;
+	tempMarkersChangedToBeUnfiltered.Empty(); // = gpApp->markersChangedToBeUnfiltered;
 
 	// These initializations are done here in the constructor, rather than
 	// in OnInitDialog, because tempSfmSetAfterEditDoc and tempSfmSetAfterEditProj can be
@@ -176,6 +187,12 @@ void CUsfmFilterPageCommon::DoSetDataAndPointers()
 
 void CUsfmFilterPageCommon::DoInit()
 {
+	// whm 29Feb2024 added the following initializations.
+	// These strings on the App will contain any markers that are
+	// actually changed when 
+	gpApp->markersChangedToBeFiltered.Empty();
+	gpApp->markersChangedToBeUnfiltered.Empty();
+
 	// get pointers to our controls
 	pListBoxSFMsDoc = (wxCheckListBox*)FindWindowById(IDC_LIST_SFMS);
 	wxASSERT(pListBoxSFMsDoc != NULL);
@@ -1291,6 +1308,22 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 	checkStr.Trim(FALSE); // trim left end
 	// extract the whole marker part
 	checkStr = checkStr.Mid(0,checkStr.Find(_T(' ')));
+
+	wxString augWholeMkr = checkStr + _T(" ");
+
+	if (pListBoxSFMsDoc->IsChecked(lbItemIndex))
+	{
+		// The checkbox item was checked, store the marker of that item in 
+		// tempMarkersChangedToBeFiltered
+		tempMarkersChangedToBeFiltered += augWholeMkr;
+	}
+	else
+	{
+		// The checkbox item was unchecked, store the marker of that item in 
+		// tempMarkersChangedToBeUnfiltered
+		tempMarkersChangedToBeUnfiltered += augWholeMkr;
+
+	}
 	
 	// ensure that the flag stored in the flags array reflects the new visible state of the 
 	// checkbox
@@ -3926,6 +3959,8 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		TRACE1("   m_currentUnknownMarkersStr = %s\n", pDoc->m_currentUnknownMarkersStr);
 #endif
 
+		gpApp->markersChangedToBeFiltered = usfm_filterPgCommon.tempMarkersChangedToBeFiltered;
+		gpApp->markersChangedToBeUnfiltered = usfm_filterPgCommon.tempMarkersChangedToBeUnfiltered;
 
 		// there was no change made to the SFM set, so we only have to check for filtering changes, and
 		// do the reparse if changes had been made

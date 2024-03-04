@@ -55,7 +55,7 @@ public:
 							// the value of tempSfmSetAfterEditProj.
 	// Note: Factory default sfm set is UsfmOnly and can't be changed,
 	// so we don't need before and after edit variables for it
-
+	
 	bool bSFMsetChanged;
 
 	bool bChangeFixedSpaceToRegularBeforeEdit;
@@ -85,6 +85,17 @@ public:
 	// The following two are local variables used in the Usfm Filtering page.
 	wxString tempFilterMarkersBeforeEditDoc; // initialized to equal gpApp->gCurrentFilterMarkers in the constructor
 	wxString tempFilterMarkersAfterEditDoc; // initialized to equal tempFilterMarkersBeforeEditDoc in the constructor
+
+	// whm 29Feb2024 added the following values to track which filtering
+	// markers were changed (selected/unselected) during a session in the USFM and
+	// Filtering tab of preferences.
+	wxString tempMarkersChangedToBeFiltered;
+	wxString tempMarkersChangedToBeUnfiltered;
+	// whm 29Feb2024 added the following flags to determine the filtered state of 
+	// the \x and \xt markers BEFORE any filtering change made by the user during 
+	// this session of the Filter page.
+	bool marker_X_wasFilteredBeforeThisChange;
+	bool marker_XT_wasFilteredBeforeThisChange;
 
 	wxArrayInt m_userCanSetFilterFlagsDoc; // these flag the userCanSetFilter markers
 	wxArrayInt* pUserCanSetFilterFlagsDoc; // initialized to point to above in constructor
