@@ -19074,6 +19074,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
                 // with PathSeparator, so added it explicitly
 	bool execExists = wxDirExists(execFolderPath);
 	bool dataExists = wxDirExists(dataFolderPath);
+
 	if (execExists && dataExists)
 	{
 		switch (funcNumber)
@@ -19085,48 +19086,64 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
 		{
             wxString filename = wxEmptyString; // init
+
+            
             if (m_bAddUser2UserTable)
             {
-                filename = _T("add_foreign_users.dat");
+                if (!this->m_bGrantSomePermissions)
+                {
+                    filename = _T("add_foreign_users.dat"); // for GUI way of adding, but not asking for mysql ALL PERMISSIONS
+                }
+                else
+                {
+                    // granting mysql ALL PERMISSIONS is wanted (and at end will add user to user 
+                    // table with useradmin flag set to 1)
+                    filename = _T("kb_users_add_list.dat");
+                }
             }
-            else
-            {
-                filename = _T("add_foreign_KBUsers.dat");
-            }
-
+            // Whichever it is, an earlier call with funcNumber == 1 will result in the input .dat file
+            // being copied to the executable's folder, so DeleteOldDAT file gets rid of it, to make
+            // way for the new commandLine's one to be moved to exec's folder
 			DeleteOldDATfile(filename, execFolderPath);
-			//MoveBlankDatFile(filename, dataFolderPath, execFolderPath);
+			// Gotta refactor ConfigureMovedDatFile to work with either do_add_kbusers.py or .exe
+            // the legacy call do_add_kbusers.py (or .exe)
 			ConfigureMovedDatFile(funcNumber, filename, execFolderPath);
-			// The .exe with the C code for doing the SQL etc, has to be
-			// in the execFolderPath's folder as well, do it now - it should be in
-			// the _DATA_KB_SHARING folder, as per Bill's stipulation of where to
-            // store the external executable files
-			wxString execFilename = _T("do_add_foreign_kbusers.exe");
-			wxString execInDest = dataFolderPath + execFilename;
-			bool bPresentInDest = ::FileExists(execInDest);
-			if (bPresentInDest)
-			{
-				// Check if do_add_KBUser.exe is already in the AI executable's folder,
-				// if it is - no need to move the dest one to there; otherwise, move it
-				// Once there, it can stay there forever (but manually remove it if
-				// we develop a new version of the file's code contents)
-				wxString destinationPath = execFolderPath + execFilename;
-				bool bPresentInAIExecFolder = ::FileExists(destinationPath);
-				if (!bPresentInAIExecFolder)
-				{
-					// Copy it to there
-					wxCopyFile(execInDest, destinationPath);
-				}
-			}
-			else
-			{
-				// Oops, if it's not in the _DATA_KB_SHARING folder, can't go further. Tell user & exit False
-				wxString msg = _("do_add_foreign_kbusers.exe is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
-				wxString caption = _("ConfigureDatFile resource absent error");
-				LogUserAction(msg);
-				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
-				return FALSE;
-			}
+ 
+            if (m_bGrantSomePermissions == FALSE)
+            {
+                // the Mgr's Add User way... suppress if m_bGrantSomePermissions is TRUE
+                
+                // The .exe with the C code ( or .py) for doing the SQL etc, has to be
+                // in the execFolderPath's folder as well, do it now - it should be in
+                // the _DATA_KB_SHARING folder, as per Bill's stipulation of where to
+                // store the external executable files
+                wxString execFilename = _T("do_add_foreign_kbusers.exe");
+                wxString execInDest = dataFolderPath + execFilename;
+                bool bPresentInDest = ::FileExists(execInDest);
+                if (bPresentInDest)
+                {
+                    // Check if do_add_foreign_kbusers.exe (adds one, not many) is present
+                    // in the _DAT_KB_SHARING folder, if not it is an error situation. If
+                    // present, copy it to the executable's folder (overwriting any previous
+                    // version of it) 
+                    wxString destinationPath = execFolderPath + execFilename;
+                    bool bPresentInAIExecFolder = ::FileExists(destinationPath);
+                    if (!bPresentInAIExecFolder)
+                    {
+                        // Copy it to there
+                        wxCopyFile(execInDest, destinationPath);
+                    }
+                }  
+                else
+                {
+                    // Oops, if it's not in the _DATA_KB_SHARING folder, can't go further. Tell user & exit False
+                    wxString msg = _("do_add_foreign_kbusers.exe is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
+                    wxString caption = _("ConfigureDatFile resource absent error");
+                    LogUserAction(msg);
+                    wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
+                    return FALSE;
+                }
+            }
 			break;
 		}
 		case lookup_user: // funcNumber is 2 in AI.h lines 854++
@@ -19831,6 +19848,10 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
 
 void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 {
+#if defined (_DEBUG)
+    wxLogDebug(_T("DeleteOldDATfile() ENTERED line %d,  filename [%s], execFolderPath [%s]"),
+        __LINE__, filename.c_str(), execFolderPath.c_str());
+#endif
 	wxString filePath = execFolderPath + filename;
 	bool bExists = ::wxFileExists(filePath);
 	if (bExists)
@@ -19842,6 +19863,10 @@ void CAdapt_ItApp::DeleteOldDATfile(wxString filename, wxString execFolderPath)
 // makes it clear what is going on in RemoveDatFileAndEXE() function
 void CAdapt_ItApp::DeleteOldEXEfile(wxString filename, wxString execFolderPath)
 {
+#if defined (_DEBUG)
+    wxLogDebug(_T("DeleteOldEXEfile() ENTERED line %d,  filename [%s], execFolderPath [%s]"),
+        __LINE__, filename.c_str(), execFolderPath.c_str());
+#endif
     wxString filePath = execFolderPath + filename;
     bool bExists = ::wxFileExists(filePath);
     if (bExists)
@@ -19854,24 +19879,52 @@ void CAdapt_ItApp::DeleteOldEXEfile(wxString filename, wxString execFolderPath)
 // BEW 17Jun22 added bDoMove with default TRUE
 void CAdapt_ItApp::DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove)
 {
+    // BEW 23Feb24 make sure execFilename 3rd formal parameter is "do_add_kbusers.py" (or .exe) when  m_bGrantSomePermissions is TRUE
+#if defined (_DEBUG)
+    wxLogDebug(_T("DatFileMoveExe() ENTERED line %d,  commandLine [%s], datFilename [%s], execFilename [%s], execFolderPath [%s], bDoMove %d"),
+        __LINE__, commandLine.c_str(), datFilename.c_str(), execFilename.c_str(), execFolderPath.c_str(), (int)bDoMove);
+#endif
+
+    // BEW 23Feb24 DON'T convert commandLine to utf8 a second time, for m_bGrantSomePermissions TRUE, it's already been done
     wxString filePath = wxEmptyString;
     wxString execFilePath = wxEmptyString;
     filePath = execFolderPath + datFilename;
-    // First convert commandLine to have all single quotes escaped
-    commandLine = DoEscapeSingleQuote(commandLine);
+    bool bOK = FALSE;
+    // BEW 23Feb24 bypass this next block if m_bGrantSomePermissions is TRUE, because the commandLine
+    // for adding a user with ALL PERMISSIONS granted, has already been accumulated, quotes escaped, 
+    // and the whole converted to raw utf8
+    if (m_bGrantSomePermissions == FALSE)
+    {
+        // First convert commandLine to have all single quotes escaped
+        commandLine = DoEscapeSingleQuote(commandLine);
+    }
     // Next, fill the input .dat file with the contents (with any \' escaping done) of commandLine,
-    // convert it to utf8, and write it back out to filePath.
-    wxFile f(filePath, wxFile::write);  // opens create_entry.dat for writing
-    bool bOK = f.IsOpened();
+    // convert it to utf8, and write it back out to filePath. BEW 23Feb24 but don't do escaping or
+    // convertion (again) to commandLine if m_bGrantSomePermissions is TRUE. It's done earlier.
+
+    wxFile f(filePath, wxFile::write);  // opens the input.dat file for writing
+    bOK = f.IsOpened();
     wxASSERT(bOK);
     f.Flush(); // clear it out (it should be empty anyway, wxFile::write does that)
     if (bOK)
     {
-        // Get the commandLine contents of the input .dat file written to file as UTF8
-        wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8);
-        size_t nLen = strlen(tempBuf);
-        bool bWrittenOut = f.Write(tempBuf, nLen);
-        wxASSERT(bWrittenOut);
+        if (m_bGrantSomePermissions == FALSE)
+        {
+            // Get the commandLine contents of the input .dat file written to file as UTF8
+            wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8);
+            size_t nLen = strlen(tempBuf);
+            bool bWrittenOut = f.Write(tempBuf, nLen);
+            wxASSERT(bWrittenOut);
+        }
+        else
+        {
+            // Get the commandLine contents of the input .dat file written to file "as is", 
+            // it's already quote-escaped and is utf8
+            wxCharBuffer tempBuf = commandLine.c_str();
+            size_t nLen = strlen(tempBuf);
+            bool bWrittenOut = f.Write(tempBuf, nLen);
+            wxASSERT(bWrittenOut);
+        }
         f.Close();
         m_bExists = ::FileExists(filePath);
 
@@ -19897,168 +19950,15 @@ void CAdapt_ItApp::DatFileMoveExe(wxString commandLine, wxString datFilename, wx
         wxASSERT(bExecPresent == TRUE);
     }
 }
-/* unneeded
-bool CAdapt_ItApp::MoveEXEfile(wxString datFilename, wxString execFilename)
-{
-    wxString dataFolderPath = m_dataKBsharingPath; //path to _DATA_KB_SHARING folder, get .exe from there
-    wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //same as this->execPath; 
-    bool execExists = wxDirExists(execFolderPath);
-    bool dataExists = wxDirExists(dataFolderPath);
-    wxString filePath = wxEmptyString;
-    wxString execFilePath = wxEmptyString;
-    bool bExecPresent = FALSE; // initialise
-    if (execExists && dataExists)
-    {
-        filePath = execFolderPath + datFilename; // path and file, to where the input .data file is to be created in AI.exe's folder
-        wxASSERT(execFilename != wxEmptyString);
-        execFilePath = execFolderPath + execFilename; // execFilename is one of the do_<name>.exe external executables
-        bExecPresent = ::FileExists(execFilePath);
-        // If the file is not already there at the end of the path, then copy it from the _DATA_KB_SHARING folder 
-        if (!bExecPresent)
-        {
-            wxString f1 = dataFolderPath + PathSeparator + execFilename; // f1 is path to _DATA_KB_SHARING folder
-            // first is copied to second
-            wxCopyFile(f1, execFilePath);
-        }
-        // It should be there now
-        bExecPresent = ::FileExists(execFilePath);
-        wxASSERT(bExecPresent == TRUE);
-    }
-    return bExecPresent;
-}
-
-bool CAdapt_ItApp::GenerateInputDatFile(const int funcNumber, wxString commandLine, bool bMoveIt)
-{
-    // boolean bMoveIt is default FALSE, it would be unusual to use TRUE because that situation is
-    // covered by CreateInputDatFile_AndCopyEXE()
-    wxString dataFolderPath = m_dataKBsharingPath; //path to _DATA_KB_SHARING folder, get .exe from there
-    wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //same as this->execPath; 
-    // RemoveDatFileAndEXE() has destroyed the input .dat file associated with funcNumber, and also destroyed
-    // the do_....exe file associated with it, in the folder where Adapt It.exe is currently running. Our task
-    // here is (1) to generate a wxTextFile instance, eg. create_entry.dat, and fill it with the commandLine,
-    // and locate the file in the execFolderPath, ready for ConfigureMovedDatFile() to use ( the 'Moved' part
-    // of that name is a relic of an earlier kbserver prototype where I moved a .dat file to the place where
-    // this present function locates it, earlier it was stored in a 'dist' folder at a lower level ). The 
-    // second task, is to check that the .exe do_...exe function associated with the functNumber, is present
-    // in dataFolderPath; and if so, copy it to the execFolderPath so that our ConvertAndWrite() function, can
-    // convert the commandLine to utf8 and save it immediately to an open file descriptor of type wxTextFile.
-    //
-    // None of the above can be done, if the paths mentioned do not exist - so we check that first.
-    // BEW 17Jun22 added to declaration, a final boolean, bMoveIt which is
-    bool execExists = wxDirExists(execFolderPath);
-    bool dataExists = wxDirExists(dataFolderPath);
-    wxTextFile f;
-    wxString filePath = wxEmptyString;
-    wxString execFilePath = wxEmptyString;
-    if (execExists && dataExists)
-    {
-        // BEW 14Jun22, NOTE: In each of the switch's cases, the DatFileMoveExe() call also 
-        // automatically gets the commandLine converted to UTF8 for the input .dat file contents
-        switch (funcNumber)
-        {
-        case noDatFile:
-        {
-            break;
-        }
-        case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
-        {
-            wxString filename = _T("add_foreign_users.dat");
-            wxString execFilename = _T("do_add_foreign_kbusers.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath); 
-        }
-        break;
-        case lookup_user: // funcNumber is 2 in AI.h lines 854++
-        {
-            wxString filename = _T("lookup_user.dat");
-            wxString execFilename = _T("do_user_lookup.exe"); // Leon altered order of name parts, so stick with that
-                                            // but keep case constants unchanged, and .dat file's name unchanged
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
-        }
-        break;
-        case list_users: // funcNumber is 3 in AI.h lines 854++
-        {
-            wxString filename = _T("list_users.dat");
-            wxString execFilename = _T("do_list_users.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
-        }
-        break;
-        case create_entry: // funcNumber is 4 in AI.h lines 854++
-        {
-            wxString filename = _T("create_entry.dat");
-            wxString execFilename = _T("do_create_entry.exe");
-            // Next call does any commandLine single quote escaping, makes the input .dat file
-            // then be UTF8, and moves the do_<name>.exe executable file to where AI.exe is running
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
-        }
-        break;
-        case pseudo_delete: // funcNumber is 5 in AI.h lines 854++
-        {
-            wxString filename = _T("pseudo_delete.dat");
-            wxString execFilename = _T("do_pseudo_delete.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
-        }
-        break;
-        case pseudo_undelete: // funcNumber is 6 in AI.h lines 854++
-        {
-            wxString filename = _T("pseudo_undelete.dat");
-            wxString execFilename = _T("do_pseudo_undelete.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
-        }
-        break;
-
-
-        // TODO  cases 7 and 8 go here
-
-        case upload_local_kb: // funcNumber is 9 in AI.h lines 854++
-        {
-            // This one's input .dat file has only ipaddr, username, password; the .dat file
-            // for the record set to upload will be provided by running
-            wxString filename = _T("upload_local_kb.dat");
-            wxString execFilename = _T("do_upload_local_kb.exe");
-
-            // And extra file, local_kb_lines.dat needs to be created (empty) in the AI.exe's folder
-            // and since DatFileMoveExe() has done the move of the input .dat file, the current
-            // execFolderPath should be where I can create an empty local_kb_lines.dat file, for
-            // PopulateLocalKBLines()'s line set to be grabbed by CallExecute()
-
-            // If we were to call DatFileMoveEXE() here, we'd want to keep the bMoveIt value as default FALSE
-            // so that there is no Move attempted
-            bMoveIt = FALSE;  // so that the signature doesn't cause an unreferenced warning
-
-// TODO -- I may not do anything here, but work directly in PopulateLocalKbLines AI.cpp 22,079 and glossing 22,073
-
-        }
-        break;
-
-        // TODO  cases 10 to 12 go here
-
-        case blanksEnd:
-        {
-            ;
-        }
-        break;
-
-        } // end of switch
-    } // end of TRUE block for test: if (execExists && dataExists)
-    else
-    {
-        // tell the developer it failed
-        wxString msg = _T("GenerateInputDatFile() failed because execFolderPath or dataFolderPath could not be found");
-        wxString caption = _T("GenerateInputDatFileE path error");
-        LogUserAction(msg);
-#if defined (_DEBUG)
-        wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for developers to see
-#endif
-        return FALSE;
-    }
-    return TRUE;
-}
-*/
 
 bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine)
 {
     wxString dataFolderPath = m_dataKBsharingPath; //path to _DATA_KB_SHARING folder, get .exe from there
     wxString execFolderPath = m_appInstallPathOnly + PathSeparator; //same as this->execPath; 
+#if defined (_DEBUG)
+    wxLogDebug(_T("CreateInputDatFile_AndCopyEXE() ENTERED line %d,  funcNumber %d, commandLine [%s]"), 
+                __LINE__, funcNumber, commandLine.c_str());
+#endif
     // RemoveDatFileAndEXE() has destroyed the input .dat file associated with funcNumber, and also destroyed
     // the do_....exe file associated with it, in the folder where Adapt It.exe is currently running. Our task
     // here is (1) to generate a wxTextFile instance, eg. create_entry.dat, and fill it with the commandLine,
@@ -20079,6 +19979,8 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
     {
         // BEW 14Jun22, NOTE: In each of the switch's cases, the DatFileMoveExe() call also 
         // automatically gets the commandLine converted to UTF8 for the input .dat file contents
+        // BEW 23Feb24 BEWARE: for m_bGrantSomePermissions TRUE, the commandLine is already converted
+        // to UTF-8, SO DO NOT DO IT A SECOND TIME - that would turn the utf-8 into gobbledegook
         switch (funcNumber)
         {
         case noDatFile:
@@ -20088,15 +19990,29 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
         case credentials_for_user: // funcNumber is 1 in AI.h lines 854++
         {
             wxString filename = wxEmptyString;
+            wxString execFilename = wxEmptyString;
             if (m_bAddUser2UserTable)
             {
-                filename = _T("add_foreign_users.dat");
+                // BEW 19Feb24 there are now two possibilities for filename - adding just to Mgr user table,
+                // or doing that plus making the new user have ALL PERMISSIONS
+                if (this->m_bGrantSomePermissions)
+                {
+                    filename = _T("kb_users_add_list.dat");                  
+                    execFilename = _T("do_add_kbusers.py"); //execFilename = _T("do_add_kbusers.exe");
+                }
+                else
+                {
+
+                    filename = _T("add_foreign_KBUsers.dat");
+                    execFilename = _T("do_add_foreign_kbusers.exe");
+                }
             }
             else
             {
                 filename = _T("add_foreign_KBUsers.dat");
+                execFilename = _T("do_add_foreign_kbusers.exe");
             }
-            wxString execFilename = _T("do_add_foreign_kbusers.exe");
+            
             DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
@@ -20221,11 +20137,11 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
 void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath)
 {
 #if defined (_DEBUG)
-    wxLogDebug(_T("ConfigureMovedDatFile() CALLED, line %d  funcNumber %d execFolderPath %s"), __LINE__, funcNumber, execFolderPath.c_str());
+    wxLogDebug(_T("ConfigureMovedDatFile() ENTERED, line %d , funcNumber %d, filename %s , execFolderPath %s"),
+        __LINE__, funcNumber, filename.c_str(), execFolderPath.c_str());
 #endif
-	// Put a copy of execFolderPath into app's m_curExecPath member, so that
-	// CallExecute() can grab it when needed
-	m_curExecPath = execFolderPath;
+	// Set m_curExecPath member, so that CallExecute() can grab it when needed
+    m_curExecPath = execFolderPath; // in caller, add PathSeparator to app's m_appInstallPathOnly
 
 	wxString filePath = execFolderPath + filename;
 	if (funcNumber == 0) // beginning of const int's set, a do-nothing value
@@ -20248,7 +20164,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
     // I'm taking for the present. As I work on more do_......exe functions, the avoidance test
     // at line 19,525 may get more subtests added; or I may just remove it entirely from here
     wxString dateTimeNow = wxEmptyString;
-    if (funcNumber != create_entry)
+    if (funcNumber != create_entry) // create_entry is switch case value 4
     {
         dateTimeNow = GetDateTimeNow(forXHTML);
     }
@@ -20261,133 +20177,183 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 	}
 	case credentials_for_user:
 	{
-        // The input .dat file is add_foreign_users.dat for this case
-		wxString tempStr;
+        // The input .dat file is add_foreign_users.dat for this case, if m_bAddUser2UserTable is FALSE
+        wxString tempStr;
 		m_strNewUserLine.Empty(); // initialise
         //m_bUseForeignOption = FALSE; // restore default - commented out on the assumption that it will be FALSE when this switch is entered
 		if (!m_bUseForeignOption && !m_bAddUser2UserTable)
 		{
             // BEW 12Jan24 - use archived values stored at OnInit(), & this block if for the support of 
             // src/gloss table entries, when glossing is active, and the glossing KB is therefore in use
-
+            // Dealing with code for Add User button, in Mgr
+            // 
 			//commandLine = this->m_chosenIpAddr + comma;
             commandLine = this->m_strKbServerIpAddr + comma;
-
-            tempStr = m_strUserID_Archived; // was m_strUserID;
+            // BEW 19Feb24 change back to m_strUserID, m_strFullname and m_strPassword
+            tempStr = m_strUserID; // was m_strUserID_Archived; // was m_strUserID;
 			commandLine += tempStr + comma;
-			//UpdateCurNormalUsername(tempStr); // in case it has single quote/s. Removed BEW 12Jan24, no ' in the name
+			
             m_justAddedUsername = tempStr; // save this for adding after authenticating password
 
-            tempStr = m_strFullname_Archived; // was m_strFullname; this value is now _T("KBUser")
+            tempStr = m_strFullname; // was m_strFullname_Archived; // was m_strFullname; this value is now _T("KBUser")
             commandLine += tempStr + comma;;
-			//UpdateCurNormalFullname(tempStr); // now not needed
 
-            bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted(); /// shows a dialog to ask
+            bool bCanAddUsers = AskIfPermissionToAddMoreUsersIsWanted(); /// shows a dialog to ask for setting useradmin 1 or 0
             this->UpdatebcurNormalUseradmin(bCanAddUsers); // either TRUE (1 in user table), or FALSE (0)
             // If the ask returns FALSE, m_bUseForeignOption will stay FALSE, and the obtaining of the
             // password will give a message saying the dialog is for the user authenticating to the
             // kbserver's user table.  See MainFrm.cpp
-            /* BEW don't need this test here
-            if (bCanAddUsers)
-            {
-                m_bUseForeignOption = TRUE;
-            }
-            else
-            {
-                m_bUseForeignOption = FALSE;
-            }
-            */
-            wxLogDebug(_T("%s::%s() line %d, bool m_bUseForeignOption is  %d  in: case credentials_for_user (funcNumber = 1) of TRUE block"),
-                __FILE__, __FUNCTION__, __LINE__, (int)m_bUseForeignOption);
+            wxLogDebug(_T("ConfigureMovedDatFile() line %d, bool m_bUseForeignOption is  %d  in: case credentials_for_user (funcNumber = 1) of TRUE block,  not ALL PERMISSIONS"),
+                __LINE__, (int)m_bUseForeignOption);
 
             //wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_chosenIpAddr, m_chosenHostname);
-            wxString pwd = this->m_strPassword_Archived; // ie. kbauth
+            wxString pwd = this->m_strPassword; // was this->m_strPassword_Archived; // ie. kbauth
             commandLine += pwd + comma;
-            m_justAddedPassword = tempStr; // save this for adding after authenticating password
+            m_justAddedPassword = pwd; // save this for adding after authenticating password
 
             commandLine += m_justAddedUsername + comma; // .py needs these two added
             commandLine += m_justAddedPassword + comma;
 
 			commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
-			// That finishes the commandLine to be put into the input .dat file.
+			// That finishes the commandLine to be put into the input .dat file: add_foreign_KBUsers.dat
 
 		} //end of TRUE block for test: if (!m_bUseForeignOption)
+
         else if (m_bAddUser2UserTable)
         {
-            // Configuring for values NOT coming from the KB Sharing Manager, but from menu choice
+            // Configuring for values NOT coming from the KB Sharing Manager, but from menu choice:
+            // there are two possibilities - legacy way, just add to user table; new way, grant ALL PERMISSIONS
             
             // This is the place where we must add the username and pwd for getting
             // a successful login to the kbserver. The rest of the values needed
             // will come from the NewUserCredentialsDlg below
-            //commandLine = this->m_chosenIpAddr + comma;
-            commandLine = this->m_strKbServerIpAddr + comma;
-
-            wxString pwd = wxEmptyString; // used below
- 
-            wxString strTest = _T("kbadmin");
-            if (m_strUserID_Archived == strTest)
+            if (m_bGrantSomePermissions == FALSE)
             {
-                // while developing, it's set to _T("kbadmin") at least initially
-                tempStr = this->m_strUserID_Archived;
-                commandLine += tempStr + comma;
-                m_justAddedUsername = tempStr; // save this for adding after authenticating password
-                
-                tempStr = this->m_strPassword_Archived;
-                wxASSERT(tempStr == _T("kbauth"));
-                commandLine += tempStr + comma;
-                m_justAddedPassword = tempStr; // save this for adding after authenticating password
+                // Legacy way, just adding new user data to the user table, and setting useradmin flag, but not
+                // making the new user have ALL PRIVILEGES; could be kbadmin, or some other, like bruceUnit2 etc
 
-                // Now we need to add the 'original' username and password - from the two saved values above
-                commandLine += m_justAddedUsername + comma;
-                commandLine += m_justAddedPassword + comma;
-            }
+                //commandLine = this->m_chosenIpAddr + comma;
+                commandLine = this->m_strKbServerIpAddr + comma;
 
-            // Values can come from the user table of the KB Sharing Manager, or from
-            // the Add Users to KBserver menu item. If the latter, then we need this block
-            // for setting the 4 new values, newUser, newFullname, newPwd, New_kbadmin
-            // so use the manual way's set value of m_bAddUser2UserTable to distinguish
-            // between these two options, do it here - via a simple dialog.  BEW 24Dec21
- 
-            // BEW 3Jan22, put up the NewUsercredentiasDlg for user to input the
-            // needed credentials
-            NewUserCredentialsDlg dlg(this->GetMainFrame());
-            dlg.Center();
-            if (dlg.ShowModal() == wxID_OK)
-            {
-                // Dialog succeeded, so get the values that were typed in
+                wxString pwd = wxEmptyString; // used below
 
-// TODO tweak for handline user choice for AllPermissions -- likewise, further below
+                wxString strTestFor_kbadmin = _T("kbadmin");
+                if (m_strUserID == strTestFor_kbadmin)
+                {
+                    // while developing, it's set to _T("kbadmin") at least initially, and this
+                    // pseudo user has full permissions, so a real user can always get things to 
+                    // work using kbuser, KBUser, and kbauth for password. But not the best way to go
+                    tempStr = this->m_strUserID;
+                    commandLine += tempStr + comma;
+                    m_justAddedUsername = tempStr; // save this for adding after authenticating password
 
-                tempStr = dlg.strNewUser;
-                commandLine += tempStr + comma;
+                    tempStr = this->m_strPassword;
+                    wxASSERT(tempStr == _T("kbauth"));
+                    commandLine += tempStr + comma;
+                    m_justAddedPassword = tempStr; // save this for adding after authenticating password
 
-                tempStr = dlg.strNewFullname;
-                commandLine += tempStr + comma;
+                    // Now we need to add the 'original' username and password - from the two saved values above
+                    commandLine += m_justAddedUsername + comma;
+                    commandLine += m_justAddedPassword + comma;
+                }
+                else
+                {
+                    // the active user in m_strUserID is not kbadmin, but the user of the project is always
+                    // free to use the Change User command on File menu, even though doing so does NOT grant
+                    // ALL PERMISSIONS. So this block will just add to the user table and set useradmin flag 1 or 0
+                    tempStr = this->m_strUserID;
+                    commandLine += tempStr + comma;
+                    m_justAddedUsername = tempStr; // save this for adding after authenticating password
 
-                tempStr = dlg.strNewPassword;
-                commandLine += tempStr + comma;
+                    tempStr = this->m_strPassword;
+                    commandLine += tempStr + comma;
+                    m_justAddedPassword = tempStr; // save this for adding after authenticating password
 
-                bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
-                commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
-            }
+                    // Now we need to add the 'original' username and password - from the two saved values above
+                    commandLine += m_justAddedUsername + comma;
+                    commandLine += m_justAddedPassword + comma;
+                }
+
+                // Values can come from the user table of the KB Sharing Manager, or from
+                // the Add Users to KBserver menu item. If the latter, then we need this block
+                // for setting the 4 new values, newUser, newFullname, newPwd, New_kbadmin
+                // so use the manual way's set value of m_bAddUser2UserTable to distinguish
+                // between these two options, do it here - via a simple dialog.  BEW 24Dec21
+
+                // BEW 3Jan22, put up the NewUsercredentiasDlg for user to input the
+                // needed credentials
+                NewUserCredentialsDlg dlg(this->GetMainFrame());
+                dlg.Center();
+                if (dlg.ShowModal() == wxID_OK)
+                {
+                    // Dialog succeeded, so get the values that were typed in
+
+                    // TODO tweak for handling user choice for AllPermissions -- likewise, further below
+
+                    tempStr = dlg.strNewUser;
+                    commandLine += tempStr + comma;
+
+                    tempStr = dlg.strNewFullname;
+                    commandLine += tempStr + comma;
+
+                    tempStr = dlg.strNewPassword;
+                    commandLine += tempStr + comma;
+
+                    bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
+                    commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+                }
+                else
+                {
+                    // User cancelled
+                    commandLine.Empty();
+                    dlg.strNewUser.Empty();
+                    dlg.strNewFullname.Empty();
+                    dlg.strNewPassword.Empty();
+                    dlg.m_pCheck_GrantPermission->SetValue(FALSE);
+                    dlg.m_pCheck_Grant_Permissions->SetValue(FALSE);
+                }
+
+                if (commandLine.IsEmpty())
+                {
+                    m_bGrantSomePermissions = FALSE;
+                    m_bCreateUserByMenuItem = FALSE;
+                    return;
+                }
+
+            } // end of TRUE block for test: if (m_bGrantSomePermissions == FALSE)
             else
             {
-                // User cancelled
-                commandLine.Empty();
-                dlg.strNewUser.Empty();
-                dlg.strNewFullname.Empty();
-                dlg.strNewPassword.Empty();
-                dlg.m_pCheck_GrantPermission->SetValue(FALSE);
-                dlg.m_pCheck_AllPermissions->SetValue(FALSE);
-            }
+                // If control enters here, the do...() function will be do_add_KBuser.py in _DATA_KB_SHARING
+                // and the commandLine has been built, and is in _DATA_KB_SHARING along with the above .py function.
+                // (setup for call of CreateInputFile_AndCopyEXE(funcNumber is 1, commandLine will be contents of
+                // kb_users_add_list.dat - so I can open create_user_granting_all.dat to set it)
+                
+                // BEW 26Feb24 all that needs to be done here is to set commandLine, so that further below it can
+                // be used without having to recreate its contents
+                commandLine = m_strCommandLine_ForAddUserWithGrants;
+#if defined (_DEBUG)
+                wxLogDebug(_T("ConfigureMovedDatFile() line %d  GRAB stored commandLine having value: [%s]"),
+                    __LINE__, commandLine.c_str());
+#endif
+              // m_strCommandLine_ForCreateUserWithAllPermissions; is a scratch string, it can stay set until
+              // it's reset differently by creating a different new user with ALL PERMISSIONS granted
 
-            if (commandLine.IsEmpty()) 
-                return;
-        }
+            } // end of else block for test: if (m_bGrantSomePermissions == FALSE)
+
+        } // end of TRUE block for test: else if (m_bAddUser2UserTable)
         else 
 		{
-            // The following gets the values from the KB Manager, a click on Add User button
+            // BEW 26Feb24, this else block is legacy code, when Add User is clicked. 
+            
+            // TODO -- later in development this block may need to be forked to handle when Mgr 
+            // way asks for the changed-to user to be granted ALL PERMISSIONS
+ 
+            // The following gets the values from the KB Manager, for a click on Add User button
             m_bUseForeignOption = TRUE;
+
+            // TODO 19Feb24, fix, can't use GetThingieStart as it only sets up kbserver, KBUser and kbauth -- we'll have
+            // a wxMessageBox come up to ask if ALL PERMISSIONS is wanted, and then we'll need to fork depending on user reply
+
             commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
 
             // BEW 29Dec23 m_strNewUserLine is a scratch string; it plays an important role when
@@ -20466,10 +20432,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
             // when the user addition is sourced from the user page of KB Sharing Mgr
             // and the m_strNewUserLine for the list_users_results.dat file update in executable's folder
 #if defined (_DEBUG)
-            wxLogDebug(_T("ConfigureMovedDatFile() line %d: funcNumber = %d , commandline = %s  m_strNewUserLine = %s"),
+            wxLogDebug(_T("ConfigureMovedDatFile() line %d: funcNumber = %d , commandline = %s , m_strNewUserLine = %s"),
                 __LINE__, funcNumber, commandLine.c_str(), m_strNewUserLine.c_str());
 #endif
-            wxString resultsFile = _T("list_users_results.dat");
+            wxString resultsFile = _T("add_foreign_KBUsers_results.dat");
 
             // BEW 3Jan24 the next 6 lines are just so we can get a curCountOfLines value. The value will reflect
             // having set m_strNewUserLine above, so we don't actually have to add to the resultsFile, CallExecute()'s
@@ -20488,7 +20454,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                     // when the user may want to toggle the permission value (to 0 or 1), and the message advises
                     // about that. If FALSE the user can tick the box, or refrain, to give Add User permission 1, 
                     // or 0, without an attempt to "Change Permission" being advised
-        }
+        } // end of else block for test: else if (m_bAddUser2UserTable)
 
 		// Now in the caller the file has been moved to the the folder where the 
 		// installed app is run; so use wxTextFile to make the changes in
@@ -20496,7 +20462,13 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// so it has only the above commandLine value stored in it
         // whm 22Feb2021 added PathSeparator before filename since m_appInstallPathOnly doesn't end with a PathSeparator
         wxString datPath = m_appInstallPathOnly + PathSeparator + filename; //execPath + filename; // whm 22Feb2021
-                                                                            // changed to use m_appInstallPathOnly   
+                                                                            // changed to use m_appInstallPathOnly 
+#if defined (_DEBUG)
+        wxLogDebug(_T("ConfigureMovedDatFile() line %d: CALLING CreateInputDatFile_AndCopyEXE(), uses wxTextFile: funcNumber = %d , commandline = %s "),
+            __LINE__, funcNumber, commandLine.c_str());
+#endif
+
+
         bool bRenewedOK = CreateInputDatFile_AndCopyEXE(funcNumber, commandLine);
         wxUnusedVar(bRenewedOK);
         wxASSERT(bRenewedOK == TRUE);
@@ -20509,18 +20481,11 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out all the boilerplate text content
 				f.Clear();
-				// Now add commandLine as the only line
-				f.AddLine(commandLine); // commandLine is now utf8 and has any single quotes escaped
+				// Add commandLine as the only line
+				f.AddLine(commandLine); // commandLine is utf8 and has any single quotes escaped
 				f.Write();
 				f.Close();
-				// File: add_foreign_users.dat now just has the relevant data 
-				// fields for the subsequent .exe in wxExecute() which will
-				// implement the adding of the user to the user table
-				// If the adding does not happen, Leon's .exe will drop a .dat
-				// file with an appropriate error message. This .dat file will be
-				// lodged in the m_appInstallPathOnly folder
 
 				// Store a copy of path to it on app, for CallExecute() to use
 				m_datPath = datPath;
@@ -20529,8 +20494,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			// can grab it if the the wxExecute() call in CallExecute() fails
 			m_curCommandLine = commandLine;
 #if defined (_DEBUG)
-			wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-				__LINE__, commandLine.c_str());
+			wxLogDebug(_T("ConfigureMovedDatFile() line %d:  FORMAL PARAM: commandline = %s"), __LINE__, commandLine.c_str());
 #endif
 		}
 		else
@@ -22150,6 +22114,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		break; // do nothing
 	}
 	} // end of switch:  switch (funcNumber)
+#if defined (_DEBUG)
+    wxLogDebug(_T("ConfigureMovedDatFile() ENDS, line %d,  SWITCH ends. funcNumber %d, filename [%s], execFolderPath [%s]"),
+        __LINE__, funcNumber, filename.c_str(), execFolderPath.c_str());
+#endif
 }
 
 void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
@@ -22158,14 +22126,8 @@ void CAdapt_ItApp::MakeAddForeignUsers(const int funcNumber, wxString dataPath)
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
     wxString datFilename = wxEmptyString; // init
-    if (m_bAddUser2UserTable)
-    {
-        datFilename = _T("add_foreign_users.dat");
-    }
-    else
-    {
-        datFilename = _T("add_foreign_KBUsers.dat");
-    }
+    datFilename = _T("add_foreign_users.dat");
+
 	wxString datFilePath = dataPath + datFilename;
 	bool bDataFileExists = wxFileExists(datFilePath);
 	if (bDataFileExists)
@@ -22264,7 +22226,7 @@ void CAdapt_ItApp::RemoveEmptyInitialLine(const int funcNumber, wxString execPat
     if (firstLineStr.IsEmpty())
     {
         f.RemoveLine(1); // line numbers are what doc'n refers to, not 0-based indices
-        f.Write(); // change the file to lack the empty first file. Do not call Clear()
+        f.Write(); // change the file to lack the empty first line. Do not call Clear()
                    // as that would clear out the file's contents, do not call Close()
                    // either, as that would free memory, losing all changes
     }
@@ -22354,7 +22316,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	// add more here, as our solution matures
 	const int blanksEnd = 13; // this one changes as we add more above
 	*/
-
+#if defined (_DEBUG)
+    wxLogDebug(_T("CallExecute() ENTERED line %d, funcNumber %d, execFileName [%s], execPath [%s], resultFile [%s], m_bGrantSomePermissions= %d"),
+        __LINE__, funcNumber, execFileName.c_str(), execPath.c_str(), resultFile.c_str(), (int)m_bGrantSomePermissions);
+#endif
     // BEW 5Jan21 execPath formal parameter is set by m_appInstallPathOnly in the caller. Here we
     // need to append execFileName to execPath, after making sure whether or not the passed in
     // execPath ends on PathSeparator or not. If not, add the PathSeparator and then the execFileName,
@@ -22406,12 +22371,35 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 	case credentials_for_user:
     {
         int rv = 0;
-        const char* pstart = { "do_add_foreign_kbusers.exe" }; // avoid need of path prefix
-        rv = system(pstart);
-        wxLogDebug(_T("%s::%s() line %d: rv is: %d"), __FILE__, __FUNCTION__, __LINE__, rv);
-        if (rv == 0)
+        if (m_bGrantSomePermissions)
         {
-            bSuccessfulSwitch = TRUE;
+            // Adding a new user, by GUI menu choice in Administrator menu, with checkbox for
+            // granting ALL PERMISSIONS ticked. This choice uses do_add_kbusers.py (or .exe)
+            // and so to run it we must insert "python " before the do...py call
+            const char* pstart = { "python do_add_kbusers.py" };
+            //const char* pstart = { "do_add_kbusers.exe" };
+            rv = system(pstart);
+            wxLogDebug(_T("CallExecute() line %d: (some) PERMISSIONS granted:  rv is: %d"), __LINE__, rv);
+            if (rv == 0)
+            {
+                bSuccessfulSwitch = TRUE;
+            }
+            // BEW 26Feb24 if the call of system() succeeded, the new user, new fulname, and new password
+            // must here be set to what the commandLine provided, to reset m_strUserID, m_strFullname,
+            // and m_strPassword. These values, comma separated, will be in add_kbusers_results.dat
+
+        }
+        else
+        {
+            // Adding a new user, by Add User button in the KB Sharing Manager interface;
+            // or by GUI menu choice in Administrator menu - but with checkbox to granting all permissions not ticked
+            const char* pstart = { "do_add_foreign_kbusers.exe" }; // avoid need of path prefix
+            rv = system(pstart);
+            wxLogDebug(_T("CallExecute() line %d: ALL PERMISSIONS not granted: rv is: %d"), __LINE__, rv);
+            if (rv == 0)
+            {
+                bSuccessfulSwitch = TRUE;
+            }
         }
     }
         break;
@@ -23467,6 +23455,85 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
 					}
 					case credentials_for_user: // = 1
 					{
+                        if (m_bGrantSomePermissions)
+                        {
+                            // Check create_user_granting_all_results.dat for "success" at start of line.
+                            // If absent, then do_create_user_granting_all() must have failed, so abort the attempt
+                            // by returning FALSE from CallExecute funcNumber 1. But on success, then process the
+                            // single line (reverse it first) to extract the last 3 fields - comma-separated, to
+                            // get the values to put into File > Change Username dialogs, pwd, fullname, username,
+                            // setting: m_strUserID, m_strFullname, and m_strPassword. (Also copy the password
+                            // value to some other pwd storage strings.)
+                            wxString datResultsFile = _T("add_kbusers_results.dat");
+                            wxString resultsFolderPath = m_appInstallPathOnly + PathSeparator + datResultsFile;
+                            bool bExists = ::FileExists(resultsFolderPath);
+                            wxTextFile f;
+                            wxString strSuccess = _T("success");
+                            wxString results = wxEmptyString;
+                            if (bExists)
+                            {
+                                bool bOpened = f.Open(resultsFolderPath);
+                                if (bOpened)
+                                {
+                                    results = f.GetFirstLine();
+                                    int offset = wxNOT_FOUND;
+                                    offset = results.Find(strSuccess);
+                                    if (offset != wxNOT_FOUND)
+                                    {
+                                        // the system() call succeeded, get the new username, fullname and password
+                                        wxString reversed = wxEmptyString;
+                                        reversed = MakeReverse(results);
+                                        wxString comma = _T(",");
+                                        wxArrayString arr;
+                                        wxString delim = comma;
+                                        wxString chFirst = reversed.GetChar(0);
+                                        if (chFirst == comma)
+                                        {
+                                            // Good, before reversal the results string ended with a comma, remove it
+                                            reversed = reversed.Mid(1);
+                                            long lineCount = 0L;
+                                            lineCount = SmartTokenize(delim, reversed, arr, FALSE);
+                                            wxASSERT(lineCount > 3); // we want only first 3 substrings from reversed
+                                            m_strPassword = arr.Item(0);
+                                            m_strFullname = arr.Item(1);
+                                            m_strUserID = arr.Item(2);
+                                            // open File > ChangeUsername dlg? Nah, that would be confusing to the user
+                                            // so do the additional pwd storage of the dialog here instead.
+                                            this->m_strPassword_Archived = m_strPassword; // put it here too - for the Mgr originating a new all permissions user
+                                            this->m_newUserDlg_newpassword = m_strPassword; // and here too - as from the menu choice for adding a new user
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // the system() call failed
+                                        wxString doFile = _("python3 do_add_kbusers.py"); // was _("do_add_kbusers.exe");
+                                        wxString msg = _("CallExecute() line %d. Calling system() file failed, when executing %s");
+                                        msg = msg.Format(msg, __LINE__, doFile.c_str());
+                                        LogUserAction(msg);
+                                        return FALSE;
+                                    }
+                                }
+                                else
+                                {
+                                    // Could not open the resultsFolderPath, to get the username, fullname & password
+                                    wxString resultsFile = _("add_kbusers_results.dat");
+                                    wxString resultsFolderPath = m_appInstallPathOnly + PathSeparator + resultsFile;
+                                    wxString msg = _T("CallExecute() line %d. Could not open resultsFolderPath: %s");
+                                    msg = msg.Format(msg, __LINE__, resultsFolderPath.c_str());
+                                    LogUserAction(msg);
+                                    return FALSE;
+                                }
+                            }
+                            else
+                            {
+                                // results file does not exist
+                                wxString resultsFile = _("add_kbusers_results.dat");
+                                wxString msg = _T("CallExecute() line %d. Failed to find results file: %s");
+                                msg = msg.Format(msg, __LINE__, resultsFile.c_str());
+                                LogUserAction(msg);
+                                return FALSE;
+                            }
+                        }
 						break;
 					}
 					case lookup_user: // = 2
@@ -32240,26 +32307,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 //#if defined (_KBSERVER)
 
-// whm 22Feb2021 removed PathToExeFolder() since the value that this function was getting 
-// already existed in the App member's m_appInstallPathOnly variable (which doesn't end in PathSeparator so needs + PathSeparator to be equivalent to what was in App's execPath)
-/*
-wxString CAdapt_ItApp::PathToExecFolder()
-{
-	// OnInit() also gets executablePath - including app.exe, at line 22,135, same way
-	wxString separator = PathSeparator;
-	// whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
-	wxString execPath = wxStandardPaths::Get().GetExecutablePath();
-	// Remove the executable from execPath, so it ends in the separator
-	wxString revStr = MakeReverse(execPath);
-	int offset = revStr.Find(separator);
-	revStr = revStr.Mid(offset);
-	execPath = MakeReverse(revStr); 
-	wxLogDebug(_T("%s() line %d: path called 'execPath' = %s"), __FILE__, __LINE__, execPath.c_str());
-
-	return execPath;
-}
-*/
-
 /*
 wxString separator = m_pApp->PathSeparator;
 wxString execPath = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator; // whm 22Feb2021 changed execPath to m_appInstallPathOnly + PathSeparator
@@ -32297,7 +32344,7 @@ wxString CAdapt_ItApp::GetDistFolder()
 
 //#endif
 
- // BEW added 22Jan24
+/*
 bool CAdapt_ItApp::CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd)
 {
     // sanity checks go here, which include (a) a kbserver is running, (b) it's host is known (need ipAddr),  
@@ -32335,18 +32382,11 @@ bool CAdapt_ItApp::CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxStr
     }
 
 
-
- 
-
-
-
-
-
-
 // TODO - more, when I return from HAY
 
     return TRUE; // all went well
 }
+*/
 
 // BEW added 11Mar20 for making m_finalSrcPuncts string for use in ParseInlineEndMarker()
 wxString CAdapt_ItApp::MakeSourceFinalPuncts(wxString srcPuncts) // does not include a space
@@ -39988,9 +40028,253 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 //#if defined (_KBSERVER)
 
+// BEW 15Feb24, refactoring. The dialog with the checkbox option: Create User With All Permissions comes first,
+// so that if that checkbox is ticked, code for calling do_add_kbusers.py (or .exe) is done; and the else block
+// will be for that checkbox not clicked, and there copy legacy code for do_add_foreign_kbusers.exe (or .py later)
+// is called. We can't know which is the case until the dialog is finished and values extracted from it.
 void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 {
     m_bAddUser2UserTable = TRUE;
+    wxString commandLine = wxEmptyString; // init
+    wxString strPython = _T("python3 "); // put before a *.py executable, instead of a large *.exe made by PyInstaller
+    wxString comma = _T(","); wxString one = _T("1"); wxString zero = _T("0");
+    commandLine = this->m_strKbServerIpAddr + comma; // applies to either GUI or Mgr way
+        // Note: m_strKbServerIpAdd is from basic config file, if empty, it is set by m_chosenIpAddr which is set,
+        // in turn, by a call of DoDiscoverKBservers(void) either programmatically or by menu choice by user
+    wxString tempStr = wxEmptyString; wxUnusedVar(tempStr); 
+    this->m_bGrantSomePermissions = FALSE; // init
+    int m_nAddUsersCount = 0; // init (we can only add one at a time)
+#if defined (_DEBUG)
+    wxLogDebug(_T("OnAddUsersToKBserver() ENTERED line %d,  wxCommandEvent ref, WXUNUSED event"), __LINE__);
+#endif
+
+// TODO later on below somewhere. Check that user table does not have the user being added. ? do_lookup_user.py or .exe ?
+// and use ID value, with sql:  delete from user where id = nnnn;  and maybe or alternatively, DROP USER IF EXISTS username;
+// Why? our code for adding with full permissions assumes the user being added is not in the use table. If he is, expect problems.
+// if not first removed before the .py call gets executed
+    
+    // BEW 15Feb24, put up the NewUsercredentiasDlg for user to input the needed credentials
+    NewUserCredentialsDlg dlg(this->GetMainFrame());
+    dlg.Center();
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        // Dialog succeeded, so get the values that were typed in.
+        // Here we must choose between creating with all permissions, versus not doing that
+        // DoOK() has checked an refused progress to here if any of the string fields are empty;
+        // and set the app members at .h 3940-3947 m_newUserDlg_newusename etc specified in the dlg
+         //bool bGrantAllPermissions = dlg.m_pCheck_AllPermissions->GetValue();
+        if (this->m_newUserDlg_grant_permissions == 1)
+        {
+            this->m_bGrantSomePermissions = TRUE; // use this in ConfigureDATfile() and CallExecute() below
+
+            // The user wants his/her nominated user, (and fullname) and password, and useradmin value set
+            // to 1, regardless of the value of the right side's checkbox, to be able to do everything
+            // that kbadmin, KBUser, kbauth could do. And the new user will then be put in m_strUserID,
+            // etc, (and a new line lodged in the Manager), so that the new user becomes the active one,
+            // will all privileges - so that his or her entries go to the entry table with that new name
+            // (and associated new fullname) - the new password is stored in the Manager where it's 
+            // protected somewhat. In this block we ensure that do_add_kbusers.py (or .exe) gets called
+
+            // Make the command line. It's a .py or .exe function, so insert into the finished commandLine, at
+            // it's start, "python3" if it's the former. So far, we've just got the ipAddr value set.
+            // commandLine already has the ipAddress set above, at its begining
+            commandLine += m_strUserID + comma;
+            if (m_strUserID == _T("kbadmin"))
+            {
+                commandLine += _T("kbauth") + comma;
+            }
+            else
+            {
+                // Control should only go here when some other user, in m_strUserID, has "some" PERMISSIONS granted
+                commandLine += this->m_strPassword;
+            }
+            // Next, the new username and password, from the values returned from the dialog above
+
+            /* These are what the NewUserCredentialsDlg lodged in AI.h for use here
+            	pApp->m_newUserDlg_newusername = strNewUser;
+	            pApp->m_newUserDlg_newfullname = strNewFullname;
+	            pApp->m_newUserDlg_newpassword = strNewPassword;
+	            bool bPermission = m_pCheck_GrantPermission->GetValue();
+	            pApp->m_newUserDlg_newuserpermission = (bPermission == TRUE) ? 1 : 0;
+	            bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
+	            pApp->m_newUserDlg_allpermissions = (bGrant_Permissions == TRUE) ? 1 : 0;
+            */
+            commandLine += this->m_newUserDlg_newusername + comma;
+            commandLine += this->m_newUserDlg_newfullname + comma;
+            commandLine += this->m_newUserDlg_newpassword + comma;
+            // escape any single quotes
+            commandLine = DoEscapeSingleQuote(commandLine);
+
+#if defined (_DEBUG)
+            wxLogDebug(_T("OnAddUsersToKBserver() line %d: funcNumber is 1 (not used here), commandline= %s"),
+                __LINE__, commandLine.c_str());
+#endif
+            /* BEW 28Feb24 no longer wanted - values set just above
+            // Three more values are required: foreign_username,foreign_user_fullname,foreign_user_password
+            // These are, of course, same as the former, and fullname is from the dialog, stored in
+            // the app member string, pApp->m_newUserDlg_newfullname
+            tempStr = this->m_newUserDlg_newusername;
+            commandLine += tempStr + comma;
+            tempStr = this->m_newUserDlg_newfullname;
+            commandLine += tempStr + comma;
+            tempStr = this->m_newUserDlg_newpassword;
+            commandLine += tempStr + comma;
+            // escape any single quotes
+            commandLine = DoEscapeSingleQuote(commandLine);
+            */
+
+            // BEW 26Feb24 store a copy of the finished commandLine here, to save a recalculation of its contents
+            // later when control is in ConfigureMovedDatFile() before calling CreateInputDatFile_AndCopyEXE()
+            m_strCommandLine_ForAddUserWithGrants = commandLine;
+
+            // That completes the needed commandLine. It has to be stored in an appropriately named .dat
+            // file, in the _DATA_KB_SHARING folder, just like was the case for other .dat input files,
+            // so it will get moved to the executable's folder, using legacy code below
+             wxString datFilename = _T("kb_users_add_list.dat");
+            wxString datPath = this->m_dataKBsharingPath + datFilename;
+ 
+            bool bExists = ::FileExists(datPath);
+            // use wxFile, not wxTextFile -- see code elsewhere for examples
+            if (!bExists)
+            {
+                // File does not exist yet in _DATA_KB_SHARING folder - create it and 
+                // lodge with commandLine text in it, convert commandLine text to raw utf8,
+                // and write it out
+                wxFile f(datPath, wxFile::write); // open datPath for writing
+                bool bOK = f.IsOpened();
+                wxASSERT(bOK);
+                // should be empty, but a Flush() ensures nothing is in it
+                f.Flush();
+                // The file descriptor is ready for adding our commandLine data, as utf8
+                if (bOK)
+                {
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
+                }
+            } // end of TRUE block for test: if (!bExists)
+            else
+            {
+                // datPath exists: An earlier call to add users has left its input .dat file in 
+                // _DATA_KB_SHARING folder, so flush its contents, and write the command line as utf8 as above
+                bool overwrite = TRUE;
+                wxFile f;
+                bool bSucceeds = f.Create(datPath, overwrite); // if succeeds, overwrites datPath contents
+                wxASSERT(bSucceeds);
+                if (bSucceeds)
+                {
+                    f.Flush(); // empties it
+                    wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8); // it's now raw utf-8
+                    size_t nLen = strlen(tempBuf);
+                    bool bWrittenOut = f.Write(tempBuf, nLen);
+                    wxASSERT(bWrittenOut);
+                    f.Close();
+                    bExists = ::FileExists(datPath);
+                    wxASSERT(bExists);
+                }
+            } // end of else block for test: if (!bExists)
+
+
+            // Next, create or open, for writing, a "add_kbusers_results.dat" file in the
+            // AI executable's folder (when developing, that means "in ...C:\ _ _ _ \Unicode Debug\"
+            // (or in Release build, \Unicode Release\ folder ). What's different from the above?
+            // (a) if present but empty, just close the file descriptor. (b) if present but has content,
+            // flush the content and write it out empty. The .py function will lodge results data in it.
+            wxString execPath = this->m_appInstallPathOnly + PathSeparator;
+            wxString resultsFile = _T("add_kbusers_results.dat");
+            wxString resultsPath = execPath + resultsFile;
+
+            bool bResultsExist = ::FileExists(resultsPath);
+            wxFile ff;
+            if (!bResultsExist)
+            {
+                // File does not exist yet in executable's folder  
+                ff.Create(resultsPath,  FALSE, wxFile::read_write); // create resultsPath file
+                ff.Close();  // The file is created, but remains empty
+             
+             } // end of TRUE block for test: if (!bExists)
+            else
+            {
+                // resultsPath exists: An earlier call to add users has left the results .dat file in 
+                // the  exec folder, so overwrite and leave empty
+                bool overwrite = TRUE;
+                ff.Create(resultsPath, overwrite, wxFile::read_write); // create resultsPath file overwriting existing one
+                ff.Close();  // The file is created, and is empty
+
+             } // end of else block for test: if (!bExists)
+#if defined (_DEBUG)
+            wxLogDebug(_T("OnAddUsersToKBserver() ACTIVE DEV LOC'N line %d: funcNumber is 1,  commandline= %s"),
+                __LINE__, commandLine.c_str());
+            wxLogDebug(_T("OnAddUsersToKBserver() ACTIVE DEV LOC'N line %d: empty results file in execFolder"), __LINE__);
+            wxLogDebug(_T("OnAddUsersToKBserver() ACTIVE DEV LOC'N line %d: input .dat file in _DATA_KB_SHARING folder"), __LINE__);
+#endif
+
+            // Now the two .dat files are in the executable's folder. We now must get do_create_new_user_grant_all.py
+            // from _DATA_KB_SHARING folder, to the execPath's folder, precede the .py with python3<space>, and
+            // convert to raw utf-8 ready for the system() call in app->CallExectute(). (Or can use wxExecute() but
+            // that involves a bit more overhead. system() is simpler.)
+            m_nAddUsersCount = 0;
+
+            if (m_bGrantSomePermissions == TRUE)
+            {
+                bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
+                if (bReady)
+                {
+                    // The input .dat file is now set up ready for kb_users_add_list.dat
+                    wxString execFileName = _T("do_add_kbusers.py");
+                    //wxString execFileName = _T("do_add_kbusers.exe");
+                    wxString resultFile = _T("add_kbusers_results.dat");
+                    // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
+                    bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathOnly, resultFile, 30, 31, TRUE);
+                    wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
+                    // In above call, TRUE is non-default value for bReportResult
+                }
+            }
+        } // end of TRUE block for test: if (this->m_newUserDlg_allpermissions == 1)
+        else
+        {
+            this->m_bGrantSomePermissions = FALSE;
+            // The legacy code applies, the new user will have user-list presence in the KB Sharing Manager,
+            // and useradmin (1 or 0 according to the value of the RHS checkbox. But m_strUserID will not
+            // be changed (if it is kbadmin, it stay as that, or as whatever fully privileged user was in
+            // operation)
+            tempStr = dlg.strNewUser;
+            commandLine += tempStr + comma;
+
+            tempStr = dlg.strNewFullname;
+            commandLine += tempStr + comma;
+
+            tempStr = dlg.strNewPassword;
+            commandLine += tempStr + comma;
+
+            bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
+            commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
+
+
+
+// TODO  move legacy code up, a copy and paste, not cut and paste, as the legacy code will also apply for button Add User
+
+        } // end of else block for test: if (this->m_newUserDlg_allpermissions == 1)
+    } // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
+    else
+    {
+        // User cancelled
+        commandLine.Empty();
+        dlg.strNewUser.Empty();
+        dlg.strNewFullname.Empty();
+        dlg.strNewPassword.Empty();
+        dlg.m_pCheck_GrantPermission->SetValue(FALSE);
+        dlg.m_pCheck_Grant_Permissions->SetValue(FALSE);
+
+        commandLine.Empty();
+        this->m_bGrantSomePermissions = FALSE;
+        this->m_bCreateUserByMenuItem = FALSE;
+        return; // nothing changes
+    } // end of else block for test: if (dlg.ShowModal() == wxID_OK)
 
 	// Prepare the .dat input dependency: "add_foreign_users.dat" file, into
 	// the execPath folder, ready for the system() call, or wxShell() call, below
@@ -40001,20 +40285,22 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
 	// to report a short-lived 'success' message to the user (see WaitDlg.cpp, case 30) 
 	m_nAddUsersCount = 0; // gotta protect, as number of fields may differ
 // replace the above with a function...
-
-	bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
-	if (bReady)
-	{
-		// The input .dat file is now set up ready for do_add_foreign_kbusers.exe
-		wxString execFileName = _T("do_add_foreign_kbusers.exe"); 
-		wxString resultFile = _T("add_foreign_KBUsers_results.dat");
-        // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
-        bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathOnly, resultFile, 30, 31, TRUE);
-        wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
-		// In above call, TRUE is non-default value for bReportResult
-	}
-    m_bUseForeignOption = FALSE; // restore default,
-    m_bAddUser2UserTable = FALSE; // restore default
+    if (m_bGrantSomePermissions == FALSE) // BEW 27Feb24 added this test
+    {
+        bool bReady = ConfigureDATfile(credentials_for_user); // arg is const int, value 1
+        if (bReady)
+        {
+            // The input .dat file is now set up ready for do_add_foreign_kbusers.exe
+            wxString execFileName = _T("do_add_foreign_kbusers.exe");
+            wxString resultFile = _T("add_foreign_KBUsers_results.dat");
+            // whm 22Feb2021 changed execPath to m_appInstallPathAndName in CallExecute()
+            bool bExecutedOK = CallExecute(credentials_for_user, execFileName, m_appInstallPathOnly, resultFile, 30, 31, TRUE);
+            wxUnusedVar(bExecutedOK); // error message, if needed, comes from within & FALSE returned
+            // In above call, TRUE is non-default value for bReportResult
+        }
+        m_bUseForeignOption = FALSE; // restore default,
+        m_bAddUser2UserTable = FALSE; // restore default
+    }
 }
 
 void CAdapt_ItApp::OnUpdateAddUsersToKBserver(wxUpdateUIEvent& event)

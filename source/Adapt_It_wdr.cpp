@@ -7716,15 +7716,27 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     AutoCorrectTextCtrl *item8 = new AutoCorrectTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
     item5->Add( item8, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
+    wxStaticBox *item10 = new wxStaticBox( parent, -1, _("Username's Password") );
+    wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxVERTICAL );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Usually the Unique Username will change if you add a new one by menu choice, or from the Knowledge Base Sharing Manager's user list. Adding a new user also involves providing a new password for that user. Adapt It will show the password you have chosen - as dots. If you suspect that your KBserver support is failing because the current password might be wrong, you can erase the dots, then in the box below, type the password you think is correct. And then close this dialog and try again what you wanted to do."), wxDefaultPosition, wxSize(600,80), wxTE_MULTILINE|wxNO_BORDER | wxGROW );
+    item9->Add( item11, 0, wxGROW, 5 );
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_CURRENT, wxT(""), wxDefaultPosition, wxSize(600,24), wxTE_PASSWORD|wxGROW );
+    item12->SetToolTip( _("If necessary, type the correct password. Erase old one first.") );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item0->Add( item5, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
-    wxStdDialogButtonSizer *item9 = new wxStdDialogButtonSizer;
+    wxStdDialogButtonSizer *item13 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item9->AddButton( button ); }
-    item9->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item9->Realize();
-    item0->Add( item9, 0, wxGROW|wxALL, 5 );
+      item13->AddButton( button ); }
+    item13->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item13->Realize();
+    item0->Add( item13, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9887,8 +9899,8 @@ wxSizer *NewUserCredentialsFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item13->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_ALL_PERMISSIONS, _("Create User With All Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Create new use, grant all permissions, lodge in Manager's user list") );
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_GRANT_PERMISSIONS, _("Grant Permissions"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Create new user, grant permissions, lodge in Manager's user list") );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item13->Add( 22, 20, 0, wxALIGN_CENTER|wxALL, 5 );

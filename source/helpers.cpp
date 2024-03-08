@@ -13543,7 +13543,7 @@ here2:		dlgReturnCode = dlg.ShowModal();
 				// Check that needed language codes are defined for source, target, and if
 				// a glossing kb share is also wanted, that source and glosses codes are
 				// set too. Get them set up if not so.
-				bool bUserCancelled = FALSE;
+				bool bUserCancelled = FALSE; wxUnusedVar(bUserCancelled);
 				// BEW 27Jan22 When logging in, it's likely there is no pwd value saved in frame's 
 				// SetKBSvrPassword(pwd); but if authenticating, and the app's current value of 
 				// m_strUserID matches what this dialog shows, and the dlg's m_strNormalPassword has
@@ -14556,17 +14556,7 @@ bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPasswor
 	foreignFullname = *pForeignFullname;
 	foreignPwd = *pForeignPwd;
 	foreignUseradmin = bCanAddUsers ? _T("1") : _T("0");
-/*
-	wxString comma = _T(",");
-	wxString datFolderPath = gpApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
-	wxASSERT(datFilename == _T("add_foreign_KBUsers.dat"));
-	wxString datPath = datFolderPath + datFilename; // datafolderPath (to _DATA_KB_SHARING) should already end in separator
 
-	// Check that the file already exists, if not, create it
-	wxTextFile textFile; // line-oriented file of lines of text
-	bool bFileExists = FALSE; // initialise
-	bFileExists = wxFileName::FileExists(datPath);
-*/
 	// Build the commandLine needed
 	wxString comma = _T(",");
 	wxString commandLine = wxEmptyString;
@@ -14601,8 +14591,8 @@ bool DoAddForeignUser(wxString* pIpAddr, wxString* pUsername, wxString* pPasswor
 #endif
 
 	wxString datFolderPath = gpApp->m_dataKBsharingPath; // store .dat 'input' file here // whm 22Feb2021 changed distPath to m_dataKBsharingPath, which ends with PathSeparator
-	wxASSERT(datFilename == _T("add_foreign_KBUsers.dat"));
-	wxString datPath = datFolderPath + datFilename; // datafolderPath (to _DATA_KB_SHARING) should already end in separator
+	wxASSERT(datFilename == _T("add_foreign_users.dat"));
+	wxString datPath = datFolderPath + datFilename; // datFolderPath (to _DATA_KB_SHARING) should already end in separator
 
 	// Check that the file already exists, if not, create it
 	wxTextFile textFile; // line-oriented file of lines of text

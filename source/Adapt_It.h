@@ -3154,8 +3154,19 @@ public:
 	wxString m_rootPassword_Archived;
 	// BEW 22Jan24 added strings for granting permissions in context of kbserver for a foreign new user
 	wxString m_foreignUserPermissionsFilename; // set it to _T("PermissionsUserFullnamePwd") at end of OnInit()
-	bool CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added 22Jan24
+	//bool CreatNewUserGrantPermissionsAndFlush(wxString& newUser, wxString& newFullname, wxString& newPwd); // BEW added but not needed
 
+	// BEW 16Feb24, above is too much hard-coding of kbadmin and kbauth as password. The password to replace kbadmin
+	// when a user wants to grant someone other than kbadmin to have "All Permissions" needs to be settable
+	// programmatically (from Manager, or from GUI menu choice for adding a new user), and it needs to be
+	// seen as dots ( a wxDesigner option) in the Change Username dialog, where m_strUserID and m_strFullname
+	// are changable manually or programmatically.
+	// This calls for an additional member wxString:  m_strPassword, which can be seen as dots in Change Username,
+	// and stored in the app in m_strPassword, and can be resettable differently by the user if he or she suspects
+	// that the stored pwd is not the one associated with the seen m_strUserID and m_strFullname values. Then I can
+	// make the password handling simpler than hard-coding kbadmin, KBUser, and kbauth. We want the pasword associated
+	// with a differnt listed user, or new user, to be the one that operates instead of hard-coded kbauth
+	wxString m_strPassword; // never store the value in a config file, .ini file, or some other file anywhere
 
 	// When a new user is added to the user table, successfully, make the new username, fullname, password
 	// and useradmin value (1 or 0) get stored in the next 4 members. Then we can test for a ChangeUsername()
@@ -3949,10 +3960,10 @@ public:
 	wxString m_newUserDlg_newfullname;
 	wxString m_newUserDlg_newpassword;
 	int      m_newUserDlg_newuserpermission;
-	int      m_newUserDlg_allpermissions;
+	int      m_newUserDlg_grant_permissions;
 	// BEW 13Feb24 added next two, in support of newer NewUserCredentialsDlg
 	bool m_bCreateUserByMenuItem; // TRUE when the NewUserCredentialsDlg is active
-	bool m_bGrantAllPermissions;  // TRUE if the user clicked the checkbox for granting "ALL PERMISSIONS'
+	bool m_bGrantSomePermissions;  // TRUE if the user clicked the checkbox for granting (some) user permissions
 
 /*
 // Don't use an enum, int values are simpler
@@ -3973,22 +3984,12 @@ public:
 	const int blanksEnd = 13; // this one changes as we add more above
 
 */
-	// Handler files for the cases in the KBserverDAT_Blanks switch, in CreateInputDatBlanks()
-	void MakeAddForeignUsers(const int funcNumber, wxString dataPath); // = 1 // whm Note: removed execPath parameter
-	void MakeLookupUser(const int funcNumber, wxString dataPath); // =2  // whm Note: removed execPath parameter
-	void MakeListUsers(const int funcNumber, wxString dataPath); // = 3  // whm Note: removed execPath parameter
-	void MakeCreateEntry(const int funcNumber, wxString dataPath); // = 4  // whm Note: removed execPath parameter
-	void MakePseudoDelete(const int funcNumber, wxString dataPath); // = 5  // whm Note: removed execPath parameter
-	void MakePseudoUndelete(const int funcNumber, wxString dataPath); // = 6  // whm Note: removed execPath parameter
-	void MakeLookupEntry(const int funcNumber, wxString dataPath); // = 7  // whm Note: removed execPath parameter
-	void MakeChangedSinceTimed(const int funcNumber, wxString dataPath); // = 8  // whm Note: removed execPath parameter
-	void MakeUploadLocalKb(const int funcNumber, wxString dataPath); // = 9  // whm Note: removed execPath parameter
-	void MakeChangePermission(const int funcNumber, wxString dataPath); // = 10  // whm Note: removed execPath parameter
-	void MakeChangeFullname(const int funcNumber, wxString dataPath); // = 11  // whm Note: removed execPath parameter
-	void MakeChangePassword(const int funcNumber, wxString dataPath); // = 12  // whm Note: removed execPath parameter
-	//void MakeBulkDownload(const int funcNumber, wxString dataPath); // = 13  UNNEEDED
 
 	bool m_bAddUser2UserTable; // BEW 24Dec21, defaul FALSE, but True in app's OnAddUsersToKBserver() handler
+	wxString m_strCommandLine_ForAddUserWithGrants; // BEW 26Feb2024 when the commandLine is built
+			// in context where m_bGrantSomePermissions (above) is TRUE, avoid having to create the commandLine
+			// contents twice. Instead, store it here, and grab it in ConfigureMovedDatFile() just before
+			// control enters CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine)
 
 	void CheckForDefinedGlossLangName();
 
@@ -4206,6 +4207,20 @@ public:
 	bool			m_bKbPageIsCurrent; // default is FALSE (these two are initialized in OnInit())
 	bool			m_bAdaptingKbIsCurrent; // default is TRUE
 
+	// Handler files for the cases in the KBserverDAT_Blanks switch, in CreateInputDatBlanks()
+	void MakeAddForeignUsers(const int funcNumber, wxString dataPath); // = 1 // whm Note: removed execPath parameter
+	void MakeLookupUser(const int funcNumber, wxString dataPath); // =2  // whm Note: removed execPath parameter
+	void MakeListUsers(const int funcNumber, wxString dataPath); // = 3  // whm Note: removed execPath parameter
+	void MakeCreateEntry(const int funcNumber, wxString dataPath); // = 4  // whm Note: removed execPath parameter
+	void MakePseudoDelete(const int funcNumber, wxString dataPath); // = 5  // whm Note: removed execPath parameter
+	void MakePseudoUndelete(const int funcNumber, wxString dataPath); // = 6  // whm Note: removed execPath parameter
+	void MakeLookupEntry(const int funcNumber, wxString dataPath); // = 7  // whm Note: removed execPath parameter
+	void MakeChangedSinceTimed(const int funcNumber, wxString dataPath); // = 8  // whm Note: removed execPath parameter
+	void MakeUploadLocalKb(const int funcNumber, wxString dataPath); // = 9  // whm Note: removed execPath parameter
+	void MakeChangePermission(const int funcNumber, wxString dataPath); // = 10  // whm Note: removed execPath parameter
+	void MakeChangeFullname(const int funcNumber, wxString dataPath); // = 11  // whm Note: removed execPath parameter
+	void MakeChangePassword(const int funcNumber, wxString dataPath); // = 12  // whm Note: removed execPath parameter
+	//void MakeBulkDownload(const int funcNumber, wxString dataPath); // = 13  UNNEEDED
 
 //#endif // for _KBSERVER
 

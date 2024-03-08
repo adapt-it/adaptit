@@ -92,8 +92,8 @@ void NewUserCredentialsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pNewPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_USERS_PWD);
 	m_pCheck_GrantPermission = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSION);
 	m_pCheck_GrantPermission->SetValue(FALSE); // start off unticked, RHSide checkbox
-	m_pCheck_AllPermissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ALL_PERMISSIONS);
-	m_pCheck_AllPermissions->SetValue(FALSE); // start off unticked, LHSide checkbol
+	m_pCheck_Grant_Permissions = (wxCheckBox*)FindWindowById(ID_CHECKBOX_GRANT_PERMISSIONS);
+	m_pCheck_Grant_Permissions->SetValue(FALSE); // start off unticked, LHSide checkbox
 
 	wxString empty = wxEmptyString;
 	m_pNewUsernameCtrl->ChangeValue(empty);
@@ -110,7 +110,7 @@ void NewUserCredentialsDlg::OnCancel(wxCommandEvent& event)
 	m_pNewUsernameCtrl->ChangeValue(empty);
 	m_pNewFullnameCtrl->ChangeValue(empty);
 	m_pNewPasswordCtrl->ChangeValue(empty);
-	m_pCheck_AllPermissions->SetValue(FALSE);
+	m_pCheck_Grant_Permissions->SetValue(FALSE);
 	m_pCheck_GrantPermission->SetValue(FALSE);
 	event.Skip();
 }
@@ -121,16 +121,33 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	strNewUser = m_pNewUsernameCtrl->GetValue();
 	strNewFullname = m_pNewFullnameCtrl->GetValue();
 	strNewPassword = m_pNewPasswordCtrl->GetValue();
-	if (strNewUser.IsEmpty() ||
-		strNewFullname.IsEmpty() ||
-		strNewPassword.IsEmpty()
-		)
+	wxString caption = _("A value is missing");
+	wxString msg = wxEmptyString;
+	// BEW 15Feb24 this if/else three tests works correctly. Tying to do "empty or empty or empty" test
+	// failed by returning TRUE wrongly when all three were not empty. This way below works though,
+	// and still tests all three. The negative is that if two are empty, control would return two times
+	// unless the user noticed the second empty, and gave it content.
+	if (strNewUser.IsEmpty())
 	{
-		wxString caption = _("A value is missing");
-		wxString msg = _("Each text control must have a non-empty value. One or more are empty. Fix this by typing appropriate values into the empty boxes.");
+		msg = _("Username text box is empty. Fix this by typing your wanted username into box 1.");
 		wxMessageBox(msg, caption, wxICON_INFORMATION | wxOK);
+		this->Raise(); //  to the top of the z-order
 		return; // an immediate return keeps the dialog open, for the user to
 				// rectify the missing field contents string
+	}
+	else if (strNewFullname.IsEmpty())
+	{
+		msg = _("Fullname text box is empty. Fix this by typing your wanted fullname into box 2.");
+		wxMessageBox(msg, caption, wxICON_INFORMATION | wxOK);
+		this->Raise(); //  to the top of the z-order
+		return; 
+	}
+	else if (strNewPassword.IsEmpty())
+	{
+		msg = _("Username's Password text box is empty. Fix this by typing your wanted password into box 3.");
+		wxMessageBox(msg, caption, wxICON_INFORMATION | wxOK);
+		this->Raise(); //  to the top of the z-order
+		return;
 	}
 	// BEW 21Mar23 copy the values to members of CAdapt_ItApp, (see AI.h 3896 - 3899)
 	// so that the KBSharingMgrTabbedDlg can pick them up for it's support of adding a new user
@@ -148,8 +165,8 @@ void NewUserCredentialsDlg::OnOK(wxCommandEvent& event)
 	pApp->m_newUserDlg_newpassword = strNewPassword;
 	bool bPermission = m_pCheck_GrantPermission->GetValue();
 	pApp->m_newUserDlg_newuserpermission = (bPermission == TRUE) ? 1 : 0;
-	bool bGrantAll = m_pCheck_AllPermissions->GetValue();
-	pApp->m_newUserDlg_allpermissions = (bGrantAll == TRUE) ? 1 : 0;
+	bool bGrant_Permissions = m_pCheck_Grant_Permissions->GetValue();
+	pApp->m_newUserDlg_grant_permissions = (bGrant_Permissions == TRUE) ? 1 : 0;
 
 	//pApp->m_bCreateUserByMenuItem = FALSE; // turn back off
 	event.Skip();

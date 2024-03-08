@@ -33,6 +33,8 @@ public:
 	wxTextCtrl* pUsernameMsgTextCtrl;
 	wxTextCtrl* pUsernameTextCtrl;
 	wxTextCtrl* pInformalUsernameTextCtrl;
+	wxTextCtrl* pPasswordTextCtrl;
+
 	wxString usernameMsgTitle;
 	wxString invalidMsgTitle;
 	wxString usernameMsg;
@@ -40,7 +42,8 @@ public:
 	wxString usernameInformalMsg;
 	wxString m_finalUsername;
 	wxString m_finalInformalUsername;
-	wxString m_invalidName; // BEW 11Jan24 added
+	wxString m_finalPassword;
+	//wxString m_invalidName; // BEW 11Jan24 added
 
 protected:
 
