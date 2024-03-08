@@ -4501,7 +4501,13 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 						wxString aBar = _T("|");
 						int offset = wxNOT_FOUND;
 						offset = strAttrValue.Find(aBar);
-						if (offset != 0) // 
+						// whm 6Mar2024 modified the test below to if (offset == wxNOT_FOUND)
+						// because for the attribute markers having hidden metadata delimited
+						// by a bar '|' character, the bar character may occur after a word of
+						// text within the m_punctsPattern member. Hence, if we find the bar
+						// anywhere within the m_punctsPattern storage its a situation (1), so
+						// when the offset is == wxNOT_FOUND it is a situation (2).
+						if (offset == wxNOT_FOUND) // if (offset != 0) // 
 						{
 							// It's situation (2), not attributes hidden metadata material
 							gpSrcPhrase->m_punctsPattern = strAttrValue;

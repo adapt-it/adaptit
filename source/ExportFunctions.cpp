@@ -17148,7 +17148,8 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 // information now should come last after my refactoring to store filtered ifno
 // on a previous pSrcPhrase.
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
-	bool& bAddedSomething, bool bIncludeNote,
+	bool& bAddedSomething, bool& bAddedHiddenMetaData,
+	bool bIncludeNote,
 	bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
 	
 {
@@ -17162,30 +17163,48 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	// initial space, which shouldn't hurt even when there is filtered info returned
 	filteredInfo.Trim(FALSE); // trim of any leading space
 
-	if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+	// whm 6Mar2024 moved the RestoreUSFM3AttributeMetadata() function call to here within the
+	// AppendSrcPhraseEndingInfo() function placing it just before the appending of any
+	// m_inlineNonbindingEndMarkers. When the HasBarInPunctsPattern() function detects the
+	// bar character within the m_punctsPattern member, it will return the attribute metadata
+	// from m_punctsPattern which includes the appropriate end marker from the m_inlineNonbindingEndMarkers
+	// member. If the HasBarFirstInPunctsPatterh() doesn't return TRUE then the 
+	bAddedHiddenMetaData = FALSE;
+	if ((gpApp->HasBarInPunctsPattern(pSrcPhrase) == TRUE)
+		&& !gpApp->m_bClipboardAdaptMode)
 	{
-		appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
-		bAddedSomething = TRUE;
+		wxString str;
+		str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str, FALSE);
+		appendHere += str;
+		bAddedHiddenMetaData = TRUE;
 	}
-	if (!pSrcPhrase->m_follPunct.IsEmpty())
+	else
 	{
-		appendHere += pSrcPhrase->m_follPunct;
-		bAddedSomething = TRUE;
-	}
-	if (!pSrcPhrase->GetEndMarkers().IsEmpty())
-	{
-		appendHere += pSrcPhrase->GetEndMarkers();
-		bAddedSomething = TRUE;
-	}
-	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
-	{
-		appendHere += pSrcPhrase->GetFollowingOuterPunct();
-		bAddedSomething = TRUE;
-	}
-	if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
-	{
-		appendHere += pSrcPhrase->GetInlineNonbindingEndMarkers();
-		bAddedSomething = TRUE;
+		if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+		{
+			appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->m_follPunct.IsEmpty())
+		{
+			appendHere += pSrcPhrase->m_follPunct;
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+		{
+			appendHere += pSrcPhrase->GetEndMarkers();
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		{
+			appendHere += pSrcPhrase->GetFollowingOuterPunct();
+			bAddedSomething = TRUE;
+		}
+		if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+		{
+			appendHere += pSrcPhrase->GetInlineNonbindingEndMarkers();
+			bAddedSomething = TRUE;
+		}
 	}
 	// whm 12Feb2024 moved the addition of filtered info from the AppendSrcPhraseBeginningInfo()
 	// function to this function since it should be the last thing added to appendHere.
@@ -17667,7 +17686,8 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// append the relevant material directly to source parameter.
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
-				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase, bAddedSomething,
+				bool bAddedHiddenMetaData = FALSE; 
+				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase, bAddedSomething, bAddedHiddenMetaData,
 					TRUE, TRUE, FALSE);
 
 				// now deal with the beginning-stuff, which isn't immediately placeable:
@@ -17820,7 +17840,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 			// add stuff, before and after the word, such as binding mkrs, puncts,
 			// non-binding markers, endmarkers, outer punct, as needed
-			CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+			//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #if defined (_DEBUG)
 			if (pSrcPhrase->m_nSequNumber >= 168)
 			{
@@ -17849,36 +17869,49 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// start with a bar (|) and end with an endmarker of form \mkr*). Do the 
 			// tests and unhide before the filtering is finished - it will lengthen
 			// the string which is to be filtered out.
-
-			bool IsCurrentlyFiltering = pDoc->m_bCurrentlyFiltering;
-			if (IsCurrentlyFiltering)
-			{
-				if ((gpApp->HasBarFirstInPunctsPattern(pSrcPhrase) == TRUE) 
-					&& !gpApp->m_bClipboardAdaptMode)
-				{
-#if defined (_DEBUG)
-					// Check we are in the right (sub)list...
-					/*
-					int nListSize = (int)pUseThisList->GetCount();
-					wxSPListNode* pNodeFirst = pUseThisList->GetFirst();
-					CSourcePhrase* pSPFirst = pNodeFirst->GetData();
-					wxSPListNode* pNodeLast = pUseThisList->GetLast();
-					CSourcePhrase* pSPLast = pNodeLast->GetData();
-					wxString pupatStr = pSPLast->m_punctsPattern;
-					wxString bUnusedStr = pSPLast->m_bUnused ? _T("TRUE") : _T("FALSE");
-					wxLogDebug(_T("%s::%s(), line=%d, source 1st= %s , source last= %s , listSize= %d , sequNums [%d,%d] pupat= %s , bUnused= %s"),
-						__FILE__,__FUNCTION__,__LINE__, pSPFirst->m_srcPhrase.c_str(), pSPLast->m_srcPhrase.c_str(), nListSize ,
-						pSPFirst->m_nSequNumber , pSPLast->m_nSequNumber , pSPLast->m_punctsPattern.c_str(), bUnusedStr.c_str() );
-					*/
-#endif
-					// There is hidden metadata to be restored to the source text which
-					// is to be filtered out. Metadata, if present, has to be restored
-					// to the source text in correct location, before the CSourcePhrase
-					// it is stored on disappears. In the call, FALSE is bIsTargetText -
-					// it needs to be set explicitly as the default is TRUE
-					str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str, FALSE);
-				}
-			}
+			//
+			// whm 6Mar2024 removed. The RebuildSourceText() should work the same here
+			// and include the RestoreUSFM3AttributesMetadata() call regardless of whether
+			// we're currently filtering or not. Also, I've moved the 
+			// HasBarInPunctsPattern() and RestoreUSFM3AttributesMetadata() calls
+			// to be part of the AppendSrcPhraseEndingInfo() function call that gets
+			// called within the FromSingleMakeSstr2() function call above.
+			// Therefore, I've commented out the 
+			// if (IsCurrentlyFiltering) test below.
+			//bool IsCurrentlyFiltering = pDoc->m_bCurrentlyFiltering;
+			//if (IsCurrentlyFiltering)
+			//{
+			//if ((gpApp->HasBarInPunctsPattern(pSrcPhrase) == TRUE) 
+			//	&& !gpApp->m_bClipboardAdaptMode)
+			//{
+//#if defined (_DEBUG)
+				// Check we are in the right (sub)list...
+				/*
+				int nListSize = (int)pUseThisList->GetCount();
+				wxSPListNode* pNodeFirst = pUseThisList->GetFirst();
+				CSourcePhrase* pSPFirst = pNodeFirst->GetData();
+				wxSPListNode* pNodeLast = pUseThisList->GetLast();
+				CSourcePhrase* pSPLast = pNodeLast->GetData();
+				wxString pupatStr = pSPLast->m_punctsPattern;
+				wxString bUnusedStr = pSPLast->m_bUnused ? _T("TRUE") : _T("FALSE");
+				wxLogDebug(_T("%s::%s(), line=%d, source 1st= %s , source last= %s , listSize= %d , sequNums [%d,%d] pupat= %s , bUnused= %s"),
+					__FILE__,__FUNCTION__,__LINE__, pSPFirst->m_srcPhrase.c_str(), pSPLast->m_srcPhrase.c_str(), nListSize ,
+					pSPFirst->m_nSequNumber , pSPLast->m_nSequNumber , pSPLast->m_punctsPattern.c_str(), bUnusedStr.c_str() );
+				*/
+//#endif
+				// There is hidden metadata to be restored to the source text which
+				// is to be filtered out. Metadata, if present, has to be restored
+				// to the source text in correct location, before the CSourcePhrase
+				// it is stored on disappears. In the call, FALSE is bIsTargetText -
+				// it needs to be set explicitly as the default is TRUE
+				//
+				// whm 6Mar2024 Note: When the m_punctsPattern has bar delimited hidden
+				// data the str value is REPLACED by the value returned by the 
+				// RestoreUSFM3AttributesMetadata() call. This include the last word of
+				// any caption data + the | char + meta data + end marker.
+				//str = RestoreUSFM3AttributesMetadata(pSrcPhrase, str, FALSE);
+			//}
+			//}
 
 			// BEW 5Apr23, for languages which use zero-width space, but '/' to delineate
 			// words as a typing aid we need to support what Paratext does. But since
@@ -19186,7 +19219,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				// or a relic from AI legacy versions of long ago. Clear it out.
 				if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 				{
-					if ((gpApp->HasBarFirstInPunctsPattern(pSrcPhrase) == TRUE)
+					if ((gpApp->HasBarInPunctsPattern(pSrcPhrase) == TRUE)
 						&& !gpApp->m_bClipboardAdaptMode)
 					{
 						pSrcPhrase->m_bUnused = FALSE;
@@ -19421,7 +19454,9 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 	// is still reversed so reverse them
 	theMkr = MakeReverse(theMkr);
 	contents = MakeReverse(contents);
-	wxASSERT(contents.GetChar(0) == _T('|'));
+	// whm 6Mar2024 removed the following wxASSERT() since the bar char can
+	// come beyond the first character of contents.
+	//wxASSERT(contents.GetChar(0) == _T('|'));
 
 	wxLogDebug(_T("%s::%s(), line %d BEFORE;  str= %s  theMkr= %s  contents= %s"),
 		__FILE__, __FUNCTION__, __LINE__, str.c_str(), theMkr.c_str(), contents.c_str());
@@ -19443,20 +19478,24 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 		// FALSE
 		if ((theMkr == _T("\\jmp*")) || (theMkr == _T("\\+jmp*")))
 		{
-			int strLen = str.Len();
-			// The matching endmarker may not be last in str, so search back to it
-			int distance = SearchBackToMatchingMarker(str, theMkr);
-			wxASSERT(strLen >= distance);
-			wxString firstBit = str.Left(strLen - distance);
-			if (firstBit.IsEmpty())
-			{
-				firstBit = contents;
-			}
-			else
-			{
-				firstBit += contents; // add the contents of the metadata
-			}
-			str = firstBit + theMkr;
+			// whm 6Mar2024 modified. See blocks below for details. 
+			// The only thing needed here is to assign to str the value 
+			// contents + theMkr;
+			//int strLen = str.Len();
+			//// The matching endmarker may not be last in str, so search back to it
+			//int distance = SearchBackToMatchingMarker(str, theMkr);
+			//wxASSERT(strLen >= distance);
+			//wxString firstBit = str.Left(strLen - distance);
+			//if (firstBit.IsEmpty())
+			//{
+			//	firstBit = contents;
+			//}
+			//else
+			//{
+			//	firstBit += contents; // add the contents of the metadata
+			//}
+			//str = firstBit + theMkr;
+			str = contents + theMkr;
 		}
 	}
 	else
@@ -19471,22 +19510,31 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 			// there is none yet, then skip restoration for this instance. Check
 			// only m_targetStr for empty; we will allow m_adaption to be empty
 			// provided there is final punctuation
+			//
+			// whm 6Mar2024 modified. The original coding didn't consider that the
+			// bar might be anywhere within the contents, and usually - especially
+			// for stand-alone \xt ...\xt* marker material - the m_targetStr is
+			// actually the first part of the material in the m_punctsPattern and
+			// hence in contents. So I'm simplifying the code in this block to simply
+			// assign contents + theMkr, where theMkr is the end marker
+
 			if (!pSrcPhrase->m_targetStr.IsEmpty())
 			{
-				int strLen = str.Len();
-				// The matching endmarker may not be last in str, so search back to it
-				int distance = SearchBackToMatchingMarker(str, theMkr);
-				wxASSERT(strLen >= distance);
-				wxString firstBit = str.Left(strLen - distance);
-				if (firstBit.IsEmpty())
-				{
-					firstBit = contents;
-				}
-				else
-				{
-					firstBit += contents; // add the contents of the metadata
-				}
-				str = firstBit + theMkr;
+				//int strLen = str.Len();
+				//// The matching endmarker may not be last in str, so search back to it
+				//int distance = SearchBackToMatchingMarker(str, theMkr);
+				//wxASSERT(strLen >= distance);
+				//wxString firstBit = str.Left(strLen - distance);
+				//if (firstBit.IsEmpty())
+				//{
+				//	firstBit = contents;
+				//}
+				//else
+				//{
+				//	firstBit += contents; // add the contents of the metadata
+				//}
+				//str = firstBit + theMkr;
+				str = contents + theMkr;
 			}
 		}
 		else
@@ -19494,20 +19542,27 @@ wxString RestoreUSFM3AttributesMetadata(CSourcePhrase* pSrcPhrase, wxString& str
 			// We are dealing with restoration to source text
 			if (!pSrcPhrase->m_srcPhrase.IsEmpty())
 			{
-				int strLen = str.Len();
-				// The matching endmarker may not be last in str, so search back to it
-				int distance = SearchBackToMatchingMarker(str, theMkr);
-				wxASSERT(strLen >= distance);
-				wxString firstBit = str.Left(strLen - distance);
-				if (firstBit.IsEmpty())
-				{
-					firstBit = contents;
-				}
-				else
-				{
-					firstBit += contents; // add the contents of the metadata
-				}
-				str = firstBit + theMkr;
+				// whm 6Mar2024 modified. The original coding didn't consider that the
+				// bar might be anywhere within the contents, and usually - especially
+				// for stand-alone \xt ...\xt* marker material - the m_srcPhrase is
+				// actually the first part of the material in the m_punctsPattern and
+				// hence in contents. So I'm simplifying the code in this block to simply
+				// assign contents + theMkr, where theMkr is the end marker
+				//int strLen = str.Len();
+				//// The matching endmarker may not be last in str, so search back to it
+				//int distance = SearchBackToMatchingMarker(str, theMkr);
+				//wxASSERT(strLen >= distance);
+				//wxString firstBit = str.Left(strLen - distance);
+				//if (firstBit.IsEmpty())
+				//{
+				//	firstBit = contents;
+				//}
+				//else
+				//{
+				//	firstBit += contents; // add the contents of the metadata
+				//}
+				//str = firstBit + theMkr;
+				str = contents + theMkr;
 			}
 		}
 	}

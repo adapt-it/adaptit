@@ -32147,6 +32147,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_finalTgtPuncts = MakeTargetFinalPuncts(m_strSpacelessTargetPuncts); // BEW added 26Feb20
 	m_finalSrcPuncts = MakeSourceFinalPuncts(m_strSpacelessSourcePuncts); // BEW added 11Mar20 for ParseInlineEndMarkers()
 
+    /*
+    // whm 6Mar2024 testing below
+    wxString afterStr = _T("NIV.|metadata");
+    int len = afterStr.Length();
+    int index = 0;
+    wxString tempAfterStr; tempAfterStr.Empty();
+    if (len > 0)
+    {
+        wxChar ch = afterStr.GetChar(index);
+        while (ch != _T('|') && index < len && !IsOneOf(&ch, gpApp->m_finalSrcPuncts))
+        {
+            index++;
+            ch = afterStr.GetChar(index);
+        }
+        tempAfterStr = afterStr.Mid(index);
+    }
+    // whm 6Mar2024 testing above
+    */
+
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
@@ -65552,7 +65571,11 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase, b
 // that instance has m_bHasInternalPunct TRUE as well, but the latter
 // fact is not the case when pSrcPhrase is storing cached metadata to
 // hide it away from being seen in the GUI for adapting
-bool CAdapt_ItApp::HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase)
+// 
+// whm 6Mar2024 modification. The (offset == 0) at the return statement
+// needs to be (offset >= 0) since the bar may occur after the last word
+// of any caption text.
+bool CAdapt_ItApp::HasBarInPunctsPattern(CSourcePhrase* pSrcPhrase)
 {
 	if (pSrcPhrase == NULL)
 		return FALSE;
@@ -65561,7 +65584,8 @@ bool CAdapt_ItApp::HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase)
 	int offset = wxNOT_FOUND; // initialise
 	wxString bar = _T('|');
 	offset = pSrcPhrase->m_punctsPattern.Find(bar);
-	return (offset == 0) ? TRUE : FALSE;
+    // whm 6Mar2024 modified the return below to return TRUE if (offset >= 0)
+    return (offset >= 0) ? TRUE : FALSE; // return (offset == 0) ? TRUE : FALSE;
 }
 
 void CAdapt_ItApp::MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glossStr,

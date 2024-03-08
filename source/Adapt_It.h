@@ -5664,7 +5664,7 @@ public:
 	// end of collaboration declarations
 
 	// BEW 7Apr20 for hidden attribute data support - exports
-	bool	HasBarFirstInPunctsPattern(CSourcePhrase* pSrcPhrase); // A better test than m_bUnused == TRUE
+	bool	HasBarInPunctsPattern(CSourcePhrase* pSrcPhrase); // A better test than m_bUnused == TRUE
 					// because m_bUnused TRUE supports two unrelated functionalities
 
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion

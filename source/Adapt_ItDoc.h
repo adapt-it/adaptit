@@ -265,14 +265,16 @@ protected:
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
 	wxString		GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After,
 		wxString& metadata, int& offset, int& nEnd);
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo); // whm 24Oct2023 added last parameter
+	// whm 24Oct2023 added 3rd parameter
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
 	wxString		GetLastEndMarker(wxString endMkrs); //BEW added 31May23 for use in propagation code (in TokenizeText)
 
 	// BEW 30May17 next two for supporting inLine markers within a inLine span, such as a
 	// \xt marker within an unfiltered \f ... \f* span
-	bool			m_bIsWithinUnfilteredInlineSpan;
+	bool			m_bIsWithinUnfilteredInlineSpan; // whm 4Mar2024 added
+	bool			m_bIsWithinCrossRef_X_Span;
 	wxString		m_strUnfilteredInlineBeginMarker;
 	// BEW 9Sep16 added next four
 	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc

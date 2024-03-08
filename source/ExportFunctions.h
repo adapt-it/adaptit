@@ -54,7 +54,8 @@ wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 					 bool& bAddedSomething); // BEW created 11Oct10 
 //wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
 wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
-	bool& bAddedSomething, bool bIncludeNote,
+	bool& bAddedSomething, bool& bAddedHiddenMetaData,
+	bool bIncludeNote,
 	bool bDoCountForFreeTrans, bool bCountInTargetTextLine);
 void		DoExportAsType(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
 void		DoExportInterlinearRTF();
