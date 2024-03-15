@@ -306,6 +306,7 @@ public:
 //#endif
 	wxString GetEndMarkers();
 	bool GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
+	bool GetInlineNonbindingEndMarkersAsArray(wxArrayString* pINB_EndMkrsArray); // whm 11Mar2024 added
 	//bool GetAllEndMarkersAsArray(wxArrayString* pEndmarkersArray); // ditto, gets not just from
 				// m_endMarkers, but also from the two storage members for inline endmarkers
 	void SetFreeTrans(wxString freeTrans);

@@ -2924,6 +2924,21 @@ bool CSourcePhrase::GetEndMarkersAsArray(wxArrayString* pEndmarkersArray)
 	return bGotSome;
 }
 
+bool CSourcePhrase::GetInlineNonbindingEndMarkersAsArray(wxArrayString* pINB_EndMkrsArray)
+{
+	pINB_EndMkrsArray->Empty();
+	bool bGotSome = FALSE;
+	if (m_inlineNonbindingEndMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		bGotSome = GetSFMarkersAsArray(m_inlineNonbindingEndMarkers, *pINB_EndMkrsArray);
+	}
+	return bGotSome;
+}
+
 /* wrote this then found I didn't need it
 // GetAllEndMarkersAsArray gets from all storage locations for endmarkers on a
 // CSourcePhrase instance - there are 3 wxStrings it then must check and collect from.

@@ -265,14 +265,16 @@ protected:
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
 	wxString		GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After,
 		wxString& metadata, int& offset, int& nEnd);
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo); // whm 24Oct2023 added last parameter
+	// whm 24Oct2023 added 3rd parameter
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase, wxString &filterInfo);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	//bool			IsBeginMarkerForTextTypeNone(wxChar* pChar); // BEW 22Apr20
 	wxString		GetLastEndMarker(wxString endMkrs); //BEW added 31May23 for use in propagation code (in TokenizeText)
 
 	// BEW 30May17 next two for supporting inLine markers within a inLine span, such as a
 	// \xt marker within an unfiltered \f ... \f* span
-	bool			m_bIsWithinUnfilteredInlineSpan;
+	bool			m_bIsWithinUnfilteredInlineSpan; // whm 4Mar2024 added
+	bool			m_bIsWithinCrossRef_X_Span;
 	wxString		m_strUnfilteredInlineBeginMarker;
 	// BEW 9Sep16 added next four
 	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
@@ -496,7 +498,14 @@ public:
 	wxString		GetLastBeginMkr(wxString mkrs); // BEW 13Dec22 get the last one in m_markers, but the last one
 						// does not always result in getting the correct TextType; but some places need this so keep it.
 						// However, GetPriorityBeginMkr() -- see next line, should do better job; get \v if present
-	wxString		GetPriorityBeginMkr(wxString mkrs); // BEW 2Aug23 get the priority beginMkr from m_markers, to set the TextType - \v if present
+						// 
+						// whm 12Mar2024 refactored and changed the name of the next function call. 
+						// The function previously was named GetPriorityMkr(), but is now named
+						// GetPriorityTextTypeChangingBeginMkr(). It now returns the first marker
+						// found within m_markers that is also found in the App's m_RegBeginMarkers 
+						// set, or if not present there, the last marker in m_markers is returned,
+						// or wxEmptyString if no markers are within m_markers.
+	wxString		GetPriorityTextTypeChangingBeginMkr(wxString mkrs); // BEW 2Aug23 get the priority beginMkr from m_markers, to set the TextType - \v if present
 	void			GetLengthToWhitespace(wxChar* pChar, unsigned int& counter, wxChar* pEnd); // BEW 20Oct22
 	bool			IsClosedParenthesisAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);
 	bool			IsClosedBraceAhead(wxChar* pChar, unsigned int& count, wxChar* pEnd, CSourcePhrase* pSrcPhrase, bool& bTokenizingTargetText);

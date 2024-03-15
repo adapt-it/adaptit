@@ -3803,15 +3803,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
 		{
 			// The wholeMarker \xt doesn't already exist in the string, so append it.
-			// NOTE: By appending a marker to the filter marker string we are creating a
-			// string that can no longer be compared with other filter marker strings by
-			// means of the == or != operators. Comparison of such filter marker strings will now
-			// necessarily require a special function StringsContainSameMarkers() be used
-			// in every place where marker strings are compared.
-			// whm comment on above NOTE: We could sort the marker elements of the string
-			// after the addition of marker to make string comparisons easier, but it is
-			// probably not worth it.
-			filterMkrStr += marker;
+			filterMkrStr += wholeMarker;
 		}
 	}
 	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
@@ -6305,7 +6297,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 			// return the filtered info in beforeStr. The filtered info should be added to
 			// the str BELOW at the end of the AppendSrcPhraseEndingInfo() function call 
 			// below.
-			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething);; //,
+			beforeStr = AppendSrcPhraseBeginningInfo(beforeStr, pSrcPhrase, bAddedSomething); //,
 													// TRUE,TRUE, FALSE);
 			if (bAddedSomething)
 			{
@@ -6313,11 +6305,36 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				beforeStr.Empty();
 			}
 			// str << pSrcPhrase->m_key; // whm 5Feb2024 moved to before the AppendSrcPhraseBeginningInfo() call
+
+			// whm 6Mar2024 modified. BEW says that this FromMergerMakeSstr() need not be concerned with metadata
+			// since mergers are not possible over metadata, so the afterStr returned from AppendSrcPhraseEndingInfo()
+			// below is not likely to have any metadata and bAddedMetaData most likely will be FALSE. However,
+			// the code below should deal with any metadata that occurs, but stripping off any word before the 
+			// vertical bar (which would be the m_key, but not stripping off any final punctuation.
+			bool bAddedMetaData = FALSE;
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pMergedSrcPhrase, bAddedSomething,
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pMergedSrcPhrase, bAddedSomething, bAddedMetaData,
 													TRUE, TRUE, FALSE);
 			if (!afterStr.IsEmpty())
 			{
+				// The key was added above before AppendSrcPhraseBeginningInfo, so if bAddedMetaData is
+				// TRUE, then we'll strip off the word before the bar, but not any foll punctuation.
+				if (bAddedMetaData)
+				{
+					int len = afterStr.Length();
+					int index = 0;
+					wxString tempAfterStr; tempAfterStr.Empty();
+					if (len > 0)
+					{
+						wxChar ch = afterStr.GetChar(index);
+						while (ch != _T('|') && index < len && !IsOneOf(&ch, gpApp->m_finalSrcPuncts))
+						{
+							index++;
+							ch = afterStr.GetChar(index);
+						}
+						tempAfterStr = afterStr.Mid(index);
+					}
+				}
 				str << afterStr;
 				afterStr.Empty();
 			}
@@ -6353,15 +6370,29 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				str << beforeStr;
 				beforeStr.Empty();
 			}
-			str << pSrcPhrase->m_key;
+			// whm 6Mar2024 modified. Incorporated the metadata restoration into the AppendSrcPhraseEndingInfo()
+			// function. When bAddedMetaData is TRUE it already incorporates the m_key in the afterStr it returns.
+			//str << pSrcPhrase->m_key;
+			bool bAddedMetaData = FALSE;
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething,
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething, bAddedMetaData,
 				TRUE, TRUE, FALSE);
-			if (!afterStr.IsEmpty())
+			if (bAddedMetaData)
 			{
+				// the metadata should include the m_key, following punctuation and end marker
 				str << afterStr;
-				afterStr.Empty();
 			}
+			else if (!afterStr.IsEmpty())
+			{
+				// no metadata was included so we manually add the m_key and any other stuff in afterStr
+				str << pSrcPhrase->m_key;
+				str << afterStr;
+			}
+			else
+			{
+				str << pSrcPhrase->m_key;
+			}
+			afterStr.Empty();
 			str.Trim();
 			// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
 			// but rather put either space or special space preceding the material
@@ -6389,11 +6420,36 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				beforeStr.Empty();
 			}
 			//str << pSrcPhrase->m_key; // whm 5Feb2024 moved to before the AppendSrcPhraseBeginningInfo() call
+
+			// whm 6Mar2024 modified. BEW says that this FromMergerMakeSstr() need not be concerned with metadata
+			// since mergers are not possible over metadata, so the afterStr returned from AppendSrcPhraseEndingInfo()
+			// below is not likely to have any metadata and bAddedMetaData most likely will be FALSE. However,
+			// the code below should deal with any metadata that occurs, but stripping off any word before the 
+			// vertical bar (which would be the m_key, but not stripping off any final punctuation.
+			bool bAddedMetaData = FALSE;
 			afterStr.Empty();
-			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething,
+			afterStr = AppendSrcPhraseEndingInfo(afterStr, pSrcPhrase, bAddedSomething, bAddedMetaData,
 				TRUE, TRUE, FALSE);
 			if (!afterStr.IsEmpty())
 			{
+				// The key was added above before AppendSrcPhraseBeginningInfo, so if bAddedMetaData is
+				// TRUE, then we'll strip off the word before the bar, but not any foll punctuation.
+				if (bAddedMetaData)
+				{
+					int len = afterStr.Length();
+					int index = 0;
+					wxString tempAfterStr; tempAfterStr.Empty();
+					if (len > 0)
+					{
+						wxChar ch = afterStr.GetChar(index);
+						while (ch != _T('|') && index < len && !IsOneOf(&ch, gpApp->m_finalSrcPuncts))
+						{
+							index++;
+							ch = afterStr.GetChar(index);
+						}
+						tempAfterStr = afterStr.Mid(index);
+					}
+				}
 				str << afterStr;
 				afterStr.Empty();
 			}
@@ -8498,7 +8554,7 @@ wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
 	wxString srcStr = wxEmptyString; // init  (was pSP->m_key;)
 
 #if defined (_DEBUG)
-	if (pSingleSrcPhrase->m_nSequNumber >= 368) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
+	if (pSingleSrcPhrase->m_nSequNumber >= 22) // || pSingleSrcPhrase->m_nSequNumber == 129 || pSingleSrcPhrase->m_nSequNumber == 565)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -8594,15 +8650,31 @@ wxString FromSingleMakeSstr2(CSourcePhrase* pSingleSrcPhrase)
 		srcStr << beforeStr;
 		beforeStr.Empty();
 	}
-	srcStr << pSingleSrcPhrase->m_key;
+
+	// whm 6Mar2024 modified. Incorporated the metadata restoration into the AppendSrcPhraseEndingInfo()
+	// function. When bAddedMetaData is TRUE it already incorporates the m_key in the afterStr it returns.
+	//str << pSrcPhrase->m_key;
+	bool bAddedMetaData = FALSE;
 	afterStr.Empty();
-	afterStr = AppendSrcPhraseEndingInfo(afterStr, pSingleSrcPhrase, bAddedSomething,
+	afterStr = AppendSrcPhraseEndingInfo(afterStr, pSingleSrcPhrase, bAddedSomething, bAddedMetaData,
 		TRUE, TRUE, FALSE);
-	if (!afterStr.IsEmpty())
+	if (bAddedMetaData)
 	{
+		// the metadata should include the m_key, following punctuation and end marker
 		srcStr << afterStr;
-		afterStr.Empty();
 	}
+	else if (!afterStr.IsEmpty())
+	{
+		// no metadata was included so we manually add the m_key and any other stuff in afterStr
+		srcStr << pSingleSrcPhrase->m_key;
+		srcStr << afterStr;
+	}
+	else
+	{
+		srcStr << pSingleSrcPhrase->m_key;
+	}
+	afterStr.Empty();
+
 	srcStr.Trim();
 	// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
 	// but rather put either space or special space preceding the material

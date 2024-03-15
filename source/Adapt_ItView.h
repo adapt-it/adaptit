@@ -367,7 +367,14 @@ public:
 	// BEW added 30Sept19 - function below: disallow Merge() or Retranslation if the returned bool  
 	// is TRUE. Tests; and does not allow hidden attribute metadata to be in *ANY* of the 
 	// CSourcePhrase instances of the selection
-	bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt);
+	// whm 8Mar2024 revised the following function to return more information to the caller so the
+	// caller can create a more informative warning message to the user.
+	//bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt);
+	bool		IsSelectionAcrossHiddenAttributesMetadata(SPList* pList,
+		wxString& srcWords,
+		wxString& strAt,
+		wxString& mkrSpan);
+
 protected:
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec,
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
