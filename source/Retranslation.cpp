@@ -2119,13 +2119,17 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// the CSourcePhrase instances of the selection. In the call, signature's bIsMerger
 	// is default FALSE - which is appropriate for a retranslation
 	wxString strAt = wxEmptyString;
-	if (m_pView->IsSelectionAcrossHiddenAttributesMetadata(pList, strAt))
+	wxString srcWords = wxEmptyString; wxUnusedVar(srcWords); // not used here
+	wxString mkrSpan = wxEmptyString;
+	if (m_pView->IsSelectionAcrossHiddenAttributesMetadata(pList, srcWords, strAt, mkrSpan))
 	{
-		wxString msg = _("Sorry, this operation is not allowed when the selection contains hidden(stored) USFM3 metadata. Instead, try making retranslations either side of the word at %s.");
-		msg = msg.Format(strAt.c_str());
-        // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
+		wxString msg = _("Sorry, this operation is not allowed when the selection contains hidden (stored) data.\nThe hidden data is in this span of text:\n\n%s\n\nInstead, try making retranslations either side of the word at %s.");
+		// whm 8Mar2024 fixed the .Format() call below. The msg must be first parameter in the formatting call, i.e., .Format(msg, strAt.c_str())
+		// When the msg is missing the only string shown in the message box is the strAt word
+		msg = msg.Format(msg, mkrSpan.c_str(), strAt.c_str());
+		// whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         m_pApp->m_bUserDlgOrMessageRequested = TRUE;
-        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        wxMessageBox(msg, _("Cannot make a retranslation across hidden/stored data"), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;

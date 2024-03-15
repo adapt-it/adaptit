@@ -17182,7 +17182,7 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	{
 		if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
 		{
-			appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
+			appendHere = pSrcPhrase->GetInlineBindingEndMarkers();
 			bAddedSomething = TRUE;
 		}
 		if (!pSrcPhrase->m_follPunct.IsEmpty())
@@ -17210,6 +17210,30 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	// function to this function since it should be the last thing added to appendHere.
 	if (!filteredInfo.IsEmpty())
 	{
+		// whm 13Mar2024 added a little hack to ensure that any initial swept up marker that
+		// is prefixed to the filteredInfo will start on a new line in the exported output. If the 
+		// filteredInfo has one of the swept up markers initially, and appendHere isn't empty 
+		// and doesn't end with and EOL sequence, then we add an EOL between the appendHere and 
+		// the swept up marker at the beginning of filteredInfo. This results in better formatting
+		// of the exported text and shouldn't foul up the other filtering routines that get called
+		// to normalize the exported text.
+		wxString initialMkr; initialMkr.Empty();
+		if (filteredInfo.Find(_T("\\")) == 0)
+		{
+			wxString space = _T(" ");
+			int spPos = filteredInfo.Find(space);
+			if (spPos != wxNOT_FOUND)
+			{
+				initialMkr = filteredInfo.Mid(0, spPos);
+				initialMkr.Trim();
+				initialMkr += space; // augmented for searching in m_markersCanBeSweptUpByFilteredMarker 
+			}
+		}
+		if (!appendHere.IsEmpty() && appendHere.Last() != _T('\n') && appendHere.Last() != _T('\r')
+			&& !initialMkr.IsEmpty() && gpApp->m_markersCanBeSweptUpByFilteredMarker.Find(initialMkr) != wxNOT_FOUND)
+		{
+			appendHere += _T("\r\n");
+		}
 		appendHere += filteredInfo;
 		bAddedSomething = TRUE;
 	}

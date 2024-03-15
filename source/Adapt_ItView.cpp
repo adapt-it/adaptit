@@ -11022,7 +11022,15 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 // Placement dialog which otherwise would not show, will show and the the user will have
 // to do a manual placement within it. (It's safer that way, than letting the cache data
 // be lost)
-bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt)
+// whm 8Mar2024 modified this function to return more information so the user warning the
+// caller creates will be more understandable in the two places this function is called: 
+// In the View's OnButtonMerge(), and in Retranslation.cpp's OnButtonRetranslation().
+// The additional information is returned via ref parameters srcWords and mkrSpan
+//bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxString &strAt)
+bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, 
+	wxString& srcWords,
+	wxString& strAt,
+	wxString& mkrSpan)
 {
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* pos_pList = pList->GetFirst();
@@ -11035,17 +11043,35 @@ bool CAdapt_ItView::IsSelectionAcrossHiddenAttributesMetadata(SPList* pList, wxS
 	// the span has both at different locations, the there is no clash, but the
 	// presence of attribute hiding wins out in the suppression stakes. So the
 	// simple double test below suffices
+	srcWords.Empty();
+	mkrSpan.Empty();
+	wxString beginMkr; beginMkr.Empty();
+	int wordNumber = 1;
+	int wordNumberAtHiddenData = -1;
 	while (pos_pList != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos_pList->GetData();
-
+		srcWords += (_T(" ") + pSrcPhrase->m_srcPhrase);
+		beginMkr += pSrcPhrase->GetInlineNonbindingMarkers(); // the \jmp ...\jmp* maker is an inline nonbinding one
+		beginMkr += pSrcPhrase->GetInlineBindingMarkers(); // the \w ...\w* marker is an inline binding one
 		pos_pList = pos_pList->GetNext();
 		if ((pSrcPhrase->m_bUnused == TRUE) && (pSrcPhrase->m_bHasInternalPunct == FALSE))
 		{
 			bIllegalInternalHiddenMetadata = TRUE;
+			mkrSpan = pSrcPhrase->m_punctsPattern; 
 			strAt = pSrcPhrase->m_srcPhrase;
-			break;
+			wordNumberAtHiddenData = wordNumber;
+			//break; // we want the whole sublist traversed to collect the mkrSpan
 		}
+		wordNumber++;
+	}
+	if (bIllegalInternalHiddenMetadata)
+	{
+		wxString addEllipsis; addEllipsis.Empty();
+		srcWords.Trim(FALSE); // remove initial space
+		if (wordNumberAtHiddenData > 1)
+			addEllipsis = _T(" ... ");
+		mkrSpan = addEllipsis + beginMkr + mkrSpan; // the inline binding/nonbinding begin marker + m_punctsPattern contents.
 	}
 	return bIllegalInternalHiddenMetadata;
 }
@@ -11577,14 +11603,24 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// The signature param bIsMerger is default FALSE - see comment in Adapt_ItView.h for
 	// more information; since this is a merger attempt, TRUE must be overtly supplied
 	wxString strAt = wxEmptyString;
-	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, strAt);
+	wxString srcWords = wxEmptyString;
+	wxString mkrSpan = wxEmptyString;
+	bIllegalInternalHiddenMetadata = IsSelectionAcrossHiddenAttributesMetadata(pList, srcWords, strAt, mkrSpan);
 	if (bIllegalInternalHiddenMetadata)
 	{
-		wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. The metadata is hidden at the word: %s");
-		msg = msg.Format(strAt.c_str());
+		// whm 8Mar2024 revised the warning message below to be more understandable to the user and also
+		// its original form didn't actually include the warning, only the single word passed into the %s due
+		// to a faulty .Format() call that didn't have the msg as first parameter of .Format().
+		// Also to supply more helpful information in the warning, I've added two parameters to the
+		// IsSelectionAcrossHiddenAttributesMetadata() function call above, with the necessary internal
+		// modifications.
+		//wxString msg = _("Merging across stored(hidden) USFM3 metadata is not allowed. The metadata is hidden at the word: %s");
+		//msg = msg.Format(strAt.c_str());
+		wxString msg = _("Adapt It attempted to make a phrase of the source words \" %s\".\nHowever, the word \"%s\" within this marker span:\n\n%s\n\nhas stored (hidden/filtered) data.\nMaking a phrase across stored (hidden/filtered) data is not allowed.");
+		msg = msg.Format(msg, srcWords.c_str(), strAt.c_str(), mkrSpan.c_str());
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         pApp->m_bUserDlgOrMessageRequested = TRUE;
-        wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+        wxMessageBox(msg, _("Making a phrase across hidden data not allowed"), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;

@@ -10822,7 +10822,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		bool bMarkerInNonbindingSet = FALSE;
 #if defined (_DEBUG)
 		{
-			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber >= 565)
+			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 31)
 			{
 				int halt_here = 1;
 				wxUnusedVar(halt_here);
@@ -20831,10 +20831,13 @@ wxChar* CAdapt_ItDoc::ParsePostWordPunctsAndEndMkrs(wxChar* pChar, wxChar* pEnd,
 		// <empty-key> ( length 11 ) as m_key and m_srcPhrase, which still protects from an infinite loop
 		// BEW 25Aug23 the < and > are not essential, and might be causing an infinite loop (Bill reported 25Aug23), 
 		// especially for src data where m_srcPhrase has valid puncts "<<" preceding; so I'll remove them
-		pSrcPhrase->m_key << _T("empty-key");
-		pSrcPhrase->m_srcPhrase << _T("empty-key");
-		ptr += 9;
-		itemLen = 9;
+		// whm 13Mar2024 removed. I don't think it is necessary to put "empty-key" into the text, and I don't think
+		// returning the ptr now without advancing it would cause an infinite loop. Basically this pSrcPhrase can be
+		// treated as just an "empty" marker source phrase like any other empty content marker.
+		//pSrcPhrase->m_key << _T("empty-key");
+		//pSrcPhrase->m_srcPhrase << _T("empty-key");
+		//ptr += 9;
+		//itemLen = 9;
 		return ptr;
 	}
 	//wxASSERT(!pSrcPhrase->m_key.IsEmpty());
@@ -21482,6 +21485,35 @@ void CAdapt_ItDoc::CountGoodAndBadEndPuncts(wxString strEndPuncts, int& nGood, i
 /// BEW 24Oct14, some changes for support of USFM nested markers - and there are a
 /// few comments added within for explanatory purposes because some of the internal calls
 /// are calls to functions refactored for USFM nested marker support
+/// 
+/// whm 11Mar2024 refactored to include housekeeping for the inline Nonbinding markers
+/// and inline Nonbinding end markers - including all attribute markers that can have 
+/// visible text (before the vertical bar) when such markers are UNFILTERED. In all cases
+/// that visible text must be colored RED as special text and must have some navigation
+/// text that identifies it for adequate recognition by the user. 
+/// The main properties or CSourcePhrase members that are dealt with here are:
+///    pSrcPhrase->m_bSpecialText
+///    pSrcPhrase->m_bFirstOfType
+///    pSrcPhrase->m_inform
+///    pSrcPhrase->curTextType
+///    pSrcPhrase->m_bChapter
+///    pSrcPhrase->m_bVerse
+/// whm 11Mar2024 Note: The setting of m_bSpecialText, m_bFirstOfType, and m_curTextType 
+/// done here in DoMarkerHousekeeping() should reflect what is done within the code 
+/// elsewhere during document creation and document manipulation - including TokenizeText(), 
+/// ReconstituteAfterFilteringChange(), etc. One reason for the existence of this
+/// DoMarkerHousekeeping() function is that the code here is more consolidated and easier
+/// to follow since we are here dealing with the final pList of CSourcePhrases that make
+/// up the entire document just before saving as XML, whereas the setting of m_bSpecialText, 
+/// m_bFirstOfType, and m_curTextType done within the document forming/changing functions 
+/// is more spread out and thus more difficult to trace and keep track of. 
+/// Therefore, any significant coding changes that affect the values set for the
+/// m_bSpecialText, m_bFirstOfType, and m_curTextType pSrcPhrase members should should 
+/// have identical corrolaries here in DoMarkerHousekeeping(). In a real sense the code 
+/// here within DoMarkerHousekeeping() has the "FINAL SAY" because it acts on the entire 
+/// document after all other code has done its work to create the CSourcePhrase instances 
+/// that make up the final document before it gets saved as a persistent XML document.
+/// Therefore, even it other code misses the mark a bit, it needs to be correct here!!
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED(nNewCount),
 	TextType& propagationType, bool& bTypePropagationRequired)
@@ -21536,6 +21568,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 
 	// set up some local variables
 	wxString mkrBuffer; // where we will copy standard format marker strings to, for parsing
+	wxString inlineNBmkrBuffer; 
 	int itemLen = 0;
 
 	// whm 4Sep2023 removed the App's buffer and ClearBuffer. Just use a local wxString buffer.
@@ -21575,7 +21608,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 							 // sourcephrase instance in the sublist
 	bool bStartDefaultTextTypeOnNextIteration = FALSE;
 	bool bSkipPropagation = FALSE;
-	while (pos_pL != 0) // pos_pL will be NULL if the pL list is empty
+	while (pos_pL != NULL) // pos_pL will be NULL if the pL list is empty
 	{
 		pSrcPhrase = (CSourcePhrase*)pos_pL->GetData();
 		pos_pL = pos_pL->GetNext();
@@ -21631,16 +21664,36 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 									 // TextType span on the previous iteration (see the
 									 // code block immediately below)
 		}
-		if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+		// whm 11Mar2024 modified the end marker processing below to include the inline 
+		// nonbinding end markers, which when they close off any visible attribute text
+		// should also set bStartDefaultTextTypeOnNextIteration to TRUE.
+		if (!pSrcPhrase->GetEndMarkers().IsEmpty() 
+			|| !pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty()) // whm 11Mar2024 added
 		{
-			wxArrayString array;
-			array.Clear();
-			pSrcPhrase->GetEndMarkersAsArray(&array);
-			size_t count = array.GetCount();
-			if (count > 0)
+			wxArrayString endMkrsarray;
+			endMkrsarray.Clear();
+			size_t endMkrsCount = 0;
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				pSrcPhrase->GetEndMarkersAsArray(&endMkrsarray);
+			}
+			endMkrsCount = endMkrsarray.GetCount();
+
+			// whm 11Mar2024 added the lines below to get the inline nonbinding end markers
+			// array and count.
+			wxArrayString INB_EndMkrsarray;
+			INB_EndMkrsarray.Clear();
+			size_t INB_EndMkrsCount = 0;
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				pSrcPhrase->GetInlineNonbindingEndMarkersAsArray(&INB_EndMkrsarray);
+			}
+			INB_EndMkrsCount = INB_EndMkrsarray.GetCount();
+
+			if (endMkrsCount > 0)
 			{
 				wxString wholeEndMkr; wholeEndMkr.Empty();
-				wholeEndMkr = array.Item(count - 1); // get the last one, if there is more than one
+				wholeEndMkr = endMkrsarray.Item(endMkrsCount - 1); // get the last one, if there is more than one
 									// for instance, it may have \ft*\f* in the old way of
 									// doing USFM
 				wxASSERT(!wholeEndMkr.IsEmpty());
@@ -21679,6 +21732,22 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 					}
 				}
 			}
+			if (INB_EndMkrsCount > 0)
+			{
+				wxString wholeINBEndMkr; wholeINBEndMkr.Empty();
+				wholeINBEndMkr = INB_EndMkrsarray.Item(INB_EndMkrsCount - 1); // get the last one, if there is more than one
+				wxASSERT(!wholeINBEndMkr.IsEmpty());
+				if (gpApp->gCurrentSfmSet == UsfmOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+				{
+					if (wholeINBEndMkr == _T("\\fig*") || wholeINBEndMkr == _T("\\jmp*") ||
+						wholeINBEndMkr == _T("\\w*") || wholeINBEndMkr == _T("\\rb*") ||
+						wholeINBEndMkr == _T("\\xt*")) // \\xt* end marker will only be present as a wholeINBEndMkr for the stand-alone \xt ...\xt* marker
+					{
+						// it's the end of either a footnote, endnote or cross reference
+						bStartDefaultTextTypeOnNextIteration = TRUE;
+					}
+				}
+			}
 		}
 
 		// get any marker text into mkrBuffer
@@ -21687,20 +21756,34 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		// wx version note: Since we require a read-only buffer we use GetData which just
 		// returns a const wxChar* to the data in the string.
 		const wxChar* pBuffer = mkrBuffer.GetData();
-		wxChar* pEndMkrBuff; // set this dynamically, for each
+		wxChar* pEndOfMkrBuff; // set this dynamically, for each
 							 // source phrase's marker string
 		wxString temp; // can build a string here
 		wxChar* ptr = (wxChar*)pBuffer;
 		wxChar* pBufStart = (wxChar*)pBuffer;
-		pEndMkrBuff = pBufStart + lengthMkrs; // point to null at end
-		wxASSERT(*pEndMkrBuff == _T('\0')); // whm added for wx version - needs to be
+		pEndOfMkrBuff = pBufStart + lengthMkrs; // point to null at end
+		wxASSERT(*pEndOfMkrBuff == _T('\0')); // whm added for wx version - needs to be
 											// set explicitly when mkrBuffer is empty
-		if (mkrBuffer.IsEmpty())
+		// Get any inline nonbinding marker text into inlineNBmkrBuffer
+		inlineNBmkrBuffer = pSrcPhrase->GetInlineNonbindingMarkers();
+		int lengthINBMkrs = inlineNBmkrBuffer.Length();
+		// wx version note: Since we require a read-only buffer we use GetData which just
+		// returns a const wxChar* to the data in the string.
+		const wxChar* pINBBuffer = inlineNBmkrBuffer.GetData();
+		wxChar* pEndOfINBMkrBuff; // set this dynamically, for each
+							 // source phrase's marker string
+		wxString temp2; // can build a string here
+		wxChar* ptrINB = (wxChar*)pINBBuffer;
+		wxChar* pBufStartINB = (wxChar*)pINBBuffer;
+		pEndOfINBMkrBuff = pBufStartINB + lengthINBMkrs; // point to null at end
+		wxASSERT(*pEndOfINBMkrBuff == _T('\0')); // whm added for wx version - needs to be
+
+		if (mkrBuffer.IsEmpty() && inlineNBmkrBuffer.IsEmpty())
 		{
-			// there is no marker string on this sourcephrase instance, so if we are at the
-			// beginning of the document, m_bFirstOfType will be TRUE, otherwise, there
-			// will be a preceding sourcephrase instance and m_bFirstOfType will be FALSE,
-			// and we can just copy it's value
+			// there is no begin marker string on this sourcephrase instance, so if we 
+			// are at the  beginning of the document, m_bFirstOfType will be TRUE, 
+			// otherwise, there will be a preceding sourcephrase instance and 
+			// m_bFirstOfType will be FALSE, and we can just copy it's value
 			if (bInvalidLast)
 			{
 				pSrcPhrase->m_bFirstOfType = TRUE;
@@ -21736,264 +21819,399 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 		} // end of TRUE block for test: if (mkrBuffer.IsEmpty())
 		else
 		{
-			// there is a marker string on this sourcephrase instance
+			// There is a begin marker in m_markers or in m_inlineNonbindingMarkers on 
+			// this sourcephrase instance.
 			if (bInvalidLast)
 			{
 				// we are at the very beginning of the document
-				pLastSrcPhrase = 0; // ensure its null
-				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid
-									  // preceding one
+				pLastSrcPhrase = NULL; // ensure it's NULL
+				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid preceding one
 				pSrcPhrase->m_bSpecialText = bSpecialText; // assume this value, the marker
 														   // may later change it
 				goto x; // code at x comes from TokenizeText, and should not break for
-						// pLast == 0
+						// pLast == NULL
 			}
 			else
 			{
 				// we are not at the beginning of the document
-				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate
-																	// previous, as default
-			x:	while (ptr < pEndMkrBuff)
+				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate previous, as default
+
+				x:	
+				if (!mkrBuffer.IsEmpty())
 				{
-					if (IsWhiteSpace(ptr))
+					while (ptr < pEndOfMkrBuff)
 					{
-						itemLen = ParseWhiteSpace(ptr);
-						ptr += itemLen; // advance pointer past the white space
-					}
-
-					// are we at the end of the markers text string?
-					if (IsEnd(ptr) || ptr >= pEndMkrBuff)
-					{
-						break;
-					}
-
-					// are we pointing at a standard format marker?
-				b:	if (IsMarker(ptr)) // pBuffer added for v1.4.1 contextual sfms
-					{
-						// its a marker of some kind
-						int nMkrLen = 0;
-						if (IsVerseMarker(ptr, nMkrLen))
+						if (IsWhiteSpace(ptr))
 						{
-							if (nMkrLen == 2)
-							{
-								// its a verse marker
-								buffer += gSFescapechar;
-								buffer += _T("v");
-								ptr += 2; // point past the \v marker
-							}
-							else
-							{
-								// its an Indonesia branch verse marker \vn
-								buffer += gSFescapechar;
-								buffer += _T("vn");
-								ptr += 3; // point past the \vn marker
-							}
-
 							itemLen = ParseWhiteSpace(ptr);
-							AppendItem(buffer, temp, ptr, itemLen); // add white
-																	   // space to buffer
-							ptr += itemLen; // point at verse number
-
-							itemLen = ParseNumber(ptr);
-							AppendItem(buffer, temp, ptr, itemLen); // add number (or range
-																	   // eg. 3-5) to buffer
-							// whm 11Jun12 added !pApp->m_curChapter.IsEmpty() && to the test below
-							// since GetChar(0) should never be called on an empty string
-							// whm 5Sep2023 test. Decided to comment out all use of the App's global 
-							// m_curChapter and leave the existing pSrcPhrase->m_chapterVerse
-							// unchanged from its value determined in the previous TokenizeText() call.
-							/*
-							if (!pApp->m_curChapter.IsEmpty())
-							{
-								if (pApp->m_curChapter.GetChar(0) == '0')
-								{
-									pApp->m_curChapter.Empty(); // caller will have set it non-zero
-																// if there are chapters
-								}
-							}
-							pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
-							pSrcPhrase->m_chapterVerse += temp; // append the verse number
-							*/
-							pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a
-														 // new verse
-							ptr += itemLen; // point past verse number
-
-							// set pSrcPhrase attributes
-							pSrcPhrase->m_bVerse = TRUE;
-							if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
-							{
-								// if its already poetry, don't change it
-								pSrcPhrase->m_curTextType = verse;
-							}
-							pSrcPhrase->m_bSpecialText = FALSE;
-
-							itemLen = ParseWhiteSpace(ptr); // past white space which is
-															// after the marker
-							AppendItem(buffer, temp, ptr, itemLen); // add it to the buffer
-							ptr += itemLen; // point past the white space
-
-							goto b; // check if another marker follows:
+							ptr += itemLen; // advance pointer past the white space
 						}
-						else
+
+						// are we at the end of the markers text string?
+						if (IsEnd(ptr) || ptr >= pEndOfMkrBuff)
 						{
-							// some other kind of marker - perhaps its a chapter marker?
-							if (IsChapterMarker(ptr))
+							break;
+						}
+
+						// are we pointing at a standard format marker?
+						// whm 11Mar2024 removed the b: jump label and the goto b statements replacing
+						// the if (IsMarker(ptr)) with a while (IsMarker(ptr)) loop instead which is
+						// equivalent.
+						//b:	if (IsMarker(ptr)) // pBuffer added for v1.4.1 contextual sfms
+						while (IsMarker(ptr))
+						{
+							// it's a marker of some kind
+							int nMkrLen = 0;
+							if (IsVerseMarker(ptr, nMkrLen))
 							{
-								// its a chapter marker
-								buffer += gSFescapechar;
-								buffer += _T("c");
-								ptr += 2; // point past the \c marker
+								if (nMkrLen == 2)
+								{
+									// its a verse marker
+									buffer += gSFescapechar;
+									buffer += _T("v");
+									ptr += 2; // point past the \v marker
+								}
+								else
+								{
+									// its an Indonesia branch verse marker \vn
+									buffer += gSFescapechar;
+									buffer += _T("vn");
+									ptr += 3; // point past the \vn marker
+								}
 
 								itemLen = ParseWhiteSpace(ptr);
-								AppendItem(buffer, temp, ptr, itemLen); // add white space
-																		   // to buffer
-								ptr += itemLen; // point at chapter number
+								AppendItem(buffer, temp, ptr, itemLen); // add white
+																		   // space to buffer
+								ptr += itemLen; // point at verse number
+
 								itemLen = ParseNumber(ptr);
-								AppendItem(buffer, temp, ptr, itemLen); // add chapter number
-																		   // to buffer
+								AppendItem(buffer, temp, ptr, itemLen); // add number (or range
+																		   // eg. 3-5) to buffer
+								// whm 11Jun12 added !pApp->m_curChapter.IsEmpty() && to the test below
+								// since GetChar(0) should never be called on an empty string
 								// whm 5Sep2023 test. Decided to comment out all use of the App's global 
 								// m_curChapter and leave the existing pSrcPhrase->m_chapterVerse
 								// unchanged from its value determined in the previous TokenizeText() call.
 								/*
-								pApp->m_curChapter = temp;
-								pApp->m_curChapter += _T(':'); // get it ready to
-															   // append verse numbers
+								if (!pApp->m_curChapter.IsEmpty())
+								{
+									if (pApp->m_curChapter.GetChar(0) == '0')
+									{
+										pApp->m_curChapter.Empty(); // caller will have set it non-zero
+																	// if there are chapters
+									}
+								}
+								pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
+								pSrcPhrase->m_chapterVerse += temp; // append the verse number
 								*/
-								ptr += itemLen; // point past chapter number
+								pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a
+															 // new verse
+								ptr += itemLen; // point past verse number
 
 								// set pSrcPhrase attributes
-								pSrcPhrase->m_bChapter = TRUE;
-								pSrcPhrase->m_bVerse = TRUE; // always have verses following a
-															 // chapter
+								pSrcPhrase->m_bVerse = TRUE;
 								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
 								{
+									// if its already poetry, don't change it
 									pSrcPhrase->m_curTextType = verse;
 								}
 								pSrcPhrase->m_bSpecialText = FALSE;
 
-								itemLen = ParseWhiteSpace(ptr); // parse white space following
-																// the number
-								AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
-								ptr += itemLen; // point past it
+								itemLen = ParseWhiteSpace(ptr); // past white space which is
+																// after the marker
+								AppendItem(buffer, temp, ptr, itemLen); // add it to the buffer
+								ptr += itemLen; // point past the white space
 
-								goto b; // check if another marker follows
+								//goto b; // check if another marker follows:
 							}
 							else
 							{
-								// neither verse nor chapter, so we don't have to worry
-								// about a following number, so just append the marker to
-								// the buffer string
-
-								// BEW 24Oct14 the next call also handles USFM nested markers
-								// correctly, but internally constructing the unnested equivalent
-								// marker and doing the lookup with that - so no change is
-								// needed here; ParseMarker() is also refactored for support
-								// of USFM nested markers. The markers we are dealing with are
-								// from m_markers member only, and there should never be a
-								// nested marker stored there. So we could use LookupSFM(ptr)
-								// equally well here; but if we use the 4 param signature
-								// override, then we should test that bIsNestedMkr is always
-								// FALSE here.
-								// Returns NULL if unknown marker
-								pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-
-								// whm 24Feb2022 modified the following code (wxASSERT) after getting
-								// notice from Prabhu B about a Debug Alert from the wxASSERT(bIsNestedMkr == FALSE)
-								// line below that kept popping up for him in the release version. His situation
-								// is a collaboration with Paratext. 
-								// After getting Prabhu's data for both Paratext 9.2 and Adapt It, I could not
-								// replicate the "debug alert" he was getting, that is, in my tests of his
-								// data the following wxASSERT() NEVER trips when opening either GEN ch 1 or ch 2.
-								// So, to prevent him from being bothered by repeated "debug alert"s, I'm changing
-								// the wxASSERT() below to just logging the situation in the user log file.
-								//wxASSERT(bIsNestedMkr == FALSE);
-								if (bIsNestedMkr)
+								// not a verse marker but some other kind of marker - perhaps its a chapter marker?
+								if (IsChapterMarker(ptr))
 								{
-									// get temp values for ptr and ItemLen
-									wxChar* tempptr = ptr;
-									int tempItemLen = ParseMarker(tempptr);
-									wxString tempMkr(tempptr, tempItemLen);
-									wxString msg = _T("In DoMarkerHousekeeping() marker %s unexpectedly bIsNestedMkr is TRUE, IGNORING");
-									msg = msg.Format(msg, tempMkr.c_str());
-									pApp->LogUserAction(msg);
-								}
-								wxUnusedVar(tagOnly);
-								wxUnusedVar(baseOfEndMkr);
-								itemLen = ParseMarker(ptr);
-								AppendItem(buffer, temp, ptr, itemLen);
+									// its a chapter marker
+									buffer += gSFescapechar;
+									buffer += _T("c");
+									ptr += 2; // point past the \c marker
 
-								// we wish to know if this marker, which is not within a
-								// span bracketed by \~FILTER followed by \~FILTER*, has
-								// potentially been edited so that it really needs to be
-								// filtered, along with its following text content, rather
-								// than left unfiltered and its content visible for
-								// adapting in the doc. If it should be filtered, we will
-								// put an entry into m_FilterStatusMap to that effect, and
-								// the caller will later use the fact that that map is not
-								// empty to call RetokenizeText() with the option for
-								// filter changes turned on (ie. bool parameter 2 in the
-								// call is TRUE), and that will accomplish the required
-								// filtering.
-								wxString mkr(ptr, itemLen); // construct the wholeMarker
-								wxString mkrPlusSpace = mkr + _T(' '); // add the trailing space
-								// BEW 24Oct14, USFM nested markers are not filterable
-								// because they are not important enough; so the way to
-								// support USFM markers here is simply to let a marker of form
-								// \+tag be passed in as-is, it will fail to be matched, which
-								// would result in wxNOT_FOUND being returned, and no filtering
-								// would be done due to it
-								int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
-								if (curPos >= 0)
-								{
-									// its a marker, currently unfiltered, which should be
-									// filtered
-									wxString valStr;
-									if (gpApp->m_FilterStatusMap.find(mkr) == gpApp->m_FilterStatusMap.end())
+									itemLen = ParseWhiteSpace(ptr);
+									AppendItem(buffer, temp, ptr, itemLen); // add white space
+																			   // to buffer
+									ptr += itemLen; // point at chapter number
+									itemLen = ParseNumber(ptr);
+									AppendItem(buffer, temp, ptr, itemLen); // add chapter number
+																			   // to buffer
+									// whm 5Sep2023 test. Decided to comment out all use of the App's global 
+									// m_curChapter and leave the existing pSrcPhrase->m_chapterVerse
+									// unchanged from its value determined in the previous TokenizeText() call.
+									/*
+									pApp->m_curChapter = temp;
+									pApp->m_curChapter += _T(':'); // get it ready to
+																   // append verse numbers
+									*/
+									ptr += itemLen; // point past chapter number
+
+									// set pSrcPhrase attributes
+									pSrcPhrase->m_bChapter = TRUE;
+									pSrcPhrase->m_bVerse = TRUE; // always have verses following a
+																 // chapter
+									if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
 									{
-										// marker does not already exist in
-										// m_FilterStatusMap so add it as an entry meaning
-										// 'now to be filtered' (a 1 value)
-										(gpApp->m_FilterStatusMap)[mkr] = _T("1");
+										pSrcPhrase->m_curTextType = verse;
 									}
+									pSrcPhrase->m_bSpecialText = FALSE;
+
+									itemLen = ParseWhiteSpace(ptr); // parse white space following
+																	// the number
+									AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
+									ptr += itemLen; // point past it
+
+									//goto b; // check if another marker follows
 								}
+								else
+								{
+									// neither verse nor chapter, so we don't have to worry
+									// about a following number, so just append the marker to
+									// the buffer string
 
-								// set default pSrcPhrase attributes
-								if (pSrcPhrase->m_curTextType != poetry)
-									pSrcPhrase->m_curTextType = verse; // assume verse unless
-																	 // AnalyseMarker changes it
+									// BEW 24Oct14 the next call also handles USFM nested markers
+									// correctly, but internally constructing the unnested equivalent
+									// marker and doing the lookup with that - so no change is
+									// needed here; ParseMarker() is also refactored for support
+									// of USFM nested markers. The markers we are dealing with are
+									// from m_markers member only, and there should never be a
+									// nested marker stored there. So we could use LookupSFM(ptr)
+									// equally well here; but if we use the 4 param signature
+									// override, then we should test that bIsNestedMkr is always
+									// FALSE here.
+									// Returns NULL if unknown marker
+									pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 
-								// analyse the marker and set fields accordingly
-								// BEW 24Oct14 this call, if the marker was a nested one,
-								// will use the pUsfmAnalysis obtained above, which will
-								// be obtained from the non-nested equivalent marker, so
-								// no other change is needed here
-								pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
-									(wxChar*)ptr, itemLen, pUsfmAnalysis);
+									// whm 24Feb2022 modified the following code (wxASSERT) after getting
+									// notice from Prabhu B about a Debug Alert from the wxASSERT(bIsNestedMkr == FALSE)
+									// line below that kept popping up for him in the release version. His situation
+									// is a collaboration with Paratext. 
+									// After getting Prabhu's data for both Paratext 9.2 and Adapt It, I could not
+									// replicate the "debug alert" he was getting, that is, in my tests of his
+									// data the following wxASSERT() NEVER trips when opening either GEN ch 1 or ch 2.
+									// So, to prevent him from being bothered by repeated "debug alert"s, I'm changing
+									// the wxASSERT() below to just logging the situation in the user log file.
+									//wxASSERT(bIsNestedMkr == FALSE);
+									if (bIsNestedMkr)
+									{
+										// get temp values for ptr and ItemLen
+										wxChar* tempptr = ptr;
+										int tempItemLen = ParseMarker(tempptr);
+										wxString tempMkr(tempptr, tempItemLen);
+										wxString msg = _T("In DoMarkerHousekeeping() marker %s unexpectedly bIsNestedMkr is TRUE, IGNORING");
+										msg = msg.Format(msg, tempMkr.c_str());
+										pApp->LogUserAction(msg);
+									}
+									wxUnusedVar(tagOnly);
+									wxUnusedVar(baseOfEndMkr);
+									itemLen = ParseMarker(ptr);
+									AppendItem(buffer, temp, ptr, itemLen);
 
-								// advance pointer past the marker
-								ptr += itemLen;
+									// we wish to know if this marker, which is not within a
+									// span bracketed by \~FILTER followed by \~FILTER*, has
+									// potentially been edited so that it really needs to be
+									// filtered, along with its following text content, rather
+									// than left unfiltered and its content visible for
+									// adapting in the doc. If it should be filtered, we will
+									// put an entry into m_FilterStatusMap to that effect, and
+									// the caller will later use the fact that that map is not
+									// empty to call RetokenizeText() with the option for
+									// filter changes turned on (ie. bool parameter 2 in the
+									// call is TRUE), and that will accomplish the required
+									// filtering.
+									wxString mkr(ptr, itemLen); // construct the wholeMarker
+									wxString mkrPlusSpace = mkr + _T(' '); // add the trailing space
+									// BEW 24Oct14, USFM nested markers are not filterable
+									// because they are not important enough; so the way to
+									// support USFM markers here is simply to let a marker of form
+									// \+tag be passed in as-is, it will fail to be matched, which
+									// would result in wxNOT_FOUND being returned, and no filtering
+									// would be done due to it
+									int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
+									if (curPos >= 0)
+									{
+										// its a marker, currently unfiltered, which should be
+										// filtered
+										wxString valStr;
+										if (gpApp->m_FilterStatusMap.find(mkr) == gpApp->m_FilterStatusMap.end())
+										{
+											// marker does not already exist in
+											// m_FilterStatusMap so add it as an entry meaning
+											// 'now to be filtered' (a 1 value)
+											(gpApp->m_FilterStatusMap)[mkr] = _T("1");
+										}
+									}
 
-								itemLen = ParseWhiteSpace(ptr); // parse white space after it
-								AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
-								ptr += itemLen; // point past it
-								goto b; // check if another marker follows
-							} // end of else block of if (IsChapterMarker(ptr))
-						} // end of else block of if (IsVerseMarker(ptr, nMkrLen))
-					}
-					else
-					{
+									// set default pSrcPhrase attributes
+									if (pSrcPhrase->m_curTextType != poetry)
+										pSrcPhrase->m_curTextType = verse; // assume verse unless
+																		 // AnalyseMarker changes it
+
+									// analyse the marker and set fields accordingly
+									// BEW 24Oct14 this call, if the marker was a nested one,
+									// will use the pUsfmAnalysis obtained above, which will
+									// be obtained from the non-nested equivalent marker, so
+									// no other change is needed here
+									pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+										(wxChar*)ptr, itemLen, pUsfmAnalysis);
+
+									// advance pointer past the marker
+									ptr += itemLen;
+
+									itemLen = ParseWhiteSpace(ptr); // parse white space after it
+									AppendItem(buffer, temp, ptr, itemLen); // add it to buffer
+									ptr += itemLen; // point past it
+									//goto b; // check if another marker follows
+								} // end of else block of if (IsChapterMarker(ptr))
+							} // end of else block of if (IsVerseMarker(ptr, nMkrLen))
+						} // end of while (IsMarker(ptr))
+
 						// get ready for next iteration
 						buffer.Empty(); // whm 4Sep2023 removed App's buffer, and made a local wxString buffer instead
 						// strLen = ClearBuffer(); // empty the small working buffer
 						itemLen = 0;
-						ptr++;	// whm added. The legacy did not increment ptr here.
-								// The legacy app never reached this else block, because,
-								// if it had, it would enter an endless loop. The version 3
-								// app can have filtered text and can potentially reach
-								// this else block, so we must ensure that we avoid an
-								// endless loop by incrementing ptr here.
-					}
-				} // end of while (ptr < pEndMkrBuff)
+						// whm added. The legacy did not increment ptr here.
+						// The legacy app never reached this else block, because,
+						// if it had, it would enter an endless loop. The version 3
+						// app can have filtered text and can potentially reach
+						// this else block, so we must ensure that we avoid an
+						// endless loop by incrementing ptr here.
+						ptr++;	
+					} // end of while (ptr < pEndOfMkrBuff)
+				} // end of if (!mkrBuffer.IsEmpty())
+
+				if (!inlineNBmkrBuffer.IsEmpty())
+				{
+					while (ptrINB < pEndOfINBMkrBuff)
+					{
+						if (IsWhiteSpace(ptr))
+						{
+							itemLen = ParseWhiteSpace(ptrINB);
+							ptrINB += itemLen; // advance pointer past the white space
+						}
+
+						// are we at the end of the markers text string?
+						if (IsEnd(ptrINB) || ptrINB >= pEndOfINBMkrBuff)
+						{
+							break;
+						}
+						// are we pointing at a standard format marker?
+						while (IsMarker(ptrINB))
+						{
+							// It's a marker.
+							// We cannot have any verse or chapter markers in the m_inlineNonbindingMarkers member
+
+							// BEW 24Oct14 the next call also handles USFM nested markers
+							// correctly, but internally constructing the unnested equivalent
+							// marker and doing the lookup with that - so no change is
+							// needed here; ParseMarker() is also refactored for support
+							// of USFM nested markers. The markers we are dealing with are
+							// from m_markers member only, and there should never be a
+							// nested marker stored there. So we could use LookupSFM(ptr)
+							// equally well here; but if we use the 4 param signature
+							// override, then we should test that bIsNestedMkr is always
+							// FALSE here.
+							// Returns NULL if unknown marker
+							pUsfmAnalysis = LookupSFM(ptrINB, tagOnly, baseOfEndMkr, bIsNestedMkr);
+
+							// whm 24Feb2022 modified the following code (wxASSERT) after getting
+							// notice from Prabhu B about a Debug Alert from the wxASSERT(bIsNestedMkr == FALSE)
+							// line below that kept popping up for him in the release version. His situation
+							// is a collaboration with Paratext. 
+							// After getting Prabhu's data for both Paratext 9.2 and Adapt It, I could not
+							// replicate the "debug alert" he was getting, that is, in my tests of his
+							// data the following wxASSERT() NEVER trips when opening either GEN ch 1 or ch 2.
+							// So, to prevent him from being bothered by repeated "debug alert"s, I'm changing
+							// the wxASSERT() below to just logging the situation in the user log file.
+							//wxASSERT(bIsNestedMkr == FALSE);
+							if (bIsNestedMkr)
+							{
+								// get temp values for ptr and ItemLen
+								wxChar* tempptr = ptrINB;
+								int tempItemLen = ParseMarker(tempptr);
+								wxString tempMkr(tempptr, tempItemLen);
+								wxString msg = _T("In DoMarkerHousekeeping() marker %s unexpectedly bIsNestedMkr is TRUE, IGNORING");
+								msg = msg.Format(msg, tempMkr.c_str());
+								pApp->LogUserAction(msg);
+							}
+							wxUnusedVar(tagOnly);
+							wxUnusedVar(baseOfEndMkr);
+							itemLen = ParseMarker(ptrINB);
+							AppendItem(buffer, temp2, ptrINB, itemLen);
+
+							// we wish to know if this marker, which is not within a
+							// span bracketed by \~FILTER followed by \~FILTER*, has
+							// potentially been edited so that it really needs to be
+							// filtered, along with its following text content, rather
+							// than left unfiltered and its content visible for
+							// adapting in the doc. If it should be filtered, we will
+							// put an entry into m_FilterStatusMap to that effect, and
+							// the caller will later use the fact that that map is not
+							// empty to call RetokenizeText() with the option for
+							// filter changes turned on (ie. bool parameter 2 in the
+							// call is TRUE), and that will accomplish the required
+							// filtering.
+							wxString mkr(ptrINB, itemLen); // construct the wholeMarker
+							wxString mkrPlusSpace = mkr + _T(' '); // add the trailing space
+							// BEW 24Oct14, USFM nested markers are not filterable
+							// because they are not important enough; so the way to
+							// support USFM markers here is simply to let a marker of form
+							// \+tag be passed in as-is, it will fail to be matched, which
+							// would result in wxNOT_FOUND being returned, and no filtering
+							// would be done due to it
+							int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
+							if (curPos >= 0)
+							{
+								// its a marker, currently unfiltered, which should be
+								// filtered
+								wxString valStr;
+								if (gpApp->m_FilterStatusMap.find(mkr) == gpApp->m_FilterStatusMap.end())
+								{
+									// marker does not already exist in
+									// m_FilterStatusMap so add it as an entry meaning
+									// 'now to be filtered' (a 1 value)
+									(gpApp->m_FilterStatusMap)[mkr] = _T("1");
+								}
+							}
+
+							// set default pSrcPhrase attributes
+							if (pSrcPhrase->m_curTextType != poetry)
+								pSrcPhrase->m_curTextType = verse; // assume verse unless
+																 // AnalyseMarker changes it
+
+							// analyse the marker and set fields accordingly
+							// BEW 24Oct14 this call, if the marker was a nested one,
+							// will use the pUsfmAnalysis obtained above, which will
+							// be obtained from the non-nested equivalent marker, so
+							// no other change is needed here
+							pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+								(wxChar*)ptrINB, itemLen, pUsfmAnalysis);
+
+							// advance pointer past the marker
+							ptrINB += itemLen;
+
+							itemLen = ParseWhiteSpace(ptrINB); // parse white space after it
+							AppendItem(buffer, temp2, ptrINB, itemLen); // add it to buffer
+							ptrINB += itemLen; // point past it
+
+						} // end of while (IsMarker(ptrINB))
+						buffer.Empty(); // whm 4Sep2023 removed App's buffer, and made a local wxString buffer instead
+						// strLen = ClearBuffer(); // empty the small working buffer
+						itemLen = 0;
+						// whm added. The legacy did not increment ptr here.
+						// The legacy app never reached this else block, because,
+						// if it had, it would enter an endless loop. The version 3
+						// app can have filtered text and can potentially reach
+						// this else block, so we must ensure that we avoid an
+						// endless loop by incrementing ptr here.
+						ptrINB++;	
+					} // end of while (ptrINB < pEndOfINBMkrBuff)
+				} // end of if (!inlineNBmkrBuffer.IsEmpty())
 			} // end of else block of if (bInvalidLast)
 		} // end of else block for test: if (mkrBuffer.IsEmpty())
 
@@ -22003,7 +22221,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList, int WXUNUSED
 											   // below
 		gbSpecialText = pSrcPhrase->m_bSpecialText; // the value to be propagated at end of
 													// OnEditSourceText()
-	} // end of while (pos_pL != 0) loop
+	} // end of while (pos_pL != NULL) loop
 
 	// BEW added 01Oct06; handle an empty list situation (the above loop won't have been
 	// entered so finalType won't yet be set
@@ -35204,13 +35422,54 @@ wxString CAdapt_ItDoc::GetLastBeginMkr(wxString mkrs)
 // "\\ms" should be the priority marker for textType "major sect head". In the second string "\\q" should be
 // the priority marker for textType "poetry". Hence, The priority one needs to be the one that should set the 
 // m_curTextType and m_inform members for the current source phrase, whose marker context is being examined.
-// Note: The AnalyzeMarker() function does set 
-wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
+// Note: The AnalyzeMarker() function does set...
+// 
+// whm 12Mar2024 revision. The previously named GetPriorityBeginMkr() has been problematic for some time. 
+// First, it's name is too vague to indicate what it is supposed to do, so I've renamed it to
+// GetPriorityTextTypeChangingBeginMkr(). Second, it appears from BEW comments made in Aug23 that its purpose
+// was to return any marker in m_markers which can "set the TextType". But, simply returning the first or last
+// marker in m_markers is not intelligent enough to identify such a marker. Sometimes that approach misses the
+// marker that actually would change the textType. We really need to look at each marker present in m_markers
+// and determine by checking whether it is also found within the m_RedBeginMarkers or not, and if so,
+// return the first such marker found as the "priority" marker. If no marker from m_markers is also present 
+// within the m_RedBeginMarkers, then the function returns the last marker encountered in m_markers.
+// Note: Markers like \p and even \c n or \v n are in the m_BlueBeginMarker set which don't change the text type. 
+wxString CAdapt_ItDoc::GetPriorityTextTypeChangingBeginMkr(wxString mkrs)
 {
 	if (mkrs.IsEmpty())
 	{
 		return wxEmptyString;
 	}
+	wxArrayString MarkersList;
+	MarkersList.Clear();
+	GetMarkersAndFollowingWhiteSpaceFromString(MarkersList, mkrs);
+	int nTot = (int)MarkersList.GetCount();
+	wxString candidateMkr; candidateMkr = wxEmptyString;
+	wxString nonPriorityMkr; nonPriorityMkr = wxEmptyString;
+	for (int i = 0; i < nTot; i++)
+	{
+		candidateMkr = MarkersList.Item(i);
+		candidateMkr.Trim(TRUE);
+		candidateMkr.Trim(FALSE);
+		candidateMkr += _T(" ");
+		if (!candidateMkr.IsEmpty() && gpApp->m_RedBeginMarkers.Find(candidateMkr) != wxNOT_FOUND)
+		{
+			// This marker is in the m_RedBeginMarkers set so it should be considered a 
+			// "priority" marker, so return it to caller.
+			return candidateMkr;
+		}
+		else if (!candidateMkr.IsEmpty())
+		{
+			// This nonPriorityMkr will be the last marker encountered when no 
+			nonPriorityMkr = candidateMkr;
+		}
+	}
+	// if we get here, no priority marker was found, so return the nonPriorityMkr, which
+	// itself could be an empty string.
+	return nonPriorityMkr;
+
+	/*
+	// whm 12Mar2024 refactored, and commented out the old code bwlow
 	// How many markers are there? We can get a count using gSFescapechar in wxString::Replace(), replacing 
 	// gSFescapechar with itself.
 	wxString beginMkr;
@@ -35269,6 +35528,7 @@ wxString CAdapt_ItDoc::GetPriorityBeginMkr(wxString mkrs)
 	// whm 6Jul2023 GCC has warning flag that in this function "control reaches end of non-void function" so
 	// I'm adding a return wxEmptyString statement here at end of function.
 	return wxEmptyString;
+	*/
 }
 
 // BEW 5Dec22 I want a quick way, for use in ParseWord() when checking out post-word punctuation,
@@ -39830,6 +40090,14 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 		theMkr = GetWholeMarker(ptr);
 		wxString augTheMkr;
 		augTheMkr = theMkr + _T(' ');
+		// whm 13Mar2024 added. If the marker (augThMkr) at this point is to be filtered, we should
+		// return the len immediately from ParseWord(). Otherwise, the ParseWord() will start storing
+		// the marker and end marker in pSrcPhrase which is not appropriate for a marker that should
+		// be filtered.
+		if (gpApp->gCurrentFilterMarkers.Find(augTheMkr) != wxNOT_FOUND)
+		{
+			return len;
+		}
 		bool bIsCharAttributeMkr;
 		bIsCharAttributeMkr = FALSE; // init
 		bIsCharAttributeMkr = bIsCharAttributeMkr; // avoid gcc warning set but not used warning
@@ -40273,10 +40541,13 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 			// We are done with the hiding of the metadata, and we have set m_key, and m_srcPhrase
 
 			// Now we need to get TokenizeText's current len value updated, and the endMarker stored
-			// whm 6Mar2024 corrected. Here within m_bWithinMkrAttributeSpan, the m_strAttrEndMkr 
-			// should be stored in the m_inlineNonbindingEndMarkers member, and not the 
-			// m_inlineBindingEndMarkers set.
-			pSrcPhrase->SetInlineNonbindingEndMarkers(m_strAttrEndMkr); //pSrcPhrase->SetInlineBindingEndMarkers(m_strAttrEndMkr);
+			// whm 11Mar2024 corrected. While we are within the m_bWithinMkrAttributeSpan TRUE block
+			// we need to determine if the m_strAttrEndMkr is the m_inlineBindingEndMarker set or 
+			// in the m_inlineNonbindingEndMarker set, and store the end marker accordingly.
+			if (gpApp->m_inlineBindingEndMarkers.Find(m_strAttrEndMkr) != wxNOT_FOUND)
+				pSrcPhrase->SetInlineBindingEndMarkers(m_strAttrEndMkr);
+			else if (gpApp->m_inlineNonbindingEndMarkers.Find(m_strAttrEndMkr) != wxNOT_FOUND)
+				pSrcPhrase->SetInlineNonbindingEndMarkers(m_strAttrEndMkr);
 
 			// Deal with the len value to return to TokenizeText(). 
 			// len value currently includes the m_nBeginAttrMkrLen. Now increment it to point past the end marker:
@@ -40944,10 +41215,10 @@ int CAdapt_ItDoc::ParseWord(wxChar* pChar,
 					// also '{' or '(' being prior to the word - and parse over any such one, storing it in m_precPunct
 					// and advancing ptr by 1, and len by 1 too. Handle that here...
 #if defined (_DEBUG) // && !defined(NOLOGS) //&& defined(WHERE)
+						//wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
+						//	__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 					{
 						wxString pointsAt = wxString(ptr, 16);
-						wxLogDebug(_T("ParseWord() line %d , pSrcPhrase->m_nSequNumber = %d , m_key= [%s] , len= %d , m_markers=[%s] , pointsAt= [%s]"),
-							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), len, pSrcPhrase->m_markers.c_str(), pointsAt.c_str());
 						if (pSrcPhrase->m_nSequNumber >= 56)
 						{
 							int halt_here = 1; wxUnusedVar(halt_here);
@@ -46007,7 +46278,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		mypointsAt = wxString(ptr, 6);
 //		wxLogDebug(_T("TokText line %d in TokenizeText(), sn= %d , bWithinAttrSpan= %d , pointsAt= [%s] "),
 //			__LINE__, pSrcPhrase->m_nSequNumber, (int)m_bWithinMkrAttributeSpan, mypointsAt.c_str());
-		if (pSrcPhrase->m_nSequNumber == 422) // whm break
+		if (pSrcPhrase->m_nSequNumber == 31) // whm break
 		//if (mypointsAt.Find(_T(" later")) != wxNOT_FOUND) // whm break
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
@@ -46369,9 +46640,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			bExitEmptyMkrsLoop = FALSE; // init
 			wxString atMkr = wxEmptyString;
 			wxString mkrTag = wxEmptyString;
-			wxString paragraphMkr = _T("\\p");
-			wxString subtitle = _T("\\s");
-			wxString subtitleOne = _T("\\s1");
 			wxString strVerseNum = wxEmptyString; wxString strChapterNum = wxEmptyString;
 			int nMkrLen = 0; 
 			int itemLen = 0;  
@@ -47373,10 +47641,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// BEW comment 6Sep23, regarding the issue of chapter 2 and chapter 7 getting lost
 						// when a paragraph marker follows chapter marker, I changed to use GetLastBeginMkr() to see
 						// if that made a difference to the parsing. It didn't. So I reverted back to using 
-						// GetPriorityBeginMkr().
+						// GetPriorityTextTypeChangingBeginMkr().
 						offset = wxNOT_FOUND;
 						wxString firstMkr;
-						firstMkr = GetPriorityBeginMkr(mkrsContent); // BEW 31Aug23, // Bill wants firstMkr to set the type etc					
+						// whm 12Mar2024 refactored and changed the name of the next function call. 
+						// The function previously was named GetPriorityMkr(), but is now named
+						// GetPriorityTextTypeChangingBeginMkr(). It now returns the first marker
+						// found within m_markers that is also found in the App's m_RegBeginMarkers 
+						// set, or if not present there, the last marker in m_markers is returned,
+						// or wxEmptyString if no markers are within m_markers.
+						firstMkr = GetPriorityTextTypeChangingBeginMkr(mkrsContent); // BEW 31Aug23, // Bill wants firstMkr to set the type etc					
 						offset = tokBuffer.Find(firstMkr);
 
 						//wxString lastMkr;
@@ -47607,7 +47881,321 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								int debugBreak = 0; wxUnusedVar(debugBreak);
 								// TODO anything to do here? I don't think so -- e.g. \x must still be pointed at
 								// when control reaches the filtering code, a long way below
-							}
+								// 
+								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+								// whm 12Mar2024 added filtering block here below for testing. 
+								// I think this needs to have the full filtering block at this
+								// location. The other main filtering block that precedes this is the filtering 
+								// block that is within the while loop:
+								//    while (ptr < pEnd && *ptr == gSFescapechar && !IsRedOrBindingOrNonbindingBeginMkr(ptr, pEnd))
+								// above, but that loop excludes char attribute markers like \jmp. The filtering code
+								// here should be similar to what is done later below at about 49752
+								// This is the block for filtering a span of source text out,
+								// to store it in m_filteredInfo in the CSourcePhrase instance
+								// which commences the filter span.
+
+								// If the span is associated with an attribute having
+								// marker such as \w ( inlineBindingMkr, for a glossary entry)
+								// or \fig ( for a figure in the printed text), and some others,
+								// TokenizeText() will have gathered and cached metadata for hiding
+								// the information from bar ( | ) to the matching endmarker, and
+								// appending a copy of the endmarker as well, for use later for
+								// locating where to restore the metadata in an export needing it.
+								//
+								// But when filtering, we will want to have the attributes 
+								// metadata "in place", rather than having it hidden in the
+								// span's last CSourcePhrase instance's m_punctsPattern member.
+								// So we must test for filtering of the small set of attributes-having
+								// markers, and if we are wanting to filter one, then we'll grab the
+								// whole span before m_punctsPattern has a chance to hide anything,
+								// and since filtering removes the need for the cached metadata to
+								// persist, we clear out that cached stuff and its temporary on-the-heap
+								// CSourcePhrase instance as well, so that there's no confusion from 
+								// that stuff hanging around unused. 
+								// So we'll code in bleeding order - get the special cases out of the way
+								// first, and the general stuff handled last.
+
+								// bIsToBeFiltered is TRUE, so determine if the marker is one from
+								// the set of attributes-having markers, and that tokenizing source
+								// text is in operation
+								wxString whichMkr = wxEmptyString;
+								//wxUnusedVar(whichMkr); // wwhichMkr in the call below is the one checkedd for
+								bool bItsSourceText = !m_bTokenizingTargetText;
+
+								// Ready for the filtering code...
+								if (bItsSourceText)
+								{
+									wxString temp = wxEmptyString;
+									itemLen = 0; // initialize
+
+									// Obtain the string to be filtered out
+									itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
+
+									// get filtered text bracketed by \~FILTER and \~FILTER*
+									temp = GetFilteredItemBracketed(ptr, itemLen);
+
+									// BEW 30Sep19, storing will be to the next pSrcPhrase's
+									// m_filteredInfo member. It doesn't yet exist, so we
+									// cache temp, and set bDelayStoringFilteredInfo to TRUE,
+									// and then at next iteration of the outer loop, we
+									// append the cached data to m_filteredInfo. If the loop
+									// exits before the next pSrcPhrase can be created, it is
+									// created after the loop finishes, and a pile ptr added
+									// to Layout's m_pileList, so that a green wedge and
+									// m_inform text ("Filtered Info Carrier") are displayed
+									// in the nav text region at doc end
+									strCacheDelayedFilteredContent = temp; // temp is local and can now die
+									bDelayStoringFilteredInfo = TRUE; // BEW 17Dec22 need this TRUE value, because
+									// if strCacheDelayedFilteredContent wxString is non-empty when control gets
+									// to doc end, the an extra pSrcPhrase will be automatically created to have
+									// a place to store it - see Doc lines 20,702++ for where that's done
+
+									// BEW 16Dec22 move the AddToFilteredInfo() call to here, since strCacheDelayedFilteredContent
+									// has its content now, there is no point in delaying storage till the next
+									// pSrcPhrase - provided we advance ptr to point beyond what we've filtered & stored
+									// BEW 24Jul23 - what's been filtered should be stored not on pSrcPhrase, but on
+									// pLastSrcPhrase, it should then work better if later the beginMkr is removed from
+									// the gCurrentFilterMarkers list
+									if (pLastSrcPhrase != NULL)
+									{
+										if (bParseSweptUpMatterBeforeMarkerToBeFiltered)
+										{
+											// There is swept up material to prefix to the bracketed filtered marker
+											// That was determined by the IsNextFilterableMkrToBeFiltered() earlier
+											// in TokenizeText(). 
+											// The swept up material may contain whitespace, and/or other markers such as
+											// \c n, \v n \p and other empty markers that are contained in the variable:
+											// sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.
+											// Here we prefix that swept up material to strCacheDelayedFilteredContent
+											// before the pLastSrcPhrase->AddToFilteredInto() call below.
+											strCacheDelayedFilteredContent = sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered
+												+ strCacheDelayedFilteredContent;
+											// We now reset the variables
+											sweptUpWhiteSpaceAndMarkersPrecedingMkrBeingFiltered.Empty();
+											bParseSweptUpMatterBeforeMarkerToBeFiltered = FALSE;
+										}
+										//pSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+										pLastSrcPhrase->AddToFilteredInfo(strCacheDelayedFilteredContent);
+									}
+									// ptr has to be updated by itemLen characters added; wholeMkr got
+									// removed along with its content; and will be stored to m_filteredInfo
+									ptr += itemLen;
+									strCacheDelayedFilteredContent = wxEmptyString; // Gotta clear it, otherwise, if it's
+										// not empty when parse gets to doc end, it will be added again on a "Filtered Info Carrier"
+										// programmatically added extra pSrcPhrase
+									itemLen = 0; // BEW added 24Aug23
+
+									// whm 21Feb2024 added. Call ParsePostWordPunctsAndEndMkrs() function here to deal with
+									// any puncts that immediately follow the filtered info that really should be stored on
+									// pLastSrcPhrase. Note that we pass pLastSrcPhrase here into the function!!
+									ptr = ParsePostWordPunctsAndEndMkrs(ptr, pEnd, pLastSrcPhrase, itemLen, spacelessPuncts);
+
+									// We don't know  what lies beyond the endmarker, but it's handled further down.
+									// if after some whitespace there is a backslash, then continue; to iterate the loop.
+									// Otherwise, probably words follow
+									int aCount;
+									aCount = 0;
+									aCount = ParseWhiteSpace(ptr); // parse any white space following it,
+																	// return 0  if not pointing at whitespace
+									//wxUnusedVar(aCount); // avoid compiler warning
+									// BEW 24Aug23 dont advance ptr, but make aCount available if wanted below
+									tokBuffer.Empty();
+
+									// BEW 23Aug23, it's probably unhelpful to iterate this inner loop using continue; in every
+									// context. For instance, if after any whites there is not a backslash, but rather words to
+									// be parsed, (or if \x to \x* just got filtered out - which is likely to be followed by words)
+									// we would want to break from the loop. But if after whites is a backslash, then continue;
+									// would be appropriate. So sort these possibilities out...
+									{ //scope block
+										wxChar* pAux = ptr + aCount; // typically aCount is 1, for the one space prior to words
+											// unless there is a lurking backslash, which would require iterating the inner loop
+										if ((*pAux == gSFescapechar) || (*ptr == gSFescapechar))
+										{
+											// BEW 28Aug23 There is a lurking backslash!  So advance ptr to it, otherwise, control
+											// when continue is called, goes to the while loop at 40835 which tests for a beginMkr
+											// at start of inner loop, but ptr still pointing at space or newline, the loop will
+											// exit immediately; bContinueTwice will be FALSE, bKeepPtrFromAdvancing will be FALSE,
+											// and so control goes to ParsePreWord() and then ParseWord() where the initial backslash
+											// of the marker causes ParseAWord() to fail, and the text that should be parsed is not
+											// parsed, and instead "empty-key" shows. This error sequence starts here, if ptr
+											// points at space or newline and we don't parse over that whitespace.
+											if (*pAux == gSFescapechar)
+											{
+												wxString strACount;
+												strACount = wxString(ptr, aCount);
+												pSrcPhrase->m_precPunct += strACount;
+												ptr += aCount; // point ptr at the beginMkr, (we are not here trying to get a new pSrcPhrase)
+											}
+											continue; // iterate the inner loop - 6th continue in TokenizeText()
+										}
+										else
+										{
+											// words probably follow, so break from the loop
+											// send control to ParsePreWord() and then ParseWord()
+											goto parsing;
+										}
+									} // end scopeblock
+								} // end of TRUE block for test: if (bItsSourceText)
+								else
+								{
+									// It's not source text...
+									wxString temp = wxEmptyString;
+
+									// Ready for the filtering code...
+									itemLen = 0; // initialize
+
+									// Obtain the string to be filtered out
+									itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
+
+									// BEW 30Sep19,  The legacy code follows...
+
+									// get filtered text bracketed by \~FILTER and \~FILTER*
+									bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
+										augWholeMkr, bIsForeignBackTrans);
+									if (bIsForeignBackTrans)
+									{
+										// it's a back translation type of marker of foreign origin (extra
+										// chars after the t in \bt) so we just tuck it away in
+										// m_filteredInfo
+										temp = GetFilteredItemBracketed(ptr, itemLen);
+									}
+									else if (bIsFreeTransOrNoteOrBackTrans)
+									{
+										// whm 27Jan2024 TODO: Should the following call's 4th param be pLastSrcPhrase???
+										// TODO:
+										SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
+										wxString aTempStr(ptr, itemLen);
+										temp = aTempStr; // don't need to wrap with \~FILTER etc, get just
+															// enough for the code below to set the value between |@ and @|
+									}
+									else
+									{
+										// other filterable markers go in m_filteredInfo, and have to be
+										// wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
+										temp = GetFilteredItemBracketed(ptr, itemLen);
+									}
+
+									// We may be at some free translation's anchor pSrcPhrase, having just
+									// set up the filter string to be put into m_markers; and if so, this
+									// string will contain a count of the number of following words to
+									// which the free translation applies; and this count will be
+									// bracketted by |@ (bar followed by @) at the start and @|<space> at
+									// the end, so we can search for these and if found, we extract the
+									// number string and remove the whole substring because it is only
+									// there to inform the parse operation and we don't want it in the
+									// constructed document. We use the count to determine which pSrcPhrase
+									// later encountered is the one to have its m_bEndFreeTrans member set
+									// TRUE.
+									int nFound = temp.Find(_T("|@"));
+									if (nFound != -1)
+									{
+										// there is some free translation to be handled
+										int nFound2 = temp.Find(_T("@| "));
+										wxASSERT(nFound2 - nFound < 10); // characters between can't be
+																			// too big a number
+										wxString aNumber = temp.Mid(nFound + 2, nFound2 - nFound - 2);
+										nFreeTransWordCount = wxAtoi(aNumber);
+										wxASSERT(nFreeTransWordCount >= 13);
+
+										// now remove the substring
+										temp.Remove(nFound, nFound2 + 3 - nFound);
+
+										// now check for a word count value of zero -- we would get this if
+										// the user, in the project which supplied the exported text data,
+										// free translated a section of source text but did not supply any
+										// target text (if a target text export was done -- the same can't
+										// happen for source text of course). When such a \free field
+										// occurs in the data, there will be no pSrcPhrase to hang it on,
+										// because the parser will just collect all the empty markers into
+										// m_markers; so when we get a count of zero we should throw away
+										// the propagated free translation & let the user type another if
+										// he later adapts this section
+										if (nFreeTransWordCount == 0)
+										{
+											temp.Empty();
+										}
+									} // end of TRUE block for test: if (nFound != -1)
+
+									// BEW added 05Oct05; CSourcePhrase class has new bool attributes in
+									// support of notes, backtranslations and free translations, so we have
+									// to set these at appropriate places in the parse.
+									if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
+									{
+										// other filtered stuff needs to be saved here (not later), it has
+										// been wrapped with \~FILTER and \~FILTER*; there is no need to
+										// use a delimiting space between the filter markers
+										// whm 20Jan2024 corrected. The AddToFilteredInfo should be done
+										// to the pLastSrcPhrase and not pSrcPhrase.
+										//pSrcPhrase->AddToFilteredInfo(temp);
+										pLastSrcPhrase->AddToFilteredInfo(temp);
+									}
+									if (wholeMkr == _T("\\note"))
+									{
+										pSrcPhrase->m_bHasNote = TRUE;
+									}
+									if (bFreeTranslationIsCurrent)
+									{
+										// a free translation section is current
+										if (wholeMkr == _T("\\free"))
+										{
+											// we've arrived at the start of a new section of free
+											// translation -- we should have already turned it off, but
+											// since we obviously haven't we'll do so now
+											if (nFreeTransWordCount != 0)
+											{
+												bFreeTranslationIsCurrent = TRUE; // turn on this flag to
+													// inform parser in subsequent iterations that a new
+													// one is current
+												if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+												{
+													pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+																							// previous section
+												}
+
+												// indicate start of new section
+												pSrcPhrase->m_bHasFreeTrans = TRUE;
+												pSrcPhrase->m_bStartFreeTrans = TRUE;
+											}
+											else
+											{
+												// we are throwing this section away, so turn off the flag
+												bFreeTranslationIsCurrent = FALSE;
+												if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+												{
+													pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
+																							// previous section
+												}
+											}
+										}
+										else
+										{
+											// for any other marker, if the section is not already turned
+											// off, then just propagate the free translation section to
+											// this sourcephrase too
+											pSrcPhrase->m_bHasFreeTrans = TRUE;
+										}
+									} // end of the TRUE block for test: if (bFreeTranslationIsCurrent)
+									else
+									{
+										// no free translation section is currently in effect, so check to
+										// see if one is about to start
+										if (wholeMkr == _T("\\free"))
+										{
+											bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform
+													// parser in subsequent iterations that one is current
+											pSrcPhrase->m_bHasFreeTrans = TRUE;
+											pSrcPhrase->m_bStartFreeTrans = TRUE;
+										}
+									}  // end of the else block for test: if (bFreeTranslationIsCurrent)
+
+									ptr += itemLen;
+
+									// legacy code ends
+								}  // end of else block for test: if (bItsSourceText) 
+								// whm 12Mar2024 added filtering block here above for testing. 
+								// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+							
+							}  // end of filtering TRUE block for test: if (bIsToBeFiltered)
 							else
 							{
 								// This block can parse, but with care - don't append a latin space
@@ -47963,7 +48551,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							augmentedWholeMkr = lookupStr;
 
 							bHidingNeeded = IsAttributeMarker(ptr);
-							if (bHidingNeeded)
+							if (bHidingNeeded && !bIsToBeFiltered)
 							{
 #if defined (_DEBUG) && !defined (NOLOGS)
 								{
@@ -48694,6 +49282,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									bIsInlineBindingMkr = FALSE;
 									bIsInlineNonbindingMkr = FALSE;
 									bIsCharAttrMkr = TRUE; // set the doc member bool, filterable
+									// whm 12Mar2024 addition. Below is a break statement to break out 
+									// of the inner loop, to get to ParsePreWord() etc.,  so since the
+									// current autmentedWholeMkr is an char attribute marker that include:
+									// _T("\\fig \\jmp \\+jmp \\w \\xt \\rb \\qt-s \\qt-e "), we don't
+									// want ParsePreWord() to execute for these, so as done elsewhere
+									// (such as as 48260) we should set the bKeepPtrFromAdvancing to TRUE.
+									bKeepPtrFromAdvancing = TRUE;
 								}
 								else
 								{
@@ -50213,7 +50808,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//wxLogDebug(_T("TokText(), line %d : sequNum = %d , m_bSpecialText = %d , m_curTextType = %d, m_key = [%s], m_precPunct = [%s] , m_markers = [%s] , pointsAt= [%s]"),
 			//	__LINE__, (int)pSrcPhrase->m_nSequNumber, (int)pSrcPhrase->m_bSpecialText, (int)pSrcPhrase->m_curTextType, pSrcPhrase->m_key.c_str(),
 			//	pSrcPhrase->m_precPunct.c_str(), pSrcPhrase->m_markers.c_str(), theptrPointsAt.c_str());
-			if (pSrcPhrase->m_nSequNumber == 47)
+			if (pSrcPhrase->m_nSequNumber == 1)
 			{
 				int halt_here = 1; wxUnusedVar(halt_here);
 			}
@@ -50849,8 +51444,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// NOLOGS			wxLogDebug(_T("TokText() LOGGING ONLY, m_markers: doc line %d, m_markers= [%s] ,  sequNum %d , m_srcPhrase= [%s] , verseNumber %s"),
 			//						__LINE__, strMarkers.c_str(), sn, srcPhrase.c_str(), verseNumber.c_str());
 #endif
-			//wxString wholeBeginMkr = GetLastBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23 Bill wants first marker to be given priority
-			wxString wholeBeginMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated.
+			// whm 12Mar2024 refactored and changed the name of the next function call. 
+			// The function previously was named GetPriorityMkr(), but is now named
+			// GetPriorityTextTypeChangingBeginMkr(). It now returns the first marker
+			// found within m_markers that is also found in the App's m_RegBeginMarkers 
+			// set, or if not present there, the last marker in m_markers is returned,
+			// or wxEmptyString if no markers are within m_markers.
+			wxString wholeBeginMkr = GetPriorityTextTypeChangingBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated.
 					// If only one, gets it; if more than one in m_markers, gets whatever is first, 
 					// if its an endMkr, returns wxEmptyString
 			// Is it augmented? Quickest way is to Trim() and then add space
@@ -51132,8 +51732,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 									{
 										wxString wholeMkr;
 										int wholeMkrLen;
-										//wholeMkr = GetLastBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, Bill wants firstMkr to be used
-										wholeMkr = GetPriorityBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated; gets first in m_markers
+										// whm 12Mar2024 refactored and changed the name of the next function call. 
+										// The function previously was named GetPriorityMkr(), but is now named
+										// GetPriorityTextTypeChangingBeginMkr(). It now returns the first marker
+										// found within m_markers that is also found in the App's m_RegBeginMarkers 
+										// set, or if not present there, the last marker in m_markers is returned,
+										// or wxEmptyString if no markers are within m_markers.
+										wholeMkr = GetPriorityTextTypeChangingBeginMkr(pSrcPhrase->m_markers); // BEW 31Aug23, reinstated; gets first in m_markers
 
 										wxASSERT(!wholeMkr.IsEmpty() && wholeMkr.GetChar(0) == gSFescapechar);
 										wholeMkrLen = wholeMkr.Length();
@@ -51223,6 +51828,32 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 										} // end of the else block for test: if (bLastSrcPhrase->m_bSpecialText == FALSE)
 
 									} // end of the TRUE block for test: if (!pSrcPhrase->m_markers.IsEmpty())
+									// whm 8Mar2024 addition. It is possible while tokenizing an attribute marker like 
+									// \fig ...\fig*, or \jmp ... \jmp etc, the is NOT currently being filtered, AND that has
+									// text content to the left of the bar char, to get to this point here in TokenizeText(). 
+									// Such an attribute marker will be m_bSprcialText TRUE and the text that will appear in 
+									// the display needs to be red colored, but pSrcPhrase itself won't likely have any
+									// content in pSrcPhrase->m_markers, but it will have a begin marker (\jmp, \fig etc)
+									// in its m_inlineNonbindingMarkers, and (if it only has one word to the left of the bar)
+									// is will also have an end marker (\jmp*, \fig* etc) in its m_inlineNonbindingEndMarkers 
+									// member. In this case we want its m_bSpecialText to stay TRUE, its m_cruTextType to stay 
+									// noType, and if either differs from those value in pLastSrcPhrase, we want to set 
+									// bTextTypeChanges to TRUE.
+									else if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+									{
+										// whm 8Mar2024 additioin. The pSrcPhrase is an attribute marker with content in its
+										// m_inlineNonbindingMarkers member, and so at this point, we treat propagation like the 
+										// if (!pSrcPhrase->m_markers.IsEmpty()) block above, except that we don't have to
+										// worry about dealing with whether it is m_bSpecialText or not (it will be TRUE), nor
+										// whether it has a chapter marker in m_inlineNonbindingMarker or not. We only need to
+										// check if last sourcephrase is m_bSpecialText FALSE OR the last sourcephrase is 
+										// m_curTextType other than noType, and if either is the case, we set bTextTypeChanges
+										// to TRUE.
+										if (!pLastSrcPhrase->m_bSpecialText || !pLastSrcPhrase->m_curTextType == noType)
+										{
+											bTextTypeChanges = TRUE;
+										}
+									}
 									else
 									{
 										// When pSrcPhrase->m_markers is empty, the pLastSrcPhrase values must propagate,
