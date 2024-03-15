@@ -8714,9 +8714,9 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 // This is a cut-down version of the above PopulateDropDownList() function. It applies whether
 // or not the project is a kbserver (sharing) project or not.
 // Rationale? When a kbserver is in operation for the project, and the phrasebox lands at a location in
-// the GUI, Leon's pseudo-delete external function, do_pseudo_delete.exe, gets called with a command
-// line input file pseudo_delete.dat which contains the commandLine to guide do_pseudo_delete.exe's
-// operation. do_pseudo_delete.exe will cause the entry table of kbserver to have the appropriate
+// the GUI, Leon's pseudo-delete external function, do_pseudo_delete.py, gets called with a command
+// line input file pseudo_delete.dat which contains the commandLine to guide do_pseudo_delete.py's
+// operation. do_pseudo_delete.py will cause the entry table of kbserver to have the appropriate
 // line pseudo-deleted. Out code will call RemoveReferenceString() as a post-executation operation, and
 // in that we want to not require the user to have to call Choose Translation dialog, or KBEditor, to
 // manually use the remove button in either, to get the dropdown list at the active location to reflect

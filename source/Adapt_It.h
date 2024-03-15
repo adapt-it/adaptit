@@ -2515,12 +2515,12 @@ class CAdapt_ItApp : public wxApp
 
 	// BEW 30Mar22 PutPhraseBoxAtDocEnd() is called when closing down a document. The move of the
 	// phrasebox involves an internal call of PlacePhraseBox(), and this in turn, if the project
-	// is a kbserver one, will result in the box landing and a do_pseudo_delete.exe call being made.
+	// is a kbserver one, will result in the box landing and a do_pseudo_delete.py call being made.
 	// The latter would cause whatever was the document-final adaptation (or gloss if in glossing 
 	// mode), to pseudo-delete in the entry table of kbserver, whatever is the value. Such a deletion
 	// needs to be suppressed, because we are only wanting a save doc closure that changes nothing.
 	// So here I add to the app, a boolean which, when TRUE, tells our code for calling 
-	// do_pseudo_delete.exe (wherever it may be called at), to be skipped. This boolean is only
+	// do_pseudo_delete.py (wherever it may be called at), to be skipped. This boolean is only
 	// set TRUE in two places: Doc 2227 [ OnSaveAndCommit() ] and 2829 [ DoFileSave_Protected() ].
 	// If the project is not a kbserver one, this boolean will have no effect.
 	bool m_bSuppressPseudoDeleteWhenClosingDoc;
@@ -2665,7 +2665,9 @@ class CAdapt_ItApp : public wxApp
 	//bool GenerateInputDatFile(const int funcNumber, wxString commandLine, bool bMoveIt = FALSE);
 
 	// BEW 15May22 DatFileMoveExe() is called in each case of the switch in CreateInputDatFile_AndCopyEXE()
-	void DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove = TRUE);
+	// BEW 13Mar24 added const int funcNumber as 1st param, so that DatFileMoveExe() can avoid m_bGrantSomePermissions
+	// being accessed, as it is FALSE in all case block except funcNumber == 1, where it is relevant to the user table
+	void DatFileMoveExe(const int funcNumber, wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove = TRUE);
 
 	void ConfigureMovedDatFile(const int funcNumber, wxString& filename, wxString& execFolderPath);
 	bool CallExecute(const int funcNumber, wxString execFileName, wxString execPath,
@@ -2674,8 +2676,9 @@ class CAdapt_ItApp : public wxApp
 								   // into CallExecute() function
 	void RemoveEmptyInitialLine(const int funcNumber, wxString execPath, wxString resultFile);  // BEW 26Mar22
 
-	// BEw 3Aug22 added new bool.  I may need it to suppress a call of do_pseudo_undelete.exe from
+	// BEW 3Aug22 added new bool.  I may need it to suppress a call of do_pseudo_undelete.py from
 	// allowing an OnIdle() idle event to cause a duplicate entry to be put into kbserver entry table
+	// BEW 15Mar24 I think m_bPseudoUndelete is no longer used, it is commented out in the .cpp code
 	bool m_bPseudoUndelete; 
 	bool m_bTimestampWasEmpty; // default false - set false in OnInit()
 
@@ -3906,7 +3909,11 @@ public:
 //#endif
 
 //#if defined(_KBSERVER)
-
+	// BEW 12Mar24 added next two, after Leon made kbadmin/kbauth unavailable and obsolete
+	// initialise to _T("gates") and _T("rs46nha#BZ") at end of OnInit()
+	wxString m_strDBusername;
+	wxString m_strDBpassword;
+		
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
 	// Next three are set when authenticating with the bool '...ForManager' 2nd param of the

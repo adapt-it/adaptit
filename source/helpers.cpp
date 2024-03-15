@@ -13129,6 +13129,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 */
 }
 
+/* BEW 15Mar24, this function is no longer called
 // returns TRUE if all's well, FALSE if user hit Cancel button in the internal dialog
 bool CheckUsername()
 {
@@ -13186,7 +13187,7 @@ bool CheckUsername()
 	}
 	return TRUE;
 }
-
+*/
 
 //#if defined(_KBSERVER)
 

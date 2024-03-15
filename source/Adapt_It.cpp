@@ -11234,6 +11234,16 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
     {
         m_strUserID = dlg.m_finalUsername;
         m_strFullname = dlg.m_finalInformalUsername;
+        // BEW 15Mar24, OnOk() has already saved the user's password in 3rd box, to app->m_strPassword,
+        // so no harm in doing so again here. I'll also put the pwd in pFrame->SetKBSvrPassword(wxString pwd);
+        // so GetKBSvrPassword() can get it without needing to call a pwd dialog to do so
+        if (!dlg.m_finalPassword.IsEmpty())
+        {
+            m_strPassword = dlg.m_finalPassword;
+
+            CMainFrame* pFrame = this->GetMainFrame();
+            pFrame->SetKBSvrPassword(m_strPassword);
+        }
 
         // whm added 24Oct13. Save the UniqueUsername and InformalUsername
         // Note: The code block here should be the same as in helpers.cpp's
@@ -12356,16 +12366,21 @@ wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
     default: return _T("wxITEM_NORMAL");
     }
 }
-
+// BEW 15Mar24 this function was designed to support use of kbadmin with pwd kbauth. But these
+// two parameters are no longer supported by kbserver. Instead 'gates' and 'rs46nha#BZ' give
+// access to MariaDB's kbserver's entry and user tables. So I'll comment out the old stuff so it does nothing.
+// But all instances of this function in .cpp code should be commented out; it's not to be used again
 wxString  CAdapt_ItApp::GetThingieStart(wxString bilum, wxString nem, wxString larim)
 {
+    // bilum should be the kbserver's ipAddress, new should be an ALL PERMISSIONS possessing username
+    // (now 'gates') and larim, the password which enables kbserver entry (now rs46nha#BZ)
     wxString igobek = wxEmptyString;
-    wxString koma = _T(",");
-    if (bilum.IsEmpty() || nem.IsEmpty() || larim.IsEmpty())
-    {
-        return igobek;
-    }
-    igobek = bilum + koma + nem + koma + larim + koma;
+    //wxString koma = _T(",");
+    //if (bilum.IsEmpty() || nem.IsEmpty() || larim.IsEmpty())
+    //{
+    //    return igobek;
+    //}
+    //igobek = bilum + koma + nem + koma + larim + koma;
     return igobek;
 }
 
@@ -19248,13 +19263,14 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			ConfigureMovedDatFile(create_entry, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
-			// the destination folder
-			wxString execFilename = _T("do_create_entry.exe");
+			// the destination folder (that folder is a child of Adapt It Unicode Work folder, 
+            // named "_DATA_KB_SHARING")
+			wxString execFilename = _T("do_create_entry.py"); // was _T("do_create_entry.exe")
 			wxString execInDest = dataFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
 			{
-				// Check if do_create_entry.exe is already in the AI executable's folder,
+				// Check if do_create_entry.py is already in the AI executable's folder,
 				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
@@ -19269,7 +19285,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			else
 			{
 				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_create_entry.exe is not in the 'dest' folder, or wrongly named. Find it and put it there, then try again.");
+				wxString msg = _("do_create_entry.py is not in the '_DATA_KB_SHARING' folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19280,19 +19296,19 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 		case pseudo_delete: // = 5
 		{
 			// For pseudo-deleting an entry line of the entry table
-			wxString filename = _T("pseudo_delete.dat");
+			wxString filename = _T("pseudo_delete.py");
 			DeleteOldDATfile(filename, execFolderPath); // clear any previous one
 			//MoveBlankDatFile(filename, dataFolderPath, execFolderPath); // it's still boilerplate
 			ConfigureMovedDatFile(pseudo_delete, filename, execFolderPath);
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
 			// the dest folder
-			wxString execFilename = _T("do_pseudo_delete.exe");
-            wxString execInDest = execFolderPath + execFilename; // ERROR should not have dataFolderPath, but execFilename dataFolderPath + execFilename;
+			wxString execFilename = _T("do_pseudo_delete.py");
+            wxString execInDest = execFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
 			{
-				// Check if do_pseudo_delete.exe is already in the AI executable's folder,
+				// Check if do_pseudo_delete.py is already in the AI executable's folder,
 				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
@@ -19307,7 +19323,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			else
 			{
 				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_pseudo_delete.exe is not in the executable's folder, or wrongly named. Find it and put it there, then try again.");
+				wxString msg = _("do_pseudo_delete.py is not in the executable's folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19325,12 +19341,12 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			// The .exe with the C code for doing the SQL etc, has to be
 			// in the execFolderPath's folder as well, do it now - it is in
 			// the dest folder
-			wxString execFilename = _T("do_pseudo_undelete.exe");
-            wxString execInDest = execFolderPath + execFilename; // ERROR should not have dataFolderPath, but execFilename dataFolderPath + execFilename;
+			wxString execFilename = _T("do_pseudo_undelete.py");
+            wxString execInDest = execFolderPath + execFilename;
 			bool bPresentInDest = ::FileExists(execInDest);
 			if (bPresentInDest)
 			{
-				// Check if do_pseudo_undelete.exe is already in the AI executable's folder,
+				// Check if do_pseudo_undelete.py is already in the AI executable's folder,
 				// if it is - no need to move the dest one to there; otherwise, move it
 				// Once there, it can stay there forever (but manually remove it if
 				// we develop a new version of the file's code contents)
@@ -19345,7 +19361,7 @@ bool CAdapt_ItApp::ConfigureDATfile(const int funcNumber)
 			else
 			{
 				// Oops, if it's not in dest folder, can't go further. Tell user & exit False
-				wxString msg = _("do_pseudo_undelete.exe is not in the executable's folder, or wrongly named. Find it and put it there, then try again.");
+				wxString msg = _("do_pseudo_undelete.py is not in the executable's folder, or wrongly named. Find it and put it there, then try again.");
 				wxString caption = _("ConfigureDatFile resource absent error");
 				LogUserAction(msg);
 				wxMessageBox(msg, caption, wxICON_EXCLAMATION | wxOK); // for user or developer to see
@@ -19732,7 +19748,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
             wxString filename = _T("create_entry.dat");
             DeleteOldDATfile(filename, execFolderPath); // clear any previous one
                 
-            wxString execFilename = _T("do_create_entry.exe");
+            wxString execFilename = _T("do_create_entry.py"); // was _T("do_create_entry.exe");
             DeleteOldEXEfile(execFilename, execFolderPath);
             break;
         }
@@ -19741,7 +19757,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
             wxString filename = _T("pseudo_delete.dat");
             DeleteOldDATfile(filename, execFolderPath); // clear any previous one
 
-            wxString execFilename = _T("do_pseudo_delete.exe");
+            wxString execFilename = _T("do_pseudo_delete.py");
             DeleteOldEXEfile(execFilename, execFolderPath);
             break;
         }
@@ -19750,7 +19766,7 @@ void CAdapt_ItApp::RemoveDatFileAndEXE(const int funcNumber)
             wxString filename = _T("pseudo_undelete.dat");
             DeleteOldDATfile(filename, execFolderPath); // clear any previous one
 
-            wxString execFilename = _T("do_pseudo_undelete.exe");
+            wxString execFilename = _T("do_pseudo_undelete.py");
             DeleteOldEXEfile(execFilename, execFolderPath);
             break;
         }
@@ -19877,12 +19893,12 @@ void CAdapt_ItApp::DeleteOldEXEfile(wxString filename, wxString execFolderPath)
 
 // BEW created 15May22 for use in :CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString commandLine)'s switch
 // BEW 17Jun22 added bDoMove with default TRUE
-void CAdapt_ItApp::DatFileMoveExe(wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove)
+void CAdapt_ItApp::DatFileMoveExe(const int funcNumber, wxString commandLine, wxString datFilename, wxString execFilename, wxString dataFolderPath, wxString execFolderPath, bool bDoMove)
 {
     // BEW 23Feb24 make sure execFilename 3rd formal parameter is "do_add_kbusers.py" (or .exe) when  m_bGrantSomePermissions is TRUE
 #if defined (_DEBUG)
-    wxLogDebug(_T("DatFileMoveExe() ENTERED line %d,  commandLine [%s], datFilename [%s], execFilename [%s], execFolderPath [%s], bDoMove %d"),
-        __LINE__, commandLine.c_str(), datFilename.c_str(), execFilename.c_str(), execFolderPath.c_str(), (int)bDoMove);
+    wxLogDebug(_T("DatFileMoveExe() ENTERED line %d,  funcNumber= %d, commandLine [%s], datFilename [%s], execFilename [%s], execFolderPath [%s], bDoMove %d"),
+        __LINE__, funcNumber, commandLine.c_str(), datFilename.c_str(), execFilename.c_str(), execFolderPath.c_str(), (int)bDoMove);
 #endif
 
     // BEW 23Feb24 DON'T convert commandLine to utf8 a second time, for m_bGrantSomePermissions TRUE, it's already been done
@@ -19890,45 +19906,115 @@ void CAdapt_ItApp::DatFileMoveExe(wxString commandLine, wxString datFilename, wx
     wxString execFilePath = wxEmptyString;
     filePath = execFolderPath + datFilename;
     bool bOK = FALSE;
-    // BEW 23Feb24 bypass this next block if m_bGrantSomePermissions is TRUE, because the commandLine
-    // for adding a user with ALL PERMISSIONS granted, has already been accumulated, quotes escaped, 
-    // and the whole converted to raw utf8
-    if (m_bGrantSomePermissions == FALSE)
+    // BEW 14Mar24 test for funcNumber == 1, because only when that is TRUE, is m_bGrantSomePermissions have
+    // a value set correctly either to true or false, but if unset it would be (205) resulting in bogus TRUE value
+    // and causing a failure
+    if (funcNumber == 1)
     {
-        // First convert commandLine to have all single quotes escaped
-        commandLine = DoEscapeSingleQuote(commandLine);
-    }
-    // Next, fill the input .dat file with the contents (with any \' escaping done) of commandLine,
-    // convert it to utf8, and write it back out to filePath. BEW 23Feb24 but don't do escaping or
-    // convertion (again) to commandLine if m_bGrantSomePermissions is TRUE. It's done earlier.
-
-    wxFile f(filePath, wxFile::write);  // opens the input.dat file for writing
-    bOK = f.IsOpened();
-    wxASSERT(bOK);
-    f.Flush(); // clear it out (it should be empty anyway, wxFile::write does that)
-    if (bOK)
-    {
+        // BEW 23Feb24 bypass this next block if m_bGrantSomePermissions is TRUE, because the commandLine
+        // for adding a user with ALL PERMISSIONS granted, has already been accumulated, quotes escaped, 
+        // and the whole converted to raw utf8
         if (m_bGrantSomePermissions == FALSE)
         {
-            // Get the commandLine contents of the input .dat file written to file as UTF8
-            wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8);
-            size_t nLen = strlen(tempBuf);
-            bool bWrittenOut = f.Write(tempBuf, nLen);
-            wxASSERT(bWrittenOut);
+            // First convert commandLine to have all single quotes escaped
+            commandLine = DoEscapeSingleQuote(commandLine);
         }
-        else
-        {
-            // Get the commandLine contents of the input .dat file written to file "as is", 
-            // it's already quote-escaped and is utf8
-            wxCharBuffer tempBuf = commandLine.c_str();
-            size_t nLen = strlen(tempBuf);
-            bool bWrittenOut = f.Write(tempBuf, nLen);
-            wxASSERT(bWrittenOut);
-        }
-        f.Close();
-        m_bExists = ::FileExists(filePath);
+        // Next, fill the input .dat file with the contents (with any \' escaping done) of commandLine,
+        // convert it to utf8, and write it back out to filePath. BEW 23Feb24 but don't do escaping or
+        // convertion (again) to commandLine if m_bGrantSomePermissions is TRUE. It's done earlier.
 
-    }
+        wxFile f(filePath, wxFile::write);  // opens the input.dat file for writing
+        bOK = f.IsOpened();
+        wxASSERT(bOK);
+        f.Flush(); // clear it out (it should be empty anyway, wxFile::write does that)
+        if (bOK)
+        {
+            if (m_bGrantSomePermissions == FALSE)
+            {
+                // Get the commandLine contents of the input .dat file written to file as UTF8
+                wxCharBuffer tempBuf = commandLine.mb_str(wxConvUTF8);
+                size_t nLen = strlen(tempBuf);
+                bool bWrittenOut = f.Write(tempBuf, nLen);
+                wxASSERT(bWrittenOut);
+            }
+            else
+            {
+                // Get the commandLine contents of the input .dat file written to file "as is", 
+                // it's already quote-escaped and is utf8
+                wxCharBuffer tempBuf = commandLine.c_str();
+                size_t nLen = strlen(tempBuf);
+                bool bWrittenOut = f.Write(tempBuf, nLen);
+                wxASSERT(bWrittenOut);
+            }
+            f.Close();
+            m_bExists = ::FileExists(filePath);
+        }
+    } // end of TRUE block for test: if (funcNumber == 1)
+    else
+    {
+        // We are processing .py functions for the kbserver's entry table
+        commandLine = DoEscapeSingleQuote(commandLine); // <<-- beware, if this was already done, a 2nd call could 
+                                                        // corrupt the utf8 commandLine
+#if defined (_DEBUG)
+        wxLogDebug(_T("DatFileMoveExe() after DoEscapeSingeQuote() line %d, funcNumber= %d, commandLine [%s]"),
+                     __LINE__, funcNumber, commandLine.c_str() );
+#endif
+        wxString filePath = m_appInstallPathOnly + PathSeparator + datFilename;
+        bool bExists = ::FileExists(filePath);
+        wxTextFile ff;
+        if (!bExists)
+        {
+            // Create it (empty)
+            bool bCreatedOK = ff.Create(filePath); // filePath to, e.g. Unicode Debug folder, when developing
+            bCreatedOK = ff.Exists();
+            if (bCreatedOK)
+            {
+                bExists = TRUE;
+            }
+            else
+            {
+                wxFileName f2(filePath);
+                wxString msg = _T("DatFileMoveExe() line %d: creating input .dat file failed. filePath= %s");
+                msg = msg.Format(msg, __FILE__, __FUNCTION__, __LINE__, filePath.c_str());
+                LogUserAction(msg);
+                return; // this function is void return
+            }
+        }
+        if (bExists)
+        {
+            bool bOpened = ff.Open(filePath);
+            if (bOpened)
+            {
+
+                ff.Clear();
+                // Now add commandLine as the only line
+                ff.AddLine(commandLine);
+                ff.Write();
+                ff.Close();
+                // The file has UTF16 content (Windows) or UTF32 (Linux or OSX)
+                // ConvertAndWrite should later convert to utf8
+            }
+
+            // it exists where needed so now convert to utf8
+            wxFile f(filePath, wxFile::write);  // opens the input.dat file for writing
+            bOK = f.IsOpened();
+            wxASSERT(bOK);
+            f.Flush();
+            if (bOK)
+            {
+                
+                wxCharBuffer tempBuf = commandLine.utf8_str();
+                size_t nLen = strlen(tempBuf);
+                bool bWrittenOut = f.Write(tempBuf, nLen);
+                wxASSERT(bWrittenOut);
+            }
+            f.Close();
+        }
+        m_bExists = ::FileExists(filePath);
+        wxASSERT(m_bExists);
+
+    } // end of else block for test: if (funcNumber == 1)
+
     if (bOK && bDoMove)
     {
         // Now check for the "do_<name>.exe" file is in the '_DATA_KB_SHARING' folder
@@ -20013,7 +20099,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
                 execFilename = _T("do_add_foreign_kbusers.exe");
             }
             
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case lookup_user: // funcNumber is 2 in AI.h lines 854++
@@ -20021,45 +20107,47 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             wxString filename = _T("lookup_user.dat");
             wxString execFilename = _T("do_user_lookup.exe"); // Leon altered order of name parts, so stick with that
                                             // but keep case constants unchanged, and .dat file's name unchanged
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case list_users: // funcNumber is 3 in AI.h lines 854++
         {
             wxString filename = _T("list_users.dat");
             wxString execFilename = _T("do_list_users.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case create_entry: // funcNumber is 4 in AI.h lines 854++
         {
             wxString filename = _T("create_entry.dat");
-            wxString execFilename = _T("do_create_entry.exe");
+            wxString execFilename = _T("do_create_entry.py"); // was _T("do_create_entry.exe");
             // Next call does any commandLine single quote escaping, makes the input .dat file
             // then be UTF8, and moves the do_<name>.exe executable file to where AI.exe is running
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
          }
         break;
         case pseudo_delete: // funcNumber is 5 in AI.h lines 854++
         {
             wxString filename = _T("pseudo_delete.dat");
-            wxString execFilename = _T("do_pseudo_delete.exe");
+            wxString execFilename = _T("do_pseudo_delete.py");
 #if defined (_DEBUG)
             wxLogDebug(_T("CreateInputDatFile_AndCopyEXE line %d, filename %s , execFilename %s , execFolderPath %s"),
                 __LINE__, filename.c_str(), execFilename.c_str(), execFolderPath.c_str());
 #endif
-
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case pseudo_undelete: // funcNumber is 6 in AI.h lines 854++
         {
             wxString filename = _T("pseudo_undelete.dat");
-            wxString execFilename = _T("do_pseudo_undelete.exe");
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            wxString execFilename = _T("do_pseudo_undelete.py");
+#if defined (_DEBUG)
+            wxLogDebug(_T("CreateInputDatFile_AndCopyEXE line %d, filename %s , execFilename %s , execFolderPath %s"),
+                __LINE__, filename.c_str(), execFilename.c_str(), execFolderPath.c_str());
+#endif
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
-
 
 // TODO  cases 7 and 8 go here
 
@@ -20073,7 +20161,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             // Next call does any commandLine single quote escaping, makes the input .dat file
             // then be UTF8, and moves the do_upload_local_kb.exe file to where AI.exe 
             // is running (bool bDoMove is TRUE)
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case change_permission: // funcNumber is 10 in AI.h lines 854+/-
@@ -20085,7 +20173,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             // by taking the passed in commandLine and writing (with conversion to UTF8) to a
             // file: change_permission.dat file which is in the same folder as the AI executable.
             // and then moves the do_change_permission.exe file to where AI.exe is running (bool bDoMove is TRUE)
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case change_fullname: // funcNumber is 11 in AI.h lines 854++
@@ -20097,7 +20185,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             // by taking the passed in commandLine and writing (with conversion to UTF8) to a
             // file: change_fullname.dat file which is in the same folder as the AI executable.
             // and then moves the do_change_fullname.exe file to where AI.exe is running (bool bDoMove is TRUE)
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case change_password:
@@ -20109,7 +20197,7 @@ bool CAdapt_ItApp::CreateInputDatFile_AndCopyEXE(const int funcNumber, wxString 
             // by taking the passed in commandLine and writing (with conversion to UTF8) to a
             // file: change_password.dat file which is in the same folder as the AI executable.
             // and then moves the do_change_password.exe file to where AI.exe is running (bool bDoMove is TRUE)
-            DatFileMoveExe(commandLine, filename, execFilename, dataFolderPath, execFolderPath);
+            DatFileMoveExe(funcNumber, commandLine, filename, execFilename, dataFolderPath, execFolderPath);
         }
         break;
         case blanksEnd:
@@ -20156,17 +20244,14 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
     // wxChar string from a GetDateTimeNow(enum ) call in helpers.cpp around line 7422), so get
     // an appropriately formatted datetime string with date separated from time by a space. The
     // enum value for that is  forXHTM, as then it matches what we see in the entry table. 
-    // BEW 24Feb22 Leon's testing of do_create_entry.exe with a datetime string supplied from
+    // BEW 24Feb22 Leon's testing of do_create_entry.py or .exe with a datetime string supplied from
     // outside as a char string, revealed that MariaDB's MySQL internal code goes into conniptions.
     // The ONLY safe approach is to do the datetime using a Now() call internally in the
-    // do_create_entry.c code. Accordingly, I need to either remove the dateTimeNow calculation
-    // here (probably best) or at least, disallow for funcNumber == create_entry <- the approach
-    // I'm taking for the present. As I work on more do_......exe functions, the avoidance test
-    // at line 19,525 may get more subtests added; or I may just remove it entirely from here
+    // do_create_entry.py code.
     wxString dateTimeNow = wxEmptyString;
     if (funcNumber != create_entry) // create_entry is switch case value 4
     {
-        dateTimeNow = GetDateTimeNow(forXHTML);
+        dateTimeNow = GetDateTimeNow(forXHTML); // may not need this done here
     }
 
 	switch (funcNumber)
@@ -20266,6 +20351,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                     m_justAddedUsername = tempStr; // save this for adding after authenticating password
 
                     tempStr = this->m_strPassword;
+                    if (tempStr.IsEmpty())
+                    {
+                        CMainFrame* pFrame = this->GetMainFrame();
+                        tempStr = pFrame->GetKBSvrPassword();
+                        wxASSERT(!tempStr.IsEmpty());
+                    }
                     commandLine += tempStr + comma;
                     m_justAddedPassword = tempStr; // save this for adding after authenticating password
 
@@ -20288,7 +20379,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
                 {
                     // Dialog succeeded, so get the values that were typed in
 
-                    // TODO tweak for handling user choice for AllPermissions -- likewise, further below
+ // TODO -- add code here, as the user may be fully credentialed or not so. We need a way to track that.
 
                     tempStr = dlg.strNewUser;
                     commandLine += tempStr + comma;
@@ -20972,10 +21063,12 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("create_entry_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
         wxString tempStr;
-        /* BEW 11Jan24 deprecate, and set credentials better
+        //* BEW 11Jan24 deprecate, 
+          // and set credentials better - BEW 13Mar24 uncommented out, kbadmin/kbauth no longer available,
+          // instead, use ai.h m_strDBusername - set in OnInit() to _T("gates") and m_strDBpassword - there
+          // as well, to _T("rs46nha#BZ")
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 		// Next are the username and the password...
-		wxString tempStr;
 		tempStr = m_strUserID;
 		if (m_curNormalUsername.IsEmpty())
 		{
@@ -20988,7 +21081,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         // if m_curNormalPassword is still empty, we need to ask for the dialog to be shown from
         // CMainFrame class which asks for the user to type it in. The function only is shown
         // when not in the KB Sharing Manager, so we must ensure that app->m_bUseForeignOption is
-        // set FALSE. CreateEnty is never done from the KB Sharing Manager, so here's where we
+        // set FALSE. CreateEntry is never done from the KB Sharing Manager, so here's where we
         // should guarantee it's FALSE. I've also added an OR for a check if the m_currNormalPassword
         // value might have incorrectly been set to the current doc owner - because this actually
         // happened when I used KBEditor.cpp's Add button, to add a new adaptation. So if that's the
@@ -20996,18 +21089,19 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
         // properly
         this->m_bUseForeignOption = FALSE;
 		// password we won't escape - documentation should tell user not to use ' as part of password
-		if (m_curNormalPassword.IsEmpty() || (m_curNormalPassword == this->m_strUserID))
+		if (m_curNormalPassword.IsEmpty() || (m_curNormalPassword != m_strDBpassword))
 		{
             wxString hostname = wxEmptyString; // don't need a hostname, but only the ipAddr
-            wxString pwd = this->GetMainFrame()->GetKBSvrPasswordFromUser(this->m_strKbServerIpAddr, hostname);
-            this->GetMainFrame()->SetKBSvrPassword(pwd);
+            wxString pwd = this->GetMainFrame()->GetKBSvrPassword(); //was this->GetMainFrame()->SetKBSvrPassword(pwd);
             m_curNormalPassword = pwd;
-			//m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
 		}
 		commandLine += m_curNormalPassword + comma;
-        */
-        commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
-		// Then the source and target language names, which define the AI project that is current
+        //*/
+         
+        // BEW 13Mar24 comment out use of GetThingieStart() - it uses kbadmin/kbauth
+        //commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
+        
+        // Then the source and target language names, which define the AI project that is current
 		tempStr = m_sourceName;
 		if (m_curNormalSrcLangName.IsEmpty())
 		{
@@ -21057,10 +21151,10 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 
         // That completes the commandLine string; now put it into
         // the moved .dat input file, ready for CallExecute() to get
-        // the grunt work done. But first, make it utf7 with escaped single quotes
+        // the grunt work done. ConvertAndWrite() called later will make it utf8 with escaped single quotes
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-			__LINE__, commandLine.c_str()); // yhis shows utf16, unconverted to utf8
+		wxLogDebug(_T("ConfigMoveDatFile...() line %d: for funcNumber 4 CreateEntry(): commandLine= [%s]"),
+			__LINE__, commandLine.c_str()); // this shows utf16, unconverted to utf8
 #endif
         bool bSetupOK = CreateInputDatFile_AndCopyEXE(funcNumber, commandLine); // BEW added 14May22
         wxUnusedVar(bSetupOK);
@@ -21089,25 +21183,28 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_resultDatFileName = _T("pseudo_delete_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
         wxString tempStr = m_strUserID;
-        /* deprecate these lines, use the function instead
+        
 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
 
 		// Next are the username and the password...
-		
-		if (m_curNormalUsername.IsEmpty())
-		{
-			m_curNormalUsername = tempStr;
-		}
-		commandLine += tempStr + comma;
+        if (m_curNormalUsername.IsEmpty())
+        {
+            m_curNormalUsername = tempStr;
+        }
+        commandLine += tempStr + comma; // has any embedded ' escaped
+        this->m_bUseForeignOption = FALSE;
 
 		// Password should not contain a ' character
-		if (m_curNormalPassword.IsEmpty())
-		{
-			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
-		}
-		commandLine += m_curNormalPassword + comma;
-        */
-        commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
+        if (m_curNormalPassword.IsEmpty() || (m_curNormalPassword != m_strDBpassword))
+        {
+            wxString hostname = wxEmptyString; // don't need a hostname, but only the ipAddr
+            wxString pwd = this->GetMainFrame()->GetKBSvrPassword(); // was GetKBSvrPasswordFromUser(this->m_strKbServerIpAddr, hostname);
+            //this->GetMainFrame()->SetKBSvrPassword(pwd);
+            m_curNormalPassword = pwd;
+        }
+        commandLine += m_curNormalPassword + comma;
+
+        //commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
 
 		// Then the source and target language names, which define the AI project that is current
 		// These could contain a ' so we must escape that to \' if present in either or both
@@ -21118,8 +21215,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		}
 		commandLine += tempStr + comma;
 
-		// wxASSERT(m_curNormalSrcLangName == m_sourceName); may now differ, ' in one, \' in the other
-
 		// Language name for target text applies to the project, and so is the same for
 		// both adapting and glossing; escape any ' within
 		tempStr = m_targetName;
@@ -21128,7 +21223,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			m_curNormalTgtLangName = tempStr;
 		}
 		commandLine += tempStr + comma;
-		//wxASSERT(m_curNormalTgtLangName == m_targetName); may differ by ' versus \'
 
 		tempStr = m_curNormalSource;
 		commandLine += tempStr + comma; // from signature of PseudoDelete()
@@ -21139,7 +21233,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// fiddle with the working .py code, I'll refactor so that '<no adaptation>'
 		// (localizable) gets stored in the entry table, but still only an empty string
 		// in the Adapt It local KB as before
-		//wxString emptyPyStr = _T("\'\'");
 		if (gbIsGlossing)
 		{
 			tempStr = m_curNormalGloss;
@@ -21172,8 +21265,7 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		m_curCommandLine = commandLine;
 
 #if defined (_DEBUG)
-        wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-            __LINE__, commandLine.c_str());
+        wxLogDebug(_T("ConfigureMovedDatFile() line %d: commandline = %s"), __LINE__, commandLine.c_str());
 #endif
         // BEW the next call also automatically gets the commandLine converted to UTF8 for the input .dat file
         bool bSetupOK = CreateInputDatFile_AndCopyEXE(funcNumber, commandLine); // BEW added 14May22
@@ -21193,14 +21285,14 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out the boilerplate content (if any - it's now no longer there anyway)
+				// Clear out any old content
 				f.Clear();
 				// Now add commandLine as the only line
 				f.AddLine(commandLine);
 				f.Write();
 				f.Close();
 				// File: pseudo_delete.dat now just has the relevant data 
-				// fields for the subsequent .exe in wxExecute() to use
+				// fields for the subsequent .py in CallExecute() to use
 			}
 		}
 		else
@@ -21216,24 +21308,28 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		// wxExecute() to call
 		m_resultDatFileName = _T("pseudo_undelete_results.dat");
 		m_bUserAuthenticating = TRUE; // assures our use of 'Normal' string values is apt
-        wxString tempStr = wxEmptyString;
-        /* BEW 12Jan24 deprecated, use function instead 		commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
-														 // Next are the username and the password...
-		wxString tempStr = m_strUserID;
+        wxString tempStr = m_strUserID;
+
+        commandLine = this->m_strKbServerIpAddr + comma; // as obtained from basic config file
+														 
 		if (m_curNormalUsername.IsEmpty())
 		{
 			m_curNormalUsername = tempStr;
 		}
 		commandLine += tempStr + comma;
+        this->m_bUseForeignOption = FALSE;
 
 		// password should not have embedded ' , say so in gui & documentation
-		if (m_curNormalPassword.IsEmpty())
+		if (m_curNormalPassword.IsEmpty() || (m_curNormalPassword != m_strDBpassword))
 		{
-			m_curNormalPassword = pFrame->GetKBSvrPassword(); // gets m_kbserverPassword string
-		}
+            wxString hostname = wxEmptyString; // don't need a hostname, but only the ipAddr
+            wxString pwd = this->GetMainFrame()->GetKBSvrPassword(); // was GetKBSvrPasswordFromUser(this->m_strKbServerIpAddr, hostname);
+            //this->GetMainFrame()->SetKBSvrPassword(pwd);
+            m_curNormalPassword = pwd;
+        }
 		commandLine += m_curNormalPassword + comma;
-        */
-        commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
+        
+        //commandLine = GetThingieStart(m_strKbServerIpAddr, m_strThingieID, m_strThingieLarim);
 
 		// Then the source and target language names, which define the AI project that is current
 		// These may contain ', so we must escape it if present
@@ -21243,7 +21339,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			m_curNormalSrcLangName = tempStr;
 		}
 		commandLine += tempStr + comma;
-		//wxASSERT(m_curNormalSrcLangName == m_sourceName); may differ by ' versus \'
 
 		// Language name for target text applies to the project, and so is the same for
 		// both adapting and glossing
@@ -21253,7 +21348,6 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			m_curNormalTgtLangName = tempStr;
 		}
 		commandLine += tempStr + comma;
-		//wxASSERT(m_curNormalTgtLangName == m_targetName); may differ by ' versus \'
 
 		tempStr = m_curNormalSource;
 		commandLine += tempStr + comma; // from signature of PseudoUndelete()
@@ -21278,17 +21372,17 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 		commandLine += kbType + comma;
 		// PseudoUndelete() updates entry with deleted = '1' to have deleted flag = _T('0')
 		commandLine += _T('1'); // it will become a pseudo-undeleted entry
-								// That completes the commandLine string; now put it into
-								// the moved .dat input file, ready for CallExecute() to get
-								// the grunt work done
+
+		// That completes the commandLine string; now put it into
+		// the moved .dat input file, ready for CallExecute() to get
+		// the grunt work done
 
 		// put a copy on the app, so that LogUserAction() can grab it if the
 		// the wxExecute() in CallExecute() fails
 		m_curCommandLine = commandLine;
 
 #if defined (_DEBUG)
-        wxLogDebug(_T("%s::%s() line %d: commandline = %s"), __FILE__, __FUNCTION__,
-            __LINE__, commandLine.c_str());
+        wxLogDebug(_T("ConfigureMovedDatFile() line %d: commandline = %s"), __LINE__, commandLine.c_str());
 #endif
         bool bSetupOK = CreateInputDatFile_AndCopyEXE(funcNumber, commandLine); // BEW added 14May22
         wxUnusedVar(bSetupOK);
@@ -21307,14 +21401,14 @@ void CAdapt_ItApp::ConfigureMovedDatFile(const int funcNumber, wxString& filenam
 			bool bOpened = f.Open(datPath);
 			if (bOpened)
 			{
-				// Clear out the boilerplate content
+				// Clear out any old content
 				f.Clear();
 				// Now add commandLine as the only line
 				f.AddLine(commandLine);
 				f.Write();
 				f.Close();
 				// File: pseudo_undelete.dat now just has the relevant data 
-				// fields for the subsequent .exe in wxExecute() to use
+				// fields for the subsequent .py in CallExecute() to use
 			}
 		}
 		else
@@ -22466,8 +22560,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
     {
         bReportResult = FALSE; // no need for the AI code to report anything, Leon's .dat results file gives anything needed
         wxASSERT(resultFile == m_resultDatFileName);
-        // BEW 7Feb22 when developing, the do_create_entry.exe file is located at:
-        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.exe'
+        // BEW 12Mar24 when developing, the do_create_entry.py file is located at:
+        // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_create_entry.py'
         /*
         const char* pstart = "do_create_entry.exe"; // char based
         int flags = 68; // was  wxEXEC_SYNC & wxEXEC_BLOCK & wxEXEC_HIDE_CONSOLE;
@@ -22498,12 +22592,10 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             LogUserAction(msg);
         }
         */
-        // It would be nice if there is a setting for system() that suppressed showing the CMD window. I'll try google
         int rv = -1; // initialise
         rv = rv; // avoid gcc set but not used warning
-        //*  wxExecute above worked quicker & robustly
         bool bExecutedSucceeded = FALSE; // initialise
-        const char* pstart = "do_create_entry.exe";
+        const char* pstart = "python do_create_entry.py";
         rv = system(pstart);  // line 67 of Adapt_It.cpp uses __cdecl to force system() to avoid name decoration of C++
         if (rv == 0)
         {
@@ -22526,136 +22618,52 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             // to the developer, at a minimum - the block below can be updated to use a for loop to get the lines
             // in the m_errorsIOArray and display them for the developer, but currently I'm not bothering. What's there is okay
         }
-        wxLogDebug(_T("%s::%s() line %d: result .dat file is: %s"),
-            __FILE__, __FUNCTION__, __LINE__, m_resultDatFileName.c_str());
+        wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
     }
 		break;
 	case pseudo_delete: // = 5
     {
-        //m_bPseudoDelete = TRUE; // MainFrame's ClearBoolsForStationaryPhraseBox() clears all the 5 bools
-
         // Closing down a document involves calling PutPhraseBoxAtDocEnd(), which would
-        // result in a call of do_pseudo_delete.exe being made inappropriately. So the
+        // result in a call of do_pseudo_delete.py being made inappropriately. So the
         // following test protects from that happening. The boolean is set TRUE only
         // when closing the doc, prior to the PutPhraseBoxAtDocEnd() call, and cleared
         // back to FALSE immediately after the call.
         if (this->m_bSuppressPseudoDeleteWhenClosingDoc != TRUE)
         {
-            // Force bReportResults to FALSE, common repetetive operations
-            // should not give time-delaying GUI messages to disturb user's work
-            bReportResult = FALSE;
-            bSuccessfulSwitch = TRUE;
-            wxASSERT(resultFile == m_resultDatFileName);
-            int rv = -1; // initialise
-
-            // Using wxExecute, and console hidden, and blocking of window changes in the GUI - see flags
-            //wxArrayString textIOArray, errorsIOArray; <<-- better as App members
-            (*this).m_textIOArray.Clear();
-            (*this).m_errorsIOArray.Clear();
-            int flags = 68; // BEW 15Jan24 changed, was wxEXEC_HIDE_CONSOLE& wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
-            long rvalue = 0; // initialise to 'success' result
-
-            // BEW 15Jan24, execPath is correct, and has separator at end, but execFilename is not added yet, do it here
-            // or wxExecute() will fail
-            wxString executablePath = execPath + _T("do_pseudo_delete.exe");
-#if defined (_DEBUG)
-            wxLogDebug(_T("CallExecute for pseudo_delete: line %d,  executablePath %s"),
-                __LINE__,  executablePath.c_str());
-#endif
-            rvalue = wxExecute(executablePath, (*this).m_textIOArray, (*this).m_errorsIOArray, flags); // accept default NULL
-                                                                                // for final param: const wxExecEnv
-            bool bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
-
-            if (!bExecutedSucceeded)
-            {
-                // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
-                // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
-                // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
-                // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
-                wxString msg;
-                wxString title = _("Pseudo deletion warning");
-                wxString ipAddress = m_strKbServerIpAddr;
-                bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
-                if (bIsEmptyAddress)
-                {
-                    ipAddress = _("ipAddress is undefined");
-
-                }
-                msg = msg.Format(_T("Pseudo deletion failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
-                    ipAddress.c_str());
-                wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-                LogUserAction(msg);
-            }
 
             // BEW 7Feb22 in the test of system(execPath) below, execPath passed in is:
-            // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\do_pseudo_delete.exe'
-            // int rv = 0;
-            //const char* pstart = { "start do_pseudo_delete.exe" }; // avoid path prefix
-            //        // and all the issues of wrapping path portions with escaped dblquote, i.e. \" ....  \"
-            //rv = system(pstart); // Using temporary CWD - it works and drops a pseudo_delete_results.dat path in pathOnly folder
-
+            // 'c:\\adaptit-git\\adaptit\\bin\\win32\\\"Unicode Debug\"\\python do_pseudo_delete.py'
+            int rv = -1;
+            rv = rv; // avoid warning
+            bool bExecutedSucceeded = FALSE; // initialise
+            const char* pstart = "python do_pseudo_delete.py"; 
+            rv = system(pstart);
+            if (rv == 0)
+            {
+                bExecutedSucceeded = TRUE;
+            }
             if (bExecutedSucceeded)
             {
                 rv = 0;
                 RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
                 bSuccessfulSwitch = TRUE;
 
-                int textCount = (*this).m_textIOArray.GetCount(); // for success, this will be non-empty, so don't assert emptiness
-                wxUnusedVar(textCount);
-                int errorsCount = (*this).m_errorsIOArray.GetCount();
-                wxUnusedVar(errorsCount);
-                //wxASSERT(textCount == 0);
-                //wxASSERT(errorsCount == 0);
-                // If errors count has content, then we need to add some LogUserAction() info, and give the arrays' contents 
-                // to the developer, at a minimum - the block below can be updated to use a for loop to get the lines
-                // in the m_errorsIOArray and display them for the developer, but currently I'm not bothering. What's there is okay
             }
-            wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s"),
-                __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
+            wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
         }
     }
 		break;
 	case pseudo_undelete: // = 6
     {
-        m_bPseudoUndelete = TRUE; // jury is out on whether I need this for preventing undelete from causing duplicate entry to be put in kbserver entry table
 
-      // Force bReportResults to FALSE, common repetetive operations
-        // should not give time-delaying GUI messages to disturb user's work
-        bReportResult = FALSE;
-        bSuccessfulSwitch = TRUE;
-        wxASSERT(resultFile == m_resultDatFileName);
-        int rv = -1; // initialise
-
-        // Using wxExecute, and console hidden, and blocking of window changes in the GUI - see flags
-        //wxArrayString textIOArray, errorsIOArray; <<-- better as App members
-        (*this).m_textIOArray.Clear();
-        (*this).m_errorsIOArray.Clear();
-        int flags = 68; // BEW 15Jan24, was wxEXEC_HIDE_CONSOLE& wxEXEC_BLOCK; // wxEXEC_SYNC is implicitly added
-        long rvalue = 0; // initialise to 'success' result
-
-        rvalue = wxExecute(execPath, (*this).m_textIOArray, (*this).m_errorsIOArray, flags); // accept default NULL
-                                                                            // for final param: const wxExecEnv
-        bool bExecutedSucceeded = rvalue == 0L ? TRUE : FALSE;
-
-        if (!bExecutedSucceeded)
+        int rv = -1;
+        rv = rv; // avoid warning
+        bool bExecutedSucceeded = FALSE; // initialise
+        const char* pstart = "python do_pseudo_undelete.py";
+        rv = system(pstart);
+        if (rv == 0)
         {
-            // Execution did not succeed. Most likely cause may be that earlier a different kbserver was being used,
-            // and the basic config file has the ipAddress for that kbserver, but the user now wants to use a different
-            // kbserver, but has forgotten to do a prior call of Advanced menu's "Discover KBservers" command so as to
-            // update the app as to which kbserver is currently to be used. Inform the user, in case this fixes the problem
-            wxString msg;
-            wxString title = _("Pseudo undeletion warning");
-            wxString ipAddress = m_strKbServerIpAddr;
-            bool bIsEmptyAddress = ipAddress.IsEmpty() ? TRUE : FALSE;
-            if (bIsEmptyAddress)
-            {
-                ipAddress = _("ipAddress is undefined");
-
-            }
-            msg = msg.Format(_T("Pseudo undeletion failed, for ipAddress: %s\nYou can continue working. This message is only advice.\nDid you want to use a different running kbserver and forgot to choose it?\nTry clicking Discover KBservers on the Advanced menu, select the kbserver you want, \nclick OK, and then see if the problem goes away next time."),
-                    ipAddress.c_str());
-            wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-            LogUserAction(msg);
+            bExecutedSucceeded = TRUE;
         }
         if (bExecutedSucceeded)
         {
@@ -22663,20 +22671,8 @@ bool CAdapt_ItApp::CallExecute(const int funcNumber, wxString execFileName, wxSt
             RemoveEmptyInitialLine(funcNumber, execPath, resultFile); // in case the first line is empty
             bSuccessfulSwitch = TRUE;
 
-            int textCount = (*this).m_textIOArray.GetCount(); // for success, this will be non-empty, so don't assert emptiness
-            wxUnusedVar(textCount);
-            int errorsCount = (*this).m_errorsIOArray.GetCount();
-            wxUnusedVar(errorsCount);
-            //wxASSERT(textCount == 0);
-            //wxASSERT(errorsCount == 0);
-            // If errors count has content, then we need to add some LogUserAction() info, and give the arrays' contents 
-            // to the developer, at a minimum - the block below can be updated to use a for loop to get the lines
-            // in the m_errorsIOArray and display them for the developer, but currently I'm not bothering. What's there is okay
         }
-        wxLogDebug(_T("%s::%s() line %d: rv is: %d  , and result .dat file is: %s"),
-            __FILE__, __FUNCTION__, __LINE__, rv, m_resultDatFileName.c_str());
-
-        m_bPseudoUndelete = FALSE; // set true at start of block - check comment there
+        wxLogDebug(_T("CallExecute() line %d: result .dat file is: %s"), __LINE__, m_resultDatFileName.c_str());
     }
 		break;
 	case lookup_entry: // = 7
@@ -32276,14 +32272,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strUserID_Archived = m_strThingieID;
     m_strFullname_Archived = _T("KBUser");
     m_strPassword_Archived = m_strThingieLarim;
-    // BEW 22Jan24 added. Name of the file to be lodged in the current running executable's folder,
-    // to store a new (foreign, not kbadmin) username, fullname, password, and useradmin set to 1,
-    // when a new user who is to be given all permissions so as to be able to log in to MariaDB 
-    // and preserved as a file of this name, until contents changed, or file deleted. The function
-    // which creates this file, on behalf of a new foreign username, is: bool GrantPermissionsFile_Create();
-    m_foreignUserPermissionsFilename = _T("PermissionsUserFullnamePwd");
+ 
+    // BEW 12Mar24 initialise next two to _T("gates") and _T("rs46nha#BZ"), for use with the change to .py functions
+    wxString m_strDBusername = _T("gates");
+    wxString m_strDBpassword = _T("rs46nha#BZ");
 
-	return TRUE;
+    return TRUE;
 }
 
 //#if defined (_KBSERVER)
@@ -40060,14 +40054,26 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
             // it's start, "python3" if it's the former. So far, we've just got the ipAddr value set.
             // commandLine already has the ipAddress set above, at its begining
             commandLine += m_strUserID + comma;
-            if (m_strUserID == _T("kbadmin"))
+            if (m_strUserID == _T("kbadmin")) // kbadmin and kbauth are no longer available, as of about 10Mar24
             {
                 commandLine += _T("kbauth") + comma;
             }
             else
             {
-                // Control should only go here when some other user, in m_strUserID, has "some" PERMISSIONS granted
+                // Control should only go here when some other user (not kbadmin, which is now unavailable), 
+                // in m_strUserID, has "some" PERMISSIONS granted (by having checked the checkbox for that)
                 commandLine += this->m_strPassword;
+
+                // BEW 15Mar24, we want m_strPassword to be passed to: void CMainFrame::SetKBSvrPassword(wxString pwd)
+                // which set the private member m_kbserverPassword, by its accessor. Then it can be got from
+                // GetKBSverPassword() instead of calling a dialog using MainFrm GetKBSvrPasswordFromUser() - avoiding
+                // many sequential calls which are not needed because the right pwd has been stored.
+                // 
+                // Also I will remove all usage of UsernameInput dlg (which not yet supports the new password), and
+                // replace the two functions that used that: one in helpers.cpp, bool CheckUsername(); and the other
+                // Adapt_It.cpp, OnEditChangeUsername(), with this NewUserCredentialsDlg.cpp one.
+                CMainFrame* pFrame = this->GetMainFrame();
+                pFrame->SetKBSvrPassword(this->m_strPassword);
             }
             // Next, the new username and password, from the values returned from the dialog above
 
@@ -40235,10 +40241,6 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
             bool bCanAddUsers = dlg.m_pCheck_GrantPermission->GetValue();
             commandLine += (bCanAddUsers == TRUE ? one : zero) + comma;
 
-
-
-// TODO  move legacy code up, a copy and paste, not cut and paste, as the legacy code will also apply for button Add User
-
         } // end of else block for test: if (this->m_newUserDlg_allpermissions == 1)
     } // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
     else
@@ -40250,6 +40252,7 @@ void CAdapt_ItApp::OnAddUsersToKBserver(wxCommandEvent& WXUNUSED(event))
         dlg.strNewPassword.Empty();
         dlg.m_pCheck_GrantPermission->SetValue(FALSE);
         dlg.m_pCheck_Grant_Permissions->SetValue(FALSE);
+        // Leave CMainFrame's stored pwd unchanged - it may be correct in next session
 
         commandLine.Empty();
         this->m_bGrantSomePermissions = FALSE;
@@ -50973,7 +50976,9 @@ void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* p
     // MFC original Note: convert from internal UTF-16 to either the user's legacy
     // encoding, or for all other input encodings, (including UTF-16 or variants thereof)
     // to UTF-8; and then write the bytes out
-
+#if defined (_DEBUG)
+    wxLogDebug(_T("ConvertAndWrite() line %d, converting to utf8, str= [%s]"), __LINE__, str.c_str());
+#endif
     wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
     size_t nLen = strlen(tempBuf); //strlen(lpMacroConvertedText);
         // don't allow for a terminating null when we are doing line-based output
@@ -64463,6 +64468,9 @@ SD_SD_ValueIsIrrelevant
 
 void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString dataPath)
 {
+    wxUnusedVar(funcNumber);
+    wxUnusedVar(dataPath);
+    /* BEW 14Mar24 comment out, but keep the commented out stuff, as reference
 	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
@@ -64518,10 +64526,15 @@ void CAdapt_ItApp::MakePseudoDelete(const int funcNumber, wxString dataPath)
 		wxUnusedVar(bDataFileExists);
 #endif
 	}
+    */
+        return;
 }
 
 void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString dataPath)
 {
+    wxUnusedVar(funcNumber);
+    wxUnusedVar(dataPath);
+    /*
 	//wxASSERT(!execPath.IsEmpty());
 	wxASSERT(!dataPath.IsEmpty());
 	wxUnusedVar(funcNumber);
@@ -64577,6 +64590,8 @@ void CAdapt_ItApp::MakePseudoUndelete(const int funcNumber, wxString dataPath)
 		wxUnusedVar(bDataFileExists);
 #endif
 	}
+    */
+    return;
 }
 
 void CAdapt_ItApp::MakeCreateEntry(const int funcNumber, wxString dataPath) // whm 22Feb2021 removed execPath parameter
@@ -65292,8 +65307,6 @@ void CAdapt_ItApp::CheckForDefinedGlossLangName()
 	msg = msg.Format(msg, adaptingLang.c_str(), m_glossesName.c_str());
 	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 }
-
-
 
 // TODO -- add more as needed
 //#endif // _KBSERVER

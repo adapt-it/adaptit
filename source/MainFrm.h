@@ -242,21 +242,20 @@ public:
 
 	// When not a KBserver build, 5 menu commands pertain to KB sharing, and 4
 	// of these are not disabled (but do nothing), so better if I disable them
-//	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
-//	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
-//	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
+	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
+	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
 //#endif
 
 //#if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
-	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
-	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	//void OnUpdateKBSharingDlg(wxUpdateUIEvent& event); 
+	//void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event); 
 	void OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
-	int  GetIpAddrAndHostnameInventory(wxArrayString& compositesArray, 
-			wxArrayString& ipAddrsArray, wxArrayString& namesArray);
+	//void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
+	int  GetIpAddrAndHostnameInventory(wxArrayString& compositesArray, wxArrayString& ipAddrsArray, wxArrayString& namesArray);
 private:
 	wxString m_kbserverPassword;
 public:

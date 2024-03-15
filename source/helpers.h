@@ -411,7 +411,8 @@ bool	  IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhra
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled);
 // A helper for checking if username strings needed are set, and if not, to open dialog
 // for doing so, we'll also make it possible to do this from the view menu
-bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
+// BEW 15Mar24, no longer need to call CheckUsername, so remove it
+//bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
 					  // Cancel button in the internal dialog
 //#if defined(_KBSERVER)
 void ShortWait();           // set the wait delay in AdaptitConstants.h MSG_SECONDS and MSG_MILLISECONDS

@@ -1350,7 +1350,7 @@ int KbServer::CreateEntry(KbServer* pKbSvr, wxString src, wxString nonSrc)
 {
 	wxUnusedVar(pKbSvr);
 
-	wxString execFileName = _T("do_create_entry.exe");
+	wxString execFileName = _T("do_create_entry.py"); // was _T("do_create_entry.exe");
 	wxString resultFile = _T("create_entry_results.dat");
 	wxString datFileName = _T("create_entry.dat");
 	wxString execPath;
@@ -1414,7 +1414,7 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxUnusedVar(pKbSvr);
 
 	int rv = -1; //initialise
-	wxString execFileName = _T("do_pseudo_undelete.exe");
+	wxString execFileName = _T("do_pseudo_undelete.py");
 	wxString resultFile = _T("pseudo_undelete_results.dat");
 	wxString datFileName = _T("pseudo_undelete.dat");
 	wxString execPath;
@@ -1441,9 +1441,8 @@ int KbServer::PseudoUndelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	m_pApp->ConfigureDATfile(pseudo_undelete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_undelete.dat input file is now ready for grabbing the command
-	// line (its first line) for the ::wxExecute() call in CallExecute()
-	bool bOK = m_pApp->CallExecute(pseudo_undelete, execFileName, execPath,
-		resultFile, 99, 99, FALSE); // FALSE is bReportResult
+	// line (its first line) for the system() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(pseudo_undelete, execFileName, execPath, resultFile, 99, 99, FALSE); // FALSE is bReportResult
 	if (bOK)
 	{
 		rv = 0;
@@ -1456,7 +1455,7 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	wxUnusedVar(pKbSvr);
 
 	int rv = -1; //initialise
-	wxString execFileName = _T("do_pseudo_delete.exe");
+	wxString execFileName = _T("python do_pseudo_delete.py");
 	wxString resultFile = _T("pseudo_delete_results.dat");
 	wxString datFileName = _T("pseudo_delete.dat");
 	wxString execPath;
@@ -1498,9 +1497,8 @@ int KbServer::PseudoDelete(KbServer* pKbSvr, wxString src, wxString nonSrc)
 	m_pApp->ConfigureDATfile(pseudo_delete); // grabs m_curNormalSource & ...Target from m_pApp
 
 	// The pseudo_delete.dat input file is now ready for grabbing the command
-	// line (its first line) for the ::wxExecute() call in CallExecute()
-	bool bOK = m_pApp->CallExecute(pseudo_delete, execFileName, execPath,
-		resultFile, 99, 99, FALSE); // FALSE is bReportResult
+	// line (its first line) for the system() call in CallExecute()
+	bool bOK = m_pApp->CallExecute(pseudo_delete, execFileName, execPath, resultFile, 99, 99, FALSE); // FALSE is bReportResult
 	if (bOK)
 	{
 		rv = 0;
@@ -1572,14 +1570,14 @@ int KbServer::KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldT
 	}
 	//                          ***** part 2 *****
 	// That removes the oldText that was to be updated. 
-	// BEW replace the old logic with this one call. do_create_entry.exe does it all
+	// BEW replace the old logic with this one call. do_create_entry.py or .exe does it all
 	rv = pKbSvr->CreateEntry(pKbSvr, src, newText);
 	// If the user wants to check what is in the returned .dat file, create_entry_results.dat,
 	// it will be found in the AI executable's folder, and can be read with any text editor
 
 	/* 
 	//BEW 6Apr22,removed this logic, with it's dependence on LookupEntryFields() - this is the only place where
-	// the latter was needed, and the refactored do_create_entry.exe handles any change of deletion
+	// the latter was needed, and the refactored do_create_entry.py or .exe handles any change of deletion
 	// flag from 1 to 0, if that need is detected within it's call
 
 	// Now deal with the scr/newText pair -- another lookup is needed...

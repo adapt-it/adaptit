@@ -2709,19 +2709,19 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
     // strings once from any project, sets them for all projects forever unless the
 	// user deliberately opens the dialog using the command in the Edit menu, "Change Username".
 	// (The strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
-	bool bUserDidNotCancel = CheckUsername();
+	bool bUserDidNotCancel = TRUE; // was CheckUsername(); which is no longer called anywhere
 	if (!bUserDidNotCancel)
 	{
 		// He or she cancelled. So remove KB sharing for this project. ReleaseKBServer()
 		// checks for a non-defined instance, and does nothing if so; otherwise, it
 		// deletes the KbServer instance from the heap, and sets its pointer to NULL
 		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
-/* Don't do this, it wipes out lots of stuff, instead, later check if they are running etc
+		// Don't do this, it wipes out lots of stuff, instead, later check if they are running etc
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
 		gpApp->m_bIsGlossingKBServerProject = FALSE;
-*/
+
         // whm 15May2020 added below to supress phrasebox run-on due to handling of ENTER in CPhraseBox::OnKeyUp()
         gpApp->m_bUserDlgOrMessageRequested = TRUE;
         wxMessageBox(_(
@@ -2755,6 +2755,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		}
 	}
 }
+
 
 // BEW 6Nov20 changed, to reflect refactorings for Leon's solution
 void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
@@ -2873,6 +2874,7 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 	// Enable if both KBs of the project are ready for work
 	//event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
+
 /* BEW 25Sep20 deprecated, LookupUser() now does not need to call this,
 void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -4839,13 +4841,13 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		//  (i) Skip over the OnePass() call, and 
 		//  (ii) Skip over the request for an extra idleEvent - thereby killing the re-entrance issue
 		//  (iii) Halting the sequence of auto-insertions, thereby giving the user the opportunity to
-		//  type something at the next hole, and, in CallExecute() for do_create_entry.exe, allows the
+		//  type something at the next hole, and, in CallExecute() for do_create_entry.py or .exe, allows the
 		// program counter to progress in the normal way, to complete the create_entry block of the switch
 		// 
 		// BEW 3Aug22 added support to prevent call of OnePass() when the phrasebox is in a fixed location
 		// temporarily because a kbserver function (in CallExecute()) is being called and which does not
 		// involve relocating the phrasebox to some other location. The need for this was because
-		// do_pseudo_undelete.exe was causing a bogus duplicate entry to be created in the entry table
+		// do_pseudo_undelete.py was causing a bogus duplicate entry to be created in the entry table
 		// because OnIdle() fired and, without a test to make it's call of OnePass() be skipped, a duplicate
 		// entry resulted. Hmm, this logic addition blocks Enter from allowing movement forward - so too
 		// strong. Remove 
@@ -4871,10 +4873,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			bHasAdvanced = FALSE;
 		}
 #if defined (_DEBUG)
-		wxLogDebug(_T("%s::%s() line %d, oldSN = %d , curSN = %d, bHasAdvanced = %d\n"), __FILE__, __FUNCTION__, __LINE__,
+		wxLogDebug(_T("OnIdle() line %d, oldSN = %d , curSN = %d, bHasAdvanced = %d\n"), __LINE__,
 			oldSN, curSN, (int)bHasAdvanced);
 #endif
-		// Testing do_create_entry.exe by running the app (in _DEBUG mode) resulted in a re-entrancy 
+		// Testing do_create_entry.py or .exe by running the app (in _DEBUG mode) resulted in a re-entrancy 
 		// loop which, if not stopped, would cause and infinite loop of calls of OnePass() until the 
 		// app crashes due to stack overflow. So I've prevented this using oldSN and curSN as above
 		//if ((bHasAdvanced == TRUE) && !bStationaryBox)
@@ -4889,8 +4891,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 					if (pSrcPhrase->m_nSequNumber >= 12)
 					{
-						wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, bHasAdvanced= [%d], m_bAutoInsert %d  OnePass() NEXT"),
-							__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+						wxLogDebug(_T("\nOnIdle(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, bHasAdvanced= [%d], m_bAutoInsert %d  OnePass() NEXT"),
+							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
 							(int)pApp->m_bUserTypedSomething, (int)bHasAdvanced, (int)pApp->m_bAutoInsert);
 					}
 				}

@@ -1025,7 +1025,7 @@ void CKB::HandlePseudoDeletion(wxString src, wxString nonSrc) // BEW added 31Mar
 	int rv = -1; // initialise to 'fail'
 	rv = rv; // avoid gcc "set but not used warning"
 //#if defined(_KBSERVER) // BEW 9May22 _KBSERVER is no longer supported in Win, Mac or Linux builds
-	bool bSuppressionNeeded = FALSE; // TRUE, to suppress the do_pseudo_delete.exe call if the
+	bool bSuppressionNeeded = FALSE; // TRUE, to suppress the do_pseudo_delete.py call if the
 			// calculation of the pKBSvr unexpectedly returns a NULL
 	if (m_bDeletionDone) // m_bDeletionDone is a public member of this CKB class instance
 	{
@@ -1270,7 +1270,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 	// 2.  Pertaining to nRefCount, here are the protocols which depend on its initial value, and
 	// 	   these are relevant to 1 (a) and (b) states above, equally (to the extent possible)
 	// (d) pTU is empty of CRefString instances.
-	//     (i)  If its a kbserver project, no call of do_pseudo_delete.exe is warranted, as there
+	//     (i)  If its a kbserver project, no call of do_pseudo_delete.py is warranted, as there
 	//		    is nothing to pseudo-delete
 	//	   (ii) The dropdown button will already have the [X] shape, so just call
 	//			InitializeComboLandingParams() to clear the m_pTargetBox's stored
@@ -1289,7 +1289,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 	//			 So the new nRefCount is 1 or more, which retains it as a valid non-deleted
 	//			 line in the drop down list. And the dropdown's button does not change.
 	//			 Therefore do this: store the smaller (by 1) nRefCount on the pRefString;
-	//			 make no call of do_pseudo_delete.exe to the enty table if its a kbserver
+	//			 make no call of do_pseudo_delete.py to the enty table if its a kbserver
 	//			 project. Then return.
 	//	   (iii) nRefCount starts off as 1. Auto decrementing with send this to 0, and
 	//			 The m_bDeleted flag on the pRefString is to be set to TRUE.
