@@ -30471,9 +30471,45 @@ bailout:	pAdaptList->Clear();
 			__FILE__, __FUNCTION__, __LINE__ , (int)pDoc->m_bWithinMkrAttributeSpan,
 			(int)pDoc->m_bHiddenMetadataDone, (int)gbVerticalEditInProgress);
 #endif
+		// whm 15Mar2024 added. In case the TokenizeTextString() call below includes a marker
+		// that needs to be filtered - due to a mis-spelled marker that, when edited, becomes
+		// a marker that needs filtering - and that marker-to-be-filtered is at the beginning 
+		// of the source text string being tokenized by TokenizeTextString's internal 
+		// TokenizeText() call, we need to determine what source phrase was the pLastSrcPhrase 
+		// in the Doc's pList, because that is where the TokenizeText() process will need to
+		// store such filtered material - on the previous source phrase. So, here we determine
+		// a value for the Doc's m_pLastSrcPhrase here before the TokenizeTextString() call is
+		// made.
+		CSourcePhrase* pLastSP = NULL; // initialize
+		// pStartingPile for the selection was determined near the beginning of OnEditSourceText() above
+		// We can use it to determine what the previous source phrase is prior to the selection,
+		// and use that to set the value of the Doc's m_pLastSrcPhrase is, so that TokenizeText
+		// can store any filtered information if necessary there (see above comment).
+		int lastSequNum = pStartingPile->GetSrcPhrase()->m_nSequNumber - 1;
+		CPile* pLastPile = pApp->m_pLayout->GetPile(lastSequNum);
+		if (pLastPile != NULL)
+		{
+			pLastSP = pLastPile->GetSrcPhrase();
+		}
+		// whm 16Mar2024 added. We should avoid setting the m_pLastSrcPhrase to point to a placeholder.
+		// So, if pLastSP is a placeholder, se shold iterate to previous source phrases until we come
+		// to a non-placeholder source phrase.
+		int seqNumDecrement = 1;
+		while (pLastSP != NULL && pLastPile != NULL && pLastSP->m_bNullSourcePhrase && pLastSP->m_nSequNumber >= 0)
+		{
+			pLastPile = pApp->m_pLayout->GetPile(lastSequNum - seqNumDecrement);
+			pLastSP = pLastPile->GetSrcPhrase();
+			seqNumDecrement++;
+		}
+		if (pLastSP != NULL)
+		{
+			m_pDoc->m_pLastSrcPhrase = pLastSP; // set the Doc's m_pLastSrcPhrase - used within TokenizeText()
+		}
 
 		nNewCount = TokenizeTextString(&pRec->editableSpan_NewSrcPhraseList, strNewSrcText,
 										pRec->nStartingSequNum);
+		m_pDoc->m_pLastSrcPhrase = NULL; // set it back to NULL to be safe
+
 		pRec->nNewSpanCount = nNewCount; // this value may decrease by one if a
                                 // CSourcePhrase carrier of final endmarkers, but with no
                                 // source text, is found to be present and therefore gets
@@ -30684,8 +30720,13 @@ bailout:	pAdaptList->Clear();
         // left it TRUE; and the fix to the marker should at the very least cause the
         // ?\mkr? navigation text to disappear - so the function will also attempt to
         // remedy those things before returning.
-		bool bNonEndmarkersOrFilteredInfoTransferred = TransportWidowedFilteredInfoToFollowingContext(
-							&pRec->editableSpan_NewSrcPhraseList, gpFollSrcPhrase, pRec);
+		// 
+		// whm 16Mar2024 Changed the name of the following function from 
+		// TransportWidowedFilteredInfoToFollowingContext() to TransportWidowedFilteredInfoToPrecedingContext()
+		// and the second incoming parameter from gpFollSrcPhrase to gpPrecSrcPhrase, since
+		// filtered information is now stored on a preceding source phrase.
+		bool bNonEndmarkersOrFilteredInfoTransferred = TransportWidowedFilteredInfoToPrecedingContext(
+							&pRec->editableSpan_NewSrcPhraseList, gpPrecSrcPhrase, pRec);
 		if (bNonEndmarkersOrFilteredInfoTransferred)
 		{
             // the list is shorter, so adjust the local count value which we set
@@ -30701,7 +30742,7 @@ bailout:	pAdaptList->Clear();
         // TextType value to the caller which we can use to propagate as necessary past the
         // end. There are 3 globals for preserving the values needed for such propagation;
         // we'll set them to some good guesses here, based on what is currently known;
-        // DoMarkerHousekeeping() will adjust them as, needed later, or if the sublist is
+        // DoMarkerHousekeeping() will adjust them as needed later, or if the sublist is
         // empty, we'll set best-possible-values directly ('verse' and m_bSpecialText =
         // FALSE)and not call DoMarkerHousekeeping()
 		gbPropagationNeeded = FALSE; // the most likely scenario
@@ -30720,9 +30761,9 @@ bailout:	pAdaptList->Clear();
                 // which could be quite wrong if the user is editing the source to correct
                 // a misspelled marker
 
-        // Get the text type, etc, correct for the list contents. Care is needed here,
+        // [BEW[ Get the text type, etc, correct for the list contents. Care is needed here,
         // depending on what happened within the above
-        // TransportWidowedFilterredInfoToFollowingContext() call. Passing the editable
+        // TransportWidowedFilterredInfoToPrecedingContext() call. Passing the editable
         // span's new CSourcePhrase list into DoMarkerHousekeeping will cause the latter to
         // fail and crash the app if there was only a single CSourcePhrase in the new list,
         // and it was a carrier for now-filtered information (because the user edited a SF
@@ -30819,7 +30860,7 @@ bailout:	pAdaptList->Clear();
 		(int)gEditStep);
 #endif
 
-        // do any forward propagation, halting at the first CSourcePhrase in the following
+        // [BEW] do any forward propagation, halting at the first CSourcePhrase in the following
         // context which has the member flag m_bFirstOfType set TRUE (Note; so far, nothing
         // has been done to the contents of the pSrcPhrases list to invalidate any pointer in
         // it, so we don't need any layout update yet)
@@ -31248,12 +31289,18 @@ bailout:	pAdaptList->Clear();
 /// BEW 7May08, function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10, updated for support of doc version 5 (some changes were needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// whm 16Mar2024 Changed name from TransportWidowedFilteredInfoToFollowingContext() to
+/// TransportWidowedFilteredInfoToPrecedingingContext, and second param changed from
+/// pFollSrcPhrase to pPrecSrcPhrase, since filtered information is now stored/transported 
+/// to a preceding source phrase. Hence, the code and comments in the function body below 
+/// now use pFirstSrcPhrase instead of pLastSrcPhrase and pPrecSrcPhrase instead of 
+/// pFollSrcPhrase. 
 /////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases,
-			CSourcePhrase* pFollSrcPhrase, EditRecord* pRec)
+bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewSrcPhrases,
+			CSourcePhrase* pPrecSrcPhrase, EditRecord* pRec)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pFollSrcPhrase == NULL)
+	if (pPrecSrcPhrase == NULL)
 	{
         // there is no following context, so no transfer can be done, so the carrier
         // CSourcePhrase (if there is one) must be retained as it is - so we've nothing to
@@ -31275,9 +31322,9 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 												// is there to transfer
 		return FALSE;
 	}
-	SPList::Node* lastPos = pNewSrcPhrases->GetLast();
-	CSourcePhrase* pLastSrcPhrase = lastPos->GetData();
-	wxASSERT(pLastSrcPhrase != NULL);
+	SPList::Node* firstPos = pNewSrcPhrases->GetFirst(); //SPList::Node* lastPos = pNewSrcPhrases->GetLast();
+	CSourcePhrase* pFirstSrcPhrase = firstPos->GetData();
+	wxASSERT(pFirstSrcPhrase != NULL);
 
     // m_filteredInfo may have some content. We handle filtered info first.
     // BEW added 24Jan09: support for non-endmarker(s) in m_markers of a carrier
@@ -31289,24 +31336,24 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 	bool bFilteredInfoToBeTransferred = FALSE;
 	pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // start off assuming there
 															   // is none to be handled
-	if (!pLastSrcPhrase->GetFilteredInfo().IsEmpty())
+	if (!pFirstSrcPhrase->GetFilteredInfo().IsEmpty())
 	{
-		// there is now-filtered information present on the last CSourcePhrase instance,
+		// there is now-filtered information present on the first CSourcePhrase instance,
 		// so indicate it has to be handled further down in the function -- but don't do
-        // it yet because it only needs to be transferred provided pLastSrcPhrase's m_key
+        // it yet because it only needs to be transferred provided pFirstSrcPhrase's m_key
         // and m_follPunct CString members are both empty
 		bFilteredInfoToBeTransferred = TRUE;
-		filteredInfo = pLastSrcPhrase->GetFilteredInfo();
+		filteredInfo = pFirstSrcPhrase->GetFilteredInfo();
 	}
 	// if there are final non-endmarkers, they'll be within m_markers, so that being
 	// non-empty is sufficient for setting the boolean
 	bool bHasNonEndmarkers = FALSE; // default; BEW added 24Jan09
 	wxString nonEndmarkers; // BEW added 24Jan09
-	bHasNonEndmarkers = !pLastSrcPhrase->m_markers.IsEmpty();
+	bHasNonEndmarkers = !pFirstSrcPhrase->m_markers.IsEmpty();
 	if (bHasNonEndmarkers)
 	{
-		nonEndmarkers = pLastSrcPhrase->m_markers; // these may need to be transferred
-						// to the first CSourcePhrase instance of the following context
+		nonEndmarkers = pFirstSrcPhrase->m_markers; // these may need to be transferred
+						// to the first CSourcePhrase instance of the preceding context
 	}
 
 
@@ -31319,30 +31366,34 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
         // only do the transfer provided there is something there to be transferred in the
         // first place; and only if the relevant members are empty (which indicates a
         // CSourcePhrase otherwise unwanted)
-		if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
-		{
+		// whm 16Mar2024 modified. There should be no constraint of m_key or m_precPunct being
+		// empty when doing the transfer to a preceding context.
+		//if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
+		//{
             // if we are transferring something, then transfer a m_bFirstOfType == TRUE
             // value, provided the pFollSrcPhrase member of same name is not itself TRUE
-			if (!pFollSrcPhrase->m_bFirstOfType && pLastSrcPhrase->m_bFirstOfType)
-			{
-				pFollSrcPhrase->m_bFirstOfType = TRUE; // needs to be set to ensure
-													   // nav text gets rewritten
-			}
+			// whm 16Mar2024 removed. I think the m_bFirstOfType and will be OK for the 
+			// preceding context without the following block
+			//if (!pPrecSrcPhrase->m_bFirstOfType && pFirstSrcPhrase->m_bFirstOfType)
+			//{
+			//	pPrecSrcPhrase->m_bFirstOfType = TRUE; // needs to be set to ensure
+			//										   // nav text gets rewritten
+			//}
 
 			// now do the transfers
 			if (bFilteredInfoToBeTransferred)
 			{
 				// it's filtered information we are dealing with (and it might have one or
                 // more non-endmarkers following it - if so, they go along for the ride)
-				wxString strAlreadyFiltered = pFollSrcPhrase->GetFilteredInfo();
+				wxString strAlreadyFiltered = pPrecSrcPhrase->GetFilteredInfo();
 				if (strAlreadyFiltered.IsEmpty())
 				{
-					pFollSrcPhrase->SetFilteredInfo(filteredInfo);
+					pPrecSrcPhrase->SetFilteredInfo(filteredInfo);
 				}
 				else
 				{
 					filteredInfo += strAlreadyFiltered;
-					pFollSrcPhrase->SetFilteredInfo(filteredInfo);
+					pPrecSrcPhrase->SetFilteredInfo(filteredInfo);
 				}
 				// record, in the EditRecord, what we just did
 				pRec->bTransferredFilterStuffFromCarrierSrcPhrase = TRUE;
@@ -31351,7 +31402,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 			// now transfer non-endmarkers, if any
 			if (bHasNonEndmarkers)
 			{
-				pFollSrcPhrase->m_markers = nonEndmarkers + pFollSrcPhrase->m_markers;
+				pPrecSrcPhrase->m_markers = nonEndmarkers + pPrecSrcPhrase->m_markers;
 
 				// make sure the marker info we are transferring ends with a space
 				// delimiter, to ensure we don't do something bad like butting a verse
@@ -31359,9 +31410,9 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 				nonEndmarkers.Trim();
 				nonEndmarkers += _T(" "); // For ZWSP support, this MUST remain a space
 
-				// pFollSrcPhrase may or may not have information in m_inform, and so
-				// might pLastSrcPhrase, so transfer that information too
-				pFollSrcPhrase->m_inform = pLastSrcPhrase->m_inform + pFollSrcPhrase->m_inform;
+				// pPrecSrcPhrase may or may not have information in m_inform, and so
+				// might pFirstSrcPhrase, so transfer that information too
+				pPrecSrcPhrase->m_inform = pFirstSrcPhrase->m_inform + pPrecSrcPhrase->m_inform;
 			}
 
 			// Because the user may have edited a bogus (ie. misspelled) marker, we
@@ -31373,7 +31424,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
             // should fix up the navigation text to be what it should be - I think
 			int anOffset = -1;
 			wxString accumulateStr;
-			wxString inform = pFollSrcPhrase->m_inform;
+			wxString inform = pPrecSrcPhrase->m_inform;
 			anOffset = inform.Find(_T('?'));
 			if (anOffset != -1)
 			{
@@ -31393,22 +31444,23 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
                     // we have done this just in case there is also the name of one or
                     // more non-bogus markers in the m_inform member; we want to retain
                     // those
-					pFollSrcPhrase->m_inform = accumulateStr;
+					pPrecSrcPhrase->m_inform = accumulateStr;
 				}
 
 				// since the bogus marker may be now fixed and the filtered info
 				// transferred could be just-filtered because of that, we'll assume so,
 				// and make the TextType which precedes that just-filtered stuff
 				// propagatable by clearing the m_bFirstOfType flag
-				pFollSrcPhrase->m_bFirstOfType = FALSE;
+				// whm 16Mar2024 removed the following as I don't think it is needed here.
+				//pFollSrcPhrase->m_bFirstOfType = FALSE;
 			}
 
 			if (bHasNonEndmarkers || bRemoveSrcPhrase)
 			{
-				// delete the carrier, pLastSrcPhrase, which is no longer needed & update
+				// delete the carrier, pFirstSrcPhrase, which is no longer needed & update
 				// the count value stored in pRec to comply with this deletion; remove the
 				// pointer at the tail of the list too
-				pApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase);
+				pApp->GetDocument()->DeleteSingleSrcPhrase(pFirstSrcPhrase);
 				pRec->nNewSpanCount -= 1;
 				SPList::Node* spLast = pNewSrcPhrases->GetLast();
 				pNewSrcPhrases->DeleteNode(spLast);
@@ -31419,10 +31471,10 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
             // the pile width is unchanged, but no harm in it, and it is a fail-safe
 			// thing to do for updating of the view, since it guarantees the strip
 			// gets invalidated and its index saved in CLayout::m_invalidStripArray
-			pApp->GetDocument()->ResetPartnerPileWidth(pFollSrcPhrase);
+			pApp->GetDocument()->ResetPartnerPileWidth(pPrecSrcPhrase);
 
 			return TRUE;
-		} // end of TRUE block for test of empty m_key and empty m_precPunct members
+		//} // end of TRUE block for test of empty m_key and empty m_precPunct members
 	}
 	// if control gets to here, we've done no transfers, so inform the caller
 	return FALSE;

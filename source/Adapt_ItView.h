@@ -399,9 +399,10 @@ protected:
 					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
-	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases,
-							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
+	bool		TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewSrcPhrases, 
+							CSourcePhrase* pPrecSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
+							// whm 16Mar2024 Name changed from TransportWidowedFilteredInfoToFollowingContext()
 	wxString	RemoveAllCRandLF(wxString* pStr);
 	bool		DoGlobalRestoreOfSaveToKB(wxString sourceKey); // BEW added 4Sep15, called only in OnCheckKBSave(), when
 							// the latter is used by the user to ask for a <Not In KB> entry to be

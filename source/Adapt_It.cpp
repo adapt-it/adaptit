@@ -32228,6 +32228,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     }
     // whm 6Mar2024 testing above
     */
+    /*
+    // whm 16Mar2024 testing my revision of AddParagraphMarkers() below
+    wxString rBuffer = _T("This is test line 1\r\nThis is test line 2\rThis is test line 3\nThis is test line 4\\p This is test line 5\n\\p");
+    CAdapt_ItDoc* pDoc = GetDocument();
+    bool bIsUnstructured = pDoc->IsUnstructuredPlainText(rBuffer);
+    bIsUnstructured = bIsUnstructured;
+    int nTextLen = (int)rBuffer.Length();
+    pDoc->AddParagraphMarkers(rBuffer, nTextLen);
+    nTextLen = nTextLen;
+    // whm 16Mar2024 testing my revision of AddParagraphMarkers() above
+    */
 
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
