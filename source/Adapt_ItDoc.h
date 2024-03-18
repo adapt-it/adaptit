@@ -240,11 +240,11 @@ public:
 	virtual void Modify(bool mod);
 
 	virtual bool OnSaveModified(); // in protected area of MFC app
-	bool         DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
+	bool			DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
+	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
 
 	// Implementation
 protected:
-	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
 	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
 		wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
 	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
@@ -301,13 +301,13 @@ protected:
 		wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
 		wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
 		wxString& spacelessPuncts, bool bTokenizingTargetText);
-	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 
 public:
+	bool			IsUnstructuredPlainText(wxString& rText);
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
 	void			PutPhraseBoxAtDocEnd();
@@ -620,7 +620,9 @@ public:
 	bool			m_bIsInInlineNonbindingSpan;
 	int				nFirstSequNumOfSpan; // used for \fig .... \fig* span
 
-	wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
+	// whm 16Mar2024 removed the m_currentUnfilterMkr. It's not relevant after my revision of IsUnstructuredText()
+	//wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
+
 	bool			m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
 	bool			IsBeginMarker(wxChar* pChar, wxChar* pEnd, wxString& wholeMarker, bool& bIsEndMkr);
 
@@ -806,6 +808,15 @@ public:
 	// Next line, BEW 3Sep19 in support of USFM3, and hiding attributes metadata
 	CSourcePhrase* m_pSrcPhraseBeingCreated; // set this to the instance that TokenizeText 
 										 // is currently populating
+	// whm 15Mar2024 added the following m_pLastSrcPhrase to cache the last source phrase during a 
+	// TokenizeTextString() call to give TokenizeText() - in such cases - access to the Doc's 
+	// pLastSrcPhrase instance existing just before a pSubList that doesn't include the 
+	// pLastSrcPhrase normally accessible when processing an entire pList of the Doc's source phrases. 
+	// This m_pLastSrcPhrase will be mainly used when pLastSrcPhrase is NULL which can typically occur
+	// when TokenizeText() is called from within the TokenizeTextString() function call.
+	// This can happen during an OnEditSourceText() operation, as well as 
+	CSourcePhrase* m_pLastSrcPhrase; // whm 15Mar2024 added
+
 	// Prototypes for helpers in support of USFM3 markup, regarding metadata
 	// which follows bar ( | ) immediately prior to certain endmarkers
 	bool m_bAllowCommaInKB; // BEW add 22Apr23, default FALSE, but set TRUE if comma is in src or tgt word

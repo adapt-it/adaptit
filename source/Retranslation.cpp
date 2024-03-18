@@ -1888,7 +1888,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// whm 3Oct2023 added code to allow Retranslations to be done on a single active
 	// location that is not a placeholder, nor a merger, nor an existing retranslation.
 	wxASSERT(m_pView != NULL);
-	wxASSERT(m_pApp->m_nActiveSequNum != NULL);
+	// whm 16Mar2024. It doesn't make sense to generate an assert which asserts that the 
+	// App's m_nActiveSequNum must not be zero (NULL) when bringing up the "Do A 
+	// Retranslation" dialog. The phrasebox can certainly be at the first word of the 
+	// document when evoking the Retranslation dialog. I've commented out the wxASSERT
+	// below.
+	//wxASSERT(m_pApp->m_nActiveSequNum != NULL); 
 	wxASSERT(m_pApp->m_pActivePile != NULL);
 	CSourcePhrase* pActiveSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
 
