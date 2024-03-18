@@ -3369,9 +3369,9 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
 
-#ifdef _FIND_DELAY
+//#ifdef _FIND_DELAY
 		wxLogDebug(_T("9. Start of JumpForward"));
-#endif
+//#endif
 	// refactored 25Mar09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = pLayout->m_pApp;
@@ -3637,6 +3637,17 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		} // end of block for test for m_bSingleStep == TRUE
 		else // auto-inserting 
 		{
+
+		//*
+			// BEW 18Mar24, Bill is convinced that this block of code (to the //*/ line) is not needed.
+			// On his machine, which does not have a MariaDB installation, Enter works just fine for a
+			// merger followed by Enter keypress. On my machine (M90T), the box is paralysed - does not advance.
+			// I've made multiple tests, including nyindrou data, no kb sharing set up on project, MariaDB not
+			// running, and every time the box at Enter press, it does not move - whether project is a kb sharing one,
+			// or not, if this following block of code is commented out. So I'm keeping the code as is. It works.
+			// I can't afford to spend more time on the issue, especially as I've no realistic way to compare the
+			// workings of my computer versus Bill's.
+			
 			// cause auto-inserting using the OnIdle handler to commence
 			pApp->m_bAutoInsert = TRUE;
 			if (pApp->m_pTargetBox->m_bAbandonable)
@@ -3675,7 +3686,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 			pLayout->PlaceBox();
 			pView->Invalidate();
-
+		//*/
 		} // end of else block for test for m_bSingleStep == TRUE, i.e. autoinserting
 
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
