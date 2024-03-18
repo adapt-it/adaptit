@@ -1529,7 +1529,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		__LINE__, pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile, pCurSP->m_key.c_str(), pCurSP->m_adaption.c_str());
 #if defined(_DEBUG)
 	{	
-		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 17)
+		if (pCurPile->GetSrcPhrase()->m_nSequNumber >= 77)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -1563,7 +1563,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		wxLogDebug(_T("PhrBox::MoveToNextPile(), line %d, sn=%d, pOldActiveSrcPhrase: m_key= [%s], m_srcPhrase= [%s], m_adaption= [%s], m_targetStr= [%s]"),
 			__LINE__, pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_key.c_str(),
 			pOldActiveSrcPhrase->m_srcPhrase.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), pOldActiveSrcPhrase->m_targetStr.c_str());
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 77)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here);
 		}
@@ -1641,7 +1641,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	else
 	{
 #if defined(_DEBUG)
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 77)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -1676,7 +1676,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			pOldActiveSrcPhrase->m_nSequNumber, pCurPile, pOldActiveSrcPhrase->m_key.c_str(), pOldActiveSrcPhrase->m_adaption.c_str(), 
 			pOldActiveSrcPhrase->m_targetStr.c_str(), pOldActiveSrcPhrase->m_gloss.c_str());
 
-		if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+		if (pOldActiveSrcPhrase->m_nSequNumber >= 77)
 		{
 			int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 		}
@@ -1700,7 +1700,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// since we are moving, make sure the default m_bSaveToKB value is set
 	pApp->m_bSaveToKB = TRUE;
 #if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 77)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -1745,7 +1745,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		pView->OnToggleEnablePunctuationCopy(event);
 	}
 #if defined(_DEBUG)
-	if (pOldActiveSrcPhrase->m_nSequNumber >= 17)
+	if (pOldActiveSrcPhrase->m_nSequNumber >= 77)
 	{
 		int halt_here = 1; wxUnusedVar(halt_here); // avoid compiler warning variable initialized but not referenced
 	}
@@ -3359,6 +3359,13 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 8July10, no changes needed for support of kbVersion 2
+// BEW 18Mar24, JumpForward() is called from within OnePass(), OnSysKeyUp(), OnKeyUp() and in the
+// OnOK() function of Preferences... for the Punctuation Correspondences Page.
+// I needed to refactor JumpForward() because the auto-insert mode, which accepts Enter or Tab for 
+// jumping to next 'hole', did not have a call of MoveToNextPile() to cause the foward movement 
+// to happen. Fixed that. Now appears to work right. The error was discovered when I came to a 
+// location where I needed to merge at least two pSrcPhrases, and the box was not advancing when 
+// I pressed Enter or Tab key.
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
 
@@ -3628,11 +3635,17 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			pLayout->PlaceBox();
 
 		} // end of block for test for m_bSingleStep == TRUE
-		else // auto-inserting -- sets flags and returns, allowing the idle handler to call OnePass()
+		else // auto-inserting 
 		{
 			// cause auto-inserting using the OnIdle handler to commence
 			pApp->m_bAutoInsert = TRUE;
-
+			if (pApp->m_pTargetBox->m_bAbandonable)
+			{
+				pApp->m_pTargetBox->m_bAbandonable = FALSE; // yep, checking and resetting 
+					//FALSE here releaves the user of responsibility
+					// to make the content 'stick' by first doing something, eg. a click, in the box
+					// before using ENTER key or TAB key to cause an advance to a hole
+			}
 			// User has pressed the Enter key  (OnChar() calls JumpForward())
 			// BEW changed 9Apr12, to support discontinuous highlighting
 			// spans for auto-insertions...
@@ -3642,27 +3655,29 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// current location is a kick-off one, which we can do by clearing any earlier
 			// highlighting currently in effect
 			pLayout->ClearAutoInsertionsHighlighting();
-//#ifdef Highlighting_Bug
-//			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, from  pile at sequnum = %d   SrcText:  "),
-//				pSPhr->m_nSequNumber, pSPhr->m_srcPhrase);
-//#endif
-			// BEW 14Jan23, Ngalambirra got "Holy-Spirit" auto-copied from the source text, but she forgot to click in the phrasebox to make
-			// the inserted text "stick" by causing m_bAbandonable to be reset to FALSE, - so when MoveToNextPile() got called, the phrasebox
-			// at the kick-off location lost the "Holy-Spirit" content. She didn't notice, and the text - because of how Gupapuyngu works,
-			// still made sense. This type of error is common, and potentially disasterous. I think the user should not have to click in
-			// the box, when moving forward by ENTER or TAB key. OnKeyUp() handles ENTER or TAB keypress, and calls JumpForward() just before
-			// exiting. So I will here check for m_bAbandonable still with TRUE value, and if so, reset it FALSE, so that a box click is
-			// not required anymore. Clicking around holes in the doc will still autoclear the copied src text at each location, so my
-			// original intent for such clicking still applies because JumpForward(pView) is not called in such a circumstance.
-			if (pApp->m_pTargetBox->m_bAbandonable)
-			{
-				pApp->m_pTargetBox->m_bAbandonable = FALSE; // yep, checking and resetting FALSE here releaves the user of responsibility
-															// to make the content 'stick' by first doing something, eg. a click, in the box
-															// before using ENTER key or TAB key to cause an advance to a hole
-			}
+
+			pLayout->m_pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase());
+			int bSuccessful;
+			bSuccessful = MoveToNextPile(pApp->m_pActivePile);
 
 			pLayout->m_docEditOperationType = relocate_box_op;
-		}
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+			wxASSERT(pApp->m_pActivePile != NULL);
+			CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+			pLayout->m_pDoc->ResetPartnerPileWidth(pSPhr);
+
+			pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+			pLayout->PlaceBox();
+			pView->Invalidate();
+
+		} // end of else block for test for m_bSingleStep == TRUE, i.e. autoinserting
+
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
 		// phrase
         m_SaveTargetPhrase = pApp->m_targetPhrase;
@@ -8862,7 +8877,7 @@ void  CPhraseBox::RepopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
-    wxLogDebug(_T("CPhraseBox::::OnLButtonDown() triggered"));
+    wxLogDebug(_T("CPhraseBox, Just entered OnLButtonDown()"));
 
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen.
