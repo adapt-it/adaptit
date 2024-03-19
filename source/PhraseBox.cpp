@@ -3359,8 +3359,8 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 8July10, no changes needed for support of kbVersion 2
-// BEW 18Mar24, JumpForward() is called from within OnePass(), OnSysKeyUp(), OnKeyUp() and in the
-// OnOK() function of Preferences... for the Punctuation Correspondences Page.
+// BEW 18Mar24, JumpForward() is called from within OnePass() but only in transliteration mode, 
+// OnSysKeyUp(), OnKeyUp() and in the OnOK() function of Preferences... for the Punctuation Correspondences Page.
 // I needed to refactor JumpForward() because the auto-insert mode, which accepts Enter or Tab for 
 // jumping to next 'hole', did not have a call of MoveToNextPile() to cause the foward movement 
 // to happen. Fixed that. Now appears to work right. The error was discovered when I came to a 
@@ -3637,56 +3637,12 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		} // end of block for test for m_bSingleStep == TRUE
 		else // auto-inserting 
 		{
-
-		//*
-			// BEW 18Mar24, Bill is convinced that this block of code (to the //*/ line) is not needed.
-			// On his machine, which does not have a MariaDB installation, Enter works just fine for a
-			// merger followed by Enter keypress. On my machine (M90T), the box is paralysed - does not advance.
-			// I've made multiple tests, including nyindrou data, no kb sharing set up on project, MariaDB not
-			// running, and every time the box at Enter press, it does not move - whether project is a kb sharing one,
-			// or not, if this following block of code is commented out. So I'm keeping the code as is. It works.
-			// I can't afford to spend more time on the issue, especially as I've no realistic way to compare the
-			// workings of my computer versus Bill's.
-			
 			// cause auto-inserting using the OnIdle handler to commence
 			pApp->m_bAutoInsert = TRUE;
-			if (pApp->m_pTargetBox->m_bAbandonable)
-			{
-				pApp->m_pTargetBox->m_bAbandonable = FALSE; // yep, checking and resetting 
-					//FALSE here releaves the user of responsibility
-					// to make the content 'stick' by first doing something, eg. a click, in the box
-					// before using ENTER key or TAB key to cause an advance to a hole
-			}
-			// User has pressed the Enter key  (OnChar() calls JumpForward())
-			// BEW changed 9Apr12, to support discontinuous highlighting
-			// spans for auto-insertions...
-			// Since OnIdle() will call OnePass() and the latter will call
-			// MoveToNextPile(), and it is in MoveToNextPile() that CCell's
-			// m_bAutoInserted flag can get set TRUE, we only here need to ensure that the
-			// current location is a kick-off one, which we can do by clearing any earlier
-			// highlighting currently in effect
-			pLayout->ClearAutoInsertionsHighlighting();
-
-			pLayout->m_pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase());
-			int bSuccessful;
-			bSuccessful = MoveToNextPile(pApp->m_pActivePile);
-
-			pLayout->m_docEditOperationType = relocate_box_op;
-#ifdef _NEW_LAYOUT
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#if defined(_DEBUG)
+			wxLogDebug(_T("10. JumpForward() line %d , pApp->m_bAutoInsert = TRUE has just been set"), __LINE__);
 #endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-			wxASSERT(pApp->m_pActivePile != NULL);
-			CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
-			pLayout->m_pDoc->ResetPartnerPileWidth(pSPhr);
 
-			pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-			pLayout->PlaceBox();
-			pView->Invalidate();
-		//*/
 		} // end of else block for test for m_bSingleStep == TRUE, i.e. autoinserting
 
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
@@ -3889,11 +3845,11 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 #ifdef _NEW_LAYOUT
 		#ifdef _FIND_DELAY
-			wxLogDebug(_T("10. Start of RecalcLayout in JumpForward"));
+			wxLogDebug(_T("11. Start of RecalcLayout in JumpForward"));
 		#endif
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 		#ifdef _FIND_DELAY
-			wxLogDebug(_T("11. End of RecalcLayout in JumpForward"));
+			wxLogDebug(_T("12. End of RecalcLayout in JumpForward"));
 		#endif
 #else
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
@@ -3906,9 +3862,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pView->Invalidate();
 		pLayout->PlaceBox();
 	} // end Review mode (single src phrase move) block
-	#ifdef _FIND_DELAY
-		wxLogDebug(_T("12. End of JumpForward"));
-	#endif
+	//#ifdef _FIND_DELAY
+		wxLogDebug(_T("13. End of JumpForward(pView), returning now"));
+	//#endif
 }
 
 // This function is called for every character typed in phrase box (via OnChar() function 
@@ -6236,9 +6192,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
 bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 {
-#ifdef _FIND_DELAY
-		wxLogDebug(_T("1. Start of OnePass"));
-#endif
+//#ifdef _FIND_DELAY
+		wxLogDebug(_T("1. Start of OnePass(pView)"));
+//#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
     CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -6338,18 +6294,18 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	}
 	else
 	{
-#ifdef _FIND_DELAY
-		wxLogDebug(_T("2. Before MoveToNextPile"));
-#endif
+//#ifdef _FIND_DELAY
+		wxLogDebug(_T("2. OnePass(), Before MoveToNextPile() is to be called"));
+//#endif
 		bSuccessful = MoveToNextPile(pApp->m_pActivePile);
 		// BEW 28Jul23, nah, too dangerous - there's "not successful" code blocks below which may be workable
 		//if (!bSuccessful) // BEW added 28Jul23
 		//{
 		//	return FALSE; // retuns to MainFrm.cpp				  
 		//}
-		#ifdef _FIND_DELAY
-			wxLogDebug(_T("3. After MoveToNextPile"));
-		#endif
+		//#ifdef _FIND_DELAY
+			wxLogDebug(_T("3. OnePass() After MoveToNextPile() has advanced phrasebox forward"));
+		//#endif
 		// If in vertical edit mode, and the phrasebox has come to a hole, then we
 		// want to halt OnePass() calls in OnIdle() so that the user gets the chance
 		// to adapt at the hole
@@ -6407,7 +6363,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
             // YES!! That works - the highlighting is now visible when the box has
             // disappeared and the end of doc message shows. Also, normal adapting still
             // works right despite this change, so that's a bug (or undesireable feature -
-            // namely, the loss of highlighting when the doc is reached by auto-inserting)
+            // namely, the loss of highlighting when the doc end is reached by auto-inserting)
             // now fixed.
 
 			pLayout->Redraw(); // bFirstClear is default TRUE
@@ -6489,9 +6445,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	pLayout->m_docEditOperationType = relocate_box_op;
 	pView->Invalidate(); // added 1Apr09, since we return at next line
 	pLayout->PlaceBox();
-	#ifdef _FIND_DELAY
-		wxLogDebug(_T("8. End of OnePass"));
-	#endif
+	//#ifdef _FIND_DELAY
+		wxLogDebug(_T("8. End of OnePass(pView)"));
+	//#endif
 
 	pApp->m_bUserDlgOrMessageRequested = FALSE;
 	pApp->m_bUserHitEnterOrTab = FALSE;
@@ -6841,11 +6797,17 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		// a placeholder, Choose Translation, Guesser dialog, and maybe others (but not all).
 		// Whether in Drafting or Reviewing mode, without the protection below, then an Enter
 		// or Tab key press would cause run-on the next hole, or next pile, respectively. 
-         
-        // Normal jump is okay to do
+#if defined (_DEBUG)
+		wxLogDebug(_T("OnKeyUp() in PhraseBox.cpp, line %d, JumpForward() called on next line, then return"), __LINE__);
+#endif
+        // Normal jump is okay to do - I restored the line pApp->m_bAutoInsert = TRUE; at the else block where
+		// it's not m_bSingleStep TRUE; we want OnIdle to trigger a call of OnePass() instead of doing something in 
+		// JumpForward(). This call will complete and set m_bAutoInsert before OnIdle has a chance to trigger an
+		// idle event and that's where (via it's handler) OnePass() gets the chance to be called, responding to
+		// the user's ENTER or TAB keypress
         JumpForward(pView);
         return;
-    }
+    } // end of TRUE block for test: if keycode is TAB or Enter etc.
 
     // version 1.4.2 and onwards, we want a right or left arrow used to remove the
 	// phrasebox's selection to be considered a typed character, so that if a subsequent

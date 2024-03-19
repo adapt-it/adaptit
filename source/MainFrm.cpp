@@ -4826,101 +4826,55 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		wxDateTime dt1 = wxDateTime::Now(),
 			dt2 = wxDateTime::UNow();
 #endif
-		// BEW 11Jun22, test for advancement of the phrasebox; first time, oldSN will be -1, and curSN will be
-		// a valid sequ num, for box location; but the two being unequal gives a correct bHasAdvanced value. 
-		// After that, oldSN will be set, and curSN will be at the later location - next pile or further on
-		// wherever a hole stops the box, and the test for equality will fail, and so an extra idleEvent will
-		// get requested below. But when the user has typed a new adaptation and hits Enter key, OnePass()
-		// will get that new value into the entry table of kbserver in a new row, as wxExecute() will have
-		// been called. The requested extra idleEvent will cause an immediate re-entry to line 4791 above,
-		// and we don't want that reentry to initiate a bogus (2nd) StoreText() done with the existing contents
-		// of the create_entry.dat file. So we have to do the following at this reentry situation:
-		// (a) compare oldSN and curSN - they will be identical because no advancement of the box has had
-		// a chance to happen. So that sets bHasAdvanced to FALSE.																								
-		// (b) the FALSE value for bHasAdvanced can then be used to do:
-		//  (i) Skip over the OnePass() call, and 
-		//  (ii) Skip over the request for an extra idleEvent - thereby killing the re-entrance issue
-		//  (iii) Halting the sequence of auto-insertions, thereby giving the user the opportunity to
-		//  type something at the next hole, and, in CallExecute() for do_create_entry.py or .exe, allows the
-		// program counter to progress in the normal way, to complete the create_entry block of the switch
-		// 
-		// BEW 3Aug22 added support to prevent call of OnePass() when the phrasebox is in a fixed location
-		// temporarily because a kbserver function (in CallExecute()) is being called and which does not
-		// involve relocating the phrasebox to some other location. The need for this was because
-		// do_pseudo_undelete.py was causing a bogus duplicate entry to be created in the entry table
-		// because OnIdle() fired and, without a test to make it's call of OnePass() be skipped, a duplicate
-		// entry resulted. Hmm, this logic addition blocks Enter from allowing movement forward - so too
-		// strong. Remove 
-		//bool bStationaryBox = StationaryPhraseBox();
 
 		// These next lines apply for the comments above prior to the 3Aug22 addition
-		bool bHasAdvanced = TRUE; // initialise
+		//bool bHasAdvanced = TRUE; // initialise  BEW commented out at Bill's suggestion, email 19Mar24 12:02pm
 		int oldSN = pApp->m_nOldSequNum;
 		int curSN = pApp->m_nActiveSequNum;
-		// whm 5Oct2023 Note: The following test is still too weak for proper operation of the
-		// phrasebox. For example, when an operation like "Remove A Retranslation" has just 
-		// completed, the phrasebox may not have advanced from its position and oldSN and currSN
-		// may still be the same making bHasAdvanced FALSE, and if so, the user cannot advance 
-		// the phrasebox by pressing Enter.
-		// IMO here in the OnIdle() handler is not a good place to try to make such as restriction
-		// against the OnePass() function getting executed whenever >m_bAutoInsert is TRUE.
-		// As a temporary solution, I'm inicluding the if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
-		// tests along with the curSN == oldSN test below to prevent the code here from interferring
-		// with the Enter key press functionality.
-		//if (curSN == oldSN)
-		if (curSN == oldSN && (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject))
-		{
-			bHasAdvanced = FALSE;
-		}
-#if defined (_DEBUG)
-		wxLogDebug(_T("OnIdle() line %d, oldSN = %d , curSN = %d, bHasAdvanced = %d\n"), __LINE__,
-			oldSN, curSN, (int)bHasAdvanced);
-#endif
-		// Testing do_create_entry.py or .exe by running the app (in _DEBUG mode) resulted in a re-entrancy 
-		// loop which, if not stopped, would cause and infinite loop of calls of OnePass() until the 
-		// app crashes due to stack overflow. So I've prevented this using oldSN and curSN as above
-		//if ((bHasAdvanced == TRUE) && !bStationaryBox)
-		if (bHasAdvanced == TRUE)
-		{
-			CAdapt_ItApp* pApp = &wxGetApp(); pApp = pApp; // avoid warning in Release mode
-			CSourcePhrase* pSrcPhrase = NULL; pSrcPhrase = pSrcPhrase; // avoid warning in Release mode
+
+		bool bIsKBSvrAdaptProj = gpApp->m_bIsKBServerProject;
+		bool bIsKBSvGlossProj = gpApp->m_bIsGlossingKBServerProject;
+
+		// BEW 19Mar24 removed the constraining test here, which uses bHasAdvanced, at Bill's request
+		// and to retest to see if reentrancy problems arise from the today's changes
+		CAdapt_ItApp* pApp = &wxGetApp(); pApp = pApp; // avoid warning in Release mode
+		CSourcePhrase* pSrcPhrase = NULL; pSrcPhrase = pSrcPhrase; // avoid warning in Release mode
 #if defined(_DEBUG) //&& defined(FLAGS)
-			{	
-				if (pApp->m_pActivePile != NULL)
-				{
-					pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-					if (pSrcPhrase->m_nSequNumber >= 12)
-					{
-						wxLogDebug(_T("\nOnIdle(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, bHasAdvanced= [%d], m_bAutoInsert %d  OnePass() NEXT"),
-							__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-							(int)pApp->m_bUserTypedSomething, (int)bHasAdvanced, (int)pApp->m_bAutoInsert);
-					}
-				}
-			}
-#endif
-			// Do the call, but skip this block if the phrasebox has not advanced
-			bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is
-											// the only place OnePass() is called
-#if defined (_DEBUG)
-			if (bSuccessfulInsertAndMove)
+		{	
+			if (pApp->m_pActivePile != NULL)
 			{
 				pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 				if (pSrcPhrase->m_nSequNumber >= 12)
 				{
-					wxLogDebug(_T("%s::%s(), line %d, sn=%d, m_key= [%s], m_targetStr= [%s], m_bAutoInsert %d  OnePass() JUST HAPPENED"),
-						__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_targetStr.c_str(),
-						 (int)pApp->m_bAutoInsert);
+					wxLogDebug(_T("\nOnIdle(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bAutoInsert %d, bIsKBSvrAdaptProj %d, bIsKBSvGlossProj %d, OnePass() NEXT"),
+						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
+						(int)pApp->m_bUserTypedSomething, (int)pApp->m_bAutoInsert, (int)bIsKBSvrAdaptProj, (int)bIsKBSvGlossProj);
 				}
 			}
-#endif
 		}
+#endif
+		// Do the call, but skip this block if the phrasebox has not advanced
+		bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is
+											// the only place OnePass() is called
+#if defined (_DEBUG)
+		if (bSuccessfulInsertAndMove)
+		{
+			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			if (pSrcPhrase->m_nSequNumber >= 12)
+			{
+				wxLogDebug(_T("OnIdle(), line %d, sn=%d, m_key= [%s], m_targetStr= [%s], m_bAutoInsert %d, bIsKBSvrAdaptProj %d, bIsKBSvGlossProj %d,  OnePass() JUST HAPPENED"),
+						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_targetStr.c_str(),
+						(int)pApp->m_bAutoInsert, (int)pApp->m_bAutoInsert, (int)bIsKBSvrAdaptProj, (int)bIsKBSvGlossProj);
+			}
+		}
+#endif
 
 		// don't slow things down unless we need to investigate
 #ifdef SHOW_ONEPASS_BENCHMARKS
-				dt1 = dt2;
-				dt2 = wxDateTime::UNow();
-				wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
-					(dt2 - dt1).Format(_T("%l")).c_str());
+			dt1 = dt2;
+			dt2 = wxDateTime::UNow();
+			wxLogDebug(_T("********In OnIdle() OnePass() executed in %s ms"),
+				(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
@@ -4930,53 +4884,16 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_bIsGuess = FALSE;
 		if (bSuccessfulInsertAndMove)
 		{
-			// enable next iteration, but not when so-enabling would result in an infinite loop of reentrancy
-			if (bHasAdvanced)
-			{
-				// If StoreText has done a CallExecute() for the create_entry enum block, then
-				// the user must have made a new translation - which can only be done while the
-				// phrasebox was halted, and in that circumstance, immediately requesting a new
-				// idleEvent be posted, as here, would cause immediate re-entrancy and calling
-				// of OnPass() again wrongly, which would lead to an unending loop until the
-				// app crashs due to stack overflow. Disallowing RequestMore() when the box
-				// has not advanced, kills the reentrancy problem
 				event.RequestMore(); // Bill added
-			}
-			else
-			{
-				// BEW 11Jun22, the phrasebox has not advanced, so bring the
-				// box to a halt, but continue to enable OnIdle calls
-				pApp->m_bAutoInsert = FALSE;
-			}
 		}
 		else
 		{
-			// halt iterations, we did not make a match or could not move forward,
+			// halt iterations, we did not succeed or could not move forward,
 			// but continue to enable OnIdle calls
 			pApp->m_bAutoInsert = FALSE;
+			event.RequestMore(); // BEW added, 19Mar24
 		}
 
-		// BEW 28/jul23, when moving forward to pNewPile returns NULL, we've probably reached
-		// unexpected doc end, so perhaps returning here when bSuccessfulInsertAndMove is 
-		// FALSE might be helpful - as the calls further down will certainly fail in this circumstance
-		// ? No, I'm scared, maybe the bool can be false for other scenarios which don't destroy the app, I'll comment it out for a few levels
-		//if (!bSuccessfulInsertAndMove)
-		//{
-		//	return;
-		//}
-		/* #if defined(_DEBUG) && defined(FLAGS)
-		{
-			CAdapt_ItApp* pApp = &wxGetApp();
-			CSourcePhrase* pSrcPhrase = NULL;
-			if (pApp->m_pActivePile != NULL)
-			{
-				pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-				wxLogDebug(_T("\n%s::%s(), line %d, sn=%d, m_key= %s, m_bAbandonable %d, m_bRetainBoxContents %d, m_bUserTypedSomething %d, m_bBoxTextByCopyOnly %d, m_bAutoInsert %d"),
-					__FILE__, __FUNCTION__, __LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable, (int)pApp->m_pTargetBox->m_bRetainBoxContents,
-					(int)pApp->m_bUserTypedSomething, (int)pApp->m_pTargetBox->m_bBoxTextByCopyOnly, (int)pApp->m_bAutoInsert);
-			}
-		}
-#endif */
 	} // end of TRUE block for test: if (pApp->m_bAutoInsert)
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
@@ -5054,7 +4971,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     }
 //#endif
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
