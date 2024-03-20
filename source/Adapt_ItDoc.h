@@ -626,6 +626,7 @@ public:
 	//wxString		m_currentUnfilterMkr; // used when unfiltering filtered content having attributes metadata
 
 	bool			m_bCurrentlyFiltering; // used when filtering content that may contain attributes metadata
+	bool			m_bCurrentlyUnfiltering; // used in TokenizeText() to determine pPrevSrcPhrase whm 20Mar2024 added
 	bool			IsBeginMarker(wxChar* pChar, wxChar* pEnd, wxString& wholeMarker, bool& bIsEndMkr);
 
 	// BEW 30Sep19 created this (valid for ParseWord() or ParseWord2()) to pull out

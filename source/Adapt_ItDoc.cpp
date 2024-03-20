@@ -9592,6 +9592,19 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		m_bCurrentlyFiltering = FALSE;
 	}
 
+	// whm 20Mar2024 added. If unfiltering, set the m_bCurrentlyUnfiltering boolean
+	// so that TokenizeText() can properly point pPrevSrcPhrase to its beginning 
+	// value.
+	if (bUnfilteringRequired)
+	{
+		m_bCurrentlyUnfiltering = TRUE;
+	}
+	else
+	{
+		m_bCurrentlyUnfiltering = FALSE;
+	}
+
+
 	// in the block below we determine which SFM set's map to use, and determine what the full list
 	// of filter markers is (the changed ones will be in m_FilterStatusMap); we need the map so we
 	// can look up USFMAnalysis struct instances
@@ -9928,6 +9941,9 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						// Setup for unfiltering and do so
 						bDidSomeUnfiltering = TRUE; // used for updating navText on original pSrcPhrase when done
 						bWeUnfilteredSomething = TRUE; // used for reseting initial conditions in inner loop
+
+						m_bCurrentlyUnfiltering = TRUE; // whm 20Mar2024 added
+
 						pSublist->Clear(); // clear list in preparation for Tokenizing
 					
 						wxString extractedStr = RemoveAnyFilterBracketsFromString(wholeMkrWithFilterBrackets); // we'll tokenize LHSide
@@ -45939,6 +45955,9 @@ parenth:
 /// More reliable is examining the contents of the gCurrentFilterMarkers string.
 /// whm 17Jan2024 more radical refactoring of TokenizeText() especially its handling
 /// of empty content markers.
+/// whm 20Mar2024 more modifications for the proper setting of pPrevSrcPhrase when
+/// TokenizeText() is called in the OnEditSourceText() method and when called by the
+/// ReconstituteAfterFilteringChange() during unfiltering.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
 	int nTextLength, bool bTokenizingTargetText)
@@ -46133,7 +46152,22 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// To make it possible for code later within TokenizeText() to be able to save any
 		// filtered information on a pPrevSrcPhrase that results from the processing of the 
 		// substring. 
-		pPrev_SPposition = gpApp->m_pSourcePhrases->Item(sequNumber);
+		// 
+		// whm 20Mar2024 modified. To accurately set pPrevSrcPhrase here we need to know 
+		// whether we are currently unfiltering or not, because for when TokenizeText() is
+		// called to tokenize a text string being unfiltered, it gets inserted AFTER the 
+		// source phrase where the filtered information was being stored. Hence, the sequNumber
+		// that was set above to nStartingSequNum - 1, for unfiltering we need to find the 
+		// pPrev_SPPosition for sequNumber + 1 here to point back to the current pSrcPhrase
+		// (without changing the value of sequNumber itself).
+		// I've added a Doc member m_bCurrentlyUnfiltering that was set in 
+		// ReconstituteAfterFilteringChange() before it called TokenizeTextString and 
+		// TokenizeText()
+		if (m_bCurrentlyUnfiltering)
+			pPrev_SPposition = gpApp->m_pSourcePhrases->Item(sequNumber + 1);
+		else
+			pPrev_SPposition = gpApp->m_pSourcePhrases->Item(sequNumber);
+
 		if (pPrev_SPposition != NULL)
 		{
 			// The value of pPrevSrcPhrase here will persist only until the first pSrcPhrase

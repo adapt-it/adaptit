@@ -35222,6 +35222,7 @@ enum Reparse reparseDoc)
     CAdapt_ItDoc* pDoc = GetDocument();
     CAdapt_ItView* pView = gpApp->GetView();
 	pDoc->m_bCurrentlyFiltering = FALSE; // BEW added 30Sep19
+    pDoc->m_bCurrentlyUnfiltering = FALSE; // whm 20Mar2024 added
 
     bool bFilterChangeInDoc = FALSE;
     bool bFilterChangeInProj = FALSE;
@@ -36234,6 +36235,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         {
             m_bKBReady = TRUE;
             this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
+            this->GetDocument()->m_bCurrentlyUnfiltering = FALSE; // restore default, whm 20Mar2024 added
             // BEW 19Feb13, added a wrapping test, because if LoadGuesser() fails, the
             // wizard crashes before the project can be entered and so even manually
             // setting the UseAdaptationsGuesser flag in the project config file to 0
@@ -36283,6 +36285,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         {
             m_bKBReady = TRUE;
             this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
+            this->GetDocument()->m_bCurrentlyUnfiltering = FALSE; // restore default, whm 20Mar2024 added
             // whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
         }
         else
@@ -36366,6 +36369,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
         {
             m_bGlossingKBReady = TRUE;
             this->GetDocument()->m_bCurrentlyFiltering = FALSE; // restore default, BEW 28Mar23
+            this->GetDocument()->m_bCurrentlyUnfiltering = FALSE; // restore default, whm 20Mar2024 added
             // whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
         }
         else
