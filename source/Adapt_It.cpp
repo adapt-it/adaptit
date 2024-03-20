@@ -11234,16 +11234,15 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
     {
         m_strUserID = dlg.m_finalUsername;
         m_strFullname = dlg.m_finalInformalUsername;
-        // BEW 15Mar24, OnOk() has already saved the user's password in 3rd box, to app->m_strPassword,
-        // so no harm in doing so again here. I'll also put the pwd in pFrame->SetKBSvrPassword(wxString pwd);
-        // so GetKBSvrPassword() can get it without needing to call a pwd dialog to do so
-        if (!dlg.m_finalPassword.IsEmpty())
-        {
-            m_strPassword = dlg.m_finalPassword;
-
-            CMainFrame* pFrame = this->GetMainFrame();
-            pFrame->SetKBSvrPassword(m_strPassword);
-        }
+        wxASSERT(!m_strPassword.IsEmpty());
+        // BEW 15Mar24, OnOk() has already saved the user's password in 3rd box, to app->m_strPassword
+        wxString aPwd = wxEmptyString;
+        CMainFrame* pFrame = this->GetMainFrame();
+        aPwd = pFrame->GetKBSvrPassword();       
+        wxASSERT(aPwd == m_strPassword);
+        pFrame->SetKBSvrPassword(m_strPassword); // ensure MainFrm stores correct value, as other funcs will grab it
+        // BEW comment 16Mar24: dlg.m_finalPassword is empty, didn't expect that, but pApp->m_strPassword has accepted
+        // the user's type value and copied it to pFrame's SetKBSvrPassword() accessor, so I use that value
 
         // whm added 24Oct13. Save the UniqueUsername and InformalUsername
         // Note: The code block here should be the same as in helpers.cpp's
