@@ -245,7 +245,7 @@ public:
 
 	// Implementation
 protected:
-	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
+	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pPrevSrcPhrase,
 		wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
 	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
 	//int				ClearBuffer(); // whm 4Sep2023 removed along with App's buffer
@@ -515,6 +515,8 @@ public:
 							// final . of 5:4-9.  (Use primarily in footnotes in the input text)
 	wxString		ParseAWord(wxChar* pChar, wxString& spacelessPuncts, wxChar* pEnd, bool& bWordNotParsed); // BEW 3Aug23 added bWordNotParsed
 	//CSourcePhrase*  GetPreviousSrcPhrase(CSourcePhrase* pSrcPhrase); // BEW added 13Dec22, and commented out 13Dec22 - it isn't needed yet, but is robust
+	CSourcePhrase*	GetPreviousNonPlaceholderSrcPhrase(CSourcePhrase* pPrevSrcPhrase); // whm 18Mar2024 added for getting prev SP to store filtered info
+	SPList::Node*	GetFollowingNonPlaceholderInsertPosition(SPList::Node* insertPos, CSourcePhrase*& pInsertSP); // whm 18Mar2024 added for getting insert position for unfiltering SP sublist
 	bool			CanParseForward(wxChar* pChar, wxString spacelessPunctuation, wxChar* pEnd); // BEW 26Jul23 refactored, because
 						// internally the algorithm gave false positives, especially if ' (straight quote) was not in the punctuation set.
 						// Legacy comment: BEW 12Dec22 added in order to handle 
@@ -551,7 +553,7 @@ public:
 	bool&           bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
 	bool			IsEndMarker(wxChar* pChar, wxChar* pEnd);
 	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
-	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase, wxString& typeChangingEndMkr); // BEW 3Jul23 added 2nd arg
+	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pPrevSrcPhrase, wxString& typeChangingEndMkr); // BEW 3Jul23 added 2nd arg
 	wxString		FindWordBreakChar(wxChar* ptr, wxChar* pBufStart); // BEW 13Jul23 changed return from wxChar, to wxString
 	bool			IsInLineMarker(wxChar* pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar* pChar, wxChar* pEnd); // whm added 10Feb05
@@ -808,15 +810,6 @@ public:
 	// Next line, BEW 3Sep19 in support of USFM3, and hiding attributes metadata
 	CSourcePhrase* m_pSrcPhraseBeingCreated; // set this to the instance that TokenizeText 
 										 // is currently populating
-	// whm 15Mar2024 added the following m_pLastSrcPhrase to cache the last source phrase during a 
-	// TokenizeTextString() call to give TokenizeText() - in such cases - access to the Doc's 
-	// pLastSrcPhrase instance existing just before a pSubList that doesn't include the 
-	// pLastSrcPhrase normally accessible when processing an entire pList of the Doc's source phrases. 
-	// This m_pLastSrcPhrase will be mainly used when pLastSrcPhrase is NULL which can typically occur
-	// when TokenizeText() is called from within the TokenizeTextString() function call.
-	// This can happen during an OnEditSourceText() operation, as well as 
-	CSourcePhrase* m_pLastSrcPhrase; // whm 15Mar2024 added
-
 	// Prototypes for helpers in support of USFM3 markup, regarding metadata
 	// which follows bar ( | ) immediately prior to certain endmarkers
 	bool m_bAllowCommaInKB; // BEW add 22Apr23, default FALSE, but set TRUE if comma is in src or tgt word

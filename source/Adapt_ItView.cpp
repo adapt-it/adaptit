@@ -30475,40 +30475,35 @@ bailout:	pAdaptList->Clear();
 		// that needs to be filtered - due to a mis-spelled marker that, when edited, becomes
 		// a marker that needs filtering - and that marker-to-be-filtered is at the beginning 
 		// of the source text string being tokenized by TokenizeTextString's internal 
-		// TokenizeText() call, we need to determine what source phrase was the pLastSrcPhrase 
+		// TokenizeText() call, we need to determine what source phrase was the pPrevSrcPhrase 
 		// in the Doc's pList, because that is where the TokenizeText() process will need to
 		// store such filtered material - on the previous source phrase. So, here we determine
-		// a value for the Doc's m_pLastSrcPhrase here before the TokenizeTextString() call is
-		// made.
-		CSourcePhrase* pLastSP = NULL; // initialize
+		// a value for the Doc's m_pPreviousSrcPhrase here before the TokenizeTextString() call 
+		// is made.
+		CSourcePhrase* pPrevSP = NULL; // initialize
 		// pStartingPile for the selection was determined near the beginning of OnEditSourceText() above
 		// We can use it to determine what the previous source phrase is prior to the selection,
-		// and use that to set the value of the Doc's m_pLastSrcPhrase is, so that TokenizeText
+		// and use that to set the value of the Doc's m_pPreviousSrcPhrase is, so that TokenizeText
 		// can store any filtered information if necessary there (see above comment).
 		int lastSequNum = pStartingPile->GetSrcPhrase()->m_nSequNumber - 1;
 		CPile* pLastPile = pApp->m_pLayout->GetPile(lastSequNum);
 		if (pLastPile != NULL)
 		{
-			pLastSP = pLastPile->GetSrcPhrase();
+			pPrevSP = pLastPile->GetSrcPhrase();
 		}
-		// whm 16Mar2024 added. We should avoid setting the m_pLastSrcPhrase to point to a placeholder.
-		// So, if pLastSP is a placeholder, se shold iterate to previous source phrases until we come
+		// whm 16Mar2024 added. We should avoid setting the m_pPreviousSrcPhrase to point to a placeholder.
+		// So, if pPrevSP is a placeholder, se shold iterate to previous source phrases until we come
 		// to a non-placeholder source phrase.
 		int seqNumDecrement = 1;
-		while (pLastSP != NULL && pLastPile != NULL && pLastSP->m_bNullSourcePhrase && pLastSP->m_nSequNumber >= 0)
+		while (pPrevSP != NULL && pLastPile != NULL && pPrevSP->m_bNullSourcePhrase && pPrevSP->m_nSequNumber >= 0)
 		{
 			pLastPile = pApp->m_pLayout->GetPile(lastSequNum - seqNumDecrement);
-			pLastSP = pLastPile->GetSrcPhrase();
+			pPrevSP = pLastPile->GetSrcPhrase();
 			seqNumDecrement++;
-		}
-		if (pLastSP != NULL)
-		{
-			m_pDoc->m_pLastSrcPhrase = pLastSP; // set the Doc's m_pLastSrcPhrase - used within TokenizeText()
 		}
 
 		nNewCount = TokenizeTextString(&pRec->editableSpan_NewSrcPhraseList, strNewSrcText,
 										pRec->nStartingSequNum);
-		m_pDoc->m_pLastSrcPhrase = NULL; // set it back to NULL to be safe
 
 		pRec->nNewSpanCount = nNewCount; // this value may decrease by one if a
                                 // CSourcePhrase carrier of final endmarkers, but with no
@@ -31088,6 +31083,13 @@ bailout:	pAdaptList->Clear();
 			TextType aDontCare_PropagationType = verse; // we won't use the returned value
 			bool bDontCare_PropagationNeeded = FALSE; // we won't use the returned value
 			int docSrcPhraseCount = pSrcPhrases->GetCount(); // current doc size
+			
+			// whm 20Mar2024 modified. Since the DoMarkerHousekeeping() call below scans
+			// all of the source phrases (pSrcPhrases), the value for the globals
+			// gpPrecSrcPhrase and gpFollSrcPhrase need to be set to NULL here.
+			gpPrecSrcPhrase = NULL;
+			gpFollSrcPhrase = NULL;
+
 			GetDocument()->DoMarkerHousekeeping(pSrcPhrases,docSrcPhraseCount,
 								aDontCare_PropagationType, bDontCare_PropagationNeeded);
 
@@ -31358,7 +31360,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
 
 
     // we have some filtered info (in m_filteredInfo) and/or non-endmarkers to transfer -
-    // do so, but only provided pLastSrcPhrase's m_key and m_precPunct CString members are
+    // do so, but only provided pPrevSrcPhrase's m_key and m_precPunct CString members are
     // both empty
     bool bRemoveSrcPhrase = FALSE;
 	if (bFilteredInfoToBeTransferred || bHasNonEndmarkers)
@@ -31368,7 +31370,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToPrecedingContext(SPList* pNewS
         // CSourcePhrase otherwise unwanted)
 		// whm 16Mar2024 modified. There should be no constraint of m_key or m_precPunct being
 		// empty when doing the transfer to a preceding context.
-		//if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
+		//if (pPrevSrcPhrase->m_key.IsEmpty() && pPrevSrcPhrase->m_precPunct.IsEmpty())
 		//{
             // if we are transferring something, then transfer a m_bFirstOfType == TRUE
             // value, provided the pFollSrcPhrase member of same name is not itself TRUE
