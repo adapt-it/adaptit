@@ -3098,7 +3098,11 @@ public:
 	
 	// whm 29Feb2024 added the following wxString values to track which filtering
 	// markers were changed (selected/unselected) during a session in the USFM and
-	// Filtering tab of preferences.
+	// Filtering tab of preferences. These are mainly used within the App's 
+	// DoUsfmFilterChanges() to reset the filter structs in the ResetUSFMFilterStructs()
+	// function call to make sure the stand-alone \xt marker checkbox in the USFM and 
+	// Filtering page of Preferences is appropriately ticked/unticked AFTER a change in 
+	// the filter status of the \x marker.
 	wxString markersChangedToBeFiltered;
 	wxString markersChangedToBeUnfiltered;
 
@@ -5008,11 +5012,11 @@ public:
 	// whm 26Feb2024 the following m_bUnfiltering_ex_NotFiltered is set FALSE, but never used in code, so is now removed
 	//bool	 m_bUnfiltering_ex_NotFiltered; //BEW 18Apr20, TRUE when unfiltered filtered \ex ... \ex*
 
-	// whm 29Feb2024 added the following 2 booleans to track the status of the \x and \xt marker before
+	// whm 29Feb2024 added the following booleans to track the status of the \x and \xt marker before
 	// a filtering session using the filter page in Preferences.
-	bool	m_bMkr_x_WasFilteredBeforeFilteringChange;
+	//bool	m_bMkr_x_WasFilteredBeforeFilteringChange;
 	bool	m_bMkr_xt_WasFilteredBeforeFilteringChange;
-	bool	m_bMkr_x_WasUnfilteredBeforeFilteringChange;
+	//bool	m_bMkr_x_WasUnfilteredBeforeFilteringChange;
 	bool	m_bMkr_xt_WasUnfilteredBeforeFilteringChange;
 
 	wxString m_chapterVerseAttrSpan; // BEW 18Apr20, store nearest earlier ch:vs ref for error message

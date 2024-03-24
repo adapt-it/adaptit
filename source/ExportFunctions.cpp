@@ -17619,7 +17619,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 
 
 #if defined(_DEBUG)
-			if (pSrcPhrase->m_nSequNumber == 110)
+			if (pSrcPhrase->m_nSequNumber == 31)
 			{
 				int halt_here = 0; wxUnusedVar(halt_here);
 			}

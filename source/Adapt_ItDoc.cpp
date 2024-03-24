@@ -9803,7 +9803,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				//     for setting pPrevSrcPhrase at appox line 7802 (now deprecated), and approx 
 				//     line 8480 for dealing with a merger
 				//}
-	#if defined (_DEBUG) && !defined(NOLOGS)
+#if defined (_DEBUG) && !defined(NOLOGS)
 				wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
 				if (!filteredInfo.IsEmpty())
 				{
@@ -9815,11 +9815,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					wxLogDebug(_T("Doc,Unfiltering, Line %d : At sequNum = %d , m_srcPhrase = %s  , NO FILTERING STORED"),
 						__LINE__, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 				}
-				if (pSrcPhrase->m_nSequNumber >= 6)
+#endif
+#if defined (_DEBUG)				
+				if (pSrcPhrase->m_nSequNumber == 6)
 				{
 					int halt_here = 1; halt_here = halt_here; // avoid gcc warning
 				}
-	#endif
+#endif
 				curSequNum = pSrcPhrase->m_nSequNumber;
 				bDidSomeUnfiltering = FALSE;
 
@@ -9947,13 +9949,77 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						pSublist->Clear(); // clear list in preparation for Tokenizing
 					
 						wxString extractedStr = RemoveAnyFilterBracketsFromString(wholeMkrWithFilterBrackets); // we'll tokenize LHSide
-
-						// tokenize the substring (using this we get its inline marker handling for free)
 						extractedStr.Trim(FALSE); // remove any initial space
 						extractedStr.Trim(TRUE); // remove any final space
 						wxASSERT(extractedStr[0] == gSFescapechar);
 
+						// whm 20Mar2024 added. We need to also extract any swept up markers that were prefixed directly to
+						// the front the marker-being-unfiltered, and prefix any that are present to the extractedStr. The swept
+						// up markers might be something like "\\c 11\r\n" that were swept up before a \ms marker at the time
+						// the \ms marker was filtered. When the \ms marker is unfiltered, the old code above extracts everything  
+						// in the  pSrcPhrase's filtered info, finds the marker-being-unfiltered (\ms) and extracts it along with 
+						// its associated text, and removes its filter brackets. Any and all material prefixed to the filtered 
+						// marker - including other still-filtered material plus the swept up markers associated with the current
+						// marker-being-filtered - all of it is saved in the preStr variable above. This preStr variable, however, 
+						// may have one or more still filtered items within it that were stored as filtered info previously. Any 
+						// still-filtered items will occur BEFORE the swept up material prefixing the current marker-being-unfiltered. 
+						// So, in preStr, we need to separate any filtered material that's to remain filtered from any swept up 
+						// material that belongs to, and needs to be kept with the marker-being-unfiltered. In the process we
+						// leave any to-remain-filtered-material intact within preStr (of course, they could also have their own
+						// swept up markers prefixed to the them). The filtered stuff remaining in preStr will then be stored later
+						// back in the same pSrcPhrase where they were. 
+						// What follows then, is code to separate and extract the swept up markers, if they exist, from the right 
+						// end of the preStr string, and store any filtered stuff that should remain back in preStr.
+						// First see if there is any "\\~FILTER*" end marker left within the preStr.
+						int posEndFilterBracket = preStr.Find(_T("\\~FILTER*"));
+						if (!preStr.IsEmpty() && posEndFilterBracket == wxNOT_FOUND)
+						{
+							// The preStr string has content, but there is no ending filter bracket in preStr, so we can 
+							// assume that its content is wholly swept up markers that belong to the marker-being-unfiltered.
+							extractedStr = preStr + extractedStr;
+							preStr.Empty();
+						}
+						else if (!preStr.IsEmpty() && posEndFilterBracket != wxNOT_FOUND)
+						{
+							// The string is not empty, and it contains bracketed filtered material. We need to
+							// separate out the swept up stuff, if any, after the final filter end-bracket, and
+							// prefix the swept up stuff to the extractedStr, and leave the other filtered material
+							// in preStr for later re-storage.
+							wxString sweptUpStuff; sweptUpStuff.Empty();
+							wxChar ch;
+							int preStrLen = preStr.Length();
+							for (int i = preStrLen - 1; i >= 0; i--) // scan from back end towards front end
+							{
+								ch = preStr.GetChar(i);
+								if (ch != _T('*'))
+									sweptUpStuff += wxString(preStr.GetChar(i));
+								else
+									break;
+							}
+							extractedStr = sweptUpStuff + extractedStr;
+							preStr = preStr.Mid(0, preStrLen - sweptUpStuff.Length());
+						}
+
+						// tokenize the substring (using this we get its inline marker handling for free)
+						// whm 22Mar2024 added. If the marker-being-unfiltered is \x the extractedStr will
+						// have "\\x " at the beginning of its string. If the \x marker is indeed the marker
+						// being unfiltered we want to set the Doc's m_bIsWithinCrossRef_X_Span flag to TRUE
+						// before the TokenizeTextString() call below, and then set that same flag to FALSE
+						// after the TokenizeTextString call. This will inform the TokenizeText() function
+						// that gets called by TokenizeTextString() that it is parsing the an \x ...\x* span
+						// and if so TokenizeText() should save any embedded \xt marker as a regular cross-ref
+						// marker in the m_markers member, rather than as a stand-alone \xt begin marker which
+						// gets stored within the m_inlineNonbindingMArkers member.
+						if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+						{
+							m_bIsWithinCrossRef_X_Span = TRUE;
+						}
 						int count = pView->TokenizeTextString(pSublist, extractedStr, pSrcPhrase->m_nSequNumber);
+						if (augMarkerBeingUnfiltered == _T("\\x ") && extractedStr.Find(augMarkerBeingUnfiltered) == 0)
+						{
+							m_bIsWithinCrossRef_X_Span = FALSE;
+						}
+
 						bool bIsContentlessMarker = FALSE;
 
 						// pSublist now has the tokenized unfiltered data
@@ -10843,7 +10909,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		bool bMarkerInNonbindingSet = FALSE;
 #if defined (_DEBUG)
 		{
-			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 31)
+			if (pSrcPhrase != NULL && pSrcPhrase->m_nSequNumber == 43)
 			{
 				int halt_here = 1;
 				wxUnusedVar(halt_here);
@@ -49764,7 +49830,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								// data following the beginMkr, for hiding in pSrcPhrase's m_punctsPattern member
 								offset = -1;
 								offset = pApp->m_inlineNonbindingMarkers.Find(myAugWholeMkr);
-								if (offset >= 0)
+								if (offset >= 0 && !m_bIsWithinCrossRef_X_Span)
 								{
 									// It's one of the small set of non-binding inline mkrs
 									wxString inlineNonbindingMkrs;

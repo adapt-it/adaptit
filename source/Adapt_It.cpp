@@ -24630,8 +24630,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // 
     // If the following two inline nonbinding marker set include \fig ...\fig* and \+fig ...\+fig*, I think
     // they should also include the \jmp ...\jmp* and \+jmp ...\+jmp* ones too, so I'm adding them as of 23Feb2024.
-    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* \\jmp* \\+jmp* "); // whm 23Feb2024 added \\jmp* and \\+jmp*
-    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig \\jmp \\+jmp "); // whm 23Feb2024 added \\jmp and \\+jmp
+    // whm 22Mar2024 testing indicates that the stand-alone \xt ...\xt* "linking" marker needs to be added to the
+    // inlineNonbinding fast access strings below, so as of this date I added \xt to m_inlineNonbindingMarkers and 
+    // \xt* to the m_inlineNonbindingEndMarkers set below:
+    m_inlineNonbindingEndMarkers = _T("\\wj* \\sls* \\tl* \\+wj* \\+qt* \\+sls* \\+tl* \\fig* \\+fig* \\jmp* \\+jmp* \\xt* "); // whm 23Feb2024 added \\jmp* and \\+jmp*
+    m_inlineNonbindingMarkers = _T("\\wj \\sls \\tl \\+wj \\+qt \\+sls \\+tl \\fig \\+fig \\jmp \\+jmp \\xt "); // whm 23Feb2024 added \\jmp and \\+jmp
     // the next set each have an endmarkers, we'll not bother to have a separate string
     // for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11) BEW 1May23 added \fk to the following set
 
@@ -35260,8 +35263,8 @@ enum Reparse reparseDoc)
     indexOfXmarker = FindArrayStringUsingSubString(xMkr, pUsfmFilterPageCommon->pSfmMarkerAndDescriptionsDoc, 0);
     m_bMkr_xt_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXTmarker);
     m_bMkr_xt_WasUnfilteredBeforeFilteringChange = !m_bMkr_xt_WasFilteredBeforeFilteringChange;
-    m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
-    m_bMkr_x_WasUnfilteredBeforeFilteringChange = !m_bMkr_x_WasFilteredBeforeFilteringChange;
+    //m_bMkr_x_WasFilteredBeforeFilteringChange = (bool)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.Item(indexOfXmarker);
+    //m_bMkr_x_WasUnfilteredBeforeFilteringChange = !m_bMkr_x_WasFilteredBeforeFilteringChange;
 
     int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
@@ -35414,9 +35417,9 @@ enum Reparse reparseDoc)
             // markersChangedToBeFiltered and were assigned to only contain any markers whose filter
             // status was explicitly changed by the user in the filter page. 
             // 
-            // I also set above two App boolean flags m_bMkr_xt_WasFilteredBeforeFilteringChange and
-            // m_bMkr_x_WasFilteredBeforeFilteringChange to inform us of the filter status of the
-            // \x and \xt markers BEFORE this current filtering action was done.
+            // I also set above an App boolean flag m_bMkr_xt_WasFilteredBeforeFilteringChange 
+            // to inform us of the filter status of the \xt marker BEFORE this current filtering 
+            // action was done.
             // 
             // Restoring the filter status of the \xt marker here is somewhat of a hack, but 
             // necessitated by the USFM gurus deciding to make the \xt marker do double duty and be 
@@ -35424,86 +35427,160 @@ enum Reparse reparseDoc)
             // Paratext doesn't attempt to hide certain markers for adaptation purposes!
             // 
             // Our strategy for handling this situation are:
-            // When \x has just been UNFILTERED (its checkbox was unticked):
-            //	1. If the App's markersChangedToBeUnfiltered string has \x but NOT \xt, and the boolean 
-            //     flag marker_XT_wasFilteredBeforeThisChange is TRUE, then we know that the unfiltering
-            //     process of \x alone, has similarly changed the filter status of \xt to unfiltered
-            //     even though \xt was not explicitly unticked to become unfiltered by the user.
-            //     We must fix this situation by restoring \xt's filter status back to filtered so that
-            //     the \xt check box in the filter page will also be ticked when next shown to the user.
-            // When \x and \xt have BOTH just been UNFILTERED (their checkboxes were both unticked):
-            //  2. If the App's markersChangedToBeUnfiltered string now has \x AND \xt, then both the 
-            //     \x and \xt markers were intended to be unfiltered by the user, and nothing 
-            //     needs to be changed by this hack. The check boxes are both unticked which is what
-            //     the user expects, and the filter status of both is unfiltereed (unticked).
-            // When \x has just been FILTERED (its checkbox was ticked):
-            //  3. If the App's markersChangedToBeFiltered string now has \x and NOT \xt, and the boolean
-            //     flag m_bMkr_xt_WasFilteredBeforeFilteringChange is FALSE, then we know that the filtering
-            //     process of \x alone, also has similarly changed the filter status of \xt to filtered
-            //     even though \xt was not explicitly ticked to become filtered by the user.
-            //     We must fix this situation by restoring \xt's filter status back unfiltered so that
-            //     the \xt check box in the filter page will also be unticked when next shown to the user.
-            // When \x and \xt have BOTH just been FILTERED (their checkboxes were both ticked):
-            //  4. If the App's markersChangedToBeFiltered string now has \x AND \xt, then both the 
-            //     \x and \xt markers were intended to be filtered by the user, and nothing
-            //     needs to be changed by this hack. The check boxes are both ticked which is what
-            //     the user expects, and the filter status of both is filtered (ticked).
-            // Situations 2 and 4 above need no further action here.
-            // For situations 1 and 3 above, the following code treats those situations.
-            //
+            // Adjust the contents of the markersChangedToBeUnfiltered and markersChangedToBeFiltered
+            // to reflect what the checkbox for the \xt marker in the USFM and Filtering tab page in
+            // Preferences should be AFTER the filtering operation has taken place (above). The complex
+            // part is when the filtering state of the \x marker has changed, or when both the \x and \xt
+            // marker's filtering state has changed. In such cases the the markersChangedToBeUnfiltered
+            // and markersChangedToBeFiltered are adjusted to contain (in addition to any other non \x?? 
+            // markers that may have been selected for filtering/unfiltering) some combination of \x 
+            // and/or \xt, and if either \x or \xt has changed filter status in the current filtering
+            // process, the adjusted markersChangedToBeUnfiltered and markersChagedToBeFiltered are then
+            // sent into the ResetUSFMFilterStructs() call below.
+            // 
+            // NOTE: At this point in DoUsfmFilterChanges() the actual filtering changes to
+            // the AI document have already been done above by RetokenizeText()'s call of
+            // ReconstituteAfterFilteringChange().
+            // At the upcoming call of the ResetUSFMFilterStructs() function below, it is
+            // the contents of the strMarkersToBeFiltered and strMarkersToBeUnfiltered strings
+            // that are input to that function that will determine the way the checkboxes in
+            // the USFM and Filtering tab of Preferences are set (ticked or unticked).
+            // The code blocks below deal with the ambiguities of the \xt marker which, when
+            // used as an embedded marker within a \x ...\x* span, must be filtered or 
+            // unfiltered following any change in the filter state of the \x marker. 
+            // However, when the stand-alone use of the \xt ...\xt* marker is filtered or 
+            // unfiltered, it must be processed independently of whether the \x ...\x* marker 
+            // span is filtered or not. This is an unfortunate ambiguity for us in Adapt It 
+            // as it means we must keep track of what role the \xt marker is playing at all
+            // times. 
+            // Hence, the \xt marker has its own checkbox entry in the USFM and Filtering 
+            // tab separate from the \x marker's checkbox entry. The \x checkbox and 
+            // \xt checkbox can now be filtered and unfiltered independently of each other.
+            // The challenge for AI is that AI must keep track internally within it's
+            // ReconstituteAfterFilteringChange() and TokenizeText() functions which of
+            // the \xt marker's dual roles it is playing at any given time. 
+            // When \xt marker is encountered within an \x ...\x* span that is filtered \xt
+            // also must be filtered along with its "parent" \x marker and all other \x?? 
+            // embedded markers encountered within that \x ...\x* span. When \xt is a 
+            // stand-alone, cross reference linking marker (which always has | delimited 
+            // hidden metadata), then in that role, \xt has its own filter status that is
+            // independent of the filter status of the \x marker. In practical terms, this 
+            // means that an \xt marker can be filtered and unfiltered at the same time 
+            // depending on its context, that is, as an embedded marker inside a \x ...\x* 
+            // span it can be FILTERED, while at another location in the document, a 
+            // stand-alone \xt ...\xt* span can be UNFILTERED at the same time. Or, as an 
+            // embedded marker inside a \x ...\x* span it can be UNFILTERED while at another 
+            // location in the same document a stand-alone \xt ...\xt* span can be FILTERED. 
+            // Or, the \x and stand-alone \xt markers can be designated as BOTH filtered, 
+            // or BOTH unfiltered.
+            // The code blocks below make sure that the dual status of the \xt marker is
+            // preserved and its checkbox in the USFM and Filtering tab of Preferences 
+            // accurately reflects its actual current filter status, especially after filter
+            // changes that involve \x and/or \xt.
             bool bMkr_X_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(xMkr) != wxNOT_FOUND;
             bool bMkr_X_WasJustFiltered = markersChangedToBeFiltered.Find(xMkr) != wxNOT_FOUND;
-            bool bMkr_XT_WasNotToBeUnfiltered = markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND;
-            bool bMkr_XT_WasNotToBeFiltered = markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND;
+            bool bMkr_XT_WasJustUnfiltered = markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND;
+            bool bMkr_XT_WasJustFiltered = markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND;
             bool bFilterChangeInvolvedXorXT = FALSE;
-            // Situation 1: The App's markersChangedToBeUnfiltered string has \x but NOT \xt, and 
-            // the boolean flag m_bMkr_xt_wasFilteredBeforeThisChange is TRUE.
-            if (bMkr_X_WasJustUnfiltered
-                && bMkr_XT_WasNotToBeUnfiltered 
-                && m_bMkr_xt_WasFilteredBeforeFilteringChange)
+            // First deal with the more comples situation - when \x was just filtered or 
+            // unfiltered and possibly \xt was also filtered or unfiltered at the same time.
+            if (m_bMkr_xt_WasFilteredBeforeFilteringChange)
             {
-                // The \x marker has just been UNFILTERED (its checkbox was unticked) and the \xt marker
-                // was NOT to be unfiltered, and \xt was filtered before the above filtering change.
-                // In this situation we need to add the \xt marker back to the strMarkersToBeUnfiltered 
-                // string and call ResetUSFMFilterStructs() below with strMarkersToBeUnfiltered as 3rd 
-                // parameter.
-                if (strMarkersToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
+                // \xt was filtered (\xt checkbox was ticked) BEFORE filter changes.
+                if (bMkr_X_WasJustFiltered || bMkr_X_WasJustUnfiltered)
                 {
-                    strMarkersToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                    // \x was just filtered OR just unfiltered
+                    if (bMkr_XT_WasJustUnfiltered)
+                    {
+                        // \xt was just unfiltered, so ensure that stand-alone \xt checkbox 
+                        // is unticked/unfiltered.
+                        // To ensure the \xt marker's checkbox is unticked, insert the \xt
+                        // marker in the markersChangedToBeUnfiltered if not already there,
+                        // so that the ResetUSFMFilterStructs() will untick the \xt checkbox.
+                        if (markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
+                            markersChangedToBeUnfiltered += xtMkr;
+                        if (markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
+                            markersChangedToBeFiltered.Replace(xtMkr, wxEmptyString);
+                    }
+                    //else if (bMkr_XT_WasJustFiltered)
+                    //{
+                    //	// Since \xt was already filtered before filtering changes, this option 
+                    //  // isn't a logical possibility.
+                    //}
+                    else
+                    {
+                        // The filtered status of \xt did not change, so ensure that stand-alone 
+                        // \xt checkbox remains ticked/filtered.
+                        // To ensure the \xt marker's checkbox remains ticked, insert the \xt 
+                        // marker in the markersChangedToBeFiltered if not already there, so 
+                        // that the ResetUSFMFilterStructs() will tick the \xt checkbox.
+                        if (markersChangedToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
+                            markersChangedToBeFiltered += xtMkr;
+                        if (markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
+                            markersChangedToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                    }
+                    bFilterChangeInvolvedXorXT = TRUE;
                 }
-                if (strMarkersToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
+            }
+            else
+            {
+                // \xt was NOT filtered (\xt checkbox was unticked) BEORE filter changes.
+                if (bMkr_X_WasJustFiltered || bMkr_X_WasJustUnfiltered)
                 {
-                    strMarkersToBeFiltered += xtMkr;
+                    // \x was just filtered OR just unfiltered
+                    if (bMkr_XT_WasJustFiltered)
+                    {
+                        // \xt was just Filtered, so ensure that stand-alone \xt checkbox 
+                        // is ticked/filtered.
+                        // To ensure the \xt marker's checkbox is ticked, insert the \xt
+                        // marker in the markersChangedToBeFiltered if not already there,
+                        // so that the ResetUSFMFilterStructs() will tick the \xt checkbox.
+                        if (markersChangedToBeFiltered.Find(xtMkr) == wxNOT_FOUND)
+                            markersChangedToBeFiltered += xtMkr;
+                        if (markersChangedToBeUnfiltered.Find(xtMkr) != wxNOT_FOUND)
+                            markersChangedToBeUnfiltered.Replace(xtMkr, wxEmptyString);
+                    }
+                    //else if (bMkr_XT_WasJustUnfiltered)
+                    //{
+                    //	// Since \xt was already unfiltered before filtering changes, this option 
+                    //  // isn't a logical possibility.
+                    //}
+                    else
+                    {
+                        // The filtered status of \xt did not change, so ensure that stand-alone 
+                        // \xt checkbox remains unticked/unfiltered.
+                        // To ensure the \xt marker's checkbox remains unticked, insert the \xt 
+                        // marker in the markersChangedToBeUnfiltered if not already there, so 
+                        // that the ResetUSFMFilterStructs() will untick the \xt checkbox.
+                        if (markersChangedToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
+                            markersChangedToBeUnfiltered += xtMkr;
+                        if (markersChangedToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
+                            markersChangedToBeFiltered.Replace(xtMkr, wxEmptyString);
+                    }
+                    bFilterChangeInvolvedXorXT = TRUE;
                 }
+            }
+            // Now deal with the simple situation - when \xt along was just filtered or 
+            // unfiltered - and the filter status of \x did not change (the above blocks
+            // only set bFilterChangeInvolvedXorXT to TRUE when \x filter status changed).
+            if (bMkr_XT_WasJustFiltered || bMkr_XT_WasJustUnfiltered)
+            {
                 bFilterChangeInvolvedXorXT = TRUE;
             }
-            // Situation 3: The App's markersChangedToBeFiltered string now has \x and NOT \xt, and 
-            // the boolean flag bMkr_XT_WasNotToBeUnfiltered is FALSE.
-            if (bMkr_X_WasJustFiltered
-                && bMkr_XT_WasNotToBeFiltered
-                && m_bMkr_xt_WasUnfilteredBeforeFilteringChange)
-            {
-                // The \x marker has just been FILTERED (its checkbox was ticked) and the \xt marker
-                // was NOT to be filtered, and \xt was unfiltered before the above filtering change.
-                // In this situation we need to remove the "\xt " marker from the strMarkersToBeUFiltered 
-                // string and call ResetUSFMFilterStructs() below with strMarkersToBeFiltered as 2nd 
-                // parameter.
-                if (strMarkersToBeFiltered.Find(xtMkr) != wxNOT_FOUND)
-                {
-                    strMarkersToBeFiltered.Replace(xtMkr, wxEmptyString);
-                }
-                if (strMarkersToBeUnfiltered.Find(xtMkr) == wxNOT_FOUND)
-                {
-                    strMarkersToBeUnfiltered += xtMkr;
-                }
-                bFilterChangeInvolvedXorXT = TRUE;
 
-            }
             if (bFilterChangeInvolvedXorXT)
             {
-                pDoc->ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, strMarkersToBeFiltered,
-                    strMarkersToBeUnfiltered);
+                // whm 24Mar2024 modified. The ResetUSFMFilterStructs() call below should use
+                // the markersChangedToBeFiltered and markersChangedToBeUnfiltered that were
+                // modified above, rather than the strMarkersToBeFiltered and strMarkersToBeUnfiltered.
+                // This will ensure that the stand-alone \xt marker in the Filtering page reflects 
+                // it actual filter status, even after the \x ...\x* span was filtered/unfiltered
+                //pDoc->ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, strMarkersToBeFiltered,
+                //    strMarkersToBeUnfiltered);
+                pDoc->ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, markersChangedToBeFiltered,
+                    markersChangedToBeUnfiltered);
             }
+
 
             // BEW added 29Jul09, use the saved value when the CSourcePhrase which is the
             // active location hasn't changed (the m_strFiltering_SrcText_AtNewLocation
